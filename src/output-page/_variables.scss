@@ -1,0 +1,48 @@
+
+
+$shadowSmall: 0px 2px 9px;
+$shadowMedium: 0px 8px 20px;
+$thumbnailSize: 180px;
+$containerSize: 900px;
+
+$themes: (
+  light: (
+		audibleOrange: #f79a1c,
+    backColor: #f9f8f8,
+    frontColor: #212325,
+    outerColor: #999,
+    shadowSmall: $shadowSmall rgba(0,0,0,0.15),
+    shadowMedium: $shadowMedium rgba(0,0,0,0.1),
+  ),
+  dark: (
+		audibleOrange: #f79a1c,
+    backColor: #15171a,
+    frontColor: #f9f8f8,
+    outerColor: #000,
+    shadowSmall: $shadowSmall rgba(0,0,0,0.6),
+    shadowMedium: $shadowMedium rgba(0,0,0,0.6),
+  ),
+);
+
+/*
+ * Implementation of themes
+ */
+@mixin themify($themes: $themes) {
+  @each $theme, $map in $themes {
+
+    .theme-#{$theme} & {
+      $theme-map: () !global;
+      @each $key, $submap in $map {
+        $value: map-get(map-get($themes, $theme), '#{$key}');
+        $theme-map: map-merge($theme-map, ($key: $value)) !global;
+      }
+
+      @content;
+      $theme-map: null !global;
+    }
+
+  }
+}
+@function themed($key) {
+  @return map-get($theme-map, $key);
+}

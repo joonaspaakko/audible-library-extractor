@@ -1,0 +1,70 @@
+{
+  "name": "Audible Library Extractor",
+  "description": "Extracts your Audible library.......",
+  "manifest_version": 2,
+  "icons": {
+    "16": "assets/icons/16.png",
+    "48": "assets/icons/48.png",
+    "128": "assets/icons/128.png"
+  },
+  "page_action": {
+    "default_icons": {
+      "16": "assets/icons/16.png",
+      "48": "assets/icons/48.png",
+      "128": "assets/icons/128.png"
+    },
+    "default_title": "You need to be in the audible website to start extracting."
+  },
+  "permissions": [
+    "tabs",
+    "storage",
+		"unlimitedStorage"
+  ],
+  "web_accessible_resources": [
+    "assets/images/audible-library-extractor-logo.svg",
+    "assets/images/loader-64px.gif",
+		"assets/icons/16.png",
+    "assets/css/fontawesome-webfonts/fa-brands-400.eot",
+    "assets/css/fontawesome-webfonts/fa-brands-400.svg",
+    "assets/css/fontawesome-webfonts/fa-brands-400.ttf",
+    "assets/css/fontawesome-webfonts/fa-brands-400.woff",
+    "assets/css/fontawesome-webfonts/fa-brands-400.woff2",
+    "assets/css/fontawesome-webfonts/fa-regular-400.eot",
+    "assets/css/fontawesome-webfonts/fa-regular-400.svg",
+    "assets/css/fontawesome-webfonts/fa-regular-400.ttf",
+    "assets/css/fontawesome-webfonts/fa-regular-400.woff",
+    "assets/css/fontawesome-webfonts/fa-regular-400.woff2",
+    "assets/css/fontawesome-webfonts/fa-solid-900.eot",
+    "assets/css/fontawesome-webfonts/fa-solid-900.svg",
+    "assets/css/fontawesome-webfonts/fa-solid-900.ttf",
+    "assets/css/fontawesome-webfonts/fa-solid-900.woff",
+    "assets/css/fontawesome-webfonts/fa-solid-900.woff2"
+  ],
+  "background": {
+    "scripts": ["background.js"],
+    "persistent": false
+  },
+	"content_scripts": [{
+  	"run_at": "document_start",
+      "matches": [
+        "*://*.audible.com/library*",
+        "*://*.audible.com/lib*",
+        "*://*.audible.ca/library*",
+        "*://*.audible.ca/lib*",
+        "*://*.audible.co.uk/library*",
+        "*://*.audible.co.uk/lib*",
+        "*://*.audible.de/library*",
+        "*://*.audible.de/lib*",
+        "*://*.audible.it/library*",
+        "*://*.audible.it/lib*",
+        "*://*.audible.com.au/library*",
+        "*://*.audible.com.au/lib*",
+        "*://*.audible.in/library*",
+        "*://*.audible.in/lib*",
+        "*://*.audible.co.jp/library*",
+        "*://*.audible.co.jp/lib*"
+      ],
+    "js": ["content-script/audible-library-extractor-content-script.js"],
+    "css": ["content-script/audible-library-extractor-content-script.css"]
+  }]
+}
