@@ -55,9 +55,9 @@ if ( inTheLibrary ) {
       
       // https://developer.chrome.com/apps/storage
       // Permission: "storage"
-      browser.storage.local.get(['library']).then( data => {
-        var oldLibraryData = data.library;
-        audibleLibraryExtractor( oldLibraryData, libraryStyle );
+      browser.storage.local.get(null).then( data => {
+        console.log( data );
+        audibleLibraryExtractor( data, libraryStyle );
 			});
         
     });
@@ -70,9 +70,8 @@ if ( inTheLibrary ) {
       if ( message.iconClicked ) {
         // https://developer.chrome.com/apps/storage
         // Permission: "storage"
-        browser.storage.local.get(['library']).then( data => {
-          var oldLibraryData = data.library;
-          audibleLibraryExtractor( oldLibraryData, libraryStyle );
+        browser.storage.local.get(null).then( data => {
+          audibleLibraryExtractor( data, libraryStyle );
         });
       }
     });
@@ -82,6 +81,37 @@ if ( inTheLibrary ) {
 
 
 function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
+  
+  
+  if ( _.isEmpty( oldLibraryData ) ) {
+    oldLibraryData = null;
+  }
+  else {
+    
+    // Merge storage book chunks into one array
+    oldLibraryData = (function( data ) {
+      console.log( data );
+      var chunkKeys = [];
+      var chunkLength = data[ 'books-chunk-length' ];
+      for (var i = 0; i < chunkLength; i++) {
+        chunkKeys.push( 'books-chunk-'+i  );
+      }
+      var chunks = _.pick(data, chunkKeys);
+      var books = _.values( chunks );
+      books = _.flatten( books );
+      // delete chunkLength;
+      // console.log( chunkLength );
+      // var test = _.values( data );
+      // console.log( test );
+      return {
+        library: {
+          books: books,
+          storePageMissing: data[ 'storage-page-missing' ]
+        }
+      };
+    }( oldLibraryData ));
+    
+  }
   
   var base = $('<div id="audible-library-extractor"></div>').prependTo('body');
   
@@ -97,7 +127,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       //'https://www.audible.com/library/titles?ref=a_library_t_c6_pageNum_1&pf_rd_p=916cc708-f98b-49cb-b322-8769f6bef92e&pf_rd_r=1YA95WP9G6GQBKQZ28AT&sortBy=PURCHASE_DATE.dsc&pageSize=50&page=2'
       //'https://www.audible.com/library/titles?ref=a_library_t_c6_pageNum_3&pf_rd_p=916cc708-f98b-49cb-b322-8769f6bef92e&pf_rd_r=1YA95WP9G6GQBKQZ28AT&sortBy=PURCHASE_DATE.dsc&pageSize=50&page=5'
       // bookASINs: [],
-      storageDataExists: (!_.isEmpty( oldLibraryData )) ? oldLibraryData : false,
+      storageDataExists: oldLibraryData ? true : false,
       library: {
         books: [],
         storePageMissing: []
@@ -131,13 +161,13 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       },
       init_update: function() {
         
-        if ( !_.isEmpty( oldLibraryData ) ) this.library = oldLibraryData;
+        if ( oldLibraryData ) this.library = oldLibraryData;
         alert( 'Not available' );
         
       },
       init_output: function() {
         
-        if ( !_.isEmpty( oldLibraryData ) ) this.library = oldLibraryData;
+        if ( oldLibraryData ) this.library = oldLibraryData;
         this.goToOutputPage();
         
       },
@@ -540,7 +570,20 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       goToOutputPage: function() {
         
         var vue = this;
-        var data = { library: vue.library };
+        
+        var bookChunks = _.chunk( vue.library.books, 50);
+        var data = (function( chunks) {
+          var obj = {
+            'storage-page-missing': vue.library.storePageMissing,
+            'books-chunk-length': 0
+          };
+          chunks.forEach((chunk, i ) => {
+            obj[ 'books-chunk-'+i ] = chunk;
+            ++obj[ 'books-chunk-length' ];
+          });
+          return obj;
+        }( bookChunks, vue ));
+        
         browser.storage.local.set( data ).then( () => {
           browser.runtime.sendMessage({ action: 'openOutput' });
         });
