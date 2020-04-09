@@ -5,7 +5,7 @@ Browser extension that extracts your Audible library as a locally viewable web g
 
 1. Go to `chrome://extensions`
 2. Turn on the developer mode from the top right
-3. Drag the zip file in the browser window to install
+3. [`Download`](https://github.com/joonaspaakko/audible-library-extractor/releases)/drag the zip file in the browser window to install
 4. Go to `audible.com` → login → open your library
 5. In the library, you’ll find an orange button at the top right above where the list of books starts, in the filter section. Click it.
 6. In the next view the only button that doesn't work yet is the update button.
