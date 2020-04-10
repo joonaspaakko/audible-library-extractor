@@ -51,8 +51,8 @@
         </div>
       </div>
       
-      <ale-carousel v-if="book.peopleAlsoBought" :books="book.peopleAlsoBought" type="peopleAlsoBought"></ale-carousel>
-      <ale-carousel v-if="book.moreLikeThis" :books="book.moreLikeThis" type="moreLikeThis"></ale-carousel>
+      <ale-carousel v-if="book.peopleAlsoBought" :gallery="gallery" :books="book.peopleAlsoBought" type="peopleAlsoBought"></ale-carousel>
+      <ale-carousel v-if="book.moreLikeThis" :gallery="gallery" :books="book.moreLikeThis" type="moreLikeThis"></ale-carousel>
       
     </div> <!-- .inner-wrap -->
   </div> <!-- #book-info-container -->
@@ -61,7 +61,7 @@
 
 <script>
 import aleCarousel from './aleCarousel'
-const GreenAudioPlayer = require('green-audio-player');
+// const GreenAudioPlayer = require('green-audio-player');
 
 export default {
   name: 'aleBookdetails',
@@ -140,7 +140,7 @@ export default {
     width: 100%;
     position: relative;
     z-index: 0;
-    > div {
+    > .top {
       display: flex;
       flex-direction: row;
       justify-content: start;

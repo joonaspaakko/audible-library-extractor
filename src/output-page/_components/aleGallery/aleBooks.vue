@@ -56,10 +56,14 @@ export default {
       
       if ( this.gallery.details.open ) {
         this.$nextTick(() => {
+          if ( detailsIndex !== clickedIndex ) {
+            this.gallery.details.sliderMount = true;
+          }
           this.calculateDetailsPosition( e, this, clickedIndex, detailsIndex, coverViewportOffset );
         });
       }
       
+			
     },
     
     calculateDetailsPosition: function( e, comp, clickedIndex, detailsIndex, coverViewportOffset ) {

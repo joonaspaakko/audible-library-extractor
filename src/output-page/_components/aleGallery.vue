@@ -24,11 +24,13 @@ export default {
       gallery: {
         details: {
           open: false,
-          index: 0
+          index: 0,
+          slider: null,
+          sliderMount: false,
         }
       }
     }
-  },
+  }
 }
 </script>
 

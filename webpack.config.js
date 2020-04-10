@@ -77,6 +77,14 @@ const config = {
     }),
     new CopyPlugin([
       { from: 'assets', to: 'assets' },
+      {
+        from: 'output-page/_components/aleGallery/ajax-loader.gif',
+        to: 'images/ajax-loader.gif'
+      },
+      {
+        from: 'output-page/_components/aleGallery/fonts',
+        to: 'fonts'
+      },
       { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
       {
         from: 'manifest.json',
