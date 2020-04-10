@@ -1,6 +1,9 @@
 import Vue from 'vue'
 import App from './App'
 
+import VueLazyload from 'vue-lazyload'
+Vue.use(VueLazyload)
+
 const axios = require('axios');
 const Url = require('domurl');
 const _ = require('lodash');

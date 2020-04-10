@@ -13,7 +13,7 @@
       </div>
       <div class="ale-cover" >
         <img
-          :src="book.coverUrl"
+          v-lazy="book.coverUrl"
           :data-title="book.title"
           :data-asin="book.asin"
           :data-authors="stringifyArray( book.authors, 'name' )"
