@@ -35,8 +35,10 @@ chrome.storage.local.get(null, function( data ) {
       // console.log( test );
       return {
         library: {
-          books: books,
-          storePageMissing: data[ 'storage-page-missing' ]
+          domainExtension: data[ 'domain-extension' ],
+          storePageMissing: data[ 'storage-page-missing' ],
+          booksChunkLength : data[ 'books-chunk-length' ],
+          books: books
         }
       };
     }( data ));

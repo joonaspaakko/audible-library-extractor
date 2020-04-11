@@ -58,14 +58,21 @@ export default {
   			lazyLoad: 'ondemand',
 			  responsive: [
 					{
-			      breakpoint: 900,
+			      breakpoint: 750,
 			      settings: {
 			        slidesToShow: 3,
 						  slidesToScroll: 3
 			      }
 			    },
 					{
-			      breakpoint: 300,
+			      breakpoint: 600,
+			      settings: {
+			        slidesToShow: 2,
+						  slidesToScroll: 2
+			      }
+			    },
+					{
+			      breakpoint: 400,
 			      settings: "unslick" // destroys slick
 			    }
 				]
@@ -107,9 +114,6 @@ export default {
 
 @import './node_modules/slick-carousel/slick/slick.scss';
 @import './node_modules/slick-carousel/slick/slick-theme.scss';
-
-
-
 
 #ale-bookdetails div.ale-carousel {
 	display: block;

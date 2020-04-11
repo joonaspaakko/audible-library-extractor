@@ -32,35 +32,35 @@ body {
     background-color: themed('backColor');
   }
 }
-
-.theme-dark body {
-	-webkit-animation: color-change-dark 400ms linear;
-	animation: color-change-dark 400ms linear;
-}
-.theme-light body {
-	-webkit-animation: color-change-light 400ms linear;
-	animation: color-change-light 400ms linear;
-}
-
-$light: #f9f8f8;
-$dark: #15171a;
-
-@-webkit-keyframes color-change-dark {
- 0% { background-color: $light; }
- 100% { background-color: $dark; }
-}
-@keyframes color-change-dark {
- 0% { background-color: $light; }
- 100% { background-color: $dark; }
-}
-
-@-webkit-keyframes color-change-light {
- 0% { background-color: $dark; }
- 100% { background-color: $light; }
-}
-@keyframes color-change-light {
- 0% { background-color: $dark; }
- 100% { background-color: $light; }
-}
+// 
+// .theme-dark body {
+// 	-webkit-animation: color-change-dark 400ms linear;
+// 	animation: color-change-dark 400ms linear;
+// }
+// .theme-light body {
+// 	-webkit-animation: color-change-light 400ms linear;
+// 	animation: color-change-light 400ms linear;
+// }
+//
+// $light: #f9f8f8;
+// $dark: #15171a;
+//
+// @-webkit-keyframes color-change-dark {
+//  0% { background-color: $light; }
+//  100% { background-color: $dark; }
+// }
+// @keyframes color-change-dark {
+//  0% { background-color: $light; }
+//  100% { background-color: $dark; }
+// }
+//
+// @-webkit-keyframes color-change-light {
+//  0% { background-color: $dark; }
+//  100% { background-color: $light; }
+// }
+// @keyframes color-change-light {
+//  0% { background-color: $dark; }
+//  100% { background-color: $light; }
+// }
 
 </style>

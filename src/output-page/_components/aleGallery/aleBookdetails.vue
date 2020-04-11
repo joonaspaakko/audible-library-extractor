@@ -12,34 +12,34 @@
             </a>
           </div>
           <div class="basic-details">
-            <div class="authors">
+            <div class="authors" v-if="stringifyArray( book.authors )">
               <strong class="label">Author:</strong> <span v-html="stringifyArray( book.authors )"></span>
             </div>
-            <div class="narrators">
+            <div class="narrators" v-if="stringifyArray( book.narrators )">
               <strong class="label">Narrator:</strong> <span v-html="stringifyArray( book.narrators )"></span>
             </div>
-            <div class="series">
+            <div class="series" v-if="stringifyArray( book.series )">
               <strong class="label">Series:</strong> <span v-html="stringifyArray( book.series )"></span>
             </div>
-            <div class="categories">
+            <div class="categories" v-if="stringifyArray( book.categories )">
               <strong class="label">Categories:</strong> <span v-html="stringifyArray( book.categories, ' > ' )"></span>
             </div>
-            <div class="own-rating">
-              <strong class="label">My rating:</strong> <span>{{ book.ownRating }}</span>
+            <div class="own-rating" v-if="ownRating">
+              <strong class="label">My rating:</strong> <span>{{ ownRating }}</span>
             </div>
-            <div class="progress">
+            <div class="progress" v-if="book.progress">
               <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
             </div>
-            <div class="publisher">
+            <div class="publisher" v-if="book.publisher">
               <strong class="label">Publisher:</strong> <span>{{ book.publisher }}</span>
             </div>
-            <div class="rating">
+            <div class="rating" v-if="book.rating">
               <strong class="label">Overall rating:</strong> <span>{{ book.rating }} {{ book.ratings }}</span>
             </div>
-            <div class="release-date">
+            <div class="release-date" v-if="book.releaseDate">
               <strong class="label">Release date:</strong> <span>{{ book.releaseDate }}</span>
             </div>
-            <div class="book-numbers">
+            <div class="book-numbers" v-if="stringifyArray( book.numbers )">
               <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.numbers )"></span>
             </div>
           </div>
@@ -71,23 +71,38 @@ export default {
   props: ['library', 'gallery'],
   computed: {
     book: function() {
-      return this.library.books[ this.gallery.details.index ];
-    }
+      return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
+    },
+		ownRating: function() {
+      var book = this.library.books[ this.gallery.details.index ];
+      var newStyle = _.has(book.ownRating, 'newStyleRating');
+      var value = newStyle ? book.ownRating.newStyleRating : book.ownRating;
+			return value;
+		},
+		searchWatcher: function() {
+			return this.gallery.fuseResults;
+		}
   },
   methods: {
     
     stringifyArray: function( array, delimiter ) {
       if ( array ) {
         var html = '';
-        array.forEach((author, index ) => {
-          html += '<a href="'+ author.url +'" target="_blank">'+ author.name +'</a>';
+        array.forEach((item, index ) => {
+          html += '<a href="'+ item.url +'" target="_blank">'+ item.name +'</a>';
           if ( index < array.length-1 ) html += (delimiter || ', ');
         });
         return html;
       }
     },
   
-  }
+  },
+  watch: {
+		searchWatcher: function( sliderMount ) {
+			this.gallery.details.open = false;
+			this.gallery.details.index = -1;
+		}
+	},
 }
 </script>
 
@@ -107,7 +122,7 @@ export default {
   font-size: 14px;
   padding: 40px 0;
   margin-top: 12px;
-  margin-bottom: 15px;
+  margin-bottom: 35px;
 	position: relative;
 	left: 50%;
 	right: 50%;

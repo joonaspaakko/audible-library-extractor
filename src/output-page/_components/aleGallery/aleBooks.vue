@@ -3,7 +3,7 @@
     <div
       class="ale-book"
       :class="{ 'details-open': gallery.details.open && gallery.details.index === index  }"
-      v-for="(book, index) in library.books"
+      v-for="(book, index) in booksArray"
 			:key="index"
       @click="detailsToggle( $event, index )"
     >
@@ -29,6 +29,11 @@
 export default {
   name: 'aleBooks',
   props: ['library', 'gallery'],
+  computed: {
+    booksArray() {
+      return this.gallery.fuseResults || this.library.books;
+    }
+  },
   methods: {
     
     stringifyArray: function( array, key ) {
@@ -43,6 +48,7 @@ export default {
       var coverViewportOffset = $( e.target ).offset().top - $(document).scrollTop();
       
       // Open if closed
+			var detailsClosed = !this.gallery.details.open ? true : false;
 			if ( !this.gallery.details.open ) {
 				this.gallery.details.open = true;
 			}
@@ -56,7 +62,7 @@ export default {
       
       if ( this.gallery.details.open ) {
         this.$nextTick(() => {
-          if ( detailsIndex !== clickedIndex ) {
+          if ( detailsIndex !== clickedIndex || detailsClosed ) {
             this.gallery.details.sliderMount = true;
           }
           this.calculateDetailsPosition( e, this, clickedIndex, detailsIndex, coverViewportOffset );

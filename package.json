@@ -1,6 +1,6 @@
 {
   "name": "audible-library-extractor",
-  "version": "0.0.1",
+  "version": "0.0.3",
   "description": "Extracts your Audible library...",
   "author": "Joonas Pääkkö <paakkoj@gmail.com>",
   "engines": {
@@ -25,6 +25,7 @@
     "lodash": "^4.17.15",
     "slick-carousel": "^1.8.1",
     "vue": "^2.6.10",
+    "vue-fuse": "^2.2.1",
     "vue-lazyload": "^1.3.3",
     "webextension-polyfill": "^0.3.1"
   },

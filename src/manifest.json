@@ -17,7 +17,8 @@
   },
   "permissions": [
     "tabs",
-    "storage"
+    "storage",
+		"unlimitedStorage"
   ],
   "web_accessible_resources": [
     "assets/images/audible-library-extractor-logo.svg",

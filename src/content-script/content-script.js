@@ -21,7 +21,7 @@ Vue.prototype.$browser = global.browser;
 // Clear Chrome's local storage
 // browser.storage.local.clear(); console.log( 'Chrome storage CLEARED' );
 
-var inTheLibrary = window.location.pathname === '/library/titles' || window.location.pathname === '/library' || window.location.pathname === '/lib';
+const inTheLibrary = window.location.pathname === '/library/titles' || window.location.pathname === '/library' || window.location.pathname === '/lib';
 if ( inTheLibrary ) {
   $(function() {
     
@@ -56,8 +56,7 @@ if ( inTheLibrary ) {
       // https://developer.chrome.com/apps/storage
       // Permission: "storage"
       browser.storage.local.get(null).then( data => {
-        console.log( data );
-        audibleLibraryExtractor( data, libraryStyle );
+        audibleLibraryExtractor( (_.isEmpty( data ) ? null : true), libraryStyle );
 			});
         
     });
@@ -71,7 +70,7 @@ if ( inTheLibrary ) {
         // https://developer.chrome.com/apps/storage
         // Permission: "storage"
         browser.storage.local.get(null).then( data => {
-          audibleLibraryExtractor( data, libraryStyle );
+          audibleLibraryExtractor( (_.isEmpty( data ) ? null : true), libraryStyle );
         });
       }
     });
@@ -82,40 +81,9 @@ if ( inTheLibrary ) {
 
 function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
   
+  $('<div id="audible-library-extractor"></div>').prependTo('body');
   
-  if ( _.isEmpty( oldLibraryData ) ) {
-    oldLibraryData = null;
-  }
-  else {
-    
-    // Merge storage book chunks into one array
-    oldLibraryData = (function( data ) {
-      console.log( data );
-      var chunkKeys = [];
-      var chunkLength = data[ 'books-chunk-length' ];
-      for (var i = 0; i < chunkLength; i++) {
-        chunkKeys.push( 'books-chunk-'+i  );
-      }
-      var chunks = _.pick(data, chunkKeys);
-      var books = _.values( chunks );
-      books = _.flatten( books );
-      // delete chunkLength;
-      // console.log( chunkLength );
-      // var test = _.values( data );
-      // console.log( test );
-      return {
-        library: {
-          books: books,
-          storePageMissing: data[ 'storage-page-missing' ]
-        }
-      };
-    }( oldLibraryData ));
-    
-  }
-  
-  var base = $('<div id="audible-library-extractor"></div>').prependTo('body');
-  
-  var ale = new Vue({
+  new Vue({
     render: h => { return h(App); },
     el: '#audible-library-extractor',
     data: {
@@ -129,6 +97,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       // bookASINs: [],
       storageDataExists: oldLibraryData ? true : false,
       library: {
+        domainExtension: window.location.hostname.replace('www.audible',''),
         books: [],
         storePageMissing: []
       },
@@ -142,8 +111,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
     },
     beforeMount: function() {
       
-      var vue = this;
-      
+      const vue = this;
       
       vue.$root.$on('nextStep', function( step ) {
         vue.nextStep = step;
@@ -161,24 +129,59 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       },
       init_update: function() {
         
-        if ( oldLibraryData ) this.library = oldLibraryData;
-        alert( 'Not available' );
+        browser.storage.local.get(null).then( data => {
+          this.library = processOldLibraryData( data );
+          alert( 'Not available' );
+        });
         
       },
       init_output: function() {
         
-        if ( oldLibraryData ) this.library = oldLibraryData;
-        this.goToOutputPage();
+        this.goToOutputPage( true );
+        
+      },
+      
+      processOldLibraryData: function( oldLibraryData ) {
+        
+        if ( _.isEmpty( oldLibraryData ) ) {
+          oldLibraryData = null;
+        }
+        else {
+          
+          // Merge storage book chunks into one array
+          return (function( data ) {
+            console.log( data );
+            var chunkKeys = [];
+            const chunkLength = data[ 'books-chunk-length' ];
+            for (const i = 0; i < chunkLength; i++) {
+              chunkKeys.push( 'books-chunk-'+i  );
+            }
+            var chunks = _.pick(data, chunkKeys);
+            var books = _.values( chunks );
+            chunks = null;
+            books = _.flatten( books );
+            return {
+              library: {
+                domainExtension: data[ 'domain-extension' ],
+                storePageMissing: data[ 'storage-page-missing' ],
+                booksChunkLength : data[ 'books-chunk-length' ],
+                books: books,
+              }
+            };
+          }( oldLibraryData ));
+          
+        }
         
       },
       
       getLibraryPagesLength: function() {
         
-        var vue = this;
+        const vue = this;
         axios.get( vue.libraryPage ).then(function( response ) {
           
           var audible = $("<div>").html( response.data );
           vue.progress.pageSize = audible.find('.pageNumberElement:last').data('value');
+          audible = null;
           
           vue.getInitialLibraryData1();
           
@@ -188,9 +191,9 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       
       getInitialLibraryData1: function() {
         
-        var vue = this;
+        const vue = this;
         
-        var libraryPages = (function( pageSize ) {
+        const libraryPages = (function( pageSize ) {
           var libUrl = new Url( vue.libraryPage );
           var pages = [];
           for (var page = 1; page <= pageSize; page++) {
@@ -207,7 +210,10 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           step: function( response ) {
             
             var audible = $("<div>").html( response.data );
-            response.data = vue.getInitialLibraryData2( audible );
+            var books = vue.getInitialLibraryData2( audible );
+            response.data = books;
+            audible = null;
+            books = null;
             
           },
           done: function( responses ) {
@@ -249,7 +255,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       
       getInitialLibraryData2: function( audible ) {
         
-        var vue = this;
+        const vue = this;
         var libraryWrapper = audible.find('#adbl-library-content-main');
         
         var books = [];
@@ -257,14 +263,13 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
         // Old library style
         if ( vue.libraryStyle === 'old' ) {
           var titleRows = libraryWrapper.find('> table > tbody > tr.bc-table-row').not(':first').not(':last');
+          var libraryWrapper = null;
+          
           $( titleRows ).each( function() {
             
-            var _thisRow = $(this);
-            var asin = _thisRow.attr('id').replace('adbl-library-content-row-','');
-            // vue.bookASINs.push( asin );
-            
+            const _thisRow = $(this);
             var book = {};
-            book.asin = asin;
+            book.asin = _thisRow.attr('id').replace('adbl-library-content-row-','');
             book.title = _thisRow.find('> td:nth-child(2) > div > span > span > ul > li:nth-child(1) > a').text().trim().replace(/\s+/g,' ');
             book.dateAdded = _thisRow.find('> td:nth-child(5) > div > span > div > div > span').text().trim();
             book.url = window.location.origin + _thisRow.find('> td:nth-child(2) .bc-list > li:first a').attr('href');
@@ -282,23 +287,24 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             book.ownRating = vue.getOwnRating( _thisRow.find('> td:nth-child(6) > div > span > div > div > div > .bc-row-responsive').not(':last') );
             
             books.push( book );
+            audible = null;
+            book = null;
             ++vue.progress.titles;
             
           });
+          titleRows = null;
         }
         // new library style
         else {
           
           var titleRows = libraryWrapper.find('> .adbl-library-content-row');
+          libraryWrapper = null;
           
           $( titleRows ).each( function() {
             
-            var _thisRow = $(this);
-            var asin = _thisRow.attr('id').replace('adbl-library-content-row-','');
-            // vue.bookASINs.push( asin );
-            
+            const _thisRow = $(this);
             var book = {};
-            book.asin = asin;
+            book.asin = _thisRow.attr('id').replace('adbl-library-content-row-','');
             book.title = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span').text().trim().replace(/\s+/g,' ');
             book.dateAdded = null;
             book.url = window.location.origin + _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').attr('href');
@@ -311,16 +317,20 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             book.downloadUrl = _thisRow.find('.adbl-lib-action-download > a').attr('href');
             book.downloaded = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.adbl-library-action.bc-col-2.bc-col-offset-1 > div:nth-child(4) > span').length > 0;
             var ratingWrap = _thisRow.find('div.bc-rating-stars.adbl-prod-rate-review-bar.adbl-prod-rate-review-bar-overall');
-            var ratingEl = ratingWrap.find('.bc-rating-star:checked:last');
+            var ratingEl = ratingWrap.find('span.bc-rating-star[aria-checked="true"]:last');
             book.ownRating = {
-              text: ratingEl.data('text'),
-              rating: ratingEl.data('index')
+              newStyleRating: ratingEl.length > 0 ? ratingEl.data('index') : null
             };
+            ratingWrap = null;
+            ratingEl = null;
             
             books.push( book );
+            audible = null;
+            book = null;
             ++vue.progress.titles;
             
           });
+          titleRows = null;
         }
 				
 				return books;
@@ -328,21 +338,22 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       },
       
       getOwnRating: function( ratingWrappers ) {
-        var ratings = {};
+        const ratings = {};
         ratingWrappers.each(function() {
-          var _this = $(this);
+          const _this = $(this);
           var ratingType = _this.find('> div:first h3').text().trim();
           ratings[ ratingType ] = _this.find('> div:last .bc-rating-star[aria-checked="true"]').data('index') || 0;
+          ratingType = null;
         });
         return ratings;
       },
       
       getBookData1: function() {
         
-        var vue = this;
+        const vue = this;
         
         // var bookASINs = vue.bookASINs;
-        var bookURLs = _.map( vue.library.books, 'url' );
+        const bookURLs = _.map( vue.library.books, 'url' );
         
         // bookASINs.length = 3;
         // bookURLs.length = 3;
@@ -361,12 +372,14 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
               var audible = $("<div>").html( response.data );
               book.changesSinceAdded = response.config.url !== response.request.responseURL;
               vue.getBookData2( audible, book );
+              audible = null;
             }
             
+            book = null;
             ++vue.progress.step;
             
           },
-          done: function( responses ) {
+          done: function() {
             
             vue.goToOutputPage();
             
@@ -377,45 +390,55 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       
       getBookData2: function( audible, book ) {
         
-        var vue = this;
-        var body = audible.find('> .adbl-page');
+        const vue = this;
+        // var body = audible.find('> .adbl-page');
         // This is the type of page, that Audible uses exclusively for their own titles with like the big hero image at the top with some elementse on top of it.
-        var featuredBook = body.find('.dlp-hero').length > 0;
-        var center1 = body.find('#center-1');
-        var center1div = body.find('#center-1 > div > div > div');
+        var featuredBook = audible.find('.dlp-hero').length > 0;
         // Normal layout...
-        if ( body.find('.productPublisherSummary').length > 0 ) {
-          book.added = body.find('#adbl-buy-box-purchase-date > span').text().trim().replace(/\s+/g,' ');
+        if ( audible.find('.productPublisherSummary').length > 0 ) {
+          var center1div = audible.find('#center-1 > div > div > div');
+          book.added = audible.find('#adbl-buy-box-purchase-date > span').text().trim().replace(/\s+/g,' ');
           var titleElem = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li:nth-child(1) > h1');
           book.title = titleElem.length > 0 ? center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li:nth-child(1) > h1').text().trim() : center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li.bc-list-item.bc-spacing-small > h1').text().trim();
+          titleElem = null;
           book.rating = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li.bc-list-item.ratingsLabel > span:nth-child(3)').text().trim();
           book.ratings = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li.bc-list-item.ratingsLabel > a').text().trim();
-          book.summary = body.find('.productPublisherSummary > div > .bc-box:first').html().trim().replace(/\s+/g,' ');
+          book.summary = audible.find('.productPublisherSummary > div > .bc-box:first').html().trim().replace(/\s+/g,' ');
           var col5ul = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul');
+          center1div = null;
           var releaseDateLabel = col5ul.find('> li.bc-list-item.releaseDateLabel');
           book.releaseDate = releaseDateLabel.length > 0 ? releaseDateLabel.text().trim().split(':')[1].trim() : null;
+          releaseDateLabel = null;
           book.publisher = col5ul.find('> li.bc-list-item.publisherLabel > a').text().trim();
           book.authors = vue.getArray( col5ul.find('> li.bc-list-item.authorLabel > a') );
           if ( !book.changesSinceAdded ) book.narrators = vue.getArray( col5ul.find('> li.bc-list-item.narratorLabel > a') );
           book.series = vue.getArray( col5ul.find('> li.bc-list-item.seriesLabel > a') );
           book.bookNumbers = vue.getBookNumbers( col5ul.find('> li.bc-list-item.seriesLabel') );
+          col5ul = null;
           book.series = vue.supplementArray( book.series, book.bookNumbers );
-          book.categories = vue.getArray( body.find('#center-1 > div > div > nav > a') );
-          book.sample = body.find('#sample-player-'+ book.id +' > button').data('mp3');
+          book.categories = vue.getArray( audible.find('#center-1 > div > div > nav > a') );
+          book.sample = audible.find('#sample-player-'+ book.id +' > button').data('mp3');
         }
         // Audible original layout with the large image in the background...
         else if ( featuredBook ) {
-          book.added = body.find('#adbl-buy-box-purchase-date > span').text().trim().replace(/\s+/g,' ');
+          featuredBook = null;
+          var center1 = audible.find('#center-1');
+          book.added = audible.find('#adbl-buy-box-purchase-date > span').text().trim().replace(/\s+/g,' ');
           var heroContChild1 = center1.find('> div.bc-box > div > div > div > div.hero-content > div > div > div:nth-child(1)');
           book.title =  heroContChild1.find('> h1').text().trim();
           book.rating = heroContChild1.find('> div.bc-section.ratingsLabel > span.bc-text.bc-color-base').text().trim();
           book.ratings = heroContChild1.find('> div.bc-section.ratingsLabel > a').text().trim();
+          heroContChild1 = null;
           var bcContDiv = center1.find('> div.bc-container > div');
+          center1 = null;
           var summaryHtml = bcContDiv.find('> div.bc-col-responsive.bc-col-6 > span').html();
           book.summary = summaryHtml ? summaryHtml.trim().replace(/\s+/g,' ') : null;
+          summaryHtml = null;
           var child2ul = bcContDiv.find('> div:nth-child(2) > span > ul');
+          bcContDiv = null;
           var releaseDateLabel = child2ul.find('> li.bc-list-item.releaseDateLabel');
           book.releaseDate = releaseDateLabel.length > 0 ? releaseDateLabel.text().trim().split(':')[1].trim() : null;
+          releaseDateLabel = null;
           book.publisher = child2ul.find('> li.bc-list-item.publisherLabel > a').text().trim();
           book.authors = vue.getArray( child2ul.find('> li.bc-list-item.authorLabel > a') );
           book.narrators = vue.getArray( child2ul.find('> li.bc-list-item.narratorLabel > a') );
@@ -423,9 +446,11 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           book.bookNumbers = vue.getBookNumbers( child2ul.find('> li.bc-list-item.seriesLabel') );
           book.series = vue.supplementArray( book.series, book.bookNumbers );
           book.categories = vue.getArray( child2ul.find('> li.bc-list-item.categoriesLabel > a') );
-          var languageLabel = body.find('#center-1 > div.bc-container > div > div:nth-child(2) > span > ul > li.bc-list-item.languageLabel');
+          child2ul = null;
+          var languageLabel = audible.find('#center-1 > div.bc-container > div > div:nth-child(2) > span > ul > li.bc-list-item.languageLabel');
           book.language = languageLabel.length > 0 ? languageLabel.text().split(':')[1].trim() : null;
-          book.sample = body.find('#sample-player-'+ book.id +' > button').data('mp3');
+          languageLabel = null;
+          book.sample = audible.find('#sample-player-'+ book.id +' > button').data('mp3');
         }
         
         book.peopleAlsoBought = vue.carouselDataFetch( audible, 5 );
@@ -434,7 +459,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       },
       
       getArray: function( elements ) {
-        var objArray = [];
+        const objArray = [];
         elements.each( function() {
           objArray.push({
             name: $(this).text().trim(),
@@ -456,8 +481,9 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
         clone.find('a').remove();
         var seriesString = clone.text().trim().replace(/\s+/g,' ').split(':')[1];
         clone.remove();
+        clone = null;
         if ( seriesString ) {
-          var seriesArray = seriesString.split(', ').filter(function ( v ) {
+          const seriesArray = seriesString.split(', ').filter(function ( v ) {
             return v.trim() ? true : false;
           });
           return seriesArray.length > 0 ? seriesArray : null;
@@ -478,7 +504,9 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
         if ( carousel.length > 0 ) {
           
           var carouselItem = carousel.find('.responsive-product-square');
+          carousel = null;
           var flyout = carouselItem.next('[id^=product-list-flyout]');
+          carouselItem = null;
           var popover = flyout.find('.bc-popover-inner');
 
           popover.each(function() {
@@ -490,7 +518,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
               cover.replace('._SL5_.','._SL320_.');
             else
               cover = null;
-            
+
             var url = $(this).closest('[id^=product-list-flyout]').parent().find('[id^="product-carousel-image"]').parent('a').attr('href');
             if ( url ) url = window.location.origin + url;
             
@@ -515,7 +543,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             // Bridged
             var bridged = top.find('li:nth-child(6)').text();
             if ( bridged ) bridged = bridged.trim();
-            
+            top = null;
             // Ratings
             var ratings = $(this).find('span:nth-child(2) ul');
             // Overall rating
@@ -533,7 +561,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             if ( labelStory ) labelStory = labelStory.trim();
             var ratingStory = ratings.find('li:nth-child(3) > div > div:nth-child(2) > span:first').text();
             if ( ratingStory ) ratingStory = ratingStory.trim().split(' out of ')[0];
-            
+            ratings = null;
             // Summary
             var summary = $(this).find('> p:nth-child(3)');
             if ( summary.length > 0 ) summary = summary.text();
@@ -559,34 +587,61 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             book.summary = summary;
             
             books.push( book );
+            book = null;
+            cover = null;
+            url = null;
+            title = null;
+            seriesName = null;
+            authors = null;
+            narrators = null;
+            length = null;
+            bridged = null;
+            labelOverall = null;
+            ratingOverall = null;
+            labelPerformance = null;
+            ratingPerformance = null;
+            labelStory = null;
+            ratingStory = null;
+            summary = null;
             
           });
+          popover = null;
+          
         }
         
         return books.length > 0 ? books : null;
         
       },
       
-      goToOutputPage: function() {
+      goToOutputPage: function( straightFromStorage ) {
         
-        var vue = this;
+        const vue = this;
         
-        var bookChunks = _.chunk( vue.library.books, 50);
-        var data = (function( chunks) {
-          var obj = {
-            'storage-page-missing': vue.library.storePageMissing,
-            'books-chunk-length': 0
-          };
-          chunks.forEach((chunk, i ) => {
-            obj[ 'books-chunk-'+i ] = chunk;
-            ++obj[ 'books-chunk-length' ];
-          });
-          return obj;
-        }( bookChunks, vue ));
-        
-        browser.storage.local.set( data ).then( () => {
+        if ( straightFromStorage ) {
           browser.runtime.sendMessage({ action: 'openOutput' });
-        });
+        }
+        else {
+          
+          const bookChunks = _.chunk( vue.library.books, 50);
+          const data = (function( chunks) {
+            const obj = {
+              'domain-extension': vue.library.domainExtension,
+              'storage-page-missing': vue.library.storePageMissing,
+              'books-chunk-length': 0
+            };
+            chunks.forEach((chunk, i ) => {
+              obj[ 'books-chunk-'+i ] = chunk;
+              ++obj[ 'books-chunk-length' ];
+            });
+            return obj;
+          }( bookChunks, vue ));
+          
+          browser.storage.local.set( data ).then( () => {
+            browser.runtime.sendMessage({ action: 'openOutput' });
+          });
+          
+        }
+        
         
       }
       
