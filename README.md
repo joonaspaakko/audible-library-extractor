@@ -1,5 +1,5 @@
 # audible-library-extractor
-Browser extension that extracts your Audible library as a locally viewable web gallery. Here's a video showing most of what the extension does now: [Youtube video](https://youtu.be/SxqG8BXIsg0) and here's another one with the newest addition: [Youtube vide](https://youtu.be/5qyvEVIXYrY).
+Browser extension that extracts your Audible library as a locally viewable web gallery. Here's a video showing most of what the extension does now: [Youtube video](https://youtu.be/SxqG8BXIsg0) and here's another one with the newest addition: [Youtube video](https://youtu.be/5qyvEVIXYrY).
 
 **Install / Usage ( Chrome only for now)**:
 
@@ -18,14 +18,14 @@ Browser extension that extracts your Audible library as a locally viewable web g
 
 - [x] Library scanning (scraping):
   - [x] Extract the whole library and its relevant data
-	- [ ] Library can be updated by just checking what's new and adding those in with the rest. Right now you can only do a full library scan.
+  - [ ] Library can be updated by just checking what's new and adding those in with the rest. Right now you can only do a full library scan.
 - [x] Gallery:
   - [x] A locally viewable gallery
   - [x] Lazy loading for images
   - [x] Search
-		- [ ] Search scopes (So you can search for authors only if you want)
-		- [ ] Autocomplete (So that when you type for instance "sci", it gives you a few likely options for the full sentence, like "Sci-Fi & Fantasy", "Sci-Fi: Contemporary")
-		- [ ] Filter buttons:
+    - [ ] Search scopes (So you can search for authors only if you want)
+    - [ ] Autocomplete (So that when you type for instance "sci", it gives you a few likely options for the full sentence, like "Sci-Fi & Fantasy", "Sci-Fi: Contemporary")
+    - [ ] Filter buttons:
   - [ ] Sorting (Right now it shows them in the order they were added to your library. Search shuffles the deck.)
   - [ ] Google books API's summary(?) _Not sure about this yet, but I never liked most provided by Audible_
 - [ ] Spreadsheet:
