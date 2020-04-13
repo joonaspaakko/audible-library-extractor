@@ -3,15 +3,17 @@
   <div class="arrow"></div>
   <div id="book-info-container">
     <div class="inner-wrap">
-      
+      <!-- {{ book }} -->
       <div class="top">
         <div class="information">
           <div class="cover-wrap">
             <a :href="book.url" target="_blank">
+							<div class="progressbar"><div class="progress" :style="progress( book )"></div></div>
               <img class="cover" :src="book.coverUrl">
             </a>
           </div>
           <div class="basic-details">
+            
             <div class="authors" v-if="stringifyArray( book.authors )">
               <strong class="label">Author:</strong> <span v-html="stringifyArray( book.authors )"></span>
             </div>
@@ -21,32 +23,57 @@
             <div class="series" v-if="stringifyArray( book.series )">
               <strong class="label">Series:</strong> <span v-html="stringifyArray( book.series )"></span>
             </div>
-            <div class="categories" v-if="stringifyArray( book.categories )">
-              <strong class="label">Categories:</strong> <span v-html="stringifyArray( book.categories, ' > ' )"></span>
-            </div>
             <div class="own-rating" v-if="ownRating">
               <strong class="label">My rating:</strong> <span>{{ ownRating }}</span>
             </div>
-            <div class="progress" v-if="book.progress">
-              <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
-            </div>
-            <div class="publisher" v-if="book.publisher">
-              <strong class="label">Publisher:</strong> <span>{{ book.publisher }}</span>
-            </div>
-            <div class="rating" v-if="book.rating">
-              <strong class="label">Overall rating:</strong> <span>{{ book.rating }} {{ book.ratings }}</span>
-            </div>
-            <div class="release-date" v-if="book.releaseDate">
-              <strong class="label">Release date:</strong> <span>{{ book.releaseDate }}</span>
-            </div>
-            <div class="book-numbers" v-if="stringifyArray( book.numbers )">
-              <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.numbers )"></span>
-            </div>
-          </div>
-        </div>
+            
+            <font-awesome-icon fas icon="chevron-down" />
+            <div class="extra-info">
+              
+              <div class="progress" v-if="book.progress">
+                <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
+              </div>
+              <div class="publisher" v-if="book.publisher">
+                <strong class="label">Publisher:</strong> <span>{{ book.publisher }}</span>
+              </div>
+              <div class="rating" v-if="book.rating">
+                <strong class="label">Overall rating:</strong> <span>{{ book.rating }} {{ book.ratings }}</span>
+              </div>
+              <div class="release-date" v-if="book.releaseDate">
+                <strong class="label">Release date:</strong> <span>{{ book.releaseDate }}</span>
+              </div>
+              <div class="book-numbers" v-if="stringifyArray( book.numbers )">
+                <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.numbers )"></span>
+              </div>
+              <div class="categories" v-if="stringifyArray( book.categories )">
+                <strong class="label">Categories:</strong> <span v-html="stringifyArray( book.categories, ' > ' )"></span>
+              </div>
+              <div class="my-books-in-series">
+                <h3 class="label">Owned books in the series:</h3>
+                <div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
+                  <strong>{{ seriesKey }}</strong>
+                  <div @click="booksInSeriesItemClick( book )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
+                    
+              			<span class="icon">
+                      <font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
+                    </span>
+                    <span class="numbers">{{ bookNumbers( book, seriesIndex ) }}</span>
+                    <span class="title">{{ book.title }}</span>
+                    
+                  </div>
+                </div>
+              </div>
+              
+              
+            </div> <!-- .extra-info -->
+          </div> <!-- .basic-details -->
+        </div> <!-- .information -->
         
         <div class="summary">
           <h2>{{ book.title }}</h2>
+					<div class="categories" v-if="stringifyArray( book.categories )">
+						<span v-html="stringifyArray( book.categories, ' > ' )"></span>
+					</div>
           <div v-html="book.summary"></div>
         </div>
       </div>
@@ -70,6 +97,22 @@ export default {
   },
   props: ['library', 'gallery'],
   computed: {
+    booksInSeries: function() {
+      var vue = this;
+      var series = {};
+      if ( vue.book.series ) {
+        $.each(vue.book.series, function( i, obj ) {
+          
+          var findSeries = _.filter(vue.library.books, { series: [{name: obj.name }] });
+          if ( !_.isEmpty( findSeries ) ) {
+            series[ obj.name ] = _.sortBy(findSeries, ['bookNumbers']);
+          }
+          
+        });
+      }
+      console.log( series );
+      return series;
+    },
     book: function() {
       return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
     },
@@ -81,10 +124,83 @@ export default {
 		},
 		searchWatcher: function() {
 			return this.gallery.fuseResults;
-		}
+		},
   },
   methods: {
     
+    booksInSeriesItemClick: function( book ) {
+      const index = _.findIndex(this.library.books, ['asin', book.asin]);
+      this.gallery.details.booksInSeriesClick = true;
+    },
+    
+    booksInSeriesIcon: function( book ) {
+      
+      const classes = this.numbersClass( book );
+      var iconClass = '';
+      if ( classes.finished ) {
+        iconClass = 'archive';
+      }
+      else if ( classes.unfinished ) {
+        iconClass = 'book';
+      }
+      else if ( classes.reading ) {
+        iconClass = 'book-reader';
+      }
+      return iconClass;
+      
+    },
+    
+    numbersClass: function( book ) {
+      var progress = book.progress;
+      return {
+        finished: progress && progress.toLowerCase().match('finished') ? true : false,
+        reading: progress && !progress.toLowerCase().match('finished') ? true : false,
+        unfinished: !book.progress,
+        current: this.book.asin === book.asin,
+      }
+    },
+    
+    bookNumbers: function( book, seriesIndex) {
+      if ( book.bookNumbers ) {
+        var numbers = book.bookNumbers[ seriesIndex ];
+        return numbers ? numbers.toLowerCase().replace('book','').trim() : '';
+      }
+      else {
+        return '';
+      }
+    },
+    
+		progress: function( book ) {
+      if ( book.progress ) {
+        if ( book.progress.toLowerCase().trim() === 'finished' ) {
+          return {
+            width: '100%',
+          };
+        }
+  			else if ( book.length ) {
+  				var progress = book.progress.match(/\d+/g);
+          console.log( book.progress );
+  				progress = (+progress[0]) * 60 * 60 + (+progress[1]) * 60;
+  				var length = book.length.match(/\d+/g);
+  				length = (+length[0]) * 60 * 60 + (+length[1]) * 60;
+  				
+  				progress = length - progress;
+  				return {
+  					width: (progress / length) * 100 + '%',
+  				};
+  			}
+  			else {
+  				return {
+  					width: 0,
+  				}
+  			}
+      }
+			else {
+				return {
+					width: 0,
+				}
+			}
+		},
     stringifyArray: function( array, delimiter ) {
       if ( array ) {
         var html = '';
@@ -98,7 +214,7 @@ export default {
   
   },
   watch: {
-		searchWatcher: function( sliderMount ) {
+		searchWatcher: function() {
 			this.gallery.details.open = false;
 			this.gallery.details.index = -1;
 		}
@@ -119,7 +235,7 @@ export default {
     color: themed(frontColor);
   }
 	width: 100vw;
-  font-size: 14px;
+  // font-size: 14px;
   padding: 40px 0;
   margin-top: 12px;
   margin-bottom: 35px;
@@ -165,6 +281,12 @@ export default {
     }
   }
   
+  a {
+    white-space: nowrap;
+    @include themify($themes) { color: themed(audibleOrange); }
+  }
+  a:visited { @include themify($themes) { color: darken( themed(audibleOrange), 5); } }
+  
   .information {
     @include themify($themes) {
       // border: 1px solid rgba( themed(frontColor), .1);
@@ -187,22 +309,33 @@ export default {
       
     }
     
-    a {
-      white-space: nowrap;
-      @include themify($themes) { color: themed(audibleOrange); }
-    }
-    a:visited { @include themify($themes) { color: darken( themed(audibleOrange), 5); } }
-    
     > div {
       padding: 0 20px;
     }
     
     .cover-wrap {
+      position: relative;
       padding: 0;
-      padding-bottom: 20px;
+      margin-bottom: 20px;
       img {
         display: block;
         width: 100%;
+      }
+      .progressbar {
+        position: absolute;
+        z-index: 5;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        @include themify($themes) {
+          background: rgba(darken(themed(backColor), 1), .65);
+        }
+        .progress {
+          height: 5px;
+          @include themify($themes) {
+            background: themed(audibleOrange);
+          }
+        }
       }
     }
     
@@ -216,6 +349,53 @@ export default {
     
     .series a {
       white-space: normal;
+    }
+  }
+  
+  .information .my-books-in-series {
+    .numbers-list {
+      display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      @include themify($themes) {
+        border-bottom: 1px dotted rgba( themed(frontColor), .2);
+      }
+      
+      &.finished {
+        // .title {
+        //   overflow: hidden;
+        //   position: relative;
+        // }
+        // .title:after {
+        //   content: '';
+        //   position: absolute;
+        //   top: .9em;
+        //   right: 0px;
+        //   left: 0px;
+        //   height: 1px;
+        //   @include themify($themes) {
+        //     background: rgba( themed(frontColor), .2);
+        //   }
+        // }
+        .title {
+          text-decoration: line-through;
+          opacity: .5;
+        }
+      }
+      &.reading {
+        font-style: italic;
+      }
+      &.unfinished {
+      }
+      &.current {
+        .icon {
+          @include themify($themes) {
+            color: themed(audibleOrange);
+          }
+        }
+      }
+      
     }
   }
   

@@ -12,6 +12,24 @@ global.$ = require('jquery');
 global.browser = require('webextension-polyfill')
 Vue.prototype.$browser = global.browser
 
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faSort } from '@fortawesome/free-solid-svg-icons'
+import { faMicroscope } from '@fortawesome/free-solid-svg-icons'
+import { faFilter } from '@fortawesome/free-solid-svg-icons'
+import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
+import { faBook } from '@fortawesome/free-solid-svg-icons'
+import { faArchive } from '@fortawesome/free-solid-svg-icons'
+import { faBookReader } from '@fortawesome/free-solid-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+library.add(faSort);
+library.add(faMicroscope);
+library.add(faFilter);
+library.add(faChevronDown);
+library.add(faBook);
+library.add(faArchive);
+library.add(faBookReader);
+Vue.component('font-awesome-icon', FontAwesomeIcon)
+
 
 chrome.storage.local.get(null, function( data ) {
   

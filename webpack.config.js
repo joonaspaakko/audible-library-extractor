@@ -5,6 +5,7 @@ const CopyPlugin = require('copy-webpack-plugin');
 const ExtensionReloader = require('webpack-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
 const { version } = require('./package.json');
+const path = require('path');
 
 const config = {
   mode: process.env.NODE_ENV,
@@ -21,7 +22,8 @@ const config = {
   resolve: {
     extensions: ['.js', '.vue'],
     alias: {
-      '@': __dirname + '/src/output-page/'
+      'node_modules': path.join(__dirname, 'node_modules'),
+      '@': path.join(__dirname, '/src/output-page/'),
     },
   },
   module: {
@@ -77,14 +79,6 @@ const config = {
     }),
     new CopyPlugin([
       { from: 'assets', to: 'assets' },
-      {
-        from: 'output-page/_components/aleGallery/ajax-loader.gif',
-        to: 'images/ajax-loader.gif'
-      },
-      {
-        from: 'output-page/_components/aleGallery/fonts',
-        to: 'fonts'
-      },
       { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
       {
         from: 'manifest.json',

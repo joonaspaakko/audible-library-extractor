@@ -2,6 +2,8 @@ const axios = require('axios');
 const Url = require('domurl');
 const _ = require('lodash');
 global.$ = require('jquery');
+const dateFns = require('date-fns');
+
 
 import Vue from 'vue'
 import App from './App'
@@ -271,7 +273,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             var book = {};
             book.asin = _thisRow.attr('id').replace('adbl-library-content-row-','');
             book.title = _thisRow.find('> td:nth-child(2) > div > span > span > ul > li:nth-child(1) > a').text().trim().replace(/\s+/g,' ');
-            book.dateAdded = _thisRow.find('> td:nth-child(5) > div > span > div > div > span').text().trim();
+            book.dateAdded = vue.fixDates( _thisRow.find('> td:nth-child(5) > div > span > div > div > span').text().trim() );
             book.url = window.location.origin + _thisRow.find('> td:nth-child(2) .bc-list > li:first a').attr('href');
             book.bookLength = _thisRow.find('> td:nth-child(4) > div > span > div > div > span').text().trim();
             book.authors = vue.getArray( _thisRow.find('> td:nth-child(3) > div > span > span > ul > a') );
@@ -312,7 +314,33 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             book.series = vue.getArray( _thisRow.find('li.bc-list-item.seriesLabel > span > a') );
             book.bookNumbers = vue.getBookNumbers( _thisRow.find('li.bc-list-item.seriesLabel') );
             book.series = vue.supplementArray( book.series, book.bookNumbers );
-            book.progress = _thisRow.find('[id^="time-remaining"]:not(.bc-pub-hidden)').text().trim().replace(/\s+/g,' ');
+            var progressbar = _thisRow.find('[id^="time-remaining-display"] [role="progressbar"]').length > 0;
+            var finished = _thisRow.find('[id^="time-remaining-finished"].bc-pub-hidden').length < 1;
+            var timeRemaining = _thisRow.find('[id^="time-remaining"]:not(.bc-pub-hidden)').text().trim().replace(/\s+/g,' ');
+            if ( progressbar || finished ) {
+              book.progress = timeRemaining;
+            }
+            else {
+              book.length = timeRemaining;
+              book.progress = 0;
+            }
+						
+						if ( book.title === 'Dead Moon' ) {
+							console.log( 'progressbar:' );
+							console.log( progressbar );
+							console.log( 'finished:' );
+							console.log( finished );
+							console.log( 'timeRemaining:' );
+							console.log( timeRemaining );
+							console.log( 'book.length' );
+							console.log( book.length );
+							console.log( 'book.progress' );
+							console.log( book.progress );
+						}
+						
+            progressbar = null;
+            finished = null;
+            timeRemaining = null;
             book.coverUrl = _thisRow.find('img.bc-pub-block:first').attr('src');
             book.downloadUrl = _thisRow.find('.adbl-lib-action-download > a').attr('href');
             book.downloaded = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.adbl-library-action.bc-col-2.bc-col-offset-1 > div:nth-child(4) > span').length > 0;
@@ -397,7 +425,6 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
         // Normal layout...
         if ( audible.find('.productPublisherSummary').length > 0 ) {
           var center1div = audible.find('#center-1 > div > div > div');
-          book.added = audible.find('#adbl-buy-box-purchase-date > span').text().trim().replace(/\s+/g,' ');
           var titleElem = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li:nth-child(1) > h1');
           book.title = titleElem.length > 0 ? center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li:nth-child(1) > h1').text().trim() : center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li.bc-list-item.bc-spacing-small > h1').text().trim();
           titleElem = null;
@@ -405,25 +432,26 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           book.ratings = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li.bc-list-item.ratingsLabel > a').text().trim();
           book.summary = audible.find('.productPublisherSummary > div > .bc-box:first').html().trim().replace(/\s+/g,' ');
           var col5ul = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul');
-          center1div = null;
           var releaseDateLabel = col5ul.find('> li.bc-list-item.releaseDateLabel');
-          book.releaseDate = releaseDateLabel.length > 0 ? releaseDateLabel.text().trim().split(':')[1].trim() : null;
+          book.releaseDate = vue.fixDates( releaseDateLabel.length > 0 ? releaseDateLabel.text().trim().split(':')[1].trim() : null );
           releaseDateLabel = null;
           book.publisher = col5ul.find('> li.bc-list-item.publisherLabel > a').text().trim();
           book.authors = vue.getArray( col5ul.find('> li.bc-list-item.authorLabel > a') );
           if ( !book.changesSinceAdded ) book.narrators = vue.getArray( col5ul.find('> li.bc-list-item.narratorLabel > a') );
           book.series = vue.getArray( col5ul.find('> li.bc-list-item.seriesLabel > a') );
+          book.length = center1div.find('> div.bc-col-responsive.bc-col-5 > span > ul > li.bc-list-item.runtimeLabel').text().trim().replace(/\s+/g,' ').replace('Length:','').trim();
+          center1div = null;
           book.bookNumbers = vue.getBookNumbers( col5ul.find('> li.bc-list-item.seriesLabel') );
           col5ul = null;
           book.series = vue.supplementArray( book.series, book.bookNumbers );
           book.categories = vue.getArray( audible.find('#center-1 > div > div > nav > a') );
           book.sample = audible.find('#sample-player-'+ book.id +' > button').data('mp3');
+          book.dateAdded = vue.fixDates( audible.find('#adbl-buy-box-purchase-date > span').text().trim() );
         }
         // Audible original layout with the large image in the background...
         else if ( featuredBook ) {
           featuredBook = null;
           var center1 = audible.find('#center-1');
-          book.added = audible.find('#adbl-buy-box-purchase-date > span').text().trim().replace(/\s+/g,' ');
           var heroContChild1 = center1.find('> div.bc-box > div > div > div > div.hero-content > div > div > div:nth-child(1)');
           book.title =  heroContChild1.find('> h1').text().trim();
           book.rating = heroContChild1.find('> div.bc-section.ratingsLabel > span.bc-text.bc-color-base').text().trim();
@@ -437,12 +465,13 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           var child2ul = bcContDiv.find('> div:nth-child(2) > span > ul');
           bcContDiv = null;
           var releaseDateLabel = child2ul.find('> li.bc-list-item.releaseDateLabel');
-          book.releaseDate = releaseDateLabel.length > 0 ? releaseDateLabel.text().trim().split(':')[1].trim() : null;
+          book.releaseDate = vue.fixDates( releaseDateLabel.length > 0 ? releaseDateLabel.text().trim().split(':')[1].trim() : null );
           releaseDateLabel = null;
           book.publisher = child2ul.find('> li.bc-list-item.publisherLabel > a').text().trim();
           book.authors = vue.getArray( child2ul.find('> li.bc-list-item.authorLabel > a') );
           book.narrators = vue.getArray( child2ul.find('> li.bc-list-item.narratorLabel > a') );
           book.series = vue.getArray( child2ul.find('> li.bc-list-item.seriesLabel > a') );
+          book.length = audible.find('#center-1 > div.bc-container > div > div:nth-child(2) > span > ul > li.bc-list-item.runtimeLabel').text().trim().replace(/\s+/g,' ').replace('Length:','').trim();
           book.bookNumbers = vue.getBookNumbers( child2ul.find('> li.bc-list-item.seriesLabel') );
           book.series = vue.supplementArray( book.series, book.bookNumbers );
           book.categories = vue.getArray( child2ul.find('> li.bc-list-item.categoriesLabel > a') );
@@ -451,11 +480,62 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           book.language = languageLabel.length > 0 ? languageLabel.text().split(':')[1].trim() : null;
           languageLabel = null;
           book.sample = audible.find('#sample-player-'+ book.id +' > button').data('mp3');
+          book.dateAdded = vue.fixDates( audible.find('#adbl-buy-box-purchase-date > span').text().trim() );
         }
+        
         
         book.peopleAlsoBought = vue.carouselDataFetch( audible, 5 );
         book.moreLikeThis = vue.carouselDataFetch( audible, 6 );
         
+      },
+      
+      fixDates: function( date ) {
+        if ( date ) {
+          var domainExtension = this.library.domainExtension;
+          
+          var regionalDateFormats = {
+            '.com': 'm-d-y',
+            '.ca':  'y-m-d',
+            '.co.uk': 'd-m-y',
+            '.de': 'd-m-y',
+            '.fr': 'd-m-y',
+            '.it': 'd-m-y',
+            '.com.au': 'd-m-y',
+            '.in': 'd-m-y'
+          };
+          
+          var formatString = regionalDateFormats[ domainExtension ] || regionalDateFormats['.com'];
+          var formatSplit = formatString.split('-');
+          
+          var newDate = {
+            y: null,
+            m: null,
+            d: null
+          };
+          var date = date.split('-');
+          $.each( date, function( i, date ) {
+            newDate[ formatSplit[i] ] = date;
+          });
+          // Some audible sites display all years in two digits,
+          // which is very difficult to transform to 4 digits.
+          // For example, if the year is 20, is it 1920, 2020, or 1420?
+          // This conversion to 4 digits is not bulletproof, but better than nothing.
+          if ( newDate.y.length <= 2) {
+            var yearMin = 95;
+            var firstNumber = newDate.y.substring(0, 1);
+            if ( newDate.y >= 95 && newDate.y <= 99 ) {
+              newDate.y = '19' + newDate.y;
+            }
+            else if ( newDate.y < 95 ) {
+              newDate.y = '20' + newDate.y;
+            }
+          }
+          var ISO8601 = [newDate.y, newDate.m, newDate.d];
+          return dateFns.format(new Date(ISO8601[0], ISO8601[1]-1, ISO8601[2]), 'yyyy-MM-dd');
+        }
+        else {
+          return null;
+        }
       },
       
       getArray: function( elements ) {

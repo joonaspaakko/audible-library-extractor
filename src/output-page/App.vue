@@ -27,12 +27,22 @@ export default {
 <style lang="scss">
 @import '~@/_variables.scss';
 
+@import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
+
 body {
+	-moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Montserrat', sans-serif;
+	font-size: 14px;
+	line-height: 1.55em;
+  margin: 0;
+  padding-top: 1px;
+  margin-top: -1px;
   @include themify($themes) {
     background-color: themed('backColor');
   }
 }
-// 
+//
 // .theme-dark body {
 // 	-webkit-animation: color-change-dark 400ms linear;
 // 	animation: color-change-dark 400ms linear;

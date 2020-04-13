@@ -34,20 +34,21 @@ export default {
           index: -1,
           slider: null,
           sliderMount: false,
+          booksInSeriesClick: false,
         }
       }
     }
-  }
+  },
 }
 </script>
 
 <style lang="scss" scoped>
 @import '~@/_variables.scss';
-
 #ale-gallery {
   max-width: $containerSize;
   margin: 0 auto;
   text-align: center;
+  padding: 0 20px;
 }
 
 </style>

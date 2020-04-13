@@ -8,6 +8,18 @@
     :threshold="0.24"
     :distance="400"
   />
+	<div class="icons">
+    <div class="scope">
+      <font-awesome-icon fas icon="microscope" />
+    </div>
+    <div class="filter">
+      <font-awesome-icon fas icon="filter" />
+    </div>
+		<div class="sort">
+			<font-awesome-icon fas icon="sort" />
+		</div>
+	</div>
+	
 </div> <!-- #ale-search -->
 </template>
 
@@ -63,24 +75,42 @@ export default {
 @import '~@/_variables.scss';
 
 #ale-search {
+  display: flex;
+  flex-direction: row;
   position: relative;
   z-index: 10;
   margin: 0 auto;
   margin-top: 100px;
   max-width: 600px;
   text-align: center;
+  background: #fff;
+  padding: 8px 20px;
+  border-radius: 999999px;
+  @include themify($themes) {
+    box-shadow: 0 5px 20px rgba(themed(outerColor), 0.9);
+  }
   [type="search"] {
     outline: none;
     display: inline-block;
-    width: 80%;
-    background: #fff;
+    width: 100%;
     border: none;
-    border-radius: 999999px;
-    padding: 8px 15px;
-    font-size: 14px;
-    font-family: "Helvetica Neue", sans-serif;
+    font-family: inherit;
+    font-weight: 400;
+  }
+  .icons {
+    // padding-left: 10px;
     @include themify($themes) {
-      box-shadow: 0 5px 20px rgba(themed(outerColor), 0.9);
+      color: rgba( #222, .65) ;
+    }
+    display: flex;
+    flex-direction: row;
+    
+    > div {
+      padding-left: 20px;
+    }
+    
+    .filter {
+      font-size: .92em;
     }
   }
 }

@@ -32,8 +32,17 @@ export default {
   computed: {
     booksArray() {
       return this.gallery.fuseResults || this.library.books;
-    }
+    },
+		booksInSeriesClickWatcher: function() {
+			return this.gallery.details.booksInSeriesClick;
+		},
   },
+  watch: {
+		// booksInSeriesClickWatcher: function() {
+		// 	this.gallery.details.booksInSeriesClick = false;
+    //   this.detailsToggle();
+		// }
+	},
   methods: {
     
     stringifyArray: function( array, key ) {
@@ -44,7 +53,6 @@ export default {
     detailsToggle: function( e, clickedIndex ) {
       
       var comp = this;
-      
       var coverViewportOffset = $( e.target ).offset().top - $(document).scrollTop();
       
       // Open if closed

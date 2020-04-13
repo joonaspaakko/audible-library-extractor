@@ -14,7 +14,8 @@ export default {
 	},
 	computed: {
 		books: function() {
-			return _.sampleSize( this.library.books, 100);
+			var n = this.library.books.length < 50 ? this.library.books : 50;
+			return _.sampleSize( this.library.books, n);
 		}
 	},
 	mounted: function() {
@@ -64,12 +65,13 @@ export default {
 #ale-background {
   position: fixed;
   z-index: -1;
-  left: -20%;
-  right: -20%;
+  left: -2.8%;
+  right: -2.8%;
   top: 0;
   opacity: 0.2;
   text-align: center;
-  font-size: 0;
+  font-size: 0px;
+  line-height: 0px;
 
   &:after {
     content: "";
@@ -90,7 +92,7 @@ export default {
   img {
     position: relative;
     z-index: 0;
-    width: 4%;
+    width: 6%;
     margin: 2px;
     transition: all 1000ms;
     opacity: 1;
