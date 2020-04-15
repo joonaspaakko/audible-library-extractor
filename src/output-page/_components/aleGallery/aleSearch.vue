@@ -5,8 +5,10 @@
     event-name="fuseResultsEvent"
     :list="library.books"
     :keys="aliciaKeys"
-    :threshold="0.24"
+    :location="0"
     :distance="400"
+    :threshold="0.25"
+    :search="gallery.searchValue"
   />
 	<div class="icons">
     <div class="scope">
@@ -24,13 +26,8 @@
 </template>
 
 <script>
-import VueFuse from 'vue-fuse'
-
 export default {
   name: 'aleBookdetails',
-  components: {
-    VueFuse
-  },
   props: ['library', 'gallery'],
 	data : function() {
 		return {
@@ -39,7 +36,7 @@ export default {
   created () {
     this.$on('fuseResultsEvent', results => {
       this.gallery.fuseResults = results;
-    })
+    });
   },
   computed: {
     

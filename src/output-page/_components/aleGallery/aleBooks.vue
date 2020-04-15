@@ -5,7 +5,7 @@
       :class="{ 'details-open': gallery.details.open && gallery.details.index === index  }"
       v-for="(book, index) in booksArray"
 			:key="index"
-      @click="detailsToggle( $event, index )"
+      @click="detailsToggle( index )"
     >
       <div class="hidden">
         <span class="title">{{ book.title }}</span>
@@ -37,12 +37,13 @@ export default {
 			return this.gallery.details.booksInSeriesClick;
 		},
   },
-  watch: {
-		// booksInSeriesClickWatcher: function() {
-		// 	this.gallery.details.booksInSeriesClick = false;
-    //   this.detailsToggle();
-		// }
-	},
+  created: function() {
+    var vue = this;
+    Event.$on('galleryBookClick', function( msg ) {
+      vue.detailsToggle( msg.index );
+			
+    });
+  },
   methods: {
     
     stringifyArray: function( array, key ) {
@@ -50,10 +51,11 @@ export default {
       else return array.join(', ')
     },
     
-    detailsToggle: function( e, clickedIndex ) {
+    detailsToggle: function( clickedIndex ) {
       
       var comp = this;
-      var coverViewportOffset = $( e.target ).offset().top - $(document).scrollTop();
+      var el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
+      var coverViewportOffset = el.offset().top - $(document).scrollTop();
       
       // Open if closed
 			var detailsClosed = !this.gallery.details.open ? true : false;
@@ -73,14 +75,14 @@ export default {
           if ( detailsIndex !== clickedIndex || detailsClosed ) {
             this.gallery.details.sliderMount = true;
           }
-          this.calculateDetailsPosition( e, this, clickedIndex, detailsIndex, coverViewportOffset );
+          this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset );
         });
       }
       
 			
     },
     
-    calculateDetailsPosition: function( e, comp, clickedIndex, detailsIndex, coverViewportOffset ) {
+    calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset ) {
       
       var gallery = $('#ale-gallery');
       var maxWidth = gallery.width();
@@ -114,8 +116,7 @@ export default {
       var bookDetails = $('#ale-bookdetails').insertAfter( endOfTheRowEl );
       
       var doc = $("body, html");
-      var targetEl = $( e.target );
-      var coverDocumentOffset = targetEl.offset().top;
+      var coverDocumentOffset = el.offset().top;
       doc.scrollTop( coverDocumentOffset - coverViewportOffset );
       doc.on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", function(){ doc.stop(); });
       $(window).on("resize", function() {
@@ -125,7 +126,7 @@ export default {
         scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
       }, 900);
 			
-			var targetCenter = targetEl.offset().left + (bookWidth/2);
+			var targetCenter = el.offset().left + (bookWidth/2);
       var detailsArrow = bookDetails.find('> .arrow');
       var arrowHalf = parseInt( detailsArrow.css('border-left-width'))
       detailsArrow.css({

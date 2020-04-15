@@ -49,10 +49,10 @@
                 <strong class="label">Categories:</strong> <span v-html="stringifyArray( book.categories, ' > ' )"></span>
               </div>
               <div class="my-books-in-series">
-                <h3 class="label">Owned books in the series:</h3>
+                <h3 class="label">Books I own in the series:</h3>
                 <div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
                   <strong>{{ seriesKey }}</strong>
-                  <div @click="booksInSeriesItemClick( book )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
+                  <div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
                     
               			<span class="icon">
                       <font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
@@ -93,7 +93,7 @@ import aleCarousel from './aleCarousel'
 export default {
   name: 'aleBookdetails',
   components: {
-    aleCarousel
+    aleCarousel,
   },
   props: ['library', 'gallery'],
   computed: {
@@ -105,7 +105,14 @@ export default {
           
           var findSeries = _.filter(vue.library.books, { series: [{name: obj.name }] });
           if ( !_.isEmpty( findSeries ) ) {
-            series[ obj.name ] = _.sortBy(findSeries, ['bookNumbers']);
+            series[ obj.name ] = vue.sortBookNumbers( findSeries, i );
+            
+            // findSeries.sort(function (a, b) {
+            //     var x = a.bookNumbers[i] ? a.bookNumbers[i].toLowerCase().replace('book','').trim().split(',')[0] : '';
+            //     var y = b.bookNumbers[i] ? b.bookNumbers[i].toLowerCase().replace('book','').trim().split(',')[0] : '';
+            //   return x-y;
+            //  });
+            // series[ obj.name ] = findSeries;
           }
           
         });
@@ -128,9 +135,85 @@ export default {
   },
   methods: {
     
-    booksInSeriesItemClick: function( book ) {
-      const index = _.findIndex(this.library.books, ['asin', book.asin]);
-      this.gallery.details.booksInSeriesClick = true;
+    sortBookNumbers: function( array, i ) {
+      return _.orderBy(array, function(o) {
+        
+        if ( o.bookNumbers ) {
+          // If one book has multiple numbers, the first one is used for sorting
+          var numbers = _.isArray( o.bookNumbers[i] ) ? o.bookNumbers[i][0] : o.bookNumbers[i];
+          // If the number is a string, we assume it's a number range
+          // and once again use the first number from that range
+          var dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
+          if ( dashSplit.length > 1 ) {
+            return parseFloat( dashSplit[0] );
+          }
+          else {
+            return numbers;
+          }
+        }
+        else {
+          return 0;
+        }
+        
+      }, 'asc');
+    },
+    
+    booksInSeriesItemClick: function( book, seriesName ) {
+      
+      const vue = this;
+      var fuseOpts = {
+        keys: ['series.name'],
+        distance: 0,
+        threshold: 0.0,
+        distance: 100,
+      };
+      // vue.gallery.searchValue = seriesName;
+      // vue.gallery.fuseResults = _.sortBy(vue.gallery.fuseResults, ['bookNumbers']);
+      // vue.$on('fuseInputChanged', function() {
+      //   console.log( 'HAHA' );
+      // });
+      // vue.$nextTick(() => {
+      //   const index = _.findIndex(vue.gallery.fuseResults, ['asin', book.asin]);
+      //   Event.$emit('galleryBookClick', {
+      //     from: 'books-in-series-item-click',
+      //     index: index
+      //   });
+      //
+      // });
+      // console.log( fuseOpts );
+      
+      vue.$search( seriesName, vue.library.books, {
+        keys: ['series.name'],
+        location: 0,
+        distance: 900,
+        threshold: 0.0
+      }).then(results => {
+        
+        vue.gallery.searchValue = seriesName;
+        vue.$nextTick(() => {
+          // results.sort(function (a, b) {
+          //     var x = a.bookNumbers[0] ? a.bookNumbers[0].toLowerCase().replace('book','').trim().split(',')[0] : '';
+          //     var y = b.bookNumbers[0] ? b.bookNumbers[0].toLowerCase().replace('book','').trim().split(',')[0] : '';
+          //     return x-y;
+          //   });
+          // const sortedResult = _.sortBy(results, ['bookNumbers']);
+          console.log( results );
+          const sortedResult =  vue.sortBookNumbers( results, 0 );
+          console.log( sortedResult );
+          const index = _.findIndex(sortedResult, ['asin', book.asin]);
+          vue.gallery.fuseResults = sortedResult;
+          vue.$nextTick(() => {
+            Event.$emit('galleryBookClick', {
+              from: 'books-in-series-item-click',
+              index: index
+            });
+          });
+        });
+        
+      
+      });
+      
+      
     },
     
     booksInSeriesIcon: function( book ) {
@@ -163,7 +246,7 @@ export default {
     bookNumbers: function( book, seriesIndex) {
       if ( book.bookNumbers ) {
         var numbers = book.bookNumbers[ seriesIndex ];
-        return numbers ? numbers.toLowerCase().replace('book','').trim() : '';
+        return _.isArray( numbers ) ? numbers.join(', ') : numbers;
       }
       else {
         return '';
@@ -179,7 +262,7 @@ export default {
         }
   			else if ( book.length ) {
   				var progress = book.progress.match(/\d+/g);
-          console.log( book.progress );
+          // console.log( book.progress );
   				progress = (+progress[0]) * 60 * 60 + (+progress[1]) * 60;
   				var length = book.length.match(/\d+/g);
   				length = (+length[0]) * 60 * 60 + (+length[1]) * 60;
@@ -297,6 +380,7 @@ export default {
     overflow: hidden;
     background-clip: padding-box;
     min-width: 280px;
+    max-width: 280px;
     margin: 31px;
     margin-top: 0;
     margin-left: 0px;

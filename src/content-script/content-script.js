@@ -152,7 +152,6 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           
           // Merge storage book chunks into one array
           return (function( data ) {
-            console.log( data );
             var chunkKeys = [];
             const chunkLength = data[ 'books-chunk-length' ];
             for (const i = 0; i < chunkLength; i++) {
@@ -324,19 +323,6 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
               book.length = timeRemaining;
               book.progress = 0;
             }
-						
-						if ( book.title === 'Dead Moon' ) {
-							console.log( 'progressbar:' );
-							console.log( progressbar );
-							console.log( 'finished:' );
-							console.log( finished );
-							console.log( 'timeRemaining:' );
-							console.log( timeRemaining );
-							console.log( 'book.length' );
-							console.log( book.length );
-							console.log( 'book.progress' );
-							console.log( book.progress );
-						}
 						
             progressbar = null;
             finished = null;
@@ -559,14 +545,39 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       getBookNumbers: function( element ) {
         var clone = element.clone();
         clone.find('a').remove();
-        var seriesString = clone.text().trim().replace(/\s+/g,' ').split(':')[1];
+        var bookString = clone.text();
+        if ( bookString ) bookString = bookString.trim().replace(/\s+/g,' ').split(':')[1];
+        if ( bookString ) bookString = bookString.replace(/Book/g, '');
+        if ( bookString ) bookString = bookString.trim();
         clone.remove();
         clone = null;
-        if ( seriesString ) {
-          const seriesArray = seriesString.split(', ').filter(function ( v ) {
+        if ( bookString ) {
+          var numbersArray = bookString.split(', ').filter(function ( v ) {
             return v.trim() ? true : false;
           });
-          return seriesArray.length > 0 ? seriesArray : null;
+          
+          numbersArray = _.map(numbersArray, function(n) {
+            var commaSplit =  n.split(',');
+            var dashSplit  =  n.split('-');
+            // Basically, here the script tries to make an array and turn the
+            // numbers into numbers but dashed number ranges should stay as strings.
+            if ( commaSplit.length > 1 ) {
+              return _.map( commaSplit, function(n) {
+                var dashSplit = n.split('-');
+                if ( dashSplit.length > 1 ) {
+                  return n.trim();
+                }
+                else {
+                  return parseFloat(n);
+                }
+              });
+            }
+            else {
+              return dashSplit.length > 1 ? n.trim() : parseFloat( n );
+            }
+          });
+          
+          return numbersArray.length > 0 ? numbersArray : null;
         }
         else {
           return null;

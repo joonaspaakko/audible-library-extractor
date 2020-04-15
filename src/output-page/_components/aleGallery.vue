@@ -29,12 +29,12 @@ export default {
     return {
       gallery: {
   			fuseResults: [],
+        searchValue: '',
         details: {
           open: false,
           index: -1,
           slider: null,
           sliderMount: false,
-          booksInSeriesClick: false,
         }
       }
     }

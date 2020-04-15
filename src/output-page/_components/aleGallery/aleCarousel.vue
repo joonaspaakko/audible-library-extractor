@@ -90,7 +90,7 @@ export default {
 	},
   watch: {
 		sliderMountWatcher: function( sliderMount ) {
-			console.log( 'sliderMount: ' + sliderMount );
+			// console.log( 'sliderMount: ' + sliderMount );
 			if ( sliderMount ) {
 				
 				this.gallery.details.sliderMount = null;

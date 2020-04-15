@@ -1,6 +1,8 @@
 import Vue from 'vue'
 import App from './App'
 
+import VueFuse from 'vue-fuse'
+Vue.use(VueFuse)
 import VueLazyload from 'vue-lazyload'
 Vue.use(VueLazyload)
 
@@ -11,6 +13,7 @@ global.$ = require('jquery');
 
 global.browser = require('webextension-polyfill')
 Vue.prototype.$browser = global.browser
+global.Event = new Vue();
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faSort } from '@fortawesome/free-solid-svg-icons'
@@ -29,7 +32,6 @@ library.add(faBook);
 library.add(faArchive);
 library.add(faBookReader);
 Vue.component('font-awesome-icon', FontAwesomeIcon)
-
 
 chrome.storage.local.get(null, function( data ) {
   
@@ -70,6 +72,9 @@ function startVue( libraryData ) {
   
   var ale = new Vue({
     el: '#audible-library-extractor',
+    components: {
+      VueFuse
+    },
     data: {
       library: libraryData
     },
