@@ -4,7 +4,7 @@
       class="ale-book"
       :class="{ 'details-open': gallery.details.open && gallery.details.index === index  }"
       v-for="(book, index) in booksArray"
-			:key="index"
+			:key="book.asin"
       @click="detailsToggle( index )"
     >
       <div class="hidden">
@@ -28,11 +28,9 @@
 <script>
 export default {
   name: 'aleBooks',
-  props: ['library', 'gallery'],
+  props: ['booksArray', 'library', 'gallery'],
   computed: {
-    booksArray() {
-      return this.gallery.fuseResults || this.library.books;
-    },
+		
 		booksInSeriesClickWatcher: function() {
 			return this.gallery.details.booksInSeriesClick;
 		},

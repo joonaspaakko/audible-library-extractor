@@ -42,6 +42,9 @@
               <div class="release-date" v-if="book.releaseDate">
                 <strong class="label">Release date:</strong> <span>{{ book.releaseDate }}</span>
               </div>
+              <div class="date-added" v-if="book.dateAdded">
+                <strong class="label">Date added:</strong> <span>{{ book.dateAdded }}</span>
+              </div>
               <div class="book-numbers" v-if="stringifyArray( book.numbers )">
                 <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.numbers )"></span>
               </div>
@@ -54,7 +57,7 @@
                   <strong>{{ seriesKey }}</strong>
                   <div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
                     
-              			<span class="icon">
+              			<span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
                       <font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
                     </span>
                     <span class="numbers">{{ bookNumbers( book, seriesIndex ) }}</span>
@@ -95,7 +98,7 @@ export default {
   components: {
     aleCarousel,
   },
-  props: ['library', 'gallery'],
+  props: ['booksArray', 'library', 'gallery'],
   computed: {
     booksInSeries: function() {
       var vue = this;
@@ -121,7 +124,9 @@ export default {
       return series;
     },
     book: function() {
-      return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
+      // return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
+      console.log( this.booksArray );
+      return this.booksArray[ this.gallery.details.index ];
     },
 		ownRating: function() {
       var book = this.library.books[ this.gallery.details.index ];
@@ -216,6 +221,23 @@ export default {
       
     },
     
+    iconTippyContent: function( book ) {
+      const classes = this.numbersClass( book );
+      var tippyContent = '';
+      if ( classes.finished ) {
+        tippyContent = 'Finished!';
+      }
+      else if ( classes.unfinished ) {
+        tippyContent = "Haven't started yet...";
+      }
+      else if ( classes.reading ) {
+        tippyContent = 'Still listening...';
+      }
+      console.log( tippyContent );
+      return tippyContent;
+      
+    },
+    
     booksInSeriesIcon: function( book ) {
       
       const classes = this.numbersClass( book );
@@ -263,9 +285,11 @@ export default {
   			else if ( book.length ) {
   				var progress = book.progress.match(/\d+/g);
           // console.log( book.progress );
-  				progress = (+progress[0]) * 60 * 60 + (+progress[1]) * 60;
+          if ( progress[1] ) progress = (+progress[0]) * 60 * 60 + (+progress[1]) * 60;
+          else progress = (+progress[0]) * 60;
   				var length = book.length.match(/\d+/g);
-  				length = (+length[0]) * 60 * 60 + (+length[1]) * 60;
+          if ( length[1] ) length = (+length[0]) * 60 * 60 + (+length[1]) * 60;
+          else length = (+length[0]) * 60;
   				
   				progress = length - progress;
   				return {

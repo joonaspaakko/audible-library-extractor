@@ -23,6 +23,10 @@ import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
 import { faBook } from '@fortawesome/free-solid-svg-icons'
 import { faArchive } from '@fortawesome/free-solid-svg-icons'
 import { faBookReader } from '@fortawesome/free-solid-svg-icons'
+import { faSortUp } from '@fortawesome/free-solid-svg-icons'
+import { faSortDown } from '@fortawesome/free-solid-svg-icons'
+import { faCheck } from '@fortawesome/free-solid-svg-icons'
+import { faSquare } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 library.add(faSort);
 library.add(faMicroscope);
@@ -31,7 +35,16 @@ library.add(faChevronDown);
 library.add(faBook);
 library.add(faArchive);
 library.add(faBookReader);
+library.add(faSortUp);
+library.add(faSortDown);
+library.add(faCheck);
+library.add(faSquare);
 Vue.component('font-awesome-icon', FontAwesomeIcon)
+
+import VueTippy, { TippyComponent } from "vue-tippy";
+Vue.use(VueTippy);
+Vue.component("tippy", TippyComponent);
+ 
 
 chrome.storage.local.get(null, function( data ) {
   

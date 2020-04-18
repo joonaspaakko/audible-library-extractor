@@ -1,5 +1,8 @@
-# audible-library-extractor
-Browser extension that extracts your Audible library as a locally viewable web gallery. Here's a video showing most of what the extension does now: [Youtube video](https://youtu.be/SxqG8BXIsg0) and here's another one with the newest addition: [Youtube video](https://youtu.be/5qyvEVIXYrY).
+# Audible Library Extractor (Chrome extension)
+
+Browser extension that extracts your Audible library as a locally viewable web gallery. Here's a video showing the scanning process and a little bit of the gallery: [Youtube video](https://youtu.be/SxqG8BXIsg0) and here's another video showing off the search: [Youtube video](https://youtu.be/5qyvEVIXYrY).
+
+Note: this extension is not for extracting the audio files from your library.
 
 **Install / Usage ( Chrome only for now)**:
 
@@ -14,21 +17,23 @@ Browser extension that extracts your Audible library as a locally viewable web g
 
 **End goal**
 
-> Just the big mile markers. There's will be many minor and major features, challenges and issues to patch between each of these.
+> Just the big mile markers. There's will be many minor and major features, challenges, and issues to patch between each one listed below.
 
 - [x] Library scanning (scraping):
   - [x] Extract the whole library and its relevant data
-  - [ ] Library can be updated by just checking what's new and adding those in with the rest. Right now you can only do a full library scan.
+  - [ ] Library update - _A partial scan that only goes through newly added titles and merges them with the rest._
 - [x] Gallery:
   - [x] A locally viewable gallery
   - [x] Lazy loading for images
   - [x] Search
-    - [ ] Search scopes (So you can search for authors only if you want)
-    - [ ] Autocomplete (So that when you type for instance "sci", it gives you a few likely options for the full sentence, like "Sci-Fi & Fantasy", "Sci-Fi: Contemporary")
-    - [ ] Filter buttons:
-  - [ ] Sorting (Right now it shows them in the order they were added to your library. Search shuffles the deck.)
+    - [x] Search scopes - _So you can increase search accuracy._
+		- [ ] Autocomplete - _For example, if you search for "sci", the autocomplete gives you a few likely options for the full sentence, like "Sci-Fi & Fantasy", "Sci-Fi: Contemporary"._
+	- [x] Filter buttons:
+  - [x] Sorting ~~Right now it shows them in the order they were added to your library, but search shuffles the deck.~~
+	- [ ] Audio player for the sample audio
   - [ ] Google books API's summary(?) _Not sure about this yet, but I never liked most provided by Audible_
 - [ ] Spreadsheet:
   - [ ] CSV export
   - [ ] Goodreads import compatibility for the CSV (=Fetching ISB from Google books API)
+- [ ] Ability to save the output page locally.
 - [ ] Firefox support
