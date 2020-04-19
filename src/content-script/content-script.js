@@ -632,27 +632,27 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             var length = top.find('li:nth-child(5)').text();
             if ( length ) length = length.replace(/\s+/g,' ').trim().split('Length: ')[1];
             // Bridged
-            var bridged = top.find('li:nth-child(6)').text();
-            if ( bridged ) bridged = bridged.trim();
+            // var bridged = top.find('li:nth-child(6)').text();
+            // if ( bridged ) bridged = bridged.trim();
             top = null;
             // Ratings
-            var ratings = $(this).find('span:nth-child(2) ul');
+            // var ratings = $(this).find('span:nth-child(2) ul');
             // Overall rating
-            var labelOverall = ratings.find('li:nth-child(1) > div > div:nth-child(1)').text();
-            if ( labelOverall ) labelOverall = labelOverall.trim();
-            var ratingOverall = ratings.find('li:nth-child(1) > div > div:nth-child(2) > span:first').text();
-            if ( ratingOverall ) ratingOverall = ratingOverall.trim().split(' out of ')[0];
+            // var labelOverall = ratings.find('li:nth-child(1) > div > div:nth-child(1)').text();
+            // if ( labelOverall ) labelOverall = labelOverall.trim();
+            // var ratingOverall = ratings.find('li:nth-child(1) > div > div:nth-child(2) > span:first').text();
+            // if ( ratingOverall ) ratingOverall = ratingOverall.trim().split(' out of ')[0];
             // Performance rating
-            var labelPerformance = ratings.find('li:nth-child(2) > div > div:nth-child(1)').text();
-            if ( labelPerformance ) labelPerformance = labelPerformance.trim();
-            var ratingPerformance = ratings.find('li:nth-child(2) > div > div:nth-child(2) > span:first').text();
-            if ( ratingPerformance ) ratingPerformance = ratingPerformance.trim().split(' out of ')[0];
+            // var labelPerformance = ratings.find('li:nth-child(2) > div > div:nth-child(1)').text();
+            // if ( labelPerformance ) labelPerformance = labelPerformance.trim();
+            // var ratingPerformance = ratings.find('li:nth-child(2) > div > div:nth-child(2) > span:first').text();
+            // if ( ratingPerformance ) ratingPerformance = ratingPerformance.trim().split(' out of ')[0];
             // Story rating
-            var labelStory = ratings.find('li:nth-child(3) > div > div:nth-child(1)').text();
-            if ( labelStory ) labelStory = labelStory.trim();
-            var ratingStory = ratings.find('li:nth-child(3) > div > div:nth-child(2) > span:first').text();
-            if ( ratingStory ) ratingStory = ratingStory.trim().split(' out of ')[0];
-            ratings = null;
+            // var labelStory = ratings.find('li:nth-child(3) > div > div:nth-child(1)').text();
+            // if ( labelStory ) labelStory = labelStory.trim();
+            // var ratingStory = ratings.find('li:nth-child(3) > div > div:nth-child(2) > span:first').text();
+            // if ( ratingStory ) ratingStory = ratingStory.trim().split(' out of ')[0];
+            // ratings = null;
             // Summary
             var summary = $(this).find('> p:nth-child(3)');
             if ( summary.length > 0 ) summary = summary.text();
@@ -671,10 +671,10 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             book.authors = authors;
             book.narrators = narrators;
             book.length = length;
-            book.bridged = bridged;
-            book.ratingOverall = ratingOverall;
-            book.ratingPerformance = ratingPerformance;
-            book.ratingStory = ratingStory;
+            // book.bridged = bridged;
+            // book.ratingOverall = ratingOverall;
+            // book.ratingPerformance = ratingPerformance;
+            // book.ratingStory = ratingStory;
             book.summary = summary;
             
             books.push( book );
@@ -686,13 +686,13 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             authors = null;
             narrators = null;
             length = null;
-            bridged = null;
-            labelOverall = null;
-            ratingOverall = null;
-            labelPerformance = null;
-            ratingPerformance = null;
-            labelStory = null;
-            ratingStory = null;
+            // bridged = null;
+            // labelOverall = null;
+            // ratingOverall = null;
+            // labelPerformance = null;
+            // ratingPerformance = null;
+            // labelStory = null;
+            // ratingStory = null;
             summary = null;
             
           });

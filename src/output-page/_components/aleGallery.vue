@@ -47,6 +47,7 @@ export default {
 	            { active: false, key: 'categories.name' },
 	          ],
             sortIndex: 0,
+            showSortValues: false,
 	          sort: [
               // active: true = arrow down / descending
               { active: true,  key: 'dateAdded',      label: 'Date added',   type: 'sort' },
@@ -63,7 +64,6 @@ export default {
           open: false,
           index: -1,
           slider: null,
-          sliderMount: false,
         }
       }
     }
@@ -105,6 +105,17 @@ export default {
           }, sortDirection);
           break;
         case 'dateAdded':
+					// It worked out pretty well from the beginning with this, because even
+					// before I had any aspirations to add any kinda sorting, I had chosen to
+					// extract the book data in the order they were purchased/added. Turns out
+					// that after I started working on this thing, Audible's desktop library
+					// got a facelift and this new style library is missing the date of when
+					// the book was added, unlike the old library. Fortunately I could still get
+					// the date from the store page of the book... However, unfortunately that
+					// means books that either don't have the store page anymore or books that
+					// got replaced by a re-release or something are going to be missing the date
+					// it was added. So that's why in here, I'm simply reversing the array on an
+					// ascended sort and just passing the on the data as is on a descending sort.
           if (  sortDirection === 'asc' ) {
             sortedBooks = _.reverse( _.clone(books) );
           }
@@ -143,10 +154,30 @@ export default {
           sortedBooks = _.orderBy(books, function( o ) {
             if ( o.length ) {
               
-      				var length = o.length.match(/\d+/g);
-              if ( length[1] ) length = (+length[0]) * 60 * 60 + (+length[1]) * 60;
-              else  length = (+length[0]) * 60;
-      				return length;
+              return timeStringToSeconds( o.length );
+              
+              function timeStringToSeconds( string ) {
+                const hasMinutes = string.match('min'); //sometimes 'min', sometimes 'mins'
+                var numbers = string.match(/\d+/g);
+                // If the array numbers.length is 2, then we the array must contain hours and minutes
+                if ( numbers.length === 2 ) {
+                  numbers = (+numbers[0]) * 60 * 60 + (+numbers[1]) * 60;
+                }
+                // If the array numbers.length is below 2...
+                // ...and the original string doesn't contain the word 'min',
+                // then we'll assume the unit is hours...
+                else if ( !hasMinutes ) {
+                  numbers = (+numbers[0]) * 60 * 60;
+                }
+                // If the array numbers is below 2...
+                // ...and the original string contains the word 'min',
+                // then we'll assume the unit is minutes...
+                else {
+                  numbers = (+numbers[0]) * 60;
+                }
+        				return numbers;
+              }
+              
             }
             else { return 0; }
           }, sortDirection);

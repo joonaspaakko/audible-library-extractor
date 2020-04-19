@@ -27,6 +27,16 @@
 		</div>
     
     <div class="search-options" v-if="gallery.searchOptions.open">
+			<div class="search-option" v-if="currentOptionsList[0].type === 'sort'">
+        <label>
+          <input type="checkbox" v-model="gallery.searchOptions.lists.showSortValues" />
+          <span class="label checkbox">
+            <font-awesome-icon fas icon="square" />
+            <font-awesome-icon fas icon="check" />
+          </span>
+          Show sort values
+        </label>
+			</div>
       <ul>
         <li class="search-option" v-for="( item, index ) in currentOptionsList" :key="item.key">
           <label>
@@ -81,6 +91,10 @@ export default {
     },
     
     optionsCheck: function( type, index ) {
+      
+			this.gallery.details.open = false;
+			this.gallery.details.index = -1;
+      
       if ( type === 'sort' ) {
         this.gallery.searchOptions.lists.sortIndex = index;
       }

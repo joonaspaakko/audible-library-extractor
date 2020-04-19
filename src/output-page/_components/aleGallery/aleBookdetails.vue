@@ -26,9 +26,9 @@
             <div class="own-rating" v-if="ownRating">
               <strong class="label">My rating:</strong> <span>{{ ownRating }}</span>
             </div>
-            
-            <font-awesome-icon fas icon="chevron-down" />
-            <div class="extra-info">
+						
+						<h3 class="label">More info <font-awesome-icon fas icon="chevron-down" /></h3>
+            <div class="hidden-section extra-info">
               
               <div class="progress" v-if="book.progress">
                 <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
@@ -51,34 +51,39 @@
               <div class="categories" v-if="stringifyArray( book.categories )">
                 <strong class="label">Categories:</strong> <span v-html="stringifyArray( book.categories, ' > ' )"></span>
               </div>
-              <div class="my-books-in-series">
-                <h3 class="label">Books I own in the series:</h3>
-                <div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
-                  <strong>{{ seriesKey }}</strong>
-                  <div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
-                    
-              			<span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
-                      <font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
-                    </span>
-                    <span class="numbers">{{ bookNumbers( book, seriesIndex ) }}</span>
-                    <span class="title">{{ book.title }}</span>
-                    
-                  </div>
+            </div> <!-- .extra-info -->
+            
+            <h3 v-if="booksInSeries" class="label">Books I own in the series <font-awesome-icon fas icon="chevron-down" /></h3>
+            <div class="hidden-section my-books-in-series">
+              <div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
+                <strong>{{ seriesKey }}</strong>
+                <div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
+                  
+                  <span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
+                    <font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
+                  </span>
+                  <span class="numbers">{{ bookNumbers( book, seriesIndex ) }}</span>
+                  <span class="title">{{ book.title }}</span>
+                  
                 </div>
               </div>
-              
-              
-            </div> <!-- .extra-info -->
+            </div> <!-- .by-books-in-series -->
+            
           </div> <!-- .basic-details -->
         </div> <!-- .information -->
         
-        <div class="summary">
-          <h2>{{ book.title }}</h2>
-					<div class="categories" v-if="stringifyArray( book.categories )">
-						<span v-html="stringifyArray( book.categories, ' > ' )"></span>
-					</div>
-          <div v-html="book.summary"></div>
+        <div class="book-summary-wrapper">
+          <vuescroll :vueScrollOptions="vueScrollOptions">
+            <div class="book-summary">
+              <h2>{{ book.title }}</h2>
+              <div class="categories" v-if="stringifyArray( book.categories )">
+                <span v-html="stringifyArray( book.categories, ' > ' )"></span>
+              </div>
+              <div v-html="book.summary"></div>
+            </div>
+          </vuescroll>
         </div>
+
       </div>
       
       <ale-carousel v-if="book.peopleAlsoBought" :gallery="gallery" :books="book.peopleAlsoBought" type="peopleAlsoBought"></ale-carousel>
@@ -91,12 +96,34 @@
 
 <script>
 import aleCarousel from './aleCarousel'
+import vuescroll from 'vuescroll';
 // const GreenAudioPlayer = require('green-audio-player');
 
 export default {
   name: 'aleBookdetails',
   components: {
     aleCarousel,
+    vuescroll,
+  },
+  data: function() {
+    return {
+      vueScrollOptions: {
+        scrollingX: false,
+        rail: {
+          background: '#f79a1c',
+          opacity: 0,
+          size: '3px',
+          specifyBorderRadius: false,
+          gutterOfEnds: null,
+          gutterOfSide: '2px',
+          keepShow: true,
+        },
+        bar: {
+          showDelay: 100,
+          onlyShowBarOnScroll: false,
+        }
+      }
+    }
   },
   props: ['booksArray', 'library', 'gallery'],
   computed: {
@@ -120,12 +147,10 @@ export default {
           
         });
       }
-      console.log( series );
-      return series;
+      return _.isEmpty(series) ? null : series;
     },
     book: function() {
       // return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
-      console.log( this.booksArray );
       return this.booksArray[ this.gallery.details.index ];
     },
 		ownRating: function() {
@@ -202,9 +227,7 @@ export default {
           //     return x-y;
           //   });
           // const sortedResult = _.sortBy(results, ['bookNumbers']);
-          console.log( results );
           const sortedResult =  vue.sortBookNumbers( results, 0 );
-          console.log( sortedResult );
           const index = _.findIndex(sortedResult, ['asin', book.asin]);
           vue.gallery.fuseResults = sortedResult;
           vue.$nextTick(() => {
@@ -233,7 +256,6 @@ export default {
       else if ( classes.reading ) {
         tippyContent = 'Still listening...';
       }
-      console.log( tippyContent );
       return tippyContent;
       
     },
@@ -283,18 +305,38 @@ export default {
           };
         }
   			else if ( book.length ) {
-  				var progress = book.progress.match(/\d+/g);
-          // console.log( book.progress );
-          if ( progress[1] ) progress = (+progress[0]) * 60 * 60 + (+progress[1]) * 60;
-          else progress = (+progress[0]) * 60;
-  				var length = book.length.match(/\d+/g);
-          if ( length[1] ) length = (+length[0]) * 60 * 60 + (+length[1]) * 60;
-          else length = (+length[0]) * 60;
+					
+          var progress = timeStringToSeconds( book.progress );
+          const length = timeStringToSeconds( book.length );
   				
   				progress = length - progress;
+					
   				return {
   					width: (progress / length) * 100 + '%',
   				};
+          
+          function timeStringToSeconds( string ) {
+            const hasMinutes = string.match('min'); //sometimes 'min', sometimes 'mins'
+            var numbers = string.match(/\d+/g);
+            // If the array numbers.length is 2, then we the array must contain hours and minutes
+            if ( numbers.length === 2 ) {
+              numbers = (+numbers[0]) * 60 * 60 + (+numbers[1]) * 60;
+            }
+            // If the array numbers.length is below 2...
+            // ...and the original string doesn't contain the word 'min',
+            // then we'll assume the unit is hours...
+            else if ( !hasMinutes ) {
+              numbers = (+numbers[0]) * 60 * 60;
+            }
+            // If the array numbers is below 2...
+            // ...and the original string contains the word 'min',
+            // then we'll assume the unit is minutes...
+            else {
+              numbers = (+numbers[0]) * 60;
+            }
+            return numbers;
+          }
+					
   			}
   			else {
   				return {
@@ -332,6 +374,10 @@ export default {
 <style lang="scss">
 @import '~@/_variables.scss';
 @import 'node_modules/green-audio-player/src/scss/main.scss';
+
+.prevent-scrolling {
+  overflow: hidden;
+}
 
 #ale-bookdetails {
   @include themify($themes) {
@@ -405,17 +451,10 @@ export default {
     background-clip: padding-box;
     min-width: 280px;
     max-width: 280px;
-    margin: 31px;
-    margin-top: 0;
-    margin-left: 0px;
+    margin-right: 31px;
     border-radius: 3px;
     text-align: left;
     line-height: 1.6em;
-    
-    .label {
-      // font-weight: normal;
-      
-    }
     
     > div {
       padding: 0 20px;
@@ -458,6 +497,15 @@ export default {
     .series a {
       white-space: normal;
     }
+    
+    .label {
+      margin: 10px 0 5px 0;
+    }
+    div.hidden-section {
+      display: none;
+      padding-top: 0px;
+    }
+    
   }
   
   .information .my-books-in-series {
@@ -507,14 +555,27 @@ export default {
     }
   }
   
-  .summary {
+  .book-summary-wrapper {
+    &:hover {
+      @include themify($themes) {
+        box-shadow: 0 0 10px rgba( darken(themed(frontColor), 30) , .3);
+      }
+    }
+  }
+  .book-summary {
+    position: relative;
+    z-index: 0;
+    // overflow: hidden;
+    // overflow-x: hidden;
+    // overflow-y: auto;
     flex-grow: 1;
     text-align: left;
     h2:first-child {
       font-size: 1.8em;
       margin-top: 0;
     }
-  }
+    
+  } // .summary
   
 	.VueCarousel-dot-container {
 		&, & > button {
@@ -525,5 +586,28 @@ export default {
     }
 	}
 	
+} // #ale-bookdetails
+
+@media screen and ( max-width: 900px ) {
+  
+  #ale-bookdetails {
+    .inner-wrap {
+      .top {
+        display: flex;
+        flex-direction: column;
+        .information {
+          display: flex;
+          flex-direction: row;
+          img.cover {
+            min-width: 80px;
+            max-width: 80px;
+          }
+        }
+      }
+    }
+  }
+  
 }
+
+
 </style>

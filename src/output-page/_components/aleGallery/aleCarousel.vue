@@ -5,18 +5,9 @@
 			
 		<div class="ale-slider">
 			<div class="ale-carousel-item" v-for="(book, index) in books" :key="index">
-				<a :href="book.url" target="_blank">
+				<a :href="book.url" target="_blank" :content="sliderTippyContent( book )" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 500 }">
 					<img width="130" height="130" class="cover" :data-lazy="bookCover(book)" alt="">
 				</a>
-				<!-- <div class="tooltip">
-					Title: {{ book.title }} <br>
-					Authors: {{ book.authors }} <br>
-					Series: {{ book.seriesName }} <br>
-					Length: {{ book.length }}
-					Rating: {{ book.ratingOverall }}, {{ book.ratingPerformance }}, {{ book.ratingStory }} <br>
-					Summary: {{ book.summary }}
-					Bridged: {{ book.bridged }}
-				</div> -->
 			</div>
 		</div>
   </div>
@@ -24,8 +15,8 @@
 
 <script>
 import slick from 'slick-carousel';
-// import `node_modules/slick-carousel/slick/slick.css`;
 import 'node_modules/slick-carousel/slick/slick.css';
+
 export default {
   name: 'aleCarousel',
   props: ['gallery','books','type'],
@@ -39,44 +30,63 @@ export default {
 					return 'More listens like this:'
 					break;
 			}
-		},
-		sliderMountWatcher: function() {
-			return this.gallery.details.sliderMount;
 		}
 	},
 	methods: {
+		
+		sliderTippyContent: function( book ) {
+			const html =
+				'<div style="text-align: left; padding: 10px; font-size: .95em; line-height: 1.2em">' +
+					(book.title ? '<div><h3 style="font-size: 1.3em; font-weight: bold; margin: 0 0 10px 0;">'+ book.title +'</h3>' : '') +
+					(book.authors ? '<div><strong>Authors: </strong>'+ book.authors +'</div>' : '') +
+					(book.seriesName ? '<div><strong>Series: </strong>'+ book.seriesName +'</div>' : '') +
+					(book.length ? '<div><strong>Length: </strong>'+ book.length +'</div>' : '') +
+					(book.summary ? '<div style="margin-top: 10px;"><strong>Summary: </strong>'+ book.summary +'</div>' : '')
+				'</div>';
+				
+			return html;
+		},
+		
 		bookCover: function( book ) {
 			return book.coverUrl ? book.coverUrl.replace('._SL5_.', '.') : '';
 		},
+		
 		makeSlider: function() {
 			
-			this.gallery.details.slider = $(".ale-slider").not('.slick-initialized').slick({
-			  infinite: false,
-				draggable: true,
-				dots: true,
-				slidesToShow: 5,
-				slidesToScroll: 5,
-  			lazyLoad: 'ondemand',
-			  responsive: [
-					{
-			      breakpoint: 750,
-			      settings: {
-			        slidesToShow: 3,
-						  slidesToScroll: 3
-			      }
-			    },
-					{
-			      breakpoint: 600,
-			      settings: {
-			        slidesToShow: 2,
-						  slidesToScroll: 2
-			      }
-			    },
-					{
-			      breakpoint: 400,
-			      settings: "unslick" // destroys slick
-			    }
-				]
+			console.log( 'DISMOUNT/MAKE SLIDER' );
+			this.gallery.details.sliderDismount = false;
+			this.destroySlider();
+			
+			this.$nextTick(() => {
+				this.gallery.details.slider = $(".ale-slider").not('.slick-initialized').slick({
+				  infinite: false,
+					draggable: true,
+					dots: true,
+					arrows: false,
+					slidesToShow: 5,
+					slidesToScroll: 5,
+	  			lazyLoad: 'ondemand',
+				  responsive: [
+						{
+				      breakpoint: 820,
+				      settings: {
+				        slidesToShow: 4,
+							  slidesToScroll: 4
+				      }
+				    },
+						{
+				      breakpoint: 620,
+				      settings: {
+				        slidesToShow: 3,
+							  slidesToScroll: 3
+				      }
+				    },
+						{
+				      breakpoint: 400,
+				      settings: "unslick" // destroys slick
+				    }
+					]
+				});
 			});
 			
 		},
@@ -87,23 +97,17 @@ export default {
 				this.gallery.details.slider = null;
 			}
 		},
+		
 	},
-  watch: {
-		sliderMountWatcher: function( sliderMount ) {
-			// console.log( 'sliderMount: ' + sliderMount );
-			if ( sliderMount ) {
-				
-				this.gallery.details.sliderMount = null;
-				this.destroySlider();
-				
-				this.$nextTick(() => {
-					this.makeSlider();
-				});
-				
-			}
- 		
-   }
-	},
+	
+  created: function() {
+    var vue = this;
+		vue.makeSlider();
+    Event.$on('gallerySliderMount', function( msg ) {
+			vue.makeSlider();
+    });
+  },
+	
 	beforeDestroy: function() {
 		this.destroySlider();
 	}
@@ -112,16 +116,13 @@ export default {
 
 <style lang="scss">
 @import '~@/_variables.scss';
-//
-// @import './node_modules/slick-carousel/slick/slick.scss';
-// @import './node_modules/slick-carousel/slick/slick-theme.scss';
 
 #ale-bookdetails div.ale-carousel {
 	display: block;
 	border-radius: 20px;
 	width: 100%;
 	margin-top: 20px;
-	&:first-child { margin-top: 0; }
+	&:first-child { margin-top: 0 !important; }
 	
 	.ale-slider {
 		width: 100%;
@@ -143,8 +144,7 @@ export default {
 	}
 
 
-	.slick-loading .slick-list
-	{
+	.slick-loading .slick-list {
     background: #fff;
 		background-position: center center;
 		background-repeat: no-repeat;
@@ -153,192 +153,171 @@ export default {
 
 	/* Arrows */
 	.slick-prev,
-	.slick-next
-	{
-	    font-size: 0;
-	    line-height: 0;
+	.slick-next {
+    font-size: 0;
+    line-height: 0;
 
-	    position: absolute;
-	    top: 50%;
+    position: absolute;
+    top: 50%;
 
-	    display: block;
+    display: block;
 
-	    width: 20px;
-	    height: 20px;
-	    padding: 0;
-	    -webkit-transform: translate(0, -50%);
-	    -ms-transform: translate(0, -50%);
-	    transform: translate(0, -50%);
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    -webkit-transform: translate(0, -50%);
+    -ms-transform: translate(0, -50%);
+    transform: translate(0, -50%);
 
-	    cursor: pointer;
+    cursor: pointer;
 
-	    color: transparent;
-	    border: none;
-	    outline: none;
-	    background: transparent;
+    color: transparent;
+    border: none;
+    outline: none;
+    background: transparent;
 	}
 	.slick-prev:hover,
 	.slick-prev:focus,
 	.slick-next:hover,
-	.slick-next:focus
-	{
-	    color: transparent;
-	    outline: none;
-	    background: transparent;
+	.slick-next:focus {
+    color: transparent;
+    outline: none;
+    background: transparent;
 	}
 	.slick-prev:hover:before,
 	.slick-prev:focus:before,
 	.slick-next:hover:before,
-	.slick-next:focus:before
-	{
-	    opacity: 1;
+	.slick-next:focus:before {
+    opacity: 1;
 	}
 	.slick-prev.slick-disabled:before,
-	.slick-next.slick-disabled:before
-	{
-	    opacity: .25;
+	.slick-next.slick-disabled:before {
+    opacity: .25;
 	}
 
 	.slick-prev:before,
-	.slick-next:before
-	{
-	    font-family: 'slick';
-	    font-size: 20px;
-	    line-height: 1;
+	.slick-next:before {
+	  font-family: 'slick';
+	  font-size: 20px;
+	  line-height: 1;
 
-	    opacity: .75;
-	    color: white;
+	  opacity: .75;
+	  color: white;
 
-	    -webkit-font-smoothing: antialiased;
-	    -moz-osx-font-smoothing: grayscale;
-	}
-
-	.slick-prev
-	{
-	    left: -25px;
-	}
-	[dir='rtl'] .slick-prev
-	{
-	    right: -25px;
-	    left: auto;
-	}
-	.slick-prev:before
-	{
-	    content: '←';
-	}
-	[dir='rtl'] .slick-prev:before
-	{
-	    content: '→';
+	  -webkit-font-smoothing: antialiased;
+	  -moz-osx-font-smoothing: grayscale;
 	}
 
-	.slick-next
-	{
-	    right: -25px;
+	.slick-prev {
+    left: -25px;
 	}
-	[dir='rtl'] .slick-next
-	{
-	    right: auto;
-	    left: -25px;
+	[dir='rtl'] .slick-prev {
+    right: -25px;
+    left: auto;
 	}
-	.slick-next:before
-	{
-	    content: '→';
+	.slick-prev:before {
+    content: '←';
 	}
-	[dir='rtl'] .slick-next:before
-	{
-	    content: '←';
+	[dir='rtl'] .slick-prev:before {
+    content: '→';
+	}
+
+	.slick-next {
+    right: -25px;
+	}
+	[dir='rtl'] .slick-next {
+    right: auto;
+    left: -25px;
+	}
+	.slick-next:before {
+    content: '→';
+	}
+	[dir='rtl'] .slick-next:before {
+    content: '←';
 	}
 
 	/* Dots */
-	.slick-dotted.slick-slider
-	{
-	    margin-bottom: 30px;
+	.slick-dotted.slick-slider {
+    margin-bottom: 30px;
 	}
 
-	.slick-dots
-	{
-	    position: absolute;
-	    bottom: -25px;
+	.slick-dots {
+    position: absolute;
+    bottom: -25px;
 
-	    display: block;
+    display: block;
 
-	    width: 100%;
-	    padding: 0;
-	    margin: 0;
+    width: 100%;
+    padding: 0;
+    margin: 0;
 
-	    list-style: none;
+    list-style: none;
 
-	    text-align: center;
+    text-align: center;
 	}
-	.slick-dots li
-	{
-	    position: relative;
+	.slick-dots li {
+    position: relative;
 
-	    display: inline-block;
+    display: inline-block;
 
-	    width: 20px;
-	    height: 20px;
-	    margin: 0 5px;
-	    padding: 0;
+    width: 20px;
+    height: 20px;
+    margin: 0 5px;
+    padding: 0;
 
-	    cursor: pointer;
+    cursor: pointer;
 	}
-	.slick-dots li button
-	{
-	    font-size: 0;
-	    line-height: 0;
+	.slick-dots li button {
+    font-size: 0;
+    line-height: 0;
 
-	    display: block;
+    display: block;
 
-	    width: 20px;
-	    height: 20px;
-	    padding: 5px;
+    width: 20px;
+    height: 20px;
+    padding: 5px;
 
-	    cursor: pointer;
+    cursor: pointer;
 
-	    color: transparent;
-	    border: 0;
-	    outline: none;
-	    background: transparent;
+    color: transparent;
+    border: 0;
+    outline: none;
+    background: transparent;
 	}
 	.slick-dots li button:hover,
-	.slick-dots li button:focus
-	{
-	    outline: none;
+	.slick-dots li button:focus {
+    outline: none;
 	}
 	.slick-dots li button:hover:before,
-	.slick-dots li button:focus:before
-	{
-	    opacity: 1;
+	.slick-dots li button:focus:before {
+    opacity: 1;
 	}
-	.slick-dots li button:before
-	{
-			content: '';
-	    font-family: 'slick';
-	    font-size: 6px;
-	    line-height: 20px;
+	.slick-dots li button:before {
+		content: '';
+    font-family: 'slick';
+    font-size: 6px;
+    line-height: 20px;
 
-	    position: absolute;
-	    top: 0;
-	    left: 0;
+    position: absolute;
+    top: 0;
+    left: 0;
 
-	    width: 7px;
-	    height: 7px;
-			margin: 9px;
+    width: 7px;
+    height: 7px;
+		margin: 9px;
 
-	    border-radius: 999999px;
-	    text-align: center;
+    border-radius: 999999px;
+    text-align: center;
 
-	    opacity: .25;
-	    background: black;
+    opacity: .25;
+		@include themify($themes) { background: themed(frontColor) }
 
-	    -webkit-font-smoothing: antialiased;
-	    -moz-osx-font-smoothing: grayscale;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 	}
-	.slick-dots li.slick-active button:before
-	{
-	    opacity: .75;
-	    color: black;
+	.slick-dots li.slick-active button:before {
+    opacity: .75;
+		@include themify($themes) { background: themed(frontColor) }
 	}
 
 }

@@ -7,6 +7,7 @@
 			:key="book.asin"
       @click="detailsToggle( index )"
     >
+			<sort-specials :gallery="gallery" :book="book"></sort-specials>
       <div class="hidden">
         <span class="title">{{ book.title }}</span>
         <span class="authors">{{ stringifyArray( book.authors, 'name' ) }}</span>
@@ -26,22 +27,29 @@
 </template>
 
 <script>
+
+import sortSpecials from './sortSpecials'
+
 export default {
   name: 'aleBooks',
   props: ['booksArray', 'library', 'gallery'],
+  components: {
+    sortSpecials
+  },
   computed: {
 		
 		booksInSeriesClickWatcher: function() {
 			return this.gallery.details.booksInSeriesClick;
 		},
   },
+  
   created: function() {
     var vue = this;
     Event.$on('galleryBookClick', function( msg ) {
       vue.detailsToggle( msg.index );
-			
     });
   },
+  
   methods: {
     
     stringifyArray: function( array, key ) {
@@ -51,9 +59,16 @@ export default {
     
     detailsToggle: function( clickedIndex ) {
       
+      this.$nextTick(() => {
+        Event.$emit('gallerySliderMount', {
+          from: 'aleBooks'
+        });
+      });
+      
       var comp = this;
       var el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
       var coverViewportOffset = el.offset().top - $(document).scrollTop();
+      
       
       // Open if closed
 			var detailsClosed = !this.gallery.details.open ? true : false;
@@ -70,15 +85,36 @@ export default {
       
       if ( this.gallery.details.open ) {
         this.$nextTick(() => {
-          if ( detailsIndex !== clickedIndex || detailsClosed ) {
-            this.gallery.details.sliderMount = true;
-          }
+					
+					this.summaryMaxHeight();
           this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset );
+					
         });
       }
       
 			
     },
+		
+		summaryMaxHeight: function() {
+      this.$nextTick(() => {
+        var bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
+    		var information = bookdetails.find('> .information');
+        var informationH = information.outerHeight();
+    		var summary = bookdetails.find('.book-summary');
+        var summaryH = summary.height();
+        
+    		summary.css({
+    			maxHeight: informationH
+    		});
+        
+        summary.mouseenter(function(){
+          $('html').addClass('prevent-scrolling');
+        }).mouseleave(function(){
+          $('html').removeClass('prevent-scrolling');
+        });
+        
+			});
+		},
     
     calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset ) {
       
