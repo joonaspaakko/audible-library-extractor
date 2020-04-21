@@ -1,8 +1,6 @@
 <template>
   <div class="ale-carousel" :class="type">
-		
 		<h3 class="ale-heading">{{ heading }}</h3>
-			
 		<div class="ale-slider">
 			<div class="ale-carousel-item" v-for="(book, index) in books" :key="index">
 				<a :href="book.url" target="_blank" :content="sliderTippyContent( book )" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 500 }">
@@ -51,14 +49,15 @@ export default {
 			return book.coverUrl ? book.coverUrl.replace('._SL5_.', '.') : '';
 		},
 		
-		makeSlider: function() {
+		makeSlider: function( type ) {
 			
 			console.log( 'DISMOUNT/MAKE SLIDER' );
-			this.gallery.details.sliderDismount = false;
-			this.destroySlider();
 			
 			this.$nextTick(() => {
-				this.gallery.details.slider = $(".ale-slider").not('.slick-initialized').slick({
+				console.log( this.gallery.details.sliders );
+				console.log( this.gallery.details.sliders[ type ] );
+				this.destroySlider();
+				this.gallery.details.sliders[ type ] = $(".ale-carousel."+ type +" .ale-slider").not('.slick-initialized').slick({
 				  infinite: false,
 					draggable: true,
 					dots: true,
@@ -92,19 +91,19 @@ export default {
 		},
 		
 		destroySlider: function() {
-			if ( this.gallery.details.slider ) {
-				this.gallery.details.slider.slick('unslick');
-				this.gallery.details.slider = null;
+			if ( this.gallery.details.sliders[ this.type ] ) {
+				this.gallery.details.sliders[ this.type ].slick('unslick');
+				this.gallery.details.sliders[ this.type ] = null;
 			}
 		},
 		
 	},
 	
-  created: function() {
+  beforeMount: function() {
     var vue = this;
-		vue.makeSlider();
+		vue.makeSlider( vue.type );
     Event.$on('gallerySliderMount', function( msg ) {
-			vue.makeSlider();
+			vue.makeSlider( vue.type );
     });
   },
 	

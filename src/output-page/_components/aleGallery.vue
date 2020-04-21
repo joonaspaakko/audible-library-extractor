@@ -63,7 +63,7 @@ export default {
         details: {
           open: false,
           index: -1,
-          slider: null,
+          sliders: {},
         }
       }
     }

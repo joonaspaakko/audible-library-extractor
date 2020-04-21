@@ -89,6 +89,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
     render: h => { return h(App); },
     el: '#audible-library-extractor',
     data: {
+			partialScan: false,
       nextStep: null,
       libraryStyle: libraryStyle,                                                                                                                                                                                                   // 'https://www.audible.com/library/titles?ref=a_library_t_c3_sortBy_PURCHASE_DATE.dsc&pf_rd_p=dca9ae45-7e31-4c31-8f67-4f550cbd3e4b&pf_rd_r=28DGMM0BK5YHJF5FD7RH&sortBy=PURCHASE_DATE.dsc&pageSize=50'
       libraryPage: libraryStyle === 'old' ? window.location.origin + '/lib?page=1&ref=a_lib_c3_programFilter_all&purchaseDateFilter=all&programFilter=all&sortBy=PURCHASE_DATE.dsc&pageSize=50&ipRedirectOverride=true' : window.location.origin + '/library/titles?page=1&ref=a_library_t_c3_sortBy_PURCHASE_DATE.dsc&pf_rd_p=dca9ae45-7e31-4c31-8f67-4f550cbd3e4b&pf_rd_r=873BC8CWET7GZC3QJFPC&sortBy=PURCHASE_DATE.dsc&pageSize=50',
@@ -98,6 +99,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       //'https://www.audible.com/library/titles?ref=a_library_t_c6_pageNum_3&pf_rd_p=916cc708-f98b-49cb-b322-8769f6bef92e&pf_rd_r=1YA95WP9G6GQBKQZ28AT&sortBy=PURCHASE_DATE.dsc&pageSize=50&page=5'
       // bookASINs: [],
       storageDataExists: oldLibraryData ? true : false,
+			newBooks: [],
       library: {
         domainExtension: window.location.hostname.replace('www.audible',''),
         books: [],
@@ -131,9 +133,14 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
       },
       init_update: function() {
         
+        const vue = this;
         browser.storage.local.get(null).then( data => {
-          this.library = processOldLibraryData( data );
-          alert( 'Not available' );
+          
+					vue.library.books = vue.processOldLibraryData( data ).library.books;
+					vue.partialScan = true;
+          vue.progress.show = true;
+          vue.getLibraryPagesLength(); // Cascades down from here...
+          
         });
         
       },
@@ -154,7 +161,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           return (function( data ) {
             var chunkKeys = [];
             const chunkLength = data[ 'books-chunk-length' ];
-            for (const i = 0; i < chunkLength; i++) {
+            for (var i = 0; i < chunkLength; i++) {
               chunkKeys.push( 'books-chunk-'+i  );
             }
             var chunks = _.pick(data, chunkKeys);
@@ -190,7 +197,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
 
       },
       
-      getInitialLibraryData1: function() {
+      getInitialLibraryData1: function( options ) {
         
         const vue = this;
         
@@ -211,16 +218,17 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           step: function( response ) {
             
             var audible = $("<div>").html( response.data );
-            var books = vue.getInitialLibraryData2( audible );
-            response.data = books;
+            response.data = vue.getInitialLibraryData2( audible );
             audible = null;
-            books = null;
             
           },
           done: function( responses ) {
             
             vue.progress.libraryFetched = true;
-            vue.library.books = _.flatten( _.map(responses, 'data') );
+            const books = _.flatten( _.map(responses, 'data[0]') );
+            const newBooks = _.compact( _.flatten( _.map(responses, 'data[1]') ) );
+						_.merge(vue.library.books, books);
+						if ( newBooks.length > 0  ) _.merge(vue.newBooks, newBooks);
             vue.getBookData1();
             
           }
@@ -259,60 +267,78 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
         const vue = this;
         var libraryWrapper = audible.find('#adbl-library-content-main');
         
-        var books = [];
-				
+				const newBooks = [];
+        const books = [];
+        
         // Old library style
         if ( vue.libraryStyle === 'old' ) {
-          var titleRows = libraryWrapper.find('> table > tbody > tr.bc-table-row').not(':first').not(':last');
+          const titleRows = libraryWrapper.find('> table > tbody > tr.bc-table-row').not(':first').not(':last');
           var libraryWrapper = null;
           
           $( titleRows ).each( function() {
             
             const _thisRow = $(this);
+						const bookASIN = _thisRow.attr('id').replace('adbl-library-content-row-','');
+						const partialAlreadyExists = vue.partialScan && _.find(vue.library.books, ['asin', bookASIN]);
+						
             var book = {};
-            book.asin = _thisRow.attr('id').replace('adbl-library-content-row-','');
-            book.title = _thisRow.find('> td:nth-child(2) > div > span > span > ul > li:nth-child(1) > a').text().trim().replace(/\s+/g,' ');
-            book.dateAdded = vue.fixDates( _thisRow.find('> td:nth-child(5) > div > span > div > div > span').text().trim() );
-            book.url = window.location.origin + _thisRow.find('> td:nth-child(2) .bc-list > li:first a').attr('href');
-            book.bookLength = _thisRow.find('> td:nth-child(4) > div > span > div > div > span').text().trim();
-            book.authors = vue.getArray( _thisRow.find('> td:nth-child(3) > div > span > span > ul > a') );
-            book.series = [{
-              bookNumber: _thisRow.find('> td:nth-child(2) > div > span > span > ul > li:nth-child(1) > a').text().trim().replace(/\s+/g,' ').split(',')[1],
-              name: '',
-              url: window.location.origin + '/' + _thisRow.find('> td:nth-child(2) .bc-list > li:last a').attr('href')
-            }];
+						if ( !partialAlreadyExists ) {
+							book.asin = bookASIN;
+							book.title = _thisRow.find('> td:nth-child(2) > div > span > span > ul > li:nth-child(1) > a').text().trim().replace(/\s+/g,' ');
+							book.dateAdded = vue.fixDates( _thisRow.find('> td:nth-child(5) > div > span > div > div > span').text().trim() );
+							book.url = window.location.origin + _thisRow.find('> td:nth-child(2) .bc-list > li:first a').attr('href');
+							book.bookLength = _thisRow.find('> td:nth-child(4) > div > span > div > div > span').text().trim();
+							book.authors = vue.getArray( _thisRow.find('> td:nth-child(3) > div > span > span > ul > a') );
+							book.series = [{
+								bookNumber: _thisRow.find('> td:nth-child(2) > div > span > span > ul > li:nth-child(1) > a').text().trim().replace(/\s+/g,' ').split(',')[1],
+								name: '',
+								url: window.location.origin + '/' + _thisRow.find('> td:nth-child(2) .bc-list > li:last a').attr('href')
+							}];
+						}
             book.progress = _thisRow.find('> td:nth-child(1) .bc-col > div:last').text().trim().replace(/\s+/g,' ');
-            book.coverUrl = _thisRow.find('> td:nth-child(1) .bc-col > div:first img').data('bc-hires');
-            book.downloadUrl = _thisRow.find('> td:nth-child(8) a').attr('href');
-            book.downloaded = _thisRow.find('> td:nth-child(7) > div > span > div > i').length > 0;
-            book.ownRating = vue.getOwnRating( _thisRow.find('> td:nth-child(6) > div > span > div > div > div > .bc-row-responsive').not(':last') );
+						if ( !partialAlreadyExists ) {
+							book.coverUrl = _thisRow.find('> td:nth-child(1) .bc-col > div:first img').data('bc-hires');
+							book.downloaded = _thisRow.find('> td:nth-child(7) > div > span > div > i').length > 0;
+						}
+						book.ownRating = vue.getOwnRating( _thisRow.find('> td:nth-child(6) > div > span > div > div > div > .bc-row-responsive').not(':last') );
             
+						if ( !partialAlreadyExists ) newBooks.push( bookASIN );
             books.push( book );
             audible = null;
             book = null;
-            ++vue.progress.titles;
+            if ( vue.partialScan ) {
+              if ( !partialAlreadyExists ) ++vue.progress.titles;
+            }
+            else {
+              ++vue.progress.titles;
+            }
             
           });
-          titleRows = null;
+					
         }
         // new library style
         else {
           
-          var titleRows = libraryWrapper.find('> .adbl-library-content-row');
+          const titleRows = libraryWrapper.find('> .adbl-library-content-row');
           libraryWrapper = null;
           
           $( titleRows ).each( function() {
-            
+						
             const _thisRow = $(this);
+						const bookASIN = _thisRow.attr('id').replace('adbl-library-content-row-','');
+						const partialAlreadyExists = vue.partialScan && _.find(vue.library.books, ['asin', bookASIN]);
+            
             var book = {};
-            book.asin = _thisRow.attr('id').replace('adbl-library-content-row-','');
-            book.title = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span').text().trim().replace(/\s+/g,' ');
-            book.dateAdded = null;
-            book.url = window.location.origin + _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').attr('href');
-            book.authors = vue.getArray( _thisRow.find('li.bc-list-item.authorLabel > span > a') );
-            book.series = vue.getArray( _thisRow.find('li.bc-list-item.seriesLabel > span > a') );
-            book.bookNumbers = vue.getBookNumbers( _thisRow.find('li.bc-list-item.seriesLabel') );
-            book.series = vue.supplementArray( book.series, book.bookNumbers );
+						if ( !partialAlreadyExists ) {
+							book.asin = bookASIN;
+							book.title = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span').text().trim().replace(/\s+/g,' ');
+							book.dateAdded = null;
+							book.url = window.location.origin + _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').attr('href');
+							book.authors = vue.getArray( _thisRow.find('li.bc-list-item.authorLabel > span > a') );
+							book.series = vue.getArray( _thisRow.find('li.bc-list-item.seriesLabel > span > a') );
+							book.bookNumbers = vue.getBookNumbers( _thisRow.find('li.bc-list-item.seriesLabel') );
+							book.series = vue.supplementArray( book.series, book.bookNumbers );
+						}
             var progressbar = _thisRow.find('[id^="time-remaining-display"] [role="progressbar"]').length > 0;
             var finished = _thisRow.find('[id^="time-remaining-finished"].bc-pub-hidden').length < 1;
             var timeRemaining = _thisRow.find('[id^="time-remaining"]:not(.bc-pub-hidden)').text().trim().replace(/\s+/g,' ');
@@ -327,9 +353,10 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             progressbar = null;
             finished = null;
             timeRemaining = null;
-            book.coverUrl = _thisRow.find('img.bc-pub-block:first').attr('src');
-            book.downloadUrl = _thisRow.find('.adbl-lib-action-download > a').attr('href');
-            book.downloaded = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.adbl-library-action.bc-col-2.bc-col-offset-1 > div:nth-child(4) > span').length > 0;
+						if ( !partialAlreadyExists ) {
+							book.coverUrl = _thisRow.find('img.bc-pub-block:first').attr('src');
+							book.downloaded = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.adbl-library-action.bc-col-2.bc-col-offset-1 > div:nth-child(4) > span').length > 0;
+						}
             var ratingWrap = _thisRow.find('div.bc-rating-stars.adbl-prod-rate-review-bar.adbl-prod-rate-review-bar-overall');
             var ratingEl = ratingWrap.find('span.bc-rating-star[aria-checked="true"]:last');
             book.ownRating = {
@@ -337,17 +364,23 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             };
             ratingWrap = null;
             ratingEl = null;
-            
+						
+						if ( !partialAlreadyExists ) newBooks.push( bookASIN );
             books.push( book );
             audible = null;
             book = null;
-            ++vue.progress.titles;
+            if ( vue.partialScan ) {
+              if ( !partialAlreadyExists ) ++vue.progress.titles;
+            }
+            else {
+              ++vue.progress.titles;
+            }
             
           });
-          titleRows = null;
+					
         }
-				
-				return books;
+        
+				return [books, newBooks.length > 0 ? newBooks : null];
         
       },
       
@@ -366,39 +399,53 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
         
         const vue = this;
         
-        // var bookASINs = vue.bookASINs;
-        const bookURLs = _.map( vue.library.books, 'url' );
         
-        // bookASINs.length = 3;
-        // bookURLs.length = 3;
+        if ( vue.partialScan ) {
+          var urlSources = _.filter(vue.library.books, function( book ) {
+            return _.includes( vue.newBooks, book.asin );
+          });
+        }
+        else {
+          var urlSources = vue.library.books;
+        }
         
-        vue.ajaxios({
-          request: bookURLs,
-          step: function( response, index, array ) {
+        if ( urlSources.length > 0 ) {
           
-            var book = _.find( vue.library.books, ['url', response.config.url] );
+          // bookASINs.length = 3;
+          // bookURLs.length = 3;
+          
+          const bookURLs = _.map( urlSources, 'url' );
+          urlSources = null;
+          
+          vue.ajaxios({
+            request: bookURLs,
+            step: function( response, index, array ) {
             
-            if ( response.status >= 400 ) {
-              book.storePageMissing = true;
-              vue.library.storePageMissing.push( book );
+              var book = _.find( vue.library.books, ['url', response.config.url] );
+              
+              if ( response.status >= 400 ) {
+                book.storePageMissing = true;
+                vue.library.storePageMissing.push( book );
+              }
+              else {
+                var audible = $("<div>").html( response.data );
+                book.changesSinceAdded = response.config.url !== response.request.responseURL;
+                vue.getBookData2( audible, book );
+                audible = null;
+              }
+              
+              book = null;
+              ++vue.progress.step;
+              
+            },
+            done: function() {
+              
+              vue.goToOutputPage();
+              
             }
-            else {
-              var audible = $("<div>").html( response.data );
-              book.changesSinceAdded = response.config.url !== response.request.responseURL;
-              vue.getBookData2( audible, book );
-              audible = null;
-            }
-            
-            book = null;
-            ++vue.progress.step;
-            
-          },
-          done: function() {
-            
-            vue.goToOutputPage();
-            
-          }
-        });
+          });
+          
+        }
         
       },
       
@@ -468,7 +515,6 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           book.sample = audible.find('#sample-player-'+ book.id +' > button').data('mp3');
           book.dateAdded = vue.fixDates( audible.find('#adbl-buy-box-purchase-date > span').text().trim() );
         }
-        
         
         book.peopleAlsoBought = vue.carouselDataFetch( audible, 5 );
         book.moreLikeThis = vue.carouselDataFetch( audible, 6 );

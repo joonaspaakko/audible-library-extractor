@@ -37,7 +37,6 @@ export default {
     sortSpecials
   },
   computed: {
-		
 		booksInSeriesClickWatcher: function() {
 			return this.gallery.details.booksInSeriesClick;
 		},
