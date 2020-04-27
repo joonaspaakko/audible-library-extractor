@@ -5,9 +5,13 @@ $shadowMedium: 0px 8px 20px;
 $thumbnailSize: 180px;
 $containerSize: 900px;
 
+$darkBackColor: #15171a;
+$darkFrontColor: #f9f8f8;
+$audibleOrange: #f79a1c;
+
 $themes: (
   light: (
-		audibleOrange: #f79a1c,
+		audibleOrange: $audibleOrange,
     backColor: #f9f8f8,
     frontColor: #212325,
     outerColor: #999,
@@ -15,9 +19,9 @@ $themes: (
     shadowMedium: $shadowMedium rgba(0,0,0,0.1),
   ),
   dark: (
-		audibleOrange: #f79a1c,
-    backColor: #15171a,
-    frontColor: #f9f8f8,
+		audibleOrange: $audibleOrange,
+    backColor: $darkBackColor,
+    frontColor: $darkFrontColor,
     outerColor: #000,
     shadowSmall: $shadowSmall rgba(0,0,0,0.6),
     shadowMedium: $shadowMedium rgba(0,0,0,0.6),

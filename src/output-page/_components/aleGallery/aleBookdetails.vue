@@ -136,18 +136,11 @@ export default {
           var findSeries = _.filter(vue.library.books, { series: [{name: obj.name }] });
           if ( !_.isEmpty( findSeries ) ) {
             series[ obj.name ] = vue.sortBookNumbers( findSeries, i );
-            
-            // findSeries.sort(function (a, b) {
-            //     var x = a.bookNumbers[i] ? a.bookNumbers[i].toLowerCase().replace('book','').trim().split(',')[0] : '';
-            //     var y = b.bookNumbers[i] ? b.bookNumbers[i].toLowerCase().replace('book','').trim().split(',')[0] : '';
-            //   return x-y;
-            //  });
-            // series[ obj.name ] = findSeries;
           }
           
         });
       }
-      return _.isEmpty(series) ? null : series;
+      return _.isEmpty(series) || series.length < 2 ? null : series;
     },
     book: function() {
       // return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
@@ -182,7 +175,7 @@ export default {
           }
         }
         else {
-          return 0;
+          return 9999999;
         }
         
       }, 'asc');
@@ -197,20 +190,6 @@ export default {
         threshold: 0.0,
         distance: 100,
       };
-      // vue.gallery.searchValue = seriesName;
-      // vue.gallery.fuseResults = _.sortBy(vue.gallery.fuseResults, ['bookNumbers']);
-      // vue.$on('fuseInputChanged', function() {
-      //   console.log( 'HAHA' );
-      // });
-      // vue.$nextTick(() => {
-      //   const index = _.findIndex(vue.gallery.fuseResults, ['asin', book.asin]);
-      //   Event.$emit('galleryBookClick', {
-      //     from: 'books-in-series-item-click',
-      //     index: index
-      //   });
-      //
-      // });
-      // console.log( fuseOpts );
       
       vue.$search( seriesName, vue.library.books, {
         keys: ['series.name'],
@@ -221,12 +200,6 @@ export default {
         
         vue.gallery.searchValue = seriesName;
         vue.$nextTick(() => {
-          // results.sort(function (a, b) {
-          //     var x = a.bookNumbers[0] ? a.bookNumbers[0].toLowerCase().replace('book','').trim().split(',')[0] : '';
-          //     var y = b.bookNumbers[0] ? b.bookNumbers[0].toLowerCase().replace('book','').trim().split(',')[0] : '';
-          //     return x-y;
-          //   });
-          // const sortedResult = _.sortBy(results, ['bookNumbers']);
           const sortedResult =  vue.sortBookNumbers( results, 0 );
           const index = _.findIndex(sortedResult, ['asin', book.asin]);
           vue.gallery.fuseResults = sortedResult;
@@ -238,7 +211,6 @@ export default {
           });
         });
         
-      
       });
       
       
@@ -502,7 +474,7 @@ export default {
       margin: 10px 0 5px 0;
     }
     div.hidden-section {
-      display: none;
+      // display: none;
       padding-top: 0px;
     }
     

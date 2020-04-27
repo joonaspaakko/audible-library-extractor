@@ -160,7 +160,8 @@ export default {
   position: relative;
   z-index: 10;
   margin: 0 auto;
-  margin-top: 100px;
+  margin-top: 50px;
+  margin-bottom: 100px;
   max-width: 600px;
   text-align: center;
   background: #fff;

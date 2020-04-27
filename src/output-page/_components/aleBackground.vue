@@ -7,7 +7,7 @@
 <script>
 export default {
   name: 'aleBackground',
-  props: ['library', 'gallery'],
+  props: ['library'],
 	data : function() {
 		return {
 		}

@@ -1,26 +1,60 @@
 <template>
   <div>
-    <ale-gallery :library="library"></ale-gallery>
-    <ale-spreadsheet   :library="library"></ale-spreadsheet>
+    <div style="background: red; color: #fff;" id="view-switcher" @click="viewSwitcherClick">{{ activeViewText }}</div>
+    <ale-lightswitch></ale-lightswitch>
+    <ale-background :library="library"></ale-background>
+    <ale-spreadsheet v-if="activeView === 'spreadsheet'" :library="library"></ale-spreadsheet>
+    <ale-gallery v-if="activeView === 'gallery'" :library="library"></ale-gallery>
   </div>
 </template>
 
 <script>
+import aleBackground from './_components/aleBackground'
 import aleGallery from './_components/aleGallery'
 import aleSpreadsheet from './_components/aleSpreadsheet'
+import aleLightswitch from './_components/aleLightswitch'
 
 export default {
   components: {
+    aleBackground,
     aleGallery,
-    aleSpreadsheet
+    aleSpreadsheet,
+    aleLightswitch,
   },
   data: function() {
     return {
+			activeView: 'gallery',
       library: this.$root.$data.library
     }
   },
-  mounted: function() {
-  }
+  computed: {
+    
+    activeViewText: function() {
+      return this.activeView === 'gallery' ? 'Spreadsheet' : 'Gallery';
+    }
+    
+  },
+  filters: {
+    capitalize: function (value) {
+      if (!value) return ''
+      value = value.toString()
+      return value.charAt(0).toUpperCase() + value.slice(1)
+    }
+  },
+  methods: {
+    
+    viewSwitcherClick: function() {
+      
+      if ( this.activeView === 'gallery' ) {
+        this.activeView = 'spreadsheet';
+      }
+      else {
+        this.activeView = 'gallery';
+      }
+      
+    }
+    
+  },
 }
 </script>
 

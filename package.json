@@ -1,6 +1,6 @@
 {
   "name": "audible-library-extractor",
-  "version": "0.0.7",
+  "version": "0.0.8",
   "description": "Extracts your Audible library...",
   "author": "Joonas Pääkkö <paakkoj@gmail.com>",
   "engines": {
@@ -20,12 +20,14 @@
     "@fortawesome/fontawesome-svg-core": "^1.2.28",
     "@fortawesome/free-solid-svg-icons": "^5.13.0",
     "@fortawesome/vue-fontawesome": "^0.1.9",
+    "@handsontable/vue": "^4.1.1",
     "axios": "^0.19.0",
     "balloon-css": "^1.0.4",
     "bulma": "^0.8.1",
     "date-fns": "^2.12.0",
     "domurl": "^2.3.0",
     "green-audio-player": "^1.1.2",
+    "handsontable": "^7.4.2",
     "jquery": "^3.4.1",
     "lodash": "^4.17.15",
     "slick-carousel": "^1.8.1",

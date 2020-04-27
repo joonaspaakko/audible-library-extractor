@@ -17,11 +17,11 @@ Note: this extension is not for extracting the audio files from your library.
 
 **End goal**
 
-> Just the big mile markers. There's will be many minor and major features, challenges, and issues to patch between each one listed below.
+> Just the big mile markers. There will be many minor and major features and issues to patch between each one listed below.
 
 - [x] Library scanning (scraping):
   - [x] Extract the whole library and its relevant data
-  - [ ] Library update - _A partial scan that only goes through newly added titles and merges them with the rest._
+  - [x] Library update - _A partial scan that only goes through newly added titles and merges them with the rest._
 - [x] Gallery:
   - [x] A locally viewable gallery
   - [x] Lazy loading for images
@@ -32,7 +32,7 @@ Note: this extension is not for extracting the audio files from your library.
   - [x] Sorting ~~Right now it shows them in the order they were added to your library, but search shuffles the deck.~~
 	- [ ] Audio player for the sample audio
   - [ ] Google books API's summary(?) _Not sure about this yet, but I never liked most provided by Audible_
-- [ ] Spreadsheet:
+- [x] Spreadsheet:
   - [ ] CSV export
   - [ ] Goodreads import compatibility for the CSV (=Fetching ISB from Google books API)
 - [ ] Ability to save the output page locally.
