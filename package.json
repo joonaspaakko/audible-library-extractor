@@ -28,7 +28,7 @@
     "domurl": "^2.3.0",
     "green-audio-player": "^1.1.2",
     "handsontable": "^7.4.2",
-    "jquery": "^3.4.1",
+    "jquery": "^3.5.0",
     "lodash": "^4.17.15",
     "slick-carousel": "^1.8.1",
     "vue": "^2.6.10",
