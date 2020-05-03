@@ -73,9 +73,6 @@ export default {
       this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
       
       this.$nextTick(() => {
-        Event.$emit('gallerySliderMount', {
-          from: 'aleBooks'
-        });
         Event.$emit('detailsToggle', {
           from: 'aleBooks',
           detailsChanged: this.gallery.details.changed

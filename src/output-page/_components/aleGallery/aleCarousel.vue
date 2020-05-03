@@ -51,11 +51,7 @@ export default {
 		
 		makeSlider: function( type ) {
 			
-			console.log( 'DISMOUNT/MAKE SLIDER' );
-			
 			this.$nextTick(() => {
-				console.log( this.gallery.details.sliders );
-				console.log( this.gallery.details.sliders[ type ] );
 				this.destroySlider();
 				this.gallery.details.sliders[ type ] = $(".ale-carousel."+ type +" .ale-slider").not('.slick-initialized').slick({
 				  infinite: false,
@@ -99,16 +95,20 @@ export default {
 		
 	},
 	
-  beforeMount: function() {
+  created: function() {
+			
     var vue = this;
-		vue.makeSlider( vue.type );
-    Event.$on('gallerySliderMount', function( msg ) {
-			vue.makeSlider( vue.type );
+    Event.$on('detailsToggle', function( msg ) {
+			if ( msg.detailsChanged ) {
+				vue.makeSlider( vue.type );
+			}
     });
+		
   },
 	
 	beforeDestroy: function() {
 		this.destroySlider();
+	 	Event.$off('detailsToggle');
 	}
 }
 </script>
