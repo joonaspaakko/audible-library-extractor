@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="ale-books">
     <div
       class="ale-book"
       :class="{ 'details-open': gallery.details.open && gallery.details.index === index  }"
@@ -36,11 +36,6 @@ export default {
   components: {
     sortSpecials
   },
-  computed: {
-		booksInSeriesClickWatcher: function() {
-			return this.gallery.details.booksInSeriesClick;
-		},
-  },
   
   created: function() {
     var vue = this;
@@ -57,12 +52,6 @@ export default {
     },
     
     detailsToggle: function( clickedIndex ) {
-      
-      this.$nextTick(() => {
-        Event.$emit('gallerySliderMount', {
-          from: 'aleBooks'
-        });
-      });
       
       var comp = this;
       var el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
@@ -81,6 +70,17 @@ export default {
       
       var detailsIndex = this.gallery.details.index;
       this.gallery.details.index = clickedIndex;
+      this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
+      
+      this.$nextTick(() => {
+        Event.$emit('gallerySliderMount', {
+          from: 'aleBooks'
+        });
+        Event.$emit('detailsToggle', {
+          from: 'aleBooks',
+          detailsChanged: this.gallery.details.changed
+        });
+      });
       
       if ( this.gallery.details.open ) {
         this.$nextTick(() => {
@@ -174,6 +174,14 @@ export default {
 
 <style lang="scss" scoped>
 @import '~@/_variables.scss';
+
+#ale-books {
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
 
 .ale-book {
   position: relative;

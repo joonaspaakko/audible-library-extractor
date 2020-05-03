@@ -352,6 +352,12 @@ export default {
 }
 
 #ale-bookdetails {
+  -webkit-user-select: text;
+  -khtml-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+	
   @include themify($themes) {
     border-top: 3px solid themed(audibleOrange);
     border-bottom: 3px solid rgba( themed(frontColor), .15);

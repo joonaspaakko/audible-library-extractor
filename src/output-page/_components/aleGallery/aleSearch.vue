@@ -16,18 +16,19 @@
         {{ booksArray.length }}
       </div>
     </div>
-    <div class="scope" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope')" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true }">
+    <div class="scope" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope', $event)" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 410 }">
       <font-awesome-icon fas icon="microscope" />
     </div>
-    <div class="filter" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter')" content="Filter out content" v-tippy="{ placement: 'top',  arrow: true }">
+    <div class="filter" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter out content" v-tippy="{ placement: 'top',  arrow: true }">
       <font-awesome-icon fas icon="filter" />
     </div>
-		<div class="sort" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort' }" @click="openSearchOptions('sort')" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
+		<div class="sort" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort' }" @click="openSearchOptions('sort', $event)" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
 			<font-awesome-icon fas icon="sort" />
 		</div>
     
-    <div class="search-options" v-if="gallery.searchOptions.open">
-			<div class="search-option" v-if="currentOptionsList[0].type === 'sort'">
+    <div id="search-options" v-if="gallery.searchOptions.open">
+      <div class="search-opts-arrow"></div>
+			<div class="search-option sort-values" v-if="currentOptionsList[0].type === 'sort'">
         <label>
           <input type="checkbox" v-model="gallery.searchOptions.lists.showSortValues" />
           <span class="label checkbox">
@@ -72,13 +73,19 @@ export default {
       renderComponent: true
 		}
 	},
-  created () {
+  created: function() {
     var vue = this;
+    
+    Event.$on('detailsToggle', function( msg ) {
+      vue.gallery.searchOptions.open = false;
+    });
+    
     this.$on('fuseResultsUpdated', results => {
       this.gallery.fuseResults = results;
     });
     this.$on('fuseInputChanged', value => {
-      this.gallery.searchValue = value; // Retains the seach query when re-rendered.
+      this.gallery.searchValue = value; // Helps retain the seach query when re-rendered.
+      this.gallery.searchOptions.open = false;
     });
   },
   methods: {
@@ -101,18 +108,56 @@ export default {
       this.forceRerender();
     },
     
-    openSearchOptions: function( option ) {
+    openSearchOptions: function( option, e ) {
       
       if ( !this.gallery.searchOptions.open ) {
         this.gallery.searchOptions.open = true;
+        
       }
       else if ( this.gallery.searchOptions.open && this.gallery.searchOptions.lists.current == option ) {
         this.gallery.searchOptions.open = false;
       }
       
+      var currentOption = this.gallery.searchOptions.lists.current;
       this.gallery.searchOptions.lists.current = option;
       
+      if ( this.gallery.searchOptions.open || currentOption !== option ) {
+        var clickedEl = $( e.currentTarget );
+        this.$nextTick(() => {
+          this.repositionSearchOptions( clickedEl );
+        });
+      }
+      
     },
+		
+		repositionSearchOptions: function( clickedEl ) {
+      
+      const searchOpts = {};
+      searchOpts.el = $('#search-options');
+      searchOpts.width = searchOpts.el.innerWidth();
+      
+      const option = {};
+      option.el = clickedEl;
+      option.width = option.el.innerWidth();
+      option.middle = option.el.position().left + (option.width/2) + parseInt( option.el.css('margin-left'), 10);
+      searchOpts.position = option.middle - (searchOpts.width/2);
+      
+      var difference = (option.el.offset().left + (option.width/2) + (searchOpts.width/2)) - $(window).width();
+      var fitToWindow = difference > 0 ? difference : 0;
+      searchOpts.el.css({
+        left: searchOpts.position - fitToWindow
+      });
+      
+      const arrow = {};
+      arrow.el = searchOpts.el.find('.search-opts-arrow');
+      
+      arrow.el.css({
+        left: (searchOpts.width/2) - 10 + fitToWindow
+      });
+      
+      
+			
+		},
     
   },
   computed: {
@@ -206,12 +251,12 @@ export default {
     
   }
   
-  .search-options {
+  #search-options {
     cursor: default !important;
     position: absolute;
     z-index: 1;
     top: 35px;
-    right: 0;
+    left: 0;
     font-size: 1em;
     line-height: 1.9em;
     padding: 12px 15px 12px 14px !important;
@@ -231,6 +276,19 @@ export default {
       background: themed(backColor);
       box-shadow: 0 3px 15px rgba( #000, .6 );
     }
+    .search-opts-arrow {
+      position: absolute;
+      top: -9px;
+      left: 0;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 10px 10px 10px;
+      @include themify($themes) {
+        border-color: transparent transparent themed(backColor) transparent;
+      }
+    }
+    
     .search-option {
       white-space: nowrap;
       input { display: none; }
@@ -297,7 +355,15 @@ export default {
         }
       }
       
-    }
+      &.sort-values {
+        padding-bottom: 9px;
+        @include themify($themes) {
+          border-bottom: 1px solid rgba( themed(frontColor), .1 );
+        }
+        margin-bottom: 9px;
+      }
+      
+    } // .search-option
   }
   
   .book-in-selection {

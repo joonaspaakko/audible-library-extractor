@@ -57,6 +57,7 @@ export default {
         details: {
           open: false,
           index: -1,
+					changed: false,
           sliders: {},
         }
       }
