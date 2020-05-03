@@ -249,12 +249,11 @@
 /*
  * Implementation of themes
  */
-.sort-releaseDate[data-v-30da75c3],
-.sort-dateAdded[data-v-30da75c3],
-.sort-title[data-v-30da75c3],
-.sort-authors[data-v-30da75c3],
-.sort-narrators[data-v-30da75c3],
-.sort-length[data-v-30da75c3] {
+.sort-specials-container > div[data-v-30da75c3] {
+  white-space: nowrap;
+  overflow: hidden;
+  -ms-text-overflow: ellipsis;
+  text-overflow: ellipsis;
   width: 168px;
   margin: 6px;
   margin-bottom: -8px;
@@ -264,50 +263,31 @@
   border-radius: 2px 2px 0 0;
   color: #fff;
 }
-.sort-releaseDate > div[data-v-30da75c3],
-  .sort-dateAdded > div[data-v-30da75c3],
-  .sort-title > div[data-v-30da75c3],
-  .sort-authors > div[data-v-30da75c3],
-  .sort-narrators > div[data-v-30da75c3],
-  .sort-length > div[data-v-30da75c3] {
-    white-space: nowrap;
-    overflow: hidden;
-    -ms-text-overflow: ellipsis;
-    text-overflow: ellipsis;
-}
-.theme-light .sort-releaseDate[data-v-30da75c3], .theme-light
-  .sort-dateAdded[data-v-30da75c3], .theme-light
-  .sort-title[data-v-30da75c3], .theme-light
-  .sort-authors[data-v-30da75c3], .theme-light
-  .sort-narrators[data-v-30da75c3], .theme-light
-  .sort-length[data-v-30da75c3] {
+.theme-light .sort-specials-container > div[data-v-30da75c3] {
     background: #f79a1c;
 }
-.theme-dark .sort-releaseDate[data-v-30da75c3], .theme-dark
-  .sort-dateAdded[data-v-30da75c3], .theme-dark
-  .sort-title[data-v-30da75c3], .theme-dark
-  .sort-authors[data-v-30da75c3], .theme-dark
-  .sort-narrators[data-v-30da75c3], .theme-dark
-  .sort-length[data-v-30da75c3] {
+.theme-dark .sort-specials-container > div[data-v-30da75c3] {
     background: #f79a1c;
 }
-.sort-booknumbers[data-v-30da75c3] {
+.sort-specials-container div.sort-bookNumbers[data-v-30da75c3] {
+  width: auto;
+  margin: 0;
+  padding: 0;
   position: absolute;
   z-index: 10;
   top: 6px;
   right: 6px;
+  border-radius: none;
+  font-weight: 700;
+  border-radius: 2px;
+  padding: 3px 6px;
+  color: #fff;
 }
-.sort-booknumbers > div[data-v-30da75c3] {
-    font-weight: 700;
-    border-radius: 2px;
-    padding: 3px 6px;
-    color: #fff;
+.theme-light .sort-specials-container div.sort-bookNumbers[data-v-30da75c3] {
+    background: #f79a1c;
 }
-.theme-light .sort-booknumbers > div[data-v-30da75c3] {
-      background: #f79a1c;
-}
-.theme-dark .sort-booknumbers > div[data-v-30da75c3] {
-      background: #f79a1c;
+.theme-dark .sort-specials-container div.sort-bookNumbers[data-v-30da75c3] {
+    background: #f79a1c;
 }
 
 /*

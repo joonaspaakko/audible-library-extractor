@@ -44,13 +44,15 @@ export default {
             showSortValues: false,
 	          sort: [
               // active: true = arrow down / descending
-              { active: true,  key: 'dateAdded',      label: 'Date added',   type: 'sort' },
-	            { active: false, key: 'releaseDate',    label: 'Release date', type: 'sort' },
-	            { active: false, key: 'title',          label: 'Title',        type: 'sort' },
-	            { active: false, key: 'length',         label: 'Length',       type: 'sort' },
-	            { active: false, key: 'authors.name',   label: 'Author',       type: 'sort' },
-	            { active: false, key: 'narrators.name', label: 'Narrator',     type: 'sort' },
-	            { active: false, key: 'bookNumbers',    label: 'Book number',  type: 'sort' },
+              { active: true,  key: 'dateAdded',      label: 'Date added',   			type: 'sort' },
+	            { active: false, key: 'releaseDate',    label: 'Release date', 			type: 'sort' },
+	            { active: false, key: 'title',          label: 'Title',        			type: 'sort' },
+	            { active: false, key: 'length',         label: 'Length',       			type: 'sort' },
+	            { active: false, key: 'authors.name',   label: 'Author',       			type: 'sort' },
+	            { active: false, key: 'narrators.name', label: 'Narrator',     			type: 'sort' },
+	            { active: false, key: 'bookNumbers',    label: 'Book number',  			type: 'sort' },
+	            { active: false, key: 'rating',  			  label: 'Rating',  				 	type: 'sort' },
+	            { active: false, key: 'ratings',  			label: 'Number of ratings', type: 'sort' },
             ]
 	        }
 	      },
@@ -177,8 +179,18 @@ export default {
             else { return 0; }
           }, sortDirection);
           break;
-        default:
-          // if ( o )
+        case 'rating':
+        case 'ratings':
+          sortedBooks = _.orderBy(books, function( o ) {
+            if ( o[ activeSortKey ] ) {
+              var text = o[ activeSortKey ];
+              if ( activeSortKey === 'ratings' ) text = text.match(/\d/g).join('');
+              console.log( Number( text ) );
+              return Number( text );
+            }
+            else { return 0; }
+          }, sortDirection);
+          break;
       }
       
       return sortedBooks;
