@@ -93,6 +93,7 @@ export default {
 		
 		summaryMaxHeight: function() {
       this.$nextTick(() => {
+        
         var bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
     		var information = bookdetails.find('> .information');
         var informationH = information.outerHeight();
@@ -102,12 +103,6 @@ export default {
     		summary.css({
     			maxHeight: informationH
     		});
-        
-        summary.mouseenter(function(){
-          $('html').addClass('prevent-scrolling');
-        }).mouseleave(function(){
-          $('html').removeClass('prevent-scrolling');
-        });
         
 			});
 		},

@@ -53,7 +53,6 @@ chrome.storage.local.get(null, function( data ) {
     
     // Merge storage book chunks into one array
     data = (function( data ) {
-      console.log( data );
       var chunkKeys = [];
       var chunkLength = data[ 'books-chunk-length' ];
       for (var i = 0; i < chunkLength; i++) {

@@ -859,9 +859,6 @@ to {
   width: 1px;
   word-wrap: normal;
 }
-.prevent-scrolling {
-  overflow: hidden;
-}
 #ale-bookdetails {
   -webkit-user-select: text;
   -khtml-user-select: text;
@@ -1010,6 +1007,18 @@ to {
 #ale-bookdetails .information .label {
       margin: 10px 0 5px 0;
 }
+#ale-bookdetails .information div.hidden-section-label {
+      border-radius: 4px;
+      padding: 4px 8px;
+}
+.theme-light #ale-bookdetails .information div.hidden-section-label {
+        background: rgba(33, 35, 37, 0.1);
+        border: 1px solid rgba(33, 35, 37, 0.6);
+}
+.theme-dark #ale-bookdetails .information div.hidden-section-label {
+        background: rgba(249, 248, 248, 0.1);
+        border: 1px solid rgba(249, 248, 248, 0.6);
+}
 #ale-bookdetails .information div.hidden-section {
       padding-top: 0px;
 }
@@ -1038,21 +1047,23 @@ to {
 .theme-dark #ale-bookdetails .information .my-books-in-series .numbers-list.current .icon {
       color: #f79a1c;
 }
-.theme-light #ale-bookdetails .book-summary-wrapper:hover {
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-}
-.theme-dark #ale-bookdetails .book-summary-wrapper:hover {
-    box-shadow: 0 0 10px rgba(178, 166, 166, 0.3);
-}
 #ale-bookdetails .book-summary {
     position: relative;
     z-index: 0;
     flex-grow: 1;
     text-align: left;
 }
-#ale-bookdetails .book-summary h2:first-child {
+#ale-bookdetails .book-summary h2.book-title {
       font-size: 1.8em;
-      margin-top: 0;
+      margin: 0;
+      margin-bottom: 10px;
+}
+#ale-bookdetails .book-summary .inline-children > * {
+      display: inline-block;
+}
+#ale-bookdetails .book-summary .smoll-text {
+      font-size: .8em;
+      line-height: .9em;
 }
 #ale-bookdetails .VueCarousel-dot-container, #ale-bookdetails .VueCarousel-dot-container > button {
     margin-top: 0 !important;

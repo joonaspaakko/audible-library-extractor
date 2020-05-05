@@ -14,46 +14,33 @@
           </div>
           <div class="basic-details">
             
-            <div class="authors" v-if="stringifyArray( book.authors )">
-              <strong class="label">Author:</strong> <span v-html="stringifyArray( book.authors )"></span>
+            <div class="authors" v-if="linkifyObjArray( book.authors )">
+              <strong class="label">Author:</strong> <span v-html="linkifyObjArray( book.authors )"></span>
             </div>
-            <div class="narrators" v-if="stringifyArray( book.narrators )">
-              <strong class="label">Narrator:</strong> <span v-html="stringifyArray( book.narrators )"></span>
+            <div class="narrators" v-if="linkifyObjArray( book.narrators )">
+              <strong class="label">Narrator:</strong> <span v-html="linkifyObjArray( book.narrators )"></span>
             </div>
-            <div class="series" v-if="stringifyArray( book.series )">
-              <strong class="label">Series:</strong> <span v-html="stringifyArray( book.series )"></span>
+            <div class="series" v-if="linkifyObjArray( book.series )">
+              <strong class="label">Series:</strong> <span v-html="linkifyObjArray( book.series )"></span>
             </div>
             <div class="own-rating" v-if="ownRating">
               <strong class="label">My rating:</strong> <span>{{ ownRating }}</span>
             </div>
-						
-						<h3 class="label">More info <font-awesome-icon fas icon="chevron-down" /></h3>
-            <div class="hidden-section extra-info">
-              
-              <div class="progress" v-if="book.progress">
-                <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
-              </div>
-              <div class="publisher" v-if="book.publisher">
-                <strong class="label">Publisher:</strong> <span>{{ book.publisher }}</span>
-              </div>
-              <div class="rating" v-if="book.rating">
-                <strong class="label">Overall rating:</strong> <span>{{ book.rating }} {{ book.ratings }}</span>
-              </div>
-              <div class="release-date" v-if="book.releaseDate">
-                <strong class="label">Release date:</strong> <span>{{ book.releaseDate }}</span>
-              </div>
-              <div class="date-added" v-if="book.dateAdded">
-                <strong class="label">Date added:</strong> <span>{{ book.dateAdded }}</span>
-              </div>
-              <div class="book-numbers" v-if="stringifyArray( book.numbers )">
-                <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.numbers )"></span>
-              </div>
-              <div class="categories" v-if="stringifyArray( book.categories )">
-                <strong class="label">Categories:</strong> <span v-html="stringifyArray( book.categories, ' > ' )"></span>
-              </div>
-            </div> <!-- .extra-info -->
             
-            <h3 v-if="booksInSeries" class="label">Books I own in the series <font-awesome-icon fas icon="chevron-down" /></h3>
+            <div class="progress" v-if="book.progress">
+              <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
+            </div>
+            <div class="publisher" v-if="book.publisher">
+              <strong class="label">Publisher:</strong> <span>{{ book.publisher }}</span>
+            </div>
+            <div class="rating" v-if="book.rating">
+              <strong class="label">Overall rating:</strong> <span>{{ book.rating }} {{ book.ratings }}</span>
+            </div>
+            <div class="book-numbers" v-if="book.bookNumbers">
+              <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.bookNumbers )"></span>
+            </div>
+            
+            <div v-if="booksInSeries" class="label hidden-section-label">Books I own in the series <font-awesome-icon fas icon="chevron-down" /></div>
             <div class="hidden-section my-books-in-series">
               <div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
                 <strong>{{ seriesKey }}</strong>
@@ -62,7 +49,7 @@
                   <span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
                     <font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
                   </span>
-                  <span class="numbers">{{ bookNumbers( book, seriesIndex ) }}</span>
+                  <span class="numbers">{{ bookNumbers( book, seriesKey ) }}</span>
                   <span class="title">{{ book.title }}</span>
                   
                 </div>
@@ -73,17 +60,24 @@
         </div> <!-- .information -->
         
         <div class="book-summary-wrapper">
-          <vuescroll :vueScrollOptions="vueScrollOptions">
-            <div class="book-summary">
-              <h2>{{ book.title }}</h2>
-              <div class="categories" v-if="stringifyArray( book.categories )">
-                <span v-html="stringifyArray( book.categories, ' > ' )"></span>
-              </div>
-              <div v-html="book.summary"></div>
-            </div>
-          </vuescroll>
-        </div>
 
+          <div class="book-summary">
+            <h2 class="book-title">{{ book.title }}</h2>
+            <div class="categories" v-if="linkifyObjArray( book.categories )">
+              <span v-html="linkifyObjArray( book.categories, ' > ' )"></span>
+            </div>
+            <div class="inline-children smoll-text">
+              <div class="release-date" v-if="book.releaseDate">
+                <span class="label">Released:</span> <span>{{ book.releaseDate }}</span>
+              </div>
+              <div class="date-added" v-if="book.dateAdded">
+                <span class="label">Added:</span> <span>{{ book.dateAdded }}</span>
+              </div>
+            </div>
+            <div v-html="book.summary"></div>
+          </div>
+
+        </div>
       </div>
       
       <ale-carousel v-if="book.peopleAlsoBought" :gallery="gallery" :books="book.peopleAlsoBought" type="peopleAlsoBought"></ale-carousel>
@@ -96,14 +90,12 @@
 
 <script>
 import aleCarousel from './aleCarousel'
-import vuescroll from 'vuescroll';
 // const GreenAudioPlayer = require('green-audio-player');
 
 export default {
   name: 'aleBookdetails',
   components: {
     aleCarousel,
-    vuescroll,
   },
   data: function() {
     return {
@@ -127,6 +119,7 @@ export default {
   },
   props: ['booksArray', 'library', 'gallery'],
   computed: {
+    
     booksInSeries: function() {
       var vue = this;
       var series = {};
@@ -135,35 +128,41 @@ export default {
           
           var findSeries = _.filter(vue.library.books, { series: [{name: obj.name }] });
           if ( !_.isEmpty( findSeries ) ) {
-            series[ obj.name ] = vue.sortBookNumbers( findSeries, i );
+            series[ obj.name ] = vue.sortBookNumbers( findSeries, obj.name );
           }
           
         });
       }
       return _.isEmpty(series) || series.length < 2 ? null : series;
     },
+    
     book: function() {
       // return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
       return this.booksArray[ this.gallery.details.index ];
     },
+    
 		ownRating: function() {
       var book = this.library.books[ this.gallery.details.index ];
       var newStyle = _.has(book.ownRating, 'newStyleRating');
       var value = newStyle ? book.ownRating.newStyleRating : book.ownRating;
 			return value;
 		},
+    
 		searchWatcher: function() {
 			return this.gallery.fuseResults;
 		},
   },
   methods: {
     
-    sortBookNumbers: function( array, i ) {
+    sortBookNumbers: function( array, seriesName ) {
       return _.orderBy(array, function(o) {
         
         if ( o.bookNumbers ) {
           // If one book has multiple numbers, the first one is used for sorting
-          var numbers = _.isArray( o.bookNumbers[i] ) ? o.bookNumbers[i][0] : o.bookNumbers[i];
+          
+          const seriesObj = _.filter(o.series, ['name', seriesName ]);
+          const number = seriesObj[0].bookNumber;
+          const numbers = _.isArray( number ) ? number[0] : number;
           // If the number is a string, we assume it's a number range
           // and once again use the first number from that range
           var dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
@@ -200,7 +199,7 @@ export default {
         
         vue.gallery.searchValue = seriesName;
         vue.$nextTick(() => {
-          const sortedResult =  vue.sortBookNumbers( results, 0 );
+          const sortedResult =  vue.sortBookNumbers( results, seriesName );
           const index = _.findIndex(sortedResult, ['asin', book.asin]);
           vue.gallery.fuseResults = sortedResult;
           vue.$nextTick(() => {
@@ -259,9 +258,10 @@ export default {
       }
     },
     
-    bookNumbers: function( book, seriesIndex) {
+    bookNumbers: function( book, seriesName ) {
       if ( book.bookNumbers ) {
-        var numbers = book.bookNumbers[ seriesIndex ];
+        const seriesObj = _.filter(book.series, ['name', seriesName ]);
+        const numbers = seriesObj[0].bookNumber;
         return _.isArray( numbers ) ? numbers.join(', ') : numbers;
       }
       else {
@@ -322,13 +322,27 @@ export default {
 				}
 			}
 		},
-    stringifyArray: function( array, delimiter ) {
+    
+    linkifyObjArray: function( array, delimiter ) {
       if ( array ) {
         var html = '';
         array.forEach((item, index ) => {
           html += '<a href="'+ item.url +'" target="_blank">'+ item.name +'</a>';
           if ( index < array.length-1 ) html += (delimiter || ', ');
         });
+        return html;
+      }
+    },
+    
+    stringifyArray: function( array, delimiter ) {
+      if ( array ) {
+        var html = '';
+        array.forEach((item, index ) => {
+          console.log( item );
+          html += '<span>'+ item +'</span>';
+          if ( index < array.length-1 ) html += (delimiter || ', ');
+        });
+        console.log( html );
         return html;
       }
     },
@@ -346,10 +360,6 @@ export default {
 <style lang="scss">
 @import '~@/_variables.scss';
 @import 'node_modules/green-audio-player/src/scss/main.scss';
-
-.prevent-scrolling {
-  overflow: hidden;
-}
 
 #ale-bookdetails {
   -webkit-user-select: text;
@@ -479,6 +489,20 @@ export default {
     .label {
       margin: 10px 0 5px 0;
     }
+    
+    div.hidden-section-label {
+      
+      border-radius: 4px;
+      padding: 4px 8px;
+      @include themify($themes) {
+        background: rgba( themed(frontColor), .1 );
+        border: 1px solid rgba( themed(frontColor), .6 );
+      }
+      // padding-bottom: 4px;
+      // @include themify($themes) {
+      //   border-bottom: 2px solid rgba( themed(frontColor), .3 );
+      // }
+    }
     div.hidden-section {
       // display: none;
       padding-top: 0px;
@@ -534,11 +558,11 @@ export default {
   }
   
   .book-summary-wrapper {
-    &:hover {
-      @include themify($themes) {
-        box-shadow: 0 0 10px rgba( darken(themed(frontColor), 30) , .3);
-      }
-    }
+    // &:hover {
+    //   @include themify($themes) {
+    //     box-shadow: 0 0 10px rgba( darken(themed(frontColor), 30) , .3);
+    //   }
+    // }
   }
   .book-summary {
     position: relative;
@@ -548,11 +572,18 @@ export default {
     // overflow-y: auto;
     flex-grow: 1;
     text-align: left;
-    h2:first-child {
+    h2.book-title {
       font-size: 1.8em;
-      margin-top: 0;
+      margin: 0;
+      margin-bottom: 10px;
     }
-    
+    .inline-children > * {
+      display: inline-block;
+    }
+    .smoll-text {
+      font-size: .8em;
+      line-height: .9em;
+    }
   } // .summary
   
 	.VueCarousel-dot-container {
