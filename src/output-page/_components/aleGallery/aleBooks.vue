@@ -38,11 +38,12 @@ export default {
   },
   
   created: function() {
-    var vue = this;
-    Event.$on('galleryBookClick', function( msg ) {
-      vue.detailsToggle( msg.index );
-    });
+    Event.$on('galleryBookClick', this.onBookClicked );
   },
+  
+	beforeDestroy: function() {
+	 	Event.$off('galleryBookClick', this.onBookClicked );
+	},
   
   methods: {
     
@@ -51,15 +52,18 @@ export default {
       else return array.join(', ')
     },
     
+    onBookClicked: function( msg ) {
+      this.detailsToggle( msg.index )
+    },
+    
     detailsToggle: function( clickedIndex ) {
       
-      var comp = this;
-      var el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
-      var coverViewportOffset = el.offset().top - $(document).scrollTop();
-      
+      const comp = this;
+      const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
+      const coverViewportOffset = el.offset().top - $(document).scrollTop();
       
       // Open if closed
-			var detailsClosed = !this.gallery.details.open ? true : false;
+			const detailsClosed = !this.gallery.details.open ? true : false;
 			if ( !this.gallery.details.open ) {
 				this.gallery.details.open = true;
 			}
@@ -68,7 +72,7 @@ export default {
 				this.gallery.details.open = false;
 			}
       
-      var detailsIndex = this.gallery.details.index;
+      const detailsIndex = this.gallery.details.index;
       this.gallery.details.index = clickedIndex;
       this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
       
@@ -81,31 +85,12 @@ export default {
       
       if ( this.gallery.details.open ) {
         this.$nextTick(() => {
-					
-					this.summaryMaxHeight();
           this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset );
-					
         });
       }
       
 			
     },
-		
-		summaryMaxHeight: function() {
-      this.$nextTick(() => {
-        
-        var bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
-    		var information = bookdetails.find('> .information');
-        var informationH = information.outerHeight();
-    		var summary = bookdetails.find('.book-summary');
-        var summaryH = summary.height();
-        
-    		summary.css({
-    			maxHeight: informationH
-    		});
-        
-			});
-		},
     
     calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset ) {
       

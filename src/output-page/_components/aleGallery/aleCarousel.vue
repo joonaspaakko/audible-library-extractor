@@ -93,22 +93,21 @@ export default {
 			}
 		},
 		
+		onDetailsToggle( msg ) {
+			if ( msg.detailsChanged ) {
+				this.makeSlider( this.type );
+			}
+		}
+			
 	},
 	
   created: function() {
-			
-    var vue = this;
-    Event.$on('detailsToggle', function( msg ) {
-			if ( msg.detailsChanged ) {
-				vue.makeSlider( vue.type );
-			}
-    });
-		
+    Event.$on('detailsToggle', this.onDetailsToggle );
   },
 	
 	beforeDestroy: function() {
 		this.destroySlider();
-	 	Event.$off('detailsToggle');
+	 	Event.$off('detailsToggle', this.onDetailsToggle);
 	}
 }
 </script>

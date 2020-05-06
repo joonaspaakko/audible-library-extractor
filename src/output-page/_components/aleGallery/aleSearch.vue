@@ -76,9 +76,7 @@ export default {
   created: function() {
     var vue = this;
     
-    Event.$on('detailsToggle', function( msg ) {
-      vue.gallery.searchOptions.open = false;
-    });
+    Event.$on('detailsToggle', this.onDetailsToggle );
     
     this.$on('fuseResultsUpdated', results => {
       this.gallery.fuseResults = results;
@@ -88,7 +86,16 @@ export default {
       this.gallery.searchOptions.open = false;
     });
   },
+	
+	beforeDestroy: function() {
+	 	Event.$off('detailsToggle', this.onDetailsToggle );
+	},
+	
   methods: {
+    
+    onDetailsToggle: function( msg ) {
+      this.gallery.searchOptions.open = false;
+    },
     
     forceRerender: function() {
       this.renderComponent = false;
@@ -173,7 +180,6 @@ export default {
     },
     
 		placeholder: function() {
-      // console.log( this.aliciaKeys );
       var placeholderKeys = (function( keys ) {
         var truncKeys = [];
         $.each( keys, function( i, key ) {

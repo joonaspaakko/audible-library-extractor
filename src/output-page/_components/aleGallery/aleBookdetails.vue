@@ -9,7 +9,7 @@
           <div class="cover-wrap">
             <a :href="book.url" target="_blank">
 							<div class="progressbar"><div class="progress" :style="progress( book )"></div></div>
-              <img class="cover" :src="book.coverUrl">
+              <img class="cover" width="280" height="280" :src="book.coverUrl">
             </a>
           </div>
           <div class="basic-details">
@@ -40,27 +40,27 @@
               <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.bookNumbers )"></span>
             </div>
             
-            <div v-if="booksInSeries" class="label hidden-section-label">Books I own in the series <font-awesome-icon fas icon="chevron-down" /></div>
-            <div class="hidden-section my-books-in-series">
-              <div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
-                <strong>{{ seriesKey }}</strong>
-                <div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
-                  
-                  <span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
-                    <font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
-                  </span>
-                  <span class="numbers">{{ bookNumbers( book, seriesKey ) }}</span>
-                  <span class="title">{{ book.title }}</span>
-                  
-                </div>
-              </div>
-            </div> <!-- .by-books-in-series -->
             
           </div> <!-- .basic-details -->
+					<div v-if="booksInSeries" class="label hidden-section-label">Books I own in the series <font-awesome-icon fas icon="chevron-down" /></div>
+					<div class="hidden-section my-books-in-series">
+						<div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
+							<strong>{{ seriesKey }}</strong>
+							<div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
+								
+								<span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
+									<font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
+								</span>
+								<span class="numbers">{{ bookNumbers( book, seriesKey ) }}</span>
+								<span class="title">{{ book.title }}</span>
+								
+							</div>
+						</div>
+					</div> <!-- .by-books-in-series -->
         </div> <!-- .information -->
         
         <div class="book-summary-wrapper">
-
+          
           <div class="book-summary">
             <h2 class="book-title">{{ book.title }}</h2>
             <div class="categories" v-if="linkifyObjArray( book.categories )">
@@ -76,6 +76,8 @@
             </div>
             <div v-html="book.summary"></div>
           </div>
+          
+          <div class="summary-read-more">Read more <font-awesome-icon fas icon="chevron-down" /></div>
 
         </div>
       </div>
@@ -118,6 +120,17 @@ export default {
     }
   },
   props: ['booksArray', 'library', 'gallery'],
+  
+  created: function() {
+    
+    Event.$on('detailsToggle', this.onDetailsToggle );
+    
+  },
+	
+	beforeDestroy: function() {
+	 	Event.$off('detailsToggle', this.onDetailsToggle );
+	},
+  
   computed: {
     
     booksInSeries: function() {
@@ -153,6 +166,30 @@ export default {
 		},
   },
   methods: {
+    
+    onDetailsToggle: function( msg ) {
+    
+			if ( msg.detailsChanged ) {
+				this.summaryMaxHeight();
+			}
+      
+    },
+    
+		summaryMaxHeight: function() {
+      // this.$nextTick(() => {
+        
+        var bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
+    		var information = bookdetails.find('> .information');
+        var informationH = information.outerHeight();
+    		var summary = bookdetails.find('> .book-summary-wrapper');
+        var summaryH = summary.height();
+        
+    		summary.css({
+    			maxHeight: informationH
+    		});
+        
+			// });
+		},
     
     sortBookNumbers: function( array, seriesName ) {
       return _.orderBy(array, function(o) {
@@ -338,11 +375,9 @@ export default {
       if ( array ) {
         var html = '';
         array.forEach((item, index ) => {
-          console.log( item );
           html += '<span>'+ item +'</span>';
           if ( index < array.length-1 ) html += (delimiter || ', ');
         });
-        console.log( html );
         return html;
       }
     },
@@ -492,11 +527,13 @@ export default {
     
     div.hidden-section-label {
       
-      border-radius: 4px;
-      padding: 4px 8px;
+      padding-top: 5px;
+      padding-bottom: 5px;
       @include themify($themes) {
-        background: rgba( themed(frontColor), .1 );
-        border: 1px solid rgba( themed(frontColor), .6 );
+        background: rgba( themed(frontColor), .01 );
+        border-top: 1px solid rgba( themed(frontColor), .15 );
+        border-bottom: 1px solid rgba( themed(frontColor), .15 );
+        
       }
       // padding-bottom: 4px;
       // @include themify($themes) {
@@ -558,12 +595,44 @@ export default {
   }
   
   .book-summary-wrapper {
-    // &:hover {
-    //   @include themify($themes) {
-    //     box-shadow: 0 0 10px rgba( darken(themed(frontColor), 30) , .3);
-    //   }
-    // }
+    overflow: hidden;
+    position: relative;
+    
+    .summary-read-more {
+      position: absolute;
+      z-index: 5;
+      right: 0;
+      bottom: 10px;
+      left: 0;
+      &:after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 40px;
+      }
+    }
   }
+  
+} // #ale-bookdetails
+
+.theme-light #ale-bookdetails .summary-read-more:after {
+  background: -moz-linear-gradient(top,  rgba(249,248,248,0) 0%, rgba(249,248,248,1) 51%, rgba(249,248,248,1) 99%);
+  background: -webkit-linear-gradient(top,  rgba(249,248,248,0) 0%,rgba(249,248,248,1) 51%,rgba(249,248,248,1) 99%);
+  background: linear-gradient(to bottom,  rgba(249,248,248,0) 0%,rgba(249,248,248,1) 51%,rgba(249,248,248,1) 99%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00f9f8f8', endColorstr='#f9f8f8',GradientType=0 );
+}
+.theme-dark #ale-bookdetails .summary-read-more:after {
+  background: -moz-linear-gradient(top,  rgba(21,23,27,0) 0%, rgba(21,23,27,1) 51%, rgba(21,23,27,1) 99%);
+  background: -webkit-linear-gradient(top,  rgba(21,23,27,0) 0%,rgba(21,23,27,1) 51%,rgba(21,23,27,1) 99%);
+  background: linear-gradient(to bottom,  rgba(21,23,27,0) 0%,rgba(21,23,27,1) 51%,rgba(21,23,27,1) 99%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0015171b', endColorstr='#15171b',GradientType=0 );
+}
+
+#ale-bookdetails {
+  
   .book-summary {
     position: relative;
     z-index: 0;

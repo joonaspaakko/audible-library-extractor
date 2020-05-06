@@ -1008,16 +1008,18 @@ to {
       margin: 10px 0 5px 0;
 }
 #ale-bookdetails .information div.hidden-section-label {
-      border-radius: 4px;
-      padding: 4px 8px;
+      padding-top: 5px;
+      padding-bottom: 5px;
 }
 .theme-light #ale-bookdetails .information div.hidden-section-label {
-        background: rgba(33, 35, 37, 0.1);
-        border: 1px solid rgba(33, 35, 37, 0.6);
+        background: rgba(33, 35, 37, 0.01);
+        border-top: 1px solid rgba(33, 35, 37, 0.15);
+        border-bottom: 1px solid rgba(33, 35, 37, 0.15);
 }
 .theme-dark #ale-bookdetails .information div.hidden-section-label {
-        background: rgba(249, 248, 248, 0.1);
-        border: 1px solid rgba(249, 248, 248, 0.6);
+        background: rgba(249, 248, 248, 0.01);
+        border-top: 1px solid rgba(249, 248, 248, 0.15);
+        border-bottom: 1px solid rgba(249, 248, 248, 0.15);
 }
 #ale-bookdetails .information div.hidden-section {
       padding-top: 0px;
@@ -1047,32 +1049,64 @@ to {
 .theme-dark #ale-bookdetails .information .my-books-in-series .numbers-list.current .icon {
       color: #f79a1c;
 }
-#ale-bookdetails .book-summary {
+#ale-bookdetails .book-summary-wrapper {
+    overflow: hidden;
     position: relative;
-    z-index: 0;
-    flex-grow: 1;
-    text-align: left;
+}
+#ale-bookdetails .book-summary-wrapper .summary-read-more {
+      position: absolute;
+      z-index: 5;
+      right: 0;
+      bottom: 10px;
+      left: 0;
+}
+#ale-bookdetails .book-summary-wrapper .summary-read-more:after {
+        content: '';
+        position: absolute;
+        z-index: -1;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        height: 40px;
+}
+.theme-light #ale-bookdetails .summary-read-more:after {
+  background: -moz-linear-gradient(top, rgba(249, 248, 248, 0) 0%, #f9f8f8 51%, #f9f8f8 99%);
+  background: -webkit-linear-gradient(top, rgba(249, 248, 248, 0) 0%, #f9f8f8 51%, #f9f8f8 99%);
+  background: linear-gradient(to bottom, rgba(249, 248, 248, 0) 0%, #f9f8f8 51%, #f9f8f8 99%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00f9f8f8', endColorstr='#f9f8f8',GradientType=0 );
+}
+.theme-dark #ale-bookdetails .summary-read-more:after {
+  background: -moz-linear-gradient(top, rgba(21, 23, 27, 0) 0%, #15171b 51%, #15171b 99%);
+  background: -webkit-linear-gradient(top, rgba(21, 23, 27, 0) 0%, #15171b 51%, #15171b 99%);
+  background: linear-gradient(to bottom, rgba(21, 23, 27, 0) 0%, #15171b 51%, #15171b 99%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0015171b', endColorstr='#15171b',GradientType=0 );
+}
+#ale-bookdetails .book-summary {
+  position: relative;
+  z-index: 0;
+  flex-grow: 1;
+  text-align: left;
 }
 #ale-bookdetails .book-summary h2.book-title {
-      font-size: 1.8em;
-      margin: 0;
-      margin-bottom: 10px;
+    font-size: 1.8em;
+    margin: 0;
+    margin-bottom: 10px;
 }
 #ale-bookdetails .book-summary .inline-children > * {
-      display: inline-block;
+    display: inline-block;
 }
 #ale-bookdetails .book-summary .smoll-text {
-      font-size: .8em;
-      line-height: .9em;
+    font-size: .8em;
+    line-height: .9em;
 }
 #ale-bookdetails .VueCarousel-dot-container, #ale-bookdetails .VueCarousel-dot-container > button {
-    margin-top: 0 !important;
+  margin-top: 0 !important;
 }
 .theme-light #ale-bookdetails .VueCarousel-dot-container [aria-selected="false"] {
-    background-color: rgba(33, 35, 37, 0.43) !important;
+  background-color: rgba(33, 35, 37, 0.43) !important;
 }
 .theme-dark #ale-bookdetails .VueCarousel-dot-container [aria-selected="false"] {
-    background-color: rgba(249, 248, 248, 0.43) !important;
+  background-color: rgba(249, 248, 248, 0.43) !important;
 }
 @media screen and (max-width: 900px) {
 #ale-bookdetails .inner-wrap .top {
