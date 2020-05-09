@@ -42,7 +42,7 @@
             
             
           </div> <!-- .basic-details -->
-					<div v-if="booksInSeries" class="label hidden-section-label my-books-in-series-label" @click="booksInSeriesLabelClick">Books I own in the series <font-awesome-icon fas :icon="booksInSeriesContent.toggle ? 'chevron-up' : 'chevron-down'" /></div>
+					<div v-if="booksInSeries" class="label hidden-section-label my-books-in-series-label" @click="booksInSeriesLabelClick">Books I own in the series <span>{{ booksInSeriesCount }}</span><font-awesome-icon fas :icon="booksInSeriesContent.toggle ? 'chevron-up' : 'chevron-down'" /></div>
 					<div class="hidden-section my-books-in-series" v-if="booksInSeriesContent.toggle">
 						<div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
 							<strong>{{ seriesKey }}</strong>
@@ -126,6 +126,19 @@ export default {
   
   computed: {
     
+    booksInSeriesCount: function() {
+      
+      if ( this.booksInSeries ) {
+        const seriesName = this.book.series[0].name;
+        const seriesLength = this.booksInSeries[ seriesName ].length;
+        return seriesLength ? '('+ seriesLength  +')' : '';
+      }
+      else {
+        return '';
+      }
+      
+    },
+    
     booksInSeries: function() {
       var vue = this;
       var series = {};
@@ -139,7 +152,8 @@ export default {
           
         });
       }
-      return _.isEmpty(series) || series.length < 2 ? null : series;
+      
+      return _.isEmpty(series) || series;
     },
     
     book: function() {
