@@ -82,8 +82,8 @@ export default {
       this.gallery.fuseResults = results;
     });
     this.$on('fuseInputChanged', value => {
+      if ( this.gallery.searchValue !== value ) { this.gallery.searchOptions.open = false; }
       this.gallery.searchValue = value; // Helps retain the seach query when re-rendered.
-      this.gallery.searchOptions.open = false;
     });
   },
 	
@@ -94,6 +94,7 @@ export default {
   methods: {
     
     onDetailsToggle: function( msg ) {
+			console.log( 'on details toggle' );
       this.gallery.searchOptions.open = false;
     },
     

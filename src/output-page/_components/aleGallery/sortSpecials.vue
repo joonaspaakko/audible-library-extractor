@@ -1,8 +1,6 @@
 <template>
   <div class="sort-specials-container" v-if="gallery.searchOptions.lists.showSortValues">
-    <div :class="'sort-'+activeSortKey">
-      {{ sortContents }}
-    </div>
+    <div :class="'sort-'+activeSortKey" v-html="sortContents"></div>
   </div>
 </template>
 
@@ -46,12 +44,12 @@ export default {
             return this.book[ sortKey ][0].name;
             break;
           case 'rating':
-            var ratings = this.book.ratings ? ' ('+ this.book.ratings.match(/\d/g).join('').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')' : '';
+            var ratings = this.book.ratings ? ' <small>('+ this.book.ratings.match(/\d/g).join('').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')</small>' : '';
             return this.book[ sortKey ] + ratings;
             break;
           case 'ratings':
             var text = this.book[ sortKey ];
-            var rating = this.book.rating ? ' ('+ this.book.rating +')' : '';
+            var rating = this.book.rating ? ' <small>('+ this.book.rating +')</small>' : '';
             return text.match(/\d/g).join('').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + rating;
             break;
           default:

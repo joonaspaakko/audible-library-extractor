@@ -279,10 +279,11 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             
             const _thisRow = $(this);
 						const bookASIN = _thisRow.attr('id').replace('adbl-library-content-row-','');
-						const partialAlreadyExists = vue.partialScan && _.find(vue.library.books, ['asin', bookASIN]);
-						
+						const partialScan_Old = vue.partialScan && bookExists || !vue.partialScan;
+						const partialScan_New = vue.partialScan && !bookExists || !vue.partialScan;
+            
             var book = {};
-						if ( !partialAlreadyExists ) {
+						if ( partialScan_New ) {
 							book.asin = bookASIN;
 							book.title = _thisRow.find('> td:nth-child(2) > div > span > span > ul > li:nth-child(1) > a').text().trim().replace(/\s+/g,' ');
 							book.dateAdded = vue.fixDates( _thisRow.find('> td:nth-child(5) > div > span > div > div > span').text().trim() );
@@ -295,19 +296,25 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
 								url: window.location.origin + '/' + _thisRow.find('> td:nth-child(2) .bc-list > li:last a').attr('href')
 							}];
 						}
-            book.progress = _thisRow.find('> td:nth-child(1) .bc-col > div:last').text().trim().replace(/\s+/g,' ');
-						if ( !partialAlreadyExists ) {
+            if ( partialScan_Old ) {
+              book.progress = _thisRow.find('> td:nth-child(1) .bc-col > div:last').text().trim().replace(/\s+/g,' ');
+            }
+            
+						if ( partialScan_New ) {
 							book.coverUrl = _thisRow.find('> td:nth-child(1) .bc-col > div:first img').data('bc-hires');
 							book.downloaded = _thisRow.find('> td:nth-child(7) > div > span > div > i').length > 0;
 						}
-						book.ownRating = vue.getOwnRating( _thisRow.find('> td:nth-child(6) > div > span > div > div > div > .bc-row-responsive').not(':last') );
+            if ( partialScan_Old ) {
+              book.ownRating = vue.getOwnRating( _thisRow.find('> td:nth-child(6) > div > span > div > div > div > .bc-row-responsive').not(':last') );
+            }
             
-						if ( !partialAlreadyExists ) newBooks.push( bookASIN );
+						if ( partialScan_New ) newBooks.push( bookASIN );
             books.push( book );
             audible = null;
             book = null;
+            
             if ( vue.partialScan ) {
-              if ( !partialAlreadyExists ) ++vue.progress.titles;
+              if ( partialScan_New ) ++vue.progress.titles;
             }
             else {
               ++vue.progress.titles;
@@ -326,10 +333,12 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
 						
             const _thisRow = $(this);
 						const bookASIN = _thisRow.attr('id').replace('adbl-library-content-row-','');
-						const partialAlreadyExists = vue.partialScan && _.find(vue.library.books, ['asin', bookASIN]);
+            const bookExists = _.find(vue.library.books, ['asin', bookASIN]);
+						const partialScan_Old = vue.partialScan && bookExists || !vue.partialScan;
+						const partialScan_New = vue.partialScan && !bookExists || !vue.partialScan;
             
             var book = {};
-						if ( !partialAlreadyExists ) {
+						if ( partialScan_New ) {
 							book.asin = bookASIN;
 							book.title = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span').text().trim().replace(/\s+/g,' ');
 							book.dateAdded = null;
@@ -339,38 +348,43 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
 							book.bookNumbers = vue.getBookNumbers( _thisRow.find('li.bc-list-item.seriesLabel') );
 							book.series = vue.supplementArray( book.series, book.bookNumbers );
 						}
-            var progressbar = _thisRow.find('[id^="time-remaining-display"] [role="progressbar"]').length > 0;
-            var finished = _thisRow.find('[id^="time-remaining-finished"].bc-pub-hidden').length < 1;
-            var timeRemaining = _thisRow.find('[id^="time-remaining"]:not(.bc-pub-hidden)').text().trim().replace(/\s+/g,' ');
-            if ( progressbar || finished ) {
-              book.progress = timeRemaining;
+            if ( partialScan_Old ) {
+              var progressbar = _thisRow.find('[id^="time-remaining-display"] [role="progressbar"]').length > 0;
+              var finished = _thisRow.find('[id^="time-remaining-finished"].bc-pub-hidden').length < 1;
+              var timeRemaining = _thisRow.find('[id^="time-remaining"]:not(.bc-pub-hidden)').text().trim().replace(/\s+/g,' ');
+              if ( progressbar || finished ) {
+                book.progress = timeRemaining;
+              }
+              else {
+                book.length = timeRemaining;
+                book.progress = 0;
+              }
+              
+              progressbar = null;
+              finished = null;
+              timeRemaining = null;
             }
-            else {
-              book.length = timeRemaining;
-              book.progress = 0;
-            }
-						
-            progressbar = null;
-            finished = null;
-            timeRemaining = null;
-						if ( !partialAlreadyExists ) {
+						if ( partialScan_New ) {
 							book.coverUrl = _thisRow.find('img.bc-pub-block:first').attr('src');
 							book.downloaded = _thisRow.find('> div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.adbl-library-action.bc-col-2.bc-col-offset-1 > div:nth-child(4) > span').length > 0;
 						}
-            var ratingWrap = _thisRow.find('div.bc-rating-stars.adbl-prod-rate-review-bar.adbl-prod-rate-review-bar-overall');
-            var ratingEl = ratingWrap.find('span.bc-rating-star[aria-checked="true"]:last');
-            book.ownRating = {
-              newStyleRating: ratingEl.length > 0 ? ratingEl.data('index') : null
-            };
-            ratingWrap = null;
-            ratingEl = null;
+            if ( partialScan_Old ) {
+              var ratingWrap = _thisRow.find('div.bc-rating-stars.adbl-prod-rate-review-bar.adbl-prod-rate-review-bar-overall');
+              var ratingEl = ratingWrap.find('span.bc-rating-star[aria-checked="true"]:last');
+              book.ownRating = {
+                newStyleRating: ratingEl.length > 0 ? ratingEl.data('index') : null
+              };
+              ratingWrap = null;
+              ratingEl = null;
+            }
 						
-						if ( !partialAlreadyExists ) newBooks.push( bookASIN );
+						if ( partialScan_New ) newBooks.push( bookASIN );
             books.push( book );
             audible = null;
             book = null;
+            
             if ( vue.partialScan ) {
-              if ( !partialAlreadyExists ) ++vue.progress.titles;
+              if ( partialScan_New ) ++vue.progress.titles;
             }
             else {
               ++vue.progress.titles;

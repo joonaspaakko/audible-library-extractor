@@ -75,6 +75,5 @@
       ]
     }
   ],
-  "version": "0.0.8",
-  "content_security_policy": "script-src 'self' 'unsafe-eval' http://localhost:8098; object-src 'self'"
+  "version": "0.0.9"
 }

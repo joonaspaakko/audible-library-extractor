@@ -20,6 +20,7 @@ import { faSort } from '@fortawesome/free-solid-svg-icons'
 import { faMicroscope } from '@fortawesome/free-solid-svg-icons'
 import { faFilter } from '@fortawesome/free-solid-svg-icons'
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons'
+import { faChevronUp } from '@fortawesome/free-solid-svg-icons'
 import { faBook } from '@fortawesome/free-solid-svg-icons'
 import { faArchive } from '@fortawesome/free-solid-svg-icons'
 import { faBookReader } from '@fortawesome/free-solid-svg-icons'
@@ -32,6 +33,7 @@ library.add(faSort);
 library.add(faMicroscope);
 library.add(faFilter);
 library.add(faChevronDown);
+library.add(faChevronUp);
 library.add(faBook);
 library.add(faArchive);
 library.add(faBookReader);

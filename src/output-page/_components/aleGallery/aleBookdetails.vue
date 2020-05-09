@@ -42,8 +42,8 @@
             
             
           </div> <!-- .basic-details -->
-					<div v-if="booksInSeries" class="label hidden-section-label">Books I own in the series <font-awesome-icon fas icon="chevron-down" /></div>
-					<div class="hidden-section my-books-in-series">
+					<div v-if="booksInSeries" class="label hidden-section-label my-books-in-series-label" @click="booksInSeriesLabelClick">Books I own in the series <font-awesome-icon fas :icon="booksInSeriesContent.toggle ? 'chevron-up' : 'chevron-down'" /></div>
+					<div class="hidden-section my-books-in-series" v-if="booksInSeriesContent.toggle">
 						<div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
 							<strong>{{ seriesKey }}</strong>
 							<div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
@@ -59,7 +59,7 @@
 					</div> <!-- .by-books-in-series -->
         </div> <!-- .information -->
         
-        <div class="book-summary-wrapper">
+        <div class="book-summary-wrapper" :style="{ maxHeight: summary.maxHeight, paddingBottom: summary.readmore.toggle ? '40px' : '0px' }">
           
           <div class="book-summary">
             <h2 class="book-title">{{ book.title }}</h2>
@@ -77,7 +77,7 @@
             <div v-html="book.summary"></div>
           </div>
           
-          <div class="summary-read-more">Read more <font-awesome-icon fas icon="chevron-down" /></div>
+          <div class="summary-read-more" @click="summaryReadMoreclick" v-if="summary.readmore.exists"><span>{{ summary.readmore.toggle ? 'Read less' : 'Read more' }}</span> <font-awesome-icon fas :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'" /></div>
 
         </div>
       </div>
@@ -101,30 +101,23 @@ export default {
   },
   data: function() {
     return {
-      vueScrollOptions: {
-        scrollingX: false,
-        rail: {
-          background: '#f79a1c',
-          opacity: 0,
-          size: '3px',
-          specifyBorderRadius: false,
-          gutterOfEnds: null,
-          gutterOfSide: '2px',
-          keepShow: true,
+      booksInSeriesContent: {
+        toggle: false,
+      },
+      summary: {
+        readmore: {
+          exists: false,
+          toggle: false,
         },
-        bar: {
-          showDelay: 100,
-          onlyShowBarOnScroll: false,
-        }
+        maxHeight: null,
+        maxHeightTemp: null,
       }
     }
   },
   props: ['booksArray', 'library', 'gallery'],
   
   created: function() {
-    
     Event.$on('detailsToggle', this.onDetailsToggle );
-    
   },
 	
 	beforeDestroy: function() {
@@ -168,41 +161,42 @@ export default {
   methods: {
     
     onDetailsToggle: function( msg ) {
-    
 			if ( msg.detailsChanged ) {
 				this.summaryMaxHeight();
 			}
-      
     },
     
 		summaryMaxHeight: function() {
-      // this.$nextTick(() => {
+      this.$nextTick(() => {
+        const bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
+    		const information = bookdetails.find('> .information');
+        const informationH = information.outerHeight();
+    		const summary = bookdetails.find('> .book-summary-wrapper > .book-summary');
+        const summaryH = summary.height();
         
-        var bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
-    		var information = bookdetails.find('> .information');
-        var informationH = information.outerHeight();
-    		var summary = bookdetails.find('> .book-summary-wrapper');
-        var summaryH = summary.height();
-        
-    		summary.css({
-    			maxHeight: informationH
-    		});
-        
-			// });
+        const summaryTooSwoll = summaryH > informationH;
+  			this.summary.readmore.exists = summaryTooSwoll ? true : false;
+        this.summary.maxHeight = summaryTooSwoll ? (informationH + 'px') : 'none';
+        this.summary.maxHeightTemp = (informationH + 'px');
+			});
 		},
+    
+    summaryReadMoreclick: function() {
+      this.summary.readmore.toggle = !this.summary.readmore.toggle ? true : false;
+      this.summary.maxHeight = this.summary.readmore.toggle ? 'none' : this.summary.maxHeightTemp;
+    },
     
     sortBookNumbers: function( array, seriesName ) {
       return _.orderBy(array, function(o) {
         
         if ( o.bookNumbers ) {
-          // If one book has multiple numbers, the first one is used for sorting
           
           const seriesObj = _.filter(o.series, ['name', seriesName ]);
           const number = seriesObj[0].bookNumber;
           const numbers = _.isArray( number ) ? number[0] : number;
           // If the number is a string, we assume it's a number range
           // and once again use the first number from that range
-          var dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
+          const dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
           if ( dashSplit.length > 1 ) {
             return parseFloat( dashSplit[0] );
           }
@@ -215,6 +209,10 @@ export default {
         }
         
       }, 'asc');
+    },
+    
+    booksInSeriesLabelClick: function() {
+      this.booksInSeriesContent.toggle = this.booksInSeriesContent.toggle ? false : true;
     },
     
     booksInSeriesItemClick: function( book, seriesName ) {
@@ -526,14 +524,22 @@ export default {
     }
     
     div.hidden-section-label {
-      
+      cursor: pointer;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       padding-top: 5px;
       padding-bottom: 5px;
       @include themify($themes) {
         background: rgba( themed(frontColor), .01 );
         border-top: 1px solid rgba( themed(frontColor), .15 );
         border-bottom: 1px solid rgba( themed(frontColor), .15 );
-        
+      }
+      [data-icon] {
+        padding-left: 10px;
       }
       // padding-bottom: 4px;
       // @include themify($themes) {
@@ -602,8 +608,11 @@ export default {
       position: absolute;
       z-index: 5;
       right: 0;
-      bottom: 10px;
+      bottom: 0px;
       left: 0;
+      [data-icon] {
+        padding-left: 10px;
+      }
       &:after {
         content: '';
         position: absolute;
