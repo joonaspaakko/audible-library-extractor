@@ -7,6 +7,8 @@
 			:key="book.asin"
       @click="detailsToggle( index )"
     >
+    <div class="details-inner-wrap">
+      
 			<sort-specials :gallery="gallery" :book="book"></sort-specials>
       <div class="hidden">
         <span class="title">{{ book.title }}</span>
@@ -22,6 +24,8 @@
           :alt="book.title"
         >
       </div>
+      
+    </div>
     </div>
   </div>
 </template>
@@ -166,8 +170,13 @@ export default {
   text-align: center;
   display: inline-block;
   // font-size: 0;
-  .ale-cover {
+  .details-inner-wrap {
     margin: 5px;
+    border-radius: 3px;
+    overflow: hidden;
+    background-clip: padding-box;
+  }
+  .ale-cover {
     border-radius: 3px;
     overflow: hidden;
     background-clip: padding-box;
@@ -180,10 +189,15 @@ export default {
     }
   }
   &.details-open {
-    .ale-cover {
+    .details-inner-wrap {
       @include themify($themes) {
         border-color: themed(audibleOrange);
         box-shadow: 0 0px 1px 2px themed(audibleOrange), 0 2px 10px rgba( themed(frontColor), .4 );
+      }
+    }
+    .ale-cover{
+      @include themify($themes) {
+        border-color: themed(backColor);
       }
     }
   }

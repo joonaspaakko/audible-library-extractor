@@ -76,9 +76,11 @@ export default {
     overflow: hidden;
     -ms-text-overflow: ellipsis;
     text-overflow: ellipsis;
-    width: $thumbnailSize - (2*6);
-    margin: 6px;
-    margin-bottom: -(6px+2px);
+    // width: $thumbnailSize - (2*6);
+    // margin: 6px;
+    margin-left: 1px;
+    margin-right: 1px;
+    margin-bottom: -2px;
     padding: 3px 6px;
     padding-bottom: (3px+2px);
     font-weight: 700;
@@ -88,6 +90,10 @@ export default {
       background: themed(audibleOrange);
     }
   }
+}
+.ale-book.details-open .sort-specials-container > div {
+  margin-left: 0px;
+  margin-right: 0px;
 }
 
 .sort-specials-container div.sort-bookNumbers {
