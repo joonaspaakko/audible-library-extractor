@@ -1,5 +1,5 @@
 <template>
-  <div class="sort-specials-container" v-if="gallery.searchOptions.lists.showSortValues">
+  <div class="sort-specials-container" v-if="gallery.searchOptions.lists.showSortValues && gallery.searchOptions.lists.sortIndex > -1">
     <div :class="'sort-'+activeSortKey" v-html="sortContents"></div>
   </div>
 </template>

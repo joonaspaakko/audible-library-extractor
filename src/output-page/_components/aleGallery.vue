@@ -73,71 +73,68 @@ export default {
     },
     
     sortedObj: function() {
-      const books = this.filteredObj;
       const activeSortIndex = this.gallery.searchOptions.lists.sortIndex;
-      const activeSortItem = this.gallery.searchOptions.lists.sort[ activeSortIndex ];
-      const activeSortKey = activeSortItem.key;
-      const sortDirection = activeSortItem.active ? 'desc' : 'asc';
-      var sortedBooks;
-      switch ( activeSortKey ) {
-        case 'bookNumbers':
-          sortedBooks = _.orderBy(books, function(o) {
-						
-		        if ( o.bookNumbers ) {
-		          // const seriesObj = _.filter(o.series, ['name', seriesName ]);
-		          const seriesObj = _.filter(o.series, ['name', o.series[0].name ]);
-		          const number = seriesObj[0].bookNumber;
-		          const numbers = _.isArray( number ) ? number[0] : number;
-		          // If the number is a string, we assume it's a number range
-		          // and once again use the first number from that range
-		          const dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
-		          if ( dashSplit.length > 1 ) {
-		            return parseFloat( dashSplit[0] );
-		          }
-		          else {
-		            return numbers;
-		          }
-		        }
-		        else {
-		          return 9999999;
-		        }
-		        
+      var sortedBooks = this.filteredObj;
+      if ( activeSortIndex != -1 ) {
+        const activeSortItem = this.gallery.searchOptions.lists.sort[ activeSortIndex ];
+        const activeSortKey = activeSortItem.key;
+        const sortDirection = activeSortItem.active ? 'desc' : 'asc';
+        switch ( activeSortKey ) {
+          case 'bookNumbers':
+          sortedBooks = _.orderBy(sortedBooks, function(o) {
+            
+            if ( o.bookNumbers ) {
+              // const seriesObj = _.filter(o.series, ['name', seriesName ]);
+              const seriesObj = _.filter(o.series, ['name', o.series[0].name ]);
+              const number = seriesObj[0].bookNumber;
+              const numbers = _.isArray( number ) ? number[0] : number;
+              // If the number is a string, we assume it's a number range
+              // and once again use the first number from that range
+              const dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
+              if ( dashSplit.length > 1 ) {
+                return parseFloat( dashSplit[0] );
+              }
+              else {
+                return numbers;
+              }
+            }
+            else {
+              return 9999999;
+            }
+            
           }, sortDirection);
           break;
-        case 'dateAdded':
-					// It worked out pretty well from the beginning with this, because even
-					// before I had any aspirations to add any kinda sorting, I had chosen to
-					// extract the book data in the order they were purchased/added. Turns out
-					// that after I started working on this thing, Audible's desktop library
-					// got a facelift and this new style library is missing the date of when
-					// the book was added, unlike the old library. Fortunately I could still get
-					// the date from the store page of the book... However, unfortunately that
-					// means books that either don't have the store page anymore or books that
-					// got replaced by a re-release or something are going to be missing the date
-					// it was added. So that's why in here, I'm simply reversing the array on an
-					// ascended sort and just passing the on the data as is on a descending sort.
+          case 'dateAdded':
+          // It worked out pretty well from the beginning with this, because even
+          // before I had any aspirations to add any kinda sorting, I had chosen to
+          // extract the book data in the order they were purchased/added. Turns out
+          // that after I started working on this thing, Audible's desktop library
+          // got a facelift and this new style library is missing the date of when
+          // the book was added, unlike the old library. Fortunately I could still get
+          // the date from the store page of the book... However, unfortunately that
+          // means books that either don't have the store page anymore or books that
+          // got replaced by a re-release or something are going to be missing the date
+          // it was added. So that's why in here, I'm simply reversing the array on an
+          // ascended sort and just passing the on the data as is on a descending sort.
           if (  sortDirection === 'asc' ) {
-            sortedBooks = _.reverse( _.clone(books) );
-          }
-          else {
-            sortedBooks = books;
+            sortedBooks = _.reverse( _.clone(sortedBooks) );
           }
           break;
-        case 'releaseDate':
-          sortedBooks = _.orderBy(books, function(o) {
+          case 'releaseDate':
+          sortedBooks = _.orderBy(sortedBooks, function(o) {
             return o.releaseDate ? new Date( o.releaseDate.split('-') ) :  new Date( '1800', '01', '01' );
           }, sortDirection);
           // _.orderBy(unOrderedCollection, [{activeSortKey: Number}], ['desc'])
           break;
-        case 'authors.name':
-        case 'narrators.name':
+          case 'authors.name':
+          case 'narrators.name':
           const keyMinusName = activeSortKey.replace('.name','');
-          sortedBooks = _.orderBy(books, function( o ) {
+          sortedBooks = _.orderBy(sortedBooks, function( o ) {
             return o[ keyMinusName ] ? o[ keyMinusName ][0].name : null;
           }, sortDirection);
           break;
-        case 'title':
-          sortedBooks = _.orderBy(books, function( o ) {
+          case 'title':
+          sortedBooks = _.orderBy(sortedBooks, function( o ) {
             if ( o.title ) {
               var titleLowercase = o.title.toLowerCase();
               const getThe = titleLowercase.match(/^the /);
@@ -150,8 +147,8 @@ export default {
             else { return null; }
           }, sortDirection);
           break;
-        case 'length':
-          sortedBooks = _.orderBy(books, function( o ) {
+          case 'length':
+          sortedBooks = _.orderBy(sortedBooks, function( o ) {
             if ( o.length ) {
               
               return timeStringToSeconds( o.length );
@@ -175,16 +172,16 @@ export default {
                 else {
                   numbers = (+numbers[0]) * 60;
                 }
-        				return numbers;
+                return numbers;
               }
               
             }
             else { return 0; }
           }, sortDirection);
           break;
-        case 'rating':
-        case 'ratings':
-          sortedBooks = _.orderBy(books, function( o ) {
+          case 'rating':
+          case 'ratings':
+          sortedBooks = _.orderBy(sortedBooks, function( o ) {
             if ( o[ activeSortKey ] ) {
               var text = o[ activeSortKey ];
               if ( activeSortKey === 'ratings' ) text = text.match(/\d/g).join('');
@@ -194,6 +191,7 @@ export default {
             else { return 0; }
           }, sortDirection);
           break;
+        }
       }
       
       return sortedBooks;

@@ -1,6 +1,6 @@
 {
   "name": "audible-library-extractor",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Extracts your Audible library...",
   "author": "Joonas Pääkkö <paakkoj@gmail.com>",
   "engines": {

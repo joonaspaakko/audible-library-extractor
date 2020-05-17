@@ -9,6 +9,7 @@
     :distance="400"
     :threshold="0.25"
     :search="gallery.searchValue"
+		:shouldSort="searchShouldSort"
   />
 	<div class="icons">
     <div class="book-in-selection">
@@ -16,13 +17,13 @@
         {{ booksArray.length }}
       </div>
     </div>
-    <div class="scope" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope', $event)" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 410 }">
+    <div class="scope search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope', $event)" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 410 }">
       <font-awesome-icon fas icon="microscope" />
     </div>
-    <div class="filter" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter out content" v-tippy="{ placement: 'top',  arrow: true }">
+    <div class="filter search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter out content" v-tippy="{ placement: 'top',  arrow: true }">
       <font-awesome-icon fas icon="filter" />
     </div>
-		<div class="sort" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort' }" @click="openSearchOptions('sort', $event)" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
+		<div class="sort search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort' }" @click="openSearchOptions('sort', $event)" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
 			<font-awesome-icon fas icon="sort" />
 		</div>
     
@@ -30,12 +31,12 @@
       <div class="search-opts-arrow"></div>
 			<div class="search-option sort-values" v-if="currentOptionsList[0].type === 'sort'">
         <label>
-          <input type="checkbox" v-model="gallery.searchOptions.lists.showSortValues" />
-          <span class="label checkbox">
+          <input type="checkbox" v-model="gallery.searchOptions.lists.showSortValues" :disabled="gallery.searchOptions.lists.sortIndex === -1" />
+          <span class="checkbox">
             <font-awesome-icon fas icon="square" />
             <font-awesome-icon fas icon="check" />
           </span>
-          Show sort values
+          <span class="label">Show sort values</span>
         </label>
 			</div>
       <ul>
@@ -45,15 +46,15 @@
               {{ item.key }} <span style="color: purple;">{{ item.active }}</span>
             </div> -->
             <input @change="optionsCheck( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
-            <span v-if="item.type === 'sort'" class="label sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
+            <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
               <font-awesome-icon fas icon="sort-down" />
               <font-awesome-icon fas icon="sort-up" />
             </span>
-            <span v-if="!item.type" class="label checkbox">
+            <span v-if="!item.type" class="checkbox">
               <font-awesome-icon fas icon="square" />
               <font-awesome-icon fas icon="check" />
             </span>
-             {{ item.label || item.key.replace('.name', '') }}
+            <span class="label">{{ item.label || item.key.replace('.name', '') }}</span>
           </label>
         </li>
       </ul>
@@ -70,9 +71,13 @@ export default {
   props: ['booksArray', 'library', 'gallery'],
 	data : function() {
 		return {
-      renderComponent: true
+      renderComponent: true,
+      searchShouldSort: false,
+      searchFocusListener: null,
+      searchOptionsHider: null,
 		}
 	},
+  
   created: function() {
     var vue = this;
     
@@ -82,13 +87,47 @@ export default {
       this.gallery.fuseResults = results;
     });
     this.$on('fuseInputChanged', value => {
-      if ( this.gallery.searchValue !== value ) { this.gallery.searchOptions.open = false; }
+      if ( this.gallery.searchValue !== value ) {
+        this.gallery.searchOptions.open = false;
+        // console.log( 'fuseInputChanged' );
+        // this.gallery.searchOptions.lists.sortIndex = -1;
+      }
       this.gallery.searchValue = value; // Helps retain the seach query when re-rendered.
     });
+    
+  },
+  
+  mounted: function() {
+    var vue = this;
+    vue.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', function() {
+      var _this = $(this);
+      console.log( vue.searchShouldSort );
+      if ( !vue.searchShouldSort ) {
+        vue.gallery.searchOptions.lists.sortIndex = -1;
+        vue.searchShouldSort = true;
+        console.log( 'SHOULD SORT' );
+        console.log( vue.gallery.searchOptions.lists.sortIndex );
+        vue.forceRerender();
+        console.log( $('#ale-search > input[type="search"]')[0] );
+        $('#ale-search > input[type="search"]').focus();
+        // setInterval
+        setTimeout(function() {
+          //   console.log( 'HEE' );
+          //   console.log( _this[0] );
+          //   $.focus();
+          console.log( $('#ale-search > input[type="search"]')[0] );
+          $('#ale-search > input[type="search"]').focus();
+        }, 50);
+      }
+    });
+    
   },
 	
 	beforeDestroy: function() {
 	 	Event.$off('detailsToggle', this.onDetailsToggle );
+    console.log( this.searchFocusListener );
+    this.searchFocusListener = null;
+    this.searchOptionsHider = null;
 	},
 	
   methods: {
@@ -106,24 +145,36 @@ export default {
     },
     
     optionsCheck: function( type, index ) {
-      
 			this.gallery.details.open = false;
 			this.gallery.details.index = -1;
-      
       if ( type === 'sort' ) {
         this.gallery.searchOptions.lists.sortIndex = index;
+        this.searchShouldSort = false;
       }
       this.forceRerender();
     },
     
     openSearchOptions: function( option, e ) {
       
+      const vue = this;
+      console.log( 'searchOptions.open: ' + this.gallery.searchOptions.open );
       if ( !this.gallery.searchOptions.open ) {
         this.gallery.searchOptions.open = true;
-        
       }
       else if ( this.gallery.searchOptions.open && this.gallery.searchOptions.lists.current == option ) {
         this.gallery.searchOptions.open = false;
+      }
+      
+      if ( this.gallery.searchOptions.open && vue.searchOptionsHider === null ) {
+        vue.searchOptionsHider = $(document).on('mouseup', function (e) {
+          var options = $(e.target).closest("#search-options");
+          var optionsBtn = $(e.target).closest(".search-opt-btn");
+          console.log( 'HEEEEAAA' );
+          console.log( optionsBtn[0] );
+          if ( options.length < 1 && optionsBtn.length < 1 ) {
+            vue.gallery.searchOptions.open = false;
+          }
+        });
       }
       
       var currentOption = this.gallery.searchOptions.lists.current;
@@ -163,13 +214,10 @@ export default {
         left: (searchOpts.width/2) - 10 + fitToWindow
       });
       
-      
-			
 		},
     
   },
   computed: {
-    
     
     currentOptionsListName: function() {
       return this.gallery.searchOptions.lists.current;
@@ -299,7 +347,7 @@ export default {
     .search-option {
       white-space: nowrap;
       input { display: none; }
-      .label {
+      .checkbox, .sortbox {
         display: inline-block;
         position: relative;
         z-index: 0;
@@ -342,7 +390,8 @@ export default {
           }
         }
       }
-      input:checked + .label {
+      input:checked + .checkbox,
+      input:checked + .sortbox {
         &.sortbox.active {
           [data-icon="sort-up"] {
             opacity: .35;
@@ -362,19 +411,32 @@ export default {
         }
       }
       
-      &.sort-values {
-        padding-bottom: 9px;
-        @include themify($themes) {
-          border-bottom: 1px solid rgba( themed(frontColor), .1 );
-        }
-        margin-bottom: 9px;
+    } // .search-option
+    
+    .search-option.sort-values {
+      padding-bottom: 9px;
+      margin-bottom: 9px;
+      @include themify($themes) {
+        border-bottom: 1px solid rgba( themed(frontColor), .1 );
       }
       
-    } // .search-option
-  }
+      input[disabled="disabled"] + .checkbox [data-icon="check"] { display: none; }
+      input[disabled="disabled"] ~ .label  {
+        text-decoration: line-through;
+        opacity: .35;
+      }
+    }
+    
+  } // #search-options
   
   .book-in-selection {
     cursor: default !important;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     font-size: .85em;
     > div {
       outline: none;
