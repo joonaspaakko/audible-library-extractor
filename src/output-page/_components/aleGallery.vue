@@ -185,7 +185,6 @@ export default {
             if ( o[ activeSortKey ] ) {
               var text = o[ activeSortKey ];
               if ( activeSortKey === 'ratings' ) text = text.match(/\d/g).join('');
-              console.log( Number( text ) );
               return Number( text );
             }
             else { return 0; }

@@ -23,7 +23,7 @@
     <div class="filter search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter out content" v-tippy="{ placement: 'top',  arrow: true }">
       <font-awesome-icon fas icon="filter" />
     </div>
-		<div class="sort search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort' }" @click="openSearchOptions('sort', $event)" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
+		<div class="sort search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort', 'is-enabled': gallery.searchOptions.lists.sortIndex > -1 }" @click="openSearchOptions('sort', $event)" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
 			<font-awesome-icon fas icon="sort" />
 		</div>
     
@@ -89,8 +89,6 @@ export default {
     this.$on('fuseInputChanged', value => {
       if ( this.gallery.searchValue !== value ) {
         this.gallery.searchOptions.open = false;
-        // console.log( 'fuseInputChanged' );
-        // this.gallery.searchOptions.lists.sortIndex = -1;
       }
       this.gallery.searchValue = value; // Helps retain the seach query when re-rendered.
     });
@@ -101,23 +99,16 @@ export default {
     var vue = this;
     vue.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', function() {
       var _this = $(this);
-      console.log( vue.searchShouldSort );
       if ( !vue.searchShouldSort ) {
         vue.gallery.searchOptions.lists.sortIndex = -1;
         vue.searchShouldSort = true;
-        console.log( 'SHOULD SORT' );
-        console.log( vue.gallery.searchOptions.lists.sortIndex );
         vue.forceRerender();
-        console.log( $('#ale-search > input[type="search"]')[0] );
         $('#ale-search > input[type="search"]').focus();
-        // setInterval
         setTimeout(function() {
-          //   console.log( 'HEE' );
-          //   console.log( _this[0] );
-          //   $.focus();
-          console.log( $('#ale-search > input[type="search"]')[0] );
-          $('#ale-search > input[type="search"]').focus();
-        }, 50);
+  	      vue.$nextTick(() => {
+  					  $('#ale-search > input[type="search"]').focus();
+  	      });
+        }, 10);
       }
     });
     
@@ -125,7 +116,6 @@ export default {
 	
 	beforeDestroy: function() {
 	 	Event.$off('detailsToggle', this.onDetailsToggle );
-    console.log( this.searchFocusListener );
     this.searchFocusListener = null;
     this.searchOptionsHider = null;
 	},
@@ -133,7 +123,6 @@ export default {
   methods: {
     
     onDetailsToggle: function( msg ) {
-			console.log( 'on details toggle' );
       this.gallery.searchOptions.open = false;
     },
     
@@ -157,7 +146,6 @@ export default {
     openSearchOptions: function( option, e ) {
       
       const vue = this;
-      console.log( 'searchOptions.open: ' + this.gallery.searchOptions.open );
       if ( !this.gallery.searchOptions.open ) {
         this.gallery.searchOptions.open = true;
       }
@@ -169,8 +157,6 @@ export default {
         vue.searchOptionsHider = $(document).on('mouseup', function (e) {
           var options = $(e.target).closest("#search-options");
           var optionsBtn = $(e.target).closest(".search-opt-btn");
-          console.log( 'HEEEEAAA' );
-          console.log( optionsBtn[0] );
           if ( options.length < 1 && optionsBtn.length < 1 ) {
             vue.gallery.searchOptions.open = false;
           }
@@ -298,6 +284,7 @@ export default {
       font-size: .92em;
     }
     
+    .is-enabled,
     .active {
       @include themify($themes) {
         color: themed(audibleOrange);

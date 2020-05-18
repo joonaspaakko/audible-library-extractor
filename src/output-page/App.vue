@@ -58,8 +58,8 @@ export default {
 	
 	created: function() {
 		
-		var test = _.filter(this.library.books, { title: 'Death & Honey' });
-		console.log( test );
+		// var test = _.filter(this.library.books, { title: 'Death & Honey' });
+		// console.log( test );
 		
 	},
   

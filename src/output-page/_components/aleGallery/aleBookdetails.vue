@@ -46,7 +46,7 @@
 					<div class="hidden-section my-books-in-series" v-if="booksInSeriesContent.toggle">
 						<div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
 							<strong>{{ seriesKey }}</strong>
-							<div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
+							<div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list-item" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
 								
 								<span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
 									<font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
@@ -127,7 +127,6 @@ export default {
   computed: {
     
     booksInSeriesCount: function() {
-      
       if ( this.booksInSeries ) {
         const seriesName = this.book.series[0].name;
         const seriesLength = this.booksInSeries[ seriesName ].length;
@@ -152,8 +151,7 @@ export default {
           
         });
       }
-      
-      return _.isEmpty(series) || series;
+      return _.isEmpty(series) ? false : series;
     },
     
     book: function() {
@@ -568,7 +566,14 @@ export default {
   }
   
   .information .my-books-in-series {
-    .numbers-list {
+    .numbers-list-item {
+      cursor: pointer;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none; 
       display: block;
       white-space: nowrap;
       overflow: hidden;

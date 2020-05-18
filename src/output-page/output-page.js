@@ -63,10 +63,6 @@ chrome.storage.local.get(null, function( data ) {
       var chunks = _.pick(data, chunkKeys);
       var books = _.values( chunks );
       books = _.flatten( books );
-      // delete chunkLength;
-      // console.log( chunkLength );
-      // var test = _.values( data );
-      // console.log( test );
       return {
         library: {
           domainExtension: data[ 'domain-extension' ],
@@ -76,6 +72,13 @@ chrome.storage.local.get(null, function( data ) {
         }
       };
     }( data ));
+    
+    // Add indexes to each book object
+    _.map(data.library.books, function(obj, i) {
+      return _.extend(obj, {
+        index: i
+      });
+    });
     
     startVue( data.library );
     
