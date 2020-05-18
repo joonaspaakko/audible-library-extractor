@@ -74,11 +74,11 @@ chrome.storage.local.get(null, function( data ) {
     }( data ));
     
     // Add indexes to each book object
-    _.map(data.library.books, function(obj, i) {
-      return _.extend(obj, {
-        index: i
-      });
-    });
+    // _.map(data.library.books, function(obj, i) {
+    //   return _.extend(obj, {
+    //     index: i
+    //   });
+    // });
     
     startVue( data.library );
     

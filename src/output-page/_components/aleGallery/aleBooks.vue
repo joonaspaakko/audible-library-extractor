@@ -57,10 +57,10 @@ export default {
     },
     
     onBookClicked: function( msg ) {
-      this.detailsToggle( msg.index )
+      this.detailsToggle( msg.index, msg.animationSpeed )
     },
     
-    detailsToggle: function( clickedIndex ) {
+    detailsToggle: function( clickedIndex, animSpeed ) {
       
       const comp = this;
       const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
@@ -89,14 +89,14 @@ export default {
       
       if ( this.gallery.details.open ) {
         this.$nextTick(() => {
-          this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset );
+          this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed );
         });
       }
       
 			
     },
     
-    calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset ) {
+    calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset, animSpeed ) {
       
       var gallery = $('#ale-gallery');
       var maxWidth = gallery.width();
@@ -136,9 +136,10 @@ export default {
       $(window).on("resize", function() {
         if ( comp.gallery.details.open ) comp.gallery.details.open = false;
       });
+      
       doc.stop().animate({
         scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
-      }, 900);
+      }, animSpeed != undefined ? animSpeed : 900);
 			
 			var targetCenter = el.offset().left + (bookWidth/2);
       var detailsArrow = bookDetails.find('> .arrow');
@@ -192,7 +193,7 @@ export default {
     .details-inner-wrap {
       @include themify($themes) {
         border-color: themed(audibleOrange);
-        box-shadow: 0 0px 1px 2px themed(audibleOrange), 0 2px 10px rgba( themed(frontColor), .4 );
+        box-shadow: 0 0 0 3px themed(audibleOrange), 0 2px 10px rgba( #000, .7 );
       }
     }
     .ale-cover{

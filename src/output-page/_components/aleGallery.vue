@@ -26,6 +26,7 @@ export default {
         searchValue: '',
 	      searchOptions: {
 	        open: false,
+          listsTemp: null,
 	        lists: {
 	          current: null,
 	          filter: [

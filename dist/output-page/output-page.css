@@ -352,11 +352,11 @@
 }
 .theme-light .ale-book.details-open .details-inner-wrap[data-v-135ca1db] {
     border-color: #f79a1c;
-    box-shadow: 0 0px 1px 2px #f79a1c, 0 2px 10px rgba(33, 35, 37, 0.4);
+    box-shadow: 0 0 0 3px #f79a1c, 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 .theme-dark .ale-book.details-open .details-inner-wrap[data-v-135ca1db] {
     border-color: #f79a1c;
-    box-shadow: 0 0px 1px 2px #f79a1c, 0 2px 10px rgba(249, 248, 248, 0.4);
+    box-shadow: 0 0 0 3px #f79a1c, 0 2px 10px rgba(0, 0, 0, 0.7);
 }
 .theme-light .ale-book.details-open .ale-cover[data-v-135ca1db] {
     border-color: #f9f8f8;
