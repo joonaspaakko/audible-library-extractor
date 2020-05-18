@@ -20,6 +20,8 @@ Here's a video showing the scanning process and a little bit of the gallery: [Yo
 2. Turn on the developer mode from the top right
 3. [`Download`](https://github.com/joonaspaakko/audible-library-extractor/releases/download/v0.1.1-pre-alpha/audible-library-extractor-v0.1.1.zip) / drag the zip file in the browser window to install
 
+Additional info on what's changed in each version in the [releases page](https://github.com/joonaspaakko/audible-library-extractor/releases).
+
 ## How to use
 
 > Check this video if you can't make sense of the list of steps below: [Youtube video](https://youtu.be/SxqG8BXIsg0). First 10 seconds should tell you all you need to know.
