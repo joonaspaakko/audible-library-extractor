@@ -28,6 +28,8 @@ import { faSortUp } from '@fortawesome/free-solid-svg-icons'
 import { faSortDown } from '@fortawesome/free-solid-svg-icons'
 import { faCheck } from '@fortawesome/free-solid-svg-icons'
 import { faSquare } from '@fortawesome/free-solid-svg-icons'
+import { faLock } from '@fortawesome/free-solid-svg-icons'
+import { faUnlockAlt } from '@fortawesome/free-solid-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 library.add(faSort);
 library.add(faMicroscope);
@@ -41,6 +43,8 @@ library.add(faSortUp);
 library.add(faSortDown);
 library.add(faCheck);
 library.add(faSquare);
+library.add(faLock);
+library.add(faUnlockAlt);
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 import VueTippy, { TippyComponent } from "vue-tippy";

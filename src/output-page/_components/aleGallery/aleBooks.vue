@@ -85,13 +85,14 @@ export default {
           from: 'aleBooks',
           detailsChanged: this.gallery.details.changed
         });
+        if ( this.gallery.details.open ) {
+          this.$nextTick(() => {
+            const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
+            this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed );
+          });
+        }
       });
       
-      if ( this.gallery.details.open ) {
-        this.$nextTick(() => {
-          this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed );
-        });
-      }
       
 			
     },
@@ -187,6 +188,11 @@ export default {
     img {
       display: block;
       width: $thumbnailSize;
+  	  -webkit-user-drag: none;
+  	  -khtml-user-drag: none;
+  	  -moz-user-drag: none;
+  	  -o-user-drag: none;
+  	  user-drag: none;
     }
   }
   &.details-open {

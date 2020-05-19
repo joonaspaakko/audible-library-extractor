@@ -22,7 +22,20 @@ export default {
   data: function() {
     return {
       gallery: {
-  			fuseResults: [],
+        filterResults: null,
+  			fuseResults: null,
+				searchEnabled: true,
+        searchIcons: {
+          scope: true,
+          filter: true,
+          sort: true,
+        },
+        searchLocked: {
+          active: null,
+          tempValue: null,
+          reason: null,
+          inputValue: null,
+        },
         searchValue: '',
 	      searchOptions: {
 	        open: false,
@@ -199,7 +212,7 @@ export default {
     
 		filteredObj: function() {
       const vue = this;
-			var books = this.gallery.fuseResults || this.library.books;
+			var books = this.gallery.filterResults || this.gallery.fuseResults || this.library.books;
 			const keys = this.filterKeys;
 			return _.filter(books, function(o) {
         var result = false;

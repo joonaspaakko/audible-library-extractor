@@ -155,7 +155,6 @@ export default {
     },
     
     book: function() {
-      // return this.gallery.fuseResults ? this.gallery.fuseResults[ this.gallery.details.index ] : this.library.books[ this.gallery.details.index ];
       return this.booksArray[ this.gallery.details.index ];
     },
     
@@ -231,6 +230,13 @@ export default {
       
       const vue = this;
       
+      this.gallery.searchLocked.tempValue = this.gallery.searchValue;
+      this.gallery.searchLocked.active = true;
+			this.gallery.searchEnabled = false;
+      this.gallery.searchLocked.reason = 'Series';
+      this.gallery.searchLocked.inputValue = seriesName;
+      this.gallery.searchIcons.scope = false;
+			
       const filteredBooks = _.filter( vue.library.books, function(o) {
         var result = false;
         if ( o.series !== null ) {
@@ -247,41 +253,13 @@ export default {
       
       const sortedResult =  vue.sortBookNumbers( filteredBooks, seriesName );
       const index = _.findIndex(sortedResult, ['asin', book.asin]);
-      vue.gallery.fuseResults = sortedResult;
-  
-      vue.$nextTick(() => {
-        Event.$emit('galleryBookClick', {
-          from: 'books-in-series-item-click',
-          index: index,
-          animationSpeed: 0
-        });
+      vue.gallery.filterResults = sortedResult;
+      
+      Event.$emit('galleryBookClick', {
+        from: 'books-in-series-item-click',
+        index: index,
+        animationSpeed: 0
       });
-      
-      // var fuseOpts = {
-      //   keys: ['series.name'],
-      //   distance: 0,
-      //   threshold: 0.0,
-      // };
-      
-      // vue.$search( seriesName, vue.library.books, fuseOpts).then(results => {
-      //
-      //   vue.gallery.searchValue = seriesName;
-      //   vue.$nextTick(() => {
-      //     const sortedResult =  vue.sortBookNumbers( results, seriesName );
-      //     const index = _.findIndex(sortedResult, ['asin', book.asin]);
-      //     vue.gallery.fuseResults = sortedResult;
-      //
-      //     vue.$nextTick(() => {
-      //       Event.$emit('galleryBookClick', {
-      //         from: 'books-in-series-item-click',
-      //         index: index,
-      //         animationSpeed: 0
-      //       });
-      //     });
-      //   });
-      //
-      // });
-      
       
     },
     
