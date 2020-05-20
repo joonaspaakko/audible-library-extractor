@@ -117,11 +117,11 @@ export default {
   props: ['booksArray', 'library', 'gallery'],
   
   created: function() {
-    Event.$on('detailsToggle', this.onDetailsToggle );
+    Eventbus.$on('detailsToggle', this.onDetailsToggle );
   },
 	
 	beforeDestroy: function() {
-	 	Event.$off('detailsToggle', this.onDetailsToggle );
+	 	Eventbus.$off('detailsToggle', this.onDetailsToggle );
 	},
   
   computed: {
@@ -255,7 +255,7 @@ export default {
       const index = _.findIndex(sortedResult, ['asin', book.asin]);
       vue.gallery.filterResults = sortedResult;
       
-      Event.$emit('galleryBookClick', {
+      Eventbus.$emit('galleryBookClick', {
         from: 'books-in-series-item-click',
         index: index,
         animationSpeed: 0

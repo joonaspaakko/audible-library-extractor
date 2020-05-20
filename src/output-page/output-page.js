@@ -13,7 +13,7 @@ global.$ = require('jquery');
 
 global.browser = require('webextension-polyfill')
 Vue.prototype.$browser = global.browser
-global.Event = new Vue();
+global.Eventbus = new Vue();
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import { faSort } from '@fortawesome/free-solid-svg-icons'

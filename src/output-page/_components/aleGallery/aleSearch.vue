@@ -105,7 +105,7 @@ export default {
   created: function() {
     var vue = this;
     
-    Event.$on('detailsToggle', this.onDetailsToggle );
+    Eventbus.$on('detailsToggle', this.onDetailsToggle );
     
     this.$on('fuseResultsUpdated', results => {
       this.gallery.fuseResults = results;
@@ -139,7 +139,7 @@ export default {
   },
 	
 	beforeDestroy: function() {
-	 	Event.$off('detailsToggle', this.onDetailsToggle );
+	 	Eventbus.$off('detailsToggle', this.onDetailsToggle );
     this.searchFocusListener = null;
     this.searchOptionsHider = null;
 	},

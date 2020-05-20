@@ -102,12 +102,12 @@ export default {
 	},
 	
   created: function() {
-    Event.$on('detailsToggle', this.onDetailsToggle );
+    Eventbus.$on('detailsToggle', this.onDetailsToggle );
   },
 	
 	beforeDestroy: function() {
 		this.destroySlider();
-	 	Event.$off('detailsToggle', this.onDetailsToggle);
+	 	Eventbus.$off('detailsToggle', this.onDetailsToggle);
 	}
 }
 </script>

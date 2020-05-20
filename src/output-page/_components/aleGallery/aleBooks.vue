@@ -42,11 +42,11 @@ export default {
   },
   
   created: function() {
-    Event.$on('galleryBookClick', this.onBookClicked );
+    Eventbus.$on('galleryBookClick', this.onBookClicked );
   },
   
 	beforeDestroy: function() {
-	 	Event.$off('galleryBookClick', this.onBookClicked );
+	 	Eventbus.$off('galleryBookClick', this.onBookClicked );
 	},
   
   methods: {
@@ -81,7 +81,7 @@ export default {
       this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
       
       this.$nextTick(() => {
-        Event.$emit('detailsToggle', {
+        Eventbus.$emit('detailsToggle', {
           from: 'aleBooks',
           detailsChanged: this.gallery.details.changed
         });
