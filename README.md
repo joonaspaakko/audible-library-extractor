@@ -5,6 +5,8 @@ Right now the extension scans your Audible library and then opens a web gallery 
 
 Here's a video showing the scanning process and a little bit of the gallery: [Youtube video](https://youtu.be/SxqG8BXIsg0) and this is a video from a later release with just the gallery, filtering, and its "books I own in the series" list: [Youtube video](https://www.youtube.com/watch?v=UYGmQWaFNjs).
 
+**You can check my audible library [here](https://joonaspaakko.github.io/my-audible-library/).** This gallery was generated using the extension. Note: it may take a while to load. 
+
 > Note: this extension is **not for extracting the audio files from your library**, just the metadata.
 
 ## Install
@@ -56,6 +58,7 @@ Additional info on what's changed in each version in the [releases page](https:/
     - To make sure the imported books get the best chance of finding a match in Goodreads it should include the International Standard Book Number (ISB), that audible doesn't provide in the website, so the plan is to fetch it from the Google books API and place it in the spreadsheet.
 - [x] Ability to save the output page locally as a standalone web gallery.
   - The purpose of this is so that you can share it with others by uploading it online or possibly sharing via email or something.
+  - [ ] Mobile support
 - [ ] Firefox support
 
 
