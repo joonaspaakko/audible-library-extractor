@@ -8,10 +8,15 @@
         <div class="information">
           <div class="cover-wrap">
             <a :href="book.url" target="_blank">
-							<div class="progressbar"><div class="progress" :style="progress( book )"></div></div>
+							<div class="progressbar">
+                <div class="progress" :style="progress( book )">
+                  <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
+                </div>
+              </div>
               <img class="cover" width="280" height="280" :src="book.coverUrl">
             </a>
           </div>
+          <div class="progress-info" v-html="progressInfo( book )"></div>
           <div class="basic-details">
             
             <div class="authors" v-if="linkifyObjArray( book.authors )">
@@ -21,14 +26,13 @@
               <strong class="label">Narrator:</strong> <span v-html="linkifyObjArray( book.narrators )"></span>
             </div>
             <div class="series" v-if="linkifyObjArray( book.series )">
-              <strong class="label">Series:</strong> <span v-html="linkifyObjArray( book.series )"></span>
+              <strong class="label">Series:</strong> <span v-html="linkifySeries( book.series )"></span>
             </div>
+            <!-- <div class="book-numbers" v-if="book.bookNumbers">
+              <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.bookNumbers )"></span>
+            </div> -->
             <div class="own-rating" v-if="ownRating">
               <strong class="label">My rating:</strong> <span>{{ ownRating }}</span>
-            </div>
-            
-            <div class="progress" v-if="book.progress">
-              <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
             </div>
             <div class="publisher" v-if="book.publisher">
               <strong class="label">Publisher:</strong> <span>{{ book.publisher }}</span>
@@ -36,10 +40,9 @@
             <div class="rating" v-if="book.rating">
               <strong class="label">Overall rating:</strong> <span>{{ book.rating }} {{ book.ratings }}</span>
             </div>
-            <div class="book-numbers" v-if="book.bookNumbers">
-              <strong class="label">Book Number:</strong> <span v-html="stringifyArray( book.bookNumbers )"></span>
-            </div>
-            
+            <!-- <div class="progress" v-if="book.progress">
+              <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
+            </div> -->
             
           </div> <!-- .basic-details -->
 					<div v-if="booksInSeries" class="label hidden-section-label my-books-in-series-label" @click="booksInSeriesLabelClick">Books I own in the series <span>{{ booksInSeriesCount }}</span><font-awesome-icon fas :icon="booksInSeriesContent.toggle ? 'chevron-up' : 'chevron-down'" /></div>
@@ -71,10 +74,10 @@
                 <span class="label">Released:</span> <span>{{ book.releaseDate }}</span>
               </div>
               <div class="date-added" v-if="book.dateAdded">
-                <span class="label">Added:</span> <span>{{ book.dateAdded }}</span>
+                <span class="label">Added to my library:</span> <span>{{ book.dateAdded }}</span>
               </div>
             </div>
-            <div v-html="book.summary"></div>
+            <div class="summary-inner-wrap" v-html="book.summary"></div>
           </div>
           
           <div class="summary-read-more" @click="summaryReadMoreclick" v-if="summary.readmore.exists"><span>{{ summary.readmore.toggle ? 'Read less' : 'Read more' }}</span> <font-awesome-icon fas :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'" /></div>
@@ -91,6 +94,8 @@
 </template>
 
 <script>
+import sortBookNumbers from '../../_mixins/sort/bookNumbers'
+
 import aleCarousel from './aleCarousel'
 // const GreenAudioPlayer = require('green-audio-player');
 
@@ -99,6 +104,10 @@ export default {
   components: {
     aleCarousel,
   },
+  mixins: [
+    sortBookNumbers,
+  ],
+  props: ['booksArray', 'library', 'gallery'],
   data: function() {
     return {
       booksInSeriesContent: {
@@ -114,7 +123,6 @@ export default {
       }
     }
   },
-  props: ['booksArray', 'library', 'gallery'],
   
   created: function() {
     Eventbus.$on('detailsToggle', this.onDetailsToggle );
@@ -144,9 +152,14 @@ export default {
       if ( vue.book.series ) {
         $.each(vue.book.series, function( i, obj ) {
           
-          var findSeries = _.filter(vue.library.books, { series: [{name: obj.name }] });
-          if ( !_.isEmpty( findSeries ) ) {
-            series[ obj.name ] = vue.sortBookNumbers( findSeries, obj.name );
+          var findSeriesBooks = _.filter(vue.library.books, { series: [{name: obj.name }] });
+          if ( !_.isEmpty( findSeriesBooks ) ) {
+            series[ obj.name ] = vue.sortBookNumbers({
+              books: findSeriesBooks,
+              direction: 'asc',
+              seriesName: obj.name
+              // missingNumber:
+            });
           }
           
         });
@@ -170,6 +183,45 @@ export default {
 		},
   },
   methods: {
+    
+    
+    progressToolTipBoundaryEl: function() {
+      return $('#ale-bookdetails .information .cover-wrap')[0];
+    },
+    
+    progressTooltip: function( book ) {
+      if ( book.progress.toLowerCase().trim() === 'finished' ) {
+        const length = this.timeStringToSeconds( book.length );
+        return 'Finished: ( '+ this.secondsToTimeString( length ) +' )';
+      }
+      else {
+        const progress = this.timeStringToSeconds( book.progress );
+        const length = this.timeStringToSeconds( book.length );
+        
+        const difference = length - progress;
+        return 'Progress: ' + this.secondsToTimeString( difference ) +' / '+ this.secondsToTimeString( length );
+      }
+    },
+    
+    progressInfo: function( book ) {
+      if ( book.progress && book.length ) {
+        if ( book.progress.toLowerCase().trim() === 'finished' ) {
+          const length = this.timeStringToSeconds( book.length );
+          return '<div>Finished ( '+ this.secondsToTimeString( length, true ) +' )</div>';
+        }
+        else {
+          const progress = this.timeStringToSeconds( book.progress );
+          const length = this.timeStringToSeconds( book.length );
+          const difference = length - progress;
+          return '<div class="text-align-left">'+ this.secondsToTimeString( difference ) +'</div>' +
+          '<div>progress</div>' +
+          '<div class="text-align-right">'+ this.secondsToTimeString( length ) +'</div>';
+        }
+      }
+      else {
+        return '<div>Length: '+ book.length +'</div>';
+      }
+    },
     
     onDetailsToggle: function( msg ) {
 			if ( msg.detailsChanged ) {
@@ -197,31 +249,6 @@ export default {
       this.summary.maxHeight = this.summary.readmore.toggle ? 'none' : this.summary.maxHeightTemp;
     },
     
-    sortBookNumbers: function( array, seriesName ) {
-      return _.orderBy(array, function(o) {
-        
-        if ( o.bookNumbers ) {
-          
-          const seriesObj = _.filter(o.series, ['name', seriesName ]);
-          const number = seriesObj[0].bookNumber;
-          const numbers = _.isArray( number ) ? number[0] : number;
-          // If the number is a string, we assume it's a number range
-          // and once again use the first number from that range
-          const dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
-          if ( dashSplit.length > 1 ) {
-            return parseFloat( dashSplit[0] );
-          }
-          else {
-            return numbers;
-          }
-        }
-        else {
-          return 9999999;
-        }
-        
-      }, 'asc');
-    },
-    
     booksInSeriesLabelClick: function() {
       this.booksInSeriesContent.toggle = this.booksInSeriesContent.toggle ? false : true;
     },
@@ -237,21 +264,21 @@ export default {
       this.gallery.searchLocked.inputValue = seriesName;
       this.gallery.searchIcons.scope = false;
 			
-      const filteredBooks = _.filter( vue.library.books, function(o) {
-        var result = false;
-        if ( o.series !== null ) {
-          if ( o.series[0].name === seriesName ) result = true;
-        }
-        return result;
-      });
-			
+      const filteredBooks = _.filter(vue.library.books, { series: [{name: seriesName }] });
+      
       vue.changeSearchOptions({
         key: 'bookNumbers',
         active: false,
 				showSortValues: true,
       });
       
-      const sortedResult =  vue.sortBookNumbers( filteredBooks, seriesName );
+      const sortedResult =  this.sortBookNumbers({
+        books: filteredBooks,
+        direction: 'asc',
+        seriesName: seriesName
+        // missingNumber:
+      });
+      
       const index = _.findIndex(sortedResult, ['asin', book.asin]);
       vue.gallery.filterResults = sortedResult;
       
@@ -345,37 +372,14 @@ export default {
           };
         }
   			else if ( book.length ) {
-					
-          var progress = timeStringToSeconds( book.progress );
-          const length = timeStringToSeconds( book.length );
+          var progress = this.timeStringToSeconds( book.progress );
+          const length = this.timeStringToSeconds( book.length );
   				
   				progress = length - progress;
 					
   				return {
   					width: (progress / length) * 100 + '%',
   				};
-          
-          function timeStringToSeconds( string ) {
-            const hasMinutes = string.match('min'); //sometimes 'min', sometimes 'mins'
-            var numbers = string.match(/\d+/g);
-            // If the array numbers.length is 2, then we the array must contain hours and minutes
-            if ( numbers.length === 2 ) {
-              numbers = (+numbers[0]) * 60 * 60 + (+numbers[1]) * 60;
-            }
-            // If the array numbers.length is below 2...
-            // ...and the original string doesn't contain the word 'min',
-            // then we'll assume the unit is hours...
-            else if ( !hasMinutes ) {
-              numbers = (+numbers[0]) * 60 * 60;
-            }
-            // If the array numbers is below 2...
-            // ...and the original string contains the word 'min',
-            // then we'll assume the unit is minutes...
-            else {
-              numbers = (+numbers[0]) * 60;
-            }
-            return numbers;
-          }
 					
   			}
   			else {
@@ -390,6 +394,58 @@ export default {
 				}
 			}
 		},
+    
+		secondsToTimeString: function( s, delimCharacters ) {
+      var pad = function(num, size) { return ('000' + num).slice(size * -1); },
+      time = parseFloat( s ).toFixed(3),
+      hours = Math.floor(time / 60 / 60),
+      minutes = Math.floor(time / 60) % 60,
+      seconds = Math.floor(time - minutes * 60),
+      milliseconds = time.slice(-3);
+      return (hours.toString().length > 1 ? hours : pad(hours, 2)) + (delimCharacters ? 'h ' : '.') + pad(minutes, 2) + (delimCharacters ? 'm ' : '');
+		},
+    
+    // This is a little janky and very specific to
+    // the progress and length time format in Audible
+    timeStringToSeconds: function( string ) {
+      const hasMinutes = string.match('min'); //sometimes 'min', sometimes 'mins'
+      const numbers = string.match(/\d+/g);
+      const v = {};
+      const hoursToSec = function( n ) { return (+n) * 60 * 60; }
+      const minsToSec  = function( n ) { return (+n) * 60; }
+      // If the matched array contains 2 groups of numbers,
+      // then we the array must contain hours and minutes
+      if ( numbers.length === 2 ) {
+        v.h = numbers[0];
+        v.m = numbers[1];
+        v.numbers = hoursToSec(v.h) + minsToSec(v.m);
+      }
+      // If there's only one group of numbers and it doesn't
+      // contain the word 'min', it will be treated as hours
+      else if ( !hasMinutes ) {
+        v.h = numbers[0];
+        v.numbers = hoursToSec(v.h);
+      }
+      // Again... If there's only one group of numbers but it
+      // contains the word 'min', then it will be treated as minutes
+      else {
+        v.m = numbers[0];
+        v.numbers = minsToSec(v.m);
+      }
+      return v.numbers;
+    },
+    
+    linkifySeries: function( array, delimiter ) {
+      if ( array ) {
+        var html = '';
+        array.forEach((item, index ) => {
+          html += '<a href="'+ item.url +'" target="_blank">'+ item.name +'</a>';
+          if ( item.bookNumber ) html += '<span class="book-number"> (book '+ item.bookNumber +')</span>';
+          if ( index < array.length-1 ) html += (delimiter || ', ');
+        });
+        return html;
+      }
+    },
     
     linkifyObjArray: function( array, delimiter ) {
       if ( array ) {
@@ -497,7 +553,7 @@ export default {
   .information {
     @include themify($themes) {
       // border: 1px solid rgba( themed(frontColor), .1);
-      background-color: darken(themed(backColor), 1);
+      background-color: rgba(themed(frontColor), .001);
       box-shadow: 0 3px 15px rgba( darken(themed(backColor), 30) , .8);
     }
     border-radius: 3px;
@@ -517,7 +573,7 @@ export default {
     .cover-wrap {
       position: relative;
       padding: 0;
-      margin-bottom: 20px;
+      // margin-bottom: 20px;
       img {
         display: block;
         width: 100%;
@@ -537,7 +593,37 @@ export default {
             background: themed(audibleOrange);
           }
         }
+        .progress-tooltip {
+          width: 1px;
+          height: 100%;
+          float: right;
+        }
       }
+    }
+    
+    div.progress-info {
+      font-size: .9em;
+      text-align: center;
+      margin-bottom: 15px;
+      padding: 3px 13px;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-between;
+      @include themify($themes) {
+        background: rgba( themed(frontColor), .01 );
+        border-top: 1px solid rgba( themed(frontColor), .15 );
+        border-bottom: 1px solid rgba( themed(frontColor), .15 );
+      }
+      > div {
+        width: 100%;
+        text-align: center;
+      }
+      .text-align-left,
+      .text-align-right {
+        flex-shrink: 10;
+      }
+      .text-align-left { text-align: left; }
+      .text-align-right { text-align: right; }
     }
     
     .basic-details > div {
@@ -550,6 +636,10 @@ export default {
     
     .series a {
       white-space: normal;
+    }
+    .series .book-number {
+      font-size: .8em;
+			white-space: nowrap;
     }
     
     .label {
@@ -645,6 +735,13 @@ export default {
     position: relative;
     
     .summary-read-more {
+      cursor: pointer;
+      -webkit-touch-callout: none;
+      -webkit-user-select: none;
+      -khtml-user-select: none;
+      -moz-user-select: none;
+      -ms-user-select: none;
+      user-select: none;
       position: absolute;
       z-index: 5;
       right: 0;
@@ -663,6 +760,16 @@ export default {
         height: 40px;
       }
     }
+  }
+  
+  // Normalizes the top margin in the summary area.
+  .summary-inner-wrap {
+    p {
+      margin-top: 1em;
+      margin-bottom: 1em;
+    }
+    p:first-child { margin-top: 0; }
+    margin-top: 1em;
   }
   
 } // #ale-bookdetails

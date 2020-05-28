@@ -1,99 +1,101 @@
 <template>
-<div id="ale-search">
-  <div class="search-locked" v-if="!gallery.searchEnabled">
-    <div
-      class="icon"
-      @click="releaseSearchLock"
-      v-tippy="{ placement: 'right',  arrow: true }"
-      content="Click here to re-enable search"
-    >
-      <font-awesome-icon fas icon="lock" />
-      <font-awesome-icon fas icon="unlock-alt" />
+<div id="ale-search-wrap">
+  <div id="ale-search">
+    <div class="search-locked" v-if="!gallery.searchEnabled">
+      <div
+        class="icon"
+        @click="releaseSearchLock"
+        v-tippy="{ placement: 'right',  arrow: true }"
+        content="Click here to re-enable search"
+      >
+        <font-awesome-icon fas icon="lock" />
+        <font-awesome-icon fas icon="unlock-alt" />
+      </div>
+      <div class="locked-text-reason" v-if="gallery.searchLocked.reason">
+        {{ gallery.searchLocked.reason }}
+      </div>
+      <div class="locked-text" v-if="gallery.searchLocked.inputValue">
+        {{ gallery.searchLocked.inputValue }}
+      </div>
     </div>
-    <div class="locked-text-reason" :v-if="gallery.searchLocked.reason">
-      {{ gallery.searchLocked.reason }}
-    </div>
-    <div class="locked-text" :v-if="gallery.searchLocked.inputValue">
-      {{ gallery.searchLocked.inputValue }}
-    </div>
-  </div>
-	<VueFuse
-    v-if="gallery.searchEnabled"
-    :placeholder="placeholder"
-    :list="library.books"
-    :keys="aliciaKeys"
-    :location="0"
-    :distance="400"
-    :threshold="0.25"
-    :search="gallery.searchValue"
-		:shouldSort="searchShouldSort"
-  />
-	<div class="icons">
-    <div class="icon-wrap">
-      <div class="book-in-selection">
-        <div class="inner-wrap" content="Visible books" v-tippy="{ placement: 'top',  arrow: true }">
-          {{ booksArray.length }}
+  	<VueFuse
+      v-if="gallery.searchEnabled"
+      :placeholder="placeholder"
+      :list="library.books"
+      :keys="aliciaKeys"
+      :location="0"
+      :distance="400"
+      :threshold="0.25"
+      :search="gallery.searchValue"
+  		:shouldSort="searchShouldSort"
+    />
+  	<div class="icons">
+      <div class="icon-wrap">
+        <div class="book-in-selection">
+          <div class="inner-wrap" content="Visible books" v-tippy="{ placement: 'top',  arrow: true }">
+            {{ booksArray.length }}
+          </div>
         </div>
       </div>
-    </div>
-    <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.scope }">
-      <div class="scope search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope', $event)" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 410 }">
-        <font-awesome-icon fas icon="microscope" />
+      <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.scope }">
+        <div class="scope search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope', $event)" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 410 }">
+          <font-awesome-icon fas icon="microscope" />
+        </div>
       </div>
-    </div>
-    <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.filter }">
-      <div class="filter search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter out content" v-tippy="{ placement: 'top',  arrow: true }">
-        <font-awesome-icon fas icon="filter" />
+      <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.filter }">
+        <div class="filter search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter out content" v-tippy="{ placement: 'top',  arrow: true }">
+          <font-awesome-icon fas icon="filter" />
+        </div>
       </div>
-    </div>
-		<div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.sort }">
-      <div class="sort search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort', 'is-enabled': gallery.searchOptions.lists.sortIndex > -1 }" @click="openSearchOptions('sort', $event)" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
-  			<font-awesome-icon fas icon="sort" />
-  		</div>
-    </div>
-    
-    <div id="search-options" v-if="gallery.searchOptions.open">
-      <div class="search-opts-arrow"></div>
-			<div class="search-option sort-values" v-if="currentOptionsList[0].type === 'sort'">
-        <label>
-          <input type="checkbox" v-model="gallery.searchOptions.lists.showSortValues" :disabled="gallery.searchOptions.lists.sortIndex === -1" />
-          <span class="checkbox">
-            <font-awesome-icon fas icon="square" />
-            <font-awesome-icon fas icon="check" />
-          </span>
-          <span class="label">Show sort values</span>
-        </label>
-			</div>
-      <ul>
-        <li class="search-option" v-for="( item, index ) in currentOptionsList" :key="item.key">
+  		<div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.sort }">
+        <div class="sort search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort', 'is-enabled': gallery.searchOptions.lists.sortIndex > -1 }" @click="openSearchOptions('sort', $event)" content="Sort titles" v-tippy="{ placement: 'top',  arrow: true }">
+    			<font-awesome-icon fas icon="sort" />
+    		</div>
+      </div>
+      
+      <div id="search-options" v-if="gallery.searchOptions.open">
+        <div class="search-opts-arrow"></div>
+  			<div class="search-option sort-values" v-if="currentOptionsList[0].type === 'sort'">
           <label>
-            <!-- <div style="color: red;">
-              {{ item.key }} <span style="color: purple;">{{ item.active }}</span>
-            </div> -->
-            <input @change="optionsCheck( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
-            <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
-              <font-awesome-icon fas icon="sort-down" />
-              <font-awesome-icon fas icon="sort-up" />
-            </span>
-            <span v-if="!item.type" class="checkbox">
+            <input type="checkbox" v-model="gallery.searchOptions.lists.showSortValues" :disabled="gallery.searchOptions.lists.sortIndex === -1" />
+            <span class="checkbox">
               <font-awesome-icon fas icon="square" />
               <font-awesome-icon fas icon="check" />
             </span>
-            <span class="label">{{ item.label || item.key.replace('.name', '') }}</span>
+            <span class="label">Show sort values</span>
           </label>
-        </li>
-      </ul>
-    </div>
-    
-	</div>
-	
-</div> <!-- #ale-search -->
+  			</div>
+        <ul>
+          <li class="search-option" v-for="( item, index ) in currentOptionsList" :key="item.key">
+            <label>
+              <!-- <div style="color: red;">
+                {{ item.key }} <span style="color: purple;">{{ item.active }}</span>
+              </div> -->
+              <input @change="optionsCheck( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
+              <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
+                <font-awesome-icon fas icon="sort-down" />
+                <font-awesome-icon fas icon="sort-up" />
+              </span>
+              <span v-if="!item.type" class="checkbox">
+                <font-awesome-icon fas icon="square" />
+                <font-awesome-icon fas icon="check" />
+              </span>
+              <span class="label">{{ item.label || item.key.replace('.name', '') }}</span>
+            </label>
+          </li>
+        </ul>
+      </div>
+      
+  	</div>
+  </div> <!-- #ale-search -->
+</div> <!-- #ale-search-wrap -->
+
 </template>
 
 <script>
 export default {
   name: 'aleBookdetails',
-  props: ['booksArray', 'library', 'gallery'],
+  props: ['booksArray', 'library', 'gallery', 'views'],
 	data : function() {
 		return {
       searchShouldSort: false,
@@ -292,7 +294,21 @@ export default {
 <style lang="scss">
 @import '~@/_variables.scss';
 
+#ale-search-wrap {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-items: center;
+  align-content: center;
+  justify-content: center;
+  margin: 0 auto;
+  margin-top: 50px;
+  margin-bottom: 50px;
+  max-width: 600px;
+}
+
 #ale-search {
+  flex-grow: 1;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -301,10 +317,6 @@ export default {
   justify-content: center;
   position: relative;
   z-index: 10;
-  margin: 0 auto;
-  margin-top: 50px;
-  margin-bottom: 100px;
-  max-width: 600px;
   text-align: center;
   background: #fff;
   padding: 8px 20px;
@@ -576,5 +588,4 @@ export default {
   }
   
 }
-
 </style>

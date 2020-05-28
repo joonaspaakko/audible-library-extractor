@@ -79,6 +79,7 @@ const config = {
     }),
     new CopyPlugin([
       { from: 'assets', to: 'assets' },
+      { from: 'output-page/browser-polyfill.min.js', to: 'output-page/browser-polyfill.min.js' },
       { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
       {
         from: 'manifest.json',

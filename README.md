@@ -6,8 +6,6 @@ Right now the extension scans your Audible library and then opens a web gallery 
 Here's a video showing the scanning process and a little bit of the gallery: [Youtube video](https://youtu.be/SxqG8BXIsg0) and this is a video from a later release with just the gallery, filtering, and its "books I own in the series" list: [Youtube video](https://www.youtube.com/watch?v=UYGmQWaFNjs).
 
 > Note: this extension is **not for extracting the audio files from your library**, just the metadata.
->
-> If you are interested in downloading/converting the audio files to mp3's, try [OpenAudible](https://openaudible.org/). If you are looking for something to manage/stream/download/listen you may want to look into [Booksonic](https://booksonic.org/). I haven't looked into it in a while, but my understanding is that it's a fork of [Subsonic](http://www.subsonic.org/) and again I'm not certain, but I believe its mobile app works for booksonic too, which I think people have used specifically on ios, since booksonic doesn't have an ios client. Another route is [Plex Media Server](https://www.plex.tv/). It's okay for this purpose, but it doesn't have a real audiobook support. For the best experience with PMS, you need [Prologue](https://prologue-app.com/), which is ios only. That said, both Booksonic and PMS are kind of advanced. In a perfect world they are fairly plug and play, but as soon as you need to do custom stuff, it gets a bit complicated. As these are both essentially home server applications, you have to have your computer on when you want to stream or download books. PMS does allow you to download books, but I'm not sure if Booksonic has that feature. Though with PMS you need a paid account to download, which they offer lifetime licenses for.
 
 ## Install
 
@@ -18,7 +16,7 @@ Here's a video showing the scanning process and a little bit of the gallery: [Yo
 1. Go to `chrome://extensions`.
   - Should also be in `Window > Extensions`
 2. Turn on the developer mode from the top right
-3. [`Download`](https://github.com/joonaspaakko/audible-library-extractor/releases/download/v0.1.2-pre-alpha/audible-library-extractor-v0.1.2.zip) / drag the zip file in the browser window to install
+3. [`Download`](https://github.com/joonaspaakko/audible-library-extractor/releases/download/v0.1.3-pre-alpha/audible-library-extractor-v0.1.3.zip) / drag the zip file in the browser window to install
 
 Additional info on what's changed in each version in the [releases page](https://github.com/joonaspaakko/audible-library-extractor/releases).
 
@@ -56,6 +54,20 @@ Additional info on what's changed in each version in the [releases page](https:/
   - [ ] CSV export _Right now you can select all cells and copy it to clipboard. No export button yet._
   - [ ] Goodreads import compatibility for the CSV
     - To make sure the imported books get the best chance of finding a match in Goodreads it should include the International Standard Book Number (ISB), that audible doesn't provide in the website, so the plan is to fetch it from the Google books API and place it in the spreadsheet.
-- [ ] Ability to save the output page locally as a standalone web gallery.
+- [x] Ability to save the output page locally as a standalone web gallery.
   - The purpose of this is so that you can share it with others by uploading it online or possibly sharing via email or something.
 - [ ] Firefox support
+
+
+## Misc info
+
+
+If you are interested in downloading/converting the audio files to mp3's, try [OpenAudible](https://openaudible.org/). It's the simplest.
+
+**Are you looking for something to manage/stream/download/listen audibooks?**
+
+> First of all, these are both kinda advanced and depending on your usage may require an always on server computer.
+
+[Booksonic](https://booksonic.org/) might be the first thing you want to check. I believe it's a fork of [Subsonic](http://www.subsonic.org/) made specifically for Audibobooks. I haven't looked into it in a while, but I believe Subsonic's mobile app should work with Booksonic too, which I think people have used specifically on ios, since booksonic doesn't have an ios client.
+
+Another route is [Plex Media Server](https://www.plex.tv/). It's okay for this purpose, but it doesn't have a real audiobook support. For the best experience with PMS, you need [Prologue](https://prologue-app.com/), which is ios only. PMS does allow you to download books if you have plex pass.

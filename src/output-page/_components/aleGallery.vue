@@ -1,8 +1,8 @@
 <template>
   <div id="ale-gallery">
-    <ale-search :booksArray="booksArray" :library="library" :gallery="gallery"></ale-search>
+    <ale-search      :booksArray="booksArray" :library="library" :gallery="gallery" :views="views"></ale-search>
     <ale-bookdetails :booksArray="booksArray" :library="library" :gallery="gallery"></ale-bookdetails> <!-- itunes style floater that plants itself between the cover items -->
-    <ale-books :booksArray="booksArray" :library="library" :gallery="gallery"></ale-books>
+    <ale-books       :booksArray="booksArray" :library="library" :gallery="gallery"></ale-books>
   </div>
 </template>
 
@@ -11,6 +11,14 @@ import aleSearch from './aleGallery/aleSearch'
 import aleBooks from './aleGallery/aleBooks'
 import aleBookdetails from './aleGallery/aleBookdetails'
 
+import sortBookNumbers from '../_mixins/sort/bookNumbers'
+import sortDateAdded from '../_mixins/sort/dateAdded'
+import sortReleaseDate from '../_mixins/sort/releaseDate'
+import sortStringNameProp from '../_mixins/sort/stringNameProp'
+import sortTitle from '../_mixins/sort/title'
+import sortLength from '../_mixins/sort/length'
+import sortRatings from '../_mixins/sort/ratings'
+
 export default {
   name: 'aleGallery',
   components: {
@@ -18,7 +26,16 @@ export default {
     aleBooks,
     aleBookdetails,
   },
-  props: ['library'],
+  mixins: [
+    sortBookNumbers,
+    sortDateAdded,
+    sortReleaseDate,
+    sortStringNameProp,
+    sortTitle,
+    sortLength,
+    sortRatings,
+  ],
+  props: ['library', 'views'],
   data: function() {
     return {
       gallery: {
@@ -75,7 +92,7 @@ export default {
           index: -1,
 					changed: false,
           sliders: {},
-        }
+        },
       }
     }
   },
@@ -93,117 +110,35 @@ export default {
         const activeSortItem = this.gallery.searchOptions.lists.sort[ activeSortIndex ];
         const activeSortKey = activeSortItem.key;
         const sortDirection = activeSortItem.active ? 'desc' : 'asc';
+        const sortOptions = {
+          books: sortedBooks,
+          direction: sortDirection,
+          sortKey: activeSortKey
+        };
         switch ( activeSortKey ) {
           case 'bookNumbers':
-          sortedBooks = _.orderBy(sortedBooks, function(o) {
-            
-            if ( o.bookNumbers ) {
-              // const seriesObj = _.filter(o.series, ['name', seriesName ]);
-              const seriesObj = _.filter(o.series, ['name', o.series[0].name ]);
-              const number = seriesObj[0].bookNumber;
-              const numbers = _.isArray( number ) ? number[0] : number;
-              // If the number is a string, we assume it's a number range
-              // and once again use the first number from that range
-              const dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
-              if ( dashSplit.length > 1 ) {
-                return parseFloat( dashSplit[0] );
-              }
-              else {
-                return numbers;
-              }
-            }
-            else {
-              return 9999999;
-            }
-            
-          }, sortDirection);
-          break;
+            sortedBooks = this.sortBookNumbers( sortOptions );
+            break;
           case 'dateAdded':
-          // It worked out pretty well from the beginning with this, because even
-          // before I had any aspirations to add any kinda sorting, I had chosen to
-          // extract the book data in the order they were purchased/added. Turns out
-          // that after I started working on this thing, Audible's desktop library
-          // got a facelift and this new style library is missing the date of when
-          // the book was added, unlike the old library. Fortunately I could still get
-          // the date from the store page of the book... However, unfortunately that
-          // means books that either don't have the store page anymore or books that
-          // got replaced by a re-release or something are going to be missing the date
-          // it was added. So that's why in here, I'm simply reversing the array on an
-          // ascended sort and just passing the on the data as is on a descending sort.
-          if (  sortDirection === 'asc' ) {
-            sortedBooks = _.reverse( _.clone(sortedBooks) );
-          }
-          break;
+          	sortedBooks = this.sortDateAdded( sortOptions );
+            break;
           case 'releaseDate':
-          sortedBooks = _.orderBy(sortedBooks, function(o) {
-            return o.releaseDate ? new Date( o.releaseDate.split('-') ) :  new Date( '1800', '01', '01' );
-          }, sortDirection);
-          // _.orderBy(unOrderedCollection, [{activeSortKey: Number}], ['desc'])
-          break;
+            sortedBooks = this.sortReleaseDate( sortOptions );
+            break;
           case 'authors.name':
           case 'narrators.name':
-          const keyMinusName = activeSortKey.replace('.name','');
-          sortedBooks = _.orderBy(sortedBooks, function( o ) {
-            return o[ keyMinusName ] ? o[ keyMinusName ][0].name : null;
-          }, sortDirection);
-          break;
+            sortedBooks = this.sortStringNameProp( sortOptions );
+            break;
           case 'title':
-          sortedBooks = _.orderBy(sortedBooks, function( o ) {
-            if ( o.title ) {
-              var titleLowercase = o.title.toLowerCase();
-              const getThe = titleLowercase.match(/^the /);
-              const getA = titleLowercase.match(/^a /);
-              const getAn = titleLowercase.match(/^an /);
-              const replacements = getThe && /^the / || getA && /^a / || getAn && /^an /;
-              if ( replacements ) titleLowercase = titleLowercase.replace( replacements,'');
-              return titleLowercase;
-            }
-            else { return null; }
-          }, sortDirection);
-          break;
+            sortedBooks = this.sortTitle( sortOptions );
+            break;
           case 'length':
-          sortedBooks = _.orderBy(sortedBooks, function( o ) {
-            if ( o.length ) {
-              
-              return timeStringToSeconds( o.length );
-              
-              function timeStringToSeconds( string ) {
-                const hasMinutes = string.match('min'); //sometimes 'min', sometimes 'mins'
-                var numbers = string.match(/\d+/g);
-                // If the array numbers.length is 2, then we the array must contain hours and minutes
-                if ( numbers.length === 2 ) {
-                  numbers = (+numbers[0]) * 60 * 60 + (+numbers[1]) * 60;
-                }
-                // If the array numbers.length is below 2...
-                // ...and the original string doesn't contain the word 'min',
-                // then we'll assume the unit is hours...
-                else if ( !hasMinutes ) {
-                  numbers = (+numbers[0]) * 60 * 60;
-                }
-                // If the array numbers is below 2...
-                // ...and the original string contains the word 'min',
-                // then we'll assume the unit is minutes...
-                else {
-                  numbers = (+numbers[0]) * 60;
-                }
-                return numbers;
-              }
-              
-            }
-            else { return 0; }
-          }, sortDirection);
-          break;
+            sortedBooks = this.sortLength( sortOptions );
+            break;
           case 'rating':
           case 'ratings':
-          sortedBooks = _.orderBy(sortedBooks, function( o ) {
-            if ( o[ activeSortKey ] ) {
-              var text = o[ activeSortKey ];
-              if ( activeSortKey === 'ratings' ) text = text.match(/\d/g).join('');
-              return Number( text );
-            }
-            else { return 0; }
-          }, sortDirection);
-          break;
+            sortedBooks = this.sortRatings( sortOptions );
+            break;
         }
       }
       

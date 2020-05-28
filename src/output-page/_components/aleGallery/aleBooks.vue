@@ -7,38 +7,38 @@
 			:key="book.asin"
       @click="detailsToggle( index )"
     >
-    <div class="details-inner-wrap">
-      
-			<sort-specials :gallery="gallery" :book="book"></sort-specials>
-      <div class="hidden">
-        <span class="title">{{ book.title }}</span>
-        <span class="authors">{{ stringifyArray( book.authors, 'name' ) }}</span>
+      <div class="details-inner-wrap">
+        
+  			<sort-values :gallery="gallery" :book="book"></sort-values>
+        <div class="hidden">
+          <span class="title">{{ book.title }}</span>
+          <span class="authors">{{ stringifyArray( book.authors, 'name' ) }}</span>
+        </div>
+        <div class="ale-cover" >
+          <img
+            v-lazy="book.coverUrl"
+            :data-title="book.title"
+            :data-asin="book.asin"
+            :data-authors="stringifyArray( book.authors, 'name' )"
+            :data-narrators="stringifyArray( book.narrators, 'name' )"
+            :alt="book.title"
+          >
+        </div>
+        
       </div>
-      <div class="ale-cover" >
-        <img
-          v-lazy="book.coverUrl"
-          :data-title="book.title"
-          :data-asin="book.asin"
-          :data-authors="stringifyArray( book.authors, 'name' )"
-          :data-narrators="stringifyArray( book.narrators, 'name' )"
-          :alt="book.title"
-        >
-      </div>
-      
-    </div>
-    </div>
+    </div> <!-- .ale-book -->
   </div>
 </template>
 
 <script>
 
-import sortSpecials from './sortSpecials'
+import sortValues from './sortValues'
 
 export default {
   name: 'aleBooks',
   props: ['booksArray', 'library', 'gallery'],
   components: {
-    sortSpecials
+    sortValues
   },
   
   created: function() {
@@ -134,15 +134,15 @@ export default {
       var coverDocumentOffset = el.offset().top;
       doc.scrollTop( coverDocumentOffset - coverViewportOffset );
       doc.on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", function(){ doc.stop(); });
-      $(window).on("resize", function() {
-        if ( comp.gallery.details.open ) comp.gallery.details.open = false;
-      });
+      // $(window).on("resize", function() {
+      //   if ( comp.gallery.details.open ) comp.gallery.details.open = false;
+      // });
       
       doc.stop().animate({
         scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
       }, animSpeed != undefined ? animSpeed : 900);
 			
-			var targetCenter = el.offset().left + (bookWidth/2);
+			var targetCenter = el.offset().left + (bookWidth/2) + 8;
       var detailsArrow = bookDetails.find('> .arrow');
       var arrowHalf = parseInt( detailsArrow.css('border-left-width'))
       detailsArrow.css({
@@ -219,6 +219,22 @@ export default {
     width: 100%;
     height: 0;
     overflow: hidden;
+  }
+}
+
+@media ( max-width: 423px ) {
+
+  #ale-gallery {
+    max-width: none;
+    width: 100%;
+  }
+  #ale-books {
+  	.ale-book {
+  		max-width: 50%;
+			.ale-cover img {
+				width: 100%;
+			}
+  	}
   }
 }
 

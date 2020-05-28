@@ -14,7 +14,7 @@ export default {
 	},
 	computed: {
 		books: function() {
-			var n = this.library.books.length < 50 ? this.library.books : 50;
+			var n = this.library.books.length < 45 ? this.library.books.length : 45;
 			return _.sampleSize( this.library.books, n);
 		}
 	},
@@ -65,8 +65,8 @@ export default {
 #ale-background {
   position: fixed;
   z-index: -1;
-  left: -2.8%;
-  right: -2.8%;
+  left: -3.05%;
+  right: -3.05%;
   top: 0;
   opacity: 0.2;
   text-align: center;

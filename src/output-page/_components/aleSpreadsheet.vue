@@ -56,7 +56,13 @@ export default {
         fixedColumnsLeft: 1,
         contextMenu: ['copy', 'hide'],
         rowHeaders: true,
-        colWidths: '300px',
+        currentRowClassName: 'currentRow',
+        // colWidths: '300px',
+        // modifyColWidth: function(width, col){
+        //   if(width > 300){
+        //   	return 300
+        //   }
+        // },
         afterRender: function() {
           
           $('#ale-spreadsheet td').each(function() {
@@ -205,14 +211,13 @@ export default {
 @import '~handsontable/dist/handsontable.full.css';
 
 #ale-spreadsheet {
-  
   position: absolute;
-  top: 200px;
+	z-index: 888;
+  top: 100px;
   right: 30px;
   bottom: 30px;
   left: 30px;
   overflow: hidden;
-  box-shadow: 0 7px 15px rgba( #000, .2 );
   
   .handsontable {
   }
@@ -227,25 +232,74 @@ export default {
   
 } // #ale-spreadsheet
 
-.theme-dark {
-  .handsontable tr td {
-    background-color: lighten( $darkBackColor, 7);
-    border-color: lighten( $darkBackColor, 17);
-  }
-  .ht_master tr td {
-    background-color: lighten( $darkBackColor, 4);
-    border-color: lighten( $darkBackColor, 14);
-  }
+html.theme-dark {
+  
   .handsontable tbody th {
-    background-color: lighten( $darkBackColor, 2);
-    color: darken( $darkFrontColor, 5);
-    border-color: lighten( $darkBackColor, 14);
+    background-color: lighten( $darkBackColor, 2) !important;
+    color: lighten( $darkFrontColor, 5) !important;
+    border-color: lighten( $darkBackColor, 14) !important;
   }
   .handsontable thead th {
-    background-color: lighten( $darkBackColor, 6);
-    color: $darkFrontColor;
-    border-color: lighten( $darkBackColor, 14);
+    background-color: lighten( $darkBackColor, 6) !important;
+    color: lighten( $darkFrontColor, 8) !important;
+    border-color: lighten( $darkBackColor, 14) !important;
   }
+  
+  .handsontable .changeType,
+  .handsontable .htUISelectCaption,
+  .handsontable tr td {
+    background-color: lighten( $darkBackColor, 7) !important;
+    border-color: lighten( $darkBackColor, 17) !important;
+    color: darken( $darkFrontColor, 10) !important;
+  }
+  .handsontable .changeType {
+    color: $darkBackColor !important;
+    background-color: $audibleOrange !important;
+  }
+  .ht_master tr td {
+    background-color: lighten( $darkBackColor, 4) !important;
+    border-color: lighten( $darkBackColor, 14) !important;
+    color: darken( $darkFrontColor, 15) !important;
+  }
+	// Sort - Arrow down
+	.handsontable span.colHeader.columnSorting.descending::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAYAAAD+MdrbAAAAlklEQVR4Ae3SgQWDMRQE4CILdIlMEgqdJIUOk07TSbJEFihe30OgTnrV8MMdB/p89L+cLvfrsvaRb/cCBQoUKPBIUKBAgX7zsH1pASbvcwMWRpp/6+ztf2A9jPkNJ5q9w37P8GY4iv9QvC/jE7dltXKgN+NTqWdDLt/odwiXB4vSIFweLMqDaHmwKA+C5cGiJIjRGmVu33JaAuqWzL7ZAAAAAElFTkSuQmCC');
+	}
+	// Sort - Arrow up
+	.handsontable span.colHeader.columnSorting.ascending::before {
+    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAYAAAD+MdrbAAAAj0lEQVR42u2TsQmAMBBFLbJAlsgkARsn0cZh4jROkiVcwOK8IiD4lX+pbO7Bh0DCax4ZxnWiE5FFN1veWmRZd7ZlKiSypDuk0c7JJkRZ1FVBqi4SIciCbpcP2l3oEW7CKUx4FzWD5d+LmsHyWLQLLE+KMrA8FGWw8qRoN4V/vQfsvQtd6EIXutCFLnThj8IL2/8C642rXg4AAAAASUVORK5CYII=');
+	}
+  
+  .handsontable td.currentRow,
+  .handsontable td.current,
+  .handsontable td.highlight {
+    color: $audibleOrange !important;
+    // font-weight: 600;
+  }
+  
 } // .theme-dark
+
+html.theme-light {
+  
+  .handsontable .changeType,
+  .handsontable .htUISelectCaption,
+  .handsontable tr td {
+    background-color: darken( #fff, 1) !important;
+    color: $lightFrontColor !important;
+  }
+  .ht_master tr td {
+    background-color: #fff !important;
+    color: $lightFrontColor !important;
+  }
+  
+  .handsontable td.currentRow,
+  .handsontable td.current,
+  .handsontable td.highlight {
+    color: #000 !important;
+    font-weight: 500;
+  }
+  
+} // .thene-light
+
 
 </style>

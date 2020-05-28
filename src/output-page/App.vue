@@ -1,38 +1,41 @@
 <template>
-  <div>
-    <div style="background: red; color: #fff;" id="view-switcher" @click="viewSwitcherClick">{{ activeViewText }}</div>
-    <ale-lightswitch></ale-lightswitch>
+  <div id="audible-library-extractor" :class="'ale-view-'+activeView">
+    <ale-view-control :standalone="standalone" :library="library" :views="views"></ale-view-control>
     <ale-background :library="library"></ale-background>
-    <ale-spreadsheet v-if="activeView === 'spreadsheet'" :library="library"></ale-spreadsheet>
-    <ale-gallery v-if="activeView === 'gallery'" :library="library"></ale-gallery>
+    <ale-spreadsheet v-if="activeView === 'spreadsheet'" :library="library" :views="views"></ale-spreadsheet>
+    <ale-gallery v-if="activeView !== 'spreadsheet'" :library="library" :views="views"></ale-gallery>
   </div>
 </template>
 
 <script>
-import aleBackground from './_components/aleBackground'
-import aleGallery from './_components/aleGallery'
+import aleBackground  from './_components/aleBackground'
+import aleGallery     from './_components/aleGallery'
 import aleSpreadsheet from './_components/aleSpreadsheet'
-import aleLightswitch from './_components/aleLightswitch'
+import aleViewControl from './_components/aleViewControl'
 
 export default {
   components: {
     aleBackground,
     aleGallery,
     aleSpreadsheet,
-    aleLightswitch,
+    aleViewControl,
   },
   data: function() {
     return {
-			activeView: 'gallery',
+			standalone: null,
+			views: {
+        lightSwitch: 1,
+				active: {
+					index: 0,
+				},
+				array: [
+					{ name: 'grid',        key: 'th'    },
+					{ name: 'list',        key: 'bars'  },
+					{ name: 'spreadsheet', key: 'table' },
+				],
+			},
       library: this.$root.$data.library
     }
-  },
-  computed: {
-    
-    activeViewText: function() {
-      return this.activeView === 'gallery' ? 'Spreadsheet' : 'Gallery';
-    }
-    
   },
   filters: {
     capitalize: function (value) {
@@ -41,23 +44,15 @@ export default {
       return value.charAt(0).toUpperCase() + value.slice(1)
     }
   },
-  methods: {
-    
-    viewSwitcherClick: function() {
-      
-      if ( this.activeView === 'gallery' ) {
-        this.activeView = 'spreadsheet';
-      }
-      else {
-        this.activeView = 'gallery';
-      }
-      
+	computed: {
+    activeView: function() {
+      return this.views.array[ this.views.active.index ].name;
     }
-    
   },
-	
 	created: function() {
-		
+    
+    this.standalone = $('html.standalone-gallery').length > 0;
+    
 		// var test = _.filter(this.library.books, { title: 'Death & Honey' });
 		// console.log( test );
 		

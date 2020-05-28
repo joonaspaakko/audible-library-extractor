@@ -1,12 +1,12 @@
 <template>
-  <div class="sort-specials-container" v-if="gallery.searchOptions.lists.showSortValues && gallery.searchOptions.lists.sortIndex > -1">
-    <div :class="'sort-'+activeSortKey" v-html="sortContents"></div>
+  <div class="sort-values-container" v-if="gallery.searchOptions.lists.showSortValues && gallery.searchOptions.lists.sortIndex > -1">
+    <div :class="'sort-'+activeSortKey" v-html="sortContents" v-if="sortContents"></div>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'sortSpecials',
+  name: 'sortValues',
   props: ['book', 'gallery'],
 	data: function() {
 		return {
@@ -58,7 +58,13 @@ export default {
         
       }
       else {
-        return this.notAvailable;
+        switch ( sortKey ) {
+          case 'bookNumbers':
+              return false;
+            break;
+          default:
+            return this.notAvailable;
+        }
       }
       
     }
@@ -70,13 +76,13 @@ export default {
 <style lang="scss" scoped>
 @import '~@/_variables.scss';
 
-.sort-specials-container {
+.sort-values-container {
+  width: $thumbnailSize + 2;
   > div {
     white-space: nowrap;
     overflow: hidden;
     -ms-text-overflow: ellipsis;
     text-overflow: ellipsis;
-    // width: $thumbnailSize - (2*6);
     // margin: 6px;
     margin-left: 1px;
     margin-right: 1px;
@@ -91,12 +97,12 @@ export default {
     }
   }
 }
-.ale-book.details-open .sort-specials-container > div {
+.ale-book.details-open .sort-values-container > div {
   margin-left: 0px;
   margin-right: 0px;
 }
 
-.sort-specials-container div.sort-bookNumbers {
+.sort-values-container div.sort-bookNumbers {
   width: auto;
   margin: 0;
   padding: 0;
