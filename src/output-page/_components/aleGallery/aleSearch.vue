@@ -101,6 +101,7 @@ export default {
       searchShouldSort: false,
       searchFocusListener: null,
       searchOptionsHider: null,
+			resultTimer: null,
 		}
 	},
   
@@ -110,7 +111,11 @@ export default {
     Eventbus.$on('detailsToggle', this.onDetailsToggle );
     
     this.$on('fuseResultsUpdated', results => {
-      this.gallery.fuseResults = results;
+			const vue = this;
+		  clearTimeout( vue.resultTimer);
+		  vue.resultTimer = setTimeout(function() {
+				vue.gallery.fuseResults = results;
+		  }, 300);
     });
     this.$on('fuseInputChanged', value => {
       if ( this.gallery.searchValue !== value ) {
@@ -123,8 +128,21 @@ export default {
   
   mounted: function() {
     var vue = this;
-    vue.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', function() {
-      var _this = $(this);
+    vue.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', this.searchInputFocus);
+    
+  },
+	
+	beforeDestroy: function() {
+		$('#ale-search').off("focus", this.searchInputFocus);
+	 	Eventbus.$off('detailsToggle', this.onDetailsToggle );
+    this.searchFocusListener = null;
+    this.searchOptionsHider = null;
+	},
+	
+  methods: {
+    
+		searchInputFocus: function() {
+			var vue = this;
       if ( !vue.searchShouldSort ) {
         vue.gallery.searchOptions.lists.sortIndex = -1;
         vue.searchShouldSort = true;
@@ -136,18 +154,8 @@ export default {
   	      });
         }, 10);
       }
-    });
-    
-  },
-	
-	beforeDestroy: function() {
-	 	Eventbus.$off('detailsToggle', this.onDetailsToggle );
-    this.searchFocusListener = null;
-    this.searchOptionsHider = null;
-	},
-	
-  methods: {
-    
+		},
+		
     releaseSearchLock: function() {
       
       const gallery = this.gallery;

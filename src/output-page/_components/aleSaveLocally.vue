@@ -1,6 +1,6 @@
 <template>
   <div id="ale-save-locally" class="icon" @click="saveButtonClicked"
-  content="Save the gallery locally to share it with others. Check the readme in github for more instructions."
+  content="<strong>Save the gallery locally.</strong> Check the readme in github for more instructions."
   v-tippy="{ placement: 'top',  arrow: true }"
   >
     <font-awesome-icon fas icon="save" />

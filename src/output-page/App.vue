@@ -1,6 +1,6 @@
 <template>
   <div id="audible-library-extractor" :class="'ale-view-'+activeView">
-    <ale-view-control :standalone="standalone" :library="library" :views="views"></ale-view-control>
+    <ale-menu-actions :standalone="standalone" :library="library" :views="views"></ale-menu-actions>
     <ale-background :library="library"></ale-background>
     <ale-spreadsheet v-if="activeView === 'spreadsheet'" :library="library" :views="views"></ale-spreadsheet>
     <ale-gallery v-if="activeView !== 'spreadsheet'" :library="library" :views="views"></ale-gallery>
@@ -11,14 +11,14 @@
 import aleBackground  from './_components/aleBackground'
 import aleGallery     from './_components/aleGallery'
 import aleSpreadsheet from './_components/aleSpreadsheet'
-import aleViewControl from './_components/aleViewControl'
+import aleMenuActions from './_components/aleMenuActions'
 
 export default {
   components: {
     aleBackground,
     aleGallery,
     aleSpreadsheet,
-    aleViewControl,
+    aleMenuActions,
   },
   data: function() {
     return {

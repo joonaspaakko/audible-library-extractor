@@ -131,5 +131,35 @@ export default {
 	animation: color-change-light 400ms linear;
 }
 
+@media ( max-width: 1300px ) {
+
+  #ale-background img {
+    width: 7.5%;
+  }
+  
+}
+@media ( max-width: 1000px ) {
+
+  #ale-background img {
+    width: 12%;
+  }
+  
+}
+@media ( max-width: 760px ) {
+
+  #ale-background img {
+    width: 15%;
+  }
+  
+}
+@media ( max-width: 530px ) {
+
+  #ale-background img {
+    width: 23%;
+  }
+  
+}
+
+
 
 </style>

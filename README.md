@@ -5,7 +5,7 @@ Right now the extension scans your Audible library and then opens a web gallery 
 
 Here's a video showing the scanning process and a little bit of the gallery: [Youtube video](https://youtu.be/SxqG8BXIsg0) and this is a video from a later release with just the gallery, filtering, and its "books I own in the series" list: [Youtube video](https://www.youtube.com/watch?v=UYGmQWaFNjs).
 
-**You can check my audible library [here](https://joonaspaakko.github.io/my-audible-library/).** This gallery was generated using the extension. Note: it may take a while to load. 
+**You can check my audible library [here](https://joonaspaakko.github.io/my-audible-library/).** This gallery was generated using the extension. Note: it may take a while to load.
 
 > Note: this extension is **not for extracting the audio files from your library**, just the metadata.
 
@@ -47,14 +47,13 @@ Additional info on what's changed in each version in the [releases page](https:/
     - [x] Search scopes
     - [ ] Autocomplete
   - [x] Filter buttons
-  - [x] Sorting ~~Right now it shows them in the order they were added to your library, but search shuffles the deck.~~
+  - [x] Sorting
   - [ ] Audio player for the sample audio
     - [ ] Ability to play the full mp3 files saved by OpenAudible.
       - I'm not sure how feasible this idea is, but it would be cool if the player could play the full audiobook if they exist in the gallery folder.
-  - [ ] Google books API's summary(?) _Not sure about this yet, but I never liked many plot summaries provided by Audible_
 - [x] Spreadsheet:
-  - [ ] CSV export _Right now you can select all cells and copy it to clipboard. No export button yet._
-  - [ ] Goodreads import compatibility for the CSV
+  - [x] CSV export _Right now you can select all cells and copy it to clipboard. No export button yet._
+  - [ ] Making the CSV compatible with the import feature in Goodreads
     - To make sure the imported books get the best chance of finding a match in Goodreads it should include the International Standard Book Number (ISB), that audible doesn't provide in the website, so the plan is to fetch it from the Google books API and place it in the spreadsheet.
 - [x] Ability to save the output page locally as a standalone web gallery.
   - The purpose of this is so that you can share it with others by uploading it online or possibly sharing via email or something.

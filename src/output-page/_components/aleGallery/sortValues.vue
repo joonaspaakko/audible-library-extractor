@@ -1,13 +1,24 @@
 <template>
   <div class="sort-values-container" v-if="gallery.searchOptions.lists.showSortValues && gallery.searchOptions.lists.sortIndex > -1">
     <div :class="'sort-'+activeSortKey" v-html="sortContents" v-if="sortContents"></div>
+    
   </div>
 </template>
 
 <script>
+
+import timeStringToSeconds from '../../_mixins/timeStringToSeconds'
+import secondsToTimeString from '../../_mixins/secondsToTimeString'
+import progressbarWidth from '../../_mixins/progressbarWidth'
+
 export default {
   name: 'sortValues',
   props: ['book', 'gallery'],
+  mixins: [
+    timeStringToSeconds,
+    secondsToTimeString,
+    progressbarWidth,
+  ],
 	data: function() {
 		return {
 			notAvailable: 'N/A'
@@ -32,7 +43,7 @@ export default {
     
     sortContents: function() {
       
-      var sortKey = this.activeSortKey.replace('.name', '');
+      const sortKey = this.activeSortKey.replace('.name', '');
       if ( this.book[ sortKey ] ) {
         
         switch ( sortKey) {
@@ -44,23 +55,36 @@ export default {
             return this.book[ sortKey ][0].name;
             break;
           case 'rating':
-            var ratings = this.book.ratings ? ' <small>('+ this.book.ratings.match(/\d/g).join('').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')</small>' : '';
+            const ratings = this.book.ratings ? ' <small>('+ this.book.ratings.match(/\d/g).join('').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") +')</small>' : '';
             return this.book[ sortKey ] + ratings;
             break;
           case 'ratings':
-            var text = this.book[ sortKey ];
-            var rating = this.book.rating ? ' <small>('+ this.book.rating +')</small>' : '';
+            const text = this.book[ sortKey ];
+            const rating = this.book.rating ? ' <small>('+ this.book.rating +')</small>' : '';
             return text.match(/\d/g).join('').toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",") + rating;
             break;
+					case 'progress':
+						// const progress = this.book[ sortKey ];
+            // return progress;
+            var css = this.progressbarWidth( this.book );
+						return this.progress( this.book ) +
+            '<div class="progress-bar">' +
+              '<div style="width: '+ css.width +';"></div>' +
+            '</div>';
+						break;
           default:
             return this.book[ sortKey ];
         }
         
       }
+      // Value missing!
       else {
         switch ( sortKey ) {
           case 'bookNumbers':
-              return false;
+              return false; // empty
+            break;
+          case 'progress':
+              return 'No progress'; // empty
             break;
           default:
             return this.notAvailable;
@@ -70,14 +94,36 @@ export default {
     }
     
   },
+
+  methods: {
+
+    progress: function( book ) {
+      if ( book.progress && book.length ) {
+        if ( book.progress.toLowerCase().trim() === 'finished' ) {
+          const length = this.timeStringToSeconds( book.length );
+          return '<div>Finished ( '+ this.secondsToTimeString( length, true ) +' )</div>';
+        }
+        else {
+          const progress = this.timeStringToSeconds( book.progress );
+          const length = this.timeStringToSeconds( book.length );
+          const difference = length - progress;
+          return this.secondsToTimeString( difference, true ) + ' / ' + this.secondsToTimeString( length, true );
+        }
+      }
+      else {
+        return '<div>Length: '+ book.length +'</div>';
+      }
+    },
+
+  }
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~@/_variables.scss';
 
-.sort-values-container {
-  width: $thumbnailSize + 2;
+.ale-book .sort-values-container {
+  // width: $thumbnailSize + 2;
   > div {
     white-space: nowrap;
     overflow: hidden;
@@ -102,7 +148,7 @@ export default {
   margin-right: 0px;
 }
 
-.sort-values-container div.sort-bookNumbers {
+.ale-book .sort-values-container div.sort-bookNumbers {
   width: auto;
   margin: 0;
   padding: 0;
@@ -127,6 +173,22 @@ export default {
   color: #fff;
   @include themify($themes) {
     background: themed(audibleOrange);
+  }
+}
+
+.ale-book .sort-values-container .sort-progress .progress-bar {
+  height: 2px;
+  border-radius: 2px;
+  @include themify($themes) {
+    background: darken( themed(audibleOrange), 15);
+    border: 2px solid darken( themed(audibleOrange), 15);
+  }
+  div {
+    height: 100%;
+    border-radius: 2px;
+    @include themify($themes) {
+      background: lighten( saturate( themed(audibleOrange), 5), 5);
+    }
   }
 }
 

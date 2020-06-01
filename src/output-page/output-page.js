@@ -52,6 +52,8 @@ import { faMoon } from '@fortawesome/free-solid-svg-icons'
 library.add(faMoon);
 import { faSave } from '@fortawesome/free-solid-svg-icons'
 library.add(faSave);
+import { faFileCsv } from '@fortawesome/free-solid-svg-icons'
+library.add(faFileCsv);
 
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 Vue.component('font-awesome-icon', FontAwesomeIcon)

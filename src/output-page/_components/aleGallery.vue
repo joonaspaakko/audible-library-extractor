@@ -18,6 +18,7 @@ import sortStringNameProp from '../_mixins/sort/stringNameProp'
 import sortTitle from '../_mixins/sort/title'
 import sortLength from '../_mixins/sort/length'
 import sortRatings from '../_mixins/sort/ratings'
+import sortProgress from '../_mixins/sort/progress'
 
 export default {
   name: 'aleGallery',
@@ -34,6 +35,7 @@ export default {
     sortTitle,
     sortLength,
     sortRatings,
+    sortProgress,
   ],
   props: ['library', 'views'],
   data: function() {
@@ -84,6 +86,7 @@ export default {
 	            { active: false, key: 'bookNumbers',    label: 'Book number',  			type: 'sort' },
 	            { active: false, key: 'rating',  			  label: 'Rating',  				 	type: 'sort' },
 	            { active: false, key: 'ratings',  			label: 'Number of ratings', type: 'sort' },
+	            { active: false, key: 'progress',  			label: 'Progress',          type: 'sort' },
             ]
 	        }
 	      },
@@ -139,6 +142,9 @@ export default {
           case 'ratings':
             sortedBooks = this.sortRatings( sortOptions );
             break;
+					case 'progress':
+						sortedBooks = this.sortProgress( sortOptions );
+						break;
         }
       }
       

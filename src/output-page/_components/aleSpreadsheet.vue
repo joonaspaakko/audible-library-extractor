@@ -4,12 +4,14 @@
       :settings="options"
       :colHeaders="colHeaders"
       :columns="columns"
+      ref="hotTableComponent"
 		></hot-table>
   </div>
 </template>
 
 <script>
 import { HotTable } from '@handsontable/vue';
+import Handsontable from 'handsontable';
 
 export default {
   name: 'aleSpreadsheet',
@@ -23,9 +25,30 @@ export default {
     this.prepareColheaders();
     this.prepareColumns();
     
+    Eventbus.$on('csvExportStarted', this.exportSpreadsheet );
+  	
   },
+  
+  mounted: function(){
+    this.hot = this.$refs.hotTableComponent.hotInstance;
+		this.plugins.export = this.hot.getPlugin('exportFile');
+  },
+  
+  beforeDestroy: function() {
+    
+    this.hot = null;
+    this.plugins.export = null;
+    
+    Eventbus.$off('csvExportStarted', this.exportSpreadsheet );
+    
+  },
+  
   data: function() {
     return {
+      hot: null,
+      plugins: {
+        export: null,
+      },
       keys: null,
       colHeaders: null,
       columns: null,
@@ -74,6 +97,13 @@ export default {
     }
   },
   methods: {
+		
+    exportSpreadsheet: function() {
+      this.plugins.export.downloadFile('csv', {
+				filename: 'My Audible library', columnHeaders: true
+			});
+    },
+		
     prepareKeys: function() {
       const vue = this;
       // Gets all keys from the books array

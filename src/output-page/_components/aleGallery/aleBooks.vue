@@ -40,13 +40,23 @@ export default {
   components: {
     sortValues
   },
+	
+	data: function() {
+		return {
+			windowWidth: null,
+			windowResizeTimer: null,
+		}
+	},
   
   created: function() {
     Eventbus.$on('galleryBookClick', this.onBookClicked );
+		this.windowWidth = $(window).width();
+		$(window).on('resize', this.onWindowResize );
   },
   
 	beforeDestroy: function() {
 	 	Eventbus.$off('galleryBookClick', this.onBookClicked );
+		$(window).off('resize', this.onWindowResize );
 	},
   
   methods: {
@@ -81,16 +91,14 @@ export default {
       this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
       
       this.$nextTick(() => {
+        if ( this.gallery.details.open ) {
+          const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
+          this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed );
+        }
         Eventbus.$emit('detailsToggle', {
           from: 'aleBooks',
           detailsChanged: this.gallery.details.changed
         });
-        if ( this.gallery.details.open ) {
-          this.$nextTick(() => {
-            const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
-            this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed );
-          });
-        }
       });
       
       
@@ -133,10 +141,11 @@ export default {
       var doc = $("body, html");
       var coverDocumentOffset = el.offset().top;
       doc.scrollTop( coverDocumentOffset - coverViewportOffset );
-      doc.on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", function(){ doc.stop(); });
-      // $(window).on("resize", function() {
-      //   if ( comp.gallery.details.open ) comp.gallery.details.open = false;
-      // });
+      doc.on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", scrollStopAnimate);
+			function scrollStopAnimate(){
+				doc.stop();
+				doc.off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", scrollStopAnimate);
+			}
       
       doc.stop().animate({
         scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
@@ -149,8 +158,19 @@ export default {
         left: targetCenter
       });
       
-    }
-    
+    },
+		
+		onWindowResize: function() {
+			var vue = this;
+		  clearTimeout( vue.windowResizeTimer);
+		  vue.windowResizeTimer = setTimeout(function() {
+				if ( $(this).width() !== vue.windowWidth ) {
+					if ( vue.gallery.details.open ) vue.gallery.details.open = false;
+				}
+		  }, 250);
+
+		}
+		
   },
 }
 </script>

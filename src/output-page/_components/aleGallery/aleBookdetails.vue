@@ -9,11 +9,11 @@
           <div class="cover-wrap">
             <a :href="book.url" target="_blank">
 							<div class="progressbar">
-                <div class="progress" :style="progress( book )">
+                <div class="progress" :style="progressbarWidth( book )">
                   <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
                 </div>
               </div>
-              <img class="cover" width="280" height="280" :src="book.coverUrl">
+              <img class="cover" :src="book.coverUrl">
             </a>
           </div>
           <div class="progress-info" v-html="progressInfo( book )"></div>
@@ -95,7 +95,9 @@
 
 <script>
 import sortBookNumbers from '../../_mixins/sort/bookNumbers'
-
+import timeStringToSeconds from '../../_mixins/timeStringToSeconds'
+import secondsToTimeString from '../../_mixins/secondsToTimeString'
+import progressbarWidth from '../../_mixins/progressbarWidth'
 import aleCarousel from './aleCarousel'
 // const GreenAudioPlayer = require('green-audio-player');
 
@@ -106,6 +108,9 @@ export default {
   },
   mixins: [
     sortBookNumbers,
+		timeStringToSeconds,
+    secondsToTimeString,
+    progressbarWidth,
   ],
   props: ['booksArray', 'library', 'gallery'],
   data: function() {
@@ -230,18 +235,15 @@ export default {
     },
     
 		summaryMaxHeight: function() {
-      this.$nextTick(() => {
         const bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
     		const information = bookdetails.find('> .information');
         const informationH = information.outerHeight();
     		const summary = bookdetails.find('> .book-summary-wrapper > .book-summary');
         const summaryH = summary.height();
-        
         const summaryTooSwoll = summaryH > informationH;
   			this.summary.readmore.exists = summaryTooSwoll ? true : false;
         this.summary.maxHeight = summaryTooSwoll ? (informationH + 'px') : 'none';
         this.summary.maxHeightTemp = (informationH + 'px');
-			});
 		},
     
     summaryReadMoreclick: function() {
@@ -364,77 +366,6 @@ export default {
       }
     },
     
-		progress: function( book ) {
-      if ( book.progress ) {
-        if ( book.progress.toLowerCase().trim() === 'finished' ) {
-          return {
-            width: '100%',
-          };
-        }
-  			else if ( book.length ) {
-          var progress = this.timeStringToSeconds( book.progress );
-          const length = this.timeStringToSeconds( book.length );
-  				
-  				progress = length - progress;
-					
-  				return {
-  					width: (progress / length) * 100 + '%',
-  				};
-					
-  			}
-  			else {
-  				return {
-  					width: 0,
-  				}
-  			}
-      }
-			else {
-				return {
-					width: 0,
-				}
-			}
-		},
-    
-		secondsToTimeString: function( s, delimCharacters ) {
-      var pad = function(num, size) { return ('000' + num).slice(size * -1); },
-      time = parseFloat( s ).toFixed(3),
-      hours = Math.floor(time / 60 / 60),
-      minutes = Math.floor(time / 60) % 60,
-      seconds = Math.floor(time - minutes * 60),
-      milliseconds = time.slice(-3);
-      return (hours.toString().length > 1 ? hours : pad(hours, 2)) + (delimCharacters ? 'h ' : '.') + pad(minutes, 2) + (delimCharacters ? 'm ' : '');
-		},
-    
-    // This is a little janky and very specific to
-    // the progress and length time format in Audible
-    timeStringToSeconds: function( string ) {
-      const hasMinutes = string.match('min'); //sometimes 'min', sometimes 'mins'
-      const numbers = string.match(/\d+/g);
-      const v = {};
-      const hoursToSec = function( n ) { return (+n) * 60 * 60; }
-      const minsToSec  = function( n ) { return (+n) * 60; }
-      // If the matched array contains 2 groups of numbers,
-      // then we the array must contain hours and minutes
-      if ( numbers.length === 2 ) {
-        v.h = numbers[0];
-        v.m = numbers[1];
-        v.numbers = hoursToSec(v.h) + minsToSec(v.m);
-      }
-      // If there's only one group of numbers and it doesn't
-      // contain the word 'min', it will be treated as hours
-      else if ( !hasMinutes ) {
-        v.h = numbers[0];
-        v.numbers = hoursToSec(v.h);
-      }
-      // Again... If there's only one group of numbers but it
-      // contains the word 'min', then it will be treated as minutes
-      else {
-        v.m = numbers[0];
-        v.numbers = minsToSec(v.m);
-      }
-      return v.numbers;
-    },
-    
     linkifySeries: function( array, delimiter ) {
       if ( array ) {
         var html = '';
@@ -522,6 +453,10 @@ export default {
     border-width: 0 21px 7px 21px;
   }
   
+  .book-info-container {
+    padding: 0 20px;
+  }
+  
   .inner-wrap {
     display: flex;
     flex-direction: column;
@@ -559,8 +494,9 @@ export default {
     border-radius: 3px;
     overflow: hidden;
     background-clip: padding-box;
-    min-width: 280px;
+    flex-basis: 280px;
     max-width: 280px;
+    flex-shrink: 0;
     margin-right: 31px;
     border-radius: 3px;
     text-align: left;
@@ -573,6 +509,7 @@ export default {
     .cover-wrap {
       position: relative;
       padding: 0;
+      overflow: hidden;
       // margin-bottom: 20px;
       img {
         display: block;
@@ -731,9 +668,10 @@ export default {
   }
   
   .book-summary-wrapper {
+    max-height: none;
+    padding-bottom: 0px;
     overflow: hidden;
     position: relative;
-    
     .summary-read-more {
       cursor: pointer;
       -webkit-touch-callout: none;
@@ -795,7 +733,7 @@ export default {
     // overflow: hidden;
     // overflow-x: hidden;
     // overflow-y: auto;
-    flex-grow: 1;
+    // flex-grow: 1;
     text-align: left;
     h2.book-title {
       font-size: 1.8em;
@@ -822,7 +760,7 @@ export default {
 	
 } // #ale-bookdetails
 
-@media screen and ( max-width: 900px ) {
+@media ( max-width: 600px ) {
   
   #ale-bookdetails {
     .inner-wrap {
@@ -830,11 +768,13 @@ export default {
         display: flex;
         flex-direction: column;
         .information {
-          display: flex;
-          flex-direction: row;
-          img.cover {
-            min-width: 80px;
-            max-width: 80px;
+          max-width: none;
+          width: 100%;
+          margin-right: 0;
+          margin-bottom: 40px;
+          flex: auto;
+          .cover-wrap {
+            max-height: 65px;
           }
         }
       }
