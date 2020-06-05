@@ -1,42 +1,43 @@
 <template>
   <div id="ale-view-control">
 		
-	    <div class="views">
-        <div
-  	      class="icon"
-  	      v-for="( view, index ) in views.array" :key="view.key"
-  	      v-if="views.active.index === index"
-  	      @click="changeGalleryView( index, view )"
-          :content="'Switch gallery view: '+ getGalleryViewsTooltip "
-          v-tippy="{ placement: 'top',  arrow: true, maxWidth: 410 }"
-  	    >
-  	      <font-awesome-icon fas :icon="view.key" />
-  	    </div>
-      </div>
-      
-      <div class="light-switch">
-        <div
-          class="icon"
-          @click="lightSwitchToggle"
-          :content="'Toggle '+ (this.views.lightSwitch ? '<strong>light</strong>' : 'light') +' and '+ (!this.views.lightSwitch ? '<strong>dark</strong>' : 'dark') +' theme'"
-          v-tippy="{ placement: 'top',  arrow: true }"
-        >
-          <font-awesome-icon fas :icon="lightSwitchIcon" />
-        </div>
-      </div>
-      
-			<ale-save-locally v-if="!standalone" :library="library"></ale-save-locally>
-      
-      <div class="save-csv"
-        content="<strong>Download the spreadsheet as a CSV file.</strong> Some contents may print out with the raw data, rather than what you're seeing in the table here."
+    <ale-save-locally v-if="!standalone" :library="library"></ale-save-locally>
+  
+    <div class="views">
+    
+      <div
+	      class="icon"
+	      v-for="( view, index ) in views.array" :key="view.key"
+	      v-if="views.active.index === index"
+	      @click="changeGalleryView( index, view )"
+        :content="'Switch gallery view: '+ getGalleryViewsTooltip "
+        v-tippy="{ placement: 'top',  arrow: true, maxWidth: 610 }"
+	    >
+	      <font-awesome-icon fas :icon="view.key" />
+	    </div>
+    </div>
+    
+    <div class="light-switch">
+      <div
+        class="icon"
+        @click="lightSwitchToggle"
+        :content="'Toggle '+ (this.views.lightSwitch ? '<strong>light</strong>' : 'light') +' and '+ (!this.views.lightSwitch ? '<strong>dark</strong>' : 'dark') +' theme'"
         v-tippy="{ placement: 'top',  arrow: true }"
-        v-if="this.views.array[ this.views.active.index ].name === 'spreadsheet'"
-        @click="csvExportStarted"
       >
-        <div class="icon">
-          <font-awesome-icon fas icon="file-csv" />
-        </div>
+        <font-awesome-icon fas :icon="lightSwitchIcon" />
       </div>
+    </div>
+    
+    <div class="save-csv"
+      content="<strong>Download the spreadsheet as a CSV file.</strong> Some contents may print out with the raw data, rather than what you're seeing in the table here."
+      v-tippy="{ placement: 'top',  arrow: true }"
+      v-if="this.views.array[ this.views.active.index ].name === 'spreadsheet'"
+      @click="csvExportStarted"
+    >
+      <div class="icon">
+        <font-awesome-icon fas icon="file-csv" />
+      </div>
+    </div>
       
   </div>
 </template>

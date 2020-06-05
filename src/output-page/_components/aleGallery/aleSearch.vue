@@ -475,14 +475,14 @@ export default {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-
-    ul, li { list-style: none; margin: 0; padding: 0; text-align: left; }
     
     @include themify($themes) {
       color: themed(frontColor);
-      background: themed(backColor);
+      background: lighten( themed(backColor), 10);
       box-shadow: 0 3px 15px rgba( #000, .6 );
     }
+    
+    ul, li { list-style: none; margin: 0; padding: 0; text-align: left; }
     .search-opts-arrow {
       position: absolute;
       top: -9px;
@@ -498,6 +498,14 @@ export default {
     
     .search-option {
       white-space: nowrap;
+      label {
+        display: block;
+        &:hover {
+          @include themify($themes) {
+            color: themed(audibleOrange);
+          }
+        }
+      }
       input { display: none; }
       .checkbox, .sortbox {
         display: inline-block;

@@ -9,7 +9,6 @@ export default {
 			var vue = this;
 			return _.orderBy(params.books, function( o ) {
 	      if ( o.progress ) {
-					console.log( o.progress );
 	        if ( o.progress.toLowerCase().trim() === 'finished' ) {
 	          return 100;
 	        }

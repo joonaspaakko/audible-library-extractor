@@ -62,7 +62,7 @@
 					</div> <!-- .by-books-in-series -->
         </div> <!-- .information -->
         
-        <div class="book-summary-wrapper" :style="{ maxHeight: summary.maxHeight, paddingBottom: summary.readmore.toggle ? '40px' : '0px' }">
+        <div class="book-summary-wrapper" :style="{ maxHeight: summary.maxHeight, paddingBottom: gallery.details.readmore.toggle ? '40px' : '0px' }">
           
           <div class="book-summary">
             <h2 class="book-title">{{ book.title }}</h2>
@@ -80,7 +80,7 @@
             <div class="summary-inner-wrap" v-html="book.summary"></div>
           </div>
           
-          <div class="summary-read-more" @click="summaryReadMoreclick" v-if="summary.readmore.exists"><span>{{ summary.readmore.toggle ? 'Read less' : 'Read more' }}</span> <font-awesome-icon fas :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'" /></div>
+          <div class="summary-read-more" @click="summaryReadMoreclick" v-if="summary.readmore.exists"><span>{{ gallery.details.readmore.toggle ? 'Read less' : 'Read more' }}</span> <font-awesome-icon fas :icon="gallery.details.readmore.toggle ? 'chevron-up' : 'chevron-down'" /></div>
 
         </div>
       </div>
@@ -121,7 +121,6 @@ export default {
       summary: {
         readmore: {
           exists: false,
-          toggle: false,
         },
         maxHeight: null,
         maxHeightTemp: null,
@@ -131,10 +130,12 @@ export default {
   
   created: function() {
     Eventbus.$on('detailsToggle', this.onDetailsToggle );
+    Eventbus.$on('afterWindowResize', this.onWindowResize );
   },
 	
 	beforeDestroy: function() {
 	 	Eventbus.$off('detailsToggle', this.onDetailsToggle );
+	 	Eventbus.$off('afterWindowResize', this.onWindowResize );
 	},
   
   computed: {
@@ -233,6 +234,10 @@ export default {
 				this.summaryMaxHeight();
 			}
     },
+		
+    onWindowResize: function( msg ) {
+			this.summaryMaxHeight();
+    },
     
 		summaryMaxHeight: function() {
         const bookdetails = $('#ale-bookdetails > #book-info-container > .inner-wrap > .top');
@@ -247,46 +252,84 @@ export default {
 		},
     
     summaryReadMoreclick: function() {
-      this.summary.readmore.toggle = !this.summary.readmore.toggle ? true : false;
-      this.summary.maxHeight = this.summary.readmore.toggle ? 'none' : this.summary.maxHeightTemp;
+      
+      this.gallery.details.readmore.toggle = !this.gallery.details.readmore.toggle ? true : false;
+			
+			if ( !this.gallery.details.readmore.toggle ) {
+        var readmoreBtn = $('#ale-bookdetails .book-summary-wrapper .summary-read-more');
+        var scrollDistance = $('html, body').scrollTop();
+				var btnOffset = readmoreBtn.offset().top;
+				var viewPortOffset = btnOffset - scrollDistance;
+			}
+			
+      this.summary.maxHeight = this.gallery.details.readmore.toggle ? 'none' : this.summary.maxHeightTemp;
+      
+      // Keep read more/less button in the viewport on collapse
+      if ( !this.gallery.details.readmore.toggle ) {
+        // ...but only if closing it would mean losing sight of it.
+        var scrollDistance = $('html, body').scrollTop();
+        var summaryBottomOffset = $('#ale-bookdetails').offset().top + $('#ale-bookdetails .inner-wrap .information').innerHeight();
+        if ( scrollDistance > summaryBottomOffset ) {
+          this.$nextTick(() => {
+            $('html, body').animate({
+              scrollTop: readmoreBtn.offset().top - viewPortOffset
+            }, 0 );
+          });
+        }
+      }
+      
     },
     
     booksInSeriesLabelClick: function() {
       this.booksInSeriesContent.toggle = this.booksInSeriesContent.toggle ? false : true;
     },
     
+		searchLock: function( params ) {
+			
+			if ( !this.gallery.searchLocked.active ) {
+				this.gallery.searchLocked.active = true;
+        this.gallery.searchEnabled = false;
+				this.gallery.searchLocked.tempValue = this.gallery.searchValue;
+				this.gallery.searchLocked.reason = params.reason;
+				this.gallery.searchLocked.inputValue = params.seriesName;
+				this.gallery.searchIcons.scope = false;
+				
+				const filteredBooks = _.filter(this.library.books, params.filter );
+        
+	      this.changeSearchOptions({
+	        key: params.sortKey,
+	        active: false,
+					showSortValues: params.sortValues,
+	      });
+        
+				const sortedResult =  this.sortBookNumbers({
+	        books: filteredBooks,
+	        direction: params.sortDirection,
+	        seriesName: params.seriesName
+	        // missingNumber:
+	      });
+				
+				this.gallery.filterResults = sortedResult;
+			}
+			
+		},
+		
     booksInSeriesItemClick: function( book, seriesName ) {
       
-      const vue = this;
+			this.searchLock({
+				reason: 'Series',
+				filter: { series: [{name: seriesName }] },
+				sortKey: 'bookNumbers',
+				sortValues: true,
+				sortDirection: 'asc',
+				seriesName: seriesName,
+			});
       
-      this.gallery.searchLocked.tempValue = this.gallery.searchValue;
-      this.gallery.searchLocked.active = true;
-			this.gallery.searchEnabled = false;
-      this.gallery.searchLocked.reason = 'Series';
-      this.gallery.searchLocked.inputValue = seriesName;
-      this.gallery.searchIcons.scope = false;
-			
-      const filteredBooks = _.filter(vue.library.books, { series: [{name: seriesName }] });
-      
-      vue.changeSearchOptions({
-        key: 'bookNumbers',
-        active: false,
-				showSortValues: true,
-      });
-      
-      const sortedResult =  this.sortBookNumbers({
-        books: filteredBooks,
-        direction: 'asc',
-        seriesName: seriesName
-        // missingNumber:
-      });
-      
-      const index = _.findIndex(sortedResult, ['asin', book.asin]);
-      vue.gallery.filterResults = sortedResult;
+      this.gallery.details.open = false; // Makes sure that when you click the open book in the "books I own in the series" list, book details won't get closed. I decided it was better to do it this way for books that are part of multiple series.
       
       Eventbus.$emit('galleryBookClick', {
         from: 'books-in-series-item-click',
-        index: index,
+        index: _.findIndex(this.gallery.filterResults, ['asin', book.asin]),
         animationSpeed: 0
       });
       
@@ -488,7 +531,7 @@ export default {
   .information {
     @include themify($themes) {
       // border: 1px solid rgba( themed(frontColor), .1);
-      background-color: rgba(themed(frontColor), .001);
+      background-color: rgba(themed(frontColor), .01);
       box-shadow: 0 3px 15px rgba( darken(themed(backColor), 30) , .8);
     }
     border-radius: 3px;
@@ -668,6 +711,7 @@ export default {
   }
   
   .book-summary-wrapper {
+    transition: all 200ms linear;
     max-height: none;
     padding-bottom: 0px;
     overflow: hidden;
@@ -711,6 +755,19 @@ export default {
   }
   
 } // #ale-bookdetails
+
+.theme-light #ale-bookdetails {
+  background: -moz-linear-gradient(top,  rgba(249,248,248,0.9) 0%, rgba(249,248,248,1) 49%, rgba(249,248,248,1) 100%);
+  background: -webkit-linear-gradient(top,  rgba(249,248,248,0.9) 0%,rgba(249,248,248,1) 49%,rgba(249,248,248,1) 100%);
+  background: linear-gradient(to bottom,  rgba(249,248,248,0.9) 0%,rgba(249,248,248,1) 49%,rgba(249,248,248,1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e6f9f8f8', endColorstr='#f9f8f8',GradientType=0 );
+}
+.theme-dark #ale-bookdetails {
+  background: -moz-linear-gradient(top,  rgba(21,23,27,0.9) 0%, rgba(21,23,27,1) 49%, rgba(21,23,27,1) 100%);
+  background: -webkit-linear-gradient(top,  rgba(21,23,27,0.9) 0%,rgba(21,23,27,1) 49%,rgba(21,23,27,1) 100%);
+  background: linear-gradient(to bottom,  rgba(21,23,27,0.9) 0%,rgba(21,23,27,1) 49%,rgba(21,23,27,1) 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e615171b', endColorstr='#15171b',GradientType=0 );
+}
 
 .theme-light #ale-bookdetails .summary-read-more:after {
   background: -moz-linear-gradient(top,  rgba(249,248,248,0) 0%, rgba(249,248,248,1) 51%, rgba(249,248,248,1) 99%);
@@ -760,10 +817,14 @@ export default {
 	
 } // #ale-bookdetails
 
-@media ( max-width: 600px ) {
+@media ( max-width: 609px ) {
   
   #ale-bookdetails {
+    #book-info-container {
+      padding: 0 45px;
+    }
     .inner-wrap {
+      max-width: none !important;
       .top {
         display: flex;
         flex-direction: column;

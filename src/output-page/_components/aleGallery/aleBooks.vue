@@ -52,11 +52,13 @@ export default {
     Eventbus.$on('galleryBookClick', this.onBookClicked );
 		this.windowWidth = $(window).width();
 		$(window).on('resize', this.onWindowResize );
+    $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
   },
   
 	beforeDestroy: function() {
 	 	Eventbus.$off('galleryBookClick', this.onBookClicked );
 		$(window).off('resize', this.onWindowResize );
+    $("body, html").off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
 	},
   
   methods: {
@@ -66,12 +68,18 @@ export default {
       else return array.join(', ')
     },
     
+    scrollStopAnimate: function(){
+      $("body, html").stop();
+    },
+    
     onBookClicked: function( msg ) {
       this.detailsToggle( msg.index, msg.animationSpeed )
     },
     
     detailsToggle: function( clickedIndex, animSpeed ) {
       
+			this.gallery.details.readmore.toggle = false;
+			
       const comp = this;
       const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
       const coverViewportOffset = el.offset().top - $(document).scrollTop();
@@ -138,15 +146,9 @@ export default {
       // Details are moved at the end of the clicked row
       var bookDetails = $('#ale-bookdetails').insertAfter( endOfTheRowEl );
       
-      var doc = $("body, html");
       var coverDocumentOffset = el.offset().top;
+      var doc = $("body, html");
       doc.scrollTop( coverDocumentOffset - coverViewportOffset );
-      doc.on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", scrollStopAnimate);
-			function scrollStopAnimate(){
-				doc.stop();
-				doc.off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", scrollStopAnimate);
-			}
-      
       doc.stop().animate({
         scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
       }, animSpeed != undefined ? animSpeed : 900);
@@ -164,10 +166,21 @@ export default {
 			var vue = this;
 		  clearTimeout( vue.windowResizeTimer);
 		  vue.windowResizeTimer = setTimeout(function() {
-				if ( $(this).width() !== vue.windowWidth ) {
-					if ( vue.gallery.details.open ) vue.gallery.details.open = false;
+        var windowWidth = $(this).width();
+				if ( windowWidth !== vue.windowWidth ) {
+          vue.windowWidth = windowWidth;
+  				if ( vue.gallery.details.open ) {
+            const index = vue.gallery.details.index;
+            const el = $( $('#ale-gallery > div > .ale-book').get( index ) );
+            const coverViewportOffset = el.offset().top - $('body, html').scrollTop();
+            vue.calculateDetailsPosition( el, vue, index, index, coverViewportOffset, 0 );
+            Eventbus.$emit('afterWindowResize', {
+              from: 'aleBooks',
+            });
+          }
+					// if ( vue.gallery.details.open ) vue.gallery.details.open = false;
 				}
-		  }, 250);
+		  }, 150);
 
 		}
 		
@@ -175,7 +188,7 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~@/_variables.scss';
 
 #ale-books {
@@ -193,6 +206,7 @@ export default {
   display: inline-block;
   // font-size: 0;
   .details-inner-wrap {
+    max-width: $thumbnailSize;
     margin: 5px;
     border-radius: 3px;
     overflow: hidden;
@@ -208,6 +222,7 @@ export default {
     img {
       display: block;
       width: $thumbnailSize;
+      height: $thumbnailSize;
   	  -webkit-user-drag: none;
   	  -khtml-user-drag: none;
   	  -moz-user-drag: none;
@@ -242,20 +257,76 @@ export default {
   }
 }
 
-@media ( max-width: 423px ) {
-
-  #ale-gallery {
-    max-width: none;
-    width: 100%;
-  }
-  #ale-books {
-  	.ale-book {
-  		max-width: 50%;
-			.ale-cover img {
-				width: 100%;
-			}
-  	}
+@media ( max-width: 609px ) {
+  .ale-book {
+    $thumbnailSizeSmall: $thumbnailSize - 25;
+    .details-inner-wrap {
+      max-width: $thumbnailSizeSmall;
+    }
+    .ale-cover img {
+      width: $thumbnailSizeSmall;
+      height: $thumbnailSizeSmall;
+    }
   }
 }
 
+@media ( max-width: 550px ) {
+  .ale-book {
+    $thumbnailSizeSmall: $thumbnailSize - 45;
+    .details-inner-wrap {
+      max-width: $thumbnailSizeSmall;
+    }
+    .ale-cover img {
+      width: $thumbnailSizeSmall;
+      height: $thumbnailSizeSmall;
+    }
+  }
+}
+
+@media ( max-width: 474px ) {
+  .ale-book {
+    $thumbnailSizeSmall: $thumbnailSize;
+    .details-inner-wrap {
+      max-width: $thumbnailSizeSmall;
+    }
+    .ale-cover img {
+      width: $thumbnailSizeSmall;
+      height: $thumbnailSizeSmall;
+    }
+  }
+}
+
+@media ( max-width: 423px ) {
+
+  #ale-search {
+    padding: 8px 15px;
+    [type="search"] {
+      width: 100%;
+    }
+    > .icons {
+      font-size: .9em;
+      .icon-wrap {
+        margin-left: 0px;
+        > div { padding: 6px 6px; }
+      }
+    }
+  }
+   
+  #ale-books {
+  	.ale-book {
+  		width: 50%;
+			.ale-cover img {
+				width: 100%;
+        height: auto;
+			}
+  	}
+  }
+  
+}
+
+@media ( max-width: 420px ) {
+  #ale-bookdetails div.ale-carousel .slick-dots {
+    display: none !important;
+  }
+}
 </style>

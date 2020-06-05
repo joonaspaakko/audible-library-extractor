@@ -108,7 +108,6 @@ if ( !standalone ) {
 }
 else {
   
-  console.log( JSON.parse( $('#library-data').text() ) );
   startVue( JSON.parse( $('#library-data').text() ) );
   
 }

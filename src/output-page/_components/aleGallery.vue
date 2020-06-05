@@ -61,17 +61,18 @@ export default {
           listsTemp: null,
 	        lists: {
 	          current: null,
+						scope: [
+							{ active: true,  key: 'title' },
+							{ active: true,  key: 'authors.name' },
+							{ active: true,  key: 'narrators.name' },
+							{ active: true,  key: 'series.name' },
+							{ active: false, key: 'categories.name' },
+							{ active: false, key: 'publisher' },
+						],
 	          filter: [
 	            { active: true, key: 'unfinished', condition: function( book ) { return !book.progress; } },
 	            { active: true, key: 'listening', condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
 	            { active: true, key: 'finished', condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
-	          ],
-	          scope: [
-	            { active: true,  key: 'title' },
-	            { active: true,  key: 'authors.name' },
-	            { active: true,  key: 'narrators.name' },
-	            { active: true,  key: 'series.name' },
-	            { active: false, key: 'categories.name' },
 	          ],
             sortIndex: 0,
             showSortValues: false,
@@ -87,10 +88,14 @@ export default {
 	            { active: false, key: 'rating',  			  label: 'Rating',  				 	type: 'sort' },
 	            { active: false, key: 'ratings',  			label: 'Number of ratings', type: 'sort' },
 	            { active: false, key: 'progress',  			label: 'Progress',          type: 'sort' },
+	            { active: false, key: 'publisher',  		label: 'Publisher',         type: 'sort' },
             ]
 	        }
 	      },
         details: {
+					readmore: {
+						toggle: false,
+					},
           open: false,
           index: -1,
 					changed: false,
@@ -133,6 +138,7 @@ export default {
             sortedBooks = this.sortStringNameProp( sortOptions );
             break;
           case 'title':
+          case 'publisher':
             sortedBooks = this.sortTitle( sortOptions );
             break;
           case 'length':

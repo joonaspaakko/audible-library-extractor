@@ -78,7 +78,18 @@ export default {
 				    },
 						{
 				      breakpoint: 400,
-				      settings: "unslick" // destroys slick
+				      // settings: "unslick" // destroys slick
+				      settings: {
+				        slidesToShow: 2,
+							  slidesToScroll: 2
+				      }
+				    },
+						{
+				      breakpoint: 320,
+				      settings: {
+				        slidesToShow: 1,
+							  slidesToScroll: 1
+				      }
 				    }
 					]
 				});

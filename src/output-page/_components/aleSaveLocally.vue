@@ -1,7 +1,7 @@
 <template>
   <div id="ale-save-locally" class="icon" @click="saveButtonClicked"
-  content="<strong>Save the gallery locally.</strong> Check the readme in github for more instructions."
-  v-tippy="{ placement: 'top',  arrow: true }"
+  content="<strong>Save the gallery locally,</strong> so you can share it with others. <br>Check the <a target='_blank' href='https://github.com/joonaspaakko/audible-library-extractor#save-locally'>readme in github</a> for more details."
+  v-tippy="{ placement: 'top',  arrow: true, interactive: true, allowHTML: true, maxWidth: 610 }"
   >
     <font-awesome-icon fas icon="save" />
   </div>
@@ -87,7 +87,17 @@ export default {
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~@/_variables.scss';
+
+.tippy-popper {
+  a {
+    color: #fff;
+    text-decoration: underline;
+  }
+  a:visited {
+    color: darken( #fff, 30 );
+  }
+}
 
 </style>

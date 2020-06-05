@@ -1,7 +1,6 @@
 <template>
   <div class="sort-values-container" v-if="gallery.searchOptions.lists.showSortValues && gallery.searchOptions.lists.sortIndex > -1">
     <div :class="'sort-'+activeSortKey" v-html="sortContents" v-if="sortContents"></div>
-    
   </div>
 </template>
 
