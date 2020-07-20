@@ -32,7 +32,7 @@
     "jquery": "^3.5.0",
     "jszip": "^3.4.0",
     "jszip-utils": "^0.1.0",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "slick-carousel": "^1.8.1",
     "vue": "^2.6.10",
     "vue-fuse": "^2.2.1",
