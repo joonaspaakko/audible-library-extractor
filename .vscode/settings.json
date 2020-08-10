@@ -1,0 +1,11 @@
+{
+  "files.exclude": {
+    "**/.babelrc": true,
+    "**/.gitignore": true,
+    "**/.vscode": true,
+    "**/dist": true,
+    "**/dist-zip": true,
+    "**/node_modules": true,
+    "**/scripts": true
+  }
+}

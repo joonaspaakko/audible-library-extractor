@@ -16,6 +16,7 @@ browser.tabs.onUpdated.addListener((tabId) => {
 // https://developer.chrome.com/extensions/pageAction#event-onClicked
 browser.pageAction.onClicked.addListener((tabId) => {
 
+  console.log( 'test' );
   // https://developer.chrome.com/extensions/tabs
   // https://developer.chrome.com/extensions/tabs#method-query
   // Permissions: "tabs"
@@ -48,3 +49,6 @@ browser.runtime.onMessage.addListener( (message, sender)  => {
     });
   }
 });
+
+// Probe: url
+// https://www.audible.com/library?ipRedirectOverride=true&overrideBaseCountry=true

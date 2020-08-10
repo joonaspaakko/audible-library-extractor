@@ -6,6 +6,9 @@ const ExtensionReloader = require('webpack-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
 const { version } = require('./package.json');
 const path = require('path');
+const { CleanWebpackPlugin } = require('clean-webpack-plugin');
+const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
+const FileManagerPlugin = require('filemanager-webpack-plugin-fixed');
 
 const config = {
   mode: process.env.NODE_ENV,
@@ -17,7 +20,9 @@ const config = {
   },
   output: {
     path: __dirname + '/dist',
+    publicPath: '',
     filename: '[name].js',
+    chunkFilename: 'chunks/[name].js',
   },
   resolve: {
     extensions: ['.js', '.vue'],
@@ -76,28 +81,57 @@ const config = {
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: '[name].css',
+      chunkFilename: 'chunks/[name].css',
     }),
-    new CopyPlugin([
-      { from: 'assets', to: 'assets' },
-      { from: 'output-page/browser-polyfill.min.js', to: 'output-page/browser-polyfill.min.js' },
-      { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
-      {
-        from: 'manifest.json',
-        to: 'manifest.json',
-        transform: (content) => {
-          const jsonContent = JSON.parse(content);
-          jsonContent.version = version;
-
-          if (config.mode === 'development') {
-            jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval' http://localhost:8098; object-src 'self'";
-          }
-
-          return JSON.stringify(jsonContent, null, 2);
-        },
-      },
-    ]),
   ],
 };
+
+var copyPluginArray = [
+  { from: 'assets', to: 'assets' },
+  { from: 'output-page/favicons', to: 'output-page/favicons' },
+  { from: 'output-page/browser-polyfill.min.js', to: 'output-page/browser-polyfill.min.js' },
+  { from: 'output-page/cover-placeholder.svg', to: 'output-page/cover-placeholder.svg' },
+  { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
+  {
+    from: 'manifest.json',
+    to: 'manifest.json',
+    transform: (content) => {
+      const jsonContent = JSON.parse(content);
+      jsonContent.version = version;
+
+      if (config.mode === 'development') {
+        jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval' http://localhost:8098; object-src 'self'";
+      }
+
+      return JSON.stringify(jsonContent, null, 2);
+    },
+  },
+  { from: __dirname + '/dist/chunks', to: __dirname + '/dist/output-page/chunks', force: true }
+];
+
+config.plugins.push( new CopyPlugin(copyPluginArray) );
+
+
+if (config.mode === 'production') {
+
+  config.plugins.push(new BundleAnalyzerPlugin());
+
+  config.plugins.push(
+    new FileManagerPlugin({
+      onEnd: {
+        delete: [
+          './dist/output-page/chunks'
+        ],
+        move: [
+          { source: './dist/chunks', destination: './dist/output-page/chunks' }
+        ],
+      }
+    })
+  );
+
+  config.plugins.push(new CleanWebpackPlugin());
+}
+
 
 if (config.mode === 'production') {
   config.plugins = (config.plugins || []).concat([

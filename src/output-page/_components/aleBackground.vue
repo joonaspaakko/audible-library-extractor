@@ -1,60 +1,137 @@
 <template>
-<div id="ale-background">
-	<img v-for="( book, index ) in books" :key="index" :src="book.coverUrl" alt="">
+<div id="ale-background" v-if="books">
+	<img v-for="( book, index ) in books" :key="book.asin" :src="makeCoverUrl(book.coverUrl, 200)" alt="">
 </div>
 </template>
 
 <script>
+import makeCoverUrl from '../_mixins/makeCoverUrl';
+
 export default {
   name: 'aleBackground',
   props: ['library'],
+  mixins: [ makeCoverUrl ],
 	data : function() {
 		return {
+      books: null,
+      windowWidth: null,
+      timer1: null,
+      timer2: null,
 		}
 	},
-	computed: {
-		books: function() {
-			var n = this.library.books.length < 45 ? this.library.books.length : 45;
-			return _.sampleSize( this.library.books, n);
-		}
-	},
-	mounted: function() {
-		
-		// var timer = randomNumber( 500, 3300 );
-		// setInterval( function() {
-		//
-		//   var gridImages = $('#bg-grid-wrapper img');
-		//   var gridImagesLength = gridImages.length-1;
-		//
-		//   coverSwitcheroo( gridImages, gridImagesLength );
-		//
-		//   setTimeout( function() {
-		//     coverSwitcheroo( gridImages, gridImagesLength );
-		//   }, randomNumber( 1000, 3000 ));
-		//
-		//   setTimeout( function() {
-		//     coverSwitcheroo( gridImages, gridImagesLength );
-		//   }, randomNumber( 1000, 3000 ));
-		//
-		//   timer = randomNumber(500, 3300);
-		// }, timer);
-		//
-		// function coverSwitcheroo( gridImages, gridImagesLength ) {
-		//
-		//   var img1 = gridImages.get( randomNumber( 0, gridImagesLength ) );
-		//   var img2 = gridImages.get( randomNumber( 0, gridImagesLength ) );
-		//   $(img1).addClass('flip-out');
-		//   setTimeout(function() {
-		//     $(img1).attr('src', $(img2).attr('src') ).removeClass('flip-out');
-		//   }, 1000);
-		//
-		// }
-		//
-		// function randomNumber( min, max ) {
-		//     return Math.floor( Math.random() * (max-min+1) +min );
-		// }
-		//
-	}
+  
+  created: function() {
+    
+    const vue = this;
+    
+    setTimeout(function() {
+      vue.books = vue.getBooks();
+      vue.flipAnimationRandomizer();
+    }, 1500);
+    
+    this.windowWidth = $(window).width();
+    $(window).on('resize', this.onWindowResize );
+    
+  },
+  destroyed: function() {
+		$(window).off('resize', this.onWindowResize );
+  },
+  
+  methods: {
+    
+		getBooks: function() {
+      
+      // 15 (>1300)
+      // 12 (<1300) 
+      // 8 (<1000)
+      // 6 (<760)
+      // 4 (<530)
+      function calculateBgLength( n ) { return 3*n; }
+      let bgLength = calculateBgLength(15);
+      if ( this.windowWidth < 530 ) {
+        bgLength = calculateBgLength(4);
+      }
+      else if ( this.windowWidth < 760 ) {
+        bgLength = calculateBgLength(6);
+      }
+      else if ( this.windowWidth < 1000 ) {
+        bgLength = calculateBgLength(8);
+      }
+      else if ( this.windowWidth < 1300 ) {
+        bgLength = calculateBgLength(12);
+      }
+      
+      const books = (function( books ) {
+        const booksLength = books.length;
+        if ( booksLength <= bgLength ) {
+          const fits = Math.floor( bgLength / booksLength );
+          const difference = bgLength - (booksLength * fits);
+          const loopLength = fits;
+          let clonedBooks = [];
+          for (let i = 0; i < loopLength; i++) {
+            clonedBooks = clonedBooks.concat( books );
+          }
+          if ( difference > 0 ) clonedBooks = clonedBooks.concat( books.splice(-1,difference) );
+          return clonedBooks;
+        }
+        else {
+          return _.sampleSize( books, bgLength);
+        }
+      }( this.library.books ));
+      
+      return books;
+      
+    },
+    
+    flipAnimationRandomizer: function () {
+      
+      const vue = this;
+      
+      const gridImages = $('#ale-background img');
+      const gridImagesLength = gridImages.length-1;
+      
+      clearInterval( vue.timer1 );
+      clearInterval( vue.timer2 );      
+      
+      vue.timer1 = setInterval( function() {
+        coverSwitcheroo();
+      }, randomNumber( 1500, 3000 ));
+      vue.timer2 = setInterval( function() {
+        coverSwitcheroo();
+      }, randomNumber( 3500, 5000 ));
+      
+      function coverSwitcheroo() {
+        const gridImages = $('#ale-background img');
+        const gridImagesLength = gridImages.length-1;
+        const img1 = gridImages.get( randomNumber( 0, gridImagesLength ) );
+        const img2 = vue.library.books[ randomNumber( 0, vue.library.books.length-1 ) ].coverUrl;
+        $(img1).addClass('flip-out');
+        setTimeout(function() {
+          $(img1).attr('src', vue.makeCoverUrl(img2, 200) ).removeClass('flip-out');
+        }, 1000);
+      }
+      function randomNumber( min, max ) {
+        return Math.floor( Math.random() * (max-min+1) +min );
+      }
+      
+    },
+    
+    onWindowResize: function() {
+
+			var vue = this;
+		  clearTimeout( vue.windowResizeTimer);
+		  vue.windowResizeTimer = setTimeout(function() {
+        var windowWidth = $(this).width();
+				if ( windowWidth !== vue.windowWidth ) {
+          vue.windowWidth = windowWidth;
+          vue.books = vue.getBooks();
+				}
+      }, 1000);
+      
+    },
+    
+  },
+  
 }
 </script>
 
@@ -81,7 +158,6 @@ export default {
     right: 0;
     bottom: 0;
     left: 0;
-    
     @include themify($themes) {
       background: -moz-linear-gradient( top, rgba(themed(backColor),0) 0%, rgba(themed(backColor),.6) 24%, themed(backColor) 78%, themed(backColor) 100%);
       background: -webkit-linear-gradient( top, rgba(themed(backColor),0) 0%, rgba(themed(backColor),.6) 24%, themed(backColor) 78%, themed(backColor) 100%);
@@ -94,14 +170,19 @@ export default {
     z-index: 0;
     width: 6%;
     margin: 2px;
-    transition: all 1000ms;
+    transition: all 900ms;
     opacity: 1;
     transform: rotateY(0deg);
     &.flip-out {
       opacity: 0;
       transform: rotateY(180deg);
+      transition-duration: 1000ms;
     }
     -webkit-transform: translateZ(0);
+    @-webkit-keyframes showImage { 0% { opacity: 0; } 100% { opacity: 1; }  }
+    @keyframes showImage { 0% { opacity: 0; } 100% { opacity: 1; }  }
+    -webkit-animation: 1000ms showImage;
+    animation: 1000ms showImage;
   }
 }
 // In ios, the gradient "mask" flickers when a cover animates behind it.
@@ -134,32 +215,29 @@ export default {
 @media ( max-width: 1300px ) {
 
   #ale-background img {
-    width: 7.5%;
+    width: 7.55%;
   }
   
 }
 @media ( max-width: 1000px ) {
 
   #ale-background img {
-    width: 12%;
+    width: 11.37%;
   }
   
 }
 @media ( max-width: 760px ) {
 
   #ale-background img {
-    width: 15%;
+    width: 15.09%;
   }
   
 }
 @media ( max-width: 530px ) {
 
   #ale-background img {
-    width: 23%;
+    width: 22.84%;
   }
   
 }
-
-
-
 </style>

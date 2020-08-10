@@ -1,0 +1,134 @@
+
+.box-layout-wrapper {
+  max-width: $containerSize;
+  max-width: 600px;
+  margin: 0 auto 550px auto;
+  text-align: center;
+  padding: 0 20px;
+}
+
+
+.theme-dark .box-layout-wrapper {
+  .single-box {
+    background: rgba( darken( $darkBackColor, 2), .9 );
+    box-shadow: $shadowMedium rgba(0,0,0,0.45);
+    color: $darkFrontColor;
+    border: 1px solid rgba( lighten( $darkBackColor, 32), .25 );
+  }
+}
+.theme-light .box-layout-wrapper {
+  .single-box {
+    background: rgba( lighten( $lightBackColor, 5), .9 );
+    box-shadow: $shadowMedium  rgba(0,0,0,0.1);
+    color: $lightFrontColor;
+    border: 1px solid rgba( $lightFrontColor, .25 );
+  }
+}
+
+.box-layout-wrapper .single-box {
+  position: relative;
+  z-index: 0;
+  padding: 30px;
+  padding-top: 23px;
+  text-align: left;
+  border-radius: 11px;
+  margin-top: 40px;
+  &:first-child { margin-top: 0; }
+  
+  .books-total {
+    outline: none;
+    cursor: pointer;
+    display: inline-block;
+    border-radius: 9999999px;
+    width: 40px;
+    height: 40px;
+    line-height: 40px;
+    text-align: center;
+    position: absolute;
+    z-index: 2;
+    top: 15px;
+    right: 15px;
+    @include themify($themes) {
+      border: 3px solid rgba( themed(frontColor), .1);
+      color: rgba( themed(frontColor), .5);
+    }
+  }
+  
+  h2 { 
+    display: block;
+    padding-right: 50px; 
+    margin: 0;
+    margin-bottom: 15px;
+    font-size: 1.8em;
+    line-height: 1.1em;
+    font-weight: 300;
+    a {
+      width: 100%;
+      display: inline-block;
+      text-decoration: none;
+      @include themify($themes) {
+        color: rgba( themed(frontColor), 1);
+      }
+      &:hover {
+        @include themify($themes) {
+          color: rgba( themed(audibleOrange), 1);
+        }
+      }
+    }
+  }
+  
+  .child-categories {
+    margin-bottom: 15px;
+    font-size: .9em;
+    line-height: 1.12em;
+  }
+  .child-categories > div {
+    display: inline-block; 
+    padding-right: 5px;
+    a {
+      text-decoration: none;
+      @include themify($themes) {
+        color: rgba( themed(frontColor), .5);
+      }
+      &:hover {
+        @include themify($themes) {
+          color: rgba( themed(frontColor), .8);
+        }
+      }
+    }
+    span {    
+      @include themify($themes) {
+        color: rgba( themed(frontColor), .5);
+      }
+    }
+  }
+  
+  .sample-covers {
+    overflow: hidden;
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    > div {
+      height: 100%;
+      margin-left: 10px;
+      display: inline-block;
+      &:first-child { margin-left: 0; }
+      border-radius: 3px;
+      overflow: hidden;
+      background-clip: padding-box;
+      @include themify($themes) {
+        border: 1px solid rgba( themed(outerColor), .3 );
+      }
+    }
+    img { 
+      max-width: 98px; 
+      // height: 100%;
+      display: block;
+  	  -webkit-user-drag: none;
+  	  -khtml-user-drag: none;
+  	  -moz-user-drag: none;
+  	  -o-user-drag: none;
+  	  user-drag: none;
+    }
+  }
+}

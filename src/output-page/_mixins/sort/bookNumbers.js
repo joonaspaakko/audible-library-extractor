@@ -5,13 +5,22 @@ export default {
 			
 			return _.orderBy( params.books, function(o) {
 				
-				if ( o.bookNumbers ) {
-					// const seriesObj = _.filter(o.series, ['name', seriesName ]);
-					const seriesObj = _.filter(o.series, ['name', (params.seriesName ? params.seriesName : o.series[0].name) ]);
-					const number = seriesObj[0].bookNumber;
+				// let allNumbers = _.filter( o.series, 'bookNumbers')
+				// allNumbers = _.map( allNumbers, 'bookNumbers')
+				// allNumbers = _.flatten( allNumbers );
+				// if (_.isEmpty( allNumbers ) ) allNumbers = null;
+				
+				let anyNumbers = _.find( o.series, 'bookNumbers');
+				if ( anyNumbers ) {
+					// console.log( 'params.seriesName: ' + params.seriesName );
+					// console.log( o.series );
+					const seriesObj = _.find(o.series, ['name', (params.seriesName ? params.seriesName : o.series[0].name)]);
+					// console.log( seriesObj );
+					const number = seriesObj.bookNumbers;
 					const numbers = _.isArray( number ) ? number[0] : number;
 					// If the number is a string, we assume it's a number range
 					// and once again use the first number from that range
+					// console.log( 'seriesObj.name: ' + seriesObj.name + ' → ' + numbers );
 					const dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
 					if ( dashSplit.length > 1 ) {
 						return parseFloat( dashSplit[0] );

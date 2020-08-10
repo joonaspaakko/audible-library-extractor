@@ -1,62 +1,141 @@
 <template>
-  <div id="audible-library-extractor" :class="'ale-view-'+activeView">
-    <ale-menu-actions :standalone="standalone" :library="library" :views="views"></ale-menu-actions>
+  <div id="audible-library-extractor" :class="{ 'mobile-browser-navigation-on': mobileBrowserNavigation }">
+    
     <ale-background :library="library"></ale-background>
-    <ale-spreadsheet v-if="activeView === 'spreadsheet'" :library="library" :views="views"></ale-spreadsheet>
-    <ale-gallery v-if="activeView !== 'spreadsheet'" :library="library" :views="views"></ale-gallery>
+    <ale-navigation :library="library" :general="general"></ale-navigation>
+    <router-view    :library="library" :general="general" ref="$route" ></router-view>
+    
+    <div id="audio-player" v-if="audioBetter.audioSource">
+      <mini-audio     :audio-source="audioBetter.audioSource" preload autoplay ref="audioBetter"></mini-audio>
+      <div class="custom-icons" :class="{ 'book-index-known': audioBetter.index }">
+        <div class="book" :content="audioBetter.book.title" v-tippy="{ placement: 'top',  arrow: true }">
+          <router-link :to="{ path: audioBetter.route.path, query: { book: audioBetter.book.asin}}">
+            <font-awesome-icon fas icon="book" />
+          </router-link>
+          <!-- <font-awesome-icon fas icon="book" @click="samplePlayerBook" /> -->
+        </div>
+        <div class="close">
+          <font-awesome-icon fas icon="times-circle" @click="samplePlayerClose" />
+        </div>
+      </div>
+    </div> <!-- #audio-player -->
+    
+    <a v-if="this.general.displayMode" id="audible-app-link" href="audible://">
+      <img alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTEuNSA5My43IiB3aWR0aD0iMTUxLjUiIGhlaWdodD0iOTMuNyI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjxnPjxnPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggODAuN2w3NS43LTQ3LjJ2MTIuOEw3NS44IDkzLjcgMCA0Ni4zVjMzLjVsNzUuOCA0Ny4yeiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggMjEuNWE0OC4xNyA0OC4xNyAwIDAgMC00MC43IDIxLjkgMTIuOTQgMTIuOTQgMCAwIDEgMS44LTEuNmMyMS4zLTE3LjcgNTItMTMuNyA2OC43IDguNmwxMS4xLTcuMWE0OS44MiA0OS44MiAwIDAgMC00MC45LTIxLjgiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03NS44IDQzLjRhMjcuNzIgMjcuNzIgMCAwIDAtMjIuNCAxMS41IDIyLjcgMjIuNyAwIDAgMSAxMy41LTQuNGM4LjIgMCAxNS41IDQuMiAyMC40IDExLjNsMTAuNi02LjZhMjUuNzkgMjUuNzkgMCAwIDAtMjIuMS0xMS44TTI0LjYgMjQuMkM1NS44LS40IDk5LjkgNi4zIDEyMy40IDM5bC4yLjIgMTEuNS03LjFhNzAuODIgNzAuODIgMCAwIDAtMTE4LjYgMCA2MC42MyA2MC42MyAwIDAgMSA4LjEtNy45Ii8+PC9nPjwvZz48L3N2Zz4=" />
+    </a>
+    
+    <div id="browser-navigation" v-if="mobileBrowserNavigation">
+      
+      <router-link
+      v-if="$routerHistory.hasPrevious()"
+      :to="{ path: $routerHistory.previous().path }">
+        <font-awesome-icon fas icon="chevron-left" />
+      </router-link>
+      
+      <router-link
+      v-if="$routerHistory.hasForward()"
+      :to="{ path: $routerHistory.next().path }">
+        <font-awesome-icon fas icon="chevron-right" />
+      </router-link>
+      
+    </div>
+    
   </div>
 </template>
 
 <script>
 import aleBackground  from './_components/aleBackground'
-import aleGallery     from './_components/aleGallery'
-import aleSpreadsheet from './_components/aleSpreadsheet'
-import aleMenuActions from './_components/aleMenuActions'
+import aleNavigation from './_components/aleNavigation'
+import aleBreadcrumbs from './_components/aleBreadcrumbs'
 
 export default {
   components: {
     aleBackground,
-    aleGallery,
-    aleSpreadsheet,
-    aleMenuActions,
+    aleNavigation,
+    aleBreadcrumbs,
   },
   data: function() {
     return {
-			standalone: null,
-			views: {
+      audioBetter: {
+        title: null,
+        audioSource: null,
+      },
+      general: {
+        route: null,
+        standalone: null,
         lightSwitch: 1,
-				active: {
-					index: 0,
-				},
-				array: [
-					{ name: 'grid',        key: 'th'    },
-					{ name: 'list',        key: 'bars'  },
-					{ name: 'spreadsheet', key: 'table' },
-				],
-			},
-      library: this.$root.$data.library
+        urlOrigin: 'https://audible',
+        categories: null,
+        loadingSpreadsheet: false,
+      },
+      library: this.$root.$data.library,
     }
   },
-  filters: {
-    capitalize: function (value) {
-      if (!value) return ''
-      value = value.toString()
-      return value.charAt(0).toUpperCase() + value.slice(1)
+  
+  computed: {
+    
+    mobileBrowserNavigation: function() {
+      return this.general.displayMode && (this.$routerHistory.hasPrevious() || this.$routerHistory.hasForward());
     }
+    
   },
-	computed: {
-    activeView: function() {
-      return this.views.array[ this.views.active.index ].name;
-    }
-  },
+  
 	created: function() {
     
-    this.standalone = $('html.standalone-gallery').length > 0;
+    // this.library.books = this.library.books.splice(1,20);  
+    // console.log( 'this.library.books' )
+    // console.log( this.library.books )
+      
+    this.general.displayMode = window.matchMedia('(display-mode: standalone)').matches;
+    this.general.urlOrigin += this.library.domainExtension;
+    this.general.standalone = $('html.standalone-gallery').length > 0;
     
-		// var test = _.filter(this.library.books, { title: 'Death & Honey' });
-		// console.log( test );
-		
-	},
+		var isbn = _.filter(this.library.books, 'ISBN_10');
+		// console.log( 'books with ISBN:' );
+    // console.log( isbn.length );
+    // console.log( this.library )
+    // console.log( _.filter( this.library.books, ['asin', 'B08BX58B3N'] ) )
+    Eventbus.$on('playSample', this.playSample );
+    
+  },
+	
+	beforeDestroy: function() {
+    Eventbus.$off('playSample', this.playSample);
+  },
+  
+  methods: {
+    
+    playSample: function( msg ) {
+      this.audioBetter.audioSource = msg.book.sample;
+      this.audioBetter.book = msg.book;
+      if ( msg.index ) this.audioBetter.index = msg.index;
+      if ( msg.route ) this.audioBetter.route = msg.route;
+      console.log( msg.route )
+    },
+    
+    samplePlayerBook: function() {
+      const vue = this;
+      if ( vue.audioBetter.index ) {
+        Eventbus.$emit('galleryBookClick', {
+          from: 'sample-audio-player',
+          index: vue.audioBetter.index,
+          animationSpeed: 1500,
+          dontClose: true,
+        });
+      }
+    },
+    
+    samplePlayerClose: function() {
+      this.audioBetter.audioSource = null;
+    },
+    
+  },
+  
+  watch: {
+    $route: function ( route, previousRoute ) {
+      this.general.route = route;
+    }
+  },
   
 }
 </script>
@@ -72,13 +151,97 @@ body {
   font-family: 'Montserrat', sans-serif;
 	font-size: 14px;
 	line-height: 1.55em;
-  margin: 0;
   padding-top: 1px;
+  margin: 0;
   margin-top: -1px;
   @include themify($themes) {
     background-color: themed('backColor');
   }
 }
+
+#audible-library-extractor {
+  
+  
+  &.mobile-browser-navigation-on {
+    margin-top: 45px;
+  }
+  #browser-navigation {
+    position: fixed;
+    z-index: 20;
+    top: 0;
+    right: 0;
+    left: 0;
+    color: #222;
+    background: #fff;
+    height: 45px;
+    font-size: 20px;
+    line-height: 45px;
+  }
+  
+  #audio-player {
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none;
+    max-width: 400px;
+    margin: 0 auto;
+    position: fixed;
+    z-index: 900;
+    right: 0px;
+    bottom: 20px;
+    left: 0px;
+    .vueAudioBetter {
+      max-width: 400px;
+      margin: 0;
+      width: auto;
+      padding-right: 72px;
+      .iconfont.icon-notificationfill {
+        display: none;
+      }
+      .slider {
+        flex-grow: 1;
+        margin-left: 15px;
+      }
+    }
+  }
+  .custom-icons {
+    position: absolute;
+    top: 0;
+    right: 14px;
+    bottom: 0;
+    font-size: 16px;
+    color: rgba( #000, .7 );
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    
+    &.book-index-known .book,
+    .close { cursor: pointer; }
+    
+    > div {
+      margin-left: 10px;
+      &:first-child { margin-left: 0px; }
+      outline: none;
+      &:active {
+        position: relative;
+        top: 2px;
+        left: 2px;
+      }
+    }
+    
+    a {
+      cursor: default;
+      color: rgba( #000, .7 );
+    }
+  }
+  
+}
+
 //
 // .theme-dark body {
 // 	-webkit-animation: color-change-dark 400ms linear;
@@ -109,5 +272,40 @@ body {
 //  0% { background-color: $dark; }
 //  100% { background-color: $light; }
 // }
+
+// @media all and (display-mode: standalone) {
+//   /* Here goes the CSS rules that will only apply if app is running standalone */
+// }
+
+#audible-app-link {
+  width: 35px;
+  height: 35px;
+  border-radius: 999999px;
+  background: $audibleOrange;
+  background: #f29a33;
+  background: #ffc338;
+  background: #ffc338;
+  background: -moz-linear-gradient(top,  #ffc338 0%, #f29a33 100%);
+  background: -webkit-linear-gradient(top,  #ffc338 0%,#f29a33 100%);
+  background: linear-gradient(to bottom,  #ffc338 0%,#f29a33 100%);
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffc338', endColorstr='#f29a33',GradientType=0 );
+  border: 1px solid #f29a33;
+  box-shadow: 0 3px 10px rgba(0,0,0, .1), 0 1px 4px rgba(0,0,0, .2);
+  position: fixed;
+  z-index: 9999999999;
+  bottom: 10px;
+  right: 10px;
+  display: flex;
+  justify-items: center;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  text-align: center;
+  padding: 8px;
+  img {
+    width: 100%;
+    height: auto;
+  }
+}
 
 </style>

@@ -2,7 +2,7 @@
   <div>
     <ale-overlay>
       <ale-splashscreen></ale-splashscreen>
-      <ale-progress :progress="progress" ></ale-progress>
+      <ale-progress :progress="progress"></ale-progress>
     </ale-overlay>
   </div>
 </template>
@@ -11,7 +11,7 @@
 export default {
   data: function() {
     return {
-      progress: this.$root.$data.progress
+      progress: this.$root.$data.progress,
     }
   }
 }

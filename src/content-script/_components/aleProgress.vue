@@ -1,5 +1,5 @@
 <template>
-<div v-if="progress.show">
+<div id="ale-progress-wrap" v-if="progress.show">
 	<transition name="fade">
 	<div class="loader-image">
 		<img height="72" :src="imageSources.loader" alt="">
@@ -7,11 +7,17 @@
 	</transition>
 	<div class="ale-progress">
 		<div>
-			<div class="ale-step-text">{{ progressText }} <transition name="fade"><span v-if="progress.titles > 0">{{ progress.step }} / {{ progress.titles }}</span></transition></div>
+			<div class="ale-step-text">
+				{{ progress.text }} 
+				<!-- <div class="ale-step-additional-info">
+					{{ progress.text2 }}
+				</div> -->
+				<transition name="fade"><span v-if="progress.maxLength > 0">{{ step }}{{ progress.maxLength }}</span></transition>
+			</div>
 		</div>
 	</div>
 	
-	<div class="ale-bar" v-if="progress.libraryFetched" :class="{'scale-in-hor-center': progress.libraryFetched }">
+	<div class="ale-bar" v-if="progress.bar" :class="{'scale-in-hor-center': progress.bar }">
 		<div class="ale-step-line" :style="computedProgressWidth"></div>
 	</div>
 </div>
@@ -24,7 +30,6 @@ export default {
 	props: ['progress'],
   data () {
 		return {
-			props: ['progress'],
 			imageSources: {
 				logo: chrome.runtime.getURL("assets/images/audible-library-extractor-logo.svg"),
 				loader: chrome.runtime.getURL("assets/images/loader-64px.gif")
@@ -36,12 +41,15 @@ export default {
 		}
   },
 	computed: {
-		progressText: function() {
-			return !this.progress.libraryFetched ? 'Searching library...' : 'Processing books...';
+		
+		step: function() {
+			return this.progress.step >= 0 ? (this.progress.step + ' / ') : '';
 		},
+		
 		computedProgressWidth: function() {
-			return { width: ((this.progress.step / this.progress.titles) * 100) + '%' };
+			return { width: ((this.progress.step / this.progress.maxLength) * 100) + '%' };
 		}
+		
 	},
 	mounted: function () {
 		
@@ -56,6 +64,14 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+#ale-progress-wrap {
+	-webkit-touch-callout: none; 
+	-webkit-user-select: none; 
+	-khtml-user-select: none; 
+	-moz-user-select: none; 
+	-ms-user-select: none; 
+	user-select: none; 
+}
 
 .ale-progress {
   > div,
@@ -81,5 +97,10 @@ export default {
     width: 0%;
     height: 100%;
   }
+}
+
+.ale-step-additional-info {
+  font-size: 13px;
+  color: #7a7a7a;
 }
 </style>

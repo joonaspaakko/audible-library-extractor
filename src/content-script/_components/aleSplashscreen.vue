@@ -16,7 +16,7 @@
 
 	<div class="field has-addons btns-two-wrap">
 		<p class="control">
-			<button class="update button is-small" :disabled="!storageDataExists" @click="takeNextStep('update')" aria-label="If you have extracted your library at least once, you can use this to look for any new titles since last extraction, rather than look through the entire library, which is what the &quot;Start extracting&quot; button does." data-balloon-pos="down" data-balloon-length="650">
+			<button class="update button is-small" :disabled="!storageDataExists" @click="takeNextStep('update')" aria-label="A faster scan that adds newly added books and only updates the progress and your rating for previously scanned books." data-balloon-pos="down" data-balloon-length="650">
 				<span class="icon is-small">
 					<i class="fas fa-sync-alt"></i>
 				</span>
@@ -24,18 +24,18 @@
 			</button>
 		</p>
 		<p class="control">
-			<button class="output button is-small" :disabled="!storageDataExists" @click="takeNextStep('output')" aria-label="If you have extracted your library at least once, you can skip straight to the output page." data-balloon-pos="down" >
+			<button class="output button is-small" :disabled="!storageDataExists" @click="takeNextStep('output')" aria-label="Skip scanning and go straight to the gallery page." data-balloon-pos="down" >
 				<span class="icon is-small">
 					<i class="fas fa-share-square"></i>
 				</span>
-				<span>Output page</span>
+				<span>Gallery page</span>
 			</button>
 		</p>
 	</div>
 
 	<div class="info-wrap bottom content is-small has-text-grey">
 			Find more information in the <a href="https://github.com/joonaspaakko/audible-library-extractor">Github repository</a> page. <br />
-			if you got any problems or just questions you can post them in the <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a> page.
+			Post issues, questions, and suggestion at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>. 
 	</div>
 	
 </div>

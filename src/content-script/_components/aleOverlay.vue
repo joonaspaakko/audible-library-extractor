@@ -147,6 +147,12 @@ export default {
     margin-bottom: 20px;
     width: 290px;
     height: 99.89px;
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
     img {
       display: inline-block;
       width: 100%;
