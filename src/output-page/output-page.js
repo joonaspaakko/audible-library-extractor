@@ -18,7 +18,7 @@ Vue.use(VueLazyload, {
 })
 import VueAudio from 'vue-audio-better'
 Vue.use(VueAudio)
-Vue.use(require('vue-shortkey'))
+Vue.use(require('vue-shortkey'));
 
 global.Url = require('domurl');
 global.$ = require('jquery');
@@ -41,6 +41,7 @@ import {
   remove, 
   includes, 
   startCase, 
+  kebabCase, 
   has,
   isArray,
   shuffle,
@@ -48,6 +49,7 @@ import {
   clone,
   isEqual,
   chunk,
+  debounce,
 } from 'lodash';
 
 global.Eventbus = new Vue();
@@ -128,7 +130,10 @@ import {
   faHome, 
   faPlay, 
   faTimesCircle, 
-  faSpinner,
+  faSpinner, 
+  faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
+  faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
+  faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
 } from '@fortawesome/free-solid-svg-icons' 
 
 library.add(
@@ -161,11 +166,14 @@ library.add(
   faHome,
   faPlay,
   faTimesCircle,
-  faSpinner,
+  faSpinner, 
+  faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
+  faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
+  faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
 );
-
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
-Vue.component('font-awesome-icon', FontAwesomeIcon)
+Vue.component('font-awesome', FontAwesomeIcon);
+
 
 import VueTippy, { TippyComponent } from "vue-tippy";
 Vue.use(VueTippy, {

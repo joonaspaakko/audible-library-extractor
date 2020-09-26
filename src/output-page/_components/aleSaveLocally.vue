@@ -3,7 +3,7 @@
   content="<strong>Save the gallery locally,</strong> so you can share it with others. <br>Free Github hosting: <a target='_blank' href='https://github.com/joonaspaakko/audible-library-extractor#save-gallery-locally'>instructions</a>"
   v-tippy="{ placement: 'top',  arrow: true, interactive: true, allowHTML: true, maxWidth: 610 }"
   >
-    <font-awesome-icon fas icon="save" />
+    <font-awesome fas icon="save" />
   </div>
 </template>
 

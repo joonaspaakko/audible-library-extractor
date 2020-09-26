@@ -1,41 +1,179 @@
 <template>
   <div id="ale-spreadsheet">
-    <hot-table
-      v-if="!loading"
-      :settings="options"
-      :colHeaders="colHeaders"
-      :columns="columns"
-      ref="hotTableComponent"
-    ></hot-table>
-    <!-- <hot-table
-      v-if="!loading"
-      :settings="options"
-      :colHeaders="colHeaders"
-      :columns="columns"
-      ref="hotTableComponent"
-    ></hot-table> -->
-    <font-awesome-icon class="loading-icon" v-else icon="spinner" spin />
+    <b-table 
+    v-if="data"
+    :loading="loading"
+    :data="data" 
+    :headers="headers"
+    :columns="columns"
+    :bordered="true"
+    :striped="true"
+    :narrowed="true"
+    :focusable="true"
+    :mobile-cards="true"
+    :sticky-header="true"
+    pagination-size="is-small"
+    custom-row-key="added"
+    pagination-position="both"
+    :paginated="true"
+    :per-page="pageSize"
+    :pagination-simple="true"
+    default-sort="added"
+    default-sort-direction="desc"
+    aria-page-label="Page"
+    aria-next-label="Next page"
+    aria-previous-label="Previous page"
+    aria-current-label="Current page"
+    detailed
+    detail-key="asin"
+    :show-detail-icon="true"
+    @details-open="detailsOpened"
+    icon-pack="fas"
+    sortIcon="chevron-up"
+    sortIconSize="is-small"
+    :height="tableHeight"
+    >
+      <template slot="detail" slot-scope="props">
+        <div class="detail-size-wrapper" :style="{ maxWidth: detailsWidth }">
+          <article class="media">
+              <figure class="media-left">
+                <span class="cover-image">
+                  <img :src="makeCoverUrl(props.row.coverUrl)">
+                </span>
+              </figure>
+              <div class="media-content">
+                <div class="content">
+                    <h3 class="title">{{ props.row.title }}</h3>
+                    <div>
+                      <small>{{ props.row.releaseDate }}</small> • <small>{{ props.row.length }}</small>
+                    </div>
+                    <div class="authors" v-if="props.row.authors">
+                      <strong>Authors:</strong>
+                      <span v-html="props.row.authors"></span>
+                    </div>
+                    <div class="narrators" v-if="props.row.narrators">
+                      <strong>Narrators:</strong>
+                      <span v-html="props.row.narrators"></span>
+                    </div>
+                    <div class="summary" v-html="props.row.summary"></div>
+                </div>
+              </div>
+            </article>
+        </div>
+      </template>
+    </b-table>
   </div>
 </template>
 
 <script>
-import { HotTable } from '@handsontable/vue';
-// import Handsontable from 'handsontable';
-import makeFullUrl from '../../_mixins/makeFullUrl'
+
+import Vue from 'vue';
+import { Table, Icon, ConfigProgrammatic } from 'buefy';
+// import 'buefy/dist/buefy.css'
+
+Vue.use( Table,);
+Vue.use( Icon );
+
+ConfigProgrammatic.setOptions({
+  defaultIconComponent: 'font-awesome',
+  defaultIconPack: 'fas',
+});
+
+// import Buefy from 'buefy';
+// // import 'buefy/dist/buefy.css';
+// Vue.use(Buefy, {
+//   defaultIconComponent: 'font-awesome',
+//   defaultIconPack: 'fas',
+// });
+
+import makeFullUrl from '../../_mixins/makeFullUrl';
+import makeCoverUrl from '../../_mixins/makeCoverUrl';
 
 export default {
   name: 'aleSpreadsheet',
-  props: ['library', 'general'],
+  props: ['library', 'gallery', 'general', 'booksArray'],
   mixins: [
     makeFullUrl,
+    makeCoverUrl,
   ],
-  components: {
-    HotTable,
+  
+  computed: {
+    
+    // computedHeaders: function() {
+    //   return _.filter( this.headers, function( header ) {
+    //     console.log( header );
+    //   });
+    // },
+    
+    tableData: function() {
+      const vue = this;
+      
+      return _.map(vue.booksArray, function( book ) {
+        const newBook = {};
+        _.each( vue.keys, function( key, i ) {
+          
+          const sourceData = book[ key ];
+          
+          switch ( key ) {
+            case 'authors':
+            case 'narrators':
+            case 'categories':
+            case 'series':
+            case 'publishers':
+              newBook[ key ] = vue.linkifyArray({
+                array: sourceData,
+                url: 'url', 
+                text: 'name', 
+                delimiter: (key === 'categories') ? ' > ' : ', ',
+              });
+              break;
+            
+            case 'progress':
+              newBook[ key ] = (sourceData == 0) ? 'Not started' : sourceData;
+              break;
+              
+            case 'titleShort': 
+              const sample = book.sample ? '<a class="play-sample" href="'+ book.sample +'" target="_blank">' +
+                '<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1OTYgNTk2Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzIyMjt9LmNscy0ye2ZpbGw6I2ZmZjt9PC9zdHlsZT48L2RlZnM+PGc+PGc+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjk4LDU3MUEyNzMsMjczLDAsMCwxLDEwNSwxMDVhMjczLDI3MywwLDAsMSwzODYuMSwzODYuMUEyNzEuMTgsMjcxLjE4LDAsMCwxLDI5OCw1NzFaTTIyNyw0MDAuMzIsNDAwLjA5LDMwMSwyMjcsMTk1Ljc1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTI5OCw1MGMxMzcsMCwyNDgsMTExLDI0OCwyNDhTNDM1LDU0NiwyOTgsNTQ2LDUwLDQzNSw1MCwyOTgsMTYxLDUwLDI5OCw1ME0yMjYuMSw0MjZhMjMuNzgsMjMuNzgsMCwwLDAsMTEuNi0zbDE3Ni0xMDFjMTYuNC05LjEsMTYuNC0zMi44LDAtNDJsLTE3Ni0xMDdhMjMuOCwyMy44LDAsMCwwLTExLjYtM0EyNCwyNCwwLDAsMCwyMDIsMTk0VjQwMmEyNCwyNCwwLDAsMCwyNC4xLDI0TTI5OCwwQTI5OC4wNywyOTguMDcsMCwwLDAsMTgyLDU3Mi41NywyOTguMDgsMjk4LjA4LDAsMCwwLDQxNCwyMy40MywyOTYuMjYsMjk2LjI2LDAsMCwwLDI5OCwwWiIvPjwvZz48L2c+PC9zdmc+">' +
+              '</a>' : '<span class="play-sample-placeholder"></span>';
+              
+              newBook[ key ] = 
+                sample +
+                '<a href="'+ vue.makeFullUrl(book.url) +'" target="_blank">' +
+                  book.titleShort
+                '</a>';
+              break;
+              
+            default:
+              newBook[ key ] = sourceData;
+          }
+        });
+        return newBook;
+      });  
+    }
+  },
+  
+  data: function() {
+    return {
+      loading: true,      
+      keys: null,
+      headers: null,
+      data: null,
+      columns: null,
+      tableHeight: 500,
+      detailsWidth: '300px',
+      pageSize: 50,
+    }
   },
   
   created: function() {
-    this.general.loadingSpreadsheet = true;    
+    Eventbus.$on('afterWindowResize', this.onWindowResize );
   },
+	
+	beforeDestroy: function() {
+	 	Eventbus.$off('afterWindowResize', this.onWindowResize );
+    $('#ale-spreadsheet').on('click', ".play-sample", this.sampleClick);
+	},
   
   mounted: function() {
     
@@ -48,25 +186,17 @@ export default {
     const vue = this;
     vue.$nextTick(function() {
       setTimeout(function() {
-        
+         
         vue.prepareKeys();
-        vue.prepareColheaders();
-        vue.options.data = vue.prepareColumns2();
         vue.prepareColumns();
-        console.log( vue.columns );
-        vue.options.afterInit = vue.afterInit();
-        // vue.options.afterScrollVertically = vue.afterScrollVertically();
-        Eventbus.$on('csvExportStarted', vue.exportSpreadsheet );
+        vue.prepareData();
         
         vue.loading = false;
         vue.$nextTick(function() {
-          
-        
-          vue.hot = vue.$refs.hotTableComponent.hotInstance;
-          // vue.plugins.export = vue.hot.getPlugin('exportFile');
-          vue.plugins.resize = vue.hot.getPlugin('manualColumnResize');
-          vue.plugins.resize.setManualSize(30, 25);
-          vue.hot.render();
+           
+          vue.detailsWidth = $('.table-wrapper').width() + 'px';
+          vue.tableHeight = vue.calculateTableHeight();
+          $('#ale-spreadsheet').on('click', ".play-sample", vue.sampleClick);
           
         });
       }, 10);
@@ -74,100 +204,42 @@ export default {
     
   },
   
-  beforeDestroy: function() {
-    
-    this.hot = null;
-    // this.plugins.export = null;
-    this.plugins.resize = null;
-    
-    Eventbus.$off('csvExportStarted', this.exportSpreadsheet );
-    
-  },
-  
-  data: function() {
-    return {
-      loading: true,
-      // pageSize: null,
-      // listenForScroll: true,
-      hot: null,
-      plugins: {
-        export: null,
-        // resize: null,
-      },
-      keys: null,
-      colHeaders: null,
-      columns: null,
-      options: {
-        licenseKey: 'non-commercial-and-evaluation',
-        // width: '100vw',
-        // height: '100vh',
-        data: null,
-        // data: this.library.books,
-        // data: Handsontable.helper.createSpreadsheetData(1000, 40),
-        // search: true,
-        readOnly: false,
-        filters: true,
-        // https://handsontable.com/docs/7.4.2/demo-searching.html
-        // https://handsontable.com/docs/7.4.2/demo-filtering.html
-        dropdownMenu: ['filter_by_condition', 'filter_action_bar'], // Caution: Filters initial column contents, not rendered
-        columnSorting: true,
-        // manualColumnMove: true,
-        // manualRowMove: true,
-        allowInsertRow: false,
-        allowInsertColumn: false,
-        allowRemoveRow: false,
-        allowRemoveColumn: false,
-        // autoColumnSize: true,
-        // autoRowSize: true,
-        manualRowResize: true,
-        manualColumnResize: true,
-        // fixedRowsTop: 0,
-        // fixedColumnsLeft: 2,
-        rowHeaders: true,
-        colHeader: true,
-        currentRowClassName: 'currentRow',
-        rowHeights: 20,
-        rowHeight: 20,
-        defaultRowHeight: 20,
-        afterInit: null,
-        afterScrollVertically: null,
-      }
-    }
-  },
   methods: {
     
-    afterInit: function() {
-      const vue = this;
-      return function() {
-        vue.general.loadingSpreadsheet = false;        
+    onWindowResize: function( msg ) {
+			if ( msg.widthChanged ) {
+        this.detailsWidth = $('.table-wrapper').width() + 'px';
       }
+      this.tableHeight = this.calculateTableHeight( msg.height );
     },
     
-    // afterScrollVertically: function() {
-    //   const vue = this;
-    //   return function() {
-        
-    //     var rows = this.countRows();
-    //     if ( rows >= vue.library.books.length ) vue.listenForScroll = false;
-    //     if ( rows < vue.library.books.length && vue.listenForScroll ) {
-          
-    //       var lastVisibleRow = this.getPlugin('AutoRowSize').getLastVisibleRow()+1;
-    //       const threshold = rows - 10;
-          
-    //       if ( lastVisibleRow >= threshold ) {
-    //         const lazyLoaded = vue.library.books.slice( rows-1, rows + (vue.pageSize*2) );
-    //         vue.options.data = vue.options.data.concat( lazyLoaded );
-    //         this.render();
-    //       }
-    //     }
-        
-    //   }
-    // },
+    calculateTableHeight: function( winHeight ) {
+      return (winHeight || $(window).height()) - 
+        $('#ale-menu-actions').outerHeight(true) -
+        ( $('.b-table .top.level').height()*2 ) -
+        parseInt( $('.b-table .top.level').css('margin-bottom') ) *2;
+    },
+    
+    detailsOpened: function( row, index ) {
+      
+    },
+    
+    sampleClick: function( e ) {
+      const vue = this;
+      e.preventDefault();
+      const sampleUrl = $( e.currentTarget ).attr('href');
+      const book = _.find( vue.library.books, ['sample', sampleUrl]);
+      Eventbus.$emit('playSample', {
+        from: 'aleSpredsheet',
+        route: vue.$route,
+        book: book,
+      });
+    },
     
     exportSpreadsheet: function() {
-      this.plugins.export.downloadFile('csv', {
-				filename: 'My Audible library', columnHeaders: true
-			});
+      // this.plugins.export.downloadFile('csv', {
+			// 	filename: 'My Audible library', columnHeaders: true
+			// });
     },
 		
     prepareKeys: function() {
@@ -177,6 +249,7 @@ export default {
     
       // These are placed in the front of the table and the leftover columns follows alphabetical order
       var priorityKeys = [
+        "added",
         "sample",
         "titleShort",
         "title",
@@ -188,7 +261,6 @@ export default {
         "summary",
         "length",
         "progress",
-        "added",
         "releaseDate",
         "publishers",
         "myRating",
@@ -206,13 +278,9 @@ export default {
       // Columns we don't want to show in the table
       var removeKeys = [
         'url',
-        'coverUrl',
         'moreLikeThis',
         'peopleAlsoBought',
-        'summary',
-        'asin',
-        'title',
-        'blurb',
+        'sample', // Slipped into titleShort in prepareData() method so they can be in a fixed column together
       ];
       keys = _.remove( keys, function( key ) {
         return !_.includes(removeKeys, key );
@@ -220,58 +288,66 @@ export default {
       vue.keys = keys;
 
     },
-    prepareColheaders: function() {
-      
-      this.colHeaders = _.map( this.keys, function( key ) {
-        let header = key;
-        if ( key === 'sample' ) header = '';
-        return _.startCase( header );
-      });
-      
-    },
     
-    prepareColumns2: function() {
+    prepareData: function() {
       
       const vue = this;
-      const books = [];
-      _.map(vue.library.books, function( book ) {
-        const newBook = [];
+      vue.data = _.map(vue.library.books, function( book ) {
+        const newBook = {};
         _.each( vue.keys, function( key, i ) {
+          
+          const sourceData = book[ key ];
+          
           switch ( key ) {
             case 'authors':
             case 'narrators':
             case 'categories':
             case 'series':
             case 'publishers':
-              newBook.push( 
-                vue.stringifyArray({
-                  array: book[ key ],
-                  key: 'name', 
-                  delimiter: (key === 'categories') ? ' > ' : ', ',
-                })
-              );
+              newBook[ key ] = vue.linkifyArray({
+                array: sourceData,
+                url: 'url', 
+                text: 'name', 
+                delimiter: (key === 'categories') ? ' > ' : ', ',
+              });
               break;
             
             case 'progress':
-              newBook.push( (book[ key ] == 0) ? 'Not started' : book[ key ] );
+              newBook[ key ] = (sourceData == 0) ? 'Not started' : sourceData;
+              break;
+              
+            case 'titleShort': 
+              const sample = book.sample ? '<a class="play-sample" href="'+ book.sample +'" target="_blank">' +
+                '<img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1OTYgNTk2Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzIyMjt9LmNscy0ye2ZpbGw6I2ZmZjt9PC9zdHlsZT48L2RlZnM+PGc+PGc+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjk4LDU3MUEyNzMsMjczLDAsMCwxLDEwNSwxMDVhMjczLDI3MywwLDAsMSwzODYuMSwzODYuMUEyNzEuMTgsMjcxLjE4LDAsMCwxLDI5OCw1NzFaTTIyNyw0MDAuMzIsNDAwLjA5LDMwMSwyMjcsMTk1Ljc1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTI5OCw1MGMxMzcsMCwyNDgsMTExLDI0OCwyNDhTNDM1LDU0NiwyOTgsNTQ2LDUwLDQzNSw1MCwyOTgsMTYxLDUwLDI5OCw1ME0yMjYuMSw0MjZhMjMuNzgsMjMuNzgsMCwwLDAsMTEuNi0zbDE3Ni0xMDFjMTYuNC05LjEsMTYuNC0zMi44LDAtNDJsLTE3Ni0xMDdhMjMuOCwyMy44LDAsMCwwLTExLjYtM0EyNCwyNCwwLDAsMCwyMDIsMTk0VjQwMmEyNCwyNCwwLDAsMCwyNC4xLDI0TTI5OCwwQTI5OC4wNywyOTguMDcsMCwwLDAsMTgyLDU3Mi41NywyOTguMDgsMjk4LjA4LDAsMCwwLDQxNCwyMy40MywyOTYuMjYsMjk2LjI2LDAsMCwwLDI5OCwwWiIvPjwvZz48L2c+PC9zdmc+">' +
+              '</a>' : '<span class="play-sample-placeholder"></span>';
+              
+              newBook[ key ] = 
+                sample +
+                '<a href="'+ vue.makeFullUrl(book.url) +'" target="_blank">' +
+                  book.titleShort
+                '</a>';
               break;
               
             default:
-              newBook.push( book[ key ] );
+              newBook[ key ] = sourceData;
           }
         });
-        books.push( newBook );
+        return newBook;
       });
-      
-      return books;
       
     },
     
-    prepareColumns: function() {
+    prepareHeaders: function() {
       
       const vue = this;
-      vue.columns = _.map(vue.keys, function( key ) {
-        const column = {};
+      vue.headers = _.map(vue.keys, function( key ) {
+        const header = {
+          text: key,
+          align: 'left',
+          sortable: false,
+          value: 'name'
+        };
+        
         switch ( key ) {
           case 'blurb':
             // column.readOnly = false;
@@ -281,6 +357,8 @@ export default {
           case 'categories':
           case 'series':
           case 'publishers':
+            column.renderHtml = true;
+            // column['cell-class'] = 'nowrap-links';
             // column.data = function( book ) {
             //   return vue.stringifyArray({
             //     array: book[ key ],
@@ -292,33 +370,116 @@ export default {
             break;
           
           case 'progress':
+          case 'length':
+          case 'releaseDate':
             // column.data = function( book ) {
             //   return (book[ key ] == 0) ? 'Not started' : book[ key ];
             // };
+            // column['cell-class'] = 'nowrap';
             break;
           
           case 'sample':
-            column.renderer = vue.renderers().sample;
-            column.width = '28px';
-            // column.filters = false;
-            // column.dropdownMenu = false;
+            column.sticky = true;
+            column.renderHtml = true;
+            column.width = '28';
             break;
           
           case 'title':
-            // column.renderer = vue.renderers().title;
+          case 'titleShort':
+            column.sticky = true;
+            column.renderHtml = true;
             break;
             
           default:
         }
         
-        // if ( !column.data ) {
-        //   column.data = function( book ) {
-        //     return book[ key ] || '';
-        //   };
-        // }
-        if ( !column.renderer ) column.renderer = vue.renderers().general;
-        if ( !column.type ) column.type = 'text';
-        if ( !column.className ) column.className = "htLeft htTop";
+        column.sortable = true;
+        column['cell-class'] = 'custom-td custom-' + _.kebabCase( key );
+        if ( !column.field ) column.field = key;
+        if ( !column.label ) column.label = _.startCase( key );
+        return column;
+      });
+      
+    },
+    
+    prepareColumns: function() {
+      
+      const vue = this;
+      
+      // These won't show up in the table columns/rows/cells, but as long as
+      // the data is there, I can access it in the details view...
+      // The data being there depends on prepareData() method.
+      const hideFromColumns = [
+        'title',
+        'blurb',
+        'sample',
+        'coverUrl',
+        'summary',
+        'asin',
+      ];
+      const dollyKees = _.clone( vue.keys );
+      const filteredKeys = _.remove( dollyKees, function( key ) {
+        return !_.includes(hideFromColumns, key );
+      });
+      
+      vue.columns = _.map(filteredKeys, function( key ) {
+        const column = {};
+        
+        switch ( key ) {
+          case 'blurb':
+            // column.readOnly = false;
+            break;
+          case 'authors':
+          case 'narrators':
+          case 'categories':
+          case 'series':
+          case 'publishers':
+            column.renderHtml = true;
+            // column['cell-class'] = 'nowrap-links';
+            // column.data = function( book ) {
+            //   return vue.stringifyArray({
+            //     array: book[ key ],
+            //     key: 'name', 
+            //     delimiter: (key === 'categories') ? ' > ' : ', ',
+            //   });
+            // };
+            // column.renderer = vue.renderers().linkifyArray;
+            break;
+          
+          case 'progress':
+          case 'length':
+          case 'releaseDate':
+            // column.data = function( book ) {
+            //   return (book[ key ] == 0) ? 'Not started' : book[ key ];
+            // };
+            // column['cell-class'] = 'nowrap';
+            break;
+          
+          case 'sample':
+            column.sticky = true;
+            column.renderHtml = true;
+            column.width = '28';
+            break;
+            
+          case 'added':
+            column.label = 'id';
+            break;
+          
+          case 'title':
+          case 'titleShort':
+            column.sticky = true;
+            column.renderHtml = true;
+            break;
+            
+          default:
+        }
+        
+        column.searchable = true;
+        column.sortable = true;
+        column['cell-class'] = 'custom-td custom-' + _.kebabCase( key );
+        if ( !column.field ) column.field = key;
+        if ( !column.label ) column.label = _.startCase( key );
+        
         return column;
       });
       
@@ -331,64 +492,13 @@ export default {
         return _.map( config.array, config.key ).join( config.delimiter );
       }
     },
-    
-    // linkifyArray: function( config ) { 
-    //   const vue = this;
-    //   if ( config.array ) {
-        
-    //     _.each( config.array, function( o, index ) {
-          
-    //       if ( index > 0 ) config.parent.append( $('<span>', { text: config.delimiter }) );
-    //       const link = $('<a>', {
-    //         target: '_blank',
-    //         href: vue.makeFullUrl(o[ config.url ]),
-    //         text: o[ config.text ],
-    //       });
-    //       config.parent.append( link );
-          
-    //     });
-        
-    //   }
-    // },
-    
-    // linkifyArray_Original: function( config ) { 
-    //   const vue = this;
-    //   if ( config.array ) {
-    //     return _.map( config.array, function( o ) {
-    //       return '<a target="_blank" href="'+ vue.makeFullUrl(o[ config.url ]) +'">'+ o[ config.text ] +'</a>'
-    //     }).join( config.delimiter );
-    //   }
-    // },
-    
-    // stringifyArray: function( array, delimiter ) {
-    //   if ( array ) {
-    //     var html = '';
-    //     _.each(array, function(item, index ) {
-    //       html += item.name;
-    //       if ( index < array.length-1 ) html += (delimiter || ', ');
-    //       // html += '<a href="'+ item.url +'" target="_blank">'+ item.name +'</a>';
-    //       // if ( index < array.length-1 ) html += (delimiter || ', ');
-    //     });
-    //     return html;
-    //   }
-    // },
-    
-        
-    getTableData( instance, row, col ) {
-      
-      // Physical row and col are fetched to avoid issues when sorting...
-      const physicalRow = instance.toPhysicalRow( row );
-      const physicalCol = instance.toPhysicalColumn( col );
-      const rowData = instance.getSourceDataAtRow( physicalRow, physicalCol );
-      const colKey = _.camelCase( instance.getColHeader( physicalCol ) );
-      const cellData = rowData[ colKey ];
-      
-      return {
-        row: rowData,
-        cell: cellData,
-        key: colKey,
+    linkifyArray: function( config ) { 
+      const vue = this;
+      if ( config.array ) {
+        return _.map( config.array, function( o ) {
+          return '<a target="_blank" href="'+ vue.makeFullUrl(o[ config.url ]) +'">'+ o[ config.text ] +'</a>'
+        }).join( config.delimiter );
       }
-      
     },
     
     empty( el ) {
@@ -398,263 +508,237 @@ export default {
       }
     },
     
-    cellWrapper: function() {
-      // return $('<div>', { class: 'td-inner-wrap' });
-      const wrapper = document.createElement('div');
-      wrapper.classList.add('td-inner-wrap');
-      return wrapper;
-    },
-    
-    renderers: function() {
-      const vue = this;
-      return {
-        linkifyArray: function( instance, td, row, col, prop, value, cellProperties ) {
-          if ( value ) {
-            
-            vue.empty(td);
-            const wrapper = vue.cellWrapper();
-            const tdData = vue.getTableData( instance, row, col );
-            console.log( tdData )
-            _.each( tdData.cell, function( book, index ) {
-              
-              if ( index > 0 ) {
-                const delimiter = document.createElement('span');
-                delimiter.textContent = (tdData.key === 'categories') ? ' > ' : ', ';
-                wrapper.appendChild( delimiter );
-              }
-              const link = document.createElement('a');
-              link.setAttribute('target', '_blank');
-              link.setAttribute('href', vue.makeFullUrl( book.url ));
-              link.textContent = book.name;
-              wrapper.appendChild( link );
-              console.log( wrapper );
-            });
-              
-            // if ( colKey == 'categories' ) console.log( wrapper[0] );
-            td.appendChild( wrapper );
-            
-          }
-        },
-        
-        general: function(instance, td, row, col, prop, value, cellProperties) {
-          
-          vue.empty(td);
-          const wrapper = vue.cellWrapper()
-          if ( value ) wrapper.textContent = value;
-          td.appendChild( wrapper );
-          
-        },
-        
-        
-        title: function(instance, td, row, col, prop, value, cellProperties) {
-          
-          vue.empty(td);
-          const tdData = vue.getTableData( instance, row, col );
-          const content = vue.cellWrapper();
-          if ( value ) {
-            const bookURL = tdData.row.url;
-            // const bookURL = instance.getSourceDataAtRow( row, col ).url;
-            if ( bookURL ) {
-              content.append(
-                $('<a>', { 
-                  target: '_blank',
-                  href: vue.makeFullUrl( bookURL ),
-                  text: value,
-                })
-              );
-            }
-            else {
-              content.append( value );
-            }
-          }
-          $(td).append( content );
-          
-        },
-        
-        sample: function(instance, td, row, col, prop, value, cellProperties) {
-          vue.empty(td);
-          const wrapper = vue.cellWrapper();
-          
-          if ( value ) {
-            const sampleLink = document.createElement('a');
-            sampleLink.setAttribute('target', '_blank');
-            sampleLink.setAttribute('href', value);
-            sampleLink.classList.add('spreadsheet-play-sample');
-            const playIcon = document.createElement('img');
-            playIcon.setAttribute('src', 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1OTYgNTk2Ij48ZGVmcz48c3R5bGU+LmNscy0xe2ZpbGw6IzIyMjt9LmNscy0ye2ZpbGw6I2ZmZjt9PC9zdHlsZT48L2RlZnM+PGc+PGc+PHBhdGggY2xhc3M9ImNscy0xIiBkPSJNMjk4LDU3MUEyNzMsMjczLDAsMCwxLDEwNSwxMDVhMjczLDI3MywwLDAsMSwzODYuMSwzODYuMUEyNzEuMTgsMjcxLjE4LDAsMCwxLDI5OCw1NzFaTTIyNyw0MDAuMzIsNDAwLjA5LDMwMSwyMjcsMTk1Ljc1WiIvPjxwYXRoIGNsYXNzPSJjbHMtMiIgZD0iTTI5OCw1MGMxMzcsMCwyNDgsMTExLDI0OCwyNDhTNDM1LDU0NiwyOTgsNTQ2LDUwLDQzNSw1MCwyOTgsMTYxLDUwLDI5OCw1ME0yMjYuMSw0MjZhMjMuNzgsMjMuNzgsMCwwLDAsMTEuNi0zbDE3Ni0xMDFjMTYuNC05LjEsMTYuNC0zMi44LDAtNDJsLTE3Ni0xMDdhMjMuOCwyMy44LDAsMCwwLTExLjYtM0EyNCwyNCwwLDAsMCwyMDIsMTk0VjQwMmEyNCwyNCwwLDAsMCwyNC4xLDI0TTI5OCwwQTI5OC4wNywyOTguMDcsMCwwLDAsMTgyLDU3Mi41NywyOTguMDgsMjk4LjA4LDAsMCwwLDQxNCwyMy40MywyOTYuMjYsMjk2LjI2LDAsMCwwLDI5OCwwWiIvPjwvZz48L2c+PC9zdmc+');
-            sampleLink.appendChild( playIcon );
-            wrapper.appendChild( sampleLink );
-            
-            sampleLink.addEventListener('click', function(e) {
-              e.preventDefault();
-              const sampleUrl = this.getAttribute('href');
-              const book = _.find( vue.library.books, ['sample', sampleUrl]);
-              Eventbus.$emit('playSample', {
-                from: 'aleSpredsheet',
-                route: vue.$route,
-                book: book,
-              });
-              
-            });
-            
-            td.appendChild( wrapper );
-            
-          }          
-        },
-        cover: function(instance, td, row, col, prop, value, cellProperties) {
-          instance.dom.empty(td);
-          
-          var book = ale_booksArray[ row ];
-          var td = $(td);
-          td
-            //.html('<a target="_blank" href="'+ value +'"><small>cover</small>')
-            //.attr('data-tippy-content','<img src="'+ value +'" alt="">')
-            .addClass('htCenter htMiddle td-cover-image');
-          
-          var coverEl = $('<a>', {
-            target: '_blank',
-            href: value,
-            text: 'cover',
-            'data-tippy-content': '<img src="'+ value +'" alt="">',
-            css: {
-              display: 'block',
-              fontSize: '1em'
-            }
-          }).appendTo( td );
-          
-        }
-      }
-    }
-    
   },
 }
 </script>
 
 <style lang="scss">
 @import '~@/_variables.scss';
-@import '~handsontable/dist/handsontable.full.css';
 
 #ale-spreadsheet {
-  display: flex;
-  justify-content: center;
-  justify-items: center;
-  align-content: center;
-  align-items: center;
-  position: absolute;
-	z-index: 888;
-  top: 100px;
-  right: 30px;
-  bottom: 30px;
-  left: 30px;
-  overflow: hidden;
-  @include themify($themes) {
-    background: lighten( themed(backColor), 15);
-    box-shadow: themed(shadowMedium), themed(shadowSmall);
-  } 
+  margin: 0 30px;
+  margin-top: -40px;
+  position: relative;
   
-  .handsontable {
-    th, td {
-      max-width: 300px;
-      min-width: 20px;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      // white-space: nowrap;
-      height: 20px;
-    }
-    .td-inner-wrap {
-      width: 100%;
-      height: 20px;
-      // overflow: hidden;
+  .table-wrapper {
+    // overflow: auto;
+    @include themify($themes) {
+      background: lighten( themed(backColor), 15);
+      box-shadow: themed(shadowMedium), themed(shadowSmall);
+    } 
+    .table tr.detail {
+      .detail-container,
+      > td {
+        padding: 0;
+      }
+      .detail-size-wrapper {
+        max-width: 800px;
+        position: -webkit-sticky;
+        position: sticky;
+        left: 0px;
+        article {
+          padding: 1rem;
+        }
+      }
+      .detail-container {
+        .cover-image img {
+          width: 200px;
+        }
+        .title, 
+        strong {
+          @include themify($themes) {
+            color: themed(frontColor);
+          } 
+        }
+        .title {
+          margin: 0 0 5px 0;
+          font-size: 1.6em;
+        }
+        .summary {
+          padding-top: 10px;
+        }
+      }
     }
   }
-  
-  .loading-icon {
-    font-size: 40px;
+  .pagination-ellipsis,
+  .pagination a {
+    @include themify($themes) {
+      background: lighten( themed(backColor), 15);
+    } 
+  }
+  .pagination-link.is-current {
     @include themify($themes) {
       color: themed(audibleOrange);
     } 
-    
   }
+  .pagination {
+    @include themify($themes) {
+      color: themed(frontColor);
+    } 
+    small {
+      font-size: 0.99em;
+    }
+  }
+  .pagination-previous, .pagination-next, .pagination-link {
+    box-shadow: 1px 2px 6px rgba(#000, .2);
+    @include themify($themes) {
+      border-color: rgba( themed(frontColor), .2);
+    } 
+  }
+  
+  td.break-all {
+    word-break: break-all;
+  }
+  td.nowrap {
+    white-space: nowrap;
+  }
+  td.nowrap-links a {
+    white-space: nowrap;
+  }
+  
+  td.custom-td {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  td.custom-title,
+  td.custom-title-short {
+    max-width: 350px;
+  }
+  td.custom-categories,
+  td.custom-series {
+    max-width: none;
+  }
+  
+  .table {
+    background-color: transparent !important;
+  }
+  
+  @media screen and (max-width: 768px) {
+    td.custom-td {
+      max-width: none;
+      overflow: visible;
+      white-space: normal;
+    }
+    
+    .table-wrapper {
+      // overflow: auto;
+      @include themify($themes) {
+        background: transparent !important;
+        box-shadow: none !important;
+      }
+    }
+    .table {
+      border: none !important;
+    }
+    .table tbody tr {
+      @include themify($themes) {
+        background: lighten( themed(backColor), 15);
+        box-shadow: themed(shadowMedium), themed(shadowSmall);
+      } 
+    }
+  }
+  
+  .chevron-cell { 
+    line-height: 0; 
+    padding-top: 0;
+    padding-bottom: 0;
+  }
+  
+  .play-sample {
+    img {
+      display: inline-block;
+      width: 18px;
+      vertical-align: middle;
+      position: relative;
+      top: -1px;
+      margin-right: 7px;
+      
+    }
+  }
+  
+  .play-sample-placeholder {
+    display: inline-block;
+    width: 20px;
+    margin-right: 7px;
+  }
+  
+  .th-wrap {
+    overflow: visible;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    .control { width: 100%; }
+    input {
+      font-family: 'Montserrat', sans-serif !important;
+      font-size: 14px !important;
+      line-height: 23px !important;
+      padding: 1px 5px !important;
+      height: 23px !important;
+      @include themify($themes) {
+        background: darken( themed(backColor), .1);
+      } 
+    }
+  }
+  
   
 } // #ale-spreadsheet
 
-html.theme-dark {
-  
-  .handsontable tbody th {
-    background-color: lighten( $darkBackColor, 2) !important;
-    color: lighten( $darkFrontColor, 5) !important;
-    border-color: lighten( $darkBackColor, 14) !important;
-  }
-  .handsontable thead th {
-    background-color: lighten( $darkBackColor, 6) !important;
-    color: lighten( $darkFrontColor, 8) !important;
-    border-color: lighten( $darkBackColor, 14) !important;
-  }
-  
-  .handsontable .changeType,
-  .handsontable .htUISelectCaption,
-  .handsontable tr td {
-    background-color: lighten( $darkBackColor, 7) !important;
-    border-color: lighten( $darkBackColor, 17) !important;
-    color: darken( $darkFrontColor, 10) !important;
-    a { color: $audibleOrange; }
-    a:visited { color: darken( $audibleOrange, 20); }
-  }
-  .handsontable .changeType {
-    color: $darkBackColor !important;
-    background-color: $audibleOrange !important;
-  }
-  .ht_master tr td {
-    background-color: lighten( $darkBackColor, 4) !important;
-    border-color: lighten( $darkBackColor, 14) !important;
-    color: darken( $darkFrontColor, 15) !important;
-  }
-	// Sort - Arrow down
-	.handsontable span.colHeader.columnSorting.descending::before {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAYAAAD+MdrbAAAAlklEQVR4Ae3SgQWDMRQE4CILdIlMEgqdJIUOk07TSbJEFihe30OgTnrV8MMdB/p89L+cLvfrsvaRb/cCBQoUKPBIUKBAgX7zsH1pASbvcwMWRpp/6+ztf2A9jPkNJ5q9w37P8GY4iv9QvC/jE7dltXKgN+NTqWdDLt/odwiXB4vSIFweLMqDaHmwKA+C5cGiJIjRGmVu33JaAuqWzL7ZAAAAAElFTkSuQmCC');
-	}
-	// Sort - Arrow up
-	.handsontable span.colHeader.columnSorting.ascending::before {
-    background-image: url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAoCAYAAAD+MdrbAAAAj0lEQVR42u2TsQmAMBBFLbJAlsgkARsn0cZh4jROkiVcwOK8IiD4lX+pbO7Bh0DCax4ZxnWiE5FFN1veWmRZd7ZlKiSypDuk0c7JJkRZ1FVBqi4SIciCbpcP2l3oEW7CKUx4FzWD5d+LmsHyWLQLLE+KMrA8FGWw8qRoN4V/vQfsvQtd6EIXutCFLnThj8IL2/8C642rXg4AAAAASUVORK5CYII=');
-	}
-  
-  .handsontable td.currentRow,
-  .handsontable td.current,
-  .handsontable td.highlight {
-    background: darken( $darkBackColor, 5 ) !important;
-  }
-  
-  td.htFiltersMenuActionBar.highlight,
-  td.htFiltersMenuCondition.highlight { background: lighten( $darkBackColor, 4) !important; }
-  
-} // .theme-dark
 
-html.theme-light {
+.theme-light #ale-spreadsheet {
   
-  .handsontable .changeType,
-  .handsontable .htUISelectCaption,
-  .handsontable tr td {
-    background-color: darken( #fff, 1) !important;
-    color: $lightFrontColor !important;
-  }
-  .ht_master tr td {
-    background-color: #fff !important;
-    color: $lightFrontColor !important;
-  }
-  
-  .handsontable td.currentRow,
-  .handsontable td.current,
-  .handsontable td.highlight {
-    color: #000 !important;
-    background: #e1e1e1 !important;
-    // font-weight: 500;
-    // background: desaturate( lighten( $audibleOrange, 40 ), 30) !important;
+  .b-table .table {
+    a {
+      // color: saturate( $audibleOrange, 100%);
+      color: #252525;
+      &:visited {
+        // color: desaturate( darken( adjust-hue( $audibleOrange, -45deg ), 10%), 10%);
+        color: lighten( #252525, 45% );
+      }
+    }
   }
   
-  td.htFiltersMenuActionBar.highlight,
-  td.htFiltersMenuCondition.highlight { background:#fff !important; }
+  .table.is-striped tbody tr:not(.is-selected):nth-child(even) td.is-sticky,
+  .table.is-striped tbody tr:not(.is-selected):nth-child(even) {
+    background: desaturate( darken( $lightBackColor, 1), 100 );
+  }
   
-} // .thene-light
-
+}
+.theme-dark #ale-spreadsheet {
+  
+  .b-table .table {
+    a {
+      // color: saturate( $audibleOrange, 100%);
+      color: #e1e1e1;
+      &:visited {
+        // color: desaturate( darken( adjust-hue( $audibleOrange, -45deg ), 10%), 10%);
+        color: darken( #e1e1e1, 45% );
+      }
+    }
+  }
+  
+  .b-table .table.is-bordered th.is-current-sort, .b-table .table.is-bordered th.is-sortable:hover,
+  .table.is-bordered td, .table.is-bordered th,
+  .b-table .table {
+    border-color: lighten( $darkBackColor, 7.3 );
+  }
+  
+  .b-table .table-wrapper.has-sticky-header tr:first-child th,
+  .b-table .table td.is-sticky {
+    background: lighten( $darkBackColor, 5.5 );
+    color: $darkFrontColor;
+  }
+  
+  .table td, .table th {
+    background: lighten( $darkBackColor, 4 );
+    color: darken( $darkFrontColor, 2 );
+  }
+  
+  .table.is-striped tbody tr:not(.is-selected):nth-child(even) td.is-sticky,
+  .table.is-striped tbody tr:not(.is-selected):nth-child(even) td {
+    background: lighten( $darkBackColor, 2);
+  }
+  
+}
 
 </style>

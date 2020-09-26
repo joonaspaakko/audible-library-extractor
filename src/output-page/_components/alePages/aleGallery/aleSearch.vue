@@ -8,8 +8,8 @@
         v-tippy="{ placement: 'right',  arrow: true }"
         content="Click here to re-enable search"
       >
-        <font-awesome-icon fas icon="lock" />
-        <font-awesome-icon fas icon="unlock-alt" />
+        <font-awesome fas icon="lock" />
+        <font-awesome fas icon="unlock-alt" />
       </div>
       <div class="locked-text-reason" v-if="gallery.searchLocked.reason">
         {{ gallery.searchLocked.reason }}
@@ -40,17 +40,17 @@
       </div>
       <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.scope }">
         <div class="scope search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope', $event)" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 410 }">
-          <font-awesome-icon fas icon="microscope" />
+          <font-awesome fas icon="microscope" />
         </div>
       </div>
       <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.filter }">
         <div class="filter search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter books" v-tippy="{ placement: 'top',  arrow: true }">
-          <font-awesome-icon fas icon="filter" />
+          <font-awesome fas icon="filter" />
         </div>
       </div>
   		<div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.sort }">
         <div class="sort search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort', 'is-enabled': gallery.searchOptions.lists.iewsIndex > -1 }" @click="openSearchOptions('sort', $event)" content="Sort books" v-tippy="{ placement: 'top',  arrow: true }">
-    			<font-awesome-icon fas icon="sort" />
+    			<font-awesome fas icon="sort" />
     		</div>
       </div>
       
@@ -62,10 +62,10 @@
             <label v-tippy="{ placement: 'left',  arrow: true }" :content="item.tippy ?  item.tippy : false">
               <input @change="sortExtrasCheck( item.key, index )" type="checkbox" :value="index" v-model="item.active" />
               <span class="checkbox">
-                <font-awesome-icon fas icon="square" />
-                <font-awesome-icon fas icon="check" />
+                <font-awesome fas icon="square" />
+                <font-awesome fas icon="check" />
               </span>
-              <span class="label">{{ item.label || item.key.replace('.name', '') }}</span>
+              <span class="input-label">{{ item.label || item.key.replace('.name', '') }}</span>
             </label>
           </li>
   			</ul>
@@ -75,14 +75,14 @@
             <label v-tippy="{ placement: 'left',  arrow: true }" :content="item.tippy ?  item.tippy : false">
               <input @change="optionsCheck( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
               <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
-                <font-awesome-icon fas icon="sort-down" />
-                <font-awesome-icon fas icon="sort-up" />
+                <font-awesome fas icon="sort-down" />
+                <font-awesome fas icon="sort-up" />
               </span>
               <span v-if="!item.type" class="checkbox">
-                <font-awesome-icon fas icon="square" />
-                <font-awesome-icon fas icon="check" />
+                <font-awesome fas icon="square" />
+                <font-awesome fas icon="check" />
               </span>
-              <span class="label">{{ item.label || item.key.replace('.name', '') }}</span>
+              <span class="input-label">{{ item.label || item.key.replace('.name', '') }}</span>
             </label>
           </li>
         </ul>
@@ -252,13 +252,27 @@ export default {
         this.gallery.searchEnabled = true;
       });
     },
+    forceRerenderBooks: function() {
+      const customResults = this.gallery.customResults;
+      console.log( customResults )
+      this.gallery.customResults = {};
+      this.$nextTick(() => {
+        this.gallery.customResults = customResults;
+      });
+    },
     
     optionsCheck: function( type, index ) {
       this.gallery.details.open = false;
       this.gallery.details.index = -1;
       if ( type === 'sort' ) {
+        
+        const oldSortIndex = this.gallery.searchOptions.lists.sortIndex;
         this.gallery.searchOptions.lists.sortIndex = index;
         // this.searchShouldSort = false;
+        const sortValuesActive = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'sortValues' && o.active });
+        if ( sortValuesActive && oldSortIndex !== index ) {
+          this.forceRerenderBooks();
+        }
       }
       // if ( !this.gallery.searchLocked.active ) {
       //   this.forceRerender();
@@ -267,10 +281,14 @@ export default {
     
     sortExtrasCheck: function( key ) {
       
-      if ( key === 'randomize' ){
+      if ( key === 'randomize' ) {
         this.gallery.details.open = false;
         this.gallery.details.index = -1;
       }
+      else if ( key === 'sortValues' ) {
+        this.forceRerenderBooks();
+      }
+      
     },
     
     openSearchOptions: function( option, e ) {
@@ -638,8 +656,8 @@ export default {
           [data-icon="check"] {
             opacity: 0;
             padding: 3px 0px 0px 3px;
-            width: 8px;
-            height: 8px;
+            width: 11px;
+            height: 11px;
             color: #fff;
           }
         }
@@ -676,7 +694,7 @@ export default {
     }
   
     input[disabled="disabled"] + .checkbox [data-icon="check"] { display: none; }
-    input[disabled="disabled"] ~ .label  {
+    input[disabled="disabled"] ~ .input-label  {
       text-decoration: line-through;
       opacity: .35;
     }

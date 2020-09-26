@@ -4,19 +4,19 @@
       <router-link class="crumb" :to="{ name: 'ale-categories' }">Categories</router-link> 
     </div>
     <div v-if="crumbs.parent" class="divider">
-      <font-awesome-icon fas icon="chevron-right" />
+      <font-awesome fas icon="chevron-right" />
     </div>
     <div v-if="crumbs.parent">
       <router-link class="crumb" :to="{ name: 'ale-category', params: { parent: crumbs.parent.slug } }">{{ crumbs.parent.name }}</router-link> 
     </div>
     <div v-if="crumbs.child" class="divider">
-      <font-awesome-icon fas icon="chevron-right" />
+      <font-awesome fas icon="chevron-right" />
     </div>
     <div v-if="crumbs.child">
       <router-link class="crumb" :to="{ name: 'ale-category', params: { parent: crumbs.parent.slug, child: crumbs.child.slug } }">{{ crumbs.child.name }}</router-link> 
     </div>
     <div v-if="crumbs.asin" class="divider">
-      <font-awesome-icon fas icon="chevron-right" />
+      <font-awesome fas icon="chevron-right" />
     </div>
     <div v-if="crumbs.asin">
       <router-link class="crumb" :to="{ name: 'ale-category', params: { parent: crumbs.parent.slug, child: crumbs.child.slug }, query: { book: crumbs.asin.slug } }">{{ crumbs.asin.name }}</router-link> 

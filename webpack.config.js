@@ -86,7 +86,7 @@ const config = {
   ],
 };
 
-var copyPluginArray = [
+var copyPluginArray = { patterns: [
   { from: 'assets', to: 'assets' },
   { from: 'output-page/favicons', to: 'output-page/favicons' },
   { from: 'output-page/browser-polyfill.min.js', to: 'output-page/browser-polyfill.min.js' },
@@ -107,7 +107,7 @@ var copyPluginArray = [
     },
   },
   { from: __dirname + '/dist/chunks', to: __dirname + '/dist/output-page/chunks', force: true }
-];
+]};
 
 config.plugins.push( new CopyPlugin(copyPluginArray) );
 

@@ -1,21 +1,21 @@
 <template>
   <div id="audible-library-extractor" :class="{ 'mobile-browser-navigation-on': mobileBrowserNavigation }">
     
-    <ale-background :library="library"></ale-background>
+    <ale-background :library="library" :general="general"></ale-background>
     <ale-navigation :library="library" :general="general"></ale-navigation>
     <router-view    :library="library" :general="general" ref="$route" ></router-view>
     
     <div id="audio-player" v-if="audioBetter.audioSource">
-      <mini-audio     :audio-source="audioBetter.audioSource" preload autoplay ref="audioBetter"></mini-audio>
+      <mini-audio :audio-source="audioBetter.audioSource" preload autoplay ref="audioBetter"></mini-audio>
       <div class="custom-icons" :class="{ 'book-index-known': audioBetter.index }">
         <div class="book" :content="audioBetter.book.title" v-tippy="{ placement: 'top',  arrow: true }">
           <router-link :to="{ path: audioBetter.route.path, query: { book: audioBetter.book.asin}}">
-            <font-awesome-icon fas icon="book" />
+            <font-awesome fas icon="book" />
           </router-link>
-          <!-- <font-awesome-icon fas icon="book" @click="samplePlayerBook" /> -->
+          <!-- <font-awesome fas icon="book" @click="samplePlayerBook" /> -->
         </div>
         <div class="close">
-          <font-awesome-icon fas icon="times-circle" @click="samplePlayerClose" />
+          <font-awesome fas icon="times-circle" @click="samplePlayerClose" />
         </div>
       </div>
     </div> <!-- #audio-player -->
@@ -29,13 +29,13 @@
       <router-link
       v-if="$routerHistory.hasPrevious()"
       :to="{ path: $routerHistory.previous().path }">
-        <font-awesome-icon fas icon="chevron-left" />
+        <font-awesome fas icon="chevron-left" />
       </router-link>
       
       <router-link
       v-if="$routerHistory.hasForward()"
       :to="{ path: $routerHistory.next().path }">
-        <font-awesome-icon fas icon="chevron-right" />
+        <font-awesome fas icon="chevron-right" />
       </router-link>
       
     </div>
@@ -66,7 +66,10 @@ export default {
         lightSwitch: 1,
         urlOrigin: 'https://audible',
         categories: null,
-        loadingSpreadsheet: false,
+      },
+      window: {
+        width: null,
+        height: null,
       },
       library: this.$root.$data.library,
     }
@@ -82,6 +85,7 @@ export default {
   
 	created: function() {
     
+    const vue = this;
     // this.library.books = this.library.books.splice(1,20);  
     // console.log( 'this.library.books' )
     // console.log( this.library.books )
@@ -89,6 +93,8 @@ export default {
     this.general.displayMode = window.matchMedia('(display-mode: standalone)').matches;
     this.general.urlOrigin += this.library.domainExtension;
     this.general.standalone = $('html.standalone-gallery').length > 0;
+    this.window.width = $(window).width();
+    this.window.height = $(window).height();
     
 		var isbn = _.filter(this.library.books, 'ISBN_10');
 		// console.log( 'books with ISBN:' );
@@ -97,13 +103,58 @@ export default {
     // console.log( _.filter( this.library.books, ['asin', 'B08BX58B3N'] ) )
     Eventbus.$on('playSample', this.playSample );
     
+    // $(window).on('resize', this.onWindowResize );
+    $(window).on('resize', _.debounce(function() {
+      vue.onWindowResize( vue );
+    }, 400));
+    
   },
 	
 	beforeDestroy: function() {
+    
+    const vue = this;
     Eventbus.$off('playSample', this.playSample);
+    $(window).off('resize', this.onWindowResize );
+    
   },
   
   methods: {
+    
+		onWindowResize: function( vue ) {
+      
+			// var vue = this;
+		  // clearTimeout( vue.windowResizeTimer );
+		  // vue.windowResizeTimer = setTimeout(function() {
+      //   var windowWidth = $(this).width();
+      //   var windowHeight = $(this).height();
+			// 	if ( windowWidth !== vue.windowWidth || windowHeight !== vue.windowHeight ) {
+      //     vue.windowWidth = windowWidth;
+      //     Eventbus.$emit('afterWindowResize', {
+      //       from: 'app',
+      //       width: windowWidth,
+      //     });
+			// 	}
+      // }, 150);
+      
+      const win = $(window);
+      const windowWidth = win.width();
+      const windowHeight = win.height();
+      const widthChanged = windowWidth !== vue.window.width;
+      const heightChanged = windowHeight !== vue.window.height
+      if ( widthChanged || heightChanged ) {
+        vue.window.width = windowWidth;
+        vue.window.height = windowHeight;
+        Eventbus.$emit('afterWindowResize', {
+          from: 'app',
+          width: windowWidth,
+          widthChanged: widthChanged,
+          height: windowHeight,
+          heightChanged: heightChanged,
+        });
+        console.log('RESIZE!!!');
+      }
+
+    },
     
     playSample: function( msg ) {
       this.audioBetter.audioSource = msg.book.sample;
@@ -142,25 +193,54 @@ export default {
 
 <style lang="scss">
 @import '~@/_variables.scss';
-
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
 
-body {
-	-moz-osx-font-smoothing: grayscale;
-  -webkit-font-smoothing: antialiased;
-  font-family: 'Montserrat', sans-serif;
-	font-size: 14px;
-	line-height: 1.55em;
+$family-sans-serif: 'Montserrat', sans-serif;
+$primary: $audibleOrange;
+$primary-invert: findColorInvert($primary);
+// Links
+$link: $primary;
+$link-invert: darken($primary, 5);
+$link-focus-border: $link-invert;
+
+// @import "~bulma/sass/utilities/_all";
+@import "~bulma";
+@import "~buefy/src/scss/buefy";
+
+html {
   padding-top: 1px;
   margin: 0;
   margin-top: -1px;
-  @include themify($themes) {
-    background-color: themed('backColor');
-  }
+}
+body {
+	-moz-osx-font-smoothing: grayscale;
+  -webkit-font-smoothing: antialiased;
+  font-family: 'Montserrat', sans-serif !important;
+	font-size: 14px !important;
+	line-height: 1.55em !important;
+}
+
+html.theme-dark {
+  background-color: $darkBackColor;
+}
+html.theme-light {
+  background-color: $lightBackColor;
 }
 
 #audible-library-extractor {
+  padding-top: 80px;
   
+  a {
+    text-decoration: none;
+    @include themify($themes) { color: themed(audibleOrange); }
+  }
+  a:visited { 
+    @include themify($themes) { color: rgba( themed(frontColor), .7); } 
+    // @include themify($themes) { color: darken( desaturate( themed(audibleOrange), 65), 25); } 
+  }
+  a:hover { 
+    @include themify($themes) { color: themed(frontColor); } 
+  }
   
   &.mobile-browser-navigation-on {
     margin-top: 45px;
@@ -242,36 +322,6 @@ body {
   
 }
 
-//
-// .theme-dark body {
-// 	-webkit-animation: color-change-dark 400ms linear;
-// 	animation: color-change-dark 400ms linear;
-// }
-// .theme-light body {
-// 	-webkit-animation: color-change-light 400ms linear;
-// 	animation: color-change-light 400ms linear;
-// }
-//
-// $light: #f9f8f8;
-// $dark: #15171a;
-//
-// @-webkit-keyframes color-change-dark {
-//  0% { background-color: $light; }
-//  100% { background-color: $dark; }
-// }
-// @keyframes color-change-dark {
-//  0% { background-color: $light; }
-//  100% { background-color: $dark; }
-// }
-//
-// @-webkit-keyframes color-change-light {
-//  0% { background-color: $dark; }
-//  100% { background-color: $light; }
-// }
-// @keyframes color-change-light {
-//  0% { background-color: $dark; }
-//  100% { background-color: $light; }
-// }
 
 // @media all and (display-mode: standalone) {
 //   /* Here goes the CSS rules that will only apply if app is running standalone */

@@ -23,18 +23,18 @@ export default {
   created: function() {
     
     const vue = this;
+    this.windowWidth = $(window).width();
     
     setTimeout(function() {
       vue.books = vue.getBooks();
       vue.flipAnimationRandomizer();
     }, 1500);
     
-    this.windowWidth = $(window).width();
-    $(window).on('resize', this.onWindowResize );
+    Eventbus.$on('afterWindowResize', this.onWindowResize );
     
   },
   destroyed: function() {
-		$(window).off('resize', this.onWindowResize );
+	 	Eventbus.$off('afterWindowResize', this.onWindowResize );
   },
   
   methods: {
@@ -116,17 +116,12 @@ export default {
       
     },
     
-    onWindowResize: function() {
-
-			var vue = this;
-		  clearTimeout( vue.windowResizeTimer);
-		  vue.windowResizeTimer = setTimeout(function() {
-        var windowWidth = $(this).width();
-				if ( windowWidth !== vue.windowWidth ) {
-          vue.windowWidth = windowWidth;
-          vue.books = vue.getBooks();
-				}
-      }, 1000);
+    onWindowResize: function( msg ) {
+      
+      if ( msg.widthChanged ) {
+        this.windowWidth = msg.width;
+        this.books = this.getBooks();
+      }
       
     },
     

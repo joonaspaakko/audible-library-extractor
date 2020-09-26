@@ -13,53 +13,60 @@
                   <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
                 </div>
               </div>
-              <img class="cover" :src="makeCoverUrl(book.coverUrl)">
+              <img class="cover" v-if="book.coverUrl" :src="makeCoverUrl(book.coverUrl)">
             </a>
           </div>
           <div class="progress-info" v-html="progressInfo( book )"></div>
           <div class="basic-details">
             
-            <div class="search-goodreads">
+            <div class="search-goodreads" vif="goodReadsSearchUrl">
               <a :href="goodReadsSearchUrl" target="_blank">Search in Goodreads</a>
             </div>
             
             <div class="authors" v-if="linkifyObjArray( book.authors )">
-              <strong class="label">Author:</strong> <span v-html="linkifyObjArray( book.authors )"></span>
+              <strong class="strong-label">Author:</strong> <span v-html="linkifyObjArray( book.authors )"></span>
             </div>
             <div class="narrators" v-if="linkifyObjArray( book.narrators )">
-              <strong class="label">Narrator:</strong> <span v-html="linkifyObjArray( book.narrators )"></span>
+              <strong class="strong-label">Narrator:</strong> <span v-html="linkifyObjArray( book.narrators )"></span>
             </div>
             <div class="series" v-if="linkifyObjArray( book.series )">
-              <strong class="label">Series:</strong> <span v-html="linkifySeries( book.series )"></span>
+              <strong class="strong-label">Series:</strong> <span v-html="linkifySeries( book.series )"></span>
             </div>
             <div class="own-rating" v-if="book.myRating">
-              <strong class="label">My rating:</strong> <span>{{ book.myRating }}</span>
+              <strong class="strong-label">My rating:</strong> <span>{{ book.myRating }}</span>
             </div>
             
             <div class="publisher" v-if="linkifyObjArray( book.publisher )">
-              <strong class="label">Publisher:</strong> <span v-html="linkifyObjArray( book.publisher )"></span>
+              <strong class="strong-label">Publisher:</strong> <span v-html="linkifyObjArray( book.publisher )"></span>
             </div>
             <div class="rating" v-if="book.rating">
-              <strong class="label">Overall rating:</strong> <span>{{ book.rating }} ({{ book.ratings }} ratings)</span>
+              <strong class="strong-label">Overall rating:</strong> <span>{{ book.rating }} ({{ book.ratings }} ratings)</span>
             </div>
             <!-- <div class="progress" v-if="book.progress">
-              <strong class="label">My progress:</strong> <span>{{ book.progress }}</span>
+              <strong class="strong-label">My progress:</strong> <span>{{ book.progress }}</span>
             </div> -->
             
           </div> <!-- .basic-details -->
-					<div v-if="booksInSeries" class="label hidden-section-label my-books-in-series-label" @click="booksInSeriesLabelClick">Books I own in the series <span>{{ booksInSeriesCount }}</span><font-awesome-icon fas :icon="booksInSeriesContent.toggle ? 'chevron-up' : 'chevron-down'" /></div>
+					<div v-if="booksInSeries" class="label hidden-section-label my-books-in-series-label" @click="booksInSeriesLabelClick">Books I own in the series <span>{{ booksInSeriesCount }}</span><font-awesome fas :icon="booksInSeriesContent.toggle ? 'chevron-up' : 'chevron-down'" /></div>
 					<div class="hidden-section my-books-in-series" v-if="booksInSeriesContent.toggle">
-						<div v-for="(series, seriesKey, seriesIndex) in booksInSeries" :key="seriesKey">
-							<strong>{{ seriesKey }}</strong>
-							<div :data-series-name="seriesKey" @click="booksInSeriesItemClick( book, seriesKey )" class="numbers-list-item" :class="numbersClass( book )" v-for="(book, index) in series" :key="index">
-								
-								<span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
-									<font-awesome-icon fas :icon="booksInSeriesIcon( book )" />
-								</span>
-								<span class="numbers">{{ bookNumbers( book, seriesKey ) }}</span>
-								<span class="title">{{ book.title }}</span>
-								
-							</div>
+						<div v-for="(series, seriesIndex) in booksInSeries" :key="series.asin">
+							<strong>{{ series.name }}</strong>
+                
+                <div :data-series-name="series.name" class="numbers-list-item" :class="numbersClass( book )" v-for="(book, index) in series.books" :key="book.asin">
+                  <router-link :to="{ 
+                      name: 'ale-series', 
+                      params: { series: series.asin }, 
+                      query: { book: book.asin },
+                  }">
+                    
+                    <span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
+                      <font-awesome fas :icon="booksInSeriesIcon( book )" />
+                    </span>
+                    <span class="numbers">{{ bookNumbers( book, series.asin ) }}</span>
+                    <span class="title">{{ book.title }}</span>
+                    
+                </router-link>
+              </div>
 						</div>
 					</div> <!-- .by-books-in-series -->
         </div> <!-- .information -->
@@ -77,16 +84,16 @@
             </div>
             <div class="inline-children smoll-text">
               <div class="release-date" v-if="book.releaseDate">
-                <span class="label">Released:</span> <span>{{ book.releaseDate }}</span>
+                <span class="strong-label">Released:</span> <span>{{ book.releaseDate }}</span>
               </div>
               <!-- <div class="date-added" v-if="book.dateAdded">
-                <span class="label">Added to my library:</span> <span>{{ book.dateAdded }}</span>
+                <span class="strong-label">Added to my library:</span> <span>{{ book.dateAdded }}</span>
               </div> -->
             </div>
             <div class="summary-inner-wrap" v-html="getSummary"></div>
           </div>
           
-          <div class="summary-read-more" @click="summaryReadMoreclick" v-if="summary.readmore.exists"><span>{{ gallery.details.readmore.toggle ? 'Read less' : 'Read more' }}</span> <font-awesome-icon fas :icon="gallery.details.readmore.toggle ? 'chevron-up' : 'chevron-down'" /></div>
+          <div class="summary-read-more" @click="summaryReadMoreclick" v-if="summary.readmore.exists"><span>{{ gallery.details.readmore.toggle ? 'Read less' : 'Read more' }}</span> <font-awesome fas :icon="gallery.details.readmore.toggle ? 'chevron-up' : 'chevron-down'" /></div>
 
         </div>
       </div>
@@ -157,7 +164,7 @@ export default {
       return base + (
         this.book.ISBN_10 && this.book.ISBN_10 ||
         this.book.ISBN_13 && this.book.ISBN_13 ||
-        encodeURIComponent( this.book.authors[0].name + ' ' + this.book.titleShort )
+        this.book.authors ? encodeURIComponent( this.book.authors[0].name + ' ' + this.book.titleShort ) : null
       );
       
     },
@@ -193,22 +200,28 @@ export default {
     
     booksInSeries: function() {
       var vue = this;
-      var series = {};
+      var series = [];
       if ( vue.book.series ) {
         $.each(vue.book.series, function( i, obj ) {
           
-          var findSeriesBooks = _.filter(vue.library.books, { series: [{name: obj.name }] });
+          var findSeriesBooks = _.filter(vue.library.books, { series: [{asin: obj.asin }] });
+          console.log('findSeriesBooks')
+          console.log(findSeriesBooks)
           if ( !_.isEmpty( findSeriesBooks ) ) {
-            series[ obj.name ] = vue.sortBookNumbers({
-              books: findSeriesBooks,
-              direction: 'asc',
-              seriesName: obj.name
-              // missingNumber:
+            series.push({
+              asin: obj.asin,
+              name: obj.name,
+              books: vue.sortBookNumbers({
+                books: findSeriesBooks,
+                direction: 'asc',
+                seriesName: obj.name
+              })
             });
           }
           
         });
       }
+      console.log( series )
       return _.isEmpty(series) ? false : series;
     },
     
@@ -468,11 +481,10 @@ export default {
       }
     },
     
-    bookNumbers: function( book, seriesName ) {
+    bookNumbers: function( book, seriesAsin ) {
       let anyNumbers = _.find( book.series, 'bookNumbers');
       if ( anyNumbers ) {
-        const seriesObj = _.filter(book.series, ['name', seriesName ]);
-        const numbers = seriesObj[0].bookNumbers;
+        const numbers = _.find(book.series, ['asin', seriesAsin ]).bookNumbers;
         return _.isArray( numbers ) ? numbers.join(', ') : numbers;
       }
       else {
@@ -586,9 +598,7 @@ export default {
   
   a {
     white-space: nowrap;
-    @include themify($themes) { color: themed(audibleOrange); }
   }
-  a:visited { @include themify($themes) { color: darken( themed(audibleOrange), 5); } }
   
   .information {
     @include themify($themes) {
@@ -685,7 +695,7 @@ export default {
 			white-space: nowrap;
     }
     
-    .label {
+    .strong-label {
       margin: 10px 0 5px 0;
     }
     

@@ -23,13 +23,13 @@
         <div class="ale-cover">
           <div class="ale-play-sample" @click="playSample( book, index )">
             <div>
-              <font-awesome-icon fas icon="play" />
+              <font-awesome fas icon="play" />
             </div>
           </div>
           <div class="ale-click-wrap" @click="detailsToggle( index )">
             <div class="ale-info-indicator">
               <div>
-                <font-awesome-icon fas icon="book" />
+                <font-awesome fas icon="book" />
               </div>
             </div>
             <img
@@ -61,8 +61,6 @@ export default {
   mixins: [ slugify, makeCoverUrl, ],
 	data: function() {
 		return {
-			windowWidth: null,
-      windowResizeTimer: null,
       filteredBooks: null,
 		}
   },
@@ -95,15 +93,14 @@ export default {
     }
     
     Eventbus.$on('galleryBookClick', this.onBookClicked );
-		this.windowWidth = $(window).width();
-		$(window).on('resize', this.onWindowResize );
     $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
+    Eventbus.$on('afterWindowResize', this.onWindowResize );
   },
   
 	beforeDestroy: function() {
 	 	Eventbus.$off('galleryBookClick', this.onBookClicked );
-		$(window).off('resize', this.onWindowResize );
     $("body, html").off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
+	 	Eventbus.$off('afterWindowResize', this.onWindowResize );
   },
   
   mounted: function() {
@@ -112,7 +109,6 @@ export default {
       this.$nextTick(function() {
         const bookEl = $('#ale-books .ale-book[data-asin="'+ this.$route.query.book +'"]');
         if ( bookEl.length > 0 ) {
-          console.log( bookEl[0] )
           // setTimeout( function() {
             
             Eventbus.$emit('galleryBookClick', {
@@ -184,16 +180,13 @@ export default {
       this.$nextTick(() => {
         
         if ( this.gallery.details.open ) {
-          const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
+          // const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
           this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, function( el ) {
             
             // FIXME: alebooks sample thing
             // DOESN'T WORK when plaing sample in library and clicking the book in another page....?
             // Also this gets triggered quite a few times on load?
             const asin = el.data('asin');
-            console.log('s')
-            console.log( vue.$route.query.book );
-            console.log('e')
             if ( vue.$route.query.book !== asin ) vue.$router.replace({ query: { book: asin } });
             
           });
@@ -217,88 +210,73 @@ export default {
     
     calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, callback ) {
       
-      var gallery = $('#ale-gallery');
-      var maxWidth = gallery.width();
-      var firstBook = gallery.find('.ale-book').first();
-      var bookWidth = firstBook.width();
-      var bookLength = gallery.find('.ale-book').length;
-      var maxColLength = Math.floor( maxWidth / bookWidth );
-      var bookIndex = clickedIndex;
-      var colPosition = (bookIndex % maxColLength)+1;
+      const gallery = $('#ale-gallery');
+      const maxWidth = gallery.width();
+      const firstBook = gallery.find('.ale-book').first();
+      const bookWidth = firstBook.width();
+      const bookLength = gallery.find('.ale-book').length;
+      const maxColLength = Math.floor( maxWidth / bookWidth );
+      const bookIndex = clickedIndex;
+      // const colPosition = (bookIndex % maxColLength)+1;
       
-      var firstCoverEl = firstBook.find('.ale-cover');
-      var bookMargins = parseInt(firstCoverEl.css('margin-left')) + parseInt(firstCoverEl.css('margin-right'))
+      const firstCoverEl = firstBook.find('.ale-cover');
+      const bookMargins = parseInt(firstCoverEl.css('margin-left')) + parseInt(firstCoverEl.css('margin-right'))
       gallery.find('.inner-wrap').css({
         maxWidth: (bookWidth*maxColLength ) - bookMargins
       });
       
-      var maxRowLength = Math.floor( bookLength / maxColLength );
-      var maxRowLengthRem = bookLength % maxColLength;
-      if ( maxRowLengthRem > 0 ) ++maxRowLength;
-      var fullGrid = maxRowLength * maxColLength
-      var remainder = fullGrid - bookLength;
+      const maxRowLength = Math.floor( bookLength / maxColLength );
+      const maxRowLengthRem = bookLength % maxColLength;
+      // if ( maxRowLengthRem > 0 ) ++maxRowLength;
+      const fullGrid = (maxRowLengthRem > 0 ? maxRowLength+1 : maxRowLength) * maxColLength
+      const remainder = fullGrid - bookLength;
       
-      var currentRow = Math.floor( bookIndex / maxColLength )+1;
-      var lastRow  = currentRow === maxRowLength;
-      var endOfTheRow = maxColLength * currentRow;
-      endOfTheRow = lastRow ? endOfTheRow - remainder : endOfTheRow;
-      var endOfTheRowEl = gallery.find('.ale-book').get( endOfTheRow-1 );
+      const currentRow = Math.floor( bookIndex / maxColLength )+1;
+      const lastRow  = currentRow === maxRowLength;
+      const endOfTheRow = maxColLength * currentRow;
+      const endOfTheRowEl = gallery.find('.ale-book').get( (lastRow ? endOfTheRow - remainder : endOfTheRow)-1 );
       
       // Details are moved at the end of the clicked row
-      var bookDetails = $('#ale-bookdetails').insertAfter( endOfTheRowEl );
+      const bookDetails = $('#ale-bookdetails').insertAfter( endOfTheRowEl );
       
-      var targetCenter = el.offset().left + (bookWidth/2) + 8;
-      var detailsArrow = bookDetails.find('> .arrow');
-      var arrowHalf = parseInt( detailsArrow.css('border-left-width'))
+      const targetCenter = el.offset().left + (bookWidth/2) + 8;
+      const detailsArrow = bookDetails.find('> .arrow');
+      // var arrowHalf = parseInt( detailsArrow.css('border-left-width'))
       detailsArrow.css({
         left: targetCenter
       });
       
-      var coverDocumentOffset = el.offset().top;
-      var doc = $("body, html");
+      const coverDocumentOffset = el.offset().top;
+      const doc = $("body, html");
       doc.scrollTop( coverDocumentOffset - coverViewportOffset );
       const distance = Math.abs( coverViewportOffset);
       let animationSpeed = animSpeed != undefined ? animSpeed : 700;
       if ( animSpeed != 0 ) {
-        if      ( distance < 30 ) animationSpeed = 0;
-        else if ( distance < 40 ) animationSpeed = (animationSpeed / 6);
-        else if ( distance < 60 ) animationSpeed = (animationSpeed / 4);
-        else if ( distance < 50 ) animationSpeed = (animationSpeed / 5);
+             if ( distance < 30  ) animationSpeed = 0;
+        else if ( distance < 40  ) animationSpeed = (animationSpeed / 6);
+        else if ( distance < 60  ) animationSpeed = (animationSpeed / 4);
+        else if ( distance < 50  ) animationSpeed = (animationSpeed / 5);
         else if ( distance < 130 ) animationSpeed = (animationSpeed / 2);
         
         if ( animationSpeed < 0 ) animationSpeed = 0;
       }
       doc.stop().animate({
         scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
-      }, animationSpeed,function() {
-        
+      }, animationSpeed, function() {
         if ( callback ) callback( el );
-        
       });
     },
 		
-		onWindowResize: function() {
+		onWindowResize: function( msg ) {
       
-			var vue = this;
-		  clearTimeout( vue.windowResizeTimer);
-		  vue.windowResizeTimer = setTimeout(function() {
-        var windowWidth = $(this).width();
-				if ( windowWidth !== vue.windowWidth ) {
-          vue.windowWidth = windowWidth;
-  				if ( vue.gallery.details.open ) {
-            const index = vue.gallery.details.index;
-            const el = $( $('#ale-gallery > div > .ale-book').get( index ) );
-            const coverViewportOffset = el.offset().top - $('body, html').scrollTop();
-            vue.calculateDetailsPosition( el, vue, index, index, coverViewportOffset, 0 );
-            Eventbus.$emit('afterWindowResize', {
-              from: 'aleBooks',
-            });
-          }
-					// if ( vue.gallery.details.open ) vue.gallery.details.open = false;
-				}
-		  }, 150);
+			if ( this.gallery.details.open ) {
+        const index = this.gallery.details.index;
+        const el = $( $('#ale-gallery > div > .ale-book').get( index ) );
+        const coverViewportOffset = el.offset().top - $('body, html').scrollTop();
+        this.calculateDetailsPosition( el, this, index, index, coverViewportOffset, 0 );
+      }
 
-		}
+		},
 		
   },
 }
@@ -438,7 +416,7 @@ export default {
     border-radius: 999999px;
     cursor: default;
     > div { 
-      font-size: 10px;
+      font-size: 8px;
       width: 20px;
       height: 20px;
       padding: 3px;
@@ -448,6 +426,11 @@ export default {
       border: 2px solid rgba( $audibleOrange, .9 );
       box-shadow: 0px 0px 9px rgba( #000, .9 );
       cursor: pointer; 
+      display: flex;
+      justify-content: center;
+      align-content: center;
+      justify-items: center;
+      align-items: center;
     }
   }
   &.details-open .ale-play-sample,

@@ -1,14 +1,14 @@
 <template>
   <div id="ale-menu-actions">
-		
+    
     <ale-save-locally v-if="!general.standalone" :library="library"></ale-save-locally>
   
     <div class="text-button gallery-page">
       <router-link :to="{ name: 'ale-gallery' }">
         <div class="icon">
-          <font-awesome-icon fas icon="home" />
+          <font-awesome fas icon="home" />
           <span>Library</span>
-          <!-- <font-awesome-icon fas icon="th" />
+          <!-- <font-awesome fas icon="th" />
           <span>Gallery</span> -->
         </div>
       </router-link>
@@ -17,7 +17,7 @@
     <div class="text-button categories-page">
       <router-link :to="{ name: 'ale-categories' }">
         <div class="icon">
-          <font-awesome-icon fas icon="list" />
+          <font-awesome fas icon="list" />
           <span>Categories</span>
         </div>
       </router-link>
@@ -26,7 +26,7 @@
     <div class="text-button categories-page">
       <router-link :to="{ name: 'ale-all-series' }">
         <div class="icon">
-          <font-awesome-icon fas icon="list" />
+          <font-awesome fas icon="list" />
           <span>Series</span>
         </div>
       </router-link>
@@ -35,17 +35,16 @@
     <div class="text-button categories-page">
       <!-- <router-link :to="{ name: 'ale-categories' }"> -->
         <div class="icon">
-          <font-awesome-icon fas icon="list" />
+          <font-awesome fas icon="list" />
           <span>Collections</span>
         </div>
       <!-- </router-link> -->
     </div>
     
     <div class="text-button spreadsheet-page">
-      <router-link :to="{ name: 'ale-spreadsheet' }" @click.native="navigateToSpreadsheet">
+      <router-link :to="{ name: 'ale-spreadsheet' }">
         <div class="icon">
-          <font-awesome-icon v-if="general.loadingSpreadsheet" icon="spinner" spin />
-          <font-awesome-icon v-else fas icon="table" />
+          <font-awesome fas icon="table" />
           <span>Spreadsheet</span>
         </div>
       </router-link>
@@ -58,7 +57,7 @@
         :content="'Toggle '+ (this.general.lightSwitch ? '<strong>light</strong>' : 'light') +' and '+ (!this.general.lightSwitch ? '<strong>dark</strong>' : 'dark') +' theme'"
         v-tippy="{ placement: 'top',  arrow: true }"
       >
-        <font-awesome-icon fas :icon="lightSwitchIcon" />
+        <font-awesome fas :icon="lightSwitchIcon" />
       </div>
     </div>
     
@@ -69,7 +68,7 @@
       @click="csvExportStarted"
     >
       <div class="icon">
-        <font-awesome-icon fas icon="file-csv" />
+        <font-awesome fas icon="file-csv" />
       </div>
     </div>
       
@@ -107,12 +106,6 @@ export default {
       $('html').addClass( !this.general.lightSwitch ? 'theme-dark' : 'theme-light' );
     },
     
-    navigateToSpreadsheet: function() {
-      
-      this.general.loadingSpreadsheet = true;
-      
-    },
-    
   }
 }
 </script>
@@ -134,16 +127,28 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  
-  margin: 40px 0 45px;
-
+  position: fixed;
+  z-index: 10;
+  top: 0;
+  right: 0;
+  left: 0;
+  // height: 30px;
+  // line-height: 30px;
+  @include themify($themes) {
+    background: themed(backColor);
+  } 
+  box-shadow: 2px 0px 13px rgba(#000, .5);
+  padding: 10px 0;
+  line-height: 0px;
+    
   &, a {
     text-decoration: none;
-    color: #333;
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .9 ) !important;
+    } 
   }
   
   > div {
-    line-height: 3em;
     display: inline-block;
     margin-left: 10px;
     &:first-child { margin-left: 0px; }
@@ -152,7 +157,6 @@ export default {
   .icon {
     cursor: pointer;
     // cursor: default !important;
-    background: #fff;
     border-radius: 999999px;
     outline: none;
     
@@ -162,9 +166,8 @@ export default {
     justify-items: center;
     align-content: center;
     justify-content: center;
-    width: 30px;
-    height: 30px;
-    box-shadow: 2px 0px 13px rgba(#000, .5);
+    // width: 30px;
+    // height: 30px;
   }
   
   .text-button {

@@ -74,7 +74,7 @@ export default {
 							{ active: true,  key: 'narrators.name' },
 							{ active: true,  key: 'series.name' },
 							{ active: false, key: 'categories.name' },
-							{ active: false, key: 'publisher' },
+							{ active: false, key: 'publishers' },
 						],
 	          filter: [
 	            { active: true, label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
@@ -100,7 +100,7 @@ export default {
 	            { active: false, key: 'rating',  			  label: 'Rating',  				 	type: 'sort' },
 	            { active: false, key: 'ratings',  			label: 'Number of ratings', type: 'sort' },
 	            { active: false, key: 'progress',  			label: 'Progress',          type: 'sort' },
-	            { active: false, key: 'publisher.name', label: 'Publisher',         type: 'sort' },
+	            { active: false, key: 'publisher.name', label: 'Publishers',         type: 'sort' },
             ]
 	        }
 	      },

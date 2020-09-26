@@ -105,7 +105,12 @@ export default {
             '<div class="progress-bar">' +
               '<div style="width: '+ css.width +';"></div>' +
             '</div>';
-						break;
+            break;
+            
+          case 'title':
+            return this.book.titleShort || this.book[ sortKey ];
+            break;
+            
           default:
             return this.book[ sortKey ];
         }
