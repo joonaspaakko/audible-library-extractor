@@ -1,16 +1,37 @@
 <template>
   <div id="ale-gallery">
+    
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
-    <ale-search      :booksArray="booksArray" :library="library" :gallery="gallery"></ale-search>
-    <ale-bookdetails :booksArray="booksArray" :library="library" :gallery="gallery" :general="general"></ale-bookdetails> <!-- itunes style floater that plants itself between the cover items -->
-    <ale-books       :booksArray="booksArray" :library="library" :gallery="gallery"></ale-books>
+    <ale-search    
+    :booksArray="booksArray" 
+    :library="library" 
+    :gallery="gallery"
+    :general="general"
+    ></ale-search>
+    
+    <!-- <ale-grid-view 
+    v-if="booksArray.length > 0"
+    :booksArray="booksArray" 
+    :library="library" 
+    :gallery="gallery" 
+    :general="general"
+    ></ale-grid-view> -->
+    
+    <ale-list-view 
+    v-if="booksArray.length > 0"
+    :booksArray="booksArray" 
+    :library="library" 
+    :gallery="gallery" 
+    :general="general"
+    ></ale-list-view>
+    
   </div>
 </template>
 
 <script>
-import aleBookdetails from './aleGallery/aleBookdetails'
 import aleSearch from './aleGallery/aleSearch'
-import aleBooks from './aleGallery/aleBooks'
+import aleGridView from './aleGallery/aleGridView'
+import aleListView from './aleGallery/aleListView'
 import aleBreadcrumbs from '../aleBreadcrumbs'
 
 import sortTitle from '../../_mixins/sort/title'
@@ -27,8 +48,8 @@ export default {
   name: 'aleGallery',
   components: {
     aleSearch,
-    aleBooks,
-    aleBookdetails,
+    aleGridView,
+    aleListView,
     aleBreadcrumbs,
   },
   mixins: [

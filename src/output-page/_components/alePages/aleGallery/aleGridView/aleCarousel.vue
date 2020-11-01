@@ -3,7 +3,7 @@
 		<h3 class="ale-heading">{{ heading }}</h3>
 		<div class="ale-slider">
 			<div class="ale-carousel-item" v-for="(book, index) in books" :key="index">
-				<a :href="makeFullUrl( book.url )" target="_blank" :content="sliderTippyContent( book )" v-tippy="{ placement: 'top',  arrow: true, maxWidth: 500 }">
+				<a :href="makeFullUrl( book.url )" target="_blank" :content="sliderTippyContent( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, maxWidth: 500 }">
 					<img width="130" height="130" class="cover" :data-lazy="makeCoverUrl(book.coverUrl)" alt="">
 				</a>
 			</div>
@@ -14,8 +14,8 @@
 <script>
 import slick from 'slick-carousel'
 import 'node_modules/slick-carousel/slick/slick.css'
-import makeFullUrl from '../../../_mixins/makeFullUrl'
-import makeCoverUrl from '../../../_mixins/makeCoverUrl'
+import makeFullUrl from '../../../../_mixins/makeFullUrl'
+import makeCoverUrl from '../../../../_mixins/makeCoverUrl'
 
 export default {
   name: 'aleCarousel',

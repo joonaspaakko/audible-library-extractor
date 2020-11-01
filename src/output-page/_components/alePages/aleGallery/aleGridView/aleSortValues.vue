@@ -6,9 +6,9 @@
 
 <script>
 
-import timeStringToSeconds from '../../../_mixins/timeStringToSeconds'
-import secondsToTimeString from '../../../_mixins/secondsToTimeString'
-import progressbarWidth from '../../../_mixins/progressbarWidth'
+import timeStringToSeconds from '../../../../_mixins/timeStringToSeconds'
+import secondsToTimeString from '../../../../_mixins/secondsToTimeString'
+import progressbarWidth from '../../../../_mixins/progressbarWidth'
 
 export default {
   name: 'sortValues',

@@ -15,6 +15,9 @@ Vue.use(VueLazyload, {
   loading: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='500' height='500'%3E%3Cdefs%3E%3Cstyle%3E.c%7Bfill:%23e1e1e1;%7D%3C/style%3E%3C/defs%3E%3Cpath class='c' d='M0 0h500v500H0z'/%3E%3C/svg%3E",
   attempt: 3,
   lazyComponent: true,
+  preload: 1.05,
+  throttleWait: 380,
+  // observer: true,
 })
 import VueAudio from 'vue-audio-better'
 Vue.use(VueAudio)
@@ -129,11 +132,13 @@ import {
   faList, 
   faHome, 
   faPlay, 
+  faPlayCircle, 
   faTimesCircle, 
   faSpinner, 
   faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
   faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
   faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
+  faHeart,
 } from '@fortawesome/free-solid-svg-icons' 
 
 library.add(
@@ -165,11 +170,13 @@ library.add(
   faList,
   faHome,
   faPlay,
+  faPlayCircle,
   faTimesCircle,
   faSpinner, 
   faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
   faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
   faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
+  faHeart,
 );
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 Vue.component('font-awesome', FontAwesomeIcon);
@@ -181,9 +188,12 @@ Vue.use(VueTippy, {
   onShow: (options) => {
     return !!options.props.content
   },
+  boundary: 'viewport',
+  flipDuration: 0,
 });
 Vue.component("tippy", TippyComponent);
- 
+import "tippy.js/themes/light-border.css";
+
 var standalone = $('html.standalone-gallery').length > 0;
 if ( !standalone ) {
 

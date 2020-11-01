@@ -10,7 +10,7 @@
             <a :href="bookUrl" target="_blank">
 							<div class="progressbar">
                 <div class="progress" :style="progressbarWidth( book )">
-                  <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
+                  <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
                 </div>
               </div>
               <img class="cover" v-if="book.coverUrl" :src="makeCoverUrl(book.coverUrl)">
@@ -19,7 +19,7 @@
           <div class="progress-info" v-html="progressInfo( book )"></div>
           <div class="basic-details">
             
-            <div class="search-goodreads" vif="goodReadsSearchUrl">
+            <div class="search-goodreads" v-if="goodReadsSearchUrl">
               <a :href="goodReadsSearchUrl" target="_blank">Search in Goodreads</a>
             </div>
             
@@ -59,7 +59,7 @@
                       query: { book: book.asin },
                   }">
                     
-                    <span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true }">
+                    <span class="icon" :content="iconTippyContent( book )" v-tippy="{ placement: 'left',  arrow: true, theme: general.tippyTheme }">
                       <font-awesome fas :icon="booksInSeriesIcon( book )" />
                     </span>
                     <span class="numbers">{{ bookNumbers( book, series.asin ) }}</span>
@@ -98,8 +98,8 @@
         </div>
       </div>
       
-      <!-- <ale-carousel v-if="book.peopleAlsoBought" :gallery="gallery" :general="general" :books="book.peopleAlsoBought" type="peopleAlsoBought"></ale-carousel>
-      <ale-carousel v-if="book.moreLikeThis" :gallery="gallery" :general="general" :books="book.moreLikeThis" type="moreLikeThis"></ale-carousel> -->
+      <ale-carousel v-if="book.peopleAlsoBought" :gallery="gallery" :general="general" :books="book.peopleAlsoBought" type="peopleAlsoBought"></ale-carousel>
+      <ale-carousel v-if="book.moreLikeThis" :gallery="gallery" :general="general" :books="book.moreLikeThis" type="moreLikeThis"></ale-carousel>
       
     </div> <!-- .inner-wrap -->
   </div> <!-- #book-info-container -->
@@ -107,11 +107,11 @@
 </template>
 
 <script>
-import sortBookNumbers from '../../../_mixins/sort/bookNumbers';
-import timeStringToSeconds from '../../../_mixins/timeStringToSeconds';
-import secondsToTimeString from '../../../_mixins/secondsToTimeString';
-import progressbarWidth from '../../../_mixins/progressbarWidth';
-import makeCoverUrl from '../../../_mixins/makeCoverUrl';
+import sortBookNumbers from '../../../../_mixins/sort/bookNumbers';
+import timeStringToSeconds from '../../../../_mixins/timeStringToSeconds';
+import secondsToTimeString from '../../../../_mixins/secondsToTimeString';
+import progressbarWidth from '../../../../_mixins/progressbarWidth';
+import makeCoverUrl from '../../../../_mixins/makeCoverUrl';
 import aleCarousel from './aleCarousel';
 
 export default {
@@ -527,7 +527,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '~@/_variables.scss';
 
 #ale-bookdetails {

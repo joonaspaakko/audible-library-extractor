@@ -17,7 +17,7 @@
           name: 'ale-series', 
           params: { series: item.asin } 
         }">
-          <div class="books-total" v-html="item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right',  arrow: true }"></div>
+          <div class="books-total" v-html="item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right',  arrow: true, theme: general.tippyTheme }"></div>
         </router-link>
     </div>
     

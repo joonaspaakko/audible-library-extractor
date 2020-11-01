@@ -8,7 +8,7 @@
     <div id="audio-player" v-if="audioBetter.audioSource">
       <mini-audio :audio-source="audioBetter.audioSource" preload autoplay ref="audioBetter"></mini-audio>
       <div class="custom-icons" :class="{ 'book-index-known': audioBetter.index }">
-        <div class="book" :content="audioBetter.book.title" v-tippy="{ placement: 'top',  arrow: true }">
+        <div class="book" :content="audioBetter.book.title" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }">
           <router-link :to="{ path: audioBetter.route.path, query: { book: audioBetter.book.asin}}">
             <font-awesome fas icon="book" />
           </router-link>
@@ -66,6 +66,7 @@ export default {
         lightSwitch: 1,
         urlOrigin: 'https://audible',
         categories: null,
+        tippyTheme: 'dark',
       },
       window: {
         width: null,
@@ -103,7 +104,6 @@ export default {
     // console.log( _.filter( this.library.books, ['asin', 'B08BX58B3N'] ) )
     Eventbus.$on('playSample', this.playSample );
     
-    // $(window).on('resize', this.onWindowResize );
     $(window).on('resize', _.debounce(function() {
       vue.onWindowResize( vue );
     }, 400));
@@ -121,20 +121,6 @@ export default {
   methods: {
     
 		onWindowResize: function( vue ) {
-      
-			// var vue = this;
-		  // clearTimeout( vue.windowResizeTimer );
-		  // vue.windowResizeTimer = setTimeout(function() {
-      //   var windowWidth = $(this).width();
-      //   var windowHeight = $(this).height();
-			// 	if ( windowWidth !== vue.windowWidth || windowHeight !== vue.windowHeight ) {
-      //     vue.windowWidth = windowWidth;
-      //     Eventbus.$emit('afterWindowResize', {
-      //       from: 'app',
-      //       width: windowWidth,
-      //     });
-			// 	}
-      // }, 150);
       
       const win = $(window);
       const windowWidth = win.width();
@@ -194,18 +180,6 @@ export default {
 <style lang="scss">
 @import '~@/_variables.scss';
 @import url('https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap');
-
-$family-sans-serif: 'Montserrat', sans-serif;
-$primary: $audibleOrange;
-$primary-invert: findColorInvert($primary);
-// Links
-$link: $primary;
-$link-invert: darken($primary, 5);
-$link-focus-border: $link-invert;
-
-// @import "~bulma/sass/utilities/_all";
-@import "~bulma";
-@import "~buefy/src/scss/buefy";
 
 html {
   padding-top: 1px;
@@ -270,13 +244,15 @@ html.theme-light {
     position: fixed;
     z-index: 900;
     right: 0px;
-    bottom: 20px;
+    bottom: 15px;
     left: 0px;
     .vueAudioBetter {
       max-width: 400px;
       margin: 0;
       width: auto;
       padding-right: 72px;
+      // background: #fff;
+      // color: $lightFrontColor;
       .iconfont.icon-notificationfill {
         display: none;
       }

@@ -1,5 +1,6 @@
 <template>
-  <div id="ale-books" v-if="booksArray.length > 0">
+  <div id="ale-books" class="grid-view">
+    <ale-bookdetails :booksArray="booksArray" :library="library" :gallery="gallery" :general="general"></ale-bookdetails> <!-- itunes style floater that plants itself between the cover items -->
     
     <lazy-component
     v-for="(book, index) in booksArray"
@@ -15,7 +16,7 @@
       :data-narrators="stringifyArray( book.narrators, 'name' )"
       >
         
-        <sort-values :gallery="gallery" :book="book"></sort-values>
+        <ale-sort-values :gallery="gallery" :book="book"></ale-sort-values>
         <div class="hidden">
           <span class="title">{{ book.title }}</span>
           <span class="authors">{{ stringifyArray( book.authors, 'name' ) }}</span>
@@ -48,20 +49,22 @@
 
 <script>
 
-import sortValues from './sortValues';
+import aleBookdetails from './aleGridView/aleBookdetails'
+import aleSortValues from './aleGridView/aleSortValues';
 import slugify from '../../../_mixins/slugify';
 import makeCoverUrl from '../../../_mixins/makeCoverUrl';
+import stringifyArray from '../../../_mixins/stringifyArray';
 
 export default {
   name: 'aleBooks',
   props: ['booksArray', 'library', 'gallery', 'general'],
   components: {
-    sortValues,
+    aleBookdetails,
+    aleSortValues,
   },
-  mixins: [ slugify, makeCoverUrl, ],
+  mixins: [ slugify, makeCoverUrl, stringifyArray ],
 	data: function() {
 		return {
-      filteredBooks: null,
 		}
   },
   
@@ -139,11 +142,6 @@ export default {
         book: book,
         index: index,
       });
-    },
-    
-    stringifyArray: function( array, key ) {
-      if ( key ) return _.map( array, key ).join(', ');
-      else return array.join(', ')
     },
     
     scrollStopAnimate: function(){
@@ -282,7 +280,7 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '~@/_variables.scss';
 
 #ale-books {

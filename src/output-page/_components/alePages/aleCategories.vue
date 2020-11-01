@@ -17,7 +17,7 @@
         name: 'ale-category', 
         params: { parent: parent.slug } 
       }">
-        <div class="books-total" v-html="parent.books.length" content="Total number of books in this category." v-tippy="{ placement: 'right',  arrow: true }"></div>
+        <div class="books-total" v-html="parent.books.length" content="Total number of books in this category." v-tippy="{ placement: 'right',  arrow: true, theme: general.tippyTheme }"></div>
       </router-link> 
       
       <div class="child-categories">

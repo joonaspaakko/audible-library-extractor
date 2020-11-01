@@ -1,7 +1,7 @@
 <template>
-  <div id="ale-menu-actions">
+  <div id="ale-navigation">
     
-    <ale-save-locally v-if="!general.standalone" :library="library"></ale-save-locally>
+    <ale-save-locally v-if="!general.standalone" :library="library" :general="general"></ale-save-locally>
   
     <div class="text-button gallery-page">
       <router-link :to="{ name: 'ale-gallery' }">
@@ -41,21 +41,12 @@
       <!-- </router-link> -->
     </div>
     
-    <div class="text-button spreadsheet-page">
-      <router-link :to="{ name: 'ale-spreadsheet' }">
-        <div class="icon">
-          <font-awesome fas icon="table" />
-          <span>Spreadsheet</span>
-        </div>
-      </router-link>
-    </div>
-    
     <div class="light-switch">
       <div
         class="icon"
         @click="lightSwitchToggle"
         :content="'Toggle '+ (this.general.lightSwitch ? '<strong>light</strong>' : 'light') +' and '+ (!this.general.lightSwitch ? '<strong>dark</strong>' : 'dark') +' theme'"
-        v-tippy="{ placement: 'top',  arrow: true }"
+        v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }"
       >
         <font-awesome fas :icon="lightSwitchIcon" />
       </div>
@@ -63,7 +54,7 @@
     
     <div class="save-csv"
       content="<strong>Download the spreadsheet as a CSV file.</strong> <br>Cells print out in plain text form, which means that none of the hyperlinks are included in the export."
-      v-tippy="{ placement: 'top',  arrow: true }"
+      v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }"
       v-if="this.general.route && this.general.route.name === 'ale-spreadsheet'"
       @click="csvExportStarted"
     >
@@ -102,6 +93,7 @@ export default {
     
     lightSwitchToggle: function() {
       this.general.lightSwitch = this.general.lightSwitch ? 0 : 1;
+      // this.general.tippyTheme = this.general.lightSwitch ? 'dark' : 'light-border';
       $('html').removeClass('theme-light theme-dark');
       $('html').addClass( !this.general.lightSwitch ? 'theme-dark' : 'theme-light' );
     },
@@ -113,7 +105,7 @@ export default {
 <style lang="scss" scoped>
 @import '~@/_variables.scss';
 
-#ale-menu-actions {
+#ale-navigation {
   text-align: center;
   // display: flex;
   // flex-direction: row;
@@ -135,7 +127,7 @@ export default {
   // height: 30px;
   // line-height: 30px;
   @include themify($themes) {
-    background: themed(backColor);
+    background: lighten( themed(backColor), 5);
   } 
   box-shadow: 2px 0px 13px rgba(#000, .5);
   padding: 10px 0;

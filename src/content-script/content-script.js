@@ -387,7 +387,7 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
           const partialScan_New = vue.partialScan && !bookInMemory || !vue.partialScan;
           const book            = (vue.partialScan && bookInMemory) ? bookInMemory : {};
               
-          // UPDATE (SCAN): fetch these only if the book is a new addition...
+          // UPDATE SCAN: fetch these only if the book is a new addition...
           // FULL SCAN: fetch always
           if ( partialScan_New ) {
             book.asin       = bookASIN;
@@ -398,9 +398,15 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             book.narrators  = vue.getArray(_thisRow.querySelectorAll('.narratorLabel > span > a'));
             book.series     = vue.getSeries(_thisRow.querySelector('.seriesLabel'));
             book.blurb      = _thisRow.querySelector('.summaryLabel > span').textContent.trimAll();
+            const fromPlusCatalog = _thisRow.querySelector('input[value="AudibleDiscovery"]');
+            if ( fromPlusCatalog ) book.fromPlusCatalog = true;
           }
           
           // ALWAYS FETCH ↓↓ ( downloaded, favorite, progress, myRating )
+          
+          // Came from the plus catalog but is no longer available there.
+          const unavailableBtn = _thisRow.querySelector('.adbl-library-inaccessible-button');
+          if ( unavailableBtn ) book.leftPlusCatalog = true;
           
           // Downloaded
           book.downloaded = _thisRow.querySelector('.adbl-library-action > div:nth-child(4) > span') ? true : null;

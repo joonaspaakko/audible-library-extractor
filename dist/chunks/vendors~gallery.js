@@ -12,6 +12,28 @@ eval("\nvar fails = __webpack_require__(/*! ../internals/fails */ \"../node_modu
 
 /***/ }),
 
+/***/ "../node_modules/core-js/internals/correct-is-regexp-logic.js":
+/*!********************************************************************!*\
+  !*** ../node_modules/core-js/internals/correct-is-regexp-logic.js ***!
+  \********************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("var wellKnownSymbol = __webpack_require__(/*! ../internals/well-known-symbol */ \"../node_modules/core-js/internals/well-known-symbol.js\");\n\nvar MATCH = wellKnownSymbol('match');\n\nmodule.exports = function (METHOD_NAME) {\n  var regexp = /./;\n  try {\n    '/./'[METHOD_NAME](regexp);\n  } catch (e) {\n    try {\n      regexp[MATCH] = false;\n      return '/./'[METHOD_NAME](regexp);\n    } catch (f) { /* empty */ }\n  } return false;\n};\n\n\n//# sourceURL=webpack:///../node_modules/core-js/internals/correct-is-regexp-logic.js?");
+
+/***/ }),
+
+/***/ "../node_modules/core-js/internals/not-a-regexp.js":
+/*!*********************************************************!*\
+  !*** ../node_modules/core-js/internals/not-a-regexp.js ***!
+  \*********************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+eval("var isRegExp = __webpack_require__(/*! ../internals/is-regexp */ \"../node_modules/core-js/internals/is-regexp.js\");\n\nmodule.exports = function (it) {\n  if (isRegExp(it)) {\n    throw TypeError(\"The method doesn't accept regular expressions\");\n  } return it;\n};\n\n\n//# sourceURL=webpack:///../node_modules/core-js/internals/not-a-regexp.js?");
+
+/***/ }),
+
 /***/ "../node_modules/core-js/internals/string-repeat.js":
 /*!**********************************************************!*\
   !*** ../node_modules/core-js/internals/string-repeat.js ***!
@@ -80,6 +102,18 @@ eval("\nvar $ = __webpack_require__(/*! ../internals/export */ \"../node_modules
 
 /***/ }),
 
+/***/ "../node_modules/core-js/modules/es.array.includes.js":
+/*!************************************************************!*\
+  !*** ../node_modules/core-js/modules/es.array.includes.js ***!
+  \************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nvar $ = __webpack_require__(/*! ../internals/export */ \"../node_modules/core-js/internals/export.js\");\nvar $includes = __webpack_require__(/*! ../internals/array-includes */ \"../node_modules/core-js/internals/array-includes.js\").includes;\nvar addToUnscopables = __webpack_require__(/*! ../internals/add-to-unscopables */ \"../node_modules/core-js/internals/add-to-unscopables.js\");\nvar arrayMethodUsesToLength = __webpack_require__(/*! ../internals/array-method-uses-to-length */ \"../node_modules/core-js/internals/array-method-uses-to-length.js\");\n\nvar USES_TO_LENGTH = arrayMethodUsesToLength('indexOf', { ACCESSORS: true, 1: 0 });\n\n// `Array.prototype.includes` method\n// https://tc39.github.io/ecma262/#sec-array.prototype.includes\n$({ target: 'Array', proto: true, forced: !USES_TO_LENGTH }, {\n  includes: function includes(el /* , fromIndex = 0 */) {\n    return $includes(this, el, arguments.length > 1 ? arguments[1] : undefined);\n  }\n});\n\n// https://tc39.github.io/ecma262/#sec-array.prototype-@@unscopables\naddToUnscopables('includes');\n\n\n//# sourceURL=webpack:///../node_modules/core-js/modules/es.array.includes.js?");
+
+/***/ }),
+
 /***/ "../node_modules/core-js/modules/es.array.map.js":
 /*!*******************************************************!*\
   !*** ../node_modules/core-js/modules/es.array.map.js ***!
@@ -125,6 +159,18 @@ eval("\nvar $ = __webpack_require__(/*! ../internals/export */ \"../node_modules
 
 "use strict";
 eval("\nvar $ = __webpack_require__(/*! ../internals/export */ \"../node_modules/core-js/internals/export.js\");\nvar toInteger = __webpack_require__(/*! ../internals/to-integer */ \"../node_modules/core-js/internals/to-integer.js\");\nvar thisNumberValue = __webpack_require__(/*! ../internals/this-number-value */ \"../node_modules/core-js/internals/this-number-value.js\");\nvar repeat = __webpack_require__(/*! ../internals/string-repeat */ \"../node_modules/core-js/internals/string-repeat.js\");\nvar fails = __webpack_require__(/*! ../internals/fails */ \"../node_modules/core-js/internals/fails.js\");\n\nvar nativeToFixed = 1.0.toFixed;\nvar floor = Math.floor;\n\nvar pow = function (x, n, acc) {\n  return n === 0 ? acc : n % 2 === 1 ? pow(x, n - 1, acc * x) : pow(x * x, n / 2, acc);\n};\n\nvar log = function (x) {\n  var n = 0;\n  var x2 = x;\n  while (x2 >= 4096) {\n    n += 12;\n    x2 /= 4096;\n  }\n  while (x2 >= 2) {\n    n += 1;\n    x2 /= 2;\n  } return n;\n};\n\nvar FORCED = nativeToFixed && (\n  0.00008.toFixed(3) !== '0.000' ||\n  0.9.toFixed(0) !== '1' ||\n  1.255.toFixed(2) !== '1.25' ||\n  1000000000000000128.0.toFixed(0) !== '1000000000000000128'\n) || !fails(function () {\n  // V8 ~ Android 4.3-\n  nativeToFixed.call({});\n});\n\n// `Number.prototype.toFixed` method\n// https://tc39.github.io/ecma262/#sec-number.prototype.tofixed\n$({ target: 'Number', proto: true, forced: FORCED }, {\n  // eslint-disable-next-line max-statements\n  toFixed: function toFixed(fractionDigits) {\n    var number = thisNumberValue(this);\n    var fractDigits = toInteger(fractionDigits);\n    var data = [0, 0, 0, 0, 0, 0];\n    var sign = '';\n    var result = '0';\n    var e, z, j, k;\n\n    var multiply = function (n, c) {\n      var index = -1;\n      var c2 = c;\n      while (++index < 6) {\n        c2 += n * data[index];\n        data[index] = c2 % 1e7;\n        c2 = floor(c2 / 1e7);\n      }\n    };\n\n    var divide = function (n) {\n      var index = 6;\n      var c = 0;\n      while (--index >= 0) {\n        c += data[index];\n        data[index] = floor(c / n);\n        c = (c % n) * 1e7;\n      }\n    };\n\n    var dataToString = function () {\n      var index = 6;\n      var s = '';\n      while (--index >= 0) {\n        if (s !== '' || index === 0 || data[index] !== 0) {\n          var t = String(data[index]);\n          s = s === '' ? t : s + repeat.call('0', 7 - t.length) + t;\n        }\n      } return s;\n    };\n\n    if (fractDigits < 0 || fractDigits > 20) throw RangeError('Incorrect fraction digits');\n    // eslint-disable-next-line no-self-compare\n    if (number != number) return 'NaN';\n    if (number <= -1e21 || number >= 1e21) return String(number);\n    if (number < 0) {\n      sign = '-';\n      number = -number;\n    }\n    if (number > 1e-21) {\n      e = log(number * pow(2, 69, 1)) - 69;\n      z = e < 0 ? number * pow(2, -e, 1) : number / pow(2, e, 1);\n      z *= 0x10000000000000;\n      e = 52 - e;\n      if (e > 0) {\n        multiply(0, z);\n        j = fractDigits;\n        while (j >= 7) {\n          multiply(1e7, 0);\n          j -= 7;\n        }\n        multiply(pow(10, j, 1), 0);\n        j = e - 1;\n        while (j >= 23) {\n          divide(1 << 23);\n          j -= 23;\n        }\n        divide(1 << j);\n        multiply(1, 1);\n        divide(2);\n        result = dataToString();\n      } else {\n        multiply(0, z);\n        multiply(1 << -e, 0);\n        result = dataToString() + repeat.call('0', fractDigits);\n      }\n    }\n    if (fractDigits > 0) {\n      k = result.length;\n      result = sign + (k <= fractDigits\n        ? '0.' + repeat.call('0', fractDigits - k) + result\n        : result.slice(0, k - fractDigits) + '.' + result.slice(k - fractDigits));\n    } else {\n      result = sign + result;\n    } return result;\n  }\n});\n\n\n//# sourceURL=webpack:///../node_modules/core-js/modules/es.number.to-fixed.js?");
+
+/***/ }),
+
+/***/ "../node_modules/core-js/modules/es.string.includes.js":
+/*!*************************************************************!*\
+  !*** ../node_modules/core-js/modules/es.string.includes.js ***!
+  \*************************************************************/
+/*! no static exports found */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+eval("\nvar $ = __webpack_require__(/*! ../internals/export */ \"../node_modules/core-js/internals/export.js\");\nvar notARegExp = __webpack_require__(/*! ../internals/not-a-regexp */ \"../node_modules/core-js/internals/not-a-regexp.js\");\nvar requireObjectCoercible = __webpack_require__(/*! ../internals/require-object-coercible */ \"../node_modules/core-js/internals/require-object-coercible.js\");\nvar correctIsRegExpLogic = __webpack_require__(/*! ../internals/correct-is-regexp-logic */ \"../node_modules/core-js/internals/correct-is-regexp-logic.js\");\n\n// `String.prototype.includes` method\n// https://tc39.github.io/ecma262/#sec-string.prototype.includes\n$({ target: 'String', proto: true, forced: !correctIsRegExpLogic('includes') }, {\n  includes: function includes(searchString /* , position = 0 */) {\n    return !!~String(requireObjectCoercible(this))\n      .indexOf(notARegExp(searchString), arguments.length > 1 ? arguments[1] : undefined);\n  }\n});\n\n\n//# sourceURL=webpack:///../node_modules/core-js/modules/es.string.includes.js?");
 
 /***/ }),
 
