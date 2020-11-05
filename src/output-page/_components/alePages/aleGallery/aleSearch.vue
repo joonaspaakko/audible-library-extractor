@@ -73,7 +73,7 @@
         <ul>
           <li class="search-option" :class="{ disabled: searchIsActive }" v-for="( item, index ) in currentOptionsList" :key="item.key">
             <label v-tippy="{ placement: 'left',  arrow: true, theme: general.tippyTheme }" :content="item.tippy ?  item.tippy : false">
-              <input @change="optionsCheck( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
+              <input @change="sort( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
               <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
                 <font-awesome fas icon="sort-down" />
                 <font-awesome fas icon="sort-up" />
@@ -168,7 +168,7 @@ export default {
 		// $('#ale-search').off("focus", '> input[type="search"]', this.searchInputFocus);
 		$('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
     $("#ale-search").off('touchstart', this.iosAutozoomDisable);
-	 	Eventbus.$off('detailsToggle', this.onDetailsToggle );
+    Eventbus.$off('detailsToggle', this.onDetailsToggle );
     this.searchFocusListener = null;
     this.searchKeyupListener = null;
     this.searchOptionsHider = null;
@@ -261,22 +261,13 @@ export default {
       });
     },
     
-    optionsCheck: function( type, index ) {
+    sort: function( type, index ) {
+      
       this.gallery.details.open = false;
       this.gallery.details.index = -1;
-      if ( type === 'sort' ) {
-        
-        const oldSortIndex = this.gallery.searchOptions.lists.sortIndex;
-        this.gallery.searchOptions.lists.sortIndex = index;
-        // this.searchShouldSort = false;
-        const sortValuesActive = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'sortValues' && o.active });
-        if ( sortValuesActive && oldSortIndex !== index ) {
-          this.forceRerenderBooks();
-        }
-      }
-      // if ( !this.gallery.searchLocked.active ) {
-      //   this.forceRerender();
-      // }
+      
+      if ( type === 'sort' ) Eventbus.$emit('sort', index );
+      
     },
     
     sortExtrasCheck: function( key ) {

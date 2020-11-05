@@ -308,16 +308,21 @@ export default {
       justify-content: start;
       align-content: center;
       > * { 
-        display: inline-block; 
-        padding-right: 5px !important;
-        padding-left: 3px;
-        &:first-child { padding-left: 0; };
+        display: inline-block;
       }
       > img {
         width: 27px;
         height: 27px;
       }
     }
+    & > .icons-n-stuff {
+      > * { 
+        padding-right: 5px !important;
+        padding-left: 3px;
+        &:first-child { padding-left: 0; };
+      }
+    }
+    
   }
 
   // ***********

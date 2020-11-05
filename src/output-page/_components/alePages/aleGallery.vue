@@ -66,6 +66,7 @@ export default {
   props: ['library', 'general'],
   data: function() {
     return {
+      booksArray: null,
       gallery: {
         customResults: null,
   			fuseResults: null,
@@ -140,20 +141,50 @@ export default {
   
   computed: {
     
-    booksArray: function() {
-      return this.sortedObj();
-    },
+    // booksArray: function() {
+    //   return this.sortedObj();
+    // },
     
+  },
+  
+  watch: {
+    booksArray: function( a ) {
+      
+      console.log('%c' + 'a' + '', 'background-image: linear-gradient(90deg,#ff006b, #ff53ab); color: #fff; padding: 2px 5px; border-radius: 8px;', a );
+      
+    }
   },
   
   methods: {
     
-    sortedObj: function() {
+    sort: function( sortIndex ) {
       
-      let booksFiltered = this.filteredObj();
-      const randomize = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'randomize' && o.active });
-      if ( randomize ) {
-        return _.shuffle( booksFiltered );
+      // FIXME: This is where I left off. Fixing how sort executes.....
+      
+      const oldSortIndex = this.gallery.searchOptions.lists.sortIndex;
+      this.gallery.searchOptions.lists.sortIndex = sortIndex;
+      
+      this.booksArray = this.sortedBooks();
+      
+      const sortValuesActive = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'sortValues' && o.active });
+      if ( sortValuesActive && oldSortIndex !== sortIndex ) {
+        this.forceRerenderBooks();
+      }
+      
+    },
+    
+    initBooksArray: function() {
+      const filteredBooks = this.filterBooks();
+      this.booksArray = this.sortedBooks( filteredBooks );
+    },
+    
+    sortedBooks: function( filteredBooks ) {
+
+      let books = filteredBooks || this.booksArray;
+      
+      const randomizeON = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'randomize' && o.active });
+      if ( randomizeON ) {
+        return _.shuffle( books );
       }
       else {
           
@@ -163,52 +194,50 @@ export default {
           const activeSortKey = activeSortItem.key;
           const sortDirection = activeSortItem.active ? 'desc' : 'asc';
           const sortOptions = {
-            books: booksFiltered,
+            books: books,
             direction: sortDirection,
             sortKey: activeSortKey
           };
           switch ( activeSortKey.split('.')[0] ) {
             case 'bookNumbers':
               sortOptions.seriesName = this.gallery.searchOptions.lists.numberSortSeriesName;
-              booksFiltered = this.sortBookNumbers( sortOptions );
+              books = this.sortBookNumbers( sortOptions );
               break;
             case 'added':
-              booksFiltered = this.sortDateAdded( sortOptions );
+              books = this.sortDateAdded( sortOptions );
               break;
             case 'releaseDate':
-              booksFiltered = this.sortReleaseDate( sortOptions );
+              books = this.sortReleaseDate( sortOptions );
               break;
             case 'authors':
             case 'narrators':
             case 'publishers':
-              booksFiltered = this.sortStringNameProp( sortOptions );
+              books = this.sortStringNameProp( sortOptions );
               break;
             case 'title':
-              booksFiltered = this.sortTitle( sortOptions );
+              books = this.sortTitle( sortOptions );
               break;
             case 'length':
-              booksFiltered = this.sortLength( sortOptions );
+              books = this.sortLength( sortOptions );
               break;
             case 'rating':
             case 'ratings':
-              booksFiltered = this.sortRatings( sortOptions );
+              books = this.sortRatings( sortOptions );
               break;
             case 'progress':
-              booksFiltered = this.sortProgress( sortOptions );
+              books = this.sortProgress( sortOptions );
               break;
           }
         }
-        return booksFiltered;
+        return books;
         
       }
       
     },
     
-		filteredObj: function() {
-      const vue = this;
-			var books = this.gallery.customResults || this.gallery.fuseResults || this.library.books;
-      // console.log( 'books' )
-      // console.log( books )
+		filterBooks: function( sideLoadBooks ) {
+      
+			const books = sideLoadBooks || this.library.books;
       const rules = this.filterRules();
       
 			return _.filter(books, function( o ) {
@@ -236,6 +265,11 @@ export default {
   },
   
   created: function() {
+    
+    this.initBooksArray();
+    
+    Eventbus.$on('sort', this.sort );
+    
     const vue = this;
     if ( this.$route.name === 'ale-category' )  {
       this.general.categories = this.buildCategories();
@@ -262,6 +296,11 @@ export default {
       
     }
   },
+  
+  beforeDestroy: function() {
+    Eventbus.$off('sort', this.sort);
+  },
+  
 }
 </script>
 

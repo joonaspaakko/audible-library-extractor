@@ -8,7 +8,7 @@
     class="sorter-button"
     >
     
-      <input @change="optionsCheck( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
+      <input @change="sort(item.type, index)" type="checkbox" :value="index" v-model="item.active" />
       <slot v-if="!label" class="input-label" />
       <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
         <font-awesome fas icon="sort-down" />
@@ -34,7 +34,7 @@ export default {
   
   created() {
     
-    console.log( this.item );
+    // console.log( this.item );
     
   },
   
@@ -48,10 +48,18 @@ export default {
       const name = this.name;
       const regex = new RegExp('^'+this.name);
       return _.find( this.gallery.searchOptions.lists.sort, function(o) {
-        console.log('%c' + 'sorter ITEM' + '', 'border: 1px dashed #ff8d00; color: #ff8d00; padding: 2px 5px; border-radius: 8px;', o.key, o.key.match(regex), name);
+        // console.log('%c' + 'sorter ITEM' + '', 'border: 1px dashed #ff8d00; color: #ff8d00; padding: 2px 5px; border-radius: 8px;', o.key, o.key.match(regex), name);
         return o.key.match(regex);
       });
     },
+    
+  },
+  
+  methods: {
+    
+    sort: function( type, index ) {
+      Eventbus.$emit('sort', index );
+    }
     
   },
 }
@@ -63,6 +71,9 @@ export default {
 
   .sorter-button-wrapper {
     width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   
   .sorter-button {
