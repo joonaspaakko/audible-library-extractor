@@ -6,6 +6,7 @@
   @mouseup="resizeMouseUp" 
   @mousemove="resizeMouseMove" 
   >
+  
     <div class="floater-boy" v-if="mouseX" :style="{ left: mouseX +'px' }"></div>
     <component is="style" type="text/css" v-if="width">
       .{{ colClass }} {
@@ -26,6 +27,7 @@ export default {
       startPosition: null,
       endPosition: null,
       dragging: false,
+      minWidth: 30,
       width: null,
       mouseX: 0,
       threshold: 10,
@@ -35,7 +37,6 @@ export default {
   created: function() {
     
     this.colClass = this.identifier.split(' ')[0];
-    console.log( this.colClass );
     
   },
   
@@ -46,23 +47,26 @@ export default {
       this.startPosition = e.clientX;
     },
     
-    resizeMouseMove: _.debounce(function( e ) {
+    resizeMouseMove: _.throttle(function( e ) {
       if ( this.startPosition ) {
         if ( Math.abs( this.startPosition - e.clientX ) >= this.threshold ) { 
           this.dragging = true;
           this.mouseX = e.clientX; 
         }
       }
-    }, 10),
+    }, 100),
     
     resizeMouseUp: function( e ) {
       
       if ( this.dragging ) {
+        
         this.endPosition = e.clientX;
         const prevDistance = this.width ? this.width : $(e.currentTarget).parent().width();
         const dragDistance = Math.abs( this.startPosition - this.endPosition); 
         const addition = this.endPosition > this.startPosition ? true : false;
-        this.width = prevDistance + ( addition ? +dragDistance : -dragDistance );
+        const width = prevDistance + ( addition ? +dragDistance : -dragDistance );
+        this.width = width < this.minWidth ? this.minWidth : width;
+        
       }
       
       this.dragging = null;

@@ -4,7 +4,11 @@
       <th v-for="( item, index) in headers" :key="item.label" class="header-item ale-col" :class="item.class">
         <col-resizer :identifier="item.class"></col-resizer>
         <div class="ale-col-inner">
-          <span class="text-container">{{ item.label }}</span>
+          
+          <sorter :general="general" :gallery="gallery" :name="item.key">
+            <span class="text-container">{{ item.label }}</span>
+          </sorter>
+          
         </div>
       </th>
     </tr>
@@ -14,12 +18,14 @@
 <script>
 
 import colResizer from './colResizer';
+import sorter from '../../../snippets/sorter';
 
 export default {
   name: 'aleHeader',
-  props: ['keys'],
+  props: ['keys', 'general', 'gallery'],
   components: {
-    colResizer
+    colResizer,
+    sorter,
   },
 	data: function() {
 		return {
@@ -35,15 +41,12 @@ export default {
   
   methods: {
     
-    handleMoved: function( e ) {
-      console.lof( e );
-    },
-    
     prepareHeaders: function( keys ) {
       const vue = this;
       return _.map(keys, function( key ) {
         
         const header = {
+          key: key,
           label: _.startCase( key ),
           align: 'left',
           class: 'col-' + _.kebabCase( key ),

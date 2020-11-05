@@ -13,7 +13,7 @@ export default {
 						const getAn = titleLowercase.match(/^an /);
 						const replacements = getThe && /^the / || getA && /^a / || getAn && /^an /;
 						if ( replacements ) titleLowercase = titleLowercase.replace( replacements,'');
-						return titleLowercase;
+						return titleLowercase.toLowerCase();
 					}
 					else {
 						return sortValue;

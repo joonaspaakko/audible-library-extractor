@@ -4,7 +4,7 @@
       <table>
         <thead>
           
-          <ale-header :keys="keys"></ale-header>
+          <ale-header :keys="keys" :general="general" :gallery="gallery"></ale-header>
           
         </thead>
         <tbody>
@@ -109,7 +109,7 @@ export default {
     },
     
     closeTippy: function() {
-      console.log( this.tippyRowInst )
+      
       if ( this.tippyRowInst && this.tippyRowInst.state.isVisible ) this.tippyRowInst.hide();
       
     },
@@ -144,7 +144,7 @@ export default {
         "added",
         "title",
         "series",
-        // "bookNumbers",
+        "bookNumbers",
         "authors",
         "narrators",
         "categories",
@@ -326,7 +326,7 @@ export default {
 
   // .ale-row,
   .list-view,
-  .ale-col, {
+  .ale-col {
     @include themify($themes) {
       border: 1px solid rgba( themed(frontColor), .14 );
     }
@@ -351,10 +351,15 @@ export default {
     border-right-width: 2px !important;
   }
   
-} // .list-view
+} // .list-view 
 
   
 .theme-light {
+  
+  .ale-row {
+    background: url("../../../images/table-loader-light.gif") no-repeat 10px center;
+  }
+  
   .list-view {
     a {
       color: #252525;
@@ -393,6 +398,11 @@ export default {
 }
 
 .theme-dark {
+  
+  .ale-row {
+    background: url("../../../images/table-loader-dark.gif") no-repeat 10px center;
+  }
+  
   .list-view {
     a {
       color: #e1e1e1;

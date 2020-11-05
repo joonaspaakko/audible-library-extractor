@@ -111,17 +111,17 @@ export default {
             ],
 	          sort: [
               // active: true = arrow down / descending
-              { active: true,  key: 'added',          label: 'Added',   			    type: 'sort', tippy: 'High number = new <br/> Low number = old' },
-	            { active: false, key: 'title',          label: 'Title',        			type: 'sort' },
-	            { active: false, key: 'releaseDate',    label: 'Release date', 			type: 'sort' },
-	            { active: false, key: 'length',         label: 'Length',       			type: 'sort' },
-	            { active: false, key: 'authors.name',   label: 'Author',       			type: 'sort' },
-	            { active: false, key: 'narrators.name', label: 'Narrator',     			type: 'sort' },
-	            { active: false, key: 'bookNumbers',    label: 'Book number',  			type: 'sort' },
-	            { active: false, key: 'rating',  			  label: 'Rating',  				 	type: 'sort' },
-	            { active: false, key: 'ratings',  			label: 'Number of ratings', type: 'sort' },
-	            { active: false, key: 'progress',  			label: 'Progress',          type: 'sort' },
-	            { active: false, key: 'publisher.name', label: 'Publishers',         type: 'sort' },
+              { active: true,  key: 'added',           label: 'Added',   			     type: 'sort', tippy: 'High number = new <br/> Low number = old' },
+	            { active: false, key: 'title',           label: 'Title',        		 type: 'sort' },
+	            { active: false, key: 'releaseDate',     label: 'Release date', 		 type: 'sort' },
+	            { active: false, key: 'length',          label: 'Length',       		 type: 'sort' },
+	            { active: false, key: 'authors.name',    label: 'Author',       		 type: 'sort' },
+	            { active: false, key: 'narrators.name',  label: 'Narrator',     		 type: 'sort' },
+	            { active: false, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
+	            { active: false, key: 'rating',  			   label: 'Rating',  				 	 type: 'sort' },
+	            { active: false, key: 'ratings',  			 label: 'Number of ratings', type: 'sort' },
+	            { active: false, key: 'progress',  			 label: 'Progress',          type: 'sort' },
+	            { active: false, key: 'publishers.name', label: 'Publishers',        type: 'sort' },
             ]
 	        }
 	      },
@@ -180,7 +180,7 @@ export default {
               break;
             case 'authors':
             case 'narrators':
-            case 'publisher':
+            case 'publishers':
               booksFiltered = this.sortStringNameProp( sortOptions );
               break;
             case 'title':

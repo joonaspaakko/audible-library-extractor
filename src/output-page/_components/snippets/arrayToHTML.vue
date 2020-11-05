@@ -55,7 +55,6 @@ export default {
     },
     
     checkIfArrayHasData: function() {
-      console.log( this.array )
       return this.array && !_.isEmpty( this.array );
     },
     

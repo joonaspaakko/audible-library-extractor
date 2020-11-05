@@ -16,7 +16,7 @@ Vue.use(VueLazyload, {
   attempt: 3,
   lazyComponent: true,
   preload: 1.05,
-  throttleWait: 380,
+  throttleWait: 120,
   // observer: true,
 })
 import VueAudio from 'vue-audio-better'
@@ -53,6 +53,7 @@ import {
   isEqual,
   chunk,
   debounce,
+  throttle,
 } from 'lodash';
 
 global.Eventbus = new Vue();

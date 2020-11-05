@@ -13,7 +13,7 @@
           </div> -->
         </span>
         
-        <span class="text-container" v-html="col.text"></span>
+        <span class="text-container" > {{ col.text || '&nbsp' }}</span>
         
       </div>
     </td>
@@ -21,7 +21,6 @@
     <tippy 
     v-if="book.title"
     :to="'rowTippy-'+book.asin" 
-    followCursor="initial"
     :arrow="false"
     maxWidth="800" 
     placement="top-start" 
@@ -155,13 +154,25 @@ export default {
             col.class += ' sticky-col';
             break;
             
+          case 'bookNumbers':
+            
+            let allNumbers = _.filter( vue.book.series, 'bookNumbers')
+            allNumbers = _.map( allNumbers, 'bookNumbers')
+            allNumbers = _.flatten( allNumbers );
+            if (_.isEmpty( allNumbers ) ) allNumbers = null;
+            else if ( _.isArray( allNumbers ) ) {
+              allNumbers = allNumbers.join(', ');
+            }
+            col.text = allNumbers;
+            break;
+          
           default:
             col.text = vue.book[ key ];
             col.name = '';
             break;
         }
         
-        if ( !col.text ) col.text = '&nbsp;';
+        if ( !col.text ) col.text = null;
         return col;
       });  
     },

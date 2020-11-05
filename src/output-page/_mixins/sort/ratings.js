@@ -5,9 +5,8 @@ export default {
 			
 			return _.orderBy(params.books, function( o ) {
 				if ( o[ params.sortKey ] ) {
-					var text = o[ params.sortKey ];
-					if ( params.sortKey === 'ratings' ) text = text.match(/\d/g).join('');
-					return Number( text );
+					const numberInput = o[ params.sortKey ];
+					return Number( numberInput );
 				}
 				else { return 0; }
 			}, params.direction);

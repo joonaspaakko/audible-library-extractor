@@ -91,7 +91,7 @@ var copyPluginArray = { patterns: [
   { from: 'assets', to: 'assets' },
   { from: 'output-page/favicons', to: 'output-page/favicons' },
   { from: 'output-page/browser-polyfill.min.js', to: 'output-page/browser-polyfill.min.js' },
-  { from: 'output-page/images/', to: 'output-page/images/' },
+  { from: 'output-page/images/', to: 'images/' },
   { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
   {
     from: 'manifest.json',

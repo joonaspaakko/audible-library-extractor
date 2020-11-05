@@ -208,6 +208,7 @@ export default {
     
     calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, callback ) {
       
+      // FIXE: This should be a slightly lighter end of the row item calc: https://jsfiddle.net/4bxnu0vy/6/
       const gallery = $('#ale-gallery');
       const maxWidth = gallery.width();
       const firstBook = gallery.find('.ale-book').first();

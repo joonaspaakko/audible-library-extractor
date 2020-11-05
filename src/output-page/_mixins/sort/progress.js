@@ -8,12 +8,12 @@ export default {
 		sortProgress: function( params ) {
 			var vue = this;
 			return _.orderBy(params.books, function( o ) {
-	      if ( o.progress ) {
-	        if ( o.progress.toLowerCase().trim() === 'finished' ) {
-	          return 100;
+				if ( o.progress ) {
+					if ( o.progress.toLowerCase().trim() === 'finished' ) {
+						return 100;
 	        }
 	  			else if ( o.length ) {
-	          var progress = vue.timeStringToSeconds( o.progress );
+						var progress = vue.timeStringToSeconds( o.progress );
 	          const length = vue.timeStringToSeconds( o.length );
 	  				progress = length - progress;
 	  				return (progress / length) * 100;
