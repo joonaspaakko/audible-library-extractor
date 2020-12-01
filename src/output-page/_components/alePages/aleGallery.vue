@@ -9,21 +9,21 @@
     :general="general"
     ></ale-search>
     
-    <!-- <ale-grid-view 
+    <ale-grid-view 
     v-if="booksArray.length > 0"
     :booksArray="booksArray" 
     :library="library" 
     :gallery="gallery" 
     :general="general"
-    ></ale-grid-view> -->
+    ></ale-grid-view>
     
-    <ale-list-view 
+    <!-- <ale-list-view 
     v-if="booksArray.length > 0"
     :booksArray="booksArray" 
     :library="library" 
     :gallery="gallery" 
     :general="general"
-    ></ale-list-view>
+    ></ale-list-view> -->
     
   </div>
 </template>
@@ -44,6 +44,9 @@ import sortReleaseDate from '../../_mixins/sort/releaseDate'
 import sortStringNameProp from '../../_mixins/sort/stringNameProp'
 import buildCategories from '../../_mixins/buildCategories'
 
+// Vue.use(require('vue-shortkey'));
+import vueShortkey from 'vue-shortkey';
+
 export default {
   name: 'aleGallery',
   components: {
@@ -63,6 +66,7 @@ export default {
     sortProgress,
     buildCategories,
   ],
+  directives: { vueShortkey },
   props: ['library', 'general'],
   data: function() {
     return {
@@ -71,18 +75,12 @@ export default {
         customResults: null,
   			fuseResults: null,
 				searchEnabled: true,
-        searchIcons: {
-          scope: true,
-          filter: true,
-          sort: true,
-        },
         searchLocked: {
           active: null,
           tempValue: null,
           reason: null,
           inputValue: null,
-        },
-        searchActive: false, // Search is active when the query returns an array of results
+        },// Search is active when the query returns an array of results
         searchValue: '',
         searchValueChanged: false,
 	      searchOptions: {
@@ -201,6 +199,7 @@ export default {
           switch ( activeSortKey.split('.')[0] ) {
             case 'bookNumbers':
               sortOptions.seriesName = this.gallery.searchOptions.lists.numberSortSeriesName;
+              sortOptions.missingNumber = 0;
               books = this.sortBookNumbers( sortOptions );
               break;
             case 'added':

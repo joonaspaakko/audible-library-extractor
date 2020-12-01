@@ -5,7 +5,7 @@
         <col-resizer :identifier="item.class"></col-resizer>
         <div class="ale-col-inner">
           
-          <sorter :general="general" :gallery="gallery" :name="item.key">
+          <sorter :general="general" :gallery="gallery" :label="false" :item="sorterItem( item.key )" :index="sorterIndex(item)">
             <span class="text-container">{{ item.label }}</span>
           </sorter>
           
@@ -61,6 +61,18 @@ export default {
         
         return header;
         
+      });
+    },
+    
+    
+    sorterIndex: function( item ) {
+      return _.findIndex( this.gallery.searchOptions.lists.sort, { key: item.key });
+    },
+    
+    sorterItem: function( name ) {
+      const regex = new RegExp( '^'+name );      
+      return _.find( this.gallery.searchOptions.lists.sort, function(o) {
+        return o.key.match(regex);
       });
     },
     

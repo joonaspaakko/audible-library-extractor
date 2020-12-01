@@ -45,7 +45,7 @@
     "persistent": false
   },
 	"content_scripts": [{
-  	"run_at": "document_start",
+  	"run_at": "document_idle",
       "matches": [
         "*://*.audible.com/library*",
         "*://*.audible.com/lib*",

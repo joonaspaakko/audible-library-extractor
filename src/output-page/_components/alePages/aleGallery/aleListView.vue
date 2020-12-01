@@ -14,6 +14,7 @@
             class="ale-row"
             :key="book.asin"
             :name="'rowTippy-'+book.asin"
+            @show="lazyShow"
           >
             
             <ale-list-row 
@@ -66,7 +67,7 @@ export default {
   
   mounted: function() {
     this.listViewEl = $('.list-view');
-    this.listViewEl.on('scroll', this.listScrolled );
+    this.listViewEl.on('scroll', this.listScrolled );    
   },
   
   beforeDestroy: function() {
@@ -74,6 +75,14 @@ export default {
   },
   
   methods: {
+    
+    lazyShow: function( comp ) {
+      
+      this.$nextTick(function() {
+        comp.$el.classList.add('loaded');
+      });
+      
+    },
     
     // Shortcut logic for navigating to adjacent books with the tooltip info box open.
     adjacentDetails: function( e ) {
@@ -276,6 +285,8 @@ export default {
   }
   .ale-row-inner {
     white-space: nowrap;
+    position: relative;
+    z-index: 2;
   }
   .ale-col {
     // display: inline-flex;
@@ -356,13 +367,34 @@ export default {
     border-right-width: 2px !important;
   }
   
+  tbody .ale-row {
+    position: relative;
+    z-index: 0;
+    &:before {
+      background: url("../../../images/table-loader-light.gif") no-repeat 10px center;
+      content: '';
+      display: inline-block;
+      position: -webkit-sticky;
+      position: sticky;
+      left: 0px;
+      z-index: 1;
+      width: 50px;
+      height: 28px;
+    }
+    &.loaded:before {
+      display: none;
+    }
+  }
+  
 } // .list-view 
 
   
 .theme-light {
   
   .ale-row {
-    background: url("../../../images/table-loader-light.gif") no-repeat 10px center;
+    &:before {
+      background: url("../../../images/table-loader-light.gif") no-repeat 10px center;
+    }
   }
   
   .list-view {

@@ -1,15 +1,15 @@
 
-import Vue from 'vue'
-import App from './App'
+import Vue from 'vue';
+import App from './App';
 
 Vue.config.devtools = false;
 Vue.config.productionTip = false;
 
-import VueRouter from 'vue-router'
-Vue.use(VueRouter)
-import VueFuse from 'vue-fuse'
-Vue.use(VueFuse)
-import VueLazyload from 'vue-lazyload'
+import store from './store.js';
+import VueRouter from 'vue-router';
+Vue.use(VueRouter);
+
+import VueLazyload from 'vue-lazyload';
 Vue.use(VueLazyload, {
   error:   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='500' height='500'%3E%3Cdefs%3E%3Cstyle%3E.c%7Bfill:%23e1e1e1;%7D%3C/style%3E%3C/defs%3E%3Cpath class='c' d='M0 0h500v500H0z'/%3E%3C/svg%3E",
   loading: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='500' height='500'%3E%3Cdefs%3E%3Cstyle%3E.c%7Bfill:%23e1e1e1;%7D%3C/style%3E%3C/defs%3E%3Cpath class='c' d='M0 0h500v500H0z'/%3E%3C/svg%3E",
@@ -18,10 +18,8 @@ Vue.use(VueLazyload, {
   preload: 1.05,
   throttleWait: 120,
   // observer: true,
-})
-import VueAudio from 'vue-audio-better'
-Vue.use(VueAudio)
-Vue.use(require('vue-shortkey'));
+});
+
 
 global.Url = require('domurl');
 global.$ = require('jquery');
@@ -195,26 +193,25 @@ Vue.use(VueTippy, {
 Vue.component("tippy", TippyComponent);
 import "tippy.js/themes/light-border.css";
 
-var standalone = $('html.standalone-gallery').length > 0;
+const standalone = $('html.standalone-gallery').length > 0;
 if ( !standalone ) {
 
   try {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
     browser.storage.local.get(null).then( data => {
-      
+      console.log('%c' + ' ' + '', 'background: #ff006b; color: #ff006b; padding: 2px 5px; border-radius: 8px;', data);
       if ( !_.isEmpty( data ) ) {
         
         // Merge storage book chunks into one array
         data = (function( data ) {
-          var chunkKeys = [];
-          var chunkLength = data[ 'books-chunk-length' ];
-          for (var i = 0; i < chunkLength; i++) {
+          const chunkKeys = [];
+          const chunkLength = data[ 'books-chunk-length' ];
+          for (let i = 0; i < chunkLength; i++) {
             chunkKeys.push( 'books-chunk-'+i  );
           }
-          var chunks = _.pick(data, chunkKeys);
-          var books = _.values( chunks );
-          books = _.flatten( books );
+          const chunks = _.pick(data, chunkKeys);
+          const books = _.flatten( _.values( chunks ) );
           return {
             library: {
               domainExtension: data[ 'domain-extension' ],
@@ -224,6 +221,8 @@ if ( !standalone ) {
             }
           };
         }( data ));
+        
+        console.log( data.library )
 
         // console.log(_.map(data.library.books, 'length'))
         startVue( data.library );
@@ -247,12 +246,10 @@ function startVue( libraryData ) {
   var ale = new Vue({
     router,
     el: '#audible-library-extractor',
-    components: {
-      VueFuse
-    },
     data: {
       library: libraryData
     },
+    store: store,
     render: h => {
       return h(App); 
     }

@@ -8,17 +8,21 @@
     class="sorter-button"
     >
     
-      <input @change="sort(item.type, index)" type="checkbox" :value="index" v-model="item.active" />
-      <slot v-if="!label" class="input-label" />
+      <input @change="inputChanged(item, index)" type="checkbox" :value="index" v-model="item.active" />
+      <slot v-if="label === false" class="input-label" />
       <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
         <font-awesome fas icon="sort-down" />
         <font-awesome fas icon="sort-up" />
       </span>
-      <span v-if="label" class="input-label">{{ item.label || item.key.replace('.name', '') }}</span>
+      <span v-if="!item.type || item.type === 'sortExtras'" class="checkbox">
+        <font-awesome fas icon="square" />
+        <font-awesome fas icon="check" />
+      </span>
+      <span v-if="label !== false" class="input-label">{{ item.label || item.key.replace('.name', '') }}</span>
       
     </label>
-    
     <slot v-else />
+    
     
   </span>
 </template>
@@ -26,7 +30,7 @@
 <script>
 export default {
   name: 'sorter',
-  props: ['general', 'gallery', 'name', 'label'],
+  props: ['general', 'gallery', 'name', 'label', 'dataSource', 'listOpen', 'item', 'index'],
   data: function() {
     return {
     };
@@ -40,25 +44,40 @@ export default {
   
   computed: {
     
-    index: function() {
-      return _.findIndex( this.gallery.searchOptions.lists.sort, { key: this.item.key });
-    },
+    // index: function() {
+    //   return _.findIndex( this.dataSource, { key: this.item.key });
+    // },
     
-    item: function() {
-      const name = this.name;
-      const regex = new RegExp('^'+this.name);
-      return _.find( this.gallery.searchOptions.lists.sort, function(o) {
-        // console.log('%c' + 'sorter ITEM' + '', 'border: 1px dashed #ff8d00; color: #ff8d00; padding: 2px 5px; border-radius: 8px;', o.key, o.key.match(regex), name);
-        return o.key.match(regex);
-      });
-    },
+    // item: function() {
+    //   const name = this.name;
+    //   const regex = new RegExp('^'+this.name);
+    //   return _.find( this.dataSource, function(o) {
+    //     return o.key.match(regex);
+    //   });
+    // },
     
   },
   
   methods: {
     
-    sort: function( type, index ) {
-      Eventbus.$emit('sort', index );
+    
+    sortExtrasCheck: function( key ) {
+      
+      
+      
+    },
+    
+    inputChanged: function( item, index ) {
+      if ( item.key === 'randomize' ) {
+        this.gallery.details.open = false;
+        this.gallery.details.index = -1;
+      }
+      else if ( item.key === 'sortValues' ) {
+        this.forceRerenderBooks();
+      }
+      else {
+        Eventbus.$emit('sort', index );
+      }
     }
     
   },

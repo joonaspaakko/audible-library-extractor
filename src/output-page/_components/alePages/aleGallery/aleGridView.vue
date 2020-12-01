@@ -132,6 +132,7 @@ export default {
   methods: {
     
     imageAlt: function( book, index ) {
+      console.log( book, book.authors );
       return book.authors[0].name+ ' - ' +book.title;
     },
     

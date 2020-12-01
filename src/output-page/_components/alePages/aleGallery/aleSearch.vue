@@ -5,7 +5,7 @@
       <div
         class="icon"
         @click="releaseSearchLock"
-        v-tippy="{ placement: 'right',  arrow: true, theme: general.tippyTheme }"
+        v-tippy="{ placement: 'right', theme: $store.state.tippyTheme }"
         content="Click here to re-enable search"
       >
         <font-awesome fas icon="lock" />
@@ -30,74 +30,29 @@
       :search="gallery.searchValue"
   		:shouldSort="searchShouldSort"
     />
-  	<div class="icons">
-      <div class="icon-wrap">
-        <div class="book-in-selection">
-          <div class="inner-wrap" content="Visible books" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }">
-            {{ booksArray.length }}
-          </div>
-        </div>
-      </div>
-      <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.scope }">
-        <div class="scope search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'scope' }" @click="openSearchOptions('scope', $event)" content="Change the search scope for more accurate results" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, maxWidth: 410 }">
-          <font-awesome fas icon="microscope" />
-        </div>
-      </div>
-      <div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.filter }">
-        <div class="filter search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'filter' }" @click="openSearchOptions('filter', $event)" content="Filter books" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }">
-          <font-awesome fas icon="filter" />
-        </div>
-      </div>
-  		<div class="icon-wrap" :class="{ disabled: !gallery.searchIcons.sort }">
-        <div class="sort search-opt-btn" :class="{ active: gallery.searchOptions.open && currentOptionsListName === 'sort', 'is-enabled': gallery.searchOptions.lists.iewsIndex > -1 }" @click="openSearchOptions('sort', $event)" content="Sort books" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }">
-    			<font-awesome fas icon="sort" />
-    		</div>
-      </div>
-      
-      <div id="search-options" v-if="gallery.searchOptions.open">
-        <div class="search-opts-arrow"></div>
-        
-  			<ul class="sort-extras" v-if="currentOptionsList[0].type === 'sort'">
-          <li class="search-option" v-for="( item, index ) in gallery.searchOptions.lists.sortExtras" :key="item.key">
-            <label v-tippy="{ placement: 'left',  arrow: true, theme: general.tippyTheme }" :content="item.tippy ?  item.tippy : false">
-              <input @change="sortExtrasCheck( item.key, index )" type="checkbox" :value="index" v-model="item.active" />
-              <span class="checkbox">
-                <font-awesome fas icon="square" />
-                <font-awesome fas icon="check" />
-              </span>
-              <span class="input-label">{{ item.label || item.key.replace('.name', '') }}</span>
-            </label>
-          </li>
-  			</ul>
-        
-        <ul>
-          <li class="search-option" :class="{ disabled: searchIsActive }" v-for="( item, index ) in currentOptionsList" :key="item.key">
-            <label v-tippy="{ placement: 'left',  arrow: true, theme: general.tippyTheme }" :content="item.tippy ?  item.tippy : false">
-              <input @change="sort( item.type, index )" type="checkbox" :value="index" v-model="item.active" />
-              <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
-                <font-awesome fas icon="sort-down" />
-                <font-awesome fas icon="sort-up" />
-              </span>
-              <span v-if="!item.type" class="checkbox">
-                <font-awesome fas icon="square" />
-                <font-awesome fas icon="check" />
-              </span>
-              <span class="input-label">{{ item.label || item.key.replace('.name', '') }}</span>
-            </label>
-          </li>
-        </ul>
-      </div>
-      
-  	</div>
+          
+    <search-icons   :list-open.sync="listOpen" :searchOptions="gallery.searchOptions">{{ booksArray.length }}</search-icons>
+    <search-options :list-open.sync="listOpen" :searchOptions="gallery.searchOptions" :general="general" :gallery="gallery" v-if="listOpen"></search-options>
+  	
   </div> <!-- #ale-search -->
 </div> <!-- #ale-search-wrap -->
 
 </template>
 
 <script>
+import VueFuse from 'vue-fuse';
+
+import searchIcons from './aleSearch/searchIcons';
+import searchOptions from './aleSearch/searchOptions';
+
 export default {
   name: 'aleBookdetails',
   props: ['booksArray', 'library', 'general', 'gallery'],
+  components: {
+    VueFuse,
+    searchIcons,
+    searchOptions
+  },
 	data : function() {
 		return {
       searchShouldSort: false,
@@ -105,8 +60,16 @@ export default {
       searchOptionsHider: null,
 			resultTimer: null,
       enableZoomTimer: null,
+      
+      listOpen: false,
 		}
-	},
+  },
+  
+  watch: {
+    listOpen: function( value ) {
+      // console.log('%c' + 'searchOptionsOpen' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;', value);
+    }
+  },
   
   created: function() {
     var vue = this;
@@ -115,7 +78,10 @@ export default {
     
     this.$on('fuseResultsUpdated', results => {
       
-      vue.gallery.searchActive = results.length > 0;
+      this.$store.commit('prop', { key: 'searchActive', value: results.length > 0 });
+      // vue.gallery.searchActive = results.length > 0;
+      
+      console.log('%c' + this.$store.state.searchActive + '', 'background: #c71485; color: #fff; padding: 2px 5px; border-radius: 8px;');
       
       if ( !vue.gallery.searchValue.trim() && !vue.gallery.searchActive ) {
         vue.gallery.searchOptions.lists.sortIndex = vue.gallery.searchOptions.lists.tempSortIndex;
@@ -125,7 +91,7 @@ export default {
       else if ( vue.gallery.searchValue.trim() ) {
       
         // Activate Title temporarily
-        if ( vue.gallery.searchActive && vue.gallery.searchValueChanged && vue.gallery.searchOptions.lists.tempSortIndex === null ) {
+        if ( this.$store.state.searchActive && vue.gallery.searchValueChanged && vue.gallery.searchOptions.lists.tempSortIndex === null ) {
           vue.gallery.searchOptions.lists.tempSortIndex = vue.gallery.searchOptions.lists.sortIndex;
           // console.log('TEMP sort index saved - ' + ' regular: ' + vue.gallery.searchOptions.lists.sortIndex )
           vue.gallery.searchOptions.lists.sortIndex = -1;
@@ -270,18 +236,6 @@ export default {
       
     },
     
-    sortExtrasCheck: function( key ) {
-      
-      if ( key === 'randomize' ) {
-        this.gallery.details.open = false;
-        this.gallery.details.index = -1;
-      }
-      else if ( key === 'sortValues' ) {
-        this.forceRerenderBooks();
-      }
-      
-    },
-    
     openSearchOptions: function( option, e ) {
       
       const vue = this;
@@ -350,18 +304,18 @@ export default {
   },
   computed: {
     
-    searchIsActive: function() {
-      return this.gallery.searchActive;
-    },
+    // searchIsActive: function() {
+    //   return this.gallery.searchActive;
+    // },
     
-    currentOptionsListName: function() {
-      return this.gallery.searchOptions.lists.current;
-    },
+    // currentOptionsListName: function() {
+    //   return this.gallery.searchOptions.lists.current;
+    // },
     
-    currentOptionsList: function() {
-      const key = this.gallery.searchOptions.lists.current;
-      return this.gallery.searchOptions.lists[ key ];
-    },
+    // currentOptionsList: function() {
+    //   const key = this.gallery.searchOptions.lists.current;
+    //   return this.gallery.searchOptions.lists[ key ];
+    // },
     
 		placeholder: function() {
       var placeholderKeys = (function( keys ) {
@@ -564,7 +518,7 @@ export default {
     cursor: default !important;
     position: absolute;
     z-index: 1;
-    top: 35px;
+    top: 45px;
     right: 0;
     font-size: 1em;
     line-height: 1.9em;
@@ -581,7 +535,7 @@ export default {
     @include themify($themes) {
       color: themed(frontColor);
       background: lighten( themed(backColor), 10);
-      box-shadow: 0 3px 15px rgba( #000, .6 );
+      box-shadow: 0 3px 15px rgba( #000, .4 );
     }
     
     ul, li { list-style: none; margin: 0; padding: 0; text-align: left; }

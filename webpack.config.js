@@ -29,6 +29,8 @@ const config = {
     alias: {
       'node_modules': path.join(__dirname, 'node_modules'),
       '@': path.join(__dirname, '/src/output-page/'),
+      '@output-page': path.join(__dirname, '/src/output-page/'),
+      '@output-mixins': path.join(__dirname, '/src/output-page/_mixins'),
     },
   },
   module: {

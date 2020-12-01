@@ -44,12 +44,15 @@
 </template>
 
 <script>
-import aleBackground  from './_components/aleBackground'
-import aleNavigation from './_components/aleNavigation'
-import aleBreadcrumbs from './_components/aleBreadcrumbs'
+import aleBackground  from './_components/aleBackground';
+import aleNavigation from './_components/aleNavigation';
+import aleBreadcrumbs from './_components/aleBreadcrumbs';
+
+import VueAudio from 'vue-audio-better';
 
 export default {
   components: {
+    VueAudio,
     aleBackground,
     aleNavigation,
     aleBreadcrumbs,
