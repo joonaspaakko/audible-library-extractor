@@ -13,9 +13,17 @@ import overlay from './_components/layout/overlay';
 import splashscreen from './_components/layout/splashscreen';
 import scrapingProgress from './_components/layout/scrapingProgress';
 
+
+import ajaxios from './_components/_mixins/extract/_misc/ajaxios.js';
+import asynxios from './_components/_mixins/extract/_misc/ajaxios.js';
+import amapxios from './_components/_mixins/extract/_misc/ajaxios.js';
+
 import scrapingPrep from './_components/_mixins/extract/_misc/scrapingPrep.js';
+import scrapingPrepDrill from './_components/_mixins/extract/_misc/scrapingPrep.js';
+
 import getDataFromLibraryPages from './_components/_mixins/extract/process-library-pages.js';
 import getDataFromStorePages from './_components/_mixins/extract/process-store-pages.js';
+import getDataFromCollections from './_components/_mixins/extract/process-collections.js';
 
 import timeStringToSeconds from '@output-mixins/timeStringToSeconds.js';
 import secondsToTimeString from '@output-mixins/secondsToTimeString.js';
@@ -32,6 +40,7 @@ export default {
     scrapingPrep,
     getDataFromLibraryPages,
     getDataFromStorePages,
+    getDataFromCollections,
   ],
   props: ['storageHasData'],
   data: function() {
@@ -40,7 +49,7 @@ export default {
       localStorageBooksLength: 'n/a',
       nextStep: null,
       libraryUrl: window.location.origin + '/library/titles?ale=true',                                                                                                                                                                                                // 'https://www.audible.com/library/titles?ref=a_library_t_c3_sortBy_PURCHASE_DATE.dsc&pf_rd_p=dca9ae45-7e31-4c31-8f67-4f550cbd3e4b&pf_rd_r=28DGMM0BK5YHJF5FD7RH&sortBy=PURCHASE_DATE.dsc&pageSize=50'
-      collectionsUrl: window.location.origin + '/library/collections?ale=true',                                                                                                                             
+      collectionsUrl: window.location.origin + '/library/collections',                                                                                                                             
       newBooks: [],
       library: {
         domainExtension: window.location.hostname.replace('www.audible',''),
@@ -80,23 +89,15 @@ export default {
     
       waterfall([
         function(callback) {
-          vue.scrapingPrep( vue.libraryUrl, function( o ) {
-            callback(null, o);
-          });
-        }, // returns {pageNumbers, urlObj}
-        // vue.getDataFromLibraryPages, // returns books array
-        // vue.getDataFromStorePages,   // returns books array
-        function( books, callback ) {
-          vue.scrapingPrep( vue.collectionsUrl, function( o ) {
-            callback(null, o);
-          });
-        }, // returns {pageNumbers, urlObj}
-        vue.getDataFromCollections, // returns collections array
-        vue.getCollectionBookIDs,   // returns collections array
-        
+          vue.scrapingPrep( vue.libraryUrl, function( o ) { callback(null, o); });
+        }, // returns {pageNumbers, pagesize, urlObj}
+        vue.getDataFromLibraryPages, // returns books array
+        vue.getDataFromStorePages,   // returns books array
+        // FIXME: fetch series order from the series page
+        vue.getDataFromCollections,  // returns collections array        
       ], function(err, result) {
         
-        console.log('%c' + 'books' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;', result);
+        console.log('%c' + 'books?' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;', result);
         
       });
       
@@ -204,24 +205,6 @@ export default {
       
     },
     
-    // scrapingPrep: function( url, callback ) {
-      
-    //   const vue = this;
-      
-    //   vue.getMaxPageSize( url, function( pageSize, url ) {
-        
-    //     url = new Url( url );
-    //     url.query.pageSize = pageSize;
-    //     vue.getPagesLength(url.toString(), function ( pagesLength, url ) {
-          
-    //       callback( _.range(1, pagesLength + 1), url );
-          
-    //     });
-        
-    //   });
-      
-    // },
-    
     getMaxPageSize: function( url, callback ) {
       
       axios.get( url ).then(function( response ) {
@@ -248,40 +231,6 @@ export default {
 
     },
     
-    // getInitialLibraryData1: function( pageNumbers, url ) {
-      
-    //   const vue = this;
-      
-    //   vue.progress.step = -1;
-    //   vue.progress.text = 'Scanning library for books...';
-    //   if ( vue.partialScan ) {
-    //     vue.progress.text = 'Updating old books (' + vue.localStorageBooksLength + ') and adding new books...';
-    //   }
-      
-    //   const requestUrls = _.map(pageNumbers, function( page ) { return url + '&page=' + page });
-    //   vue.ajaxios({
-    //     request: requestUrls,
-    //     step: function( response ) {
-          
-    //       return vue.getlibraryPageData( response );
-          
-    //     },
-    //     done: function( responses ) {
-          
-    //       vue.library.books = _.flatten( _.map(responses, 'books') );
-          
-    //       const newBooks = _.compact(_.flatten(_.map(responses, 'newBooks') ) );
-    //       if ( newBooks && newBooks.length > 0 ) vue.newBooks = newBooks;
-          
-    //       setTimeout( function() {
-    //         vue.getBookData1();
-    //       }, 1000);
-          
-    //     }
-    //   });
-      
-    // },
-    
     ajaxios: function( options ) {
       
       // options.request;
@@ -294,11 +243,12 @@ export default {
           return axios.get( url ).then(function( response ) {
             return response ? options.step(response, index, array) : null;
           }).catch(function( e ) {
+            if ( !e.response ) console.log(e);
             return e.response ? options.step(e.response, index, array) : null;
           });
         })
       ).then( function( response ) {
-        options.done( response ); 
+        options.done( options.flatten ? _.flatten(response) : response ); 
       }).catch(function (error) {
         // handle error
         console.log(error);
@@ -326,7 +276,7 @@ export default {
           const bookInMemory    = _.find(vue.library.books, ['asin', bookASIN]);
           const partialScan_New = vue.partialScan && !bookInMemory || !vue.partialScan;
           const book            = (vue.partialScan && bookInMemory) ? bookInMemory : {};
-              
+          
           // UPDATE SCAN: fetch these only if the book is a new addition...
           // FULL SCAN: fetch always
           if ( partialScan_New ) {
@@ -386,70 +336,6 @@ export default {
         
       
     },
-    
-    
-    // TODO: process store pages do that ding
-    // getBookData1: function() {
-
-    //   const vue = this;
-    //   vue.progress.text = 'Fetching additional data from store pages...';
-    //   vue.progress.bar  = true;
-    //   vue.progress.step = 0;
-      
-    //   // Update (scan): new books only
-    //   // Full scan: all books
-    //   let urlSources = [];
-    //   if ( vue.partialScan ) {
-    //     urlSources = _.filter(vue.library.books, function( book ) {
-    //       return _.includes( vue.newBooks, book.asin );
-    //     });
-    //   }
-    //   else {
-    //     urlSources = vue.library.books;
-    //   }
-      
-    //   if ( urlSources.length > 0 ) {
-        
-    //     const bookURLs = _.map( urlSources, 'url' );
-    //     urlSources = null;
-        
-    //     vue.ajaxios({
-    //       request: bookURLs,
-    //       step: function( response ) {
-          
-    //         const book = _.find( vue.library.books, ['url', response.config.url] );
-            
-    //         // vue.progress.text2 = book.title;
-            
-    //         if ( response.status >= 400 ) {
-    //           book.storePageMissing = true;
-    //           vue.library.storePageMissing.push( book );
-    //         }
-    //         else {
-    //           vue.getStorePageData( response, book );
-    //         }
-            
-    //         ++vue.progress.step; 
-            
-    //       },
-    //       done: function() {
-            
-    //         // vue.getSeriesPage(); 
-    //         vue.goToOutputPage();
-    //         // vue.getCollections1();
-    //       }
-    //     });
-        
-    //   }
-    //   else {
-        
-    //     // vue.getSeriesPage(); 
-    //     vue.goToOutputPage();
-    //     // vue.getCollections1();
-        
-    //   }
-      
-    // },
     
     getStorePageData: function( response, book ) {
       
@@ -697,7 +583,7 @@ export default {
             const url = object.href.split('?')[0].replace( window.location.origin, '' );
             series.push({
               name: string,
-              url: url,
+              // url: url, // Url formed using the asin instead to minimize data size
               asin: url.substring(url.lastIndexOf('/') + 1)
             });
           }
@@ -718,6 +604,7 @@ export default {
       return series.length > 0 ? series : null;
     },
     
+    // FIXME: shorten getArray urls
     getArray: function( elements ) {
       
       const objArray = [];
@@ -739,55 +626,6 @@ export default {
       });
       return objArray.length > 0 ? objArray : null;
     },
-    // supplementArray: function( output, input ) {
-    //   if ( input ) {
-    //     $.each( output, function( i, series ) {
-    //       series.bookNumber = input[i];
-    //     });
-    //   }
-    //   return output;
-    // },
-    // getBookNumbers: function( element ) {
-    //   var clone = element.clone();
-    //   clone.find('a').remove();
-    //   var bookString = clone.text();
-    //   if ( bookString ) bookString = bookString.trim().replace(/\s+/g,' ').split(':')[1];
-    //   if ( bookString ) bookString = bookString.replace(/Book/g, '');
-    //   if ( bookString ) bookString = bookString.trim();
-    //   clone.remove();
-    //   clone = null;
-    //   if ( bookString ) {
-    //     var numbersArray = bookString.split(', ').filter(function ( v ) {
-    //       return v.trim() ? true : false;
-    //     });
-        
-    //     numbersArray = _.map(numbersArray, function(n) {
-    //       var commaSplit =  n.split(',');
-    //       var dashSplit  =  n.split('-');
-    //       // Basically, here the script tries to make an array and turn the
-    //       // numbers into numbers but dashed number ranges should stay as strings.
-    //       if ( commaSplit.length > 1 ) {
-    //         return _.map( commaSplit, function(n) {
-    //           var dashSplit = n.split('-');
-    //           if ( dashSplit.length > 1 ) {
-    //             return n.trim();
-    //           }
-    //           else {
-    //             return parseFloat(n);
-    //           }
-    //         });
-    //       }
-    //       else {
-    //         return dashSplit.length > 1 ? n.trim() : parseFloat( n );
-    //       }
-    //     });
-        
-    //     return numbersArray.length > 0 ? numbersArray : null;
-    //   }
-    //   else {
-    //     return null;
-    //   }
-    // },
     
     // People who bought this also bought... Popup contents
     carouselDataFetch: function( parentBook, audible, key, carouselID ) {

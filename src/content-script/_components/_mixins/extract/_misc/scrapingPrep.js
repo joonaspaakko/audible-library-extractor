@@ -7,20 +7,23 @@
 export default {
   methods: {
     
-    scrapingPrep: function( url, callbach ) {
+    scrapingPrep: function( baseUrl, callbach ) {
       
       const vue = this;
-      
+      // FIXME: make sure there's proper fallbacks if pagesize dropdown or pagination doesn't exist in the query page
       waterfall([
         
         function( callback ) {
-          axios.get( url ).then(function( response ) {
+          
+          let url = new Url( baseUrl );
+          url.query.ale = true;
+          
+          axios.get( url.toString() ).then(function( response ) {
         
             const audible = $($.parseHTML(response.data)).find('div.adbl-main');
             const pageSizeDropdown = audible.find('select[name="pageSize"]');
-            const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : 50;
-            let url = new Url( url );
-            url.query.pageSize = maxPageSize;
+            const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : null;
+            if ( maxPageSize ) url.query.pageSize = maxPageSize;
             callback( null, url );
             
           });
@@ -32,9 +35,8 @@ export default {
             
             const audible = $($.parseHTML(response.data)).find('div.adbl-main');
             const pagination = audible.find('.pagingElements');
-            const pagesLength = pagination ? pagination.find('.pageNumberElement:last').data('value') : 1;
-
-            callback( null, { pageNumbers: _.range(1, pagesLength + 1), urlObj: urlObj });
+            const pagesLength = pagination.length > 0 ? pagination.find('.pageNumberElement:last').data('value') : 1;
+            callback( null, { pageNumbers: _.range(1, pagesLength + 1), pageSize: (urlObj.query.pageSize || null), urlObj: urlObj });
           });
           
         }
@@ -45,5 +47,28 @@ export default {
       
     },
     
-  } 
+  },
+  
+  scrapingPrepDrill: function( baseUrl, o, callback ) {
+    return axios.get( baseUrl ).then(function( response ) {
+        
+      const audible = $($.parseHTML(response.data)).find('div.adbl-main');
+      const pageSizeDropdown = audible.find('select[name="pageSize"]');
+      const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : 50;
+      let url = new Url( baseUrl );
+      url.query.pageSize = maxPageSize;
+      
+      return axios.get( url.toString() ).then(function( response ) {
+            
+        const audible = $($.parseHTML(response.data)).find('div.adbl-main');
+        const pagination = audible.find('.pagingElements');
+        const pagesLength = pagination ? pagination.find('.pageNumberElement:last').data('value') : 1;
+        
+        return (callback) ? callback( o, urlObj, _.range(1, pagesLength + 1) ) : o;
+        
+      });
+      
+    });
+  },
+  
 }

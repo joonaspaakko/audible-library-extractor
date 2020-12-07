@@ -3,20 +3,21 @@ import ajaxios from './_misc/ajaxios.js';
 export default {
   mixins: [ajaxios],
   methods: {
-    getDataFromStorePages: function( config, done ) {
+    getDataFromStorePages: function( books, done ) {
       
       this.progress.text = 'Fetching additional data from store pages...';
       this.progress.bar  = true;
       this.progress.step = 0;
       
       const vue = this;
-      const requests = prepStorePages( this, config.books );
+      const requests = prepStorePages( this, books );
+      console.log('%c' + 'requests' + '', 'background: #c71485; color: #fff; padding: 2px 5px; border-radius: 8px;', requests);
       if ( requests ) {
         this.ajaxios({
           request: requests,
           step: function( response, bookIndex ) {
           
-            const book = config.books[ bookIndex ];
+            let book = books[ bookIndex ];
             vue.progress.text2 = book.title;
             
             if ( response.status >= 400 ) {
@@ -28,7 +29,7 @@ export default {
             }
             
             ++vue.progress.step; 
-            
+            console.log('%c' + 'book' + '', 'background: #dbff00; color: #000; padding: 2px 5px; border-radius: 8px;',book);
             return book;
             
           },
@@ -36,10 +37,14 @@ export default {
           done: function( books ) {
             
             console.log('%c' + 'store RESPONSES' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', books);
-                      
-            setTimeout( function() {
+            vue.progress.text2 = '';
+            vue.progress.step = -1;
+            vue.progress.maxLength = 0;
+            vue.progress.bar = false;
+            
+            // setTimeout( function() {
               done(null, books);
-            }, 1000);
+            // }, 1000);
             
           }
         });
@@ -56,8 +61,11 @@ export default {
 function prepStorePages( vue, books ) {
   
   let source = vue.partialScan ? _.filter(books, 'new') : books;
-    
-  if ( source.length > 0 ) return _.map( source, 'url' );
+  
+  if ( source.length > 0 ) return _.map( source, function( o ) {
+    console.log( o.title, o )
+    return window.location.origin + '/pd?asin=' + o.asin;
+  });
   else return null;
   
 }
@@ -103,7 +111,6 @@ function getStorePageData( vue, response, book ) {
   }
   else { 
     book.storePageMissing = true;
-    // vue.library.storePageMissing.push(book);
   }
   
   

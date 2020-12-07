@@ -32,9 +32,9 @@ export default {
         done: function( books ) {
           
           console.log('%c' + 'responses' + '', 'border: 1px solid #00bb1e; color: #00bb1e; padding: 2px 5px; border-radius: 8px;', books);
-          setTimeout( function() {
+          // setTimeout( function() {
             done(null, books);
-          }, 1000);
+          // }, 1000);
           
         }
       });
@@ -61,7 +61,7 @@ function processLibraryPage( vue, response ) {
       const bookASIN        = _thisRow.getAttribute('id').replace('adbl-library-content-row-', '');
       const bookInMemory    = _.find(vue.library.books, ['asin', bookASIN]);
       const fullScan_ALL_partialScan_NEW = vue.partialScan && !bookInMemory || !vue.partialScan;
-      const book            = (vue.partialScan && bookInMemory) ? bookInMemory : {};
+      let book            = (vue.partialScan && bookInMemory) ? bookInMemory : {};
       
       // UPDATE SCAN: fetch these only if the book is a new addition...
       // FULL SCAN: fetch always
@@ -74,7 +74,7 @@ function processLibraryPage( vue, response ) {
         else {
           book.coverUrl   = getCover.match(/\/images\/I\/(.*)._SL/)[1];
         }
-        book.url        = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').getAttribute('href').split('?')[0];
+        // book.url        = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').getAttribute('href').split('?')[0];
         book.title      = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span').textContent.trimAll();
         book.authors    = vue.getArray(_thisRow.querySelectorAll('.authorLabel > span > a'));
         book.narrators  = vue.getArray(_thisRow.querySelectorAll('.narratorLabel > span > a'));
@@ -112,6 +112,8 @@ function processLibraryPage( vue, response ) {
       // Own rating
       const myRating = _thisRow.querySelector('div.bc-rating-stars.adbl-prod-rate-review-bar.adbl-prod-rate-review-bar-overall').getAttribute('data-star-count');
       if ( myRating > 0 ) book.myRating = myRating;
+      
+      book = _.omitBy( book, _.isNull );
       
       // - - - - - - - 
       

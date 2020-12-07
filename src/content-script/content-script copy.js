@@ -861,9 +861,9 @@ function audibleLibraryExtractor( oldLibraryData, libraryStyle ) {
             const flyout = $(this).closest('[id^=product-list-flyout]');
             const image = flyout.prev('.responsive-product-square').find('[id^="product-carousel-image"]');
             const cover = image.attr('src') || image.attr('data-lazy');
-            const url = image.parent('a').attr('href');
             book.coverUrl = cover.match(/\/images\/I\/(.*)._SL/)[1];
-            book.url = url.split('?')[0];
+            // const url = image.parent('a').attr('href');
+            // book.url = url.split('?')[0];
             
             var list = $(this).find('ul');
             var listItems = list.find('li:not(.bc-size-base)');

@@ -15,6 +15,7 @@ import browser from 'webextension-polyfill';
 import DOMPurify from 'dompurify';
 import Url from 'domurl';
 import waterfall from 'async-es/waterfall';
+import map from 'async-es/map';
 
 global._          = _;
 global.$          = $;
@@ -25,6 +26,7 @@ global.DOMPurify  = DOMPurify;
 global.dateFormat = dateFormat;
 global.Url        = Url;
 global.waterfall  = waterfall;
+global.asyncMap   = map;
 
 axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
 
