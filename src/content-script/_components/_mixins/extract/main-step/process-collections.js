@@ -3,18 +3,19 @@
 export default {
   // mixins: [ajaxios],
   methods: {
-    getDataFromCollections: function( books, collectionsFetched ) {
+    getDataFromCollections: function( hotpotato, collectionsFetched ) {
       
       this.progress.text = 'Looking for collections...';
       // this.progress.bar  = true;
       // this.progress.step = -1;
+      
+      // FIXME: redo collections in a more sensible way...
       
       const vue = this;
       waterfall([
         
         function( callback ) {
           vue.scrapingPrep( vue.collectionsUrl, function( o ) {
-            delete o.urlObj.query.ale;
             callback(null, o);
           });
         }, // returns {pageNumbers, urlObj}
@@ -94,7 +95,9 @@ export default {
           delete collection.pageSize;
         });
         
-        collectionsFetched( null, { books: books, collections: collections });
+        hotpotato.collections = collections;
+        
+        collectionsFetched( null, hotpotato);
       });
       
       
@@ -168,9 +171,8 @@ function getBooks( collections, vue, callback ) {
         url: vue.collectionsUrl + '/' + collection.id + '/?page=' + page + pageSize + '&sortBy=PURCHASE_DATE.dsc' // sort by date added
       });
     });
-    return collection; 
   });
-            
+        
   vue.amapxios({
     requests: collectionUrls,
     step: function( response, stepCallback, request ) {
@@ -206,6 +208,7 @@ function getBooks( collections, vue, callback ) {
         vue.progress.bar = false;
         
         callback(null, collections, collectionBooks);
+        
       }, 1000);
       
     }

@@ -3,10 +3,6 @@
 export default {
   methods: {
     
-    // options.request;
-    // options.step;
-    // options.done;
-    // options.flatten;
     ajaxios: function( options ) {
       
       if ( options.request.length > 0 ) {
@@ -15,9 +11,9 @@ export default {
           options.request.map( function( url, index, array ) {
             
             return axios.get( url ).then(function( response ) {
-              return response ? options.step(response, index, array, callback) : null;
+              return response ? options.step(response, index, array) : null;
             }).catch(function( e ) {
-              return e.response ? options.step(e.response, index, array, callback) : null;
+              return e.response ? options.step(e.response, index, array) : null;
             });
             
           })
@@ -34,27 +30,27 @@ export default {
       
     },
     
-    asynxios: async function( options ) {
+    // asynxios: async function( options ) {
       
-      let response;
-      if ( options.request.length > 0 ) {
-        try {
-          response = await Promise.all(
-            options.request.map( function( url, index, array ) {
-              return axios.get( url ).then(function( response ) {
-                return response ? options.step(response, index, array) : null;
-              }).catch(function( e ) {
-                return e.response ? options.step(e.response, index, array) : null;
-              });
-            })
-          );
-        } catch (e) {
-          console.log('Something went wrong', e);
-        }
-      }
-      return response;
+    //   let response;
+    //   if ( options.request.length > 0 ) {
+    //     try {
+    //       response = await Promise.all(
+    //         options.request.map( function( url, index, array ) {
+    //           return axios.get( url ).then(function( response ) {
+    //             return response ? options.step(response, index, array) : null;
+    //           }).catch(function( e ) {
+    //             return e.response ? options.step(e.response, index, array) : null;
+    //           });
+    //         })
+    //       );
+    //     } catch (e) {
+    //       console.log('Something went wrong', e);
+    //     }
+    //   }
+    //   return response;
       
-    },
+    // },
     
     amapxios: function( options ) {
       

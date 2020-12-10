@@ -19,12 +19,18 @@ export default {
           url.query.ale = true;
           
           axios.get( url.toString() ).then(function( response ) {
-        
+            
             const audible = $($.parseHTML(response.data)).find('div.adbl-main');
             const pageSizeDropdown = audible.find('select[name="pageSize"]');
             const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : null;
-            if ( maxPageSize ) url.query.pageSize = maxPageSize;
-            callback( null, url );
+            
+            if ( !maxPageSize || maxPageSize < 50 ) {
+              callback( true, { pageNumbers: [1], pageSize: maxPageSize, urlObj: url } );
+            }
+            else { 
+              url.query.pageSize = maxPageSize;
+              callback( null, url );
+            }
             
           });
         },
@@ -37,6 +43,7 @@ export default {
             const pagination = audible.find('.pagingElements');
             const pagesLength = pagination.length > 0 ? pagination.find('.pageNumberElement:last').data('value') : 1;
             callback( null, { pageNumbers: _.range(1, pagesLength + 1), pageSize: (urlObj.query.pageSize || null), urlObj: urlObj });
+            
           });
           
         }

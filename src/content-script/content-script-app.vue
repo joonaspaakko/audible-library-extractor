@@ -9,22 +9,27 @@
 
 <script>
 
+// Components
 import overlay from './_components/layout/overlay';
 import splashscreen from './_components/layout/splashscreen';
 import scrapingProgress from './_components/layout/scrapingProgress';
 
+// Calls
+import ajaxios from './_components/_mixins/extract/calls/ajaxios.js';
+import amapxios from './_components/_mixins/extract/calls/ajaxios.js';
+import scrapingPrep from './_components/_mixins/extract/calls/scrapingPrep.js';
+import scrapingPrepDrill from './_components/_mixins/extract/calls/scrapingPrep.js';
 
-import ajaxios from './_components/_mixins/extract/_misc/ajaxios.js';
-import asynxios from './_components/_mixins/extract/_misc/ajaxios.js';
-import amapxios from './_components/_mixins/extract/_misc/ajaxios.js';
+// Misc
+import getDataFromCarousel from './_components/_mixins/extract/misc/fetch-store-page-carousel-data.js';
 
-import scrapingPrep from './_components/_mixins/extract/_misc/scrapingPrep.js';
-import scrapingPrepDrill from './_components/_mixins/extract/_misc/scrapingPrep.js';
+// Steps
+import getDataFromLibraryPages from './_components/_mixins/extract/main-step/process-library-pages.js';
+import getDataFromStorePages from './_components/_mixins/extract/main-step/process-store-pages.js';
+import getDataFromSeriesPages from './_components/_mixins/extract/main-step/process-series-pages.js';
+import getDataFromCollections from './_components/_mixins/extract/main-step/process-collections.js';
 
-import getDataFromLibraryPages from './_components/_mixins/extract/process-library-pages.js';
-import getDataFromStorePages from './_components/_mixins/extract/process-store-pages.js';
-import getDataFromCollections from './_components/_mixins/extract/process-collections.js';
-
+// Outside 
 import timeStringToSeconds from '@output-mixins/timeStringToSeconds.js';
 import secondsToTimeString from '@output-mixins/secondsToTimeString.js';
 
@@ -37,9 +42,12 @@ export default {
   mixins: [
     timeStringToSeconds,
     secondsToTimeString,
+    amapxios,
     scrapingPrep,
     getDataFromLibraryPages,
     getDataFromStorePages,
+    getDataFromCarousel,
+    getDataFromSeriesPages,
     getDataFromCollections,
   ],
   props: ['storageHasData'],
@@ -48,7 +56,8 @@ export default {
       partialScan: false,
       localStorageBooksLength: 'n/a',
       nextStep: null,
-      libraryUrl: window.location.origin + '/library/titles?ale=true',                                                                                                                                                                                                // 'https://www.audible.com/library/titles?ref=a_library_t_c3_sortBy_PURCHASE_DATE.dsc&pf_rd_p=dca9ae45-7e31-4c31-8f67-4f550cbd3e4b&pf_rd_r=28DGMM0BK5YHJF5FD7RH&sortBy=PURCHASE_DATE.dsc&pageSize=50'
+      libraryUrl: window.location.origin + '/library/titles',                                                                                                                                                                                                // 'https://www.audible.com/library/titles?ref=a_library_t_c3_sortBy_PURCHASE_DATE.dsc&pf_rd_p=dca9ae45-7e31-4c31-8f67-4f550cbd3e4b&pf_rd_r=28DGMM0BK5YHJF5FD7RH&sortBy=PURCHASE_DATE.dsc&pageSize=50'
+      seriesUrl: window.location.origin + '/series',                                                                                                                             
       collectionsUrl: window.location.origin + '/library/collections',                                                                                                                             
       newBooks: [],
       library: {
@@ -76,7 +85,7 @@ export default {
       vue[ 'init_'+step ]();
     });
     
-    vue.init_storePageTest();
+    // vue.init_storePageTest();
     
   },
   methods: {
@@ -85,16 +94,12 @@ export default {
       
       const vue = this;
       vue.progress.show = true;
-      // this.getLibraryPagesLength(); // Cascades down from here...
-    
-      waterfall([
-        function(callback) {
-          vue.scrapingPrep( vue.libraryUrl, function( o ) { callback(null, o); });
-        }, // returns {pageNumbers, pagesize, urlObj}
-        vue.getDataFromLibraryPages, // returns books array
-        vue.getDataFromStorePages,   // returns books array
-        // FIXME: fetch series order from the series page
-        vue.getDataFromCollections,  // returns collections array        
+      
+      waterfall([ 
+        // vue.getDataFromLibraryPages, 
+        // vue.getDataFromStorePages, 
+        // vue.getDataFromSeriesPages,
+        vue.getDataFromCollections, 
       ], function(err, result) {
         
         console.log('%c' + 'books?' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;', result);
@@ -137,43 +142,43 @@ export default {
       
     },
     
-    init_storePageTest: function() {
+    // init_storePageTest: function() {
       
-      console.log('============= STORE PAGE TEST ============= ' );
+    //   console.log('============= STORE PAGE TEST ============= ' );
       
-      const vue = this;
+    //   const vue = this;
       
-      vue.ajaxios({
-        request: [
-          'https://www.audible.com/pd/The-Martian-Audiobook/B082BHJMFF',
-          'https://www.audible.com/pd/Aliens-of-Extraordinary-Ability-Audiobook/B07TXLC1NF',
-          'https://www.audible.com/pd/The-Dire-King-Audiobook/B0751GMDXN'
-        ],
-        step: function (response) {
+    //   vue.ajaxios({
+    //     request: [
+    //       'https://www.audible.com/pd/The-Martian-Audiobook/B082BHJMFF',
+    //       'https://www.audible.com/pd/Aliens-of-Extraordinary-Ability-Audiobook/B07TXLC1NF',
+    //       'https://www.audible.com/pd/The-Dire-King-Audiobook/B0751GMDXN'
+    //     ],
+    //     step: function (response) {
 
-          var book = { test: true };
+    //       var book = { test: true };
           
-          if (response.status >= 400) {
-            book.storePageMissing = true;
-            vue.library.storePageMissing.push(book);
-          }
-          else {
-            vue.getStorePageData(response, book );
-          }
+    //       if (response.status >= 400) {
+    //         book.storePageMissing = true;
+    //         vue.library.storePageMissing.push(book);
+    //       }
+    //       else {
+    //         vue.getStorePageData(response, book );
+    //       }
           
-          return book;
+    //       return book;
 
-        },
-        done: function(responses) {
+    //     },
+    //     done: function(responses) {
 
-          const books = _.flatten( responses );
-          console.log( books );
-          console.log(' DONE');
+    //       const books = _.flatten( responses );
+    //       console.log( books );
+    //       console.log(' DONE');
 
-        }
-      });
+    //     }
+    //   });
       
-    },
+    // },
     
     processOldLibraryData: function( oldLibraryData ) {
       
@@ -231,30 +236,30 @@ export default {
 
     },
     
-    ajaxios: function( options ) {
+    // ajaxios: function( options ) {
       
-      // options.request;
-      // options.step;
-      // options.done;
-      // options.baseUrl;
+    //   // options.request;
+    //   // options.step;
+    //   // options.done;
+    //   // options.baseUrl;
       
-      Promise.all(
-        options.request.map( function( url, index, array ) {
-          return axios.get( url ).then(function( response ) {
-            return response ? options.step(response, index, array) : null;
-          }).catch(function( e ) {
-            if ( !e.response ) console.log(e);
-            return e.response ? options.step(e.response, index, array) : null;
-          });
-        })
-      ).then( function( response ) {
-        options.done( options.flatten ? _.flatten(response) : response ); 
-      }).catch(function (error) {
-        // handle error
-        console.log(error);
-      });
+    //   Promise.all(
+    //     options.request.map( function( url, index, array ) {
+    //       return axios.get( url ).then(function( response ) {
+    //         return response ? options.step(response, index, array) : null;
+    //       }).catch(function( e ) {
+    //         if ( !e.response ) console.log(e);
+    //         return e.response ? options.step(e.response, index, array) : null;
+    //       });
+    //     })
+    //   ).then( function( response ) {
+    //     options.done( options.flatten ? _.flatten(response) : response ); 
+    //   }).catch(function (error) {
+    //     // handle error
+    //     console.log(error);
+    //   });
       
-    },
+    // },
     
     getlibraryPageData: function( response ) {
       
@@ -337,54 +342,54 @@ export default {
       
     },
     
-    getStorePageData: function( response, book ) {
+    // getStorePageData: function( response, book ) {
       
-      const vue = this;
+    //   const vue = this;
       
-      var   html     = $($.parseHTML(response.data));
-      const audible  = html.find('div.adbl-main')[0];
-      const jsonData = JSON.parse( html.find('#bottom-0 > script:first')[0].textContent );
-      const bookData = jsonData[0];
-      html =  null;
+    //   var   html     = $($.parseHTML(response.data));
+    //   const audible  = html.find('div.adbl-main')[0];
+    //   const jsonData = JSON.parse( html.find('#bottom-0 > script:first')[0].textContent );
+    //   const bookData = jsonData[0];
+    //   html =  null;
               
-      response.data = null;
-      // When the store page is replaced with a new version, its ID (asin) may change and so here
-      // I just make a note of it so that we can say in the gallery that  the information here may 
-      // be inaccurate
-      if ( !book.test ) {
-        const storePageChanged = response.request.responseURL.lastIndexOf(book.asin) < 0;
-        if ( storePageChanged ) book.storePageChanged = true;
-      }
+    //   response.data = null;
+    //   // When the store page is replaced with a new version, its ID (asin) may change and so here
+    //   // I just make a note of it so that we can say in the gallery that  the information here may 
+    //   // be inaccurate
+    //   if ( !book.test ) {
+    //     const storePageChanged = response.request.responseURL.lastIndexOf(book.asin) < 0;
+    //     if ( storePageChanged ) book.storePageChanged = true;
+    //   }
 
-      // This "#sample-player..." selector tries to weed out missing store pages
-      if ( book.test || audible.querySelector('#sample-player-'+ book.asin +'> button') ) { 
-        book.titleShort  = bookData.name;
-        book.ratings     = parseFloat( audible.querySelector('.ratingsLabel > a').textContent.match(/\d/g).join('') );
-        book.rating      = Number( audible.querySelector('.ratingsLabel > span:last-of-type').textContent.trimAll() );
-        book.summary     = bookData.description || vue.getSummary( audible.querySelector('.productPublisherSummary > .bc-section > .bc-box:first-of-type') || audible.querySelector('#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span') );
-        book.releaseDate = bookData.datePublished || vue.fixDates( audible.querySelector('.releaseDateLabel') );
-        book.publishers  = vue.getArray( audible.querySelectorAll('.publisherLabel > a') );
-        book.length      = book.length || vue.shortenLength( audible.querySelector('.runtimeLabel').textContent.trimToColon() );
-        book.categories  = vue.getArray(audible.querySelector('.categoriesLabel') ? audible.querySelectorAll('.categoriesLabel > a') : audible.querySelectorAll('.bc-breadcrumb > a') );
-        book.sample      = book.test ? null : audible.querySelector('#sample-player-'+ book.asin +' > button').getAttribute('data-mp3');
-        book.language    = bookData.inLanguage ? _.startCase( bookData.inLanguage ) : audible.querySelector('.languageLabel').textContent.trimToColon();
-        book.format      = audible.querySelector('.format').textContent.trimAll();
-        // Around July 2020 audible has removed any mention of the added date. 
-        // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.
-        // book.dateAdded   = vue.fixDates( audible.querySelector('#adbl-buy-box-purchase-date > span') );
+    //   // This "#sample-player..." selector tries to weed out missing store pages
+    //   if ( book.test || audible.querySelector('#sample-player-'+ book.asin +'> button') ) { 
+    //     book.titleShort  = bookData.name;
+    //     book.ratings     = parseFloat( audible.querySelector('.ratingsLabel > a').textContent.match(/\d/g).join('') );
+    //     book.rating      = Number( audible.querySelector('.ratingsLabel > span:last-of-type').textContent.trimAll() );
+    //     book.summary     = bookData.description || vue.getSummary( audible.querySelector('.productPublisherSummary > .bc-section > .bc-box:first-of-type') || audible.querySelector('#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span') );
+    //     book.releaseDate = bookData.datePublished || vue.fixDates( audible.querySelector('.releaseDateLabel') );
+    //     book.publishers  = vue.getArray( audible.querySelectorAll('.publisherLabel > a') );
+    //     book.length      = book.length || vue.shortenLength( audible.querySelector('.runtimeLabel').textContent.trimToColon() );
+    //     book.categories  = vue.getArray(audible.querySelector('.categoriesLabel') ? audible.querySelectorAll('.categoriesLabel > a') : audible.querySelectorAll('.bc-breadcrumb > a') );
+    //     book.sample      = book.test ? null : audible.querySelector('#sample-player-'+ book.asin +' > button').getAttribute('data-mp3');
+    //     book.language    = bookData.inLanguage ? _.startCase( bookData.inLanguage ) : audible.querySelector('.languageLabel').textContent.trimToColon();
+    //     book.format      = audible.querySelector('.format').textContent.trimAll();
+    //     // Around July 2020 audible has removed any mention of the added date. 
+    //     // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.
+    //     // book.dateAdded   = vue.fixDates( audible.querySelector('#adbl-buy-box-purchase-date > span') );
         
-        vue.carouselDataFetch(book, audible, 'peopleAlsoBought', 5 );
-        vue.carouselDataFetch(book, audible, 'moreLikeThis', 6 ); 
-        // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
-        book = _.omitBy( book, _.isNull );
-      }
-      else { 
-        book.storePageMissing = true;
-        vue.library.storePageMissing.push(book);
-      }
+    //     vue.carouselDataFetch(book, audible, 'peopleAlsoBought', 5 );
+    //     vue.carouselDataFetch(book, audible, 'moreLikeThis', 6 ); 
+    //     // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
+    //     book = _.omitBy( book, _.isNull );
+    //   }
+    //   else { 
+    //     book.storePageMissing = true;
+    //     vue.library.storePageMissing.push(book);
+    //   }
       
       
-    },
+    // },
     
     // This secondary fetch is needed because length is shown in the library
     // only if that same space is not occupied by "Finished" or "Xh left"
@@ -625,67 +630,6 @@ export default {
         });
       });
       return objArray.length > 0 ? objArray : null;
-    },
-    
-    // People who bought this also bought... Popup contents
-    carouselDataFetch: function( parentBook, audible, key, carouselID ) {
-      
-      const carousel = $( audible.querySelector('#adbl-web-carousel-c'+ carouselID ) );
-      if ( carousel.length > 0 ) {
-        const books = [];
-        
-        const carouselItem = carousel.find('.responsive-product-square');
-        const flyout = carouselItem.next('[id^=product-list-flyout]');
-        const popover = flyout.find('.bc-popover-inner');
-        
-        popover.each(function() {
-          
-          const book = {};
-          const flyout = $(this).closest('[id^=product-list-flyout]');
-          const image = flyout.prev('.responsive-product-square').find('[id^="product-carousel-image"]');
-          const cover = image.attr('src') || image.attr('data-lazy');
-          const url = image.parent('a').attr('href');
-          book.coverUrl = cover.match(/\/images\/I\/(.*)._SL/)[1];
-          book.url = url.split('?')[0];
-          
-          var list = $(this).find('ul');
-          var listItems = list.find('li:not(.bc-size-base)');
-          var subHeading = list.find('li.bc-size-base:nth-child(2)');
-          if (subHeading.length > 0) book.subHeading = subHeading.text().trim();
-          listItems.length = 4;
-          $(listItems).each(function (i) {
-            
-            // const _this = this.querySelector('h2') || this;
-            let text = this.textContent.trimAll();
-            
-            if (!this.querySelector('h2')) {
-              text = text.trimToColon();
-            }
-            
-            var line = (i + 1);
-            switch (line) {
-              case 1:
-                book.title = text;
-                break;
-              case 2:
-                book.authors = text;
-                break;
-              case 3:
-                book.narrators = text;
-                break;
-              case 4:
-                book.length = text;
-                break;
-            }
-            
-          });
-          books.push( book );
-        });
-        
-        if ( books.length > 0 ) parentBook[key] = books;
-        
-      }
-      
     },
     
     fetchISBNs: function( urlSources ) {

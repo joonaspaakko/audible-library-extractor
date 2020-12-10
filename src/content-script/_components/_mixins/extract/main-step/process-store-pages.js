@@ -1,56 +1,49 @@
 
-import ajaxios from './_misc/ajaxios.js';
 export default {
-  mixins: [ajaxios],
   methods: {
-    getDataFromStorePages: function( books, done ) {
+    getDataFromStorePages: function( hotpotato, storePagesFetched ) {
       
       this.progress.text = 'Fetching additional data from store pages...';
       this.progress.bar  = true;
       this.progress.step = 0;
       
       const vue = this;
-      const requests = prepStorePages( this, books );
-      console.log('%c' + 'requests' + '', 'background: #c71485; color: #fff; padding: 2px 5px; border-radius: 8px;', requests);
+      const requests = prepStorePages( this, hotpotato.books );
+      
       if ( requests ) {
-        this.ajaxios({
-          request: requests,
-          step: function( response, bookIndex ) {
-          
-            let book = books[ bookIndex ];
+        vue.amapxios({
+          requests: requests,
+          step: function( response, stepCallback, requestBook ) {
+            
+            // FIXME: pass the whole book as the requestBook param so this next line is won't be necessary....
+            let book = _.find( hotpotato.books, { asin: requestBook.asin });;
             vue.progress.text2 = book.title;
             
             if ( response.status >= 400 ) {
               book.storePageMissing = true;
-              // vue.library.storePageMissing.push( book );
             }
             else {
               getStorePageData( vue, response, book );
             }
             
             ++vue.progress.step; 
-            console.log('%c' + 'book' + '', 'background: #dbff00; color: #000; padding: 2px 5px; border-radius: 8px;',book);
-            return book;
+            stepCallback( book );
             
           },
           flatten: true,
           done: function( books ) {
             
-            console.log('%c' + 'store RESPONSES' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', books);
             vue.progress.text2 = '';
             vue.progress.step = -1;
             vue.progress.maxLength = 0;
             vue.progress.bar = false;
             
-            // setTimeout( function() {
-              done(null, books);
-            // }, 1000);
+            setTimeout( function() {
+              storePagesFetched(null, hotpotato);
+            }, 1000);
             
           }
         });
-      }
-      else {
-        console.log('%c' + 'Error: No store pages' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
       }
       
     },
@@ -62,9 +55,8 @@ function prepStorePages( vue, books ) {
   
   let source = vue.partialScan ? _.filter(books, 'new') : books;
   
-  if ( source.length > 0 ) return _.map( source, function( o ) {
-    console.log( o.title, o )
-    return window.location.origin + '/pd?asin=' + o.asin;
+  if ( source.length > 0 ) return _.map( source, function( book ) {
+    return { url: window.location.origin + '/pd?asin=' + book.asin, asin: book.asin }
   });
   else return null;
   
@@ -74,8 +66,9 @@ function getStorePageData( vue, response, book ) {
   
   var   html     = $($.parseHTML(response.data));
   const audible  = html.find('div.adbl-main')[0];
-  const jsonData = JSON.parse( html.find('#bottom-0 > script:first')[0].textContent );
-  const bookData = jsonData[0];
+  let jsonData = html.find('#bottom-0 > script:first')[0];
+  if ( jsonData ) jsonData = JSON.parse( jsonData.textContent );
+  const bookData = jsonData[0] || {};
   html =  null;
           
   response.data = null;
@@ -104,8 +97,8 @@ function getStorePageData( vue, response, book ) {
     // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.
     // book.dateAdded   = vue.fixDates( audible.querySelector('#adbl-buy-box-purchase-date > span') );
     
-    vue.carouselDataFetch(book, audible, 'peopleAlsoBought', 5 );
-    vue.carouselDataFetch(book, audible, 'moreLikeThis', 6 ); 
+    vue.getDataFromCarousel(book, audible, 'peopleAlsoBought', 5 );
+    vue.getDataFromCarousel(book, audible, 'moreLikeThis', 6 ); 
     // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
     book = _.omitBy( book, _.isNull );
   }
