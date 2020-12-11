@@ -16,27 +16,26 @@ export default {
           
           requests.push({ 
             url: vue.seriesUrl + '/'+ series.asin, 
-            seriesAsin: series.asin, 
-            bookAsins: [], 
-            seriesLength: 0,
+            asin: series.asin, 
+            books: [], 
+            length: 0,
           });
           
         });
       });
       
-      requests = _.uniqBy( requests, 'seriesAsin');
+      requests = _.uniqBy( requests, 'asin');
       
       // vue.progress.maxLength = requests.length;
       
       asyncMap( requests, 
         function( request, stepCallback ) {
+          
+          vue.progress.text = 'Fetching books in series...'
+          vue.progress.maxLength = requests.length;
+          vue.progress.bar  = true;
+          
           vue.scrapingPrep(request.url, function( prep ) {
-            
-            if ( vue.progress.maxLength < 1 ) {
-              vue.progress.text = 'Fetching books in series...'
-              vue.progress.maxLength = requests.length;
-              vue.progress.bar  = true;
-            }
             
             request.pageNumbers = prep.pageNumbers;
             request.pageSize = prep.pageSize;
@@ -48,11 +47,11 @@ export default {
         function( err, responses ) {
           
           // Each series page is fetched as a separate request.
-          // This merges the bookAsins arrays and cleans up the returning object a little
+          // This merges the books arrays and cleans up the returning object a little
           _.each( _.flatten(responses), function( series ) {
-            const targetSeries = _.find( requests, { seriesAsin: series.seriesAsin });
-            if ( targetSeries ) targetSeries.bookAsins = targetSeries.bookAsins.concat( series.bookAsins );
-            targetSeries.seriesLength += series.seriesLength;
+            const targetSeries = _.find( requests, { asin: series.asin });
+            if ( targetSeries ) targetSeries.books = targetSeries.books.concat( series.books );
+            targetSeries.length += series.length;
             delete targetSeries.pageNumbers;
             delete targetSeries.pageSize;
             delete targetSeries.url;
@@ -75,8 +74,6 @@ function getBooks( vue, request, parentStepCallback ) {
   
   let requestUrls = [];
   
-  // FIXME: CONTINUE FROM HERE
-  
   _.each( request.pageNumbers, function( page ) {
     const requestDolly = _.cloneDeep( request );
     const pageSize = request.pageSize ? '&pageSize='+ request.pageSize : '';
@@ -89,14 +86,14 @@ function getBooks( vue, request, parentStepCallback ) {
     step: function( response, stepCallback, request ) {
       
       const audible = $($.parseHTML(response.data)).find('div.adbl-main')[0];
-      // response.data = null;
+      response.data = null;
       
       const bookRows = audible.querySelectorAll('.adbl-impression-container > .productListItem');
       
       let series = { 
-        seriesAsin: request.seriesAsin,
-        bookAsins: [], 
-        seriesLength: bookRows.length,
+        asin: request.asin,
+        books: [], 
+        length: bookRows.length,
       };
       
       $(bookRows).each(function () {
@@ -105,7 +102,7 @@ function getBooks( vue, request, parentStepCallback ) {
         const inLibrary = this.querySelector('.adblBuyBoxInLibraryButton');
         // const ableToPlay = this.querySelector('.adblBuyBoxMinervaPlayNow');
         if ( inLibrary ) {
-          series.bookAsins.push( this.querySelector('div[data-asin]').getAttribute('data-asin') );
+          series.books.push( this.querySelector('div[data-asin]').getAttribute('data-asin') );
         }
         
       });
@@ -120,7 +117,7 @@ function getBooks( vue, request, parentStepCallback ) {
       
       setTimeout( function() {
         console.log( series )
-        ++vue.progress.step;
+        ++vue.progress.step; // Counting series, not books
         parentStepCallback(null, series);
         
       }, 1000);

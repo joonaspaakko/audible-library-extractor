@@ -1,7 +1,7 @@
 
 export default {
   methods: {
-    getDataFromLibraryPages: function( libraryPagesFetched ) {
+    getDataFromLibraryPages: function( hotpotato, libraryPagesFetched, ) {
       
       const vue = this;
       vue.progress.step = -1;

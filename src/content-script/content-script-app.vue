@@ -96,10 +96,11 @@ export default {
       vue.progress.show = true;
       
       waterfall([ 
-        // vue.getDataFromLibraryPages, 
-        // vue.getDataFromStorePages, 
-        // vue.getDataFromSeriesPages,
-        vue.getDataFromCollections, 
+        function( callback ) { callback( null, {}); }, 
+        vue.getDataFromLibraryPages, // Can be scraped alone
+        vue.getDataFromStorePages,   // Requires library page data
+        vue.getDataFromSeriesPages,  // Can be scraped alone
+        vue.getDataFromCollections,  // Can be scraped alone
       ], function(err, result) {
         
         console.log('%c' + 'books?' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;', result);

@@ -6,17 +6,17 @@ export default {
     getDataFromCollections: function( hotpotato, collectionsFetched ) {
       
       this.progress.text = 'Looking for collections...';
+      this.progress.step = 0;
+      this.progress.maxLength = 0;
       // this.progress.bar  = true;
       // this.progress.step = -1;
-      
-      // FIXME: redo collections in a more sensible way...
       
       const vue = this;
       waterfall([
         
         function( callback ) {
-          vue.scrapingPrep( vue.collectionsUrl, function( o ) {
-            callback(null, o);
+          vue.scrapingPrep( vue.collectionsUrl, function( prep ) {
+            callback(null, prep);
           });
         }, // returns {pageNumbers, urlObj}
         
@@ -39,12 +39,11 @@ export default {
             flatten: true,
             done: function( collections ) {
               
-              console.log('%c' + 'responses' + '', 'border: 1px solid #00bb1e; color: #00bb1e; padding: 2px 5px; border-radius: 8px;', collections);
+              // console.log('%c' + 'responses' + '', 'border: 1px solid #00bb1e; color: #00bb1e; padding: 2px 5px; border-radius: 8px;', collections);
               setTimeout( function() {
                 
-                vue.progress.step = -1;
-                vue.progress.maxLength = 0;
-                vue.progress.bar = false;
+                // vue.progress.maxLength = 0;
+                // vue.progress.bar = true;
                 
                 callback(null, collections);
                 
@@ -58,49 +57,47 @@ export default {
         // Adds maximum page size and pages to each collection
         function( collections, callback ) {
           
-          console.log('%c' + ' collections ' + '', 'background: #01ffff; color: #000; padding: 2px 5px; border-radius: 8px;', collections);
-          
           asyncMap( collections, 
             function( collection, stepCallback) {
+              
+              vue.progress.text = 'Fetching books in collections...';
+              // vue.progress.maxLength = requests.length;
+              // vue.progress.bar  = true;
+              
               vue.scrapingPrep(vue.collectionsUrl + '/' + collection.id, function( prep ) {
                 
                 collection.pageNumbers = prep.pageNumbers;
                 collection.pageSize = prep.pageSize;
+                collection.url = prep.urlObj.toString();
                 
-                stepCallback(null, collection);
+                getBooks( vue, collection, stepCallback );
                 
               });
             },
-            function( err, collections) {
-              if ( !err ) callback( null, collections, vue);
+            function( err, responses) {
+              if ( !err ) callback( null, responses, collections);
               else console.log( err );
             }
           );
           
-        },
-        
-        getBooks,
-        
+        },        
       
-      ], function( err, collections, collectionBooks ) {
-        
-        console.log('%c' + 'bliiiip' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', collectionBooks);
+      ], function( err, responses, collections ) {
         
         // Pushes books back to the original array of collections without any duplicate ids
-        _.each( collectionBooks, function( collection ) {
+        _.each( _.flatten( responses ), function( collection ) {
           const targetCollection = _.find( collections, { id: collection.id });
-          console.log('%c' + 'targetcollection' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', targetCollection);
           if ( targetCollection ) targetCollection.books = targetCollection.books.concat( collection.books );
-          delete collection.pageNumbers;
-          delete collection.pageSize;
+          delete targetCollection.pageNumbers;
+          delete targetCollection.pageSize;
+          delete targetCollection.url;
         });
         
         hotpotato.collections = collections;
         
         collectionsFetched( null, hotpotato);
+        
       });
-      
-      
       
     },
     
@@ -114,23 +111,15 @@ function getInitialCollectionDataFromPage( vue, response, completeStep ) {
   response.data = null;
   const collections = [];
   const collectionRows = audible.querySelectorAll('#adbl-lib-col-main > .adbl-library-collection-row');
-  console.log( collectionRows ) 
+  // console.log( collectionRows ) 
   $(collectionRows).each(function () {
     
     const _thisRow = this;
     
-    // FIXME: add progression to collections
-    // FIXME: add waterfall just like in scrapingPrep.js
-    
     // Ignores empty collections - Assumes it's empty if it doesn't have any product images
-    
     if ( _thisRow.querySelector('.product-image-grid-container:not(.empty-product-image-grid)') ) {
       
       let collection = {};
-      
-      // const bookInMemory    = _.find(vue.library.books, ['asin', bookASIN]);
-      // const fullScan_ALL_partialScan_NEW = vue.partialScan && !bookInMemory || !vue.partialScan;
-      // const book            = (vue.partialScan && bookInMemory) ? bookInMemory : {};
       
       collection.id  = _thisRow.getAttribute('data-collection-id'); // Collection page is formed using the id: audible.com/library/collections/{id}
       collection.title = _thisRow.querySelector('.bc-size-headline3').textContent;
@@ -139,42 +128,36 @@ function getInitialCollectionDataFromPage( vue, response, completeStep ) {
       collection.books = [];
       
       collections.push( collection );
-      // ++vue.progress.maxLength;
+      ++vue.progress.maxLength;
       
     }
   });
   
-  console.log('%c' + '  ' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', collections);
   completeStep( collections );
-  
-  
-  // return scrapingPrepDrill( vue.collectionsUrl + '/' + collection.id, collections, function( collection, urlObj, pageRange ) {
-  //   return getBooksFromCollections( collection, urlObj, pageRange );
-  // });
   
 }
 
-function getBooks( collections, vue, callback ) {
-  
+
+function getBooks( vue, request, parentStepCallback ) {
   
   vue.progress.text = 'Fetching books in collections...';
   // vue.progress.bar  = true;
-  vue.progress.maxLength = 0;
+  // vue.progress.maxLength = 0;
   
-  const collectionUrls = [];
-          
-  _.each(collections, function( collection ) { 
-    _.each( collection.pageNumbers, function( page ) {
-      const pageSize = collection.pageSize ? '&pageSize='+ collection.pageSize : '';
-      collectionUrls.push( { 
-        id: collection.id, 
-        url: vue.collectionsUrl + '/' + collection.id + '/?page=' + page + pageSize + '&sortBy=PURCHASE_DATE.dsc' // sort by date added
-      });
-    });
+  console.log('%c' + ' prep ' + '', 'background: green; color: #fff; padding: 2px 5px; border-radius: 8px;', request );
+  
+  let requestUrls = [];
+  _.each( request.pageNumbers, function( page ) {
+    const requestDolly = _.cloneDeep( request );
+    const pageSize = request.pageSize ? '&pageSize='+ request.pageSize : '';
+    requestDolly.url += '/?page=' + page + pageSize,
+    requestUrls.push( requestDolly );
   });
+  
+  console.log('%c' + 'rewuestUrls' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;', requestUrls);
         
   vue.amapxios({
-    requests: collectionUrls,
+    requests: requestUrls,
     step: function( response, stepCallback, request ) {
       
       const audible = $($.parseHTML(response.data)).find('div.adbl-main')[0];
@@ -188,26 +171,20 @@ function getBooks( collections, vue, callback ) {
         // this.querySelector('input[name="asin"]')
         const bookASIN = this.getAttribute('id').replace('adbl-library-content-row-', '');
         // const bookTitle = this.querySelector( ':scope > div.bc-row-responsive.bc-spacing-top-s2 > div.bc-col-responsive.bc-spacing-top-none.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span' ).textContent.trim();
-        asinArray.push( bookASIN );
-        ++vue.progress.maxLength;
+        request.books.push( bookASIN );
         
       });
       
-      request.books = asinArray;
       stepCallback( request );
       
     },
     flatten: true,
-    done: function( collectionBooks ) {
+    done: function( collections ) {
       
       setTimeout( function() {
         
-        vue.progress.text = '';
-        vue.progress.step = -1;
-        vue.progress.maxLength = 0;
-        vue.progress.bar = false;
-        
-        callback(null, collections, collectionBooks);
+        ++vue.progress.step; // Counting collections, not books
+        parentStepCallback(null, collections );
         
       }, 1000);
       

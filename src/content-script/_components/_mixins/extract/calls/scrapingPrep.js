@@ -23,12 +23,11 @@ export default {
             const audible = $($.parseHTML(response.data)).find('div.adbl-main');
             const pageSizeDropdown = audible.find('select[name="pageSize"]');
             const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : null;
-            
+            url.query.pageSize = maxPageSize;
             if ( !maxPageSize || maxPageSize < 50 ) {
               callback( true, { pageNumbers: [1], pageSize: maxPageSize, urlObj: url } );
             }
             else { 
-              url.query.pageSize = maxPageSize;
               callback( null, url );
             }
             
