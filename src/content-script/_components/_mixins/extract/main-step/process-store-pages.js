@@ -3,9 +3,16 @@ export default {
   methods: {
     getDataFromStorePages: function( hotpotato, storePagesFetched ) {
       
-      this.progress.text = 'Fetching additional data from store pages...';
-      this.progress.bar  = true;
-      this.progress.step = 0;
+      this.$root.$emit('update-big-step', {
+        title: 'Store Pages',
+        stepAdd: 1,
+      });
+      
+      this.$root.$emit('update-progress', {
+        text: 'Fetching additional data from store pages...',
+        step: 0,
+        bar: true,
+      });
       
       const vue = this;
       const requests = prepStorePages( this, hotpotato.books );
@@ -13,11 +20,12 @@ export default {
       if ( requests ) {
         vue.amapxios({
           requests: requests,
-          step: function( response, stepCallback, requestBook ) {
+          returnCatch: true,
+          step: function( response, stepCallback, book ) {
             
-            // FIXME: pass the whole book as the requestBook param so this next line is won't be necessary....
-            let book = _.find( hotpotato.books, { asin: requestBook.asin });;
-            vue.progress.text2 = book.title;
+            delete book.requestUrl;
+            
+            vue.$root.$emit('update-progress', { text2: book.title });
             
             if ( response.status >= 400 ) {
               book.storePageMissing = true;
@@ -26,21 +34,16 @@ export default {
               getStorePageData( vue, response, book );
             }
             
-            ++vue.progress.step; 
+            vue.$root.$emit('update-progress-step');
+            // if ( book.cover ) vue.$root.$emit('update-progress-thumbnail', 'https://m.media-amazon.com/images/I/'+ book.cover + '._SL120_.jpg' );
             stepCallback( book );
             
           },
           flatten: true,
           done: function( books ) {
             
-            vue.progress.text2 = '';
-            vue.progress.step = -1;
-            vue.progress.maxLength = 0;
-            vue.progress.bar = false;
-            
-            setTimeout( function() {
-              storePagesFetched(null, hotpotato);
-            }, 1000);
+            vue.$root.$emit('reset-progress');
+            storePagesFetched(null, hotpotato);
             
           }
         });
@@ -55,10 +58,20 @@ function prepStorePages( vue, books ) {
   
   let source = vue.partialScan ? _.filter(books, 'new') : books;
   
-  if ( source.length > 0 ) return _.map( source, function( book ) {
-    return { url: window.location.origin + '/pd?asin=' + book.asin, asin: book.asin }
-  });
-  else return null;
+  // if ( source.length > 0 ) return _.map( source, function( book ) {
+  //   return { url: window.location.origin + '/pd?asin=' + book.asin, asin: book.asin }
+  // });
+  // else return null;
+  if ( source.length > 0 ) {
+    
+    _.each( source, function( book ) {
+      book.requestUrl = window.location.origin + '/pd?asin=' + book.asin;
+    });
+    
+    return source;
+    
+  }
+  else { return null; }
   
 }
 

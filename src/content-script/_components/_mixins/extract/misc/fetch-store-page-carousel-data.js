@@ -5,6 +5,7 @@ export default {
     getDataFromCarousel: function( parentBook, audible, key, carouselID ) {
       
       const carousel = $( audible.querySelector('#adbl-web-carousel-c'+ carouselID ) );
+      
       if ( carousel.length > 0 ) {
         const books = [];
         
@@ -19,7 +20,7 @@ export default {
           const image = flyout.prev('.responsive-product-square').find('[id^="product-carousel-image"]');
           const cover = image.attr('src') || image.attr('data-lazy');
           const url = image.parent('a').attr('href');
-          book.coverUrl = cover.match(/\/images\/I\/(.*)._SL/)[1];
+          book.cover = cover.match(/\/images\/I\/(.*)._SL/)[1];
           book.url = url.split('?')[0];
           
           var list = $(this).find('ul');

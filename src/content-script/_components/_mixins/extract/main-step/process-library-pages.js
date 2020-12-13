@@ -4,18 +4,19 @@ export default {
     getDataFromLibraryPages: function( hotpotato, libraryPagesFetched, ) {
       
       const vue = this;
-      vue.progress.step = -1;
-      vue.progress.text = 'Scanning library for books...';
-      if ( vue.partialScan ) {
-        vue.progress.text = 'Updating old books (' + vue.localStorageBooksLength + ') and adding new books...';
-      }
       
-      // this.$root.emit('resetProgres', {
-      //   step: -1,
-      //   text: vue.partialScan ? 
-      //     'Updating old books (' + vue.localStorageBooksLength + ') and adding new books...' :
-      //     'Scanning library for books...';
-      // });
+      this.$root.$emit('update-big-step', {
+        title: 'Library',
+        stepAdd: 1,
+      });
+      
+      this.$root.$emit('update-progress', {
+        step: 0,
+        max: 0,
+        text: vue.partialScan ? 
+          'Updating old books (' + vue.localStorageBooksLength + ') and adding new books...' :
+          'Scanning library for books...',
+      });
       
       vue.scrapingPrep( vue.libraryUrl, function( prep ) { 
         
@@ -28,9 +29,8 @@ export default {
           flatten: true,
           done: function( books ) {
             
-            setTimeout( function() {
-              libraryPagesFetched(null, {books: books});
-            }, 1000);
+            hotpotato.books = books;
+            libraryPagesFetched(null, hotpotato);
             
           }
         });
@@ -67,11 +67,13 @@ function processLibraryPage( vue, response, stepCallback ) {
       if ( fullScan_ALL_partialScan_NEW ) {
         book.asin       = bookASIN;
         const getCover  =  _thisRow.querySelector('a > img.bc-pub-block:first-of-type').getAttribute('src');
+        // FIXME: there is probably a better way to do this:
         if ( getCover.lastIndexOf('img-coverart-prod-unavailable') > -1 ) {
-          book.coverUrl = getCover;
+          // book.cover = getCover;
         }
         else {
-          book.coverUrl   = getCover.match(/\/images\/I\/(.*)._SL/)[1];
+          const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
+          if ( coverId && coverId[1] ) book.cover = coverId[1];
         }
         // book.url        = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').getAttribute('href').split('?')[0];
         book.title      = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span').textContent.trimAll();
@@ -117,7 +119,7 @@ function processLibraryPage( vue, response, stepCallback ) {
       // - - - - - - - 
       
       if ( vue.partialScan && !bookInMemory ) book.new = true;
-      if ( fullScan_ALL_partialScan_NEW ) ++vue.progress.maxLength;
+      if ( fullScan_ALL_partialScan_NEW ) vue.$root.$emit('update-progress-max');
       books.push(book);
       
     }

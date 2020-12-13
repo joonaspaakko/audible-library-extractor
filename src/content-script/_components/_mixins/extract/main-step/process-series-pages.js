@@ -3,9 +3,10 @@ export default {
   methods: {
     getDataFromSeriesPages: function( hotpotato, seriesFetched ) {
       
-      this.progress.text = 'Preparing to fetch series order...';
-      this.progress.step = 0;
-      this.progress.maxLength = 0;
+      this.$root.$emit('update-big-step', {
+        title: 'Series Order',
+        stepAdd: 1,
+      });
       
       const vue = this;
       const booksInSeries = _.filter( hotpotato.books, 'series' );
@@ -26,15 +27,15 @@ export default {
       
       requests = _.uniqBy( requests, 'asin');
       
-      // vue.progress.maxLength = requests.length;
+      this.$root.$emit('update-progress', {
+        text: 'Preparing books in series...',
+        step: 0,
+        max: requests.length,
+        bar: true,
+      });
       
       asyncMap( requests, 
         function( request, stepCallback ) {
-          
-          vue.progress.text = 'Fetching books in series...'
-          vue.progress.maxLength = requests.length;
-          vue.progress.bar  = true;
-          
           vue.scrapingPrep(request.url, function( prep ) {
             
             request.pageNumbers = prep.pageNumbers;
@@ -59,7 +60,10 @@ export default {
           
           hotpotato.series = requests;
           
-          if ( !err ) seriesFetched( null, hotpotato );
+          if ( !err ) { 
+            vue.$root.$emit('reset-progress');
+            seriesFetched( null, hotpotato );
+          }
           else console.log( err );
         }
       );
@@ -70,7 +74,6 @@ export default {
 };
 
 function getBooks( vue, request, parentStepCallback ) {
-  
   
   let requestUrls = [];
   
@@ -109,18 +112,18 @@ function getBooks( vue, request, parentStepCallback ) {
       
       // request.books = asinArray;
       
+      vue.$root.$emit('update-progress', {
+        text: 'Fetching series order from books in series...',
+      });
+      
       stepCallback( series );
       
     },
     flatten: true,
     done: function( series ) {
       
-      setTimeout( function() {
-        console.log( series )
-        ++vue.progress.step; // Counting series, not books
-        parentStepCallback(null, series);
-        
-      }, 1000);
+      vue.$root.$emit('update-progress-step'); // Counting series, not books
+      parentStepCallback(null, series);
       
     }
   });

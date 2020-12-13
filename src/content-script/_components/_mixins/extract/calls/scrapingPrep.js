@@ -7,7 +7,7 @@
 export default {
   methods: {
     
-    scrapingPrep: function( baseUrl, callbach ) {
+    scrapingPrep: function( baseUrl, callbach, returnResponse, returnAfterFirstCall ) {
       
       const vue = this;
       // FIXME: make sure there's proper fallbacks if pagesize dropdown or pagination doesn't exist in the query page
@@ -24,24 +24,33 @@ export default {
             const pageSizeDropdown = audible.find('select[name="pageSize"]');
             const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : null;
             url.query.pageSize = maxPageSize;
-            if ( !maxPageSize || maxPageSize < 50 ) {
-              callback( true, { pageNumbers: [1], pageSize: maxPageSize, urlObj: url } );
+            
+            let obj = {};
+            if ( returnResponse ) obj.response = response;
+            obj.urlObj = url;
+            
+            if ( !maxPageSize || maxPageSize < 50 || returnAfterFirstCall ) {
+              obj.pageNumbers = [1];
+              obj.pageSize = maxPageSize;
+              callback( true, obj );
             }
             else { 
-              callback( null, url );
+              callback( null, obj );
             }
             
           });
         },
         
-        function( urlObj, callback ) {
+        function( o, callback ) {
           
-          axios.get( urlObj.toString() ).then(function( response ) {
+          axios.get( o.urlObj.toString() ).then(function( response ) {
             
             const audible = $($.parseHTML(response.data)).find('div.adbl-main');
             const pagination = audible.find('.pagingElements');
             const pagesLength = pagination.length > 0 ? pagination.find('.pageNumberElement:last').data('value') : 1;
-            callback( null, { pageNumbers: _.range(1, pagesLength + 1), pageSize: (urlObj.query.pageSize || null), urlObj: urlObj });
+            o.pageNumbers = _.range(1, pagesLength + 1);
+            o.pageSize = o.urlObj.query.pageSize || null;
+            callback( null, o);
             
           });
           
@@ -53,28 +62,6 @@ export default {
       
     },
     
-  },
-  
-  scrapingPrepDrill: function( baseUrl, o, callback ) {
-    return axios.get( baseUrl ).then(function( response ) {
-        
-      const audible = $($.parseHTML(response.data)).find('div.adbl-main');
-      const pageSizeDropdown = audible.find('select[name="pageSize"]');
-      const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : 50;
-      let url = new Url( baseUrl );
-      url.query.pageSize = maxPageSize;
-      
-      return axios.get( url.toString() ).then(function( response ) {
-            
-        const audible = $($.parseHTML(response.data)).find('div.adbl-main');
-        const pagination = audible.find('.pagingElements');
-        const pagesLength = pagination ? pagination.find('.pageNumberElement:last').data('value') : 1;
-        
-        return (callback) ? callback( o, urlObj, _.range(1, pagesLength + 1) ) : o;
-        
-      });
-      
-    });
   },
   
 }

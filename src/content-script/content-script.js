@@ -28,32 +28,20 @@ global.Url        = Url;
 global.waterfall  = waterfall;
 global.asyncMap   = map;
 
-axiosRetry(axios, { retries: 3, retryDelay: axiosRetry.exponentialDelay });
+axiosRetry(
+  axios, 
+  { 
+    retries: 3, 
+    retryDelay: axiosRetry.exponentialDelay,
+    retryCondition: function(error) {
+      return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response.status == "429";
+    } 
+  }
+);
 
-// FONTAWESOME
-import { library } from '@fortawesome/fontawesome-svg-core';
-import { faShareSquare, faSyncAlt, faTimes } from '@fortawesome/free-solid-svg-icons';
-import { faArrowAltCircleDown, } from '@fortawesome/free-regular-svg-icons';
-library.add( faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, );
-import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-Vue.component('font-awesome', FontAwesomeIcon);
-
-// VUE-TIPPY
-import VueTippy, { TippyComponent } from "vue-tippy";
-Vue.use(VueTippy, {
-  arrow: true,
-  placement: 'top',
-  trigger: "mouseenter focus",
-  theme: 'light-border',
-  zIndex: 9999999991,
-  maxWidth: 370,
-  onShow: (options) => { return !!options.props.content },
-  boundary: 'viewport',
-  flipDuration: 0,
+Vue.directive('visible', function(el, binding) {
+  el.style.visibility = !!binding.value ? 'visible' : 'hidden';
 });
-Vue.component("tippy", TippyComponent);
-import "tippy.js/themes/light-border.css";
-
 String.prototype.trimAll = function() {
   if ( this ) { return this.trim().replace(/\s+/g,' '); }
   else { return null; }

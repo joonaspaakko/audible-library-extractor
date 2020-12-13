@@ -50,10 +50,11 @@ export default {
 
 <style lang="scss">
 
-.ale-overlay-open body {
-	overflow: hidden;
-  width: 100%;
-  height: 100%;
+html.ale-overlay-open,
+html.ale-overlay-open body {
+	overflow: hidden !important;
+  width: 100% !important;
+  height: 100% !important;
 }
 
 .center-1 {
@@ -75,64 +76,15 @@ export default {
   margin-left: auto;
   margin-right: auto;
   text-align: center;
+  padding: 40px;
 }
-
-// #audible-library-extractor [aria-label][data-balloon-pos] {
-//   &:after {
-//     line-height: 1.2em;
-//   }
-//   &[disabled]:after {
-//     background: #000 !important;
-//   }
-//   &[data-balloon-length="300"]:after {
-//     white-space: normal;
-//     width: 300px;
-//   }
-//   &[data-balloon-length="350"]:after {
-//     white-space: normal;
-//     width: 350px;
-//   }
-//   &[data-balloon-length="400"]:after {
-//     white-space: normal;
-//     width: 400px;
-//   }
-//   &[data-balloon-length="450"]:after {
-//     white-space: normal;
-//     width: 450px;
-//   }
-//   &[data-balloon-length="500"]:after {
-//     white-space: normal;
-//     width: 500px;
-//   }
-//   &[data-balloon-length="550"]:after {
-//     white-space: normal;
-//     width: 550px;
-//   }
-//   &[data-balloon-length="600"]:after {
-//     white-space: normal;
-//     width: 600px;
-//   }
-//   &[data-balloon-length="650"]:after {
-//     white-space: normal;
-//     width: 650px;
-//   }
-//   &[data-balloon-length="700"]:after {
-//     white-space: normal;
-//     width: 700px;
-//   }
-//   &[data-balloon-length="750"]:after {
-//     white-space: normal;
-//     width: 750px;
-//   }
-// }
-
-
 
 #audible-library-extractor {
   font-family: 'Audible Sans', Arial,sans-serif;
   font-size: 14px;
   line-height: 20px;
   text-decoration: none;
+  overflow: auto;
 	
   background: #fff;
   position: fixed;
@@ -146,6 +98,7 @@ export default {
     animation-delay: .5s !important;
     display: inline-block;
     text-align: center;
+    margin-top: -20px;
     margin-bottom: 20px;
     width: 290px;
     height: 99.89px;

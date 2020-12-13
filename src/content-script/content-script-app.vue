@@ -2,7 +2,7 @@
   <overlay>
     
     <splashscreen :storageHasData="storageHasData"></splashscreen>
-    <scraping-progress :progress="progress"></scraping-progress>
+    <scraping-progress :showProgress="showProgress"></scraping-progress>
     
   </overlay>
 </template>
@@ -15,19 +15,25 @@ import splashscreen from './_components/layout/splashscreen';
 import scrapingProgress from './_components/layout/scrapingProgress';
 
 // Calls
-import ajaxios from './_components/_mixins/extract/calls/ajaxios.js';
-import amapxios from './_components/_mixins/extract/calls/ajaxios.js';
+import amapxios from './_components/_mixins/extract/calls/amapxios.js';
 import scrapingPrep from './_components/_mixins/extract/calls/scrapingPrep.js';
-import scrapingPrepDrill from './_components/_mixins/extract/calls/scrapingPrep.js';
 
 // Misc
 import getDataFromCarousel from './_components/_mixins/extract/misc/fetch-store-page-carousel-data.js';
+// Misc - Helpers
+import shortenLength from './_components/_mixins/extract/misc/helpers.js';
+import getSummary from './_components/_mixins/extract/misc/helpers.js';
+import fixDates from './_components/_mixins/extract/misc/helpers.js';
+import getSeries from './_components/_mixins/extract/misc/helpers.js';
+import getArray from './_components/_mixins/extract/misc/helpers.js';
 
 // Steps
 import getDataFromLibraryPages from './_components/_mixins/extract/main-step/process-library-pages.js';
 import getDataFromStorePages from './_components/_mixins/extract/main-step/process-store-pages.js';
+import getISBNsFromGoogleBooks from './_components/_mixins/extract/main-step/process-isbns.js';
 import getDataFromSeriesPages from './_components/_mixins/extract/main-step/process-series-pages.js';
 import getDataFromCollections from './_components/_mixins/extract/main-step/process-collections.js';
+import getDataFromWishlist from './_components/_mixins/extract/main-step/process-wishlist.js';
 
 // Outside 
 import timeStringToSeconds from '@output-mixins/timeStringToSeconds.js';
@@ -46,9 +52,16 @@ export default {
     scrapingPrep,
     getDataFromLibraryPages,
     getDataFromStorePages,
+    getISBNsFromGoogleBooks,
     getDataFromCarousel,
     getDataFromSeriesPages,
     getDataFromCollections,
+    getDataFromWishlist,
+    shortenLength,
+    getSummary,
+    fixDates,
+    getSeries,
+    getArray,
   ],
   props: ['storageHasData'],
   data: function() {
@@ -56,33 +69,26 @@ export default {
       partialScan: false,
       localStorageBooksLength: 'n/a',
       nextStep: null,
-      libraryUrl: window.location.origin + '/library/titles',                                                                                                                                                                                                // 'https://www.audible.com/library/titles?ref=a_library_t_c3_sortBy_PURCHASE_DATE.dsc&pf_rd_p=dca9ae45-7e31-4c31-8f67-4f550cbd3e4b&pf_rd_r=28DGMM0BK5YHJF5FD7RH&sortBy=PURCHASE_DATE.dsc&pageSize=50'
-      seriesUrl: window.location.origin + '/series',                                                                                                                             
-      collectionsUrl: window.location.origin + '/library/collections',                                                                                                                             
+      libraryUrl: window.location.origin + '/library/titles', 
+      seriesUrl: window.location.origin + '/series', 
+      collectionsUrl: window.location.origin + '/library/collections', 
+      wishlistUrl:  window.location.origin + '/wl', 
       newBooks: [],
       library: {
         domainExtension: window.location.hostname.replace('www.audible',''),
         books: [],
         storePageMissing: []
       },
-      progress: {
-        show: false,
-        text: '',
-        text2: '',
-        step: 0,
-        maxLength: 0,
-        bar: false,
-        pageSize: 0
-      },
+      showProgress: false,
     }
   },
   beforeMount: function() {
     
     const vue = this;
     
-    vue.$root.$on('nextStep', function( step ) {
-      vue.nextStep = step;
-      vue[ 'init_'+step ]();
+    vue.$root.$on('nextStep', function( o ) {
+      vue.nextStep = o.step;
+      vue[ 'init_'+o.step ]( o.config );
     });
     
     // vue.init_storePageTest();
@@ -90,18 +96,32 @@ export default {
   },
   methods: {
     
-    init_extract: function() {
+    init_extract: function( config ) {
       
       const vue = this;
-      vue.progress.show = true;
+      this.showProgress = true;
       
-      waterfall([ 
-        function( callback ) { callback( null, {}); }, 
+      const waterfallArray = [ 
+        function( callback ) { callback( null, { config: config } ); }, 
         vue.getDataFromLibraryPages, // Can be scraped alone
         vue.getDataFromStorePages,   // Requires library page data
-        vue.getDataFromSeriesPages,  // Can be scraped alone
+        vue.getDataFromSeriesPages,  // Requires library page data
         vue.getDataFromCollections,  // Can be scraped alone
-      ], function(err, result) {
+        vue.getISBNsFromGoogleBooks, // Requires library page data
+        vue.getDataFromWishlist,     // Can be scraped alone
+      ];
+      
+      vue.$root.$emit('update-big-step', {
+        max: config ? _.filter( config, {value: true}).length : waterfallArray.length-1, // First function is just a kind of a failsafe and doesn't count
+      });
+      
+      waterfall( waterfallArray, function(err, result) {
+        
+        vue.$root.$emit('update-big-step', {
+          title: 'Closing this page and opening the gallery page in a new tab',
+          step: 0, 
+          max: 0,
+        });
         
         console.log('%c' + 'books?' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;', result);
         
@@ -113,7 +133,7 @@ export default {
       const vue = this;
       browser.storage.local.get(null).then( data => {
         
-        vue.library.books = vue.processOldLibraryData( data ).library.books;
+        vue.library.books = vue.processStoredData( data ).library.books;
         
         // Update test...
         // vue.library.books.splice(0, 10);
@@ -121,7 +141,7 @@ export default {
         
         vue.partialScan = true;
         vue.localStorageBooksLength = vue.library.books.length;
-        vue.progress.show = true;
+        vue.showProgress = true;
         
         vue.scrapingPrep(vue.libraryUrl, function (pageNumbers, url) {
           // vue.getInitialLibraryData1(pageNumbers, url);
@@ -181,7 +201,7 @@ export default {
       
     // },
     
-    processOldLibraryData: function( oldLibraryData ) {
+    processStoredData: function( oldLibraryData ) {
       
       if ( _.isEmpty( oldLibraryData ) ) {
         oldLibraryData = null;
@@ -201,7 +221,7 @@ export default {
             library: {
               domainExtension: data[ 'domain-extension' ],
               storePageMissing: data[ 'storage-page-missing' ],
-              booksChunkLength : data[ 'books-chunk-length' ],
+              booksChunkLength: data[ 'books-chunk-length' ],
               books: books,
             }
           };
@@ -209,502 +229,6 @@ export default {
         
       }
       
-    },
-    
-    getMaxPageSize: function( url, callback ) {
-      
-      axios.get( url ).then(function( response ) {
-        
-        const audible = $($.parseHTML(response.data)).find('div.adbl-main');
-        const pageSizeDropdown = audible.find('select[name="pageSize"]');
-        const maxPageSize = pageSizeDropdown.length > 0 ? pageSizeDropdown.find('option:last').val() : 50;
-        callback( maxPageSize, url );
-        
-      });
-
-    },
-    
-    getPagesLength: function( url, callback ) {
-      
-      axios.get( url ).then(function( response ) {
-        
-        const audible = $($.parseHTML(response.data)).find('div.adbl-main');
-        const pagination = audible.find('.pagingElements');
-        const pagesLength = pagination ? pagination.find('.pageNumberElement:last').data('value') : 1;
-        callback( pagesLength, url );
-        
-      });
-
-    },
-    
-    // ajaxios: function( options ) {
-      
-    //   // options.request;
-    //   // options.step;
-    //   // options.done;
-    //   // options.baseUrl;
-      
-    //   Promise.all(
-    //     options.request.map( function( url, index, array ) {
-    //       return axios.get( url ).then(function( response ) {
-    //         return response ? options.step(response, index, array) : null;
-    //       }).catch(function( e ) {
-    //         if ( !e.response ) console.log(e);
-    //         return e.response ? options.step(e.response, index, array) : null;
-    //       });
-    //     })
-    //   ).then( function( response ) {
-    //     options.done( options.flatten ? _.flatten(response) : response ); 
-    //   }).catch(function (error) {
-    //     // handle error
-    //     console.log(error);
-    //   });
-      
-    // },
-    
-    getlibraryPageData: function( response ) {
-      
-      const audible = $($.parseHTML(response.data)).find('div.adbl-main')[0];
-      response.data = null;
-      
-      const vue      = this;
-      const newBooks = [];
-      const books    = [];
-      
-      const titleRows = audible.querySelectorAll('#adbl-library-content-main > .adbl-library-content-row');
-      $(titleRows).each(function () {
-        
-        const _thisRow = this;
-        
-        // Ignore anything that isn't a product, like for example podcasts...
-        if ( _thisRow.querySelector('[name="contentType"][value="Product"]') ) {
-          const bookASIN = _thisRow.getAttribute('id').replace('adbl-library-content-row-', '');
-          const bookInMemory    = _.find(vue.library.books, ['asin', bookASIN]);
-          const partialScan_New = vue.partialScan && !bookInMemory || !vue.partialScan;
-          const book            = (vue.partialScan && bookInMemory) ? bookInMemory : {};
-          
-          // UPDATE SCAN: fetch these only if the book is a new addition...
-          // FULL SCAN: fetch always
-          if ( partialScan_New ) {
-            book.asin       = bookASIN;
-            book.coverUrl   = _thisRow.querySelector('a > img.bc-pub-block:first-of-type').getAttribute('src').match(/\/images\/I\/(.*)._SL/)[1];
-            book.url        = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').getAttribute('href').split('?')[0];
-            book.title      = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span').textContent.trimAll();
-            book.authors    = vue.getArray(_thisRow.querySelectorAll('.authorLabel > span > a'));
-            book.narrators  = vue.getArray(_thisRow.querySelectorAll('.narratorLabel > span > a'));
-            book.series     = vue.getSeries(_thisRow.querySelector('.seriesLabel'));
-            book.blurb      = _thisRow.querySelector('.summaryLabel > span').textContent.trimAll();
-            const fromPlusCatalog = _thisRow.querySelector('input[value="AudibleDiscovery"]');
-            if ( fromPlusCatalog ) book.fromPlusCatalog = true;
-          }
-          
-          // ALWAYS FETCH ↓↓ ( downloaded, favorite, progress, myRating )
-          
-          // Came from the plus catalog but is no longer available there.
-          const unavailableBtn = _thisRow.querySelector('.adbl-library-inaccessible-button');
-          if ( unavailableBtn ) book.leftPlusCatalog = true;
-          
-          // Downloaded
-          book.downloaded = _thisRow.querySelector('.adbl-library-action > div:nth-child(4) > span') ? true : null;
-          
-          // Favorite
-          const favorite = _thisRow.querySelector('[id^="remove-from-favorites-button"]:not(.bc-pub-hidden)');
-          if ( favorite ) book.favorite = true;
-          
-          // Progress
-          const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]');
-          const finished = _thisRow.querySelector('[id^="time-remaining-finished"]:not(.bc-pub-hidden)') ? true : false;
-          const timeRemaining = _thisRow.querySelector('[id^="time-remaining"]:not(.bc-pub-hidden)').textContent.trimAll();
-          if (progressbar || finished) {
-            book.progress = timeRemaining;
-          }
-          else {
-            book.length   = timeRemaining;
-            book.progress = 0;
-          }
-          
-          // Own rating
-          const myRating = _thisRow.querySelector('div.bc-rating-stars.adbl-prod-rate-review-bar.adbl-prod-rate-review-bar-overall').getAttribute('data-star-count');
-          if ( myRating > 0 ) book.myRating = myRating;
-          
-          // - - - - - - - 
-          
-          if ( vue.partialScan && !bookInMemory ) newBooks.push(bookASIN);
-          if ( partialScan_New ) ++vue.progress.maxLength;
-          books.push(book);
-          
-        }
-      });
-      
-      const result = { books: books };
-      if (newBooks.length > 0) result.newBooks = newBooks;
-      return result;
-        
-      
-    },
-    
-    // getStorePageData: function( response, book ) {
-      
-    //   const vue = this;
-      
-    //   var   html     = $($.parseHTML(response.data));
-    //   const audible  = html.find('div.adbl-main')[0];
-    //   const jsonData = JSON.parse( html.find('#bottom-0 > script:first')[0].textContent );
-    //   const bookData = jsonData[0];
-    //   html =  null;
-              
-    //   response.data = null;
-    //   // When the store page is replaced with a new version, its ID (asin) may change and so here
-    //   // I just make a note of it so that we can say in the gallery that  the information here may 
-    //   // be inaccurate
-    //   if ( !book.test ) {
-    //     const storePageChanged = response.request.responseURL.lastIndexOf(book.asin) < 0;
-    //     if ( storePageChanged ) book.storePageChanged = true;
-    //   }
-
-    //   // This "#sample-player..." selector tries to weed out missing store pages
-    //   if ( book.test || audible.querySelector('#sample-player-'+ book.asin +'> button') ) { 
-    //     book.titleShort  = bookData.name;
-    //     book.ratings     = parseFloat( audible.querySelector('.ratingsLabel > a').textContent.match(/\d/g).join('') );
-    //     book.rating      = Number( audible.querySelector('.ratingsLabel > span:last-of-type').textContent.trimAll() );
-    //     book.summary     = bookData.description || vue.getSummary( audible.querySelector('.productPublisherSummary > .bc-section > .bc-box:first-of-type') || audible.querySelector('#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span') );
-    //     book.releaseDate = bookData.datePublished || vue.fixDates( audible.querySelector('.releaseDateLabel') );
-    //     book.publishers  = vue.getArray( audible.querySelectorAll('.publisherLabel > a') );
-    //     book.length      = book.length || vue.shortenLength( audible.querySelector('.runtimeLabel').textContent.trimToColon() );
-    //     book.categories  = vue.getArray(audible.querySelector('.categoriesLabel') ? audible.querySelectorAll('.categoriesLabel > a') : audible.querySelectorAll('.bc-breadcrumb > a') );
-    //     book.sample      = book.test ? null : audible.querySelector('#sample-player-'+ book.asin +' > button').getAttribute('data-mp3');
-    //     book.language    = bookData.inLanguage ? _.startCase( bookData.inLanguage ) : audible.querySelector('.languageLabel').textContent.trimToColon();
-    //     book.format      = audible.querySelector('.format').textContent.trimAll();
-    //     // Around July 2020 audible has removed any mention of the added date. 
-    //     // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.
-    //     // book.dateAdded   = vue.fixDates( audible.querySelector('#adbl-buy-box-purchase-date > span') );
-        
-    //     vue.carouselDataFetch(book, audible, 'peopleAlsoBought', 5 );
-    //     vue.carouselDataFetch(book, audible, 'moreLikeThis', 6 ); 
-    //     // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
-    //     book = _.omitBy( book, _.isNull );
-    //   }
-    //   else { 
-    //     book.storePageMissing = true;
-    //     vue.library.storePageMissing.push(book);
-    //   }
-      
-      
-    // },
-    
-    // This secondary fetch is needed because length is shown in the library
-    // only if that same space is not occupied by "Finished" or "Xh left"
-    // Unfortunately the library uses a sorter syntax, so this function shortens 
-    // the length text found in the store page...
-    // Nore: I opted to use the shorter syntax because the progress that is fetched 
-    // from the library page uses it, so it's all consistent...
-    shortenLength: function( string ) {
-      
-      const lengthInSeconds = this.timeStringToSeconds( string );
-      return this.secondsToTimeString( lengthInSeconds, true );
-      
-    },
-    
-    getCollections1: function() {
-      
-      /*
-      const vue = this;
-      const seriesOrder = seriesOrderPrep.order;
-      const queryURLS = seriesOrderPrep.urls;
-      
-      if (queryURLS.length > 0) {
-
-        vue.progress.text = 'Fetching series order for more accurate sorting...';
-        vue.progress.step = 0;
-        vue.progress.maxLength = queryURLS.length;
-
-        vue.scrapingPrep(queryURLS, function (pageNumbers, url) {
-          
-          const series = _.find(seriesOrder, ['url', response.config.url]);
-          return vue.getInitialLibraryData1(pageNumbers, url);
-          
-        });
-
-      }
-      else {
-        // vue.goToOutputPage();
-      }
-      */
-    },
-    
-    getSeriesPage: function() {
-      /*
-      const vue = this;
-      const seriesOrderPrep = vue.prepSeriesOrder();
-      const seriesOrder = seriesOrderPrep.order;
-      const queryURLS = seriesOrderPrep.urls;
-      
-      if (queryURLS.length > 0) {
-
-        vue.progress.text = 'Fetching series order for more accurate sorting...';
-        vue.progress.step = 0;
-        vue.progress.maxLength = queryURLS.length;
-
-        vue.scrapingPrep(queryURLS, function (pageNumbers, url) {
-          
-          // const series = _.find(seriesOrder, ['url', response.config.url]);
-          // return vue.getInitialLibraryData1(pageNumbers, url);
-          
-        });
-
-      }
-      else {
-        // vue.goToOutputPage();
-      }
-      */
-      
-    },
-    
-    /*
-      // asin is filled immediately
-      // Books array filled later
-      [
-        { asin: 'series-asin-1', books: ['asin-1', 'asin-2'] }, 
-        { asin: 'series-asin-2', books: ['asin-1', 'asin-2'] }
-        ...
-      ]
-    */
-    prepSeriesOrder: function(  ) {
-      /*
-      var obj = {
-        order: [],
-        urls: [],
-      };
-      
-      _.each(this.library.books, function (book) {
-        if (book.series) {
-          _.each(book.series, function (series) {
-            
-            const seriesAdded = _.find(obj.order, ['asin', series.asin]);
-            if (!seriesAdded) {
-              obj.urls.push( series.url );
-              obj.order.push({
-                asin: series.asin,
-                url: series.url,
-                books: [],
-              })
-            }
-
-          });
-        }
-      });
-
-      return obj;
-      */
-      
-    },
-    
-    getSummary: function( el ) {
-      
-      el.removeAttribute('class');
-      var children = el.querySelectorAll( '*' );
-      $.each(children, function () {
-        this.removeAttribute('class');
-      });
-      
-      return DOMPurify.sanitize( el.outerHTML.trimAll() );
-      
-    },
-    
-    fixDates: function( el ) {
-      
-      if ( el ) {
-        
-        var date = el.textContent.trimToColon();
-        const domainExtension = this.library.domainExtension;
-        
-        const regionalDateFormats = {
-          '.com'   : ['m-d-y', 'MM-dd-yyyy'],
-          '.ca'    : ['y-m-d', 'yyyy-MM-dd'],
-          '.co.uk' : ['d-m-y', 'dd-MM-yyyy'],
-          '.de'    : ['d-m-y', 'dd-MM-yyyy'],
-          '.fr'    : ['d-m-y', 'dd-MM-yyyy'],
-          '.it'    : ['d-m-y', 'dd-MM-yyyy'],
-          '.com.au': ['d-m-y', 'dd-MM-yyyy'],
-          '.in'    : ['d-m-y', 'dd-MM-yyyy']
-        };
-        
-        const formatString = regionalDateFormats[domainExtension][0] || regionalDateFormats['.com'][0];
-        const formatSplit = formatString.split('-');
-        
-        const newDate = {
-          y: null,
-          m: null,
-          d: null
-        };
-        $.each( date.split('-'), function( i, date ) {
-          newDate[ formatSplit[i] ] = date;
-        });
-        date = null;
-        // Some audible sites display all years in two digits,
-        // which is very difficult to transform to 4 digits.
-        // For example, if the year is 20, is it 1920, 2020, or 1420?
-        // This conversion to 4 digits is not bulletproof, but better than nothing.
-        if ( newDate.y.length <= 2) {
-          if ( newDate.y >= 95 && newDate.y <= 99 ) {
-            newDate.y = '19' + newDate.y;
-          }
-          else if ( newDate.y < 95 ) {
-            newDate.y = '20' + newDate.y;
-          }
-        }
-        const ISO8601 = [newDate.y, newDate.m, newDate.d];
-        // const originalFormat = regionalDateFormats[domainExtension][1] || regionalDateFormats['.com'][1];
-        
-        // This was just an idea to be a bit more flexible with how it shows up in the gallery, but it's not so simple
-        // What if the person viewing it is not from the same country? The only proper way to do it I feel would be to 
-        // Show visitors whatever format is dominant in their country... but that seems too much work, so: "year-month-day" it is for now at least
-        // return {
-        //   value: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), 'yyyy-MM-dd'),
-        //   original: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), originalFormat),
-        // };
-        return dateFormat(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), 'yyyy-MM-dd');
-      }
-      else {
-        return null;
-      }
-    },
-    
-    getSeries: function( element ) {
-      const series = [];
-      if ( element ) {
-        const childSpan = element.querySelector(':scope > span');
-        const html = childSpan ? DOMPurify.sanitize( childSpan.outerHTML ) : DOMPurify.sanitize( element.outerHTML );
-        var string = html.trimAll();
-        string = string.replace('</span>', '').trimToColon();
-        string = $.parseHTML(string);
-        
-        $.each( string, function( index, object ) {
-          
-          var string = object.textContent.trim().replace(/^,/,'').trimAll() || '';
-          
-          var titleRow = (index+1) % 2;
-          var numberRow = !titleRow;
-          if ( titleRow ) {
-            const url = object.href.split('?')[0].replace( window.location.origin, '' );
-            series.push({
-              name: string,
-              // url: url, // Url formed using the asin instead to minimize data size
-              asin: url.substring(url.lastIndexOf('/') + 1)
-            });
-          }
-          else if ( numberRow ) {
-            if ( string.match(/\d/) ) {
-              // Trims text from the front ("Book ") and splits numbers separated by commas
-              var numbers = string.replace(/^[^0-9]*/g, '').trim().split(',');
-              // Numbers are added to the previous item
-              var lastItem = series[ series.length-1 ];
-              lastItem.bookNumbers  = $.map( numbers, function( n ) {
-                return parseFloat( n );
-              });
-            }
-          }
-          
-        });
-      }
-      return series.length > 0 ? series : null;
-    },
-    
-    // FIXME: shorten getArray urls
-    getArray: function( elements ) {
-      
-      const objArray = [];
-      $(elements).each( function() {
-        const url = new Url( $(this).attr('href'), true );
-        var searchNarrator;
-        var searchProvider;
-        if ( url.query.searchNarrator ) searchNarrator = url.query.searchNarrator;
-        if ( url.query.searchProvider ) searchProvider = url.query.searchProvider;
-        url.clearQuery();
-        if ( searchNarrator ) url.query.searchNarrator = searchNarrator;
-        if ( searchProvider ) url.query.searchProvider = searchProvider;
-        searchNarrator = null;
-        searchProvider = null;
-        objArray.push({
-          name: $(this).text().trim(),
-          url: url.toString()
-        });
-      });
-      return objArray.length > 0 ? objArray : null;
-    },
-    
-    fetchISBNs: function( urlSources ) {
-      console.log( urlSources )
-      const vue = this;
-      
-
-      // if (book.title && book.authors) {
-      //   var query = 'intitle:' + encodeURIComponent(book.title) + '+inauthor:' + encodeURIComponent(book.authors[0].name);
-      //   // const langrestrict = book.language === 'English' ? 'langRestrict=en&' : '';
-      //   const langrestrict = '';
-      //   book.booksAPIaddress = 'https://www.googleapis.com/books/v1/volumes?' + langrestrict + 'showPreorders=true&maxResults=4&q=' + query;
-      // }
-      
-      const booksAPIaddresses = _.filter( vue.library.books, 'booksAPIaddress');
-      const queryURLS = _.map( booksAPIaddresses, 'booksAPIaddress');
-      
-      if ( queryURLS.length > 0 ) {
-        
-        vue.progress.text = 'Fetching international standard book numbers (ISBN)...';
-        vue.progress.step = 0;
-        vue.progress.maxLength = queryURLS.length;
-        
-        vue.ajaxios({
-          request: queryURLS,
-          step: function( response ) {
-            
-            const book = _.find( vue.library.books, ['booksAPIaddress', response.config.url] );
-            delete book.booksAPIaddress;
-            
-            if ( response.status >= 200 && response.status < 300 && response.data.totalItems ) {
-              
-              const lowercase_author = _.lowerCase( book.authors[0].name );
-              const lowercase_title = _.lowerCase( book.title );
-              
-              const api_books = response.data.items;
-              const api_book = _.find( api_books, function( ab ) {
-                const exists = {};
-                exists.author = _.find( ab.volumeInfo.authors, function( author ) {
-                  return _.lowerCase( author ) === lowercase_author;
-                });
-                
-                exists.title = _.lowerCase( ab.volumeInfo.title ).lastIndexOf( lowercase_title ) > -1;
-                exists.isbn = ab.volumeInfo.industryIdentifiers;
-                return exists.author && exists.title && exists.isbn;
-              });
-              
-              if ( api_book ) {
-                const isbns = api_book.volumeInfo.industryIdentifiers;
-                const isbn10 = _.find( isbns, ["type", "ISBN_10"]);
-                if ( isbn10 ) book[ isbn10.type ] = isbn10.identifier;
-                const isbn13 = _.find( isbns, ["type", "ISBN_13"]);
-                if ( isbn13 ) book[ isbn13.type ] = isbn13.identifier;
-              }
-              
-              ++vue.progress.step;
-              
-            }
-            
-            
-          },
-          done: function() {
-            
-            vue.goToOutputPage();
-            
-          }
-        });
-        
-      }
-      else {
-        
-        vue.goToOutputPage();
-        
-      }
     },
     
     goToOutputPage: function( straightFromStorage ) {
