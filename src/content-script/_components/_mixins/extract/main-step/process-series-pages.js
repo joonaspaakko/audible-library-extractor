@@ -30,13 +30,15 @@ export default {
       this.$root.$emit('update-progress', {
         text: 'Preparing books in series...',
         step: 0,
-        max: requests.length,
+        max: 0,
         bar: true,
       });
       
       asyncMap( requests, 
         function( request, stepCallback ) {
           vue.scrapingPrep(request.url, function( prep ) {
+            
+            vue.$root.$emit('update-progress', { max: requests.length });
             
             request.pageNumbers = prep.pageNumbers;
             request.pageSize = prep.pageSize;
@@ -61,8 +63,16 @@ export default {
           hotpotato.series = requests;
           
           if ( !err ) { 
-            vue.$root.$emit('reset-progress');
-            seriesFetched( null, hotpotato );
+            
+            vue.$nextTick(function() {
+              setTimeout(function() {
+                  
+                vue.$root.$emit('reset-progress');
+                seriesFetched( null, hotpotato );
+                
+              }, 1000);
+            });
+            
           }
           else console.log( err );
         }

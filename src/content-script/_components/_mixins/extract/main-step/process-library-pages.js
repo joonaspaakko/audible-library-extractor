@@ -29,8 +29,14 @@ export default {
           flatten: true,
           done: function( books ) {
             
-            hotpotato.books = books;
-            libraryPagesFetched(null, hotpotato);
+            vue.$nextTick(function() {
+              setTimeout(function() {
+                  
+                hotpotato.books = books;
+                libraryPagesFetched(null, hotpotato);
+                
+              }, 1000);
+            });
             
           }
         });
@@ -125,7 +131,7 @@ function processLibraryPage( vue, response, stepCallback ) {
     }
     
   });
-      
+  
   stepCallback( books );
   
 }

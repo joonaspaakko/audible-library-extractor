@@ -17,6 +17,7 @@ export default {
         });
         
         this.$root.$emit('update-progress', {
+          text2 : '(The matching process is relatively loose: beware of false matches)',
           text: 'Fetching ISBNs from Google Books API...',
           step: 0,
           max: 0,
@@ -124,8 +125,14 @@ function fetchISBNs( vue, hotpotato, isbnsFetched ) {
       console.log( 'ISBNS:', _.filter( hotpotato.books, 'isbns' ).length, 'isbns (true):', _.filter( hotpotato.books, {isbns: true} ).length, 'books:', hotpotato.books.length );
       
       if ( !err ) { 
-        vue.$root.$emit('reset-progress');
-        isbnsFetched( null, hotpotato ); 
+        vue.$nextTick(function() {
+          setTimeout(function() {
+                
+            vue.$root.$emit('reset-progress');
+            isbnsFetched( null, hotpotato ); 
+              
+          }, 1000);
+        });
       }
       else console.log( err );
     }

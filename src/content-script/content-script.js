@@ -98,6 +98,9 @@ function audibleLibraryExtractor( data ) {
   const appRootEl = DOMPurify.sanitize('<div id="audible-library-extractor"></div>');
   $(appRootEl).prependTo('body');
   
+  // Storage data is dropped immediately. I just want to know if the data exists 
+  // in load so I can enable/disable things based on that info.
+  // Later it's fetched again if needed.
   const storageHasData = _.isEmpty( data ) ? false : true;
   
   new Vue({

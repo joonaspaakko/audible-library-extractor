@@ -1,12 +1,14 @@
 <template>
-<div v-if="!nextStep" id="ale-spashscreen">
+<div id="ale-spashscreen" v-visible="!loading">
 	
 	<div class="extract-wrapper">
 	
 		<div class="extract-settings" v-if="settingsOpen">
 			
-			<p class="title is-4">Full Extraction Settings</p>
-			<p class="title is-6">Extract:</p>
+			<div class="settings-heading">
+				<span class="title is-4">Full Extraction Settings</span>
+			</div>
+			<p class="title is-6">Pick and choose:</p>
 			<b-field grouped>				
 				<b-checkbox v-for="setting in extractSettings" :key="setting.name" 
 				:value="setting.value" 
@@ -96,23 +98,36 @@ export default {
   data () {
 		return {
 			settingsOpen: false,
-			nextStep: null,
 			extractSettings: [
 				{ name: 'library', 		 value: true,  label: 'Library', 		  type: 'is-success', disabled: true, },
 				{ name: 'storePage', 	 value: true,  label: 'Store Pages',  type: 'is-success', disabled: true, },
 				{ name: 'seriesOrder', value: true,  label: 'Series Order', type: 'is-success', disabled: true, },
 				{ name: 'collections', value: true,  label: 'Collections',  type: 'is-success', disabled: false, },
-				{ name: 'isbn', 			 value: false, label: 'ISBN', 			  type: 'is-danger',  disabled: false, tippy: "<strong>Slow process.</strong> Attempts to fetch ISBNs for every book in your library. Goodreads uses ISBNs when books are imported from a CSV file." },
-				{ name: 'wishlist', 	 value: false, label: 'Wishlist', 	  type: 'is-danger',  disabled: false, tippy: "<strong>Slow process.</strong> Increases the filesize by quite a lot if you have a large wishlist." },
+				{ name: 'isbn', 			 value: false, label: 'ISBN', 			  type: 'is-danger',  disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process:</strong> only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Goodreads uses ISBNs when books are imported from a CSV file.</div>" },
+				{ name: 'wishlist', 	 value: false, label: 'Wishlist', 	  type: 'is-danger',  disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process:</strong> only fetch these if you need them. <br>Increases the filesize by quite a lot if you have a large wishlist.</div>" },
 			],
+			loading: true,
 		}
-  },
+	},
+	
+	mounted: function() {
+		
+		// Just to make sure that accidental clicks don't do anything when the overlay is opened
+		// - If the button that opens the overlay was perfectly aligned with any of the buttons in this component, a double click would start doing things prematurely
+		this.$nextTick(function() {
+			const vue = this;
+			setTimeout(function() {
+				vue.loading = false;
+			}, 1000);
+		});
+		
+	},
 	
 	methods: {
 		
 		takeNextStep: function( step ) {
-			this.nextStep = step;
-			this.$root.$emit('nextStep', {
+			
+			this.$root.$emit('do-next-step', {
 				step: step,
 				config: _.map( this.extractSettings, function( o ) {
 					return { name: o.name, value: o.value };
@@ -158,12 +173,15 @@ export default {
 				border-radius: 4px 0 0 4px;
 			}
 			.settings.open {
-				color: #f19933;
+				background: #f19933;
+				color: #fff;
 			}
 		}
 	}
 	
 	.extract-settings {
+		position: relative;
+		z-index: 1;
 		padding-top: 25px;
 		max-width: 650px;
 		margin: 0 auto 20px auto;
@@ -193,7 +211,22 @@ export default {
 				border: none !important;
 			}
 		}
+		
+		.settings-heading {
+			z-index: 2;
+			position: absolute;
+			left: 0;
+			right: 0;
+			top: -13px;
+			span { 
+				display: inline-block; 
+				padding: 0 5px; 
+				background: #fff; 
+			}
+		}
+		
 	}
+	
 	.other-btns {
 		max-width: 300px;
 		margin: 6px auto 0;

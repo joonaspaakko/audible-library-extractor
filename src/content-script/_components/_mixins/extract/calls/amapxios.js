@@ -4,6 +4,7 @@ export default {
   methods: {
     
     amapxios: function( options ) {
+      const vue = this;
       
       asyncMap( options.requests, function( request, stepCallback ) {
         const axiosConfig = options.config ? options.config : null;
@@ -24,10 +25,12 @@ export default {
         
       },
       function( err, results ) {
+        
         if ( !err ) { 
           options.done( options.flatten ? _.flatten(results) : results );
         }
         else { console.log( err ); }
+        
       });
       
     },

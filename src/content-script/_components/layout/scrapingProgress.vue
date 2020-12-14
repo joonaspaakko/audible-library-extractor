@@ -1,5 +1,5 @@
 <template>
-<div id="ale-progress-wrap" v-if="showProgress">
+<div id="ale-progress-wrap">
 	
 	<transition name="fade">
 		<div class="loader-image">
@@ -38,14 +38,12 @@
 
 export default {
 	name: 'scrapingProgress',
-	props: ['showProgress'],
   data () {
 		return {
 			imageSources: {
         logo: browser.runtime.getURL("assets/images/audible-library-extractor-logo.svg"),
 				loader: browser.runtime.getURL("assets/images/loader-64px.gif")
 			},
-			nextStep: null,
 			progress: {
 				text: null,
 				text2: null,
@@ -80,10 +78,6 @@ export default {
 	created: function() {
 		
 		var vue = this;
-		
-		this.$root.$on('nextStep', function( o ) {
-			vue.nextStep = o.step;
-		});
 		
 		this.$root.$on('update-progress', function( progress ) {
 			if ( progress.text 			) vue.progress.text      = progress.text;

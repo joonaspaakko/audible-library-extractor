@@ -69,9 +69,14 @@ export default {
           
           hotpotato.wishlist = books;
           
-          vue.$root.$emit('reset-progress');
-          
-          wishlistFetched( null, hotpotato);
+          vue.$nextTick(function() {
+            setTimeout(function() {
+              
+              vue.$root.$emit('reset-progress');
+              wishlistFetched( null, hotpotato);
+              
+            }, 1000);
+          });
           
         });
       }

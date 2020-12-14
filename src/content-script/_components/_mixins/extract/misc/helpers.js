@@ -25,7 +25,7 @@ export default {
       if ( el ) {
         
         var date = el.textContent.trimToColon();
-        const domainExtension = this.library.domainExtension;
+        const domainExtension = this.domainExtension;
         
         const regionalDateFormats = {
           '.com'   : ['m-d-y', 'MM-dd-yyyy'],

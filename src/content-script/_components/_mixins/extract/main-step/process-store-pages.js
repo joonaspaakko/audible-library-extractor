@@ -42,8 +42,14 @@ export default {
           flatten: true,
           done: function( books ) {
             
-            vue.$root.$emit('reset-progress');
-            storePagesFetched(null, hotpotato);
+            vue.$nextTick(function() {
+              setTimeout(function() {
+                  
+                vue.$root.$emit('reset-progress');
+                storePagesFetched(null, hotpotato);
+                
+              }, 1000);
+            });
             
           }
         });
@@ -118,6 +124,5 @@ function getStorePageData( vue, response, book ) {
   else { 
     book.storePageMissing = true;
   }
-  
   
 }

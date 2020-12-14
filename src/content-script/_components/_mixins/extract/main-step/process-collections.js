@@ -70,7 +70,6 @@ export default {
               },
               function( err, responses) {
                 if ( !err ) {
-                  vue.$root.$emit('reset-progress');
                   callback( null, responses, collections);
                 }
                 else console.log( err );
@@ -92,7 +91,15 @@ export default {
           
           hotpotato.collections = collections;
           
-          collectionsFetched( null, hotpotato);
+          
+          vue.$nextTick(function() {
+            setTimeout(function() {
+                
+              vue.$root.$emit('reset-progress');
+              collectionsFetched( null, hotpotato);
+              
+            }, 1000);
+          });
           
         });
       }
@@ -169,9 +176,9 @@ function getBooks( vue, request, parentStepCallback ) {
     },
     flatten: true,
     done: function( collections ) {
-        
-        vue.$root.$emit('update-progress-step'); // Counting collections, not books
-        parentStepCallback(null, collections );
+      
+      vue.$root.$emit('update-progress-step'); // Counting collections, not books
+      parentStepCallback(null, collections );
       
     }
   });
