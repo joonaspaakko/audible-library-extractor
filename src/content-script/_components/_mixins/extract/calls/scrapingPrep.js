@@ -10,7 +10,6 @@ export default {
     scrapingPrep: function( baseUrl, callbach, returnResponse, returnAfterFirstCall ) {
       
       const vue = this;
-      // FIXME: make sure there's proper fallbacks if pagesize dropdown or pagination doesn't exist in the query page
       waterfall([
         
         function( callback ) {

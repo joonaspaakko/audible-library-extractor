@@ -6,7 +6,7 @@ export default {
   methods: {
     getISBNsFromGoogleBooks: function( hotpotato, isbnsFetched ) {
       
-      if ( !_.find( hotpotato.config, { name: 'isbn'}).value ) {
+      if ( !_.find( hotpotato.config.steps, { name: 'isbn'}).value ) {
         isbnsFetched( null, hotpotato ); 
       }
       else {
@@ -40,7 +40,9 @@ function fetchISBNs( vue, hotpotato, isbnsFetched ) {
   
   // hotpotato.books.length = 100;
   
-  _.each( hotpotato.books, function( book ) {
+  const booksOfInterest = hotpotato.config.partialScan ? _.filter( hotpotato.books, function( o ) { return !o.isbns; }) : hotpotato.books;
+  
+  _.each( booksOfInterest, function( book ) {
     
     if ((book.title) && book.authors) {
       // const query = /*'intitle:' +*/ book.title + '+inauthor:' + book.authors[0].name;
@@ -79,7 +81,7 @@ function fetchISBNs( vue, hotpotato, isbnsFetched ) {
         
         const book = _.find( hotpotato.books, { asin: request.asin });
         if ( response && response.status >= 200 && response.status < 300 && response.data && response.data.totalItems ) {
-          
+                    
           // const fuse = new Fuse(response.data.items, {
           //   keys: [ 'volumeInfo.title' ]
           // });
@@ -116,13 +118,12 @@ function fetchISBNs( vue, hotpotato, isbnsFetched ) {
         
       }).catch(e => {
         console.log('%c' + "Couldn't find ISBN(S): " + request.title + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', e.respone);
+        vue.$root.$emit('update-progress-step');
         stepCallback( null );
       });
       
     },
     function(err, result) {
-      
-      console.log( 'ISBNS:', _.filter( hotpotato.books, 'isbns' ).length, 'isbns (true):', _.filter( hotpotato.books, {isbns: true} ).length, 'books:', hotpotato.books.length );
       
       if ( !err ) { 
         vue.$nextTick(function() {

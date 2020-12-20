@@ -18,7 +18,8 @@
 					{{ progress.text2 }}
 				</div>
 				{{ progress.text }} 
-				<transition name="fade" v-if="steps"><span>{{ steps }}</span></transition>
+				<transition name="fade" v-if="steps"><span>{{ steps }}</span></transition> 
+				{{ progress.textsuffix }}
 			</div>
 		</div>
 	</div>
@@ -46,6 +47,7 @@ export default {
 			},
 			progress: {
 				text: null,
+				textSuffix: null,
 				text2: null,
 				step: 0,
 				max: 0,
@@ -80,11 +82,12 @@ export default {
 		var vue = this;
 		
 		this.$root.$on('update-progress', function( progress ) {
-			if ( progress.text 			) vue.progress.text      = progress.text;
-			if ( progress.text2 		) vue.progress.text2     = progress.text2;
-			if ( progress.step > -1 ) vue.progress.step      = progress.step;
-			if ( progress.max > -1  ) vue.progress.max 			 = progress.max;
-			if ( progress.bar 			) vue.progress.bar       = progress.bar;
+			if ( progress.text 			 ) vue.progress.text       = progress.text;
+			if ( progress.textSuffix ) vue.progress.textSuffix = progress.textSuffix;
+			if ( progress.text2 		 ) vue.progress.text2      = progress.text2;
+			if ( progress.step > -1  ) vue.progress.step       = progress.step;
+			if ( progress.max > -1   ) vue.progress.max 			 = progress.max;
+			if ( progress.bar 			 ) vue.progress.bar        = progress.bar;
 		});
 		
 		this.$root.$on('update-progress-step', function() {
@@ -100,12 +103,13 @@ export default {
 		});
 		
 		this.$root.$on('reset-progress', function() {
-			vue.progress.text      = null;
-			vue.progress.text2     = null;
-			vue.progress.step      = 0;
-			vue.progress.max 			 = 0;
-			vue.progress.bar       = false;
-			vue.progress.thumbnail = null;
+			vue.progress.text      	= null;
+			vue.progress.textSuffix	= null;
+			vue.progress.text2     	= null;
+			vue.progress.step      	= 0;
+			vue.progress.max 			 	= 0;
+			vue.progress.bar       	= false;
+			vue.progress.thumbnail 	= null;
 		});
 		
 		this.$root.$on('update-big-step', function( o ) {

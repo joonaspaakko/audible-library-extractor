@@ -1,13 +1,35 @@
 <template>
   <overlay>
     
-    <splashscreen v-if="ui === 'splash'" :storageHasData="storageHasData" ></splashscreen>
+    <splashscreen v-if="ui === 'splash'" :storageHasData="storageHasData" :storageConfig="storageConfig"></splashscreen>
     <scraping-progress v-if="ui === 'scraping'"></scraping-progress>
     
   </overlay>
 </template>
 
 <script>
+
+import _ from 'lodash';
+import $ from 'jquery';
+import axios from 'axios';
+import axiosRetry from 'axios-retry';
+import browser from 'webextension-polyfill';
+import { format as dateFormat } from 'date-fns';
+import DOMPurify from 'dompurify';
+import map from 'async-es/map';
+import Url from 'domurl';
+import waterfall from 'async-es/waterfall';
+
+global._          = _;
+global.$          = $;
+global.asyncMap   = map;
+global.axios      = axios;
+global.axiosRetry = axiosRetry;
+global.browser    = browser;
+global.dateFormat = dateFormat;
+global.DOMPurify  = DOMPurify;
+global.Url        = Url;
+global.waterfall  = waterfall;
 
 // Components
 import overlay from './_components/layout/overlay';
@@ -63,11 +85,9 @@ export default {
     getSeries,
     getArray,
   ],
-  props: ['storageHasData'],
+  props: ['storageHasData', 'storageConfig'],
   data: function() {
     return {
-      partialScan: false,
-      localStorageBooksLength: 'n/a',
       libraryUrl: window.location.origin + '/library/titles', 
       seriesUrl: window.location.origin + '/series', 
       collectionsUrl: window.location.origin + '/library/collections', 
@@ -94,14 +114,17 @@ export default {
   },
   methods: {
     
-    init_step_extract: function( config ) {
+    init_step_extract: function( config, hotpotato ) {
       
       const vue = this;
       vue.ui = 'scraping';
       vue.$nextTick(function() {
         
+        hotpotato = hotpotato || {};
+        hotpotato.config = config;
+        
         const waterfallArray = [ 
-          function( callback ) { callback( null, { config: config } ); }, 
+          function( callback ) { callback( null, hotpotato ); }, 
           vue.getDataFromLibraryPages, // Can be scraped alone
           vue.getDataFromStorePages,   // Requires library page data
           vue.getDataFromSeriesPages,  // Requires library page data
@@ -111,7 +134,7 @@ export default {
         ];
         
         vue.$root.$emit('update-big-step', {
-          max: config ? _.filter( config, {value: true}).length : waterfallArray.length-1, // First function is just a kind of a failsafe and doesn't count
+          max: config.steps ? _.filter( config.steps, {value: true}).length : waterfallArray.length-1, // First function is just a kind of a failsafe and doesn't count
         });
         
         waterfall( waterfallArray, function(err, hotpotato) {
@@ -122,17 +145,17 @@ export default {
             max: 0,
           });
           
-          if ( _.find( hotpotato.config, { name: 'isbn' }) ) {
-            const booksWithISBN = _.filter( hotpotato.books, 'isbn');
+          const configISBN = _.find( hotpotato.config.steps, { name: 'isbn' });
+          if ( configISBN && configISBN.value ) {
+            const booksWithISBN = _.filter( hotpotato.books, 'isbns');
             vue.$root.$emit('update-progress', {
-              text: 'Found ISBNs for' + booksWithISBN.length + '/' + hotpotato.books.length + ' books',
+              text: 'Currently ' + booksWithISBN.length + '/' + hotpotato.books.length + ' books have ISBNs',
               step: 0,
               max: 0,
             });
           }
             
           setTimeout(function() {
-            if ( hotpotato.config ) delete hotpotato.config;
             vue.goToOutputPage( hotpotato );
           }, 4500);
           
@@ -141,133 +164,44 @@ export default {
       });
       
     },
-    init_step_update: function() {
+    
+    init_step_update: function( config ) {
       
       const vue = this;
-      browser.storage.local.get(null).then( data => {
+      browser.storage.local.get(null).then( hotpotato => {
         
-        vue.library.books = vue.processStoredData( data ).library.books;
-        
-        // Update test...
-        // vue.library.books.splice(0, 10);
-        // vue.library.books.splice(100, 1);
-        
-        vue.partialScan = true;
-        vue.localStorageBooksLength = vue.library.books.length;
-        vue.ui = 'scraping';
-        
-        vue.scrapingPrep(vue.libraryUrl, function (pageNumbers, url) {
-          // vue.getInitialLibraryData1(pageNumbers, url);
-          vue.getDataFromLibraryPages({ pageNumbers: pageNumbers, url: url, onFinished: function() {
-            
-            setTimeout( function() {
-              // vue.getBookData1();
-            }, 1000);
-            
-          } });
-        });
+        if ( hotpotato.chunks ) vue.glueFriesBackTogether( hotpotato ); 
+        config.partialScan = true;
+        config.oldBooksLength = hotpotato.books.length;
+        vue.init_step_extract( config, hotpotato);
         
       });
       
     },
-    init_step_output: function() {
-      
+    
+    init_step_output: function( ) {
       this.goToOutputPage({ useStorageData: true });
-      
-    },
-    
-    // init_storePageTest: function() {
-      
-    //   console.log('============= STORE PAGE TEST ============= ' );
-      
-    //   const vue = this;
-      
-    //   vue.ajaxios({
-    //     request: [
-    //       'https://www.audible.com/pd/The-Martian-Audiobook/B082BHJMFF',
-    //       'https://www.audible.com/pd/Aliens-of-Extraordinary-Ability-Audiobook/B07TXLC1NF',
-    //       'https://www.audible.com/pd/The-Dire-King-Audiobook/B0751GMDXN'
-    //     ],
-    //     step: function (response) {
-
-    //       var book = { test: true };
-          
-    //       if (response.status >= 400) {
-    //         book.storePageMissing = true;
-    //         vue.library.storePageMissing.push(book);
-    //       }
-    //       else {
-    //         vue.getStorePageData(response, book );
-    //       }
-          
-    //       return book;
-
-    //     },
-    //     done: function(responses) {
-
-    //       const books = _.flatten( responses );
-    //       console.log( books );
-    //       console.log(' DONE');
-
-    //     }
-    //   });
-      
-    // },
-    
-    processStoredData: function( oldLibraryData ) {
-      
-      if ( _.isEmpty( oldLibraryData ) ) {
-        oldLibraryData = null;
-      }
-      else {
-        
-        // Merge storage book chunks into one array
-        return (function( data ) {
-          const chunkKeys = [];
-          const chunkLength = data[ 'books-chunk-length' ];
-          for (var i = 0; i < chunkLength; i++) {
-            chunkKeys.push( 'books-chunk-'+i  );
-          }
-          const chunks = _.pick(data, chunkKeys);
-          const books = _.flatten( _.values( chunks ) );            
-          return {
-            library: {
-              domainExtension: data[ 'domain-extension' ],
-              storePageMissing: data[ 'storage-page-missing' ],
-              booksChunkLength: data[ 'books-chunk-length' ],
-              books: books,
-            }
-          };
-        }( oldLibraryData ));
-        
-      }
-      
     },
     
     goToOutputPage: function( hotpotato ) {
       
-      const vue = this;
-      browser.storage.local.get(null).then( hotpotato => {
-        console.log('poteeetto', hotpotato );
+      if ( hotpotato.useStorageData ) {
+        browser.runtime.sendMessage({ action: 'openOutput' });
+      }
+      else {
         
-        vue.addedOrder( hotpotato.books );
-        vue.makeFrenchFries( hotpotato );
-        console.log('poteeetto-1', hotpotato );
-        vue.glueFriesBackTogether( hotpotato );
-        console.log('poteeetto-2', hotpotato );
-        // FIXME: somewhere down the line I ended up adding one extra "undefined" value to each array...
-      });
-      
-      // if ( hotpotato.useStorageData ) {
-      //   browser.runtime.sendMessage({ action: 'openOutput' });
-      // }
-      // else {
+        hotpotato.config = { steps: hotpotato.config.steps };
         
-        // browser.storage.local.set( hotpotato ).then(() => {
-          // browser.runtime.sendMessage({ action: 'openOutput' });
-        // });
+        if ( !hotpotato.chunks ) {
+          this.addedOrder( hotpotato.books );
+          this.makeFrenchFries( hotpotato );
+        }
         
-      // }
+        browser.storage.local.set( hotpotato ).then(() => {
+          browser.runtime.sendMessage({ action: 'openOutput' });
+        });
+        
+      }
       
     },
     
@@ -288,10 +222,11 @@ export default {
     // Chunkifies for 
     makeFrenchFries: function( hotpotato ) {
       
-      hotpotato['domain-extension'] = this.domainExtension;
+      hotpotato.extras = {
+        'domain-extension': this.domainExtension,
+      };
       
       hotpotato.chunks = []; 
-      
       _.each( hotpotato, function( item, key ) {
         if ( key !== 'chunks' && _.isArray( item ) ) {
           
@@ -308,7 +243,7 @@ export default {
       
     },
     
-    // It's vegan glue...
+    // It's vegan glue... Don't worry about it...
     glueFriesBackTogether: function( data ) {
       
       if ( data && _.isEmpty( data ) ) {
@@ -319,11 +254,9 @@ export default {
         _.each( data.chunks, function( chunkName ) {
           
           const chunksLength = data[ chunkName+'-chunk-length' ];
-          const chunkNumbers = _.range(0,chunksLength+1);
-          console.log('%c' + chunksLength + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', chunkNumbers);
+          const chunkNumbers = _.range(0,chunksLength);
           data[ chunkName ] = [];
           _.each( chunkNumbers, function( n ) {
-            console.log('%c' + n + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;', chunkName+'-chunk-'+n);
             data[ chunkName ] = data[ chunkName ].concat( data[ chunkName+'-chunk-'+n ] );
             delete data[ chunkName+'-chunk-'+n ];
             

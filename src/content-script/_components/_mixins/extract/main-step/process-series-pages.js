@@ -9,74 +9,90 @@ export default {
       });
       
       const vue = this;
-      const booksInSeries = _.filter( hotpotato.books, 'series' );
-      let requests = [];
-      
-      _.each( booksInSeries, function( book ) {
-        _.each( book.series, function( series ) {
-          
-          requests.push({ 
-            url: vue.seriesUrl + '/'+ series.asin, 
-            asin: series.asin, 
-            books: [], 
-            length: 0,
-          });
-          
-        });
-      });
-      
-      requests = _.uniqBy( requests, 'asin');
-      
-      this.$root.$emit('update-progress', {
-        text: 'Preparing books in series...',
-        step: 0,
-        max: 0,
-        bar: true,
-      });
-      
-      asyncMap( requests, 
-        function( request, stepCallback ) {
-          vue.scrapingPrep(request.url, function( prep ) {
+      let booksInSeries = hotpotato.config.partialScan ? _.filter(booksInSeries, 'isNew') : hotpotato.books;
+      if ( booksInSeries.length > 0 ) {
+        
+        booksInSeries = _.filter( booksInSeries, 'series' );
+        let requests = [];
+        
+    
+        _.each( booksInSeries, function( book ) {
+          _.each( book.series, function( series ) {
             
-            vue.$root.$emit('update-progress', { max: requests.length });
-            
-            request.pageNumbers = prep.pageNumbers;
-            request.pageSize = prep.pageSize;
-            
-            getBooks( vue, request, stepCallback );
-            
-          });
-        },
-        function( err, responses ) {
-          
-          // Each series page is fetched as a separate request.
-          // This merges the books arrays and cleans up the returning object a little
-          _.each( _.flatten(responses), function( series ) {
-            const targetSeries = _.find( requests, { asin: series.asin });
-            if ( targetSeries ) targetSeries.books = targetSeries.books.concat( series.books );
-            targetSeries.length += series.length;
-            delete targetSeries.pageNumbers;
-            delete targetSeries.pageSize;
-            delete targetSeries.url;
-          });
-          
-          hotpotato.series = requests;
-          
-          if ( !err ) { 
-            
-            vue.$nextTick(function() {
-              setTimeout(function() {
-                  
-                vue.$root.$emit('reset-progress');
-                seriesFetched( null, hotpotato );
-                
-              }, 1000);
+            requests.push({ 
+              url: vue.seriesUrl + '/'+ series.asin, 
+              asin: series.asin, 
+              books: [], 
+              length: 0,
             });
             
+          });
+        });
+        
+        requests = _.uniqBy( requests, 'asin');
+        
+        this.$root.$emit('update-progress', {
+          text: 'Preparing books in series...',
+          step: 0,
+          max: 0,
+          bar: true,
+        });
+        
+        asyncMap( requests, 
+          function( request, stepCallback ) {
+            vue.scrapingPrep(request.url, function( prep ) {
+              
+              vue.$root.$emit('update-progress', { max: requests.length });
+              
+              request.pageNumbers = prep.pageNumbers;
+              request.pageSize = prep.pageSize;
+              
+              getBooks( vue, request, stepCallback );
+              
+            });
+          },
+          function( err, responses ) {
+            
+            // Each series page is fetched as a separate request.
+            // This merges the books arrays and cleans up the returning object a little
+            _.each( _.flatten(responses), function( series ) {
+              const targetSeries = _.find( requests, { asin: series.asin });
+              if ( targetSeries ) targetSeries.books = targetSeries.books.concat( series.books );
+              targetSeries.length += series.length;
+              delete targetSeries.pageNumbers;
+              delete targetSeries.pageSize;
+              delete targetSeries.url;
+            });
+            
+            hotpotato.series = requests;
+            
+            if ( !err ) { 
+              
+              vue.$nextTick(function() {
+                setTimeout(function() {
+                    
+                  vue.$root.$emit('reset-progress');
+                  seriesFetched( null, hotpotato );
+                  
+                }, 1000);
+              });
+              
+            }
+            else console.log( err );
           }
-          else console.log( err );
-        }
-      );
+        );
+        
+      }
+      else {
+        vue.$nextTick(function() {
+          setTimeout(function() {
+              
+            vue.$root.$emit('reset-progress');
+            seriesFetched( null, hotpotato );
+            
+          }, 1000);
+        });
+      }
       
     },
     

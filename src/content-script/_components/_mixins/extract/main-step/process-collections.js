@@ -4,7 +4,7 @@ export default {
   // mixins: [ajaxios],
   methods: {
     getDataFromCollections: function( hotpotato, collectionsFetched ) {
-      if ( !_.find( hotpotato.config, { name: 'collections'}).value ) {
+      if ( !_.find( hotpotato.config.steps, { name: 'collections'}).value ) {
         collectionsFetched( null, hotpotato);
       }
       else {
@@ -90,7 +90,6 @@ export default {
           });
           
           hotpotato.collections = collections;
-          
           
           vue.$nextTick(function() {
             setTimeout(function() {

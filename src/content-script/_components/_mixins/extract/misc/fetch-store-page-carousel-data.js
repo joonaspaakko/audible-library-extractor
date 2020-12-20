@@ -1,6 +1,8 @@
 export default {
   methods: {
     
+    // TODO: make sure this is as efficient as possible
+    
     // People who bought this also bought... Popup contents
     getDataFromCarousel: function( parentBook, audible, key, carouselID ) {
       

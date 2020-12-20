@@ -15,7 +15,7 @@ export default {
       });
       
       const vue = this;
-      const requests = prepStorePages( this, hotpotato.books );
+      const requests = prepStorePages( hotpotato );
       
       if ( requests ) {
         vue.amapxios({
@@ -40,7 +40,7 @@ export default {
             
           },
           flatten: true,
-          done: function( books ) {
+          done: function() {
             
             vue.$nextTick(function() {
               setTimeout(function() {
@@ -54,20 +54,26 @@ export default {
           }
         });
       }
+      else {
+        vue.$nextTick(function() {
+          setTimeout(function() {
+              
+            vue.$root.$emit('reset-progress');
+            storePagesFetched(null, hotpotato);
+            
+          }, 1000);
+        });
+      }
       
     },
     
   },
 };
 
-function prepStorePages( vue, books ) {
+function prepStorePages( hotpotato ) {
   
-  let source = vue.partialScan ? _.filter(books, 'new') : books;
+  let source = hotpotato.config.partialScan ? _.filter(hotpotato.books, 'isNew') : hotpotato.books;
   
-  // if ( source.length > 0 ) return _.map( source, function( book ) {
-  //   return { url: window.location.origin + '/pd?asin=' + book.asin, asin: book.asin }
-  // });
-  // else return null;
   if ( source.length > 0 ) {
     
     _.each( source, function( book ) {

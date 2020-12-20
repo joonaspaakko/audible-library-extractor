@@ -1,19 +1,16 @@
 <template>
 <div id="audible-library-extractor">
-  <div class="center-1">
-    <div class="center-2">
-      <div class="center-3">
-        
-        <div class="close-btn" @click="closeOverlay()">
-          <font-awesome :icon="['fas', 'times']" />
-        </div>
-        
-        <div id="the-adbl-logo" :class="{'fade-in-fwd': showLogo }">
-          <img :src="imageSources.logo" alt="">
-        </div>
-        <slot></slot>
-      </div>
+  <div class="inner-wrap">
+    
+    <div class="close-btn" @click="closeOverlay()">
+      <font-awesome :icon="['fas', 'times']" />
     </div>
+    
+    <div id="the-adbl-logo" :class="{'fade-in-fwd': showLogo }">
+      <img :src="imageSources.logo" alt="">
+    </div>
+    <slot></slot>
+    
   </div>
 </div>
 </template>
@@ -57,28 +54,6 @@ html.ale-overlay-open body {
   height: 100% !important;
 }
 
-.center-1 {
-  display: table;
-  height: 100%;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-}
-
-.center-2 {
-  display: table-cell;
-  vertical-align: middle;
-}
-
-.center-3 {
-  margin-left: auto;
-  margin-right: auto;
-  text-align: center;
-  padding: 40px;
-}
-
 #audible-library-extractor {
   font-family: 'Audible Sans', Arial,sans-serif;
   font-size: 14px;
@@ -93,12 +68,23 @@ html.ale-overlay-open body {
   right: 0;
   bottom: 0;
   left: 0;
-
+  display: flex;
+  justify-content: center;
+  justify-items: center;
+  align-content: center;
+  align-items: center;
+  
+  .inner-wrap {
+    margin: auto;
+    text-align: center;
+    padding: 60px 0px;
+  }
+  
   #the-adbl-logo {
     animation-delay: .5s !important;
     display: inline-block;
     text-align: center;
-    margin-top: -20px;
+    margin-top: 0px;
     margin-bottom: 20px;
     width: 290px;
     height: 99.89px;

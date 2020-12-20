@@ -6,28 +6,6 @@ import App from './content-script-app';
 Vue.config.productionTip = false;
 Vue.config.devtools = false;
 
-import _ from 'lodash';
-import { format as dateFormat } from 'date-fns';
-import $ from 'jquery';
-import axios from 'axios';
-import axiosRetry from 'axios-retry';
-import browser from 'webextension-polyfill';
-import DOMPurify from 'dompurify';
-import Url from 'domurl';
-import waterfall from 'async-es/waterfall';
-import map from 'async-es/map';
-
-global._          = _;
-global.$          = $;
-global.axios      = axios;
-global.axiosRetry = axiosRetry;
-global.browser    = browser;
-global.DOMPurify  = DOMPurify;
-global.dateFormat = dateFormat;
-global.Url        = Url;
-global.waterfall  = waterfall;
-global.asyncMap   = map;
-
 axiosRetry(
   axios, 
   { 
@@ -101,7 +79,7 @@ function audibleLibraryExtractor( data ) {
   // Storage data is dropped immediately. I just want to know if the data exists 
   // in load so I can enable/disable things based on that info.
   // Later it's fetched again if needed.
-  const storageHasData = _.isEmpty( data ) ? false : true;
+  const storageHasData = $.isEmptyObject( data ) ? false : true;
   
   new Vue({
     el: '#audible-library-extractor',
@@ -109,6 +87,7 @@ function audibleLibraryExtractor( data ) {
       return h(App, {
         props: {
           storageHasData: storageHasData,
+          storageConfig: data.config,
         }
       }); 
     },

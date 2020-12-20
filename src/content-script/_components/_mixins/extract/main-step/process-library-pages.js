@@ -3,7 +3,7 @@ export default {
   methods: {
     getDataFromLibraryPages: function( hotpotato, libraryPagesFetched, ) {
       
-      const vue = this;
+    const vue = this;
       
       this.$root.$emit('update-big-step', {
         title: 'Library',
@@ -13,10 +13,17 @@ export default {
       this.$root.$emit('update-progress', {
         step: 0,
         max: 0,
-        text: vue.partialScan ? 
-          'Updating old books (' + vue.localStorageBooksLength + ') and adding new books...' :
+        text: hotpotato.config.partialScan ? 
+          'Updating old books and adding new books...' :
           'Scanning library for books...',
       });
+      
+      // derank any books that were new additions in the last partial scan.
+      if ( hotpotato.config.partialScan ) {
+        _.each( hotpotato.books, function( book ) {
+          if ( book.isNew ) delete book.isNew;
+        });
+      }
       
       vue.scrapingPrep( vue.libraryUrl, function( prep ) { 
         
@@ -24,14 +31,14 @@ export default {
         vue.amapxios({
           requests: _.map(prep.pageNumbers, function( page ) { return requestURL + '&page=' + page }),
           step: function( response, stepCallback ) {
-            processLibraryPage( vue, response, stepCallback );
+            processLibraryPage( vue, response, hotpotato, stepCallback );
           },
           flatten: true,
           done: function( books ) {
             
             vue.$nextTick(function() {
               setTimeout(function() {
-                  
+                
                 hotpotato.books = books;
                 libraryPagesFetched(null, hotpotato);
                 
@@ -49,12 +56,12 @@ export default {
   },
 };
 
-function processLibraryPage( vue, response, stepCallback ) {
+function processLibraryPage( vue, response, hotpotato, stepCallback ) {
   
   const audible = $($.parseHTML(response.data)).find('div.adbl-main')[0];
   response.data = null;
   
-  const books    = [];
+  const books   = [];
   
   const titleRows = audible.querySelectorAll('#adbl-library-content-main > .adbl-library-content-row');
   $(titleRows).each(function () {
@@ -63,10 +70,10 @@ function processLibraryPage( vue, response, stepCallback ) {
     const rowItemIsBook = _thisRow.querySelector('[name="contentType"][value="Product"]') || _thisRow.querySelector('[name="contentType"][value="Performance"]');
     // Ignore anything that isn't a book, like for example podcasts...
     if ( rowItemIsBook ) {
-      const bookASIN        = _thisRow.getAttribute('id').replace('adbl-library-content-row-', '');
-      const bookInMemory    = _.find(vue.library.books, ['asin', bookASIN]);
-      const fullScan_ALL_partialScan_NEW = vue.partialScan && !bookInMemory || !vue.partialScan;
-      let book            = (vue.partialScan && bookInMemory) ? bookInMemory : {};
+      const bookASIN                     = _thisRow.getAttribute('id').replace('adbl-library-content-row-', '');
+      const bookInMemory                 = !hotpotato.config.partialScan ? undefined : _.find( hotpotato.books, ['asin', bookASIN] );
+      const fullScan_ALL_partialScan_NEW = hotpotato.config.partialScan && !bookInMemory || !hotpotato.config.partialScan;
+      let   book                         = (hotpotato.config.partialScan && bookInMemory) ? bookInMemory : {};
       
       // UPDATE SCAN: fetch these only if the book is a new addition...
       // FULL SCAN: fetch always
@@ -93,7 +100,7 @@ function processLibraryPage( vue, response, stepCallback ) {
       
       // ALWAYS FETCH ↓↓ ( downloaded, favorite, progress, myRating )
       
-      // Came from the plus catalog but is no longer available there.
+      // "Came from the plus catalog but is no longer available there"
       const unavailableBtn = _thisRow.querySelector('.adbl-library-inaccessible-button');
       if ( unavailableBtn ) book.leftPlusCatalog = true;
       
@@ -124,7 +131,10 @@ function processLibraryPage( vue, response, stepCallback ) {
       
       // - - - - - - - 
       
-      if ( vue.partialScan && !bookInMemory ) book.new = true;
+      if ( hotpotato.config.partialScan && bookInMemory === undefined ) {
+        console.log('%c' + 'book' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', book.title, book);
+        book.isNew = true;
+      }
       if ( fullScan_ALL_partialScan_NEW ) vue.$root.$emit('update-progress-max');
       books.push(book);
       

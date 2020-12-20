@@ -1,15 +1,16 @@
 <template>
 <div id="ale-spashscreen" v-visible="!loading">
-	
-	<div class="extract-wrapper">
-	
-		<div class="extract-settings" v-if="settingsOpen">
-			
-			<div class="settings-heading">
-				<span class="title is-4">Full Extraction Settings</span>
+
+	<b-collapse
+	animation="slide"
+	class="panel"
+	:open="settingsOpen"
+	>
+		<div class="extract-settings">
+			<div class="settings-heading fade-in">
+				<span class="title is-4">Extraction Settings</span>
 			</div>
-			<p class="title is-6">Pick and choose:</p>
-			<b-field grouped>				
+			<b-field grouped class="setting-checkboxes">				
 				<b-checkbox v-for="setting in extractSettings" :key="setting.name" 
 				:value="setting.value" 
 				:disabled="setting.disabled" 
@@ -22,32 +23,41 @@
 			</b-field>
 			
 			<b-message class="description">
-				If you are planning to save the library as a stand-alone website, you can choose to leave out collections and wishlist in the export process later. ISBNs are merged with the library books and can't be removed.
+				You can fetch <strong>collections</strong> and <strong>wishlist</strong> now and discard them later when saving the gallery as a stand-alone website. <strong>ISBNs</strong> are merged with the library books and can't be removed later, not that there should be any need to do that.
+				<!-- You can fetch <b-tag type="is-warning">collections</b-tag> and <b-tag type="is-warning">wishlist</b-tag> now and discard them later when saving the gallery as a stand-alone website. <b-tag type="is-warning">ISBNs</b-tag> are merged with the library books and can't be removed later, not that there should be any need to do that. -->
 			</b-message>
 			
 		</div>
-		<b-field class="extract-btns">
+	</b-collapse>
+	
+	<div class="extract-wrapper">
+		
+		<b-field class="extract-btn">
 			
-			<b-button @click="takeNextStep('extract')" type="is-info" class="extract control" icon-right="arrow-alt-circle-down" icon-pack="far" expanded size="is-large">
+			<b-button @click="takeNextStep('extract')" type="is-info" class="extract control" expanded size="is-large">
 				Start extracting
 			</b-button>
 			<div class="control">
-				<b-button @click="settingsOpen = !settingsOpen" type="is-dark" class="settings" :class="{ open: settingsOpen }" icon-right="cog" icon-pack="fas" size="is-large"></b-button>
+				<b-button @click="takeNextStep('extract')" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large"></b-button>
 			</div>
 			
 		</b-field>
+		
+		<b-field class="other-btns">	
+			<b-button :disabled="!storageHasData" @click="takeNextStep('update')" class="control" size="is-small" icon-right="sync-alt" icon-pack="fas" v-tippy content="<strong>Usable after one full extraction.</strong> <br>A faster extraction that primarily add new books but also updates data that is likely to change.">
+				Partial extraction
+			</b-button>
+			<b-button :disabled="!storageHasData" @click="takeNextStep('output')" class="control" size="is-small" icon-right="share-square" icon-pack="fas" v-tippy content="<strong>Usable after one full extraction.</strong> <br>Skips scanning and goes sraight to the library gallery.">
+				Output page
+			</b-button>
+		</b-field>
+		
 	</div>
 
-	<b-field class="other-btns">	
-		<b-button :disabled="!storageHasData" @click="takeNextStep('update')" class="control" size="is-small" icon-right="sync-alt" icon-pack="fas" v-tippy content="A faster scan that fetches all data for new books and only deletes or updates the progress and rating for old books. You need to have done the full scan at least once to use this.">
-			Partial extraction
-		</b-button>
-		<b-button :disabled="!storageHasData" @click="takeNextStep('output')" class="control" size="is-small" icon-right="share-square" icon-pack="fas" v-tippy content="Skips scanning and does sraight to the gallery. You need to have done the full scan at least once to use this.">
-			Output page
-		</b-button>
-	</b-field>
+	
+	<b-button class="settings-btn" @click="settingsOpen = !settingsOpen" :class="{ open: settingsOpen }" size="is-small" type="is-text" icon-left="cog" icon-pack="fas">Settings</b-button>
 
-	<div class="info-wrap bottom content is-small has-text-grey-light">
+	<div id="footer" class="is-small has-text-grey-light">
 			Find more information in the <a href="https://github.com/joonaspaakko/audible-library-extractor">Github repository</a> page. <br />
 			Post issues, questions, and suggestion at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>. 
 	</div>
@@ -94,7 +104,7 @@ Vue.use(Buefy, {
 
 export default {
 	name: 'splashscreen',
-	props: ['storageHasData'],
+	props: ['storageHasData', 'storageConfig'],
   data () {
 		return {
 			settingsOpen: false,
@@ -103,8 +113,8 @@ export default {
 				{ name: 'storePage', 	 value: true,  label: 'Store Pages',  type: 'is-success', disabled: true, },
 				{ name: 'seriesOrder', value: true,  label: 'Series Order', type: 'is-success', disabled: true, },
 				{ name: 'collections', value: true,  label: 'Collections',  type: 'is-success', disabled: false, },
-				{ name: 'isbn', 			 value: false, label: 'ISBN', 			  type: 'is-danger',  disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process:</strong> only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Goodreads uses ISBNs when books are imported from a CSV file.</div>" },
-				{ name: 'wishlist', 	 value: false, label: 'Wishlist', 	  type: 'is-danger',  disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process:</strong> only fetch these if you need them. <br>Increases the filesize by quite a lot if you have a large wishlist.</div>" },
+				{ name: 'isbn', 			 value: false, label: 'ISBN', 			  type: 'is-danger',  disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process with a large library (+150).</strong> Only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Only books that are missing ISBNs are processed during a partial extraction. <br>You should only need them if you plan to import the books to Goodreads.</div>" },
+				{ name: 'wishlist', 	 value: false, label: 'Wishlist', 	  type: 'is-warning', disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process with a large wishlist (+100).</strong></div>" },
 			],
 			loading: true,
 		}
@@ -114,12 +124,20 @@ export default {
 		
 		// Just to make sure that accidental clicks don't do anything when the overlay is opened
 		// - If the button that opens the overlay was perfectly aligned with any of the buttons in this component, a double click would start doing things prematurely
+		const vue = this;
 		this.$nextTick(function() {
-			const vue = this;
 			setTimeout(function() {
 				vue.loading = false;
 			}, 1000);
 		});
+		
+		if ( this.storageConfig.steps ) {
+			_.each( this.storageConfig.steps, function( step ) {
+				let foundOriginalDolly = _.find( vue.extractSettings, { name: step.name });
+				foundOriginalDolly.value = step.value;
+			});
+			
+		}
 		
 	},
 	
@@ -129,9 +147,11 @@ export default {
 			
 			this.$root.$emit('do-next-step', {
 				step: step,
-				config: _.map( this.extractSettings, function( o ) {
-					return { name: o.name, value: o.value };
-				}),
+				config: {
+					steps: _.map( this.extractSettings, function( o ) {
+						return { name: o.name, value: o.value };
+					}),
+				},
 			});
 		},
 		
@@ -147,11 +167,9 @@ export default {
 <style lang="scss">
 
 #ale-spashscreen {
-	.info-wrap.top {
-		display: none;
-		margin-top: 30px;
-	}
-
+	max-width: 650px;
+	margin: 0 auto;
+	
 	.has-text-grey-light {
 		a {
 			text-decoration: underline;
@@ -163,27 +181,24 @@ export default {
 	}
 
 	.extract-wrapper {
-		margin-top: 35px;
-		.extract-btns {
-			display: inline-flex;
-			width: 100%;
-			max-width: 300px;
-			button.extract {
-				padding: 5px 15px 4px !important;
-				border-radius: 4px 0 0 4px;
-			}
-			.settings.open {
-				background: #f19933;
-				color: #fff;
-			}
+		width: 300px;
+		margin: 35px auto 0;
+	}
+
+	.extract-btn {
+		margin-bottom: 0px !important;
+		display: inline-flex;
+		width: 100%;
+		button.extract {
+			padding: 5px 15px 4px !important;
+			border-radius: 4px 0 0 4px;
 		}
 	}
 	
 	.extract-settings {
 		position: relative;
 		z-index: 1;
-		padding-top: 25px;
-		max-width: 650px;
+		padding-top: 10px;
 		margin: 0 auto 20px auto;
 		border: 2px solid #e1e1e1;
 		border-radius: 6px;
@@ -206,9 +221,26 @@ export default {
 			justify-content: center;
 		}
 		.description {
-			margin-top: 20px;
+			line-height: 22px;
+			margin: 0;
 			.message-body {
 				border: none !important;
+			}
+			&.darker-gray {
+				border-radius: 0;
+				background: rgba(#000, .1);
+				border-color: rgba(#000, .12);
+				border-style: solid;
+				border-width: 2px;
+				border-right: none;
+				border-left: none;
+				.media-content {
+					color: rgba(#000, .57);
+				}
+			}
+			.tag {
+				background-color: #d5e9f8 !important;
+    		color: #1d72aa !important;
 			}
 		}
 		
@@ -224,6 +256,18 @@ export default {
 				background: #fff; 
 			}
 		}
+		/* ----------------------------------------------
+		* Generated by Animista on 2020-12-19 21:31:49
+		* Licensed under FreeBSD License.
+		* See http://animista.net/license for more info. 
+		* w: http://animista.net, t: @cssanimista
+		* ---------------------------------------------- */
+		.fade-in{-webkit-animation:fade-in .3s cubic-bezier(.39,.575,.565,1.000) .25s both;animation:fade-in .3s cubic-bezier(.39,.575,.565,1.000) .25s both}
+		@-webkit-keyframes fade-in{0%{opacity:0}100%{opacity:1}}@keyframes fade-in{0%{opacity:0}100%{opacity:1}}
+
+		.setting-checkboxes {
+			margin: 40px 0 ;
+		}
 		
 	}
 	
@@ -238,9 +282,29 @@ export default {
 		}
 	}
 	
-	.info-wrap.bottom {
-		margin-top: 50px;
+	#footer {
+		font-size: .9em;
 		line-height: 1.3em;
+		padding: 50px 0 10px;
+		&, & a { transition: color 150ms ease; }
+		&:hover {
+			color: #717171 !important;
+			a { color: darken(#717171,5) !important; }
+		}
+	}
+	
+	.settings-btn {
+		margin-top: 25px;
+		transition: all 180ms ease-out;
+		&:focus {
+			box-shadow: none !important;
+		}
+		&.open {
+			background: #444;
+			color: #fff;
+			border-radius: 5px;
+		}
+		
 	}
 
 }
