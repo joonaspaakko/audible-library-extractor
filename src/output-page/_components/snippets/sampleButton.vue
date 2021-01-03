@@ -16,8 +16,8 @@ export default {
   methods: {
         
     playSample: function( book, index ) {
-      Eventbus.$emit('playSample', {
-        from: 'aleBooks',
+      Eventbus.$emit('play-audio', {
+        from: 'sampleButton',
         route: this.$route,
         book: book,
         index: index,

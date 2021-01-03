@@ -1,5 +1,5 @@
 <template>
-<div id="ale-spashscreen" v-visible="!loading">
+<div id="ale-menu-screen" v-visible="!loading">
 
 	<b-collapse
 	animation="slide"
@@ -10,16 +10,34 @@
 			<div class="settings-heading fade-in">
 				<span class="title is-4">Extraction Settings</span>
 			</div>
-			<b-field grouped class="setting-checkboxes">				
-				<b-checkbox v-for="setting in extractSettings" :key="setting.name" 
-				:value="setting.value" 
-				:disabled="setting.disabled" 
-				:type="setting.type"
-				v-tippy :content="setting.tippy"
-				@input="settingChanged( $event, setting.name )"
-				>
-					{{ setting.label }}
-				</b-checkbox>
+			<b-field grouped class="setting-checkboxes"> 
+				<span v-for="setting in mainSteps" :key="setting.name" v-tippy :content="setting.tippy">
+					
+					<b-checkbox 
+					:value="setting.value" 
+					:disabled="setting.disabled" 
+					:type="setting.type"
+					@input="settingChanged( $event, setting.name )"
+					>
+						{{ setting.label }}
+					</b-checkbox>
+					
+				</span>
+			</b-field>
+			
+			<b-field grouped class="setting-checkboxes" v-if="extras.length">				
+				<span v-for="setting in extras" :key="setting.name" v-tippy :content="setting.tippy">
+					
+					<b-checkbox  
+					:value="setting.value" 
+					:disabled="setting.disabled" 
+					:type="setting.type"
+					@input="settingChanged( $event, setting.name )"
+					>
+						{{ setting.label }}
+					</b-checkbox>
+					
+				</span>
 			</b-field>
 			
 			<b-message class="description">
@@ -86,7 +104,7 @@ Vue.use(VueTippy, {
   trigger: "mouseenter focus",
   theme: 'light-border',
   zIndex: 9999999991,
-  maxWidth: 370,
+  maxWidth: 670,
   onShow: (options) => { return !!options.props.content },
   boundary: 'viewport',
   flipDuration: 0,
@@ -103,21 +121,41 @@ Vue.use(Buefy, {
 
 
 export default {
-	name: 'splashscreen',
+	name: 'menuScreen',
 	props: ['storageHasData', 'storageConfig'],
   data () {
 		return {
 			settingsOpen: false,
+			extrasOn: false,
 			extractSettings: [
-				{ name: 'library', 		 value: true,  label: 'Library', 		  type: 'is-success', disabled: true, },
-				{ name: 'storePage', 	 value: true,  label: 'Store Pages',  type: 'is-success', disabled: true, },
-				{ name: 'seriesOrder', value: true,  label: 'Series Order', type: 'is-success', disabled: true, },
-				{ name: 'collections', value: true,  label: 'Collections',  type: 'is-success', disabled: false, },
-				{ name: 'isbn', 			 value: false, label: 'ISBN', 			  type: 'is-danger',  disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process with a large library (+150).</strong> Only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Only books that are missing ISBNs are processed during a partial extraction. <br>You should only need them if you plan to import the books to Goodreads.</div>" },
-				{ name: 'wishlist', 	 value: false, label: 'Wishlist', 	  type: 'is-warning', disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process with a large wishlist (+100).</strong></div>" },
+				{ name: 'library', 		 value: true,  label: 'Library', 		       type: 'is-success', disabled: true, },
+				{ name: 'storePage', 	 value: true,  label: 'Store Pages',       type: 'is-success', disabled: true, },
+				{ name: 'seriesOrder', value: true,  label: 'Series Order',      type: 'is-success', disabled: true, tippy: "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>" },
+				{ name: 'collections', value: true,  label: 'Collections',       type: 'is-success', disabled: false, tippy: "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>" },
+				{ name: 'isbn', 			 value: false, label: 'ISBN', 			       type: 'is-danger',  disabled: false, tippy: "<div style='text-align: left;'><strong>Very slow process with +200 books.</strong> Only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Only books that are missing ISBNs are processed during a partial extraction. <br>You should only need them if you plan to import the books to Goodreads.</div>" },
+				{ name: 'isbn-update', value: true, label: 'Add missing ISBNs on full extract', type: 'is-success', disabled: false, extra: true, onStorageHasData: true, parent: 'isbn', tippy: "<div style='text-align: left;'><strong>Will potentially save a lot of time.</strong> <br>Keeps previously extracted ISBNs and only tries to add ISBNs to all books without ISBNs. <br>ISBNs are not likely to change and since you've already done a full extract, might as well use the existing ISBNs. <br>Disable if you want to refresh the whole list of ISBNs during a full extract.</div>" },
+				{ name: 'wishlist', 	 value: false, label: 'Wishlist', 	       type: 'is-warning', disabled: false, tippy: "<div style='text-align: left;'><strong>Slow process...</strong> <br><strong>Always a full extract, even when updating.</strong></div>" },
 			],
 			loading: true,
 		}
+	},
+	
+	computed: {
+		
+		mainSteps: function() {
+			return _.filter( this.extractSettings, function( o ) { return !o.extra });
+		},
+		
+		extras: function() {
+			const vue = this;
+			return _.filter( vue.extractSettings, function( o ) { 
+				if ( o.extra && o.onStorageHasData && vue.storageHasData ) {
+					const parentChecked = _.find( vue.mainSteps, { name: o.parent }).value;
+					if ( parentChecked ) return o;
+				}
+			});
+		},
+		
 	},
 	
 	mounted: function() {
@@ -131,17 +169,22 @@ export default {
 			}, 1000);
 		});
 		
-		if ( this.storageConfig.steps ) {
+		// Updates default values from browser storage
+		if ( this.storageConfig && this.storageConfig.steps ) {
 			_.each( this.storageConfig.steps, function( step ) {
 				let foundOriginalDolly = _.find( vue.extractSettings, { name: step.name });
 				foundOriginalDolly.value = step.value;
 			});
-			
 		}
 		
 	},
 	
 	methods: {
+		
+		extrasParentOn: function( setting ) {
+			var parentChecked = _.find( this.mainSteps, { name: setting.parent }).value;
+			return parentChecked;
+		},
 		
 		takeNextStep: function( step ) {
 			
@@ -149,7 +192,7 @@ export default {
 				step: step,
 				config: {
 					steps: _.map( this.extractSettings, function( o ) {
-						return { name: o.name, value: o.value };
+						return { name: o.name, value: o.value, extra: o.extra };
 					}),
 				},
 			});
@@ -166,7 +209,7 @@ export default {
 
 <style lang="scss">
 
-#ale-spashscreen {
+#ale-menu-screen {
 	max-width: 650px;
 	margin: 0 auto;
 	
@@ -266,7 +309,7 @@ export default {
 		@-webkit-keyframes fade-in{0%{opacity:0}100%{opacity:1}}@keyframes fade-in{0%{opacity:0}100%{opacity:1}}
 
 		.setting-checkboxes {
-			margin: 40px 0 ;
+			margin: 40px 0;
 		}
 		
 	}

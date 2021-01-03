@@ -3,14 +3,14 @@
     
     <label 
     v-if="item" 
-    v-tippy="{ placement: 'left',  arrow: true, theme: general.tippyTheme }" 
+    v-tippy="{ placement: 'left' }" 
     :content="item.tippy ?  item.tippy : false"
     class="sorter-button"
     >
     
       <input @change="inputChanged(item, index)" type="checkbox" :value="index" v-model="item.active" />
       <slot v-if="label === false" class="input-label" />
-      <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === gallery.searchOptions.lists.sortIndex }">
+      <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === this.$store.state.sortIndex }">
         <font-awesome fas icon="sort-down" />
         <font-awesome fas icon="sort-up" />
       </span>
@@ -30,7 +30,7 @@
 <script>
 export default {
   name: 'sorter',
-  props: ['general', 'gallery', 'name', 'label', 'dataSource', 'listOpen', 'item', 'index'],
+  props: ['name', 'label', 'dataSource', 'listOpen', 'item', 'index'],
   data: function() {
     return {
     };

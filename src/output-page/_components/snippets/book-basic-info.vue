@@ -1,10 +1,9 @@
 <template>
   <div class="basic-info">
-    
-    <arrayToHTML label="Author"    :array="book.authors"   :general="general"></arrayToHTML>
-    <arrayToHTML label="Narrator"  :array="book.narrators" :general="general"></arrayToHTML>
-    <arrayToHTML label="Series"    :array="book.series"    :general="general"></arrayToHTML>
-    <arrayToHTML label="Publisher" :array="book.publisher" :general="general"></arrayToHTML>
+    <arrayToHTML v-if="book.authors"    label="Author"    :array="book.authors"    :general="general"></arrayToHTML>
+    <arrayToHTML v-if="book.narrators"  label="Narrator"  :array="book.narrators"  :general="general"></arrayToHTML>
+    <arrayToHTML v-if="book.series"     label="Series"    :array="book.series"     :general="general"></arrayToHTML>
+    <arrayToHTML v-if="book.publishers" label="Publisher" :array="book.publishers" :general="general"></arrayToHTML>
     <div v-if="book.length">
       <strong class="strong-label">Length:</strong>
       {{ book.length }}

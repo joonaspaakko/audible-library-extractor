@@ -28,9 +28,12 @@ const config = {
     extensions: ['.js', '.vue'],
     alias: {
       'node_modules': path.join(__dirname, 'node_modules'),
-      '@': path.join(__dirname, '/src/output-page/'),
-      '@output-page': path.join(__dirname, '/src/output-page/'),
+      '@': path.join(__dirname, '/src/output-page'),
+      '@output-page': path.join(__dirname, '/src/output-page'),
+      '@output-comps': path.join(__dirname, '/src/output-page/_components'),
+      '@output-snippets': path.join(__dirname, '/src/output-page/_components/snippets'),
       '@output-mixins': path.join(__dirname, '/src/output-page/_mixins'),
+      '@contscript-mixins': path.join(__dirname, '/src/content-script/_components/_mixins'),
     },
   },
   module: {

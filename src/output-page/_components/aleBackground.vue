@@ -1,6 +1,6 @@
 <template>
 <div id="ale-background" v-if="books">
-	<img v-for="( book, index ) in books" :key="book.asin" :src="makeCoverUrl(book.coverUrl, 200)" alt="">
+	<img ref="bgCovers" v-for="( book, index ) in books" :key="book.asin" :src="makeCoverUrl(book.cover, 200)" alt="">
 </div>
 </template>
 
@@ -20,21 +20,25 @@ export default {
 		}
 	},
   
-  created: function() {
+  mounted: function() {
     
     const vue = this;
-    this.windowWidth = $(window).width();
+    this.windowWidth = window.innerWidth;
     
-    setTimeout(function() {
-      vue.books = vue.getBooks();
-      vue.flipAnimationRandomizer();
-    }, 1500);
+    this.$nextTick(function() {
+      setTimeout(function() {
+        vue.books = vue.getBooks();
+        vue.flipAnimationRandomizer();
+      }, 1500);
+    });
     
-    Eventbus.$on('afterWindowResize', this.onWindowResize );
+    this.$root.$on('afterWindowResize', this.onWindowResize );
     
   },
   destroyed: function() {
-	 	Eventbus.$off('afterWindowResize', this.onWindowResize );
+    
+    this.$root.$off('afterWindowResize', this.onWindowResize );
+    
   },
   
   methods: {
@@ -46,10 +50,10 @@ export default {
       // 8 (<1000)
       // 6 (<760)
       // 4 (<530)
-      function calculateBgLength( n ) { return 3*n; }
+      function calculateBgLength( n ) { return 6*n; }
       let bgLength = calculateBgLength(15);
       if ( this.windowWidth < 530 ) {
-        bgLength = calculateBgLength(4);
+        bgLength = calculateBgLength(5);
       }
       else if ( this.windowWidth < 760 ) {
         bgLength = calculateBgLength(6);
@@ -87,33 +91,36 @@ export default {
       
       const vue = this;
       
-      const gridImages = $('#ale-background img');
-      const gridImagesLength = gridImages.length-1;
-      
       clearInterval( vue.timer1 );
       clearInterval( vue.timer2 );      
       
       vue.timer1 = setInterval( function() {
-        coverSwitcheroo();
-      }, randomNumber( 1500, 3000 ));
+        vue.coverSwitcheroo();
+      }, vue.randomNumber( 1500, 3000 ));
       vue.timer2 = setInterval( function() {
-        coverSwitcheroo();
-      }, randomNumber( 3500, 5000 ));
+        vue.coverSwitcheroo();
+      }, vue.randomNumber( 3500, 5000 ));
       
-      function coverSwitcheroo() {
-        const gridImages = $('#ale-background img');
-        const gridImagesLength = gridImages.length-1;
-        const img1 = gridImages.get( randomNumber( 0, gridImagesLength ) );
-        const img2 = vue.library.books[ randomNumber( 0, vue.library.books.length-1 ) ].coverUrl;
-        $(img1).addClass('flip-out');
-        setTimeout(function() {
-          $(img1).attr('src', vue.makeCoverUrl(img2, 200) ).removeClass('flip-out');
-        }, 1000);
-      }
-      function randomNumber( min, max ) {
-        return Math.floor( Math.random() * (max-min+1) +min );
-      }
+    },
+    
+  
+    coverSwitcheroo: function() {
       
+      const vue = this;
+      const gridImages = vue.$refs.bgCovers;
+      const gridImagesLength = gridImages.length-1;
+      const img1 = gridImages[ vue.randomNumber( 0, gridImagesLength ) ];
+      const img2 = vue.library.books[ vue.randomNumber( 0, vue.library.books.length-1 ) ].cover;
+      img1.classList.add('flip-out');
+      setTimeout(function() {
+        img1.setAttribute('src', vue.makeCoverUrl(img2, 200) )
+        img1.classList.remove('flip-out');
+      }, 1000);
+      
+    },
+    
+    randomNumber: function( min, max ) {
+      return Math.floor( Math.random() * (max-min+1) +min );
     },
     
     onWindowResize: function( msg ) {
@@ -140,7 +147,7 @@ export default {
   left: -3.05%;
   right: -3.05%;
   top: 0;
-  opacity: 0.2;
+  opacity: .25;
   text-align: center;
   font-size: 0px;
   line-height: 0px;
@@ -149,7 +156,7 @@ export default {
     content: "";
     position: absolute;
     z-index: 1;
-    top: 25%;
+    top: 40%;
     right: 0;
     bottom: 0;
     left: 0;
@@ -187,10 +194,10 @@ export default {
     display: none !important;
   }
   #ale-background {
-    opacity: 0.1;
+    opacity: 0.25;
     -webkit-mask-image: -webkit-gradient(
       linear,
-      left 20%,
+      left 40%,
       left bottom,
       from(rgba(0, 0, 0, 1)),
       to(rgba(0, 0, 0, 0))
@@ -231,7 +238,7 @@ export default {
 @media ( max-width: 530px ) {
 
   #ale-background img {
-    width: 22.84%;
+    width: 17.95%;
   }
   
 }

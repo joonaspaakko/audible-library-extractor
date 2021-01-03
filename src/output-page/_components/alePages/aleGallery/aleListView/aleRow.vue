@@ -66,14 +66,14 @@
 
 <script>
 
-import makeCoverUrl from '../../../../_mixins/makeCoverUrl'
-import stringifyArray from '../../../../_mixins/stringifyArray'
-import makeFullUrl from '../../../../_mixins/makeFullUrl'
+import makeCoverUrl   from '@output-mixins/makeCoverUrl';
+import stringifyArray from '@output-mixins/stringifyArray';
+import makeFullUrl    from '@output-mixins/makeFullUrl';
 
-import goodReadsLink from '../../../snippets/goodReadsLink'
-import favoriteBook from '../../../snippets/favoriteBook'
-import sampleButton from '../../../snippets/sampleButton'
-import bookBasicInfo from '../../../snippets/ale-book-basic-info'
+import goodReadsLink from '@output-comps/snippets/goodReadsLink';
+import favoriteBook  from '@output-comps/snippets/favoriteBook';
+import sampleButton  from '@output-comps/snippets/sampleButton';
+import bookBasicInfo from '@output-comps/snippets/book-basic-info';
 
 export default {
   name: 'aleListItem',
@@ -101,7 +101,7 @@ export default {
   created: function() {
     
     this.bookUrl = this.makeFullUrl( this.book.url );
-    this.coverUrl = this.makeCoverUrl( this.book.coverUrl );
+    this.coverUrl = this.makeCoverUrl( this.book.cover );
     if ( this.coverUrl ) this.coverUrl27 = this.coverUrl.replace('_SL500_', '_SL27_');
     this.bookTitle = this.book.title || this.book.titleShort;
     

@@ -48,7 +48,7 @@
             } 
           }">
           
-            <img :src="makeCoverUrl(book.coverUrl)" alt="">
+            <img :src="makeCoverUrl(book.cover)" alt="">
           </router-link> 
         </div>
         

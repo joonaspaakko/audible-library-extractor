@@ -104,12 +104,12 @@ export default {
           }
           else if ( numberRow ) {
             if ( string.match(/\d/) ) {
-              // Trims text from the front ("Book ") and splits numbers separated by commas
-              var numbers = string.replace(/^[^0-9]*/g, '').trim().split(',');
+              // Trims text from the front: ("Book ", removes trailing comma, and splits numbers separated by commas
+              var numbers = string.replace(/^[^0-9]*/, '').replace(/,$/, '').trim().split(',');
               // Numbers are added to the previous item
               var lastItem = series[ series.length-1 ];
               lastItem.bookNumbers  = $.map( numbers, function( n ) {
-                return parseFloat( n );
+                return '' + n; // Every number is handled as a string to avoid issues with book ranges
               });
             }
           }
@@ -158,6 +158,73 @@ export default {
       }
       
     },
+  
+    // Since the added date is no longer available in the Audible library or store pages,
+    // I'm adding a prop called "added", which obviously isn't the same as the date it was added, 
+    // but can be sorted in the same fashion... given that the array is in that same order, 
+    // which it should be. Old at the bottom (low number), new at the top (high number).
+    addedOrder: function( books ) {
+      
+      let id = books.length + 1;
+      _.each( books, function( book ) {
+        --id;
+        book.added = id;
+      });
+      
+    },
     
-  }
+    makeFrenchFries: function( hotpotato ) {
+      
+      hotpotato.extras = {
+        'domain-extension': this.domainExtension,
+      };
+      
+      hotpotato.chunks = []; 
+      _.each( hotpotato, function( item, key ) {
+        if ( key !== 'chunks' && _.isArray( item ) ) {
+          
+          const chunks = _.chunk( item, 50);
+          hotpotato.chunks.push( key ); 
+          hotpotato[ key+'-chunk-length' ] = chunks.length; 
+          _.each( chunks, function( chunk, i ) {
+            hotpotato[ key+'-chunk-'+i ] = chunk;
+          });
+          delete hotpotato[ key ]; // The original array is not needed anymore
+          
+          // FIXME: doesn't seem to destroy the full array??
+          
+        }
+      });
+      
+    },
+    
+    // It's vegan glue... Don't worry about it...
+    glueFriesBackTogether: function( data ) {
+      
+      if ( data && _.isEmpty( data ) ) {
+        return null;
+      }
+      else {
+        
+        _.each( data.chunks, function( chunkName ) {
+          
+          const chunksLength = data[ chunkName+'-chunk-length' ];
+          const chunkNumbers = _.range(0,chunksLength);
+          data[ chunkName ] = [];
+          _.each( chunkNumbers, function( n ) {
+            
+            data[ chunkName ] = data[ chunkName ].concat( data[ chunkName+'-chunk-'+n ] );
+            delete data[ chunkName+'-chunk-'+n ];
+            
+          });
+          delete data[ chunkName+'-chunk-length' ];
+          
+        });
+        delete data.chunks;
+        
+      }
+      
+    },
+    
+  },
 }

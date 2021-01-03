@@ -5,26 +5,11 @@
     <ale-navigation :library="library" :general="general"></ale-navigation>
     <router-view    :library="library" :general="general" ref="$route" ></router-view>
     
-    <div id="audio-player" v-if="audioBetter.audioSource">
-      <mini-audio :audio-source="audioBetter.audioSource" preload autoplay ref="audioBetter"></mini-audio>
-      <div class="custom-icons" :class="{ 'book-index-known': audioBetter.index }">
-        <div class="book" :content="audioBetter.book.title" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }">
-          <router-link :to="{ path: audioBetter.route.path, query: { book: audioBetter.book.asin}}">
-            <font-awesome fas icon="book" />
-          </router-link>
-          <!-- <font-awesome fas icon="book" @click="samplePlayerBook" /> -->
-        </div>
-        <div class="close">
-          <font-awesome fas icon="times-circle" @click="samplePlayerClose" />
-        </div>
-      </div>
-    </div> <!-- #audio-player -->
-    
     <a v-if="this.general.displayMode" id="audible-app-link" href="audible://">
       <img alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTEuNSA5My43IiB3aWR0aD0iMTUxLjUiIGhlaWdodD0iOTMuNyI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjxnPjxnPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggODAuN2w3NS43LTQ3LjJ2MTIuOEw3NS44IDkzLjcgMCA0Ni4zVjMzLjVsNzUuOCA0Ny4yeiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggMjEuNWE0OC4xNyA0OC4xNyAwIDAgMC00MC43IDIxLjkgMTIuOTQgMTIuOTQgMCAwIDEgMS44LTEuNmMyMS4zLTE3LjcgNTItMTMuNyA2OC43IDguNmwxMS4xLTcuMWE0OS44MiA0OS44MiAwIDAgMC00MC45LTIxLjgiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03NS44IDQzLjRhMjcuNzIgMjcuNzIgMCAwIDAtMjIuNCAxMS41IDIyLjcgMjIuNyAwIDAgMSAxMy41LTQuNGM4LjIgMCAxNS41IDQuMiAyMC40IDExLjNsMTAuNi02LjZhMjUuNzkgMjUuNzkgMCAwIDAtMjIuMS0xMS44TTI0LjYgMjQuMkM1NS44LS40IDk5LjkgNi4zIDEyMy40IDM5bC4yLjIgMTEuNS03LjFhNzAuODIgNzAuODIgMCAwIDAtMTE4LjYgMCA2MC42MyA2MC42MyAwIDAgMSA4LjEtNy45Ii8+PC9nPjwvZz48L3N2Zz4=" />
     </a>
     
-    <div id="browser-navigation" v-if="mobileBrowserNavigation">
+    <!-- <div id="browser-navigation" v-if="mobileBrowserNavigation">
       
       <router-link
       v-if="$routerHistory.hasPrevious()"
@@ -38,7 +23,7 @@
         <font-awesome fas icon="chevron-right" />
       </router-link>
       
-    </div>
+    </div> -->
     
   </div>
 </template>
@@ -46,27 +31,21 @@
 <script>
 import aleBackground  from './_components/aleBackground';
 import aleNavigation from './_components/aleNavigation';
-import aleBreadcrumbs from './_components/aleBreadcrumbs';
-
-import VueAudio from 'vue-audio-better';
+import aleBreadcrumbs from './_components/aleBreadcrumbs'
 
 export default {
   components: {
-    VueAudio,
     aleBackground,
     aleNavigation,
     aleBreadcrumbs,
   },
+  props: ['library'],
   data: function() {
     return {
-      audioBetter: {
-        title: null,
-        audioSource: null,
-      },
       general: {
         route: null,
         standalone: null,
-        lightSwitch: 1,
+        // lightSwitch: 1,
         urlOrigin: 'https://audible',
         categories: null,
         tippyTheme: 'dark',
@@ -75,7 +54,6 @@ export default {
         width: null,
         height: null,
       },
-      library: this.$root.$data.library,
     }
   },
   
@@ -89,84 +67,74 @@ export default {
   
 	created: function() {
     
+    this.localStorageInit();
+    
     const vue = this;
     // this.library.books = this.library.books.splice(1,20);  
-    // console.log( 'this.library.books' )
-    // console.log( this.library.books )
+    console.log( 'this.library' )
+    console.log( this.library )
       
     this.general.displayMode = window.matchMedia('(display-mode: standalone)').matches;
-    this.general.urlOrigin += this.library.domainExtension;
-    this.general.standalone = $('html.standalone-gallery').length > 0;
-    this.window.width = $(window).width();
-    this.window.height = $(window).height();
+    this.general.urlOrigin += this.library.extras['domain-extension'];
+    this.general.standalone = this.isStandalone;
     
 		var isbn = _.filter(this.library.books, 'ISBN_10');
 		// console.log( 'books with ISBN:' );
     // console.log( isbn.length );
     // console.log( this.library )
     // console.log( _.filter( this.library.books, ['asin', 'B08BX58B3N'] ) )
-    Eventbus.$on('playSample', this.playSample );
-    
-    $(window).on('resize', _.debounce(function() {
-      vue.onWindowResize( vue );
-    }, 400));
-    
-  },
-	
-	beforeDestroy: function() {
-    
-    const vue = this;
-    Eventbus.$off('playSample', this.playSample);
-    $(window).off('resize', this.onWindowResize );
     
   },
   
+  mounted: function() {
+    
+    const vue = this;
+    window.addEventListener('resize', _.debounce(function() {
+      vue.onWindowResize( vue );
+    }, 320, { 'leading': true, 'trailing': true }) );
+    
+  },
+	
+	// beforeDestroy: function() {
+    
+  //   window.removeEventListener('resize', this.onWindowResize);
+    
+  // },
+  
   methods: {
     
-		onWindowResize: function( vue ) {
+    localStorageInit: function() {
       
-      const win = $(window);
-      const windowWidth = win.width();
-      const windowHeight = win.height();
-      const widthChanged = windowWidth !== vue.window.width;
-      const heightChanged = windowHeight !== vue.window.height
+      // Overwrite sticky defaults with local storage values
+      this.$store.commit('fromLocalStorage');
+      // Listen for sticky commits and push them to local storage
+      this.$store.subscribe( function(mutation, state ) {
+        if ( mutation.type === 'stickyProp' ) {
+          localStorage.setItem('aleSettings', JSON.stringify(state.sticky));
+        }
+      });
+      
+    },
+    
+    onWindowResize: function( vue ) {
+      
+      const currentWidth  = window.innerWidth;
+      const currentHeight = window.innerHeight;
+      const widthChanged  = vue.window.width  !== currentWidth;
+      const heightChanged = vue.window.height !== currentHeight;
       if ( widthChanged || heightChanged ) {
-        vue.window.width = windowWidth;
-        vue.window.height = windowHeight;
-        Eventbus.$emit('afterWindowResize', {
+        vue.window.width  = currentWidth;
+        vue.window.height = currentHeight;
+        vue.$root.$emit('afterWindowResize', {
           from: 'app',
-          width: windowWidth,
+          width: currentWidth,
           widthChanged: widthChanged,
-          height: windowHeight,
+          height: currentHeight,
           heightChanged: heightChanged,
         });
-        console.log('RESIZE!!!');
+        console.log('RESIZEDDDDDD!!!');
       }
-
-    },
-    
-    playSample: function( msg ) {
-      this.audioBetter.audioSource = msg.book.sample;
-      this.audioBetter.book = msg.book;
-      if ( msg.index ) this.audioBetter.index = msg.index;
-      if ( msg.route ) this.audioBetter.route = msg.route;
-      console.log( msg.route )
-    },
-    
-    samplePlayerBook: function() {
-      const vue = this;
-      if ( vue.audioBetter.index ) {
-        Eventbus.$emit('galleryBookClick', {
-          from: 'sample-audio-player',
-          index: vue.audioBetter.index,
-          animationSpeed: 1500,
-          dontClose: true,
-        });
-      }
-    },
-    
-    samplePlayerClose: function() {
-      this.audioBetter.audioSource = null;
+      
     },
     
   },
@@ -190,6 +158,7 @@ html {
   margin-top: -1px;
 }
 body {
+  margin: 0px;
 	-moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
   font-family: 'Montserrat', sans-serif !important;
@@ -212,8 +181,8 @@ html.theme-light {
     @include themify($themes) { color: themed(audibleOrange); }
   }
   a:visited { 
-    @include themify($themes) { color: rgba( themed(frontColor), .7); } 
-    // @include themify($themes) { color: darken( desaturate( themed(audibleOrange), 65), 25); } 
+    // @include themify($themes) { color: rgba( themed(frontColor), .7); } 
+    @include themify($themes) { color: darken( desaturate( themed(audibleOrange), 5), 25); } 
   }
   a:hover { 
     @include themify($themes) { color: themed(frontColor); } 
@@ -233,70 +202,6 @@ html.theme-light {
     height: 45px;
     font-size: 20px;
     line-height: 45px;
-  }
-  
-  #audio-player {
-    -webkit-touch-callout: none; 
-    -webkit-user-select: none; 
-    -khtml-user-select: none; 
-    -moz-user-select: none; 
-    -ms-user-select: none; 
-    user-select: none;
-    max-width: 400px;
-    margin: 0 auto;
-    position: fixed;
-    z-index: 900;
-    right: 0px;
-    bottom: 15px;
-    left: 0px;
-    .vueAudioBetter {
-      max-width: 400px;
-      margin: 0;
-      width: auto;
-      padding-right: 72px;
-      // background: #fff;
-      // color: $lightFrontColor;
-      .iconfont.icon-notificationfill {
-        display: none;
-      }
-      .slider {
-        flex-grow: 1;
-        margin-left: 15px;
-      }
-    }
-  }
-  .custom-icons {
-    position: absolute;
-    top: 0;
-    right: 14px;
-    bottom: 0;
-    font-size: 16px;
-    color: rgba( #000, .7 );
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-content: center;
-    justify-items: center;
-    align-items: center;
-    
-    &.book-index-known .book,
-    .close { cursor: pointer; }
-    
-    > div {
-      margin-left: 10px;
-      &:first-child { margin-left: 0px; }
-      outline: none;
-      &:active {
-        position: relative;
-        top: 2px;
-        left: 2px;
-      }
-    }
-    
-    a {
-      cursor: default;
-      color: rgba( #000, .7 );
-    }
   }
   
 }
@@ -335,6 +240,33 @@ html.theme-light {
     width: 100%;
     height: auto;
   }
+}
+
+
+.theme-dark .tippy-popper {
+  .tippy-tooltip {
+    background: lighten( $darkBackColor, 10);
+    border: 1px solid lighten( $darkBackColor, 20);
+    box-shadow: 0 3px 15px rgba( #000, .95 ) !important;
+    .tippy-content { color: $darkFrontColor; }
+  }
+  
+  &[x-placement^="top"]    .tippy-arrow { border-top-color: lighten( $darkBackColor, 10); }
+  &[x-placement^="right"]  .tippy-arrow { border-right-color: lighten( $darkBackColor, 10); }
+  &[x-placement^="bottom"] .tippy-arrow { border-bottom-color: lighten( $darkBackColor, 10); }
+  &[x-placement^="left"]   .tippy-arrow { border-left-color: lighten( $darkBackColor, 10); }
+}
+.theme-light .tippy-popper {
+  .tippy-tooltip {
+    background: $lightBackColor;
+    border: 1px solid darken( $lightBackColor, 10);
+    box-shadow: 0 3px 10px rgba( #000, .35 ) !important;
+    .tippy-content { color: $lightFrontColor; }
+  }
+  &[x-placement^="top"]    .tippy-arrow { border-top-color: $lightBackColor; }
+  &[x-placement^="right"]  .tippy-arrow { border-right-color: $lightBackColor; }
+  &[x-placement^="bottom"] .tippy-arrow { border-bottom-color: $lightBackColor; }
+  &[x-placement^="left"]   .tippy-arrow { border-left-color: $lightBackColor; }
 }
 
 </style>

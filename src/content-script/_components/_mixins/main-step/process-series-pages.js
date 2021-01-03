@@ -9,13 +9,16 @@ export default {
       });
       
       const vue = this;
-      let booksInSeries = hotpotato.config.partialScan ? _.filter(booksInSeries, 'isNew') : hotpotato.books;
+      
+      // For now it's always a full scan
+      // let booksInSeries = hotpotato.config.partialScan ? _.filter(hotpotato.books, 'isNew') : hotpotato.books;
+      let booksInSeries = hotpotato.books;
+      
       if ( booksInSeries.length > 0 ) {
         
         booksInSeries = _.filter( booksInSeries, 'series' );
         let requests = [];
         
-    
         _.each( booksInSeries, function( book ) {
           _.each( book.series, function( series ) {
             

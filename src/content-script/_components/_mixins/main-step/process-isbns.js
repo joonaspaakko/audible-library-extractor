@@ -25,7 +25,33 @@ export default {
         });
         
         const vue = this;
-        fetchISBNs( vue, hotpotato, isbnsFetched );
+        
+        
+        const getISBNS = _.find( hotpotato.config.steps, { name: 'isbn'}).value;
+        const useISBNsFromStorage = _.find( hotpotato.config.steps, { name: 'isbn-update'}).value;
+        const useStorageISBNs = getISBNS && useISBNsFromStorage;
+        if ( useStorageISBNs ) {
+          browser.storage.local.get(null).then( storageData => {
+            
+            const bookChunksLength = storageData['books-chunk-length'];
+            const bookChunkNumbers = _.range(0,bookChunksLength);
+            let isbnBooks = [];
+            _.each( bookChunkNumbers, function( n ) {
+              isbnBooks = isbnBooks.concat( storageData['books-chunk-'+n] );
+            });
+            isbnBooks = _.filter( isbnBooks, 'isbns');
+            _.each( isbnBooks, function( isbnBook ) {
+              let book = _.find( hotpotato.books, { asin: isbnBook.asin });
+              book.isbns = isbnBook.isbns;
+            });
+            fetchISBNs( vue, hotpotato, useStorageISBNs, isbnsFetched );
+            
+          });
+        }
+        else {
+          fetchISBNs( vue, hotpotato, null, isbnsFetched );
+        }
+        
         
       }
     },
@@ -34,13 +60,12 @@ export default {
 };
 
 
-function fetchISBNs( vue, hotpotato, isbnsFetched ) {
+function fetchISBNs( vue, hotpotato, useStorageISBNs, isbnsFetched ) {
   
   const requestUrls = [];
   
   // hotpotato.books.length = 100;
-  
-  const booksOfInterest = hotpotato.config.partialScan ? _.filter( hotpotato.books, function( o ) { return !o.isbns; }) : hotpotato.books;
+  const booksOfInterest = (hotpotato.config.partialScan || useStorageISBNs) ? _.filter( hotpotato.books, function( o ) { return !o.isbns; }) : hotpotato.books;
   
   _.each( booksOfInterest, function( book ) {
     
@@ -65,7 +90,7 @@ function fetchISBNs( vue, hotpotato, isbnsFetched ) {
   axiosRetry(
     letMeAxiosAQuestion, 
     { 
-      retries: 5, 
+      retries: 7, 
       retryDelay: axiosRetry.exponentialDelay,
       retryCondition: function(error) {
         return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.response.status == "429";

@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-books" v-shortkey.once="{down: ['arrowdown'], right: ['arrowright'], up: ['arrowup'], left: ['arrowleft'], tab: ['tab'], tabShift: ['tab', 'shift']}" @shortkey="adjacentDetails">
+  <div id="ale-books" class="list-view" v-shortkey.once="{down: ['arrowdown'], right: ['arrowright'], up: ['arrowup'], left: ['arrowleft'], tab: ['tab'], tabShift: ['tab', 'shift']}" @shortkey="adjacentDetails">
     <div class="list-view" v-shortkey.once="['esc']" @shortkey="closeTippy">
       <table>
         <thead>
@@ -219,12 +219,12 @@ export default {
 }
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import '~@/_variables.scss';
 
 #ale-gallery { margin-bottom: 0 !important; }
 
-#ale-books {
+#ale-books.list-view {
   position: absolute;
   top: 200px;
   left: 20px;

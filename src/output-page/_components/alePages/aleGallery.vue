@@ -3,11 +3,17 @@
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     <ale-search    
-    :booksArray="booksArray" 
     :library="library" 
-    :gallery="gallery"
-    :general="general"
+    :general="general" 
+    
+    :collection.sync="booksArray" 
+    :page="$route.name"
+    :options="search.options"
+    :result.sync="search.result"
+    @clear-search="booksArray = library.books"
     ></ale-search>
+    
+    <!-- <searchbar :booksArray="booksArray" :library="library" :general="general" /> -->
     
     <ale-grid-view 
     v-if="booksArray.length > 0"
@@ -25,27 +31,33 @@
     :general="general"
     ></ale-list-view> -->
     
+    <audio-player></audio-player>
+    
   </div>
 </template>
 
 <script>
-import aleSearch from './aleGallery/aleSearch'
-import aleGridView from './aleGallery/aleGridView'
-import aleListView from './aleGallery/aleListView'
-import aleBreadcrumbs from '../aleBreadcrumbs'
 
-import sortTitle from '../../_mixins/sort/title'
-import sortLength from '../../_mixins/sort/length'
-import sortRatings from '../../_mixins/sort/ratings'
-import sortProgress from '../../_mixins/sort/progress'
-import sortDateAdded from '../../_mixins/sort/dateAdded'
-import sortBookNumbers from '../../_mixins/sort/bookNumbers'
-import sortReleaseDate from '../../_mixins/sort/releaseDate'
-import sortStringNameProp from '../../_mixins/sort/stringNameProp'
-import buildCategories from '../../_mixins/buildCategories'
+import aleSearch from './aleGallery/aleSearch';
+import aleGridView from './aleGallery/aleGridView';
+import aleListView from './aleGallery/aleListView';
 
-// Vue.use(require('vue-shortkey'));
-import vueShortkey from 'vue-shortkey';
+// import aleBreadcrumbs from '../aleBreadcrumbs'
+import audioPlayer from '@output-snippets/audio-player';
+
+import sortTitle from '../../_mixins/sort/title';
+import sortLength from '../../_mixins/sort/length';
+import sortRatings from '../../_mixins/sort/ratings';
+import sortProgress from '../../_mixins/sort/progress';
+import sortDateAdded from '../../_mixins/sort/dateAdded';
+import sortBookNumbers from '../../_mixins/sort/bookNumbers';
+import sortReleaseDate from '../../_mixins/sort/releaseDate';
+import sortStringNameProp from '../../_mixins/sort/stringNameProp';
+import buildCategories from '../../_mixins/buildCategories';
+
+import filterAndSort from '@output-mixins/filter-and-sort.js';
+
+// import vueShortkey from 'vue-shortkey';
 
 export default {
   name: 'aleGallery',
@@ -53,7 +65,8 @@ export default {
     aleSearch,
     aleGridView,
     aleListView,
-    aleBreadcrumbs,
+    // aleBreadcrumbs,
+    audioPlayer,
   },
   mixins: [
     sortBookNumbers,
@@ -65,12 +78,13 @@ export default {
     sortRatings,
     sortProgress,
     buildCategories,
+    filterAndSort,
   ],
-  directives: { vueShortkey },
-  props: ['library', 'general'],
+  // directives: { vueShortkey },
+  props: [ 'isStandalone', 'library', 'general'],
   data: function() {
     return {
-      booksArray: null,
+      booksArray: [],
       gallery: {
         customResults: null,
   			fuseResults: null,
@@ -94,7 +108,7 @@ export default {
 							{ active: true,  key: 'narrators.name' },
 							{ active: true,  key: 'series.name' },
 							{ active: false, key: 'categories.name' },
-							{ active: false, key: 'publishers' },
+							{ active: false, key: 'publishers.name' },
 						],
 	          filter: [
 	            { active: true, label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
@@ -133,7 +147,12 @@ export default {
 					changed: false,
           sliders: {},
         },
-      }
+      },
+      
+      search: {
+        result: null,
+      },
+      
     }
   },
   
@@ -141,6 +160,20 @@ export default {
     
     // booksArray: function() {
     //   return this.sortedObj();
+    // },
+    
+    // booksArray: function() {
+      
+    //   const searchQueryNotEmpty = this.$store.state.searchQuery.trim() !== '';
+    //   const searchResultEmpty   = !this.search.result;
+    //   if ( searchQueryNotEmpty && searchResultEmpty ) {
+    //     return [];
+    //   }
+    //   else {
+    //     const filteredBooks = this.filterBooks();
+    //     return this.sortedBooks( filteredBooks );
+    //   }
+      
     // },
     
   },
@@ -155,125 +188,45 @@ export default {
   
   methods: {
     
-    sort: function( sortIndex ) {
+    
+    // sort: function( sortIndex ) {
       
-      // FIXME: This is where I left off. Fixing how sort executes.....
+    //   // FIXME: This is where I left off. Fixing how sort executes.....
       
-      const oldSortIndex = this.gallery.searchOptions.lists.sortIndex;
-      this.gallery.searchOptions.lists.sortIndex = sortIndex;
+    //   const oldSortIndex = this.gallery.searchOptions.lists.sortIndex;
+    //   this.gallery.searchOptions.lists.sortIndex = sortIndex;
       
-      this.booksArray = this.sortedBooks();
+    //   this.booksArray = this.sortedBooks();
       
-      const sortValuesActive = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'sortValues' && o.active });
-      if ( sortValuesActive && oldSortIndex !== sortIndex ) {
-        this.forceRerenderBooks();
-      }
+    //   const sortValuesActive = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'sortValues' && o.active });
+    //   if ( sortValuesActive && oldSortIndex !== sortIndex ) {
+    //     this.forceRerenderBooks();
+    //   }
+      
+    // },
+    
+    updateBooksArray: function() {
+      
+      this.booksArray = this.filterAndSort( this.library.books );
       
     },
     
-    initBooksArray: function() {
-      const filteredBooks = this.filterBooks();
-      this.booksArray = this.sortedBooks( filteredBooks );
-    },
-    
-    sortedBooks: function( filteredBooks ) {
-
-      let books = filteredBooks || this.booksArray;
-      
-      const randomizeON = _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'randomize' && o.active });
-      if ( randomizeON ) {
-        return _.shuffle( books );
-      }
-      else {
-          
-        const activeSortIndex = this.gallery.searchOptions.lists.sortIndex;
-        if ( activeSortIndex !== -1 ) {
-          const activeSortItem = this.gallery.searchOptions.lists.sort[ activeSortIndex ];
-          const activeSortKey = activeSortItem.key;
-          const sortDirection = activeSortItem.active ? 'desc' : 'asc';
-          const sortOptions = {
-            books: books,
-            direction: sortDirection,
-            sortKey: activeSortKey
-          };
-          switch ( activeSortKey.split('.')[0] ) {
-            case 'bookNumbers':
-              sortOptions.seriesName = this.gallery.searchOptions.lists.numberSortSeriesName;
-              sortOptions.missingNumber = 0;
-              books = this.sortBookNumbers( sortOptions );
-              break;
-            case 'added':
-              books = this.sortDateAdded( sortOptions );
-              break;
-            case 'releaseDate':
-              books = this.sortReleaseDate( sortOptions );
-              break;
-            case 'authors':
-            case 'narrators':
-            case 'publishers':
-              books = this.sortStringNameProp( sortOptions );
-              break;
-            case 'title':
-              books = this.sortTitle( sortOptions );
-              break;
-            case 'length':
-              books = this.sortLength( sortOptions );
-              break;
-            case 'rating':
-            case 'ratings':
-              books = this.sortRatings( sortOptions );
-              break;
-            case 'progress':
-              books = this.sortProgress( sortOptions );
-              break;
-          }
-        }
-        return books;
-        
-      }
-      
-    },
-    
-		filterBooks: function( sideLoadBooks ) {
-      
-			const books = sideLoadBooks || this.library.books;
-      const rules = this.filterRules();
-      
-			return _.filter(books, function( o ) {
-        var result = false;
-        _.each( rules, function( condition, i ) {
-          if ( condition(o) ) {
-            result = true;
-            return false;
-          }
-        });
-        return result;
-      });
-      
-		},
-		
-		filterRules: function() {
-      
-      var filters = _.filter( this.gallery.searchOptions.lists.filter, ['active', true] );
-      return _.map( filters, function( filter ) {
-        if ( filter.active ) return filter.condition;
-      });
-      
-		},
     
   },
   
   created: function() {
     
-    this.initBooksArray();
+    this.updateBooksArray();
     
-    Eventbus.$on('sort', this.sort );
+    console.log('%c' + 'ROUTE' + '', 'background: #01ffff; color: #000; padding: 2px 5px; border-radius: 8px;', this.$route);
+    
+    // Eventbus.$on('sort', this.sort );
     
     const vue = this;
-    if ( this.$route.name === 'ale-category' )  {
+    if ( this.$route.name === 'category' )  {
       this.general.categories = this.buildCategories();
     }
-    else if ( this.$route.name === 'ale-series' ) {
+    else if ( this.$route.name === 'series' ) {
       
       const sortValues = _.find(this.gallery.searchOptions.lists.sortExtras, ['key', 'sortValues']);
       sortValues.active = true;

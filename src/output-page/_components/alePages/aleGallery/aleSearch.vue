@@ -1,38 +1,13 @@
 <template>
-<div id="ale-search-wrap">
-  <div id="ale-search" @click="focusSearch($event)">
-    <div class="search-locked" v-if="!gallery.searchEnabled">
-      <div
-        class="icon"
-        @click="releaseSearchLock"
-        v-tippy="{ placement: 'right', theme: $store.state.tippyTheme }"
-        content="Click here to re-enable search"
-      >
-        <font-awesome fas icon="lock" />
-        <font-awesome fas icon="unlock-alt" />
-      </div>
-      <div class="locked-text-reason" v-if="gallery.searchLocked.reason">
-        {{ gallery.searchLocked.reason }}
-      </div>
-      <div class="locked-text" v-if="gallery.searchLocked.inputValue">
-        {{ gallery.searchLocked.inputValue }}
-      </div>
+<div id="ale-search-wrap" ref="searchWrap" :class="{ 'search-fixed': fixedSearch }">
+  <div id="ale-search">
+    
+    <div class="search-wrapper" @click="$refs.searchInput.focus()">
+      <input type="search" ref="searchInput" :value="$store.state.searchQuery" @input="initSearch" :placeholder="placeholder">
     </div>
-  	<VueFuse
-      v-if="gallery.searchEnabled"
-      :placeholder="placeholder"
-      :list="library.books"
-      :keys="aliciaKeys"
-      :location="0"
-      :distance="400"
-      :threshold="0.25"
-      :defaultAll="false"
-      :search="gallery.searchValue"
-  		:shouldSort="searchShouldSort"
-    />
           
-    <search-icons   :list-open.sync="listOpen" :searchOptions="gallery.searchOptions">{{ booksArray.length }}</search-icons>
-    <search-options :list-open.sync="listOpen" :searchOptions="gallery.searchOptions" :general="general" :gallery="gallery" v-if="listOpen"></search-options>
+    <search-icons   :list-name.sync="listName" :page="page" :searchOptions="options" :booksMaxLength="library.books.length !== collection.length ? library.books.length : null">{{ collection.length }}</search-icons>
+    <search-options :list-name.sync="listName" :page="page" :searchOptions="options" v-if="listName"></search-options>
   	
   </div> <!-- #ale-search -->
 </div> <!-- #ale-search-wrap -->
@@ -40,84 +15,152 @@
 </template>
 
 <script>
-import VueFuse from 'vue-fuse';
+import Fuse from 'fuse.js';
 
 import searchIcons from './aleSearch/searchIcons';
 import searchOptions from './aleSearch/searchOptions';
 
 export default {
   name: 'aleBookdetails',
-  props: ['booksArray', 'library', 'general', 'gallery'],
+  props: ['collection', 'library', 'page'],
   components: {
-    VueFuse,
     searchIcons,
     searchOptions
   },
 	data : function() {
 		return {
+			resultTimer: null,
+      enableZoomTimer: null,
       searchShouldSort: false,
       searchFocusListener: null,
       searchOptionsHider: null,
-			resultTimer: null,
-      enableZoomTimer: null,
       
-      listOpen: false,
+      
+      fuse: null,
+      // Defaults
+      fuseOptions: {
+        keys: ['title'],
+        location: 0,
+        distance: 400,
+        threshold: 0.25,
+        shouldSort: true,
+        includeScore: false,
+        includeMatches: false,
+        useExtendedSearch: true,
+      },
+      
+      listName: false,
+      
+      options: {
+        
+        gallery: {
+          scope: [
+            { active: true,  key: 'title' },
+            { active: true,  key: 'authors.name' },
+            { active: true,  key: 'narrators.name' },
+            { active: true,  key: 'series.name' },
+            { active: false, key: 'categories.name' },
+            { active: false, key: 'publishers.name' },
+          ],
+          filter: [
+            { active: true, label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
+            { active: true, label: 'Started', key: 'started', condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
+            { active: true, label: 'Finished', key: 'finished', condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
+          ],
+          sortExtras: [
+            { active: false, key: 'sortValues', label: 'Show sort values', type: 'sortExtras', tippy: 'Value comes from the active sort category below. <br/> Book title is used as a fallback when you perform a search.' },
+            { active: false, key: 'randomize',  label: 'Randomize',        type: 'sortExtras', tippy: 'Ignores sorting and randomizes the result instead. Applies to search results as well.' },
+          ],
+          sort: [
+            // active: true = arrow down / descending
+            { active: true,  key: 'added',           label: 'Added',   			     type: 'sort', tippy: 'High number = new <br/> Low number = old' },
+            { active: false, key: 'title',           label: 'Title',        		 type: 'sort' },
+            { active: false, key: 'releaseDate',     label: 'Release date', 		 type: 'sort' },
+            { active: false, key: 'length',          label: 'Length',       		 type: 'sort' },
+            { active: false, key: 'authors.name',    label: 'Author',       		 type: 'sort' },
+            { active: false, key: 'narrators.name',  label: 'Narrator',     		 type: 'sort' },
+            { active: false, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
+            { active: false, key: 'rating',  			   label: 'Rating',  				 	 type: 'sort' },
+            { active: false, key: 'ratings',  			 label: 'Number of ratings', type: 'sort' },
+            { active: false, key: 'progress',  			 label: 'Progress',          type: 'sort' },
+            { active: false, key: 'publishers.name', label: 'Publishers',        type: 'sort' },
+          ],
+        }
+      },
+      
+      waypointOpts: {
+        rootMargin: '-37px',
+      },
+      fixedSearch: false,
+      
 		}
   },
   
-  watch: {
-    listOpen: function( value ) {
-      // console.log('%c' + 'searchOptionsOpen' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;', value);
-    }
+
+    // v-if="gallery.searchEnabled"
+    // :placeholder="placeholder"
+    // :list="library.books"
+    // :keys="aliciaKeys"
+    // :location="0"
+    // :distance="400"
+    // :threshold="0.25"
+    // :defaultAll="false"
+    // :search="gallery.searchValue"
+    // :shouldSort="searchShouldSort"
+  
+  updated:function() {
+    // console.log('%c' + 'SEARCH UPDATED' + '', 'background: yellow; color: #fff; padding: 2px 5px; border-radius: 8px;');
   },
   
   created: function() {
     var vue = this;
     
-    Eventbus.$on('detailsToggle', this.onDetailsToggle );
+    console.log('%c' + 'SEARCH CREATED' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
     
-    this.$on('fuseResultsUpdated', results => {
+    // Eventbus.$on('detailsToggle', this.onDetailsToggle );
+    
+    // this.$on('fuseResultsUpdated', results => {
       
-      this.$store.commit('prop', { key: 'searchActive', value: results.length > 0 });
-      // vue.gallery.searchActive = results.length > 0;
+    //   this.$store.commit('prop', { key: 'searchActive', value: results.length > 0 });
+    //   // vue.gallery.searchActive = results.length > 0;
       
-      console.log('%c' + this.$store.state.searchActive + '', 'background: #c71485; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    //   console.log('%c' + this.$store.state.searchActive + '', 'background: #c71485; color: #fff; padding: 2px 5px; border-radius: 8px;');
       
-      if ( !vue.gallery.searchValue.trim() && !vue.gallery.searchActive ) {
-        vue.gallery.searchOptions.lists.sortIndex = vue.gallery.searchOptions.lists.tempSortIndex;
-        vue.gallery.searchOptions.lists.tempSortIndex = null;
-        // console.log('TEMP sort index RESTORED -- tempsortIndex NULL');
-      }
-      else if ( vue.gallery.searchValue.trim() ) {
+    //   if ( !vue.gallery.searchValue.trim() && !vue.gallery.searchActive ) {
+    //     vue.gallery.searchOptions.lists.sortIndex = vue.gallery.searchOptions.lists.tempSortIndex;
+    //     vue.gallery.searchOptions.lists.tempSortIndex = null;
+    //     // console.log('TEMP sort index RESTORED -- tempsortIndex NULL');
+    //   }
+    //   else if ( vue.gallery.searchValue.trim() ) {
       
-        // Activate Title temporarily
-        if ( this.$store.state.searchActive && vue.gallery.searchValueChanged && vue.gallery.searchOptions.lists.tempSortIndex === null ) {
-          vue.gallery.searchOptions.lists.tempSortIndex = vue.gallery.searchOptions.lists.sortIndex;
-          // console.log('TEMP sort index saved - ' + ' regular: ' + vue.gallery.searchOptions.lists.sortIndex )
-          vue.gallery.searchOptions.lists.sortIndex = -1;
-        }
+    //     // Activate Title temporarily
+    //     if ( this.$store.state.searchActive && vue.gallery.searchValueChanged && vue.gallery.searchOptions.lists.tempSortIndex === null ) {
+    //       vue.gallery.searchOptions.lists.tempSortIndex = vue.gallery.searchOptions.lists.sortIndex;
+    //       // console.log('TEMP sort index saved - ' + ' regular: ' + vue.gallery.searchOptions.lists.sortIndex )
+    //       vue.gallery.searchOptions.lists.sortIndex = -1;
+    //     }
         
-        clearTimeout( vue.resultTimer);
-        vue.resultTimer = setTimeout(function() {
+    //     clearTimeout( vue.resultTimer);
+    //     vue.resultTimer = setTimeout(function() {
           
-          vue.gallery.fuseResults = results;
-        }, 500);
-      }
+    //       vue.gallery.fuseResults = results;
+    //     }, 500);
+    //   }
       
-    });
+    // });
     
-    this.$on('fuseInputChanged', value => {
-      this.gallery.searchValueChanged = this.gallery.searchValue !== value;
-      if ( this.gallery.searchValueChanged ) {
-        this.gallery.searchOptions.open = false;
-        this.gallery.details.index = -1;
+    // this.$on('fuseInputChanged', value => {
+    //   this.gallery.searchValueChanged = this.gallery.searchValue !== value;
+    //   if ( this.gallery.searchValueChanged ) {
+    //     this.gallery.searchOptions.open = false;
+    //     this.gallery.details.index = -1;
         
-        if ( value.trim() === '' ) {
-          this.gallery.fuseResults = null; // 
-        }
-      }
-      this.gallery.searchValue = value; // Helps retain the seach query when re-rendered.
-    });
+    //     if ( value.trim() === '' ) {
+    //       this.gallery.fuseResults = null; // 
+    //     }
+    //   }
+    //   this.gallery.searchValue = value; // Helps retain the seach query when re-rendered.
+    // });
     
   },
   
@@ -128,8 +171,10 @@ export default {
     this.searchKeyupListener = $('#ale-search').on("keyup", '> input[type="search"]', this.searchInputKeyup);
     $("#ale-search").on('touchstart', this.iosAutozoomDisable);
     
+    window.addEventListener('scroll', this.scrolling );    
+  
   },
-	
+  
 	beforeDestroy: function() {
 		// $('#ale-search').off("focus", '> input[type="search"]', this.searchInputFocus);
 		$('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
@@ -138,9 +183,107 @@ export default {
     this.searchFocusListener = null;
     this.searchKeyupListener = null;
     this.searchOptionsHider = null;
+    
+    window.removeEventListener('scroll', this.scrolling );
 	},
 	
   methods: {
+    
+    scrolling: _.throttle(function( e ) {
+      
+      console.log( window.pageYOffset )
+      if ( !this.fixedSearch && window.pageYOffset > 44 ) {
+        this.fixedSearch = true;
+      }
+      else if ( this.fixedSearch && window.pageYOffset < 44 ) {
+        this.fixedSearch = false;
+      }
+      
+    }, 350),
+    
+    onWaypoint ({ going, direction }) {
+      // going: in, out
+      // direction: top, right, bottom, left
+      if (going === this.$waypointMap.GOING_IN) {
+        this.fixedSearch = false;
+      }
+      else {
+        this.fixedSearch = true;
+      }
+
+      // if (direction === this.$waypointMap.DIRECTION_TOP) {
+      //   console.log('waypoint going top!')
+      // }
+    },
+    
+    // updateCollection: function() {
+      
+    //   const filteredBooks = this.filterBooks();
+    //   this.collection = this.sortedBooks( filteredBooks );
+      
+    // },
+    
+    initSearch: _.debounce(function( e ) {
+      
+      this.$store.commit('prop', { key: 'searchQuery', value: e.target.value });
+      if ( e.target.value.trim() !== ''  ) {
+        
+        const query = this.modifyQuery( e.target.value );
+        
+        this.fuseOptions.keys = this.aliciaKeys();
+        this.fuse = new Fuse( this.library.books, this.fuseOptions);
+        let result = this.fuse.search( query );
+        console.log( result )
+        if ( result.length > 0 ) {
+          result = _.map( result, function( o ) {
+            return o.item;
+          });
+        }
+        else {
+          result = null;
+        }
+        this.$emit('update:collection', result);
+        
+      }
+      else {
+        this.$emit('clear-search');
+      }
+      
+      if ( this.fixedSearch ) {
+        scroll({ top: this.$refs.searchWrap.offsetTop - 10 });
+      }
+      // else {
+      //   scroll({ top: 0 });
+      // }
+      
+    }, 270, { 'leading': false, 'trailing': true }),    
+    
+    modifyQuery: function( query ) {
+      
+      let newQuery = '';
+      const hasAmpersand = query.match(/&/);
+      const hasAnd = query.match(/ ?and ?/);
+      if ( hasAmpersand ) {
+        newQuery = query + '|' + query.replace('&', 'and');
+      }
+      else if ( hasAnd ) {
+        newQuery = query + '|' + query.replace('and', '&');
+      }
+      else {
+        newQuery = query;
+      }
+      return newQuery;
+      
+    },
+    
+    aliciaKeys: function() {
+      
+      const filteredKeys = _.filter( this.options[ this.page ].scope, ['active', true]);
+      return _.map( filteredKeys, function( item ) {
+        if ( item.active ) return item.key;
+      });
+      
+    },
     
     iosAutozoomDisable: function() {
       // IOS input focus zoom workaround
@@ -175,64 +318,64 @@ export default {
 		},
     
 		searchInputKeyup: function( e ) {
-      if (e.which == 13) {
-      	document.activeElement.blur();
-      	$('#ale-search > input[type="search"]').blur();
-      }
+      // if (e.which == 13) {
+      // 	document.activeElement.blur();
+      // 	$('#ale-search > input[type="search"]').blur();
+      // }
 		},
     
 		focusSearch: function({target}) {
-      if ( $(target).is('#ale-search') ) {
-        $('#ale-search > input[type="search"]').focus();
-      }
+      // if ( $(target).is('#ale-search') ) {
+      //   $('#ale-search > input[type="search"]').focus();
+      // }
 		},
 		
     releaseSearchLock: function() {
       
-      const gallery = this.gallery;
-			gallery.customResults = null;
-			gallery.searchEnabled = true;
-      gallery.searchLocked.active = null;
-      gallery.searchLocked.reason = null;
-      gallery.searchLocked.inputValue = null;
-			// gallery.searchOptions.lists.numberSortSeriesName = null;
-      gallery.searchOptions.lists = this.gallery.searchOptions.listsTemp;
-      gallery.searchOptions.listsTemp = null;
-      gallery.searchValue = this.gallery.searchLocked.tempValue;
-      gallery.searchLocked.tempValue = null;
-      gallery.searchIcons.scope = true;
-      gallery.searchIcons.filter = true;
-      gallery.searchIcons.sort = true;
-      gallery.details.open = false;
-      gallery.details.index = -1;
+      // const gallery = this.gallery;
+			// gallery.customResults = null;
+			// gallery.searchEnabled = true;
+      // gallery.searchLocked.active = null;
+      // gallery.searchLocked.reason = null;
+      // gallery.searchLocked.inputValue = null;
+			// // gallery.searchOptions.lists.numberSortSeriesName = null;
+      // gallery.searchOptions.lists = this.gallery.searchOptions.listsTemp;
+      // gallery.searchOptions.listsTemp = null;
+      // gallery.searchValue = this.gallery.searchLocked.tempValue;
+      // gallery.searchLocked.tempValue = null;
+      // gallery.searchIcons.scope = true;
+      // gallery.searchIcons.filter = true;
+      // gallery.searchIcons.sort = true;
+      // gallery.details.open = false;
+      // gallery.details.index = -1;
       
     },
     
     onDetailsToggle: function( msg ) {
-      this.gallery.searchOptions.open = false;
+      // this.gallery.searchOptions.open = false;
     },
     
     forceRerender: function() {
-      this.gallery.searchEnabled = false;
-      this.$nextTick(() => {
-        this.gallery.searchEnabled = true;
-      });
+      // this.gallery.searchEnabled = false;
+      // this.$nextTick(() => {
+      //   this.gallery.searchEnabled = true;
+      // });
     },
     forceRerenderBooks: function() {
-      const customResults = this.gallery.customResults;
-      console.log( customResults )
-      this.gallery.customResults = {};
-      this.$nextTick(() => {
-        this.gallery.customResults = customResults;
-      });
+      // const customResults = this.gallery.customResults;
+      // console.log( customResults )
+      // this.gallery.customResults = {};
+      // this.$nextTick(() => {
+      //   this.gallery.customResults = customResults;
+      // });
     },
     
     sort: function( type, index ) {
       
-      this.gallery.details.open = false;
-      this.gallery.details.index = -1;
+      // this.gallery.details.open = false;
+      // this.gallery.details.index = -1;
       
-      if ( type === 'sort' ) Eventbus.$emit('sort', index );
+      // if ( type === 'sort' ) Eventbus.$emit('sort', index );
       
     },
     
@@ -324,17 +467,10 @@ export default {
           truncKeys.push( key.replace('.name','') );
         });
         return truncKeys.join(', ');
-      }( this.aliciaKeys ));
+      }( this.fuseOptions.keys ));
       
       return 'Search: ' + placeholderKeys;
     },
-    
-    aliciaKeys: function() {
-      const filteredKeys = _.filter(this.gallery.searchOptions.lists.scope, ['active', true]);
-      return _.map( filteredKeys, function( item ) {
-        if ( item.active ) return item.key;
-      });
-    }
     
   }
 }
@@ -353,127 +489,65 @@ export default {
   margin: 0 auto;
   margin-bottom: 30px;
   max-width: 600px;
+  height: 46px;
 }
 
 #ale-search {
+  height: 46px;
   flex-grow: 1;
   display: flex;
   flex-direction: row;
-  align-items: center;
-  justify-items: center;
-  align-content: center;
-  justify-content: center;
+  align-items: stretch;
+  justify-items: stretch;
+  align-content: stretch;
+  justify-content: stretch;
   position: relative;
-  z-index: 10;
+  z-index: 800;
+  top: 0px;
   text-align: center;
   background: #fff;
-  padding: 8px 20px;
   border-radius: 999999px;
   @include themify($themes) {
     box-shadow: 0 5px 20px rgba(themed(outerColor), 0.9);
   }
-  .search-locked {
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    cursor: default;
-    position: relative;
-    z-index: 0;
-    flex-grow: 1;
+  
+  .search-wrapper {
+    flex: 1;
+    padding: 8px 20px;
+    padding-right: 0px;
     display: flex;
-    flex-direction: row;
-    align-items: center;
-    .icon {
-      cursor: pointer;
-      outline: none;
-      position: relative;
-      left: -9px;
-      width: 31px;
-      height: 31px;
-      border: 1px solid #e1e1e1;
-      box-shadow: 0 0px 3px rgba( #000, .05 );
-      color: #c1c1c1;
-      border-radius: 9999px;
-      margin-right: 7px;
-      display: flex;
-      align-items: center;
-      justify-items: center;
-      align-content: center;
-      justify-content: center;
-      &:hover {
-        box-shadow: 0 3px 7px rgba( #000, .13 );
-        opacity: 1 !important;
-        color: #555 !important;
-        -webkit-animation: none !important;
-        animation: none !important;
-      }
-    }
-    &:hover .icon {
-      opacity: .5;
-      @include themify($themes) {
-        color: themed(audibleOrange);
-      }
-      border: 1px solid #b1b1b1;
-      -webkit-animation: pulsate-bck 1.1s ease-in-out infinite both;
-      animation: pulsate-bck 1.1s ease-in-out infinite both;
-    }
+    cursor: text;
     
-    .icon [data-icon="unlock-alt"] { display: none; }
-    &:hover .icon {
-      & [data-icon="lock"] { display: none; }
-      & [data-icon="unlock-alt"] { display: inline-block; }
-    }
-    
-    .locked-text-reason {
-      position: absolute;
-      z-index: 5;
-      left: 40px;
-      top: 17px;
-      color: #878787;
-      font-size: .7em;
-    }
-    .locked-text {
-      text-align: left;
-      flex-grow: 1;
-      white-space: nowrap;
+    input[type="search"] {
       text-overflow: ellipsis;
-      overflow: hidden;
-      width: 0px;
-      margin-top: -2px;
+      padding: 0px;
+      outline: none;
+      display: inline-block;
+      flex-grow: 1;
+      border: none;
+      font-family: inherit;
+      font-weight: 400;
     }
-  }
-  input[type="search"] {
-    outline: none;
-    display: inline-block;
-    flex-grow: 1;
-    border: none;
-    font-family: inherit;
-    font-weight: 400;
-    // line-height: 31px;
-    // height: 31px;
+    
+    input[type="search"]::-webkit-search-cancel-button {
+      -webkit-appearance: none;
+      height: 10px;
+      width: 10px;
+      padding: 5px;
+      display: block;
+      background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGRlZnM+PHN0eWxlPi5je2ZpbGw6IzZmNmY2Zjt9PC9zdHlsZT48L2RlZnM+PGc+PGc+PGc+PHBhdGggY2xhc3M9ImMiIGQ9Ik0yMCwxNi4wOWExLjU1LDEuNTUsMCwwLDEtLjQ3LDEuMTVsLTIuMjksMi4yOWExLjU1LDEuNTUsMCwwLDEtMS4xNS40N0ExLjYsMS42LDAsMCwxLDE1LDE5LjUzbC00Ljk1LTUtNSw1QTEuNTUsMS41NSwwLDAsMSwzLjkxLDIwYTEuNTUsMS41NSwwLDAsMS0xLjE1LS40N0wuNDcsMTcuMjRBMS41NSwxLjU1LDAsMCwxLDAsMTYuMDksMS42LDEuNiwwLDAsMSwuNDcsMTVsNS00Ljk1LTUtNUExLjUzLDEuNTMsMCwwLDEsMCwzLjkxLDEuNTUsMS41NSwwLDAsMSwuNDcsMi43NkwyLjc2LjQ3QTEuNTUsMS41NSwwLDAsMSwzLjkxLDAsMS41MywxLjUzLDAsMCwxLDUuMDUuNDdsNSw1TDE1LC40N0ExLjYsMS42LDAsMCwxLDE2LjA5LDBhMS41NSwxLjU1LDAsMCwxLDEuMTUuNDdsMi4yOSwyLjI5QTEuNTUsMS41NSwwLDAsMSwyMCwzLjkxYTEuNTMsMS41MywwLDAsMS0uNDcsMS4xNGwtNSw1LDUsNC45NUExLjYsMS42LDAsMCwxLDIwLDE2LjA5WiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==");
+      background-repeat: no-repeat;
+      background-position: center center;
+      background-size: 10px;
+      cursor: pointer;
+    }
   }
   
-  input[type="search"]::-webkit-search-cancel-button {
-
-    -webkit-appearance: none;
-    height: 10px;
-    width: 10px;
-    padding: 5px;
-    display: block;
-    background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGRlZnM+PHN0eWxlPi5je2ZpbGw6IzZmNmY2Zjt9PC9zdHlsZT48L2RlZnM+PGc+PGc+PGc+PHBhdGggY2xhc3M9ImMiIGQ9Ik0yMCwxNi4wOWExLjU1LDEuNTUsMCwwLDEtLjQ3LDEuMTVsLTIuMjksMi4yOWExLjU1LDEuNTUsMCwwLDEtMS4xNS40N0ExLjYsMS42LDAsMCwxLDE1LDE5LjUzbC00Ljk1LTUtNSw1QTEuNTUsMS41NSwwLDAsMSwzLjkxLDIwYTEuNTUsMS41NSwwLDAsMS0xLjE1LS40N0wuNDcsMTcuMjRBMS41NSwxLjU1LDAsMCwxLDAsMTYuMDksMS42LDEuNiwwLDAsMSwuNDcsMTVsNS00Ljk1LTUtNUExLjUzLDEuNTMsMCwwLDEsMCwzLjkxLDEuNTUsMS41NSwwLDAsMSwuNDcsMi43NkwyLjc2LjQ3QTEuNTUsMS41NSwwLDAsMSwzLjkxLDAsMS41MywxLjUzLDAsMCwxLDUuMDUuNDdsNSw1TDE1LC40N0ExLjYsMS42LDAsMCwxLDE2LjA5LDBhMS41NSwxLjU1LDAsMCwxLDEuMTUuNDdsMi4yOSwyLjI5QTEuNTUsMS41NSwwLDAsMSwyMCwzLjkxYTEuNTMsMS41MywwLDAsMS0uNDcsMS4xNGwtNSw1LDUsNC45NUExLjYsMS42LDAsMCwxLDIwLDE2LjA5WiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==");
-    background-repeat: no-repeat;
-    background-position: center center;
-    background-size: 10px;
-    cursor: pointer;
-  }
   
   .icons {
     position: relative;
     z-index: 0;
-    padding-left: 9px;
+    padding: 0 18px 0 9px;
     color: rgba( #222, .65) ;
     display: flex;
     flex-direction: row;
@@ -481,8 +555,13 @@ export default {
     > .icon-wrap {
       cursor: pointer;
       margin-left: 5px;
+      display: flex;
+      justify-content: center;
+      justify-items: center;
+      align-content: center;
+      align-items: center;
       > div {
-        padding: 6px 10px;
+        padding: 0px 10px;
         outline: none;
       }
       position: relative;
@@ -514,138 +593,6 @@ export default {
     
   }
   
-  #search-options {
-    cursor: default !important;
-    position: absolute;
-    z-index: 1;
-    top: 45px;
-    right: 0;
-    font-size: 1em;
-    line-height: 1.9em;
-    padding: 12px 15px 12px 14px !important;
-    margin: 0px !important;
-    border-radius: 3px;
-    -webkit-touch-callout: none;
-    -webkit-user-select: none;
-    -khtml-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    
-    @include themify($themes) {
-      color: themed(frontColor);
-      background: lighten( themed(backColor), 10);
-      box-shadow: 0 3px 15px rgba( #000, .4 );
-    }
-    
-    ul, li { list-style: none; margin: 0; padding: 0; text-align: left; }
-    .search-opts-arrow {
-      position: absolute;
-      top: -9px;
-      left: 0;
-      width: 0;
-      height: 0;
-      border-style: solid;
-      border-width: 0 10px 10px 10px;
-      @include themify($themes) {
-        border-color: transparent transparent themed(backColor) transparent;
-      }
-    }
-    
-    .search-option {
-      white-space: nowrap;
-      label {
-        outline: none;
-        display: block;
-        &:hover {
-          @include themify($themes) {
-            color: themed(audibleOrange);
-          }
-        }
-      }
-      input { display: none; }
-      .checkbox, .sortbox {
-        display: inline-block;
-        position: relative;
-        z-index: 0;
-        top: 2.5px;
-        width: 14px;
-        height: 14px;
-        svg {
-          position: absolute;
-          z-index: 1;
-          top: 0;
-          left: 0;
-          width: 14px;
-          height: 14px;
-          @include themify($themes) {
-            color: themed(frontColor);
-          }
-          transition: all 120ms ease-in-out;
-        }
-        &.sortbox [data-icon] {
-          opacity: .35;
-        }
-        &.sortbox.active {
-          [data-icon="sort-up"] {
-            opacity: 1;
-          }
-          [data-icon="sort-down"] {
-            opacity: .35;
-          }
-        }
-        &.checkbox {
-          [data-icon="square"] {
-            opacity: .2;
-          }
-          [data-icon="check"] {
-            opacity: 0;
-            padding: 3px 0px 0px 3px;
-            width: 9px;
-            height: 9px;
-            color: #fff;
-          }
-        }
-      }
-      input:checked + .checkbox,
-      input:checked + .sortbox {
-        &.sortbox.active {
-          [data-icon="sort-up"] {
-            opacity: .35;
-          }
-          [data-icon="sort-down"] {
-            opacity: 1;
-          }
-        }
-        &.checkbox {
-          [data-icon="square"] {
-            opacity: 1;
-            color: #65aa3a;
-          }
-          [data-icon="check"] {
-            opacity: 1;
-          }
-        }
-      }
-      
-    } // .search-option
-    
-    .sort-extras {
-      padding-bottom: 9px;
-      margin-bottom: 9px;
-      @include themify($themes) {
-        border-bottom: 1px solid rgba( themed(frontColor), .1 );
-      }
-    }
-  
-    input[disabled="disabled"] + .checkbox [data-icon="check"] { display: none; }
-    input[disabled="disabled"] ~ .input-label  {
-      text-decoration: line-through;
-      opacity: .35;
-    }
-    
-  } // #search-options
-  
   .book-in-selection {
     cursor: default !important;
     -webkit-touch-callout: none;
@@ -661,4 +608,27 @@ export default {
   }
   
 }
+
+#ale-search-wrap.search-fixed #ale-search {
+  position: fixed;
+  top: 36px;
+  left: 30px;
+  right: 30px;
+  margin: 0 auto;
+  max-width: 600px;
+  height: 36px;
+  box-shadow: none;
+  &:before {
+    content: '';
+    position: fixed;
+    z-index: -1;
+    top: 35px;
+    left: 0px;
+    right: 0px;
+    height: 37px;
+    background: #fff;
+    box-shadow: 2px 0px 13px rgba(#000, .5);
+  }
+}
+
 </style>

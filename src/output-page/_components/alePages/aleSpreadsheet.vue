@@ -38,7 +38,7 @@
           <article class="media">
               <figure class="media-left">
                 <span class="cover-image">
-                  <img :src="makeCoverUrl(props.row.coverUrl)">
+                  <img :src="makeCoverUrl(props.row.cover)">
                 </span>
               </figure>
               <div class="media-content">
@@ -167,11 +167,11 @@ export default {
   },
   
   created: function() {
-    Eventbus.$on('afterWindowResize', this.onWindowResize );
+    this.$root.$on('afterWindowResize', this.onWindowResize );
   },
 	
 	beforeDestroy: function() {
-	 	Eventbus.$off('afterWindowResize', this.onWindowResize );
+	 	this.$root.$off('afterWindowResize', this.onWindowResize );
     $('#ale-spreadsheet').on('click', ".play-sample", this.sampleClick);
 	},
   
@@ -229,7 +229,7 @@ export default {
       e.preventDefault();
       const sampleUrl = $( e.currentTarget ).attr('href');
       const book = _.find( vue.library.books, ['sample', sampleUrl]);
-      Eventbus.$emit('playSample', {
+      this.$root.$emit('play-audio', {
         from: 'aleSpredsheet',
         route: vue.$route,
         book: book,

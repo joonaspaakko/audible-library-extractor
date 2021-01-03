@@ -88,6 +88,7 @@ export default {
 			if ( progress.step > -1  ) vue.progress.step       = progress.step;
 			if ( progress.max > -1   ) vue.progress.max 			 = progress.max;
 			if ( progress.bar 			 ) vue.progress.bar        = progress.bar;
+			
 		});
 		
 		this.$root.$on('update-progress-step', function() {

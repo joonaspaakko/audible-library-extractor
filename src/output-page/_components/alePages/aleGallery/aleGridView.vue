@@ -1,47 +1,17 @@
 <template>
-  <div id="ale-books" class="grid-view">
-    <ale-bookdetails :booksArray="booksArray" :library="library" :gallery="gallery" :general="general"></ale-bookdetails> <!-- itunes style floater that plants itself between the cover items -->
+  <div id="ale-books" class="grid-view" ref="booksWrapper">
+    
+    <book-details v-if="detailsBook" @open-adjacent-book="toggleBookDetails" :key="'details:'+detailsBook.asin" :book.sync="detailsBook" :booksArray="booksArray" :booksWrapper="$refs.booksWrapper" :index="detailsBookIndex" :general="general" :library="library" :gallery="gallery" />
     
     <lazy-component
     v-for="(book, index) in booksArray"
     class="ale-book"
-    :key="book.asin"
     :data-asin="book.asin"
-    :class="{ 'details-open': gallery.details.open && gallery.details.index === index  }"
+    :key="book.asin"
+    :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin  }"
     >
-      <div 
-      class="details-inner-wrap" 
-      :data-title="book.title"
-      :data-authors="stringifyArray( book.authors, 'name' )"
-      :data-narrators="stringifyArray( book.narrators, 'name' )"
-      >
-        
-        <ale-sort-values :gallery="gallery" :book="book"></ale-sort-values>
-        <div class="hidden">
-          <span class="title">{{ book.title }}</span>
-          <span class="authors">{{ stringifyArray( book.authors, 'name' ) }}</span>
-        </div>
-        <div class="ale-cover">
-          <div class="ale-play-sample" @click="playSample( book, index )">
-            <div>
-              <font-awesome fas icon="play" />
-            </div>
-          </div>
-          <div class="ale-click-wrap" @click="detailsToggle( index )">
-            <div class="ale-info-indicator">
-              <div>
-                <font-awesome fas icon="book" />
-              </div>
-            </div>
-            <img
-            class="ale-cover-image"
-            :src="makeCoverUrl(book.coverUrl)"
-            :alt="imageAlt( book, index )"
-            >
-          </div>
-        </div>
-        
-      </div>
+      <book @book-clicked="toggleBookDetails" :book="book" :gallery="gallery" :index="index"></book>
+
     </lazy-component> <!-- .ale-book -->
     
   </div>
@@ -49,81 +19,87 @@
 
 <script>
 
-import aleBookdetails from './aleGridView/aleBookdetails'
-import aleSortValues from './aleGridView/aleSortValues';
-import slugify from '../../../_mixins/slugify';
-import makeCoverUrl from '../../../_mixins/makeCoverUrl';
-import stringifyArray from '../../../_mixins/stringifyArray';
+import bookDetails from './aleGridView/bookDetails'
+import book from './aleGridView/book'
+
+import slugify from '@output-mixins/slugify';
 
 export default {
   name: 'aleBooks',
   props: ['booksArray', 'library', 'gallery', 'general'],
   components: {
-    aleBookdetails,
-    aleSortValues,
+    bookDetails,
+    book,
   },
-  mixins: [ slugify, makeCoverUrl, stringifyArray ],
+  mixins: [ slugify ],
 	data: function() {
 		return {
+      detailsBook: null,
+      detailsBookIndex: -1,
 		}
   },
   
   created: function() {
     const vue = this;
     const routeName = this.$route.name;
-    if ( routeName === 'ale-category' ) {
-      const parentCat = this.$route.params.parent;
-      const childCat = this.$route.params.child;
-      if ( parentCat ) {
+    // if ( routeName === 'ale-category' ) {
+    //   const parentCat = this.$route.params.parent;
+    //   const childCat = this.$route.params.child;
+    //   if ( parentCat ) {
         
-        vue.gallery.customResults = _.filter( vue.library.books, function( book ) {
-          if ( book.categories ) {
-            var match = false;
-            if ( childCat ) {
-              if ( vue.slugify( book.categories[0].name ) === parentCat && vue.slugify( book.categories[1].name ) === childCat ) {
-                return true;
-              }
-            }
-            else {
-              if ( vue.slugify( book.categories[0].name ) === parentCat ) {
-                return true;
-              }
-            }
-          }
-        });
+    //     vue.gallery.customResults = _.filter( vue.library.books, function( book ) {
+    //       if ( book.categories ) {
+    //         var match = false;
+    //         if ( childCat ) {
+    //           if ( vue.slugify( book.categories[0].name ) === parentCat && vue.slugify( book.categories[1].name ) === childCat ) {
+    //             return true;
+    //           }
+    //         }
+    //         else {
+    //           if ( vue.slugify( book.categories[0].name ) === parentCat ) {
+    //             return true;
+    //           }
+    //         }
+    //       }
+    //     });
         
-      }
-    }
+    //   }
+    // }
     
-    Eventbus.$on('galleryBookClick', this.onBookClicked );
+    // this.$on('bookClick', this.onBookClicked );
     $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
-    Eventbus.$on('afterWindowResize', this.onWindowResize );
+    // this.$root.$on('afterWindowResize', this.onWindowResize );
   },
   
 	beforeDestroy: function() {
-	 	Eventbus.$off('galleryBookClick', this.onBookClicked );
+	 	// this.$off('bookClick', this.onBookClicked );
     $("body, html").off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
-	 	Eventbus.$off('afterWindowResize', this.onWindowResize );
+	 	// this.$root.$off('afterWindowResize', this.onWindowResize );
   },
   
   mounted: function() {
     
     if ( this.$route.query.book ) {
       this.$nextTick(function() {
-        const bookEl = $('#ale-books .ale-book[data-asin="'+ this.$route.query.book +'"]');
-        if ( bookEl.length > 0 ) {
-          // setTimeout( function() {
+        
+        this.toggleBookDetails({
+          book: _.find( this.booksArray, { asin: this.$route.query.book })
+        });
+        
+        // const bookEl = $('#ale-books .ale-book[data-asin="'+ this.$route.query.book +'"]');
+        // if ( bookEl.length > 0 ) {
+        //   // setTimeout( function() {
             
-            Eventbus.$emit('galleryBookClick', {
-              from: 'ale-gallery-query',
-              index: bookEl.index(),
-              dontClose: true,
-              // animationSpeed: 0,
-            });
+        //     Eventbus.$emit('galleryBookClick', {
+        //       from: 'ale-gallery-query',
+        //       index: bookEl.index(),
+        //       dontClose: true,
+        //       // animationSpeed: 0,
+        //     });
             
-          // }, 1500 );
+        //   // }, 1500 );
           
-        }
+        // }
       });
     }
     
@@ -131,26 +107,25 @@ export default {
   
   methods: {
     
-    imageAlt: function( book, index ) {
-      console.log( book, book.authors );
-      return book.authors[0].name+ ' - ' +book.title;
-    },
     
-    playSample: function( book, index ) {
-      Eventbus.$emit('playSample', {
-        from: 'aleBooks',
-        route: this.$route,
-        book: book,
-        index: index,
-      });
+    // onBookClicked: function( e ) {
+    //   this.toggleBookDetails( e )
+    // },
+    
+    toggleBookDetails: function( e ) {
+
+      if ( !e.index )  e.index  = _.findIndex( this.booksArray, { asin: e.book.asin });
+      
+      const sameBook = _.get(this.detailsBook,'asin') === e.book.asin;
+      this.detailsBook = null;
+      this.detailsBookIndex = e.index;
+      if ( !sameBook ) this.detailsBook = e.book;
+      else this.$router.replace({ query: { book: undefined } });
+      
     },
     
     scrollStopAnimate: function(){
       $("body, html").stop();
-    },
-    
-    onBookClicked: function( msg ) {
-      this.detailsToggle( msg.index, msg.animationSpeed, msg.dontClose )
     },
     
     detailsToggle: function( clickedIndex, animSpeed, dontClose ) {
@@ -200,92 +175,92 @@ export default {
           from: 'aleBooks',
           detailsChanged: this.gallery.details.changed
         });
-        
+          
       });
       
       
 			
     },
     
-    calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, callback ) {
+    // calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, callback ) {
       
-      // FIXE: This should be a slightly lighter end of the row item calc: https://jsfiddle.net/4bxnu0vy/6/
-      const gallery = $('#ale-gallery');
-      const maxWidth = gallery.width();
-      const firstBook = gallery.find('.ale-book').first();
-      const bookWidth = firstBook.width();
-      const bookLength = gallery.find('.ale-book').length;
-      const maxColLength = Math.floor( maxWidth / bookWidth );
-      const bookIndex = clickedIndex;
-      // const colPosition = (bookIndex % maxColLength)+1;
+    //   // FIXE: This should be a slightly lighter end of the row item calc: https://jsfiddle.net/4bxnu0vy/6/
+    //   const gallery = $('#ale-gallery');
+    //   const maxWidth = gallery.width();
+    //   const firstBook = gallery.find('.ale-book').first();
+    //   const bookWidth = firstBook.width();
+    //   const bookLength = gallery.find('.ale-book').length;
+    //   const maxColLength = Math.floor( maxWidth / bookWidth );
+    //   const bookIndex = clickedIndex;
+    //   // const colPosition = (bookIndex % maxColLength)+1;
       
-      const firstCoverEl = firstBook.find('.ale-cover');
-      const bookMargins = parseInt(firstCoverEl.css('margin-left')) + parseInt(firstCoverEl.css('margin-right'))
-      gallery.find('.inner-wrap').css({
-        maxWidth: (bookWidth*maxColLength ) - bookMargins
-      });
+    //   const firstCoverEl = firstBook.find('.ale-cover');
+    //   const bookMargins = parseInt(firstCoverEl.css('margin-left')) + parseInt(firstCoverEl.css('margin-right'))
+    //   gallery.find('.inner-wrap').css({
+    //     maxWidth: (bookWidth*maxColLength ) - bookMargins
+    //   });
       
-      const maxRowLength = Math.floor( bookLength / maxColLength );
-      const maxRowLengthRem = bookLength % maxColLength;
-      // if ( maxRowLengthRem > 0 ) ++maxRowLength;
-      const fullGrid = (maxRowLengthRem > 0 ? maxRowLength+1 : maxRowLength) * maxColLength
-      const remainder = fullGrid - bookLength;
+    //   const maxRowLength = Math.floor( bookLength / maxColLength );
+    //   const maxRowLengthRem = bookLength % maxColLength;
+    //   // if ( maxRowLengthRem > 0 ) ++maxRowLength;
+    //   const fullGrid = (maxRowLengthRem > 0 ? maxRowLength+1 : maxRowLength) * maxColLength
+    //   const remainder = fullGrid - bookLength;
       
-      const currentRow = Math.floor( bookIndex / maxColLength )+1;
-      const lastRow  = currentRow === maxRowLength;
-      const endOfTheRow = maxColLength * currentRow;
-      const endOfTheRowEl = gallery.find('.ale-book').get( (lastRow ? endOfTheRow - remainder : endOfTheRow)-1 );
+    //   const currentRow = Math.floor( bookIndex / maxColLength )+1;
+    //   const lastRow  = currentRow === maxRowLength;
+    //   const endOfTheRow = maxColLength * currentRow;
+    //   const endOfTheRowEl = gallery.find('.ale-book').get( (lastRow ? endOfTheRow - remainder : endOfTheRow)-1 );
       
-      // Details are moved at the end of the clicked row
-      const bookDetails = $('#ale-bookdetails').insertAfter( endOfTheRowEl );
+    //   // Details are moved at the end of the clicked row
+    //   const bookDetails = $('#ale-bookdetails').insertAfter( endOfTheRowEl );
       
-      const targetCenter = el.offset().left + (bookWidth/2) + 8;
-      const detailsArrow = bookDetails.find('> .arrow');
-      // var arrowHalf = parseInt( detailsArrow.css('border-left-width'))
-      detailsArrow.css({
-        left: targetCenter
-      });
+    //   const targetCenter = el.offset().left + (bookWidth/2) + 8;
+    //   const detailsArrow = bookDetails.find('> .arrow');
+    //   // var arrowHalf = parseInt( detailsArrow.css('border-left-width'))
+    //   detailsArrow.css({
+    //     left: targetCenter
+    //   });
       
-      const coverDocumentOffset = el.offset().top;
-      const doc = $("body, html");
-      doc.scrollTop( coverDocumentOffset - coverViewportOffset );
-      const distance = Math.abs( coverViewportOffset);
-      let animationSpeed = animSpeed != undefined ? animSpeed : 700;
-      if ( animSpeed != 0 ) {
-             if ( distance < 30  ) animationSpeed = 0;
-        else if ( distance < 40  ) animationSpeed = (animationSpeed / 6);
-        else if ( distance < 60  ) animationSpeed = (animationSpeed / 4);
-        else if ( distance < 50  ) animationSpeed = (animationSpeed / 5);
-        else if ( distance < 130 ) animationSpeed = (animationSpeed / 2);
+    //   const coverDocumentOffset = el.offset().top;
+    //   const doc = $("body, html");
+    //   doc.scrollTop( coverDocumentOffset - coverViewportOffset );
+    //   const distance = Math.abs( coverViewportOffset);
+    //   let animationSpeed = animSpeed != undefined ? animSpeed : 700;
+    //   if ( animSpeed != 0 ) {
+    //          if ( distance < 30  ) animationSpeed = 0;
+    //     else if ( distance < 40  ) animationSpeed = (animationSpeed / 6);
+    //     else if ( distance < 60  ) animationSpeed = (animationSpeed / 4);
+    //     else if ( distance < 50  ) animationSpeed = (animationSpeed / 5);
+    //     else if ( distance < 130 ) animationSpeed = (animationSpeed / 2);
         
-        if ( animationSpeed < 0 ) animationSpeed = 0;
-      }
-      doc.stop().animate({
-        scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
-      }, animationSpeed, function() {
-        if ( callback ) callback( el );
-      });
-    },
+    //     if ( animationSpeed < 0 ) animationSpeed = 0;
+    //   }
+    //   doc.stop().animate({
+    //     scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
+    //   }, animationSpeed, function() {
+    //     if ( callback ) callback( el );
+    //   });
+    // },
 		
-		onWindowResize: function( msg ) {
+		// onWindowResize: function( msg ) {
       
-			if ( this.gallery.details.open ) {
-        const index = this.gallery.details.index;
-        const el = $( $('#ale-gallery > div > .ale-book').get( index ) );
-        const coverViewportOffset = el.offset().top - $('body, html').scrollTop();
-        this.calculateDetailsPosition( el, this, index, index, coverViewportOffset, 0 );
-      }
+		// 	if ( this.gallery.details.open ) {
+    //     const index = this.gallery.details.index;
+    //     const el = $( $('#ale-gallery > div > .ale-book').get( index ) );
+    //     const coverViewportOffset = el.offset().top - $('body, html').scrollTop();
+    //     this.calculateDetailsPosition( el, this, index, index, coverViewportOffset, 0 );
+    //   }
 
-		},
+		// },
 		
   },
 }
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import '~@/_variables.scss';
 
-#ale-books {
+#ale-books.grid-view {
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -307,135 +282,10 @@ export default {
   width: $thumbnailSize+2;
   height: $thumbnailSize+2;
   // font-size: 0;
-  .details-inner-wrap {
-    // max-width: $thumbnailSize+2;
-    margin: 5px;
-    border-radius: 5px;
-    overflow: hidden;
-    background-clip: padding-box;
-  }
-  .ale-cover {
-    cursor: pointer;
-    position: relative;
-    border-radius: 5px;
-    overflow: hidden;
-    background-clip: padding-box;
-    @include themify($themes) {
-      border: 1px solid rgba( themed(outerColor), .3 );
-    }
-    img.ale-cover-image {
-      display: block;
-      width: 100%;
-      height: auto;
-      // width: $thumbnailSize;
-      // height: $thumbnailSize;
-  	  -webkit-user-drag: none;
-  	  -khtml-user-drag: none;
-  	  -moz-user-drag: none;
-  	  -o-user-drag: none;
-  	  user-drag: none;
-      @-webkit-keyframes showImage { 0% { opacity: 0; } 100% { opacity: 1; }  }
-      @keyframes showImage { 0% { opacity: 0; } 100% { opacity: 1; }  }
-      -webkit-animation: 300ms showImage;
-      animation: 300ms showImage;
-    }
-  }
   
-  .ale-info-indicator {
-    position: absolute;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    display: flex;
-    justify-content: center;
-    align-content: center;
-    align-items: center;
-    justify-items: center;
-    color: #fff;
-    background: rgba( #000, .20 );
-    z-index: 998;
-    transition: all 200ms ease-in-out;
-    opacity: 0;
-    &:after {
-      content: '';
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      display: flex;
-      justify-content: center;
-      align-content: center;
-      align-items: center;
-      justify-items: center;
-      background: rgba( #fff, .25 );
-      z-index: 0;
-      transition: all 200ms ease-in-out;
-      opacity: 0;
-    }
-    > div {
-      font-size: 120%;
-      transition: all 100ms ease-in-out;
-      cursor: pointer;
-      position: relative;
-      z-index: 2;
-      width: 10%;
-      height: 10%;
-      opacity: 0;
-      border-radius: 99999px;
-      background: rgba( #000, .70 );
-      box-shadow:  0 0 2px 1px rgba( #000, .70 );
-      display: flex;
-      justify-content: center;
-      align-content: center;
-      align-items: center;
-      justify-items: center;
-    }
-  }
-  .ale-click-wrap:hover {
-    &:hover .ale-info-indicator,
-    &:hover .ale-info-indicator div,
-    &:hover .ale-info-indicator:after { opacity: 1; }
-    
-    &:hover .ale-info-indicator div { width: 50%; height: 50%; font-size: 140%; }
-    
-    &:hover .ale-cover > div > img {
-      filter: blur(1px) grayscale(30%);
-    }
-  }
-  
-  
-  .ale-play-sample {
-    display: none;
-    position: absolute;
-    z-index: 999;
-    bottom: 12px;
-    right: 12px;
-    padding: 6px;
-    border-radius: 999999px;
-    cursor: default;
-    > div { 
-      font-size: 8px;
-      width: 20px;
-      height: 20px;
-      padding: 3px;
-      color: rgba( #fff, 1 );
-      background: rgba( #000, .9 );
-      border-radius: 999999px;
-      border: 2px solid rgba( $audibleOrange, .9 );
-      box-shadow: 0px 0px 9px rgba( #000, .9 );
-      cursor: pointer; 
-      display: flex;
-      justify-content: center;
-      align-content: center;
-      justify-items: center;
-      align-items: center;
-    }
-  }
   &.details-open .ale-play-sample,
   &:hover .ale-play-sample { display: inline-block; }
-  
+
   &.details-open {
     .details-inner-wrap {
       @include themify($themes) {
@@ -443,25 +293,37 @@ export default {
         box-shadow: 0 0 0 3px themed(audibleOrange), 0 2px 10px rgba( #000, .7 );
       }
     }
-    .ale-cover{
-      @include themify($themes) {
-        border-color: themed(backColor);
-      }
-    }
   }
   
-  .hidden {
+  // Lazyload placeholder
+  &:after {
+    content: '';
     position: absolute;
     z-index: -1;
-    top: 50%;
-    right: 0;
-    left: 0;
-    display: inline-block;
-    width: 100%;
-    height: 0;
-    overflow: hidden;
+    top: 5px;
+    right: 5px;
+    bottom: 5px;
+    left: 5px;
+    border-radius: 5px;
+    @include themify($themes) {
+      background-color: themed(backColor);
+    }
+    @include themify($themes) {
+      border: 1px solid rgba( themed(outerColor), .3 );
+    }
+    background-repeat: no-repeat;
+    background-position: center center;
   }
+  
 }
+
+.theme-light .ale-book:after {
+  background-image: url("../../../images/table-loader-light.gif");
+}
+.theme-dark .ale-book:after {
+  background-image: url("../../../images/table-loader-dark.gif");
+}
+
 
 @media ( max-width: 616px ) {
   .ale-book {
@@ -497,7 +359,7 @@ export default {
 
 @media ( max-width: 504px ) {
 
-  #ale-books {
+  #ale-books.grid-view {
   	.ale-book {
   		width: 40vw;
   		height: 40vw;

@@ -1,7 +1,7 @@
 <template>
   <overlay>
     
-    <splashscreen v-if="ui === 'splash'" :storageHasData="storageHasData" :storageConfig="storageConfig"></splashscreen>
+    <menu-screen v-if="ui === 'menu-screen'" :storageHasData="storageHasData" :storageConfig="storageConfig"></menu-screen>
     <scraping-progress v-if="ui === 'scraping'"></scraping-progress>
     
   </overlay>
@@ -33,29 +33,33 @@ global.waterfall  = waterfall;
 
 // Components
 import overlay from './_components/layout/overlay';
-import splashscreen from './_components/layout/splashscreen';
+import menuScreen from './_components/layout/menuScreen';
 import scrapingProgress from './_components/layout/scrapingProgress';
 
 // Calls
-import amapxios from './_components/_mixins/extract/calls/amapxios.js';
-import scrapingPrep from './_components/_mixins/extract/calls/scrapingPrep.js';
+import amapxios from './_components/_mixins/calls/amapxios.js';
+import scrapingPrep from './_components/_mixins/calls/scrapingPrep.js';
 
 // Misc
-import getDataFromCarousel from './_components/_mixins/extract/misc/fetch-store-page-carousel-data.js';
+import getDataFromCarousel from './_components/_mixins/misc/fetch-store-page-carousel-data.js';
 // Misc - Helpers
-import shortenLength from './_components/_mixins/extract/misc/helpers.js';
-import getSummary from './_components/_mixins/extract/misc/helpers.js';
-import fixDates from './_components/_mixins/extract/misc/helpers.js';
-import getSeries from './_components/_mixins/extract/misc/helpers.js';
-import getArray from './_components/_mixins/extract/misc/helpers.js';
+import shortenLength from './_components/_mixins/misc/helpers.js';
+import getSummary from './_components/_mixins/misc/helpers.js';
+import fixDates from './_components/_mixins/misc/helpers.js';
+import getSeries from './_components/_mixins/misc/helpers.js';
+import getArray from './_components/_mixins/misc/helpers.js';
+import addedOrder from './_components/_mixins/misc/helpers.js';
+import makeFrenchFries from './_components/_mixins/misc/helpers.js';
+import glueFriesBackTogether from './_components/_mixins/misc/helpers.js';
+
 
 // Steps
-import getDataFromLibraryPages from './_components/_mixins/extract/main-step/process-library-pages.js';
-import getDataFromStorePages from './_components/_mixins/extract/main-step/process-store-pages.js';
-import getISBNsFromGoogleBooks from './_components/_mixins/extract/main-step/process-isbns.js';
-import getDataFromSeriesPages from './_components/_mixins/extract/main-step/process-series-pages.js';
-import getDataFromCollections from './_components/_mixins/extract/main-step/process-collections.js';
-import getDataFromWishlist from './_components/_mixins/extract/main-step/process-wishlist.js';
+import getDataFromLibraryPages from './_components/_mixins/main-step/process-library-pages.js';
+import getDataFromStorePages from './_components/_mixins/main-step/process-store-pages.js';
+import getISBNsFromGoogleBooks from './_components/_mixins/main-step/process-isbns.js';
+import getDataFromSeriesPages from './_components/_mixins/main-step/process-series-pages.js';
+import getDataFromCollections from './_components/_mixins/main-step/process-collections.js';
+import getDataFromWishlist from './_components/_mixins/main-step/process-wishlist.js';
 
 // Outside 
 import timeStringToSeconds from '@output-mixins/timeStringToSeconds.js';
@@ -64,7 +68,7 @@ import secondsToTimeString from '@output-mixins/secondsToTimeString.js';
 export default {
   components: {
     overlay,
-    splashscreen,
+    menuScreen,
     scrapingProgress,
   },
   mixins: [
@@ -98,7 +102,7 @@ export default {
         books: [],
         storePageMissing: []
       },
-      ui: 'splash',
+      ui: 'menu-screen',
     }
   },
   beforeMount: function() {
@@ -134,13 +138,13 @@ export default {
         ];
         
         vue.$root.$emit('update-big-step', {
-          max: config.steps ? _.filter( config.steps, {value: true}).length : waterfallArray.length-1, // First function is just a kind of a failsafe and doesn't count
+          max: config.steps ? _.filter( config.steps, function( o ) { return o.value && !o.extra; }).length : waterfallArray.length-1, // First function is just a kind of a failsafe and doesn't count
         });
         
         waterfall( waterfallArray, function(err, hotpotato) {
           
           vue.$root.$emit('update-big-step', {
-            title: 'Closing this page and opening the gallery page in a new tab',
+            title: 'Closing this page in 5 seconds and opening the gallery page in a new tab',
             step: 0, 
             max: 0,
           });
@@ -157,7 +161,7 @@ export default {
             
           setTimeout(function() {
             vue.goToOutputPage( hotpotato );
-          }, 4500);
+          }, 5500);
           
         });
         
@@ -197,79 +201,41 @@ export default {
           this.makeFrenchFries( hotpotato );
         }
         
-        browser.storage.local.set( hotpotato ).then(() => {
-          browser.runtime.sendMessage({ action: 'openOutput' });
-        });
-        
-      }
-      
-    },
-    
-    // Since the added date is no longer available in the Audible library or store pages,
-    // I'm adding a prop called "added", which obviously isn't the same as the date it was added, 
-    // but can be sorted in the same fashion... given that the array is in that same order, 
-    // which it should be. Old at the bottom (low number), new at the top (high number).
-    addedOrder: function( books ) {
-      
-      let id = books.length + 1;
-      _.each( books, function( book ) {
-        --id;
-        book.added = id;
-      });
-      
-    },
-    
-    // Chunkifies for 
-    makeFrenchFries: function( hotpotato ) {
-      
-      hotpotato.extras = {
-        'domain-extension': this.domainExtension,
-      };
-      
-      hotpotato.chunks = []; 
-      _.each( hotpotato, function( item, key ) {
-        if ( key !== 'chunks' && _.isArray( item ) ) {
-          
-          const chunks = _.chunk( item, 50);
-          hotpotato.chunks.push( key ); 
-          hotpotato[ key+'-chunk-length' ] = chunks.length; 
-          _.each( chunks, function( chunk, i ) {
-            hotpotato[ key+'-chunk-'+i ] = chunk;
-          });
-          delete hotpotato[ key ]; // The original array is not needed anymore
-          
-        }
-      });
-      
-    },
-    
-    // It's vegan glue... Don't worry about it...
-    glueFriesBackTogether: function( data ) {
-      
-      if ( data && _.isEmpty( data ) ) {
-        return null;
-      }
-      else {
-        
-        _.each( data.chunks, function( chunkName ) {
-          
-          const chunksLength = data[ chunkName+'-chunk-length' ];
-          const chunkNumbers = _.range(0,chunksLength);
-          data[ chunkName ] = [];
-          _.each( chunkNumbers, function( n ) {
-            data[ chunkName ] = data[ chunkName ].concat( data[ chunkName+'-chunk-'+n ] );
-            delete data[ chunkName+'-chunk-'+n ];
+        browser.storage.local.clear().then(() => {
+          browser.storage.local.set( hotpotato ).then(() => {
+            
+            browser.runtime.sendMessage({ action: 'openOutput' });
             
           });
-          delete data[ chunkName+'-chunk-length' ];
-          
         });
-        delete data.chunks;
         
       }
       
     },
-    
+  
+    init_storePageTest: function() {
+      
+      const vue = this;
+      
+      const hotpotato = {
+        config: { test: true },
+        books: [
+          // { storePageRequestUrl: 'https://www.audible.com/pd/Goon-Squad-Audiobook/B01MFBRCHN', },
+          // { storePageRequestUrl: 'https://www.audible.com/pd/The-Martian-Audiobook/B082BHJMFF', },
+          // { storePageRequestUrl: 'https://www.audible.com/pd/The-Dire-King-Audiobook/B0751GMDXN', },
+          // { storePageRequestUrl: 'https://www.audible.com/pd/Aliens-of-Extraordinary-Ability-Audiobook/B07TXLC1NF', },
+          { storePageRequestUrl: 'https://www.audible.com/pd/Nomad-Audiobook/B017J3ZQDG', },
+        ],
+      };
+      
+      vue.getDataFromStorePages(hotpotato, function( nullBoy, result ) {
+        
+        console.log('%c' + 'Store page test' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;', result);
+        
+      });
+      
+    },
+  
   },
 }
 </script>

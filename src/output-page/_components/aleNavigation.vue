@@ -41,16 +41,7 @@
       <!-- </router-link> -->
     </div>
     
-    <div class="light-switch">
-      <div
-        class="icon"
-        @click="lightSwitchToggle"
-        :content="'Toggle '+ (this.general.lightSwitch ? '<strong>light</strong>' : 'light') +' and '+ (!this.general.lightSwitch ? '<strong>dark</strong>' : 'dark') +' theme'"
-        v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }"
-      >
-        <font-awesome fas :icon="lightSwitchIcon" />
-      </div>
-    </div>
+    <light-switch></light-switch>
     
     <div class="save-csv"
       content="<strong>Download the spreadsheet as a CSV file.</strong> <br>Cells print out in plain text form, which means that none of the hyperlinks are included in the export."
@@ -67,19 +58,16 @@
 </template>
 
 <script>
-import aleSaveLocally from './aleSaveLocally'
+import aleSaveLocally from './aleSaveLocally';
+import lightSwitch from '@output-snippets/lightSwitch';
 
 export default {
   name: 'aleMenuActions',
   props: ['general', 'library'],
 	components: {
-		aleSaveLocally
+    aleSaveLocally,
+    lightSwitch,
 	},
-  computed: {
-    lightSwitchIcon: function() {
-      return this.general.lightSwitch ? 'sun' : 'moon';
-    },
-  },
   
   methods: {
     
@@ -89,13 +77,6 @@ export default {
         from: 'aleMenuActions'
       });
       
-    },
-    
-    lightSwitchToggle: function() {
-      this.general.lightSwitch = this.general.lightSwitch ? 0 : 1;
-      // this.general.tippyTheme = this.general.lightSwitch ? 'dark' : 'light-border';
-      $('html').removeClass('theme-light theme-dark');
-      $('html').addClass( !this.general.lightSwitch ? 'theme-dark' : 'theme-light' );
     },
     
   }
@@ -120,7 +101,7 @@ export default {
   -ms-user-select: none;
   user-select: none;
   position: fixed;
-  z-index: 10;
+  z-index: 900;
   top: 0;
   right: 0;
   left: 0;

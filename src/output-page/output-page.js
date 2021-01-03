@@ -1,6 +1,6 @@
 
 import Vue from 'vue';
-import App from './App';
+import App from './output-page-app';
 
 Vue.config.devtools = false;
 Vue.config.productionTip = false;
@@ -9,14 +9,20 @@ import store from './store.js';
 import VueRouter from 'vue-router';
 Vue.use(VueRouter);
 
+Vue.use(require('vue-shortkey'));
+
+import VueAudio from 'vue-audio-better';
+Vue.use( VueAudio );
+
 import VueLazyload from 'vue-lazyload';
 Vue.use(VueLazyload, {
   error:   "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='500' height='500'%3E%3Cdefs%3E%3Cstyle%3E.c%7Bfill:%23e1e1e1;%7D%3C/style%3E%3C/defs%3E%3Cpath class='c' d='M0 0h500v500H0z'/%3E%3C/svg%3E",
   loading: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='500' height='500'%3E%3Cdefs%3E%3Cstyle%3E.c%7Bfill:%23e1e1e1;%7D%3C/style%3E%3C/defs%3E%3Cpath class='c' d='M0 0h500v500H0z'/%3E%3C/svg%3E",
-  attempt: 3,
   lazyComponent: true,
-  preload: 1.05,
-  throttleWait: 120,
+  attempt: 3,
+  preload: 1,
+  // preload: 1.1,
+  // throttleWait: 30,
   // observer: true,
 });
 
@@ -24,6 +30,9 @@ Vue.use(VueLazyload, {
 global.Url = require('domurl');
 global.$ = require('jquery');
 global.DOMPurify = require('dompurify');
+
+import smoothscroll from 'smoothscroll-polyfill';
+smoothscroll.polyfill();
 
 import { 
   filter, 
@@ -52,6 +61,7 @@ import {
   chunk,
   debounce,
   throttle,
+  assign,
 } from 'lodash';
 
 global.Eventbus = new Vue();
@@ -64,18 +74,18 @@ import aleLibraryView from './_components/aleLibraryView'
 
 const routes = [
   { path: '/', redirect: '/gallery'},
-  { name: 'ale-gallery', path: '/gallery', component: aleGallery, props: true },
-  { name: 'ale-spreadsheet', path: '/spreadsheet', component: aleSpreadsheet, props: true },
+  { name: 'gallery', path: '/gallery', component: aleGallery, props: true },
+  { name: 'spreadsheet', path: '/spreadsheet', component: aleSpreadsheet, props: true },
   { path: '/categories', component: aleLibraryView, props: true, 
     children: [
-      { name: 'ale-categories', path: '', component: aleCategories, props: true },
-      { name: 'ale-category', path: ':parent/:child?', component: aleGallery, props: true },
+      { name: 'categories', path: '', component: aleCategories, props: true },
+      { name: 'category', path: ':parent/:child?', component: aleGallery, props: true },
     ] 
   },
   { path: '/series', component: aleLibraryView, props: true, 
     children: [
-      { name: 'ale-all-series', path: '', component: aleSeries, props: true },
-      { name: 'ale-series', path: ':series', component: aleGallery, props: true },
+      { name: 'all-series', path: '', component: aleSeries, props: true },
+      { name: 'series', path: ':series', component: aleGallery, props: true },
     ] 
   },
 ];
@@ -138,6 +148,8 @@ import {
   faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
   faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
   faHeart,
+  faPlus,
+  faDotCircle,
 } from '@fortawesome/free-solid-svg-icons' 
 
 library.add(
@@ -176,6 +188,8 @@ library.add(
   faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
   faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
   faHeart,
+  faPlus,
+  faDotCircle,
 );
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 Vue.component('font-awesome', FontAwesomeIcon);
@@ -183,15 +197,20 @@ Vue.component('font-awesome', FontAwesomeIcon);
 
 import VueTippy, { TippyComponent } from "vue-tippy";
 Vue.use(VueTippy, {
+  placement: 'top',
   arrow: true,
+  theme: 'dark',
   onShow: (options) => {
     return !!options.props.content
   },
   boundary: 'viewport',
   flipDuration: 0,
 });
+
 Vue.component("tippy", TippyComponent);
 import "tippy.js/themes/light-border.css";
+
+import helpers from '@contscript-mixins/misc/helpers.js';
 
 const standalone = $('html.standalone-gallery').length > 0;
 if ( !standalone ) {
@@ -200,32 +219,14 @@ if ( !standalone ) {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
     browser.storage.local.get(null).then( data => {
-      console.log('%c' + ' ' + '', 'background: #ff006b; color: #ff006b; padding: 2px 5px; border-radius: 8px;', data);
-      if ( !_.isEmpty( data ) ) {
+      
+      if ( !_.isEmpty( data ) && data.chunks ) {
         
-        // Merge storage book chunks into one array
-        data = (function( data ) {
-          const chunkKeys = [];
-          const chunkLength = data[ 'books-chunk-length' ];
-          for (let i = 0; i < chunkLength; i++) {
-            chunkKeys.push( 'books-chunk-'+i  );
-          }
-          const chunks = _.pick(data, chunkKeys);
-          const books = _.flatten( _.values( chunks ) );
-          return {
-            library: {
-              domainExtension: data[ 'domain-extension' ],
-              storePageMissing: data[ 'storage-page-missing' ],
-              booksChunkLength : data[ 'books-chunk-length' ],
-              books: books
-            }
-          };
-        }( data ));
-        
-        console.log( data.library )
-
-        // console.log(_.map(data.library.books, 'length'))
-        startVue( data.library );
+        helpers.methods.glueFriesBackTogether( data ); 
+         // This "data.config" is used in the content script, but unnecessary here.
+         // It's getting deleted to avoid passing it on to the locally saved gallery.
+        delete data.config;
+        startVue( data );
         
       }
       else {
@@ -246,13 +247,17 @@ function startVue( libraryData ) {
   var ale = new Vue({
     router,
     el: '#audible-library-extractor',
-    data: {
-      library: libraryData
-    },
     store: store,
     render: h => {
-      return h(App); 
+      return h( App, {
+        props: {
+          isStandalone: standalone,
+          library: libraryData,
+        }
+      }); 
     }
   });
+  
+  global.ale = ale;
   
 }

@@ -2,8 +2,15 @@
 export default {
   methods: {
     getDataFromLibraryPages: function( hotpotato, libraryPagesFetched, ) {
-      
-    const vue = this;
+        
+      const vue = this;
+        
+      // derank any books that were new additions in the last partial scan.
+      if ( hotpotato.config.partialScan ) {
+        _.each( hotpotato.books, function( book ) {
+          if ( book.isNew ) delete book.isNew;
+        });
+      }
       
       this.$root.$emit('update-big-step', {
         title: 'Library',
@@ -17,13 +24,6 @@ export default {
           'Updating old books and adding new books...' :
           'Scanning library for books...',
       });
-      
-      // derank any books that were new additions in the last partial scan.
-      if ( hotpotato.config.partialScan ) {
-        _.each( hotpotato.books, function( book ) {
-          if ( book.isNew ) delete book.isNew;
-        });
-      }
       
       vue.scrapingPrep( vue.libraryUrl, function( prep ) { 
         
@@ -64,9 +64,9 @@ function processLibraryPage( vue, response, hotpotato, stepCallback ) {
   const books   = [];
   
   const titleRows = audible.querySelectorAll('#adbl-library-content-main > .adbl-library-content-row');
-  $(titleRows).each(function () {
+  titleRows.forEach(function( el ) {
     
-    const _thisRow = this;
+    const _thisRow = el;
     const rowItemIsBook = _thisRow.querySelector('[name="contentType"][value="Product"]') || _thisRow.querySelector('[name="contentType"][value="Performance"]');
     // Ignore anything that isn't a book, like for example podcasts...
     if ( rowItemIsBook ) {
@@ -74,6 +74,13 @@ function processLibraryPage( vue, response, hotpotato, stepCallback ) {
       const bookInMemory                 = !hotpotato.config.partialScan ? undefined : _.find( hotpotato.books, ['asin', bookASIN] );
       const fullScan_ALL_partialScan_NEW = hotpotato.config.partialScan && !bookInMemory || !hotpotato.config.partialScan;
       let   book                         = (hotpotato.config.partialScan && bookInMemory) ? bookInMemory : {};
+      
+      const storePageLink = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a');
+      if ( storePageLink ) {
+        let storePageUrl = new Url( window.location.origin + storePageLink.getAttribute('href') );
+        storePageUrl.clearQuery();
+        book.storePageRequestUrl = storePageUrl.toString();
+      }
       
       // UPDATE SCAN: fetch these only if the book is a new addition...
       // FULL SCAN: fetch always
