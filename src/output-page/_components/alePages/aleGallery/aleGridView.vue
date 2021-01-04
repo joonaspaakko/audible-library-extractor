@@ -1,7 +1,7 @@
 <template>
   <div id="ale-books" class="grid-view" ref="booksWrapper">
     
-    <book-details v-if="detailsBook" @open-adjacent-book="toggleBookDetails" :key="'details:'+detailsBook.asin" :book.sync="detailsBook" :booksArray="booksArray" :booksWrapper="$refs.booksWrapper" :index="detailsBookIndex" :general="general" :library="library" :gallery="gallery" />
+    <book-details v-if="detailsBook" :key="'details:'+detailsBook.asin" :book.sync="detailsBook" :booksArray="booksArray" :booksWrapper="$refs.booksWrapper" :index="detailsBookIndex" :general="general" :library="library" :gallery="gallery" />
     
     <lazy-component
     v-for="(book, index) in booksArray"
@@ -10,7 +10,7 @@
     :key="book.asin"
     :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin  }"
     >
-      <book @book-clicked="toggleBookDetails" :book="book" :gallery="gallery" :index="index"></book>
+      <book :book="book" :gallery="gallery" :index="index"></book>
 
     </lazy-component> <!-- .ale-book -->
     
@@ -66,14 +66,14 @@ export default {
     //   }
     // }
     
-    // this.$on('bookClick', this.onBookClicked );
-    $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
+    this.$root.$on('book-clicked', this.toggleBookDetails );
+    // $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
     // this.$root.$on('afterWindowResize', this.onWindowResize );
   },
   
 	beforeDestroy: function() {
-	 	// this.$off('bookClick', this.onBookClicked );
-    $("body, html").off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
+	 	this.$root.$off('book-clicked', this.toggleBookDetails );
+    // $("body, html").off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
 	 	// this.$root.$off('afterWindowResize', this.onWindowResize );
   },
   
@@ -113,14 +113,17 @@ export default {
     // },
     
     toggleBookDetails: function( e ) {
-
+      console.log(  'TEST!!!!!!!');
       if ( !e.index )  e.index  = _.findIndex( this.booksArray, { asin: e.book.asin });
       
       const sameBook = _.get(this.detailsBook,'asin') === e.book.asin;
       this.detailsBook = null;
       this.detailsBookIndex = e.index;
-      if ( !sameBook ) this.detailsBook = e.book;
-      else this.$router.replace({ query: { book: undefined } });
+      this.$nextTick(function() {
+        if ( !sameBook ) this.detailsBook = e.book;
+        else this.$router.replace({ query: { book: undefined } });
+        console.log( this.detailsBook )
+      });
       
     },
     

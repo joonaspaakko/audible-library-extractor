@@ -31,7 +31,7 @@
       <div><font-awesome fas icon="play" /></div>
     </div>
     
-    <div class="ale-click-wrap" @click="$emit('book-clicked', { book })">
+    <div class="ale-click-wrap" @click="$root.$emit('book-clicked', { book })">
       
       <div class="ale-info-indicator">
         <div><font-awesome fas icon="book" /></div>

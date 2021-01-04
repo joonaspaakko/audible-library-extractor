@@ -4,7 +4,7 @@
     <ale-save-locally v-if="!general.standalone" :library="library" :general="general"></ale-save-locally>
   
     <div class="text-button gallery-page">
-      <router-link :to="{ name: 'ale-gallery' }">
+      <router-link :to="{ name: 'gallery' }">
         <div class="icon">
           <font-awesome fas icon="home" />
           <span>Library</span>
@@ -15,7 +15,7 @@
     </div>
   
     <div class="text-button categories-page">
-      <router-link :to="{ name: 'ale-categories' }">
+      <router-link :to="{ name: 'categories' }">
         <div class="icon">
           <font-awesome fas icon="list" />
           <span>Categories</span>
@@ -24,7 +24,7 @@
     </div>
   
     <div class="text-button categories-page">
-      <router-link :to="{ name: 'ale-all-series' }">
+      <router-link :to="{ name: 'all-series' }">
         <div class="icon">
           <font-awesome fas icon="list" />
           <span>Series</span>
@@ -33,7 +33,7 @@
     </div>
     
     <div class="text-button categories-page">
-      <!-- <router-link :to="{ name: 'ale-categories' }"> -->
+      <!-- <router-link :to="{ name: 'categories' }"> -->
         <div class="icon">
           <font-awesome fas icon="list" />
           <span>Collections</span>

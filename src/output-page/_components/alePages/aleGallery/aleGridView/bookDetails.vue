@@ -240,7 +240,7 @@ export default {
         case 'left':
           if ( this.index > 0 ) {
             
-            this.$emit('open-adjacent-book', { book: this.booksArray[ this.index-1 ] });
+            this.$root.$emit('book-clicked', { book: this.booksArray[ this.index-1 ] });
             
           }
           break;
@@ -248,7 +248,7 @@ export default {
           const booksLength = this.booksArray.length;
           if ( this.index < booksLength ) {
             
-            this.$emit('open-adjacent-book', { book: this.booksArray[ this.index+1 ] });
+            this.$root.$emit('book-clicked', { book: this.booksArray[ this.index+1 ] });
             
           }
           break;

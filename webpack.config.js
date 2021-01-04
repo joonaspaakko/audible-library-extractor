@@ -12,15 +12,15 @@ const FileManagerPlugin = require('filemanager-webpack-plugin-fixed');
 
 const config = {
   mode: process.env.NODE_ENV,
-  context: __dirname + '/src',
+  context: path.join(__dirname, '/src'),
   entry: {
     'background': './background.js',
     'content-script/audible-library-extractor-content-script': './content-script/content-script.js',
     'output-page/output-page': './output-page/output-page.js',
   },
   output: {
-    path: __dirname + '/dist',
     publicPath: '',
+    path: path.join(__dirname, '/dist'),
     filename: '[name].js',
     chunkFilename: 'chunks/[name].js',
   },
@@ -40,7 +40,7 @@ const config = {
     rules: [
       {
         test: /\.vue$/,
-        loaders: 'vue-loader',
+        use: [{ loader: 'vue-loader' }]
       },
       {
         test: /\.js$/,
@@ -95,7 +95,7 @@ const config = {
 var copyPluginArray = { patterns: [
   { from: 'assets', to: 'assets' },
   { from: 'output-page/favicons', to: 'output-page/favicons' },
-  { from: 'output-page/browser-polyfill.min.js', to: 'output-page/browser-polyfill.min.js' },
+  { from: 'output-page/extension-js', to: 'output-page/extension-js' },
   { from: 'output-page/images/', to: 'images/' },
   { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
   {

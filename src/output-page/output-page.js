@@ -28,8 +28,6 @@ Vue.use(VueLazyload, {
 
 
 global.Url = require('domurl');
-global.$ = require('jquery');
-global.DOMPurify = require('dompurify');
 
 import smoothscroll from 'smoothscroll-polyfill';
 smoothscroll.polyfill();
@@ -67,7 +65,7 @@ import {
 global.Eventbus = new Vue();
 
 const aleGallery = () => import(/* webpackChunkName: "gallery" */ './_components/alePages/aleGallery');
-const aleSpreadsheet = () => import(/* webpackChunkName: "spreadsheet" */ './_components/alePages/aleSpreadsheet');
+// const aleSpreadsheet = () => import(/* webpackChunkName: "spreadsheet" */ './_components/alePages/aleSpreadsheet');
 const aleCategories = () => import(/* webpackChunkName: "categories" */ './_components/alePages/aleCategories');
 const aleSeries = () => import(/* webpackChunkName: "series" */ './_components/alePages/aleSeries');
 import aleLibraryView from './_components/aleLibraryView'
@@ -75,7 +73,7 @@ import aleLibraryView from './_components/aleLibraryView'
 const routes = [
   { path: '/', redirect: '/gallery'},
   { name: 'gallery', path: '/gallery', component: aleGallery, props: true },
-  { name: 'spreadsheet', path: '/spreadsheet', component: aleSpreadsheet, props: true },
+  // { name: 'spreadsheet', path: '/spreadsheet', component: aleSpreadsheet, props: true },
   { path: '/categories', component: aleLibraryView, props: true, 
     children: [
       { name: 'categories', path: '', component: aleCategories, props: true },
@@ -93,7 +91,7 @@ const routes = [
 const router = new VueRouter({
   routes, 
   scrollBehavior(to, from, savedPosition) {
-    if ( savedPosition && to.name === 'ale-categories' ) {
+    if ( savedPosition && to.name === 'categories' ) {
       return savedPosition;
     } else {
       
@@ -212,7 +210,7 @@ import "tippy.js/themes/light-border.css";
 
 import helpers from '@contscript-mixins/misc/helpers.js';
 
-const standalone = $('html.standalone-gallery').length > 0;
+const standalone = document.querySelector('html.standalone-gallery');
 if ( !standalone ) {
 
   try {

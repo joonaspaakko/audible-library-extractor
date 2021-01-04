@@ -4,9 +4,7 @@
   <div v-if="book.series" class="label hidden-section-label my-books-in-series-label" @click="booksInSeriesLabelClick">
     <!-- Had to change this to make it a bit shorter... -->
     <!-- <span class="heading">Books I own in the series</span> -->
-    <!-- <span class="heading">My books in the series</span> -->
-    <!-- Given the context it probably doesn't matter, but I decided that "owned" is better than "my" -->
-    <span class="heading">Owned books in the series</span>
+    <span class="heading">My books in the series</span>
     <span class="count">{{ series.count }}</span>
     <font-awesome fas :icon="series.toggle ? 'chevron-up' : 'chevron-down'" />
   </div>

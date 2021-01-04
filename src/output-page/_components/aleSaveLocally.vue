@@ -9,9 +9,9 @@
 
 <script>
 
-import jsZip from 'jszip'
-import { saveAs } from 'file-saver';
-import jsZipUtils from 'jszip-utils';
+// import jsZip from 'jszip';
+// import { saveAs } from 'file-saver';
+// import JSZipUtils from 'jszip-utils';
 
 export default {
   name: 'aleSaveLocally',
@@ -35,7 +35,7 @@ export default {
       vue.cacheBuster = this.runCachebuster();
       
       const libraryData = JSON.stringify( vue.library );
-      vue.zip = new jsZip();
+      vue.zip = new JSZip();
       const zip = vue.zip;
       
       const indexHTML =
@@ -103,7 +103,7 @@ export default {
       let count = 0;
       _.each(files, function(url) {
         // loading a file and add it in a zip file
-        jsZipUtils.getBinaryContent(url, function (err, data) {
+        JSZipUtils.getBinaryContent(url, function (err, data) {
           if(err) {
               throw err; // or handle the error
           }

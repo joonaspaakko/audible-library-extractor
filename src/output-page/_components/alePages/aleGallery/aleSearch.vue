@@ -1,6 +1,6 @@
 <template>
 <div id="ale-search-wrap" ref="searchWrap" :class="{ 'search-fixed': fixedSearch }">
-  <div id="ale-search">
+  <div id="ale-search" ref="aleSearch">
     
     <div class="search-wrapper" @click="$refs.searchInput.focus()">
       <input type="search" ref="searchInput" :value="$store.state.searchQuery" @input="initSearch" :placeholder="placeholder">
@@ -15,7 +15,8 @@
 </template>
 
 <script>
-import Fuse from 'fuse.js';
+// import Fuse from 'fuse.js';
+const Fuse = () => import(/* webpackChunkName: "fuse" */ 'fuse.js');
 
 import searchIcons from './aleSearch/searchIcons';
 import searchOptions from './aleSearch/searchOptions';
@@ -29,11 +30,11 @@ export default {
   },
 	data : function() {
 		return {
-			resultTimer: null,
+			// resultTimer: null,
       enableZoomTimer: null,
-      searchShouldSort: false,
-      searchFocusListener: null,
-      searchOptionsHider: null,
+      // searchShouldSort: false,
+      // searchFocusListener: null,
+      // searchOptionsHider: null,
       
       
       fuse: null,
@@ -168,21 +169,22 @@ export default {
     
     // this.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', this.searchInputFocus);
     this.searchInputFocus( this );
-    this.searchKeyupListener = $('#ale-search').on("keyup", '> input[type="search"]', this.searchInputKeyup);
-    $("#ale-search").on('touchstart', this.iosAutozoomDisable);
-    
+    // this.searchKeyupListener = $('#ale-search').on("keyup", '> input[type="search"]', this.searchInputKeyup);
+    // $("#ale-search").on('touchstart', this.iosAutozoomDisable);
+    this.$refs.aleSearch.addEventListener('touchstart', this.iosAutozoomDisable );
     window.addEventListener('scroll', this.scrolling );    
   
   },
   
 	beforeDestroy: function() {
 		// $('#ale-search').off("focus", '> input[type="search"]', this.searchInputFocus);
-		$('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
-    $("#ale-search").off('touchstart', this.iosAutozoomDisable);
+		// $('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
+    // $("#ale-search").off('touchstart', this.iosAutozoomDisable);
+    this.$refs.aleSearch.removeEventListener('touchstart', this.iosAutozoomDisable );
     Eventbus.$off('detailsToggle', this.onDetailsToggle );
-    this.searchFocusListener = null;
-    this.searchKeyupListener = null;
-    this.searchOptionsHider = null;
+    // this.searchFocusListener = null;
+    // this.searchKeyupListener = null;
+    // this.searchOptionsHider = null;
     
     window.removeEventListener('scroll', this.scrolling );
 	},
@@ -256,6 +258,8 @@ export default {
       //   scroll({ top: 0 });
       // }
       
+      // FIXME: I think I'm going to have to go with plan A because the saerch options can potentially be taller than the viewport and as it is you can't scroll down... When you search it scrolls to the top anyways... So plan A is to basically have a button that scrolls you up to the searchbar that is never fixed to the viewport and focuses on it....
+      
     }, 270, { 'leading': false, 'trailing': true }),    
     
     modifyQuery: function( query ) {
@@ -288,12 +292,26 @@ export default {
     iosAutozoomDisable: function() {
       // IOS input focus zoom workaround
       if ( navigator.userAgent.length && /iPhone|iPad|iPod/i.test(navigator.userAgent) ) {
-        $('head').find('meta[name=viewport]').remove();
-        $('<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />').appendTo('head');
+        // $('head').find('meta[name=viewport]').remove();
+        const head = document.querySelector('head');
+        head.querySelector('meta[name=viewport]').remove();
+        
+        let tempMeta = document.createElement('meta');
+        tempMeta.content = "width=device-width, initial-scale=1.0, user-scalable=0";
+        tempMeta.setAttribute = "viewport";
+        head.appendChild( tempMeta );
+        // $('<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />').appendTo('head');
+        
         clearTimeout( this.enableZoomTimer );
-        this.enableZoomTimer = setTimeout(function(){
-          $('head').find('meta[name=viewport]').remove();
-          $('<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1" />').appendTo('head');
+        this.enableZoomTimer = setTimeout(function() {
+          
+          head.querySelector('meta[name=viewport]').remove();
+          
+          let originalMeta = document.createElement('meta');
+          originalMeta.content = "width=device-width, initial-scale=1.0, user-scalable=1";
+          originalMeta.setAttribute = "viewport";
+          head.appendChild( originalMeta );
+          
         }, 700 );
       }
     },
@@ -381,66 +399,66 @@ export default {
     
     openSearchOptions: function( option, e ) {
       
-      const vue = this;
-      if ( !this.gallery.searchOptions.open ) {
-        this.gallery.searchOptions.open = true;
-      }
-      else if ( this.gallery.searchOptions.open && this.gallery.searchOptions.lists.current == option ) {
-        this.gallery.searchOptions.open = false;
-      }
+      // const vue = this;
+      // if ( !this.gallery.searchOptions.open ) {
+      //   this.gallery.searchOptions.open = true;
+      // }
+      // else if ( this.gallery.searchOptions.open && this.gallery.searchOptions.lists.current == option ) {
+      //   this.gallery.searchOptions.open = false;
+      // }
       
-      if ( this.gallery.searchOptions.open && vue.searchOptionsHider === null ) {
-        vue.searchOptionsHider = $(document).on('mouseup', function (e) {
-          var options = $(e.target).closest("#search-options");
-          var optionsBtn = $(e.target).closest(".search-opt-btn");
-          if ( options.length < 1 && optionsBtn.length < 1 ) {
-            vue.gallery.searchOptions.open = false;
-          }
-        });
-      }
+      // if ( this.gallery.searchOptions.open && vue.searchOptionsHider === null ) {
+      //   vue.searchOptionsHider = $(document).on('mouseup', function (e) {
+      //     var options = $(e.target).closest("#search-options");
+      //     var optionsBtn = $(e.target).closest(".search-opt-btn");
+      //     if ( options.length < 1 && optionsBtn.length < 1 ) {
+      //       vue.gallery.searchOptions.open = false;
+      //     }
+      //   });
+      // }
       
-      var currentOption = this.gallery.searchOptions.lists.current;
-      this.gallery.searchOptions.lists.current = option;
+      // var currentOption = this.gallery.searchOptions.lists.current;
+      // this.gallery.searchOptions.lists.current = option;
       
-      if ( this.gallery.searchOptions.open || currentOption !== option ) {
-        var clickedEl = $( e.currentTarget );
-        this.$nextTick(() => {
-          this.repositionSearchOptions( clickedEl );
-        });
-      }
+      // if ( this.gallery.searchOptions.open || currentOption !== option ) {
+      //   var clickedEl = $( e.currentTarget );
+      //   this.$nextTick(() => {
+      //     this.repositionSearchOptions( clickedEl );
+      //   });
+      // }
       
     },
 		
 		repositionSearchOptions: function( clickedEl ) {
       
-      const searchOpts = {};
-      searchOpts.el = $('#search-options');
-      searchOpts.width = searchOpts.el.innerWidth();
+      // const searchOpts = {};
+      // searchOpts.el = $('#search-options');
+      // searchOpts.width = searchOpts.el.innerWidth();
       
-      const iconsWrapper = {};
-      iconsWrapper.el = $('#ale-search > .icons');
-      iconsWrapper.width = iconsWrapper.el.innerWidth();
+      // const iconsWrapper = {};
+      // iconsWrapper.el = $('#ale-search > .icons');
+      // iconsWrapper.width = iconsWrapper.el.innerWidth();
       
-      const option = {};
-      option.el = clickedEl.parent();
-      option.width = option.el.innerWidth();
-      option.middle = option.el.position().left + (option.width/2) + parseInt( option.el.css('margin-left'), 10);
+      // const option = {};
+      // option.el = clickedEl.parent();
+      // option.width = option.el.innerWidth();
+      // option.middle = option.el.position().left + (option.width/2) + parseInt( option.el.css('margin-left'), 10);
+      // // searchOpts.position = option.middle - (searchOpts.width/2);
+      // option.middle = iconsWrapper.width - option.middle;
       // searchOpts.position = option.middle - (searchOpts.width/2);
-      option.middle = iconsWrapper.width - option.middle;
-      searchOpts.position = option.middle - (searchOpts.width/2);
       
-      var difference = (option.el.offset().left + (option.width/2) + (searchOpts.width/2)) - $(window).width();
-      var fitToWindow = difference > 0 ? difference + 20 : 0;
-      searchOpts.el.css({
-        right: searchOpts.position + fitToWindow
-      });
+      // var difference = (option.el.offset().left + (option.width/2) + (searchOpts.width/2)) - $(window).width();
+      // var fitToWindow = difference > 0 ? difference + 20 : 0;
+      // searchOpts.el.css({
+      //   right: searchOpts.position + fitToWindow
+      // });
       
-      const arrow = {};
-      arrow.el = searchOpts.el.find('.search-opts-arrow');
+      // const arrow = {};
+      // arrow.el = searchOpts.el.find('.search-opts-arrow');
       
-      arrow.el.css({
-        left: (searchOpts.width/2) - 10 + fitToWindow
-      });
+      // arrow.el.css({
+      //   left: (searchOpts.width/2) - 10 + fitToWindow
+      // });
       
 		},
     
@@ -463,7 +481,7 @@ export default {
 		placeholder: function() {
       var placeholderKeys = (function( keys ) {
         var truncKeys = [];
-        $.each( keys, function( i, key ) {
+        _.each( keys, function( key, i ) {
           truncKeys.push( key.replace('.name','') );
         });
         return truncKeys.join(', ');

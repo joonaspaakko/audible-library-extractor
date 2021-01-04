@@ -17,7 +17,7 @@ export default {
     
     const vue = this;
     Eventbus.$emit('routeUpdate', {
-      from: 'ale-categories',
+      from: 'categories',
       route: vue.$route,
     });
     
