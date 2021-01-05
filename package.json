@@ -21,7 +21,7 @@
     "@fortawesome/free-solid-svg-icons": "^5.13.0",
     "@fortawesome/vue-fontawesome": "^0.1.9",
     "@handsontable/vue": "^4.1.1",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "balloon-css": "^1.0.4",
     "bulma": "^0.8.1",
     "date-fns": "^2.12.0",
