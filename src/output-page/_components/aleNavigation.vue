@@ -1,7 +1,7 @@
 <template>
   <div id="ale-navigation">
     
-    <ale-save-locally v-if="!general.standalone" :library="library" :general="general"></ale-save-locally>
+    <ale-save-locally v-if="!$store.state.standalone"></ale-save-locally>
   
     <div class="text-button gallery-page">
       <router-link :to="{ name: 'gallery' }">
@@ -44,9 +44,8 @@
     <light-switch></light-switch>
     
     <div class="save-csv"
-      content="<strong>Download the spreadsheet as a CSV file.</strong> <br>Cells print out in plain text form, which means that none of the hyperlinks are included in the export."
-      v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme }"
-      v-if="this.general.route && this.general.route.name === 'ale-spreadsheet'"
+      v-tippy content="<strong>Download the spreadsheet as a CSV file.</strong> <br>Cells print out in plain text form, which means that none of the hyperlinks are included in the export."
+      v-if="this.$store.state.route && this.$store.state.route.name === 'ale-spreadsheet'"
       @click="csvExportStarted"
     >
       <div class="icon">
@@ -63,11 +62,10 @@ import lightSwitch from '@output-snippets/lightSwitch';
 
 export default {
   name: 'aleMenuActions',
-  props: ['general', 'library'],
 	components: {
     aleSaveLocally,
     lightSwitch,
-	},
+  },
   
   methods: {
     

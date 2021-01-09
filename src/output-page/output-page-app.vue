@@ -1,11 +1,11 @@
 <template>
   <div id="audible-library-extractor" :class="{ 'mobile-browser-navigation-on': mobileBrowserNavigation }">
     
-    <ale-background :library="library" :general="general"></ale-background>
-    <ale-navigation :library="library" :general="general"></ale-navigation>
-    <router-view    :library="library" :general="general" ref="$route" ></router-view>
+    <ale-background></ale-background>
+    <ale-navigation></ale-navigation>
+    <router-view ref="$route"></router-view>
     
-    <a v-if="this.general.displayMode" id="audible-app-link" href="audible://">
+    <a v-if="this.$store.state.displayMode" id="audible-app-link" href="audible://"> 
       <img alt="" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTEuNSA5My43IiB3aWR0aD0iMTUxLjUiIGhlaWdodD0iOTMuNyI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjxnPjxnPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggODAuN2w3NS43LTQ3LjJ2MTIuOEw3NS44IDkzLjcgMCA0Ni4zVjMzLjVsNzUuOCA0Ny4yeiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggMjEuNWE0OC4xNyA0OC4xNyAwIDAgMC00MC43IDIxLjkgMTIuOTQgMTIuOTQgMCAwIDEgMS44LTEuNmMyMS4zLTE3LjcgNTItMTMuNyA2OC43IDguNmwxMS4xLTcuMWE0OS44MiA0OS44MiAwIDAgMC00MC45LTIxLjgiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03NS44IDQzLjRhMjcuNzIgMjcuNzIgMCAwIDAtMjIuNCAxMS41IDIyLjcgMjIuNyAwIDAgMSAxMy41LTQuNGM4LjIgMCAxNS41IDQuMiAyMC40IDExLjNsMTAuNi02LjZhMjUuNzkgMjUuNzkgMCAwIDAtMjIuMS0xMS44TTI0LjYgMjQuMkM1NS44LS40IDk5LjkgNi4zIDEyMy40IDM5bC4yLjIgMTEuNS03LjFhNzAuODIgNzAuODIgMCAwIDAtMTE4LjYgMCA2MC42MyA2MC42MyAwIDAgMSA4LjEtNy45Ii8+PC9nPjwvZz48L3N2Zz4=" />
     </a>
     
@@ -39,14 +39,13 @@ export default {
     aleNavigation,
     aleBreadcrumbs,
   },
-  props: ['library'],
+  // props: ['library'],
   data: function() {
     return {
       general: {
         route: null,
         standalone: null,
         // lightSwitch: 1,
-        urlOrigin: 'https://audible',
         categories: null,
         tippyTheme: 'dark',
       },
@@ -70,19 +69,10 @@ export default {
     this.localStorageInit();
     
     const vue = this;
-    // this.library.books = this.library.books.splice(1,20);  
-    console.log( 'this.library' )
-    console.log( this.library )
-      
-    this.general.displayMode = window.matchMedia('(display-mode: standalone)').matches;
-    this.general.urlOrigin += this.library.extras['domain-extension'];
-    this.general.standalone = this.isStandalone;
     
-		var isbn = _.filter(this.library.books, 'ISBN_10');
-		// console.log( 'books with ISBN:' );
-    // console.log( isbn.length );
-    // console.log( this.library )
-    // console.log( _.filter( this.library.books, ['asin', 'B08BX58B3N'] ) )
+		// var isbn = _.filter(this.$store.state.library.books, 'isbns');
+		// console.log( 'books with ISBN:', isbn.length, isbn );
+    // console.log( _.filter( this.$store.state.library.books, ['asin', 'B08BX58B3N'] ) )
     
   },
   
@@ -132,7 +122,6 @@ export default {
           height: currentHeight,
           heightChanged: heightChanged,
         });
-        console.log('RESIZEDDDDDD!!!');
       }
       
     },
@@ -141,7 +130,7 @@ export default {
   
   watch: {
     $route: function ( route, previousRoute ) {
-      this.general.route = route;
+      this.$store.commit('prop', { key: 'route', value: route });
     }
   },
   

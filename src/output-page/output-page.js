@@ -68,6 +68,7 @@ const aleGallery = () => import(/* webpackChunkName: "gallery" */ './_components
 // const aleSpreadsheet = () => import(/* webpackChunkName: "spreadsheet" */ './_components/alePages/aleSpreadsheet');
 const aleCategories = () => import(/* webpackChunkName: "categories" */ './_components/alePages/aleCategories');
 const aleSeries = () => import(/* webpackChunkName: "series" */ './_components/alePages/aleSeries');
+
 import aleLibraryView from './_components/aleLibraryView'
 
 const routes = [
@@ -111,83 +112,83 @@ Vue.use(VueRouterBackButton, { router })
 
 import { library } from '@fortawesome/fontawesome-svg-core'
 import {
-  faSort, 
-  faMicroscope, 
-  faFilter, 
-  faChevronLeft, 
-  faChevronRight, 
   faChevronDown, 
-  faChevronUp, 
-  faBook, 
+  // faChevronLeft, 
+  // faChevronRight, 
+  // faChevronUp, 
   faArchive, 
+  // faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
+  // faBars, 
+  faBook, 
   faBookReader, 
-  faSortUp, 
-  faSortDown, 
   faCheck, 
-  faSquare, 
-  faLock, 
-  faUnlockAlt, 
-  faTable, 
-  faTh, 
-  faBars, 
-  faSun, 
-  faMoon, 
-  faSave, 
+  // faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
+  // faDotCircle,
+  // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
   faFileCsv, 
-  faRandom, 
-  faSearch, 
-  faList, 
-  faHome, 
-  faPlay, 
-  faPlayCircle, 
-  faTimesCircle, 
-  faSpinner, 
-  faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
-  faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
-  faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
+  faFilter, 
   faHeart,
-  faPlus,
-  faDotCircle,
+  faHome, 
+  faList, 
+  faLock, 
+  faMicroscope, 
+  faMoon, 
+  faPlay, 
+  // faPlayCircle, 
+  // faPlus,
+  // faRandom, 
+  faSave, 
+  faSearch, 
+  faSort, 
+  faSortDown, 
+  faSortUp, 
+  // faSpinner, 
+  faSquare, 
+  faSun, 
+  // faTable, 
+  // faTh, 
+  // faTimesCircle, 
+  // faUnlockAlt, 
 } from '@fortawesome/free-solid-svg-icons' 
 
 library.add(
-  faSort,
-  faMicroscope,
-  faFilter,
-  faChevronLeft,
-  faChevronRight,
   faChevronDown,
-  faChevronUp,
-  faBook,
+  // faChevronLeft,
+  // faChevronRight,
+  // faChevronUp,
   faArchive,
+  // faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
+  // faBars,
+  faBook,
   faBookReader,
-  faSortUp,
-  faSortDown,
   faCheck,
-  faSquare,
-  faLock,
-  faUnlockAlt,
-  faTable,
-  faTh,
-  faBars,
-  faSun,
-  faMoon,
-  faSave,
+  // faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
+  // faDotCircle,
+  // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
   faFileCsv,
-  faRandom,
-  faSearch,
-  faList,
-  faHome,
-  faPlay,
-  faPlayCircle,
-  faTimesCircle,
-  faSpinner, 
-  faCheckCircle, faInfoCircle, faExclamationTriangle, faExclamationCircle,
-  faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
-  faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
+  faFilter,
   faHeart,
-  faPlus,
-  faDotCircle,
+  faHome,
+  faList,
+  faLock,
+  faMicroscope,
+  faMoon,
+  faPlay,
+  // faPlayCircle,
+  // faPlus,
+  // faRandom,
+  faSave,
+  faSearch,
+  faSort,
+  faSortDown,
+  faSortUp,
+  // faSpinner, 
+  faSquare,
+  faSun,
+  // faTable,
+  // faTh,
+  // faTimesCircle,
+  // faUnlockAlt,
 );
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 Vue.component('font-awesome', FontAwesomeIcon);
@@ -198,6 +199,7 @@ Vue.use(VueTippy, {
   placement: 'top',
   arrow: true,
   theme: 'dark',
+  maxWidth: 650,
   onShow: (options) => {
     return !!options.props.content
   },
@@ -209,6 +211,25 @@ Vue.component("tippy", TippyComponent);
 import "tippy.js/themes/light-border.css";
 
 import helpers from '@contscript-mixins/misc/helpers.js';
+
+// closest() polyfill
+if (!Element.prototype.matches) {
+  Element.prototype.matches =
+    Element.prototype.msMatchesSelector ||
+    Element.prototype.webkitMatchesSelector;
+}
+
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(s) {
+    var el = this;
+
+    do {
+      if (Element.prototype.matches.call(el, s)) return el;
+      el = el.parentElement || el.parentNode;
+    } while (el !== null && el.nodeType === 1);
+    return null;
+  };
+}
 
 const standalone = document.querySelector('html.standalone-gallery');
 if ( !standalone ) {
@@ -242,16 +263,21 @@ else {
 
 function startVue( libraryData ) {
   
+  store.commit('prop', { key: 'library', value: libraryData })
+  store.commit('prop', { key: 'standalone', value: standalone });
+  store.commit('prop', { key: 'displayMode', value: window.matchMedia('(display-mode: standalone)').matches });
+  store.commit('prop', { key: 'urlOrigin', value: 'https://audible' + libraryData.extras['domain-extension'] });
+  
   var ale = new Vue({
     router,
     el: '#audible-library-extractor',
     store: store,
     render: h => {
       return h( App, {
-        props: {
-          isStandalone: standalone,
-          library: libraryData,
-        }
+        // props: {
+        //   isStandalone: standalone,
+        //   library: libraryData,
+        // }
       }); 
     }
   });

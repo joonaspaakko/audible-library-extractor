@@ -1,7 +1,7 @@
 <template>
   <div id="ale-books" class="grid-view" ref="booksWrapper">
     
-    <book-details v-if="detailsBook" :key="'details:'+detailsBook.asin" :book.sync="detailsBook" :booksArray="booksArray" :booksWrapper="$refs.booksWrapper" :index="detailsBookIndex" :general="general" :library="library" :gallery="gallery" />
+    <book-details v-if="detailsBook" :key="'details:'+detailsBook.asin" :book.sync="detailsBook" :booksArray="booksArray" :booksWrapper="$refs.booksWrapper" :index="detailsBookIndex" />
     
     <lazy-component
     v-for="(book, index) in booksArray"
@@ -10,7 +10,7 @@
     :key="book.asin"
     :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin  }"
     >
-      <book :book="book" :gallery="gallery" :index="index"></book>
+      <book :book="book" :index="index"></book>
 
     </lazy-component> <!-- .ale-book -->
     
@@ -26,7 +26,7 @@ import slugify from '@output-mixins/slugify';
 
 export default {
   name: 'aleBooks',
-  props: ['booksArray', 'library', 'gallery', 'general'],
+  props: ['booksArray'],
   components: {
     bookDetails,
     book,
@@ -79,7 +79,7 @@ export default {
   
   mounted: function() {
     
-    if ( this.$route.query.book ) {
+    if ( _.get( this.$route.query.book ) ) {
       this.$nextTick(function() {
         
         this.toggleBookDetails({
@@ -113,77 +113,89 @@ export default {
     // },
     
     toggleBookDetails: function( e ) {
-      console.log(  'TEST!!!!!!!');
-      if ( !e.index )  e.index  = _.findIndex( this.booksArray, { asin: e.book.asin });
       
-      const sameBook = _.get(this.detailsBook,'asin') === e.book.asin;
-      this.detailsBook = null;
-      this.detailsBookIndex = e.index;
-      this.$nextTick(function() {
-        if ( !sameBook ) this.detailsBook = e.book;
-        else this.$router.replace({ query: { book: undefined } });
-        console.log( this.detailsBook )
-      });
-      
-    },
-    
-    scrollStopAnimate: function(){
-      $("body, html").stop();
-    },
-    
-    detailsToggle: function( clickedIndex, animSpeed, dontClose ) {
-      
-      const vue = this;
-      this.gallery.details.readmore.toggle = false;
-			
-      const comp = this;
-      const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
-      const coverViewportOffset = el.offset().top - $(document).scrollTop();
-      
-      // Open if closed
-			const detailsClosed = !this.gallery.details.open ? true : false;
-			if ( !this.gallery.details.open ) {
-				this.gallery.details.open = true;
-			}
-      // Close if the same cover is clicked a second time
-			else if ( !dontClose && this.gallery.details.open && this.gallery.details.index === clickedIndex ) {
-				this.gallery.details.open = false;
+      if ( !e.book ) {
+        
+        this.detailsBook = null;
+        this.detailsBookIndex = -1;
+        if ( _.get( this.$route.query.book ) !== undefined ) this.$router.replace({ query: { book: undefined } });
+        
+      }
+      else {
+        
+        if ( !e.index )  e.index  = _.findIndex( this.booksArray, { asin: e.book.asin });
+        
+        const sameBook = _.get(this.detailsBook,'asin') === e.book.asin;
+        this.detailsBook = null;
+        this.detailsBookIndex = e.index;
+        this.$nextTick(function() {
+          if ( !sameBook ) this.detailsBook = e.book;
+          else {
+            if ( this.$route.query !== undefined ) this.$router.replace({ query: { book: undefined } });
+          }
+        });
+        
       }
       
-      const detailsIndex = this.gallery.details.index;
-      this.gallery.details.index = clickedIndex;
-      this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
+    },
+    
+    // scrollStopAnimate: function(){
+    //   $("body, html").stop();
+    // },
+    
+    // detailsToggle: function( clickedIndex, animSpeed, dontClose ) {
       
-      this.$nextTick(() => {
+    //   const vue = this;
+    //   this.gallery.details.readmore.toggle = false;
+			
+    //   const comp = this;
+    //   const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
+    //   const coverViewportOffset = el.offset().top - $(document).scrollTop();
+      
+    //   // Open if closed
+		// 	const detailsClosed = !this.gallery.details.open ? true : false;
+		// 	if ( !this.gallery.details.open ) {
+		// 		this.gallery.details.open = true;
+		// 	}
+    //   // Close if the same cover is clicked a second time
+		// 	else if ( !dontClose && this.gallery.details.open && this.gallery.details.index === clickedIndex ) {
+		// 		this.gallery.details.open = false;
+    //   }
+      
+    //   const detailsIndex = this.gallery.details.index;
+    //   this.gallery.details.index = clickedIndex;
+    //   this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
+      
+    //   this.$nextTick(() => {
         
-        if ( this.gallery.details.open ) {
-          // const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
-          this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, function( el ) {
+    //     if ( this.gallery.details.open ) {
+    //       // const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
+    //       this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, function( el ) {
             
-            // FIXME: alebooks sample thing
-            // DOESN'T WORK when plaing sample in library and clicking the book in another page....?
-            // Also this gets triggered quite a few times on load?
-            const asin = el.data('asin');
-            if ( vue.$route.query.book !== asin ) vue.$router.replace({ query: { book: asin } });
+    //         // FIXME: alebooks sample thing
+    //         // DOESN'T WORK when plaing sample in library and clicking the book in another page....?
+    //         // Also this gets triggered quite a few times on load?
+    //         const asin = el.data('asin');
+    //         if ( vue.$route.query.book !== asin ) vue.$router.replace({ query: { book: asin } });
             
-          });
-        }
-        else {
+    //       });
+    //     }
+    //     else {
           
-          const asin = el.data('asin');
-          if ( vue.$route.query.book ) vue.$router.replace({ query: { book: undefined } });
+    //       const asin = el.data('asin');
+    //       if ( vue.$route.query.book ) vue.$router.replace({ query: { book: undefined } });
 
-        }
-        Eventbus.$emit('detailsToggle', {
-          from: 'aleBooks',
-          detailsChanged: this.gallery.details.changed
-        });
+    //     }
+    //     Eventbus.$emit('detailsToggle', {
+    //       from: 'aleBooks',
+    //       detailsChanged: this.gallery.details.changed
+    //     });
           
-      });
+    //   });
       
       
 			
-    },
+    // },
     
     // calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, callback ) {
       

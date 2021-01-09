@@ -4,14 +4,14 @@
   <div class="search-opts-arrow" :style="css.arrow"></div>
   
   <ul class="sort-extras" v-if="listName === 'sort'">
-    <li class="search-option" v-for="( item, index ) in searchOptions[ page ].sortExtras" :key="item.key">
-      <listItem :label="item.label" :item="item" :index="index"></listItem>
+    <li class="search-option" v-for="( item, index ) in $store.state.sticky.listRenderingOpts.sortExtras" :key="item.key">
+      <listItem :label="item.label" :item="item" :index="index" :currentList="$store.state.sticky.listRenderingOpts.sortExtras" listName="sortExtras"></listItem>
     </li>
   </ul>
   
   <ul>
     <li class="search-option" :class="{ disabled: $store.state.searchActive }" v-for="( item, index ) in optionsList" :key="item.key">
-      <listItem :label="item.label" :item="item" :index="index"></listItem>
+      <listItem :label="item.label" :item="item" :index="index" :currentList="optionsList" :listName="listName"></listItem>
     </li>
   </ul>
   
@@ -23,13 +23,12 @@ import listItem from '../../../snippets/sorter';
 
 export default {
   name: 'searchOptions',
-  props: ['listName', 'searchOptions', 'page'],
+  props: ['listName'],
   components: {
     listItem,
   },
 	data : function() {
 		return {
-      tippyConfig: { placement: 'left', theme: this.$store.state.tippyTheme, maxWidth: 410 },
       css: {
         arrow: { left: '0px' },
         options: { right: '0px' },
@@ -38,8 +37,8 @@ export default {
   },
   
   created: function () {
-    console.log('%c' + 'searchopt mounted' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', this.page, this.listName, this.searchOptions[ this.page ][ this.listName ], this.searchOptions);
-    this.optionsList = this.searchOptions[ this.page ][ this.listName ];
+    
+    this.optionsList = this.$store.state.sticky.listRenderingOpts[ this.listName ];
     
   },
   
@@ -49,13 +48,13 @@ export default {
     this.repositionSearchOptions();
     
     // Start listening for an outside click...
-    if ( this.listName ) $(document).on('mouseup', this.outsideClick);
+    if ( this.listName ) document.addEventListener('mouseup', this.outsideClick );
     
   },
   
   beforeDestroy: function() {
     
-    $(document).off('mouseup', this.outsideClick);
+    document.removeEventListener('mouseup', this.outsideClick );
     
   },
   
@@ -74,10 +73,10 @@ export default {
     outsideClick: function( e ) {
       
       const vue = this;
-      var options = $(e.target).closest("#search-options");
-      var optionsBtn = $(e.target).closest(".search-opt-btn");
-      if ( options.length < 1 && optionsBtn.length < 1 ) {
-        $( this ).off( e );
+      var options = e.target.closest("#search-options");
+      var optionsBtn = e.target.closest(".search-opt-btn");
+      console.log( 'YAY' );
+      if ( !options && !optionsBtn ) {
         vue.$emit("update:listName", false);
       }
       
@@ -86,24 +85,26 @@ export default {
 		repositionSearchOptions: function() {
       this.$nextTick(function() {
         
-        const clickedEl = $('.search-opt-btn.active');
         const searchOpts = {};
-        searchOpts.el = $( this.$refs.options );
-        searchOpts.width = searchOpts.el.innerWidth();
+        searchOpts.el = this.$refs.options;
+        searchOpts.width = searchOpts.el.offsetWidth;
+        searchOpts.left = searchOpts.el.offsetLeft;
         
         const iconsWrapper = {};
-        iconsWrapper.el = $('#ale-search > .icons');
-        iconsWrapper.width = iconsWrapper.el.innerWidth();
+        iconsWrapper.el = document.querySelector('#ale-search > .icons');
+        iconsWrapper.width = iconsWrapper.el.offsetWidth;
         
         const option = {};
-        option.el = clickedEl.parent();
-        option.width = option.el.innerWidth();
-        option.left = option.el.position().left + parseInt( option.el.css('margin-left'), 10);
+        option.el = document.querySelector('.search-opt-btn.active').parentNode;
+        option.width = option.el.offsetWidth;
+        
+        option.left = option.el.offsetLeft;
         // searchOpts.position = option.middle - (searchOpts.width/2);
         option.middle = iconsWrapper.width - (option.left + (option.width/2));
-        searchOpts.position = option.middle + parseInt( $('#ale-search').css('padding-right'), 10)  - (searchOpts.width/2);
+        searchOpts.position = option.middle  - (searchOpts.width/2);
         
-        const difference = (option.el.offset().left + (option.width/2) + (searchOpts.width/2)) - $(window).width();
+        const difference = (option.el.getBoundingClientRect().left + (option.width/2) + (searchOpts.width/2)) - window.innerWidth;
+        
         const fitToWindow = difference > 0 ? difference + 20/* margin / */ : 0;
       
         this.css.options.right = searchOpts.position + fitToWindow + 'px';     
@@ -142,7 +143,7 @@ export default {
   @include themify($themes) {
     color: themed(frontColor);
     background: lighten( themed(backColor), 10);
-    box-shadow: 0 3px 15px rgba( #000, .4 );
+    box-shadow: 0 3px 15px rgba( #000, .7 );
   }
   
   ul, li { list-style: none; margin: 0; padding: 0; text-align: left; }
@@ -155,7 +156,7 @@ export default {
     border-style: solid;
     border-width: 0 10px 10px 10px;
     @include themify($themes) {
-      border-color: transparent transparent themed(backColor) transparent;
+      border-color: transparent transparent lighten( themed(backColor), 10) transparent;
     }
   }
   

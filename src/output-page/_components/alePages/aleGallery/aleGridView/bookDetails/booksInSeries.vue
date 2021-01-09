@@ -18,7 +18,7 @@
       
       <div :data-series-name="series.name" class="numbers-list-item" :class="numbersClass( seriesBook )" v-for="(seriesBook, index) in series.books" :key="seriesBook.asin">
       
-        <span class="icon" :content="iconTippyContent( seriesBook )" v-tippy="{ placement: 'left',  arrow: true, theme: general.tippyTheme }">
+        <span class="icon" :content="iconTippyContent( seriesBook )" v-tippy="{ placement: 'left' }">
           <font-awesome fas :icon="booksInSeriesIcon( seriesBook )" />
         </span>
         
@@ -49,7 +49,7 @@
 <script>
 export default {
   name: 'booksInSeries',
-  props: ['book', 'library', 'general'],
+  props: ['book'],
 	data: function() {
 		return {
       series: {
@@ -83,14 +83,14 @@ export default {
         
         _.each(vue.book.series, function( currentSeries, i  ) {
 
-          const allBooksInSeries = _.find(vue.library.series, { asin: currentSeries.asin });
+          const allBooksInSeries = _.find(vue.$store.state.library.series, { asin: currentSeries.asin });
           if ( allBooksInSeries ) {
             series.push({
               asin: currentSeries.asin,
               name: currentSeries.name,
               length: allBooksInSeries.length,
               books: _.map( allBooksInSeries.books, function( asin  ) {
-                return _.find( vue.library.books, { asin: asin });
+                return _.find( vue.$store.state.library.books, { asin: asin });
               }),
             });
           }

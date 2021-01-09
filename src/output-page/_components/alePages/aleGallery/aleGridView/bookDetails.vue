@@ -24,23 +24,23 @@
               <a :href="goodReadsSearchUrl" target="_blank">Search in Goodreads</a>
             </div>
             
-            <book-basic-info :book="book" :general="general"></book-basic-info>
+            <book-basic-info :book="book"></book-basic-info>
             
           </div> <!-- .basic-details -->
-          <books-in-series :library="library" :book="book" :general="general"></books-in-series>
+          <books-in-series :book="book"></books-in-series>
 					
         </div> <!-- .information -->
         
-        <book-summary :book="book" :general="general" ></book-summary>
+        <book-summary :book="book"></book-summary>
         
       </div>
       
-      <carousel v-if="!loading && book.peopleAlsoBought" :general="general" :books="book.peopleAlsoBought">
+      <carousel v-if="!loading && book.peopleAlsoBought" :books="book.peopleAlsoBought">
         <!-- People who bought this also bought: -->
         Listeners also enjoyed
       </carousel>
       
-      <carousel v-if="!loading && book.moreLikeThis" :general="general" :books="book.moreLikeThis">
+      <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis">
         More listens like this
       </carousel>
       
@@ -82,7 +82,7 @@ export default {
     makeCoverUrl,
     makeUrl,
   ],
-  props: ['general', 'book', 'booksArray', 'index', 'library', 'gallery', 'booksWrapper'],
+  props: ['book', 'booksArray', 'index', 'booksWrapper'],
   data: function() {
     return {
       maxWidth: 'none',
@@ -154,14 +154,13 @@ export default {
     
     onWindowResize: function() {
       
-      console.log('%c' + 'onwindowresize' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
       this.maxWidth = this.repositionBookDetails() + 'px';
       this.resetScroll();
       
     },
     
     changeUrl: function() {
-      if ( this.$route.query.book !== this.book.asin ) {
+      if ( _.get( this.$route.query.book ) !== this.book.asin ) {
         this.$router.replace({ query: { book: this.book.asin } });
       }
     },
@@ -259,7 +258,7 @@ export default {
     closeBookDetails: function() {
       
       this.$emit('update:book', null );
-      this.$router.replace({ query: { book: undefined } });
+      if ( this.$route.query !== undefined ) this.$router.replace({ query: { book: undefined } });
       
     },
     

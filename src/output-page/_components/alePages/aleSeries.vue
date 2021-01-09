@@ -69,7 +69,7 @@ export default {
     // Sort series by name    
     this.series = _.orderBy(seriesCollection, 'name', 'asc');
     
-    console.log( this.series );
+    // console.log( this.series );
     
   },
   

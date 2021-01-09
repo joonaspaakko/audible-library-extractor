@@ -7,7 +7,7 @@
 		<splide :options="options">
 			<splide-slide class="ale-carousel-item" v-for="(book, index) in books" :key="index">
 				
-					<a :href="makeUrl('book', book.asin)" target="_blank" :content="sliderTippyContent( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, maxWidth: 500, }">
+					<a :href="makeUrl('book', book.asin)" target="_blank" :content="sliderTippyContent( book )">
 						<img class="cover" :data-splide-lazy="makeCoverUrl(book.cover)" alt="">
 					</a>
 					
@@ -26,7 +26,7 @@ import makeCoverUrl from '@output-mixins/makeCoverUrl';
 
 export default {
   name: 'carousel',
-  props: ['general', 'books'],
+  props: ['books'],
   mixins: [
     makeFullUrl,
     makeCoverUrl,

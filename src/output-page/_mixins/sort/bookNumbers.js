@@ -19,7 +19,7 @@ export default {
 					// If the number is a string, we assume it's a number range (Some collections/omnibusses have these: books 1-3) 
 					// ...and once again use the first number from that range
 					const dashSplit = typeof numbers == 'string' ? numbers.split('-') : [numbers];
-					console.log('%c' + 'numbers' + '('+ o.titleShort +')', 'border: 1px solid red; color: white; padding: 2px 5px; border-radius: 8px;', parseFloat( dashSplit[0] ));
+					// console.log('%c' + 'numbers' + '('+ o.titleShort +')', 'border: 1px solid red; color: white; padding: 2px 5px; border-radius: 8px;', parseFloat( dashSplit[0] ));
 					return parseFloat( dashSplit[0] );
 					
 				}

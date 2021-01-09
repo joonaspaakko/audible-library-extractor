@@ -3,14 +3,14 @@ export default {
 	methods: {
 		makeFullUrl: function( inputURL ) {
 			
-			const url = new Url(this.general.urlOrigin + inputURL );
+			const url = new Url(this.$store.state.urlOrigin + inputURL );
 			url.query.ipRedirectOverride = true;
 			url.query.overrideBaseCountry = true;
 			return url.toString();
 			
 		},
 		makeUrl: function( type, input ) {
-			const base = this.general.urlOrigin;
+			const base = this.$store.state.urlOrigin;
 			let newUrl = '';
 			
 			switch( type ) {

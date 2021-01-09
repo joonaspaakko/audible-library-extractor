@@ -1,7 +1,7 @@
 <template>
 <div class="icons">
   
-  <div class="icon-wrap" :content="'Visible books' + (booksMaxLength ? ' ( out of '+ booksMaxLength +' )' : '')" v-tippy="tippyConfig">
+  <div class="icon-wrap" v-tippy content="Visible books">
     <div class="book-in-selection">
       <div class="inner-wrap">
         <slot></slot>
@@ -12,8 +12,7 @@
   <div 
   v-for="item in items" :key="item.name"
   class="icon-wrap" :class="{ disabled: !item.on }" 
-  :content="item.tooltip" 
-  v-tippy="tippyConfig"
+  v-tippy :content="item.tooltip" 
   >
     
     <div 
@@ -31,10 +30,9 @@
 <script>
 export default {
   name: 'searchIcons',
-  props: ['listName', 'searchOptions', 'booksMaxLength'],
+  props: ['listName'],
 	data : function() {
 		return {
-      tippyConfig: { placement: 'top', theme: this.$store.state.tippyTheme, maxWidth: 410 },
       items: [
         { 
           name: 'scope', 

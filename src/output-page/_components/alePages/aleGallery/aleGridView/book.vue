@@ -1,7 +1,7 @@
 <template>
 <div class="details-inner-wrap" :data-title="book.title" ref="bookInnerWrap">
 
-  <ale-sort-values :gallery="gallery" :book="book"></ale-sort-values>
+  <ale-sort-values :book="book"></ale-sort-values>
   
   <div class="info-icons-wrapper">
     
@@ -52,7 +52,7 @@ import aleSortValues from './aleSortValues';
 
 export default {
   name: 'book',
-  props: ['book', 'gallery', 'index'],
+  props: ['book', 'index'],
   mixins: [ makeCoverUrl ],
   components: {
     aleSortValues,
@@ -71,7 +71,7 @@ export default {
   methods: {
     
     imageAlt: function( book, index ) {
-      return book.authors[0].name+ ' - ' +book.title;
+      return book.authors[0].name+ ' - ' + book.title;
     },
     
     playSample: function( book, index ) {

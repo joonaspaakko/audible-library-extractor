@@ -42,9 +42,7 @@ export default {
   created: function() {
     
     const vue = this;
-    // console.log( 'routeNAMEEEE!!!' );
-    // console.log( routeName ); 
-    // console.log( this.categories )
+    
     if ( this.general.categories ) {
       
       const parentCat = this.$route.params.parent;

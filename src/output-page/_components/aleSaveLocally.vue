@@ -1,7 +1,7 @@
 <template>
   <div id="ale-save-locally" class="icon" @click="saveButtonClicked"
   content="<strong>Save the gallery locally,</strong> so you can share it with others. <br>Free Github hosting: <a target='_blank' href='https://github.com/joonaspaakko/audible-library-extractor#save-gallery-locally'>instructions</a>"
-  v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, interactive: true, allowHTML: true, maxWidth: 610 }"
+  v-tippy="{ interactive: true, allowHTML: true }"
   >
     <font-awesome fas icon="save" />
   </div>
@@ -21,7 +21,6 @@ export default {
       cacheBuster: null,
     }
   },
-  props: ['library', 'general'],
 	beforeDestroy: function() {
 	 	this.zip = null;
 	 	this.cacheBuster = null;
@@ -34,7 +33,7 @@ export default {
       const vue = this;
       vue.cacheBuster = this.runCachebuster();
       
-      const libraryData = JSON.stringify( vue.library );
+      const libraryData = JSON.stringify( this.$store.state.library );
       vue.zip = new JSZip();
       const zip = vue.zip;
       

@@ -9,7 +9,6 @@ import makeCoverUrl from '../_mixins/makeCoverUrl';
 
 export default {
   name: 'aleBackground',
-  props: ['library'],
   mixins: [ makeCoverUrl ],
 	data : function() {
 		return {
@@ -81,7 +80,7 @@ export default {
         else {
           return _.sampleSize( books, bgLength);
         }
-      }( this.library.books ));
+      }( this.$store.state.library.books ));
       
       return books;
       
@@ -110,7 +109,7 @@ export default {
       const gridImages = vue.$refs.bgCovers;
       const gridImagesLength = gridImages.length-1;
       const img1 = gridImages[ vue.randomNumber( 0, gridImagesLength ) ];
-      const img2 = vue.library.books[ vue.randomNumber( 0, vue.library.books.length-1 ) ].cover;
+      const img2 = vue.$store.state.library.books[ vue.randomNumber( 0, vue.$store.state.library.books.length-1 ) ].cover;
       img1.classList.add('flip-out');
       setTimeout(function() {
         img1.setAttribute('src', vue.makeCoverUrl(img2, 200) )

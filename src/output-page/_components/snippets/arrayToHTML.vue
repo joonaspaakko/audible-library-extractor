@@ -21,7 +21,7 @@ export default {
       // inputDataExists: null,
     }
   },
-  props: ['label', 'array', 'delim', 'general'],
+  props: ['label', 'array', 'delim'],
   mixins: [makeUrl],
   created: function() {
     

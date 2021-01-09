@@ -3,11 +3,11 @@
   <div id="ale-search" ref="aleSearch">
     
     <div class="search-wrapper" @click="$refs.searchInput.focus()">
-      <input type="search" ref="searchInput" :value="$store.state.searchQuery" @input="initSearch" :placeholder="placeholder">
+      <input type="search" ref="searchInput" :value="$store.state.searchQuery" @input="search" :placeholder="placeholder">
     </div>
           
-    <search-icons   :list-name.sync="listName" :page="page" :searchOptions="options" :booksMaxLength="library.books.length !== collection.length ? library.books.length : null">{{ collection.length }}</search-icons>
-    <search-options :list-name.sync="listName" :page="page" :searchOptions="options" v-if="listName"></search-options>
+    <search-icons   :list-name.sync="listName">{{ collection ? collection.length : '' }}</search-icons>
+    <search-options :list-name.sync="listName" v-if="listName"></search-options>
   	
   </div> <!-- #ale-search -->
 </div> <!-- #ale-search-wrap -->
@@ -15,19 +15,21 @@
 </template>
 
 <script>
-// import Fuse from 'fuse.js';
-const Fuse = () => import(/* webpackChunkName: "fuse" */ 'fuse.js');
+import Fuse from 'fuse.js';
 
 import searchIcons from './aleSearch/searchIcons';
 import searchOptions from './aleSearch/searchOptions';
 
+import filterAndSort from '@output-mixins/filter-and-sort.js';
+
 export default {
   name: 'aleBookdetails',
-  props: ['collection', 'library', 'page'],
+  props: ['collection'],
   components: {
     searchIcons,
-    searchOptions
+    searchOptions,
   },
+  mixins: [ filterAndSort, ],
 	data : function() {
 		return {
 			// resultTimer: null,
@@ -52,52 +54,16 @@ export default {
       
       listName: false,
       
-      options: {
-        
-        gallery: {
-          scope: [
-            { active: true,  key: 'title' },
-            { active: true,  key: 'authors.name' },
-            { active: true,  key: 'narrators.name' },
-            { active: true,  key: 'series.name' },
-            { active: false, key: 'categories.name' },
-            { active: false, key: 'publishers.name' },
-          ],
-          filter: [
-            { active: true, label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
-            { active: true, label: 'Started', key: 'started', condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
-            { active: true, label: 'Finished', key: 'finished', condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
-          ],
-          sortExtras: [
-            { active: false, key: 'sortValues', label: 'Show sort values', type: 'sortExtras', tippy: 'Value comes from the active sort category below. <br/> Book title is used as a fallback when you perform a search.' },
-            { active: false, key: 'randomize',  label: 'Randomize',        type: 'sortExtras', tippy: 'Ignores sorting and randomizes the result instead. Applies to search results as well.' },
-          ],
-          sort: [
-            // active: true = arrow down / descending
-            { active: true,  key: 'added',           label: 'Added',   			     type: 'sort', tippy: 'High number = new <br/> Low number = old' },
-            { active: false, key: 'title',           label: 'Title',        		 type: 'sort' },
-            { active: false, key: 'releaseDate',     label: 'Release date', 		 type: 'sort' },
-            { active: false, key: 'length',          label: 'Length',       		 type: 'sort' },
-            { active: false, key: 'authors.name',    label: 'Author',       		 type: 'sort' },
-            { active: false, key: 'narrators.name',  label: 'Narrator',     		 type: 'sort' },
-            { active: false, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
-            { active: false, key: 'rating',  			   label: 'Rating',  				 	 type: 'sort' },
-            { active: false, key: 'ratings',  			 label: 'Number of ratings', type: 'sort' },
-            { active: false, key: 'progress',  			 label: 'Progress',          type: 'sort' },
-            { active: false, key: 'publishers.name', label: 'Publishers',        type: 'sort' },
-          ],
-        }
-      },
       
       waypointOpts: {
         rootMargin: '-37px',
       },
       fixedSearch: false,
-      
+      searchResult: null,
 		}
   },
   
-
+  
     // v-if="gallery.searchEnabled"
     // :placeholder="placeholder"
     // :list="library.books"
@@ -116,7 +82,7 @@ export default {
   created: function() {
     var vue = this;
     
-    console.log('%c' + 'SEARCH CREATED' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    // console.log('%c' + 'SEARCH CREATED' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
     
     // Eventbus.$on('detailsToggle', this.onDetailsToggle );
     
@@ -167,13 +133,18 @@ export default {
   
   mounted: function() {
     
+    this.updateCollection();
     // this.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', this.searchInputFocus);
     this.searchInputFocus( this );
     // this.searchKeyupListener = $('#ale-search').on("keyup", '> input[type="search"]', this.searchInputKeyup);
     // $("#ale-search").on('touchstart', this.iosAutozoomDisable);
-    this.$refs.aleSearch.addEventListener('touchstart', this.iosAutozoomDisable );
+    this.$refs.aleSearch.addEventListener('touchstart', this.iosAutozoomDisable, { passive: true});
     window.addEventListener('scroll', this.scrolling );    
-  
+    
+    this.$root.$on('start-scope', this.scope);
+    this.$root.$on('start-sort', this.sort);
+    this.$root.$on('start-filter', this.filter);
+    
   },
   
 	beforeDestroy: function() {
@@ -181,19 +152,56 @@ export default {
 		// $('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
     // $("#ale-search").off('touchstart', this.iosAutozoomDisable);
     this.$refs.aleSearch.removeEventListener('touchstart', this.iosAutozoomDisable );
-    Eventbus.$off('detailsToggle', this.onDetailsToggle );
+    // Eventbus.$off('detailsToggle', this.onDetailsToggle );
     // this.searchFocusListener = null;
     // this.searchKeyupListener = null;
     // this.searchOptionsHider = null;
     
     window.removeEventListener('scroll', this.scrolling );
+    
+    this.$root.$off('start-scope', this.scope);
+    this.$root.$off('start-sort', this.sort);
+    this.$root.$off('start-filter', this.filter);
+    
 	},
 	
   methods: {
     
+    scope: function() {
+      // this.$emit('update:collection', 
+      //   this.filterBooks( this.$store.state.library.books )
+      // );
+      if ( this.$store.state.searchQuery.trim() !== '' ) this.search();
+    },
+    filter: function() {
+      
+      this.$root.$emit('book-clicked', { book: null });
+      
+      if ( this.$store.state.searchQuery.trim() !== '' ) {
+        this.$emit('update:collection', 
+          this.filterBooks( this.searchResult )
+        );
+      }
+      else {
+        this.$emit('update:collection', 
+          this.filterBooks( this.$store.state.library.books )
+        );
+      }
+    },
+    sort: function() {
+      this.$emit('update:collection', 
+        this.sortBooks( this.collection || this.$store.state.library.books )
+      );
+    },
+    updateCollection: function() {
+      let filtered = this.filterBooks( this.$store.state.library.books );
+      this.$emit('update:collection', 
+        this.sortBooks( filtered )
+      );
+    },
+    
     scrolling: _.throttle(function( e ) {
       
-      console.log( window.pageYOffset )
       if ( !this.fixedSearch && window.pageYOffset > 44 ) {
         this.fixedSearch = true;
       }
@@ -203,39 +211,19 @@ export default {
       
     }, 350),
     
-    onWaypoint ({ going, direction }) {
-      // going: in, out
-      // direction: top, right, bottom, left
-      if (going === this.$waypointMap.GOING_IN) {
-        this.fixedSearch = false;
-      }
-      else {
-        this.fixedSearch = true;
-      }
-
-      // if (direction === this.$waypointMap.DIRECTION_TOP) {
-      //   console.log('waypoint going top!')
-      // }
-    },
-    
-    // updateCollection: function() {
+    search: _.debounce(function( e ) {
       
-    //   const filteredBooks = this.filterBooks();
-    //   this.collection = this.sortedBooks( filteredBooks );
+      this.$root.$emit('book-clicked', { book: null });
+      if ( e ) this.$store.commit('prop', { key: 'searchQuery', value: e.target.value });
       
-    // },
-    
-    initSearch: _.debounce(function( e ) {
-      
-      this.$store.commit('prop', { key: 'searchQuery', value: e.target.value });
-      if ( e.target.value.trim() !== ''  ) {
+      if ( this.$store.state.searchQuery.trim() !== ''  ) {
         
-        const query = this.modifyQuery( e.target.value );
+        const query = this.modifyQuery( this.$store.state.searchQuery );
         
-        this.fuseOptions.keys = this.aliciaKeys();
-        this.fuse = new Fuse( this.library.books, this.fuseOptions);
+        this.fuseOptions.keys = this.aliciaKeys;
+        this.fuse = new Fuse( this.$store.state.library.books, this.fuseOptions);
         let result = this.fuse.search( query );
-        console.log( result )
+        
         if ( result.length > 0 ) {
           result = _.map( result, function( o ) {
             return o.item;
@@ -244,11 +232,12 @@ export default {
         else {
           result = null;
         }
+        this.searchResult = result;
         this.$emit('update:collection', result);
         
       }
       else {
-        this.$emit('clear-search');
+        this.$emit('update:collection', this.$store.state.library.books);
       }
       
       if ( this.fixedSearch ) {
@@ -261,6 +250,17 @@ export default {
       // FIXME: I think I'm going to have to go with plan A because the saerch options can potentially be taller than the viewport and as it is you can't scroll down... When you search it scrolls to the top anyways... So plan A is to basically have a button that scrolls you up to the searchbar that is never fixed to the viewport and focuses on it....
       
     }, 270, { 'leading': false, 'trailing': true }),    
+    
+    onWaypoint ({ going, direction }) {
+      // going: in, out
+      // direction: top, right, bottom, left
+      if (going === this.$waypointMap.GOING_IN) {
+        this.fixedSearch = false;
+      }
+      else {
+        this.fixedSearch = true;
+      }
+    },
     
     modifyQuery: function( query ) {
       
@@ -277,15 +277,6 @@ export default {
         newQuery = query;
       }
       return newQuery;
-      
-    },
-    
-    aliciaKeys: function() {
-      
-      const filteredKeys = _.filter( this.options[ this.page ].scope, ['active', true]);
-      return _.map( filteredKeys, function( item ) {
-        if ( item.active ) return item.key;
-      });
       
     },
     
@@ -388,14 +379,14 @@ export default {
       // });
     },
     
-    sort: function( type, index ) {
+    // sort: function( type, index ) {
       
       // this.gallery.details.open = false;
       // this.gallery.details.index = -1;
       
       // if ( type === 'sort' ) Eventbus.$emit('sort', index );
       
-    },
+    // },
     
     openSearchOptions: function( option, e ) {
       
@@ -465,6 +456,15 @@ export default {
   },
   computed: {
     
+    aliciaKeys: function() {
+      
+      const filteredKeys = _.filter( this.$store.state.sticky.listRenderingOpts.scope, ['active', true]);
+      return _.map( filteredKeys, function( item ) {
+        if ( item.active ) return item.key;
+      });
+      
+    },
+    
     // searchIsActive: function() {
     //   return this.gallery.searchActive;
     // },
@@ -479,15 +479,15 @@ export default {
     // },
     
 		placeholder: function() {
-      var placeholderKeys = (function( keys ) {
-        var truncKeys = [];
-        _.each( keys, function( key, i ) {
-          truncKeys.push( key.replace('.name','') );
-        });
-        return truncKeys.join(', ');
-      }( this.fuseOptions.keys ));
+      
+      const placeholderKeys = (function( keys ) {
+        return _.map( keys, function( key ) {
+          return key.replace('.name','');
+        }).join(', ');
+      }( this.aliciaKeys ));
       
       return 'Search: ' + placeholderKeys;
+      
     },
     
   }

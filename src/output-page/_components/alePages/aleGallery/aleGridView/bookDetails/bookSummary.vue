@@ -8,7 +8,7 @@
       </a>
     </h2>
     <div class="categories" v-if="book.categories">
-      <arrayToHTML v-if="book.categories" label="Categories" :array="book.categories" :general="general" delim=" > "></arrayToHTML>
+      <arrayToHTML v-if="book.categories" label="Categories" :array="book.categories" delim=" > "></arrayToHTML>
     </div>
     <div class="inline-children smoll-text">
       <div class="release-date" v-if="book.releaseDate">
@@ -29,7 +29,7 @@ import arrayToHTML from '@output-comps/snippets/arrayToHTML';
 
 export default {
   name: 'bookSummary',
-  props: ['book', 'general'],
+  props: ['book'],
   mixins: [ makeUrl ],
   components: { arrayToHTML },
 	data: function() {
@@ -82,7 +82,6 @@ export default {
       if ( window.innerWidth <= 640 ) {
         this.summary.maxHeight = 300 + 'px';
         this.summary.maxHeightTemp = this.summary.maxHeight;
-        console.log( this.summary.maxHeight )
       }
       else {
         const information = document.querySelector('#ale-bookdetails .information');
@@ -92,7 +91,6 @@ export default {
         const summaryTooSwoll = summaryH > informationH;
         // this.summary.readmore.exists = summaryTooSwoll ? true : false;
         this.summary.maxHeight = summaryTooSwoll ? informationH + 'px' : null;
-        console.log('%c' + 'summarymaxheight' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', this.summary.maxHeight);
         this.summary.maxHeightTemp = informationH + 'px';
       }
 		},

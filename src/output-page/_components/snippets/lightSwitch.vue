@@ -38,7 +38,7 @@ export default {
   methods: {
       
     lightSwitchToggle: function( onLoad ) {
-      console.log( onLoad );
+      
       if ( !onLoad ) this.$store.commit('stickyProp', { 
         key: 'lightSwitch', value: this.$store.state.sticky.lightSwitch ? 0 : 1 
       });

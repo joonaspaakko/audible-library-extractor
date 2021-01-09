@@ -8,9 +8,9 @@
     class="sorter-button"
     >
     
-      <input @change="inputChanged(item, index)" type="checkbox" :value="index" v-model="item.active" />
+      <input type="checkbox" :value="index" v-model="inputVmodel" />
       <slot v-if="label === false" class="input-label" />
-      <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: index === this.$store.state.sortIndex }">
+      <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }">
         <font-awesome fas icon="sort-down" />
         <font-awesome fas icon="sort-up" />
       </span>
@@ -30,19 +30,45 @@
 <script>
 export default {
   name: 'sorter',
-  props: ['name', 'label', 'dataSource', 'listOpen', 'item', 'index'],
+  props: ['name', 'label', 'dataSource', 'currentList', 'listName', 'item', 'index'],
   data: function() {
     return {
     };
   },
   
-  created() {
-    
-    // console.log( this.item );
-    
-  },
-  
   computed: {
+    
+    inputVmodel: {
+      get: function() {
+        return this.currentList[ this.index ].active;
+      },
+      set: function( value ) {
+        
+        this.$store.commit('updateListRenderingOpts', { 
+          listName: this.listName, 
+          index: this.index,
+          active: value,
+        });
+        
+        this.$nextTick(function() {
+          if ( this.listName === 'sort' || this.listName === 'sortExtras' ) {
+            this.$root.$emit('start-sort');
+          }
+          else if ( this.listName === 'filter' ) {
+            this.$root.$emit('start-filter');
+          }
+          else if ( this.listName === 'scope' ) {
+            this.$root.$emit('start-scope');
+          }
+        });
+        
+      },
+    },
+    
+    isActiveSortItem: function() {
+      const changedIndex = _.findIndex( this.currentList, 'current' );
+      return changedIndex === this.index;
+    },
     
     // index: function() {
     //   return _.findIndex( this.dataSource, { key: this.item.key });
@@ -58,29 +84,6 @@ export default {
     
   },
   
-  methods: {
-    
-    
-    sortExtrasCheck: function( key ) {
-      
-      
-      
-    },
-    
-    inputChanged: function( item, index ) {
-      if ( item.key === 'randomize' ) {
-        this.gallery.details.open = false;
-        this.gallery.details.index = -1;
-      }
-      else if ( item.key === 'sortValues' ) {
-        this.forceRerenderBooks();
-      }
-      else {
-        Eventbus.$emit('sort', index );
-      }
-    }
-    
-  },
 }
 </script>
 

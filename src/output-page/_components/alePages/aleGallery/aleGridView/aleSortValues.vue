@@ -12,7 +12,7 @@ import progressbarWidth from '../../../../_mixins/progressbarWidth'
 
 export default {
   name: 'sortValues',
-  props: ['book', 'gallery'],
+  props: ['book'],
   mixins: [
     timeStringToSeconds,
     secondsToTimeString,
@@ -33,20 +33,11 @@ export default {
   computed: {
     
     showSortValues: function() {
-      return _.find(this.gallery.searchOptions.lists.sortExtras, function( o ) { return o.key === 'sortValues' && o.active });
+      return _.find( this.$store.state.sticky.listRenderingOpts.sortExtras, function( o ) { return o.key === 'sortValues' && o.active });
     },
     
     activeSortKey: function() {
-      
-      const activeSortIndex = this.gallery.searchOptions.lists.sortIndex;
-      if ( activeSortIndex === -1 ) {
-        return 'title';
-      }
-      else {
-        const activeSortItem = this.gallery.searchOptions.lists.sort[ activeSortIndex ];
-        return activeSortItem.key;
-      }
-      
+      return _.find( this.$store.state.sticky.listRenderingOpts.sort, 'current').key;
     },
     
     sortContents: function() {
