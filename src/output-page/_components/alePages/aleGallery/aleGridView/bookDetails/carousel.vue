@@ -18,7 +18,7 @@
 </template>
 
 <script>
-import { Splide, SplideSlide } from '@splidejs/vue-splide';
+// import { Splide, SplideSlide } from '@splidejs/vue-splide';
 import '@splidejs/splide/dist/css/themes/splide-sea-green.min.css';
 
 import makeFullUrl from '@output-mixins/makeFullUrl';
@@ -33,8 +33,8 @@ export default {
 	],
 	
 	components: {
-    Splide,
-    SplideSlide,
+		'splide': () => import( /* webpackChunkName: "splide" */'@splidejs/vue-splide').then(({ Splide }) => Splide),
+		'splide-slide': () => import( /* webpackChunkName: "splide" */'@splidejs/vue-splide').then(({ SplideSlide }) => SplideSlide),
   },
 	
 	data: function() {

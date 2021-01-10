@@ -1,366 +1,359 @@
 <template>
-<div id="ale-bookdetails" ref="bookDetails" v-shortkey.once="['esc']" @shortkey="closeBookDetails()">
-  <div class="arrow" ref="arrow"></div>
-  <div id="book-info-container" v-shortkey.once="{left: ['arrowleft'], right: ['arrowright']}" @shortkey="openAdjacentBookDetails">
-    <div class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
-      
-      <div class="top">
-        <div class="information" ref="information">
-          
-          <div class="cover-wrap">
-            <a :href="makeUrl('book', book.asin)" target="_blank">
-							<div class="progressbar">
-                <div class="progress" :style="progressbarWidth( book )">
-                  <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
+  <div
+    id="ale-bookdetails"
+    ref="bookDetails"
+    v-shortkey.once="['esc']"
+    @shortkey="closeBookDetails()"
+  >
+    <div class="arrow" ref="arrow"></div>
+    <div
+      id="book-info-container"
+      v-shortkey.once="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'] }"
+      @shortkey="openAdjacentBookDetails"
+    >
+      <div class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
+        <div class="top">
+          <div class="information" ref="information">
+            <div class="cover-wrap">
+              <a :href="makeUrl('book', book.asin)" target="_blank">
+                <div class="progressbar">
+                  <div class="progress" :style="progressbarWidth(book)">
+                    <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
+                  </div>
                 </div>
-              </div>
-              <img class="cover" v-if="book.cover" :src="makeCoverUrl(book.cover)">
-            </a>
-          </div>
-          <div class="progress-info" v-html="progressInfo( book )"></div>
-          <div class="basic-details">
-            
-            <div class="search-goodreads" v-if="goodReadsSearchUrl">
-              <a :href="goodReadsSearchUrl" target="_blank">Search in Goodreads</a>
+                <img
+                  class="cover"
+                  v-if="book.cover"
+                  :src="makeCoverUrl(book.cover)"
+                />
+              </a>
             </div>
-            
-            <book-basic-info :book="book"></book-basic-info>
-            
-          </div> <!-- .basic-details -->
-          <books-in-series :book="book"></books-in-series>
-					
-        </div> <!-- .information -->
-        
-        <book-summary :book="book"></book-summary>
-        
+            <div class="progress-info" v-html="progressInfo(book)"></div>
+            <div class="basic-details">
+              <div class="search-goodreads" v-if="goodReadsSearchUrl">
+                <a :href="goodReadsSearchUrl" target="_blank"
+                  >Search in Goodreads</a
+                >
+              </div>
+
+              <book-basic-info :book="book"></book-basic-info>
+            </div>
+            <!-- .basic-details -->
+            <books-in-series :book="book"></books-in-series>
+          </div>
+          <!-- .information -->
+
+          <book-summary :book="book"></book-summary>
+        </div>
+
+        <carousel
+          v-if="!loading && book.peopleAlsoBought"
+          :books="book.peopleAlsoBought"
+        >
+          <!-- People who bought this also bought: -->
+          Listeners also enjoyed
+        </carousel>
+
+        <carousel
+          v-if="!loading && book.moreLikeThis"
+          :books="book.moreLikeThis"
+        >
+          More listens like this
+        </carousel>
       </div>
-      
-      <carousel v-if="!loading && book.peopleAlsoBought" :books="book.peopleAlsoBought">
-        <!-- People who bought this also bought: -->
-        Listeners also enjoyed
-      </carousel>
-      
-      <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis">
-        More listens like this
-      </carousel>
-      
-    </div> <!-- .inner-wrap -->
-  </div> <!-- #book-info-container -->
-</div> <!-- #ale-bookdetails -->
+      <!-- .inner-wrap -->
+    </div>
+    <!-- #book-info-container -->
+  </div>
+  <!-- #ale-bookdetails -->
 </template>
 
 <script>
 // import sortBookNumbers from '@output-mixins/sort/bookNumbers';
-import timeStringToSeconds from '@output-mixins/timeStringToSeconds';
-import secondsToTimeString from '@output-mixins/secondsToTimeString';
-import progressbarWidth from '@output-mixins/progressbarWidth';
-import makeCoverUrl from '@output-mixins/makeCoverUrl';
+import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
+import secondsToTimeString from "@output-mixins/secondsToTimeString";
+import progressbarWidth from "@output-mixins/progressbarWidth";
+import makeCoverUrl from "@output-mixins/makeCoverUrl";
 
-import carousel from './bookDetails/carousel';
-import booksInSeries from './bookDetails/booksInSeries';
-import bookSummary from './bookDetails/bookSummary';
+import carousel from "./bookDetails/carousel";
+import booksInSeries from "./bookDetails/booksInSeries";
+import bookSummary from "./bookDetails/bookSummary";
 
-import makeUrl from '@output-mixins/makeFullUrl';
+import makeUrl from "@output-mixins/makeFullUrl";
 
-import bookBasicInfo from '@output-comps/snippets/book-basic-info';
-import arrayToHTML from '@output-comps/snippets/arrayToHTML';
+import bookBasicInfo from "@output-comps/snippets/book-basic-info";
+import arrayToHTML from "@output-comps/snippets/arrayToHTML";
 
 export default {
-  name: 'bookDetails',
+  name: "bookDetails",
   components: {
     bookBasicInfo,
     carousel,
     booksInSeries,
     arrayToHTML,
-    bookSummary,
+    bookSummary
   },
   mixins: [
     // sortBookNumbers,
-		timeStringToSeconds,
+    timeStringToSeconds,
     secondsToTimeString,
     progressbarWidth,
     makeCoverUrl,
-    makeUrl,
+    makeUrl
   ],
-  props: ['book', 'booksArray', 'index', 'booksWrapper'],
+  props: ["book", "index", "booksWrapper"],
   data: function() {
     return {
-      maxWidth: 'none',
+      maxWidth: "none",
       scrollTop: 0,
-      loading: true,
-    }
+      loading: true
+    };
   },
-  
+
   created: function() {
-    
     this.scrollTop = window.pageYOffset;
-    
-    Eventbus.$on('detailsToggle', this.onDetailsToggle );
-	 	this.$root.$on('afterWindowResize', this.onWindowResize );
-    
+    this.$root.$on("afterWindowResize", this.onWindowResize);
   },
   
   mounted: function() {
     
-    this.maxWidth = this.repositionBookDetails() + 'px';
+    this.maxWidth = this.repositionBookDetails() + "px";
     this.resetScroll();
     this.changeUrl();
-    
     this.loading = false;
     
   },
-	
-	beforeDestroy: function() {
-	 	Eventbus.$off('detailsToggle', this.onDetailsToggle );
-	 	this.$root.$off('afterWindowResize', this.onWindowResize );
-	},
-  
-  computed: {    
-    
+
+  beforeDestroy: function() {
+    this.$root.$off("afterWindowResize", this.onWindowResize);
+  },
+
+  computed: {
     getMaxWidth: function() {
-      return window.innerWidth > 800 ? this.maxWidth : '800px';
+      return window.innerWidth > 800 ? this.maxWidth : "800px";
     },
-    
+
     // FIXME: Fix this
     goodReadsSearchUrl: function() {
-      
-      const base = 'https://www.goodreads.com/search?q=';
-      return base + (
-        this.book.ISBN_10 && this.book.ISBN_10 ||
-        this.book.ISBN_13 && this.book.ISBN_13 ||
-        this.book.authors ? encodeURIComponent( this.book.authors[0].name + ' ' + this.book.titleShort ) : null
+      const base = "https://www.goodreads.com/search?q=";
+      return (
+        base +
+        ((this.book.ISBN_10 && this.book.ISBN_10) ||
+        (this.book.ISBN_13 && this.book.ISBN_13) ||
+        this.book.authors
+          ? encodeURIComponent(
+              this.book.authors[0].name + " " + this.book.titleShort
+            )
+          : null)
       );
-      
-    },
-    
-    // bookUrl: function() {
-    //   const url = new Url( this.general.urlOrigin + this.book.url );
-    //   url.query.ipRedirectOverride = true;
-    //   url.query.overrideBaseCountry = true;
-    //   return url.toString();
-    // },
-    
-    // book: function() {
-    //   if ( this.booksArray[ this.gallery.details.index ] ) {
-    //     return this.booksArray[ this.gallery.details.index ];
-    //   }
-    //   else {
-    //     return false;
-    //   }
-    // },
+    }
     
   },
   methods: {
-    
     onWindowResize: function() {
-      
-      this.maxWidth = this.repositionBookDetails() + 'px';
+      this.maxWidth = this.repositionBookDetails() + "px";
       this.resetScroll();
-      
     },
-    
+
     changeUrl: function() {
-      if ( _.get( this.$route.query.book ) !== this.book.asin ) {
+      if (_.get(this.$route, "query.book") !== this.book.asin) {
         this.$router.replace({ query: { book: this.book.asin } });
       }
     },
-    
+
     resetScroll: function() {
       this.$nextTick(function() {
-        scroll({ top: document.querySelector('.ale-book.details-open').offsetTop - 78 });
+        scroll({
+          top: document.querySelector(".ale-book.details-open").offsetTop - 78
+        });
       });
     },
-    
+
     scrollToDetails: function() {
-      
-      // window.scroll({ 
+      // window.scroll({
       //   top: this.bookEl.offsetTop - 42,
       //   left: 0,
       //   behavior: 'smooth'
       // });
       // this.$refs.bookDetails.scrollIntoView({ behavior: 'smooth' });
-      
     },
-    
+
     repositionBookDetails: function() {
-      
-      const gridView = document.querySelector('#ale-books.grid-view');
-      const domBooks = gridView.querySelectorAll('.ale-book');
-      
+      const gridView = document.querySelector("#ale-books.grid-view");
+      const domBooks = gridView.querySelectorAll(".ale-book");
+
       const target = {};
-      target.el = domBooks[ this.index ];
+      target.el = domBooks[this.index];
       target.index = this.index;
       target.width = target.el.offsetWidth;
       target.siblings = domBooks; // + target.el
 
-      const wrapper ={};
+      const wrapper = {};
       wrapper.el = gridView;
       wrapper.width = wrapper.el.offsetWidth;
 
       const info = {};
-      info.cols = Math.floor( wrapper.width / target.width );
+      info.cols = Math.floor(wrapper.width / target.width);
 
-      if ( info.cols < 2 ) {
-        info.rowEndEl = target.el; 
-      }
-      else {
-        info.currentRow = Math.floor( target.index / info.cols ) + 1;
+      if (info.cols < 2) {
+        info.rowEndEl = target.el;
+      } else {
+        info.currentRow = Math.floor(target.index / info.cols) + 1;
         info.rowEnd = info.currentRow * info.cols;
         // Rolls back if the last element is not at the end of the row
-        info.getRowEndEl = function( index ) {
-          let el = target.siblings[ index ];
-          if ( !el ) { el = info.getRowEndEl( --index ); }
-          return el; 
-        }
-        info.rowEndEl = info.getRowEndEl( info.rowEnd-1 );
+        info.getRowEndEl = function(index) {
+          let el = target.siblings[index];
+          if (!el) {
+            el = info.getRowEndEl(--index);
+          }
+          return el;
+        };
+        info.rowEndEl = info.getRowEndEl(info.rowEnd - 1);
       }
 
-      info.rowEndEl.classList.add('target-row-end');
-      info.rowEndEl.parentNode.insertBefore(this.$refs.bookDetails, info.rowEndEl.nextSibling);
-      
-      this.repositionBookDetailsArrow( target.el );
-      
+      info.rowEndEl.classList.add("target-row-end");
+      info.rowEndEl.parentNode.insertBefore(
+        this.$refs.bookDetails,
+        info.rowEndEl.nextSibling
+      );
+
+      this.repositionBookDetailsArrow(target.el);
+
       return target.width * info.cols;
-      
     },
-    
-    repositionBookDetailsArrow: function( clickedEl ) {
-      
-      const leftOffset = clickedEl.getBoundingClientRect().left + window.scrollX;
-      const targetCenter = leftOffset + (clickedEl.offsetWidth/2);
-      
-      this.$refs.arrow.style.left = targetCenter + 'px';
-      
-    },
-    
-    openAdjacentBookDetails: function( e ) {
-      
-      switch ( e.srcKey ) {
-        case 'left':
-          if ( this.index > 0 ) {
-            
-            this.$root.$emit('book-clicked', { book: this.booksArray[ this.index-1 ] });
-            
-          }
-          break;
-        case 'right':
-          const booksLength = this.booksArray.length;
-          if ( this.index < booksLength ) {
-            
-            this.$root.$emit('book-clicked', { book: this.booksArray[ this.index+1 ] });
-            
-          }
-          break;
-      }
 
+    repositionBookDetailsArrow: function(clickedEl) {
+      const leftOffset =
+        clickedEl.getBoundingClientRect().left + window.scrollX;
+      const targetCenter = leftOffset + clickedEl.offsetWidth / 2;
+
+      this.$refs.arrow.style.left = targetCenter + "px";
     },
-    
+
+    openAdjacentBookDetails: function(e) {
+      const vue = this;
+      // These rely on how the book details will close if the sent book is null,
+      // meaning that when you come to the end of the line it will just close the details.
+      switch (e.srcKey) {
+        
+        case "left":
+          this.$root.$emit("book-clicked", {
+            book: this.$store.state.booksArray[this.index - 1]
+          });
+          break;
+        case "right":
+          this.$root.$emit("book-clicked", {
+            book: this.$store.state.booksArray[this.index + 1]
+          });
+          break;
+          
+        case "up":
+        case "down":
+
+          let wrapper = {};
+          wrapper.el = document.querySelector("#ale-books.grid-view");
+          wrapper.width = wrapper.el.offsetWidth;
+          
+          let target = {};
+          target.el = wrapper.el.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]');
+          target.index = this.index;
+          target.width = target.el.offsetWidth;
+          
+          const cols = Math.floor(wrapper.width / target.width);
+          
+          let getClosestTargetBook = function(index) {
+            let el = vue.$store.state.booksArray[ index ];
+            if (!el) {
+              el = getClosestTargetBook(--index);
+            }
+            return el;
+          };
+          
+          this.$root.$emit("book-clicked", {
+            book: e.srcKey === 'up' ? 
+              vue.$store.state.booksArray[ this.index-cols ] : 
+              getClosestTargetBook( this.index+cols )
+            
+          });
+          break;
+          
+      }
+    },
+
     closeBookDetails: function() {
-      
-      this.$emit('update:book', null );
-      if ( this.$route.query !== undefined ) this.$router.replace({ query: { book: undefined } });
-      
+      this.$emit("update:book", null);
+      if (this.$route.query !== undefined)
+        this.$router.replace({ query: { book: undefined } });
     },
-    
+
     progressToolTipBoundaryEl: function() {
-      return $('#ale-bookdetails .information .cover-wrap')[0];
+      return $("#ale-bookdetails .information .cover-wrap")[0];
     },
-    
-    progressTooltip: function( book ) {
-      if ( book.progress.toLowerCase().trim() === 'finished' ) {
-        const length = this.timeStringToSeconds( book.length );
-        return 'Finished: ( '+ this.secondsToTimeString( length ) +' )';
-      }
-      else {
-        const progress = this.timeStringToSeconds( book.progress );
-        const length = this.timeStringToSeconds( book.length );
-        
+
+    progressTooltip: function(book) {
+      if (book.progress.toLowerCase().trim() === "finished") {
+        const length = this.timeStringToSeconds(book.length);
+        return "Finished: ( " + this.secondsToTimeString(length) + " )";
+      } else {
+        const progress = this.timeStringToSeconds(book.progress);
+        const length = this.timeStringToSeconds(book.length);
+
         const difference = length - progress;
-        return 'Progress: ' + this.secondsToTimeString( difference ) +' / '+ this.secondsToTimeString( length );
+        return (
+          "Progress: " +
+          this.secondsToTimeString(difference) +
+          " / " +
+          this.secondsToTimeString(length)
+        );
       }
     },
-    
-    progressInfo: function( book ) {
-      if ( book.progress && book.length ) {
-        if ( book.progress.toLowerCase().trim() === 'finished' ) {
-          const length = this.timeStringToSeconds( book.length );
-          return '<div class="stretch-center" style="flex: 1;"><strong>Finished!</strong> ( '+ this.secondsToTimeString( length, true ) +' )</div>';
-        }
-        else {
-          const progress = this.timeStringToSeconds( book.progress );
-          const length = this.timeStringToSeconds( book.length );
+
+    progressInfo: function(book) {
+      if (book.progress && book.length) {
+        if (book.progress.toLowerCase().trim() === "finished") {
+          const length = this.timeStringToSeconds(book.length);
+          return (
+            '<div class="stretch-center" style="flex: 1;"><strong>Finished!</strong> ( ' +
+            this.secondsToTimeString(length, true) +
+            " )</div>"
+          );
+        } else {
+          const progress = this.timeStringToSeconds(book.progress);
+          const length = this.timeStringToSeconds(book.length);
           const difference = length - progress;
-          return '<strong>Progress: </strong>' + '<div>'+ this.secondsToTimeString( difference, true ) + ' / ' + this.secondsToTimeString( length, true ) +'</div>';
+          return (
+            "<strong>Progress: </strong>" +
+            "<div>" +
+            this.secondsToTimeString(difference, true) +
+            " / " +
+            this.secondsToTimeString(length, true) +
+            "</div>"
+          );
         }
-      }
-      else {
-        return '<div>Length: '+ book.length +'</div>';
+      } else {
+        return "<div>Length: " + book.length + "</div>";
       }
     },
     
-    // onDetailsToggle: function( msg ) {
-		// 	if ( msg.detailsChanged ) {
-		// 		this.summaryMaxHeight();
-		// 	}
-    // },
-    
-    
-		// searchLock: function( params ) {
-      
-		// 	if ( !this.gallery.searchLocked.active ) {
-    //     this.gallery.randomResults = null;
-    //     this.gallery.searchLocked.tempValue = this.gallery.searchValue;
-		// 		this.gallery.searchLocked.active = true;
-    //     this.gallery.searchEnabled = false;
-		// 		this.gallery.searchIcons.scope = false;
-    //     this.gallery.searchOptions.listsTemp = _.cloneDeep( this.gallery.searchOptions.lists );
-		// 	}
-      
-    //   this.gallery.searchLocked.inputValue = params.seriesName;
-    //   this.gallery.searchOptions.lists.showSortValues = params.sortValues;
-    //   this.gallery.searchOptions.lists.numberSortSeriesName = params.seriesName;
-    //   this.gallery.searchLocked.reason = params.reason;
-      
-    //   _.map( this.gallery.searchOptions.lists.filter, function(obj, i) {
-    //     return _.extend(obj, { active: true });
-    //   });
-        
-    //   this.gallery.customResults = _.filter(this.library.books, params.filter );
-    //   const sortItemIndex = _.findIndex(this.gallery.searchOptions.lists.sort, ['key', params.sortKey]);
-    //   this.gallery.searchOptions.lists.sort[ sortItemIndex ].active = false;
-    //   this.gallery.searchOptions.lists.sortIndex = sortItemIndex;
-      
-    
-    //   this.$nextTick(() => {
-    //     params.callback( this );
-    //   });
-      
-		// },
-		
-    booksInSeriesItemClick: function( book, seriesName ) {
-      
-			// this.searchLock({
-			// 	reason: 'Series',
-			// 	filter: { series: [{name: seriesName }] },
-			// 	sortKey: 'bookNumbers',
-			// 	sortValues: true,
-			// 	sortDirection: 'asc',
-			// 	seriesName: seriesName,
+    booksInSeriesItemClick: function(book, seriesName) {
+      // this.searchLock({
+      // 	reason: 'Series',
+      // 	filter: { series: [{name: seriesName }] },
+      // 	sortKey: 'bookNumbers',
+      // 	sortValues: true,
+      // 	sortDirection: 'asc',
+      // 	seriesName: seriesName,
       //   callback: function( vue ) {
-          
       //     vue.gallery.details.open = false; // Makes sure that when you click the open book in the "books I own in the series" list, book details won't get closed. I decided it was better to do it this way for books that are part of multiple series.
-          
       //     Eventbus.$emit('galleryBookClick', {
       //       from: 'books-in-series-item-click',
-      //       index: _.findIndex(vue.booksArray, ['asin', book.asin]),
+      //       index: _.findIndex(vue.$store.state.booksArray, ['asin', book.asin]),
       //       animationSpeed: 0
       //     });
-          
       //   },
-			// });      
-      
-    },
-    
+      // });
+    }
+
     // bookNumbers: function( book, seriesAsin ) {
     //   let anyNumbers = _.find( book.series, 'bookNumbers');
     //   if ( anyNumbers ) {
@@ -371,13 +364,12 @@ export default {
     //     return '';
     //   }
     // },
-    
   }
-}
+};
 </script>
 
 <style lang="scss" scoped>
-@import '~@/_variables.scss';
+@import "~@/_variables.scss";
 
 #ale-bookdetails {
   -webkit-user-select: text;
@@ -385,26 +377,26 @@ export default {
   -moz-user-select: text;
   -ms-user-select: text;
   user-select: text;
-	
+
   @include themify($themes) {
     border-top: 3px solid themed(audibleOrange);
-    border-bottom: 3px solid rgba( themed(frontColor), .15);
-    background: rgba( themed(backColor), .9 );
+    border-bottom: 3px solid rgba(themed(frontColor), 0.15);
+    background: rgba(themed(backColor), 0.9);
     box-shadow: themed(shadowSmall);
     color: themed(frontColor);
   }
-	width: 100vw;
+  width: 100vw;
   box-sizing: border-box;
   // font-size: 14px;
   padding: 40px 35px;
   margin-top: 12px;
   margin-bottom: 35px;
-	position: relative;
-	left: 50%;
-	right: 50%;
-	margin-left: -50vw;
-	margin-right: -50vw;
-  
+  position: relative;
+  left: 50%;
+  right: 50%;
+  margin-left: -50vw;
+  margin-right: -50vw;
+
   .arrow {
     @include themify($themes) {
       border-color: transparent transparent themed(audibleOrange) transparent;
@@ -418,11 +410,11 @@ export default {
     border-style: solid;
     border-width: 0 21px 7px 21px;
   }
-  
+
   .book-info-container {
     padding: 0 20px;
   }
-  
+
   .inner-wrap {
     display: flex;
     flex-direction: column;
@@ -445,16 +437,16 @@ export default {
       align-items: start;
     }
   }
-  
+
   a {
     white-space: nowrap;
   }
-  
+
   .information {
     @include themify($themes) {
       // border: 1px solid rgba( themed(frontColor), .1);
-      background-color: rgba(themed(frontColor), .01);
-      box-shadow: 0 3px 15px rgba( darken(themed(backColor), 30) , .8);
+      background-color: rgba(themed(frontColor), 0.01);
+      box-shadow: 0 3px 15px rgba(darken(themed(backColor), 30), 0.8);
     }
     border-radius: 3px;
     overflow: hidden;
@@ -466,11 +458,11 @@ export default {
     border-radius: 3px;
     text-align: left;
     line-height: 1.6em;
-    
+
     > div {
       margin-bottom: 20px !important;
     }
-    
+
     .cover-wrap {
       position: relative;
       padding: 0;
@@ -488,7 +480,7 @@ export default {
         bottom: 0;
         left: 0;
         @include themify($themes) {
-          background: rgba(darken(themed(backColor), 1), .65);
+          background: rgba(darken(themed(backColor), 1), 0.65);
         }
         .progress {
           height: 5px;
@@ -503,9 +495,9 @@ export default {
         }
       }
     }
-    
+
     div.progress-info {
-      font-size: .9em;
+      font-size: 0.9em;
       text-align: center;
       margin-bottom: 15px;
       padding: 3px 13px;
@@ -513,58 +505,88 @@ export default {
       flex-direction: row;
       justify-content: space-between;
       @include themify($themes) {
-        background: rgba( themed(frontColor), .01 );
-        border-top: 1px solid rgba( themed(frontColor), .15 );
-        border-bottom: 1px solid rgba( themed(frontColor), .15 );
+        background: rgba(themed(frontColor), 0.01);
+        border-top: 1px solid rgba(themed(frontColor), 0.15);
+        border-bottom: 1px solid rgba(themed(frontColor), 0.15);
       }
       > div {
         width: 100%;
         text-align: center;
       }
     }
-    
+
     .basic-details {
       padding: 0 20px;
       > div {
-        &:first-child { padding-top: 0; }
+        &:first-child {
+          padding-top: 0;
+        }
         padding-top: 10px;
       }
     }
-    
+
     // padding-top: 20px;
     // padding-bottom: 20px;
-    
+
     .series a {
       white-space: normal;
     }
     .series .book-number {
-      font-size: .8em;
-			white-space: nowrap;
+      font-size: 0.8em;
+      white-space: nowrap;
     }
-    
+
     .strong-label {
       margin: 10px 0 5px 0;
     }
-    
   }
-  
 } // #ale-bookdetails
 
 .theme-light #ale-bookdetails {
-  background: -moz-linear-gradient(top,  rgba(249,248,248,0.9) 0%, rgba(249,248,248,1) 49%, rgba(249,248,248,1) 100%);
-  background: -webkit-linear-gradient(top,  rgba(249,248,248,0.9) 0%,rgba(249,248,248,1) 49%,rgba(249,248,248,1) 100%);
-  background: linear-gradient(to bottom,  rgba(249,248,248,0.9) 0%,rgba(249,248,248,1) 49%,rgba(249,248,248,1) 100%);
+  background: -moz-linear-gradient(
+    top,
+    rgba(249, 248, 248, 0.9) 0%,
+    rgba(249, 248, 248, 1) 49%,
+    rgba(249, 248, 248, 1) 100%
+  );
+  background: -webkit-linear-gradient(
+    top,
+    rgba(249, 248, 248, 0.9) 0%,
+    rgba(249, 248, 248, 1) 49%,
+    rgba(249, 248, 248, 1) 100%
+  );
+  background: linear-gradient(
+    to bottom,
+    rgba(249, 248, 248, 0.9) 0%,
+    rgba(249, 248, 248, 1) 49%,
+    rgba(249, 248, 248, 1) 100%
+  );
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e6f9f8f8', endColorstr='#f9f8f8',GradientType=0 );
 }
 .theme-dark #ale-bookdetails {
-  background: -moz-linear-gradient(top,  rgba(21,23,27,0.9) 0%, rgba(21,23,27,1) 49%, rgba(21,23,27,1) 100%);
-  background: -webkit-linear-gradient(top,  rgba(21,23,27,0.9) 0%,rgba(21,23,27,1) 49%,rgba(21,23,27,1) 100%);
-  background: linear-gradient(to bottom,  rgba(21,23,27,0.9) 0%,rgba(21,23,27,1) 49%,rgba(21,23,27,1) 100%);
+  background: -moz-linear-gradient(
+    top,
+    rgba(21, 23, 27, 0.9) 0%,
+    rgba(21, 23, 27, 1) 49%,
+    rgba(21, 23, 27, 1) 100%
+  );
+  background: -webkit-linear-gradient(
+    top,
+    rgba(21, 23, 27, 0.9) 0%,
+    rgba(21, 23, 27, 1) 49%,
+    rgba(21, 23, 27, 1) 100%
+  );
+  background: linear-gradient(
+    to bottom,
+    rgba(21, 23, 27, 0.9) 0%,
+    rgba(21, 23, 27, 1) 49%,
+    rgba(21, 23, 27, 1) 100%
+  );
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e615171b', endColorstr='#15171b',GradientType=0 );
 }
 
 // #ale-bookdetails {
-  
+
 // 	.VueCarousel-dot-container {
 // 		&, & > button {
 //       margin-top: 0 !important;
@@ -573,11 +595,10 @@ export default {
 //       @include themify($themes) { background-color: rgba( themed(frontColor), .43) !important; }
 //     }
 // 	}
-	
+
 // } // #ale-bookdetails
 
-@media ( max-width: 640px ) {
-  
+@media (max-width: 640px) {
   #ale-bookdetails {
     // #book-info-container {
     //   padding: 0 45px;
@@ -600,8 +621,5 @@ export default {
       }
     }
   }
-  
 }
-
-
 </style>

@@ -1,5 +1,5 @@
-import Vue from 'vue';
-import Vuex from 'vuex';
+import Vue from "vue";
+import Vuex from "vuex";
 Vue.use(Vuex);
 
 export default new Vuex.Store({
@@ -7,52 +7,70 @@ export default new Vuex.Store({
   state: {
     // States that persist by reading and writing to localStorage
     sticky: {
-      lightSwitch: 0,
-      listRenderingOpts: null,
+      lightSwitch: 1,
+      lightSwitchSetByUser: false,
     },
     // States that don't persist
-    tippyTheme: 'dark',
-    searchActive: false,
-    searchQuery: '',
-    filterRules: null,
-    sortBy: null,
-    sortDirection: null,
-    urlOrigin: null,
-    library: null,
-    displayMode: null,
-    standalone: null,
     route: null,
+    library: null,
+    urlOrigin: null,
+    searchQuery: "",
+    booksArray: null,
+    standalone: null,
+    displayMode: null,
+    collectionSource: null,
+    listRenderingOpts: null,
+  },
+
+  mutations: {
+    fromLocalStorage: function(state) {
+      const lsState = JSON.parse(localStorage.getItem("aleSettings"));
+      if (lsState) {
+        _.assign( state.sticky, lsState );
+        this.replaceState(state);
+      }
+    },
+
+    prop: function(state, o) {
+      state[o.key] = o.value;
+    },
+
+    stickyProp: function(state, o) {
+      state.sticky[o.key] = o.value;
+    },
+
+    updateListRenderingOpts: function(state, o) {
+      
+      let newObject = _.cloneDeep( state.listRenderingOpts[o.listName][o.index] );
+      newObject.active = o.active;
+      
+      // Changes the currently active sorter (in sort: active state controls the direction)
+      if ( o.listName === "sort" ) {
+        const currentSorter = _.find( state.listRenderingOpts[o.listName], "current" );
+        currentSorter.current = false;
+        newObject.current = true;
+      }
+      
+      state.listRenderingOpts[ o.listName ].splice(o.index, 1, newObject);
+            
+    }
   },
   
-  mutations: {
-    
-    fromLocalStorage: function( state ) {
-      
-      const lsState = JSON.parse( localStorage.getItem('aleSettings') );
-      if( lsState ) {
-        _.assign( state.sticky, lsState );
-        this.replaceState( state );
-      }
-      
+  getters: {
+    sortValues: function( state ) {
+      return _.find( state.listRenderingOpts.sortExtras, { key: "sortValues" }).active;
     },
-    
-    prop: function(state, o) {
-      state[ o.key ] = o.value;
+    sortBy: function( state ) {
+      return _.find( state.listRenderingOpts.sort, 'current').key;
     },
-    
-    stickyProp: function(state, o) {
-      state.sticky[ o.key ] = o.value;
+    filterKeys: function( state ) {
+      return _.map(_.filter( state.listRenderingOpts.filter, 'active'), function( o ) {
+        return o.key;
+      }).join(',');
     },
-    
-    updateListRenderingOpts: function( state, o ) {
-      state.sticky.listRenderingOpts[ o.listName ][ o.index ].active = o.active;
-      if ( o.listName === 'sort' ) {
-        const currentSorter = _.find( state.sticky.listRenderingOpts[ o.listName ], 'current' );
-        currentSorter.current = false;
-        state.sticky.listRenderingOpts[ o.listName ][ o.index ].current = true;
-      }
+    searchIsActive: function( state ) {
+      return state.searchQuery.trim() !== "";
     },
-    
-  },
+  }
   
 });

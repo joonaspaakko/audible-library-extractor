@@ -1,25 +1,27 @@
-
 export default {
-	methods: {
-		timeStringToSeconds: function( string ) {
-			
+  methods: {
+    timeStringToSeconds: function(string) {
       // This is a little janky and very specific to
       // the progress and length time format in Audible
       const hasMinutes = string.match(/[0-9]+m|[0-9]+ min/);
       const numbers = string.match(/\d+/g);
       const v = {};
-      const hoursToSec = function( n ) { return (+n) * 60 * 60; }
-      const minsToSec  = function( n ) { return (+n) * 60; }
+      const hoursToSec = function(n) {
+        return +n * 60 * 60;
+      };
+      const minsToSec = function(n) {
+        return +n * 60;
+      };
       // If the matched array contains 2 groups of numbers,
       // then we the array must contain hours and minutes
-      if ( numbers.length === 2 ) {
+      if (numbers.length === 2) {
         v.h = numbers[0];
         v.m = numbers[1];
         v.numbers = hoursToSec(v.h) + minsToSec(v.m);
       }
       // If there's only one group of numbers and it doesn't
       // contain the word 'min', it will be treated as hours
-      else if ( !hasMinutes ) {
+      else if (!hasMinutes) {
         v.h = numbers[0];
         v.numbers = hoursToSec(v.h);
       }
@@ -30,7 +32,6 @@ export default {
         v.numbers = minsToSec(v.m);
       }
       return v.numbers;
-			
-		}
-	}
-}
+    }
+  }
+};

@@ -1,14 +1,23 @@
 <template>
   <div class="list-view-header ale-row">
     <tr class="ale-row-inner">
-      <th v-for="( item, index) in headers" :key="item.label" class="header-item ale-col" :class="item.class">
+      <th
+        v-for="(item, index) in headers"
+        :key="item.label"
+        class="header-item ale-col"
+        :class="item.class"
+      >
         <col-resizer :identifier="item.class"></col-resizer>
         <div class="ale-col-inner">
-          
-          <sorter :general="general" :gallery="gallery" :label="false" :item="sorterItem( item.key )" :index="sorterIndex(item)">
+          <sorter
+            :general="general"
+            :gallery="gallery"
+            :label="false"
+            :item="sorterItem(item.key)"
+            :index="sorterIndex(item)"
+          >
             <span class="text-container">{{ item.label }}</span>
           </sorter>
-          
         </div>
       </th>
     </tr>
@@ -16,72 +25,64 @@
 </template>
 
 <script>
-
-import colResizer from './colResizer';
-import sorter from '../../../snippets/sorter';
+import colResizer from "./colResizer";
+import sorter from "../../../snippets/sorter";
 
 export default {
-  name: 'aleHeader',
-  props: ['keys', 'general', 'gallery'],
+  name: "aleHeader",
+  props: ["keys", "general", "gallery"],
   components: {
     colResizer,
-    sorter,
+    sorter
   },
-	data: function() {
-		return {
-      headers: null,
-		}
+  data: function() {
+    return {
+      headers: null
+    };
   },
-  
+
   created: function() {
-    
-    this.headers = this.prepareHeaders( this.keys );
-    
+    this.headers = this.prepareHeaders(this.keys);
   },
-  
+
   methods: {
-    
-    prepareHeaders: function( keys ) {
+    prepareHeaders: function(keys) {
       const vue = this;
-      return _.map(keys, function( key ) {
-        
+      return _.map(keys, function(key) {
         const header = {
           key: key,
-          label: _.startCase( key ),
-          align: 'left',
-          class: 'col-' + _.kebabCase( key ),
+          label: _.startCase(key),
+          align: "left",
+          class: "col-" + _.kebabCase(key)
         };
-        
+
         switch (key) {
-          case 'titleShort':
-          case 'title':
-            header.class = header.class + ' sticky-col';
+          case "titleShort":
+          case "title":
+            header.class = header.class + " sticky-col";
             break;
         }
-        
+
         return header;
-        
       });
     },
-    
-    
-    sorterIndex: function( item ) {
-      return _.findIndex( this.gallery.searchOptions.lists.sort, { key: item.key });
+
+    sorterIndex: function(item) {
+      return _.findIndex(this.gallery.searchOptions.lists.sort, {
+        key: item.key
+      });
     },
-    
-    sorterItem: function( name ) {
-      const regex = new RegExp( '^'+name );      
-      return _.find( this.gallery.searchOptions.lists.sort, function(o) {
+
+    sorterItem: function(name) {
+      const regex = new RegExp("^" + name);
+      return _.find(this.gallery.searchOptions.lists.sort, function(o) {
         return o.key.match(regex);
       });
-    },
-    
-  },
-  
-}
+    }
+  }
+};
 </script>
 
 <style lang="scss" scoped>
-@import '~@/_variables.scss';
-
+@import "~@/_variables.scss";
 </style>
