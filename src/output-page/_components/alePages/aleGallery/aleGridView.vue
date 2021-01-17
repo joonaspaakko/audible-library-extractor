@@ -1,51 +1,71 @@
 <template>
-  <div id="ale-books" class="grid-view" ref="booksWrapper">
+  <div id="ale-books" class="grid-view" :class="{ 'sort-values-on': $store.getters.sortValues }" ref="booksWrapper">
+    
+    <!-- FIXME: the issue has got something to do with this key, which made it worse and toggling sort values, which I guess.... hides book details and as a result of that tries to then update the queries once more...  -->
+    <!-- :key="'details:' + detailsBook.asin+keySuffix" -->
+    
     <book-details
       v-if="detailsBook"
-      :key="'details:' + detailsBook.asin+keySuffix"
+      :key="'details:' + detailsBook.asin"
       :book.sync="detailsBook"
       :booksWrapper="$refs.booksWrapper"
       :index="detailsBookIndex"
     />
-
-    <lazy-component
+    
+    <!-- <lazy-component
       v-for="(book, index) in $store.state.booksArray"
       class="ale-book"
-      :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }"
+      :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin, mounted: book.mounted }"
       :data-asin="book.asin"
       :key="'book:'+book.asin+keySuffix"
     >
       <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
-    </lazy-component>
-    <!-- .ale-book -->
+    </lazy-component> -->
+    
+    <lazy
+    v-for="(book, index) in $store.state.booksArray"
+    class="ale-book"
+    :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }"
+    :data-asin="book.asin"
+    :key="'book:'+book.asin"
+    >
+      <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
+    </lazy>
+    
   </div>
 </template>
 
 <script>
 
-import slugify from "@output-mixins/slugify";
+import slugify from "@output-mixins/slugify.js";
+import lazy from "@output-snippets/lazy.vue";
 
 export default {
   name: "aleBooks",
   components: {
     bookDetails: () => import( /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
     book: () => import( /* webpackChunkName: "book" */ "./aleGridView/book"),
+    lazy,
   },
   mixins: [slugify],
   data: function() {
     return {
       detailsBook: null,
-      detailsBookIndex: -1
+      detailsBookIndex: -1,
+      mounts: {
+        
+      },
     };
   },
   
-  computed: {
-    keySuffix: function() {
-      return '|sortVals:'+this.$store.getters.sortValues +
-             '|sort:'+this.$store.getters.sortBy +
-             '|filters:'+this.$store.getters.filterKeys;
-    },
-  },
+  // computed: {
+  //   keySuffix: function() {
+  //     return '|sortVals:'+this.$store.getters.sortValues +
+  //            '|sort:'+this.$store.getters.sortBy +
+  //            '|sort:'+_.values( this.mounts ) +
+  //            '|filters:'+this.$store.getters.filterKeys;
+  //   },
+  // },
   
   created: function() {
     const vue = this;
@@ -88,6 +108,7 @@ export default {
   mounted: function() {
     if (_.get(this.$route, "query.book")) {
       this.$nextTick(function() {
+        console.log('%c' + this.$route.query.book + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;');
         this.toggleBookDetails({
           book: _.find(this.$store.state.booksArray, { asin: this.$route.query.book })
         });
@@ -111,12 +132,17 @@ export default {
   },
 
   methods: {
+    
     toggleBookDetails: function(e) {
       if (!e.book) {
+        
         this.detailsBook = null;
         this.detailsBookIndex = -1;
         if (_.get(this.$route, "query.book") !== undefined)
-          this.$router.replace({ query: { book: undefined } });
+          this.$updateQuery({ query: 'book', value: null });
+        
+        // this.$router.replace({ query: { book: undefined } });  
+      
       } else {
         if (!e.index)
           e.index = _.findIndex(this.$store.state.booksArray, { asin: e.book.asin });
@@ -128,7 +154,8 @@ export default {
           if (!sameBook) this.detailsBook = e.book;
           else {
             if (this.$route.query !== undefined)
-              this.$router.replace({ query: { book: undefined } });
+              this.$updateQuery({ query: 'book', value: null });
+              // this.$router.replace({ query: { book: undefined } });
           }
         });
       }
@@ -286,8 +313,6 @@ export default {
   z-index: 0;
   text-align: center;
   display: inline-block;
-  width: $thumbnailSize + 2;
-  height: $thumbnailSize + 2;
   // font-size: 0;
 
   &.details-open .ale-play-sample,
@@ -338,14 +363,20 @@ export default {
   }
 
   &.mounted:after {
-    display: none;
-  }
-  // For showing sort values correctly...
-  &.mounted {
-    height: auto !important;
+    display: none !important;
   }
 }
 
+
+.ale-book {
+  width: $thumbnailSize + 2;
+  height: $thumbnailSize + 2;
+}
+// For showing sort values correctly...
+.sort-values-on .ale-book {
+  height: $thumbnailSize + 2 + 27;
+}
+  
 .theme-light .ale-book:after {
   background-image: url("../../../images/table-loader-light.gif");
 }
@@ -357,6 +388,9 @@ export default {
   .ale-book {
     width: $thumbnailSize - 25;
     height: $thumbnailSize - 25;
+  }
+  .sort-values-on .ale-book {
+    height: $thumbnailSize - 25 + 27;
   }
 
   #ale-search {

@@ -3,27 +3,6 @@
     
     <sort-values v-if="sortValuesEnabled" :book="book"></sort-values>
 
-    <div class="info-icons-wrapper">
-      <!-- FAVORITE -->
-      <div class="favorite-marker" v-if="book.favorite">
-        <span><font-awesome fas icon="heart" /></span>
-        <span>favorite</span>
-      </div>
-
-      <!-- BOOK IS FINISHED -->
-      <div class="finished-marker" v-if="book.progress === 'Finished'">
-        <span><font-awesome fas icon="check" /></span>
-        <span>finished</span>
-      </div>
-
-      <!-- FROM PLUS CATALOG -->
-      <div class="plus-catalog-marker" v-if="book.fromPlusCatalog">
-        <span v-if="book.leftPlusCatalog"><font-awesome fas icon="lock" /></span>
-        <span v-else><font-awesome fas icon="plus-circle" /></span>
-        <span>plus catalog</span>
-      </div>
-    </div>
-
     <div class="ale-cover">
       <div class="ale-play-sample" @click="playSample(book, index)">
         <div><font-awesome fas icon="play" /></div>
@@ -33,6 +12,28 @@
         class="ale-click-wrap"
         @click="$root.$emit('book-clicked', { book })"
       >
+      
+        <div class="info-icons-wrapper">
+          <!-- FAVORITE -->
+          <div class="favorite-marker" v-if="book.favorite">
+            <span><font-awesome fas icon="heart" /></span>
+            <span>favorite</span>
+          </div>
+
+          <!-- BOOK IS FINISHED -->
+          <div class="finished-marker" v-if="book.progress === 'Finished'">
+            <span><font-awesome fas icon="check" /></span>
+            <span>finished</span>
+          </div>
+
+          <!-- FROM PLUS CATALOG -->
+          <div class="plus-catalog-marker" v-if="book.fromPlusCatalog">
+            <span v-if="book.leftPlusCatalog"><font-awesome fas icon="lock" /></span>
+            <span v-else><font-awesome fas icon="plus-circle" /></span>
+            <span>catalog</span>
+          </div>
+        </div>
+      
         <div class="ale-info-indicator">
           <div><font-awesome fas icon="book" /></div>
         </div>
@@ -58,10 +59,13 @@ export default {
   },
 
   mounted: function() {
-    // if ( this.book.favorite ) console.log( this.book );
-    document
-      .querySelector('.ale-book[data-asin="' + this.book.asin + '"]')
-      .classList.add("mounted");
+    
+    // document
+    //   .querySelector('.ale-book[data-asin="' + this.book.asin + '"]')
+    //   .classList.add("mounted");
+    
+    
+    
   },
 
   methods: {
@@ -93,8 +97,8 @@ export default {
   .info-icons-wrapper {
     position: absolute;
     z-index: 10;
-    left: -2px;
-    bottom: 10px;
+    left: 3px;
+    bottom: 4px;
     // left: 5px;
     // bottom: 5px;
 
@@ -103,23 +107,20 @@ export default {
     align-items: flex-start;
 
     // transition: left 150ms ease;
-
+    
     > div {
       margin-top: 4px;
       &:first-child {
         margin: 0;
       }
-
-      font-size: 10px;
-      line-height: 17px;
-      font-weight: 700;
+      
       background: #333;
       color: #fff;
       // border-radius: 900px;
 
       border-radius: 500px;
-      width: 17px;
-      height: 10px;
+      width: 11px;
+      height: 11px;
 
       display: flex;
       justify-content: center;
@@ -151,8 +152,11 @@ export default {
     // left: 1px;
     > div {
       width: auto;
-      height: 17px;
-      padding: 0 8px;
+      padding: 0 6px;
+      height: 15px;
+      line-height: 15px;
+      font-size: .7em;
+      font-weight: 700;
       > span {
         // transition-duration: 150ms;
         opacity: 1;

@@ -1,13 +1,35 @@
+// INTERSECTION OBSERVER POLYFILL
+require('intersection-observer');
+IntersectionObserver.prototype.POLL_INTERVAL = 180;
+
+// CLOSEST() POLYFILL
+if (!Element.prototype.matches) {
+  Element.prototype.matches =
+    Element.prototype.msMatchesSelector ||
+    Element.prototype.webkitMatchesSelector;
+}
+
+if (!Element.prototype.closest) {
+  Element.prototype.closest = function(s) {
+    var el = this;
+
+    do {
+      if (Element.prototype.matches.call(el, s)) return el;
+      el = el.parentElement || el.parentNode;
+    } while (el !== null && el.nodeType === 1);
+    return null;
+  };
+}
+
+// PROMISE POLYFILL
+import 'es6-promise/auto';
+
+// VUE 
 import Vue from "vue";
 import App from "./output-page-app";
 
 Vue.config.devtools = false;
 Vue.config.productionTip = false;
-
-// VUE ROUTER
-import store from "./store.js";
-import VueRouter from "vue-router";
-Vue.use(VueRouter);
 
 // VUE SHORTKEY
 Vue.use(require("vue-shortkey"));
@@ -15,21 +37,6 @@ Vue.use(require("vue-shortkey"));
 // VUE AUDIO
 import VueAudio from "vue-audio-better";
 Vue.use(VueAudio);
-
-// VUE LAZY LOAD
-import VueLazyload from "vue-lazyload";
-Vue.use(VueLazyload, {
-  error:
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='500' height='500'%3E%3Cdefs%3E%3Cstyle%3E.c%7Bfill:%23e1e1e1;%7D%3C/style%3E%3C/defs%3E%3Cpath class='c' d='M0 0h500v500H0z'/%3E%3C/svg%3E",
-  loading:
-    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 500 500' width='500' height='500'%3E%3Cdefs%3E%3Cstyle%3E.c%7Bfill:%23e1e1e1;%7D%3C/style%3E%3C/defs%3E%3Cpath class='c' d='M0 0h500v500H0z'/%3E%3C/svg%3E",
-  lazyComponent: true,
-  attempt: 3,
-  preload: 1
-  // preload: 1.1,
-  // throttleWait: 30,
-  // observer: true,
-});
 
 // DOMURL
 global.Url = require("domurl");
@@ -41,9 +48,7 @@ import {
   each,
   orderBy,
   isEmpty,
-  pick,
   flatten,
-  values,
   sampleSize,
   map,
   findIndex,
@@ -53,20 +58,21 @@ import {
   includes,
   startCase,
   kebabCase,
-  has,
   isArray,
   shuffle,
-  reverse,
   clone,
   isEqual,
-  chunk,
   debounce,
   throttle,
   assign,
-  get
+  get,
+  values,
 } from "lodash";
 
 // VUE ROUTER
+import VueRouter from "vue-router";
+Vue.use(VueRouter);
+
 const aleGallery = () => import( /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
 // const aleSpreadsheet = () => import(/* webpackChunkName: "spreadsheet" */ './_components/alePages/aleSpreadsheet');
 const aleCategories = () => import( /* webpackChunkName: "categories" */ "./_components/alePages/aleCategories");
@@ -224,25 +230,101 @@ import "tippy.js/themes/light-border.css";
 
 import helpers from "@contscript-mixins/misc/helpers.js";
 
-// CLOSEST() POLYFILL
-if (!Element.prototype.matches) {
-  Element.prototype.matches =
-    Element.prototype.msMatchesSelector ||
-    Element.prototype.webkitMatchesSelector;
-}
+// VUEX store
+import store from "./store.js";
 
-if (!Element.prototype.closest) {
-  Element.prototype.closest = function(s) {
-    var el = this;
-
-    do {
-      if (Element.prototype.matches.call(el, s)) return el;
-      el = el.parentElement || el.parentNode;
-    } while (el !== null && el.nodeType === 1);
-    return null;
+// UPDATING VUEX QUERIES
+const updateVuexQuery = {};
+updateVuexQuery.install = function (Vue) {
+  Vue.prototype.$updateQuery = function( config ) {
+    
+    config      = config || {};
+    let query   = config.query;
+    let value   = config.value;
+    let history = config.history;
+    let queries = config.queries || this.$route.query;
+    
+    let queryClone = JSON.parse( JSON.stringify( queries ) );
+    
+    // Toggle
+    if ( value === undefined ) {
+      if ( queryClone[ query ] ) delete queryClone[ query ];  
+      else queryClone[ query ] = true;
+    }
+    // Truthy value adds the value
+    // Falsy value removes the query
+    else {
+      if ( !value ) delete queryClone[ query ]; 
+      else queryClone[ query ] = value;
+    }
+    
+    // push() writes a history state...
+    if ( history ) {
+      this.$router.push({ query: queryClone }).catch(() => {}); 
+    }
+    // replace() doesn't...
+    else {
+      this.$router.replace({ query: queryClone }).catch(() => {}); 
+    }
+    
   };
 }
+Vue.use( updateVuexQuery );
 
+
+// GLOBAL METHODS
+const globalMethods = {};
+globalMethods.install = function (Vue) {
+  Vue.prototype.$setListRenderingOpts = function( list ) {
+    
+    if ( this.$route.query.sortValues ) {
+      const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });
+      list.sort[ sortValuesIndex ].active = this.$route.query.sortValues;
+    }
+    
+    if ( this.$route.query.sort ) {
+      let currentSorter = _.find( list.sort, { current: true });
+      currentSorter.current = false;
+      const sortIndex = _.findIndex( list.sort, { key: this.$route.query.sort });
+      list.sort[ sortIndex ].current = true;
+      list.sort[ sortIndex ].active = this.$route.query.sortDir === 'desc' ? true : false;
+    }
+    
+    if ( this.$route.query.filter ) {
+      
+      let paramFilters = this.$route.query.filter.split(',');
+      
+      _.each( list.filter, function( filter ) {
+        filter.active = false;
+        _.each( paramFilters, function( paramFilter ) {
+          if ( filter.key === paramFilter ) filter.active = true;
+        });
+      });
+      
+    }
+    
+    if ( this.$route.query.scope ) {
+      
+      let paramScope = this.$route.query.scope.split(',');
+      
+      _.each( list.scope, function( scope ) {
+        scope.active = false;
+        _.each( paramScope, function( paramScope ) {
+          if ( scope.key === paramScope ) scope.active = true;
+        });
+      });
+      
+    }
+    
+    
+    this.$store.commit("prop", { key: "listRenderingOpts", value: list });
+    
+  };
+}
+Vue.use( globalMethods );
+
+
+// APP prep
 const standalone = document.querySelector("html.standalone-gallery");
 if (!standalone) {
   try {

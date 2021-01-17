@@ -9,37 +9,33 @@
     }"
   >
     <div class="book-summary" ref="summary">
+      
       <h2 class="book-title">
-        <a
-          :href="makeUrl('book', book.asin)"
-          target="_blank"
-          rel="noopener nofollow noreferrer"
-        >
+        <a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener nofollow noreferrer">
           {{ book.title }}
         </a>
       </h2>
+      
       <div class="categories" v-if="book.categories">
-        <arrayToHTML
-          v-if="book.categories"
-          label="Categories"
-          :array="book.categories"
-          delim=" > "
-        ></arrayToHTML>
+        <arrayToHTML v-if="book.categories" label="Categories" :array="book.categories" delim=" > " ></arrayToHTML>
       </div>
+      
       <div class="inline-children smoll-text">
         <div class="release-date" v-if="book.releaseDate">
           <span class="strong-label">Released:</span>
           <span>{{ book.releaseDate }}</span>
         </div>
       </div>
+      
       <div class="summary-inner-wrap" v-html="summaryHTML"></div>
+      
     </div>
 
     <div
-      class="summary-read-more"
-      ref="readMoreBtn"
-      @click="summaryReadMoreclick"
-      v-if="summary.maxHeight"
+    class="summary-read-more"
+    ref="readMoreBtn"
+    @click="summaryReadMoreclick"
+    v-if="summary.maxHeight"
     >
       <span>{{ summary.readmore.toggle ? "Read less" : "Read more" }}</span>
       <font-awesome

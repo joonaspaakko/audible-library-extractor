@@ -7,7 +7,7 @@
 		<splide :options="options">
 			<splide-slide class="ale-carousel-item" v-for="(book, index) in books" :key="index">
 				
-					<a :href="makeUrl('book', book.asin)" target="_blank" :content="sliderTippyContent( book )">
+					<a :href="makeUrl('book', book.asin)" target="_blank" v-tippy :content="sliderTippyContent( book )">
 						<img class="cover" :data-splide-lazy="makeCoverUrl(book.cover)" alt="">
 					</a>
 					

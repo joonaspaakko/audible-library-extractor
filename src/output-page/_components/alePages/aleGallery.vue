@@ -43,7 +43,7 @@ export default {
 
   methods: {
     updateListRenderingOptions: function() {
-      const listRenderingOpts = {
+      const list = {
         scope: [
           { active: true,  key: 'title' },
           { active: true,  key: 'authors.name' },
@@ -53,31 +53,36 @@ export default {
           { active: false, key: 'publishers.name' },
         ],
         filter: [
-          { active: true, label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
-          { active: true, label: 'Started', key: 'started', condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
-          { active: true, label: 'Finished', key: 'finished', condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
-        ],
-        sortExtras: [
-          { active: false, key: 'sortValues', label: 'Show sort values', type: 'sortExtras', tippy: 'Value comes from the active sort category below.' },
-          { active: false, key: 'randomize',  label: 'Randomize',        type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
+          { active: true, type: 'filter', label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
+          { active: true, type: 'filter', label: 'Started', key: 'started', condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
+          { active: true, type: 'filter', label: 'Finished', key: 'finished', condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
+          // FIXME: I have to think a little bit more about how to add more filters if at all...
+          // { key: 'divider' },
+          // { active: true, type: 'filterExtras', label: 'Favorites', key: 'favorites', condition: function( book ) { return book.favorite; } },
         ],
         sort: [
+          { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: 'Value comes from the active sort category below.' },
+          { active: false,                 key: 'randomize',       label: 'Randomize',        type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
+          { key: 'divider' },
           // active: true = arrow down / descending
-          { active: true,  current: true,   key: 'added',           label: 'Added',   			    type: 'sort', tippy: 'High number = new <br/> Low number = old' },
-          { active: false, current: false,  key: 'title',           label: 'Title',        		  type: 'sort' },
-          { active: false, current: false,  key: 'releaseDate',     label: 'Release date', 		  type: 'sort' },
-          { active: false, current: false,  key: 'length',          label: 'Length',       		  type: 'sort' },
-          { active: false, current: false,  key: 'authors.name',    label: 'Author',       		  type: 'sort' },
-          { active: false, current: false,  key: 'narrators.name',  label: 'Narrator',     		  type: 'sort' },
-          { active: false, current: false,  key: 'bookNumbers',     label: 'Book number',  		  type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
-          { active: false, current: false,  key: 'rating',  			  label: 'Rating',  				  type: 'sort' },
-          { active: false, current: false,  key: 'ratings',  			  label: 'Number of ratings', type: 'sort' },
-          { active: false, current: false,  key: 'progress',  			label: 'Progress',          type: 'sort' },
-          { active: false, current: false,  key: 'publishers.name', label: 'Publishers',        type: 'sort' },
+          { active: true,  current: true,  key: 'added',           label: 'Added',   			     type: 'sort', tippy: 'High number = new <br/> Low number = old' },
+          { active: true,  current: false, key: 'title',           label: 'Title',        		 type: 'sort' },
+          { active: true,  current: false, key: 'releaseDate',     label: 'Release date', 		 type: 'sort' },
+          { active: true,  current: false, key: 'length',          label: 'Length',       		 type: 'sort' },
+          { active: true,  current: false, key: 'authors.name',    label: 'Author',       		 type: 'sort' },
+          { active: true,  current: false, key: 'narrators.name',  label: 'Narrator',     		 type: 'sort' },
+          // FIXME: Is this needed?
+          // You can open a the page for a series and 
+          { active: true,  current: false, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
+          { active: true,  current: false, key: 'rating',  			   label: 'Rating',  				   type: 'sort' },
+          { active: true,  current: false, key: 'ratings',  			 label: 'Number of ratings', type: 'sort' },
+          { active: false, current: false, key: 'progress',  			 label: 'Progress',          type: 'sort' },
+          { active: true,  current: false, key: 'publishers.name', label: 'Publishers',        type: 'sort' },
+          { active: true,  current: false, key: 'favorite',        label: 'Favorite',          type: 'sort' },
         ],
       };
       
-      this.$store.commit("prop", { key: "listRenderingOpts", value: listRenderingOpts });
+      this.$setListRenderingOpts( list );
       
     }
   },

@@ -46,18 +46,12 @@
           <book-summary :book="book"></book-summary>
         </div>
 
-        <carousel
-          v-if="!loading && book.peopleAlsoBought"
-          :books="book.peopleAlsoBought"
-        >
+        <carousel v-if="!loading && book.peopleAlsoBought" :books="book.peopleAlsoBought">
           <!-- People who bought this also bought: -->
           Listeners also enjoyed
         </carousel>
 
-        <carousel
-          v-if="!loading && book.moreLikeThis"
-          :books="book.moreLikeThis"
-        >
+        <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis">
           More listens like this
         </carousel>
       </div>
@@ -119,7 +113,8 @@ export default {
     
     this.maxWidth = this.repositionBookDetails() + "px";
     this.resetScroll();
-    this.changeUrl();
+    // this.changeUrl();
+    this.$updateQuery({ query: 'book', value: this.book.asin });
     this.loading = false;
     
   },

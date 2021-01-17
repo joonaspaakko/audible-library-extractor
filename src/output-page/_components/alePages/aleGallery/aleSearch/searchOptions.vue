@@ -1,39 +1,19 @@
 <template>
-  <div id="search-options" ref="options" :style="css.options">
+  <div id="search-options" ref="options" :class="listName+'-options'" :style="css.options">
     <div class="search-opts-arrow" :style="css.arrow"></div>
-
-    <ul class="sort-extras" v-if="listName === 'sort'">
-      <li
-        class="search-option"
-        v-for="(item, index) in $store.state.listRenderingOpts
-          .sortExtras"
-        :key="item.key"
-      >
-        <listItem
-          :label="item.label"
-          :item="item"
-          :index="index"
-          :currentList="$store.state.listRenderingOpts.sortExtras"
-          listName="sortExtras"
-        ></listItem>
-      </li>
-    </ul>
-
+    
     <ul>
-      <li
-        class="search-option"
-        v-for="(item, index) in optionsList"
-        :key="item.key"
+      <li class="search-option" 
+      :class="{ extras: item.type && item.type.match(/extra/i), divider: item.key === 'divider' }" 
+      v-for="(item, index) in optionsList" :key="item.key"
       >
-        <listItem
-          :label="item.label"
-          :item="item"
-          :index="index"
-          :currentList="optionsList"
-          :listName="listName"
+        <listItem v-if="item.key !== 'divider'" 
+        :label="item.label" :item="item" :index="index" 
+        :currentList="optionsList" :listName="listName"
         ></listItem>
       </li>
     </ul>
+    
   </div>
 </template>
 
@@ -252,13 +232,14 @@ export default {
         }
       }
     }
+    
   } // .search-option
-
-  .sort-extras {
-    padding-bottom: 9px;
-    margin-bottom: 9px;
+  
+  .search-option.divider{
+    padding-top: 9px;
+    margin-top: 9px;
     @include themify($themes) {
-      border-bottom: 1px solid rgba(themed(frontColor), 0.1);
+      border-top: 1px solid rgba(themed(frontColor), 0.1);
     }
   }
 

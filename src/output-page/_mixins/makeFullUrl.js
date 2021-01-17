@@ -19,17 +19,16 @@ export default {
           if (input.url) newUrl = base + "/author/" + input.url;
           break;
         case "narrator":
-          if (input.name)
-            newUrl =
-              base + "/search?searchNarrator=" + decodeURIComponent(input.name);
+          if (input.name) newUrl = base + "/search?searchNarrator=" + decodeURIComponent(input.name);
           break;
         case "series":
           if (input.asin) newUrl = base + "/series/" + input.asin;
           break;
         case "publisher":
-          if (input.name)
-            newUrl =
-              base + "/search?searchProvider=" + decodeURIComponent(input.name);
+          if (input.name) newUrl = base + "/search?searchProvider=" + decodeURIComponent(input.name);
+          break;
+        case "categories":
+          if (input.name) newUrl = base + "/cat/" + input.url;
           break;
       }
 

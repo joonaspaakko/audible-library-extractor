@@ -1,10 +1,12 @@
 <template>
   <div class="sort-values-container">
-    <div
-      :class="'sort-' + $store.getters.sortBy"
-      v-html="sortContents"
-      v-if="sortContents"
-    ></div>
+    
+    <div v-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContents()"></div>
+    <div v-else :class="'sort-'+$store.getters.sortBy">
+      <font-awesome v-if="book.favorite" :icon="['fas', 'heart']" />
+      <span v-else>&nbsp;</span>
+    </div>
+    
   </div>
 </template>
 
@@ -28,141 +30,102 @@ export default {
     // console.log('%c' + 'SORT VALUES CREATED' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
     
   },
-  computed: {
-
-    // activeSortKey: function() {
-    //   return _.find(this.$store.state.listRenderingOpts.sort, "current")
-    //     .key;
-    // },
-
+  
+  methods: {
+    
     sortContents: function() {
-      const sortKey = this.$store.getters.sortBy.replace(".name", "");
+      let sortKey = this.$store.getters.sortBy;
+      
+      switch( sortKey ) {
+        
+        case "bookNumbers":
+          const numbersDelim = ", ";
 
-      var specialBoy = sortKey === "bookNumbers" ? this.book.series : null;
-      if (this.book[sortKey] || specialBoy) {
-        switch (sortKey) {
-          case "bookNumbers":
-            const numbersDelim = ", ";
+          if (this.book.series) {
+            let allNumbers = _.filter(this.book.series, "bookNumbers");
+            allNumbers = _.map(allNumbers, "bookNumbers");
+            allNumbers = _.flatten(allNumbers);
+            if (_.isEmpty(allNumbers)) allNumbers = null;
+            if (allNumbers === null) {
+            }
 
-            if (this.book.series) {
-              let allNumbers = _.filter(this.book.series, "bookNumbers");
-              allNumbers = _.map(allNumbers, "bookNumbers");
-              allNumbers = _.flatten(allNumbers);
-              if (_.isEmpty(allNumbers)) allNumbers = null;
-              if (allNumbers === null) {
-              }
-
-              const seriesName = this.gallery.searchOptions.lists
-                .numberSortSeriesName;
-              if (seriesName) {
-                const seriesNumbers = _.find(this.book.series, [
-                  "name",
-                  seriesName
-                ]).bookNumbers;
-                if (seriesNumbers) {
-                  return _.isArray(seriesNumbers)
-                    ? seriesNumbers.join(numbersDelim)
-                    : seriesNumbers;
-                } else {
-                  return allNumbers ? allNumbers.join(numbersDelim) : "";
-                }
+            const seriesName = this.gallery.searchOptions.lists
+              .numberSortSeriesName;
+            if (seriesName) {
+              const seriesNumbers = _.find(this.book.series, [
+                "name",
+                seriesName
+              ]).bookNumbers;
+              if (seriesNumbers) {
+                return _.isArray(seriesNumbers)
+                  ? seriesNumbers.join(numbersDelim)
+                  : seriesNumbers;
               } else {
                 return allNumbers ? allNumbers.join(numbersDelim) : "";
               }
             } else {
-              return "";
+              return allNumbers ? allNumbers.join(numbersDelim) : "";
             }
-            break;
-          case "authors":
-          case "narrators":
-          case "publisher":
-            return this.book[sortKey][0].name;
-            break;
-          case "rating":
-            const ratings = this.book.ratings
-              ? " <small>(" +
-                this.book.ratings
-                  .match(/\d/g)
-                  .join("")
-                  .toString()
-                  .replace(/\B(?=(\d{3})+(?!\d))/g, ",") +
-                ")</small>"
-              : "";
-            return this.book[sortKey] + ratings;
-            break;
-          case "ratings":
-            const text = this.book[sortKey];
-            const rating = this.book.rating
-              ? " <small>(" + this.book.rating + ")</small>"
-              : "";
-            return (
-              text
-                .match(/\d/g)
-                .join("")
-                .toString()
-                .replace(/\B(?=(\d{3})+(?!\d))/g, ",") + rating
-            );
-            break;
-          case "progress":
-            // const progress = this.book[ sortKey ];
-            // return progress;
+          } else {
+            return "";
+          }
+          break;
+        case "authors.name":
+        case "narrators.name":
+        case "publishers.name":
+          return _.get( this.book, sortKey.replace('.name', '[0].name') );
+          break;
+        case "rating":
+          const ratings = this.book.ratings ? " <small>("+ this.book.ratings +")</small>" : "";
+          return this.book[sortKey] + ratings;
+          break;
+        case "ratings":
+          const rating = this.book.rating ? " <small>(" + this.book.rating + ")</small>" : "";
+          return this.book[sortKey] + rating;
+          break;
+        case "progress":
             var css = this.progressbarWidth(this.book);
             return (
               this.progress(this.book) +
               '<div class="progress-bar">' +
-              '<div style="width: ' +
-              css.width +
-              ';"></div>' +
+              '<div style="width: ' + css.width +';"></div>' +
               "</div>"
             );
-            break;
+          break;
 
-          case "title":
-            return this.book.titleShort || this.book[sortKey];
-            break;
+        case "title":
+          return this.book.titleShort || this.book.title || this.notAvailable;
+          break;
 
-          default:
-            return this.book[sortKey];
-        }
+        default:
+          if ( this.book[sortKey] ) return this.book[sortKey]
+          else return this.notAvailable;
+      
       }
-      // Value missing!
-      else {
-        switch (sortKey) {
-          case "bookNumbers":
-            return false; // empty
-            break;
-          case "progress":
-            return '<div>No progress</div> <div class="progress-bar"></div>'; // empty
-            break;
-          default:
-            return this.notAvailable;
-        }
-      }
-    }
-  },
-
-  methods: {
+    },
+    
     progress: function(book) {
+      
+      if ( book.asin === "B00B5HZGUG" ) console.log( book )
+      
       if (book.progress && book.length) {
         if (book.progress.toLowerCase().trim() === "finished") {
           const length = this.timeStringToSeconds(book.length);
           return (
-            "<div>Finished ( " +
-            this.secondsToTimeString(length, true) +
-            " )</div>"
+            "<div>Finished ( " +this.secondsToTimeString(length, true) + " )</div>"
           );
         } else {
           const progress = this.timeStringToSeconds(book.progress);
           const length = this.timeStringToSeconds(book.length);
           const difference = length - progress;
           return (
-            this.secondsToTimeString(difference, true) +
-            " / " +
-            this.secondsToTimeString(length, true)
+            this.secondsToTimeString(difference, true) + " / " + this.secondsToTimeString(length, true)
           );
         }
       } else {
-        return "<div>Length: " + book.length + "</div>";
+        if ( book.progress ) return "<div>" + book.progress + ' ('+ this.notAvailable +')' + "</div>";
+        else if ( book.length ) return "<div>Length: " + book.length + "</div>";
+        else return "<div>" + book.progress + "</div>";
       }
     }
   }
@@ -185,14 +148,30 @@ export default {
     margin-bottom: -4px;
     padding: 3px 6px;
     padding-bottom: (3px+3px);
+    font-size: .9em;
     font-weight: 700;
     border-radius: 2px 2px 0 0;
     color: #fff;
     @include themify($themes) {
       background: themed(audibleOrange);
     }
+    
+    &.sort-favorite {
+      color: #e93f33 !important;
+    }
   }
+  
 }
+
+.theme-dark .ale-book .sort-values-container > div {
+  color: #fff;
+  background: #000;
+}
+.theme-light .ale-book .sort-values-container > div {
+  color: #fff;
+  background: #202020;
+}
+
 .ale-book.details-open .sort-values-container > div {
   margin-left: 0px;
   margin-right: 0px;
@@ -230,8 +209,8 @@ export default {
   height: 2px;
   border-radius: 2px;
   @include themify($themes) {
-    background: darken(themed(audibleOrange), 15);
-    border: 2px solid darken(themed(audibleOrange), 15);
+    // background: darken(themed(audibleOrange), 15);
+    border: 1px solid rgba( darken(themed(audibleOrange), 15), .5 );
   }
   div {
     height: 100%;

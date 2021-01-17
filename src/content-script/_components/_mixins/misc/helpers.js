@@ -15,25 +15,24 @@ export default {
       return DOMPurify.sanitize(el.outerHTML.trimAll());
     },
 
-    fixDates: function(el) {
-      if (el) {
-        var date = el.textContent.trimToColon();
+    fixDates: function( source, overrideFormat ) {
+      if ( source ) {
+        
+        var date = (typeof source === 'object') ? source.textContent.trimToColon() : source;
         const domainExtension = this.domainExtension;
 
         const regionalDateFormats = {
-          ".com": ["m-d-y", "MM-dd-yyyy"],
-          ".ca": ["y-m-d", "yyyy-MM-dd"],
-          ".co.uk": ["d-m-y", "dd-MM-yyyy"],
-          ".de": ["d-m-y", "dd-MM-yyyy"],
-          ".fr": ["d-m-y", "dd-MM-yyyy"],
-          ".it": ["d-m-y", "dd-MM-yyyy"],
+          ".com":    ["m-d-y", "MM-dd-yyyy"],
+          ".ca":     ["y-m-d", "yyyy-MM-dd"],
+          ".co.uk":  ["d-m-y", "dd-MM-yyyy"],
+          ".de":     ["d-m-y", "dd-MM-yyyy"],
+          ".fr":     ["d-m-y", "dd-MM-yyyy"],
+          ".it":     ["d-m-y", "dd-MM-yyyy"],
           ".com.au": ["d-m-y", "dd-MM-yyyy"],
-          ".in": ["d-m-y", "dd-MM-yyyy"]
+          ".in":     ["d-m-y", "dd-MM-yyyy"]
         };
 
-        const formatString =
-          regionalDateFormats[domainExtension][0] ||
-          regionalDateFormats[".com"][0];
+        const formatString = overrideFormat || regionalDateFormats[domainExtension][0] || regionalDateFormats[".com"][0];
         const formatSplit = formatString.split("-");
 
         const newDate = {
@@ -66,10 +65,8 @@ export default {
         //   value: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), 'yyyy-MM-dd'),
         //   original: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), originalFormat),
         // };
-        return dateFormat(
-          new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]),
-          "yyyy-MM-dd"
-        );
+        return dateFormat( new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), "yyyy-MM-dd");
+        
       } else {
         return null;
       }
@@ -79,26 +76,19 @@ export default {
       const series = [];
       if (element) {
         const childSpan = element.querySelector(":scope > span");
-        const html = childSpan
-          ? DOMPurify.sanitize(childSpan.outerHTML)
-          : DOMPurify.sanitize(element.outerHTML);
+        const html = childSpan ? DOMPurify.sanitize(childSpan.outerHTML) : DOMPurify.sanitize(element.outerHTML);
         var string = html.trimAll();
         string = string.replace("</span>", "").trimToColon();
         string = $.parseHTML(string);
 
         $.each(string, function(index, object) {
           var string =
-            object.textContent
-              .trim()
-              .replace(/^,/, "")
-              .trimAll() || "";
+            object.textContent.trim().replace(/^,/, "").trimAll() || "";
 
           var titleRow = (index + 1) % 2;
           var numberRow = !titleRow;
           if (titleRow) {
-            const url = object.href
-              .split("?")[0]
-              .replace(window.location.origin, "");
+            const url = object.href.split("?")[0].replace(window.location.origin, "");
             series.push({
               name: string,
               // url: url, // Url formed using the asin instead to minimize data size
@@ -107,11 +97,7 @@ export default {
           } else if (numberRow) {
             if (string.match(/\d/)) {
               // Trims text from the front: ("Book ", removes trailing comma, and splits numbers separated by commas
-              var numbers = string
-                .replace(/^[^0-9]*/, "")
-                .replace(/,$/, "")
-                .trim()
-                .split(",");
+              var numbers = string.replace(/^[^0-9]*/, "").replace(/,$/, "").trim().split(",");
               // Numbers are added to the previous item
               var lastItem = series[series.length - 1];
               lastItem.bookNumbers = $.map(numbers, function(n) {

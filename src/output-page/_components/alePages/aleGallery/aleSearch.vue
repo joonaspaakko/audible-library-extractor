@@ -84,7 +84,8 @@ export default {
   },
 
   mounted: function() {
-    this.updateBooksArray();
+    
+    this.initBooksArray();
     // this.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', this.searchInputFocus);
     this.searchInputFocus(this);
     // this.searchKeyupListener = $('#ale-search').on("keyup", '> input[type="search"]', this.searchInputKeyup);
@@ -94,12 +95,15 @@ export default {
       this.iosAutozoomDisable,
       { passive: true }
     );
-    window.addEventListener("scroll", this.scrolling);
+    // window.addEventListener("scroll", this.scrolling);
 
     this.$root.$on("start-scope", this.scope);
     this.$root.$on("start-sort", this.sort);
     this.$root.$on("start-filter", this.filter);
     this.$root.$on("start-re-render", this.reRender);
+    
+    this.$root.$on("search-focus", this.focusOnSearch);
+    
   },
 
   beforeDestroy: function() {
@@ -115,46 +119,67 @@ export default {
     // this.searchKeyupListener = null;
     // this.searchOptionsHider = null;
 
-    window.removeEventListener("scroll", this.scrolling);
+    // window.removeEventListener("scroll", this.scrolling);
 
     this.$root.$off("start-scope", this.scope);
     this.$root.$off("start-sort", this.sort);
     this.$root.$off("start-filter", this.filter);
     this.$root.$off("start-re-render", this.reRender);
+    
+    this.$root.$off("search-focus", this.focusOnSearch);
+    
   },
 
   methods: {
+    
+    focusOnSearch: function() {
+      
+      scroll({ top: 0 });
+      this.$refs.searchInput.focus();
+      
+    },
+    
     scope: function() {
       this.$root.$emit("book-clicked", { book: null });
-
       if (this.$store.getters.searchIsActive ) this.search();
     },
     filter: function() {
       
+      this.$root.$emit("book-clicked", { book: null });
       scroll({ top: 0 });
       
-      this.$root.$emit("book-clicked", { book: null });
-      
       if (this.$store.getters.searchIsActive) {
-        // this.$emit("update:collection", this.filterBooks(this.searchResult));
         this.$store.commit("prop", { key: 'booksArray', value: this.filterBooks(this.searchResult) });
       } else {
         const filteredBooks = this.filterBooks( _.get(this.$store.state, this.collectionSource) );
-        // this.$emit("update:collection", this.sortBooks( filteredBooks ));
         this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks( filteredBooks ) });
       }
+      
     },
     sort: function() {
       
       this.$root.$emit("book-clicked", { book: null });
-      // this.$emit("update:collection", this.sortBooks(this.collection || this.$store.state.library.books));
-      this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks( _.get(this.$store.state, this.collectionSource) ) });
+      this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks( this.$store.state.booksArray ) });
       
     },
-    updateBooksArray: function() {
-      let filtered = this.filterBooks( _.get(this.$store.state, this.collectionSource) );
-      this.$emit("update:collection", this.sortBooks(filtered));
-      this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks(filtered) });
+    initBooksArray: function() {
+      
+      let collection = _.get(this.$store.state, this.collectionSource);
+      
+      const sortIfNotDefaults = !(this.$route.query.sort === 'added' && this.$route.query.sortDir === 'desc');
+      if ( sortIfNotDefaults ) {
+        collection = this.sortBooks( collection );
+      }
+      console.log( 'sortIfNotDefaults', sortIfNotDefaults, this.$route.query.sort, this.$route.query.sortDir, '-', !(this.$route.query.sort === 'added' && this.$route.query.sortDir === 'desc') )
+      
+      this.$store.commit("prop", { key: 'booksArray', value: collection });
+      
+    },
+    
+    restoreOptions: function() {
+      
+      updateListRenderingOpts();
+      
     },
 
     scrolling: _.throttle(function(e) {
@@ -199,19 +224,7 @@ export default {
           // this.$emit("update:collection", this.$store.state.library.books);
           this.$store.commit("prop", { key: 'booksArray', value: _.get(this.$store.state, this.collectionSource) });
         }
-
-        if (this.fixedSearch) {
-          scroll({ top: this.$refs.searchWrap.offsetTop - 10 });
-        }
-        // else {
-        //   scroll({ top: 0 });
-        // }
         
-        // FIXME: I think I'm going to have to go with plan A with the search positioning 
-        // because the saerch options can potentially be taller than the viewport and as it 
-        // is you can't scroll down... When you search it scrolls to the top anyways... 
-        // So plan A is to basically have a button that scrolls you up to the 
-        // searchbar that is never fixed to the viewport and focuses on it....
       },
       270,
       { leading: false, trailing: true }

@@ -1,32 +1,34 @@
 <template>
   <span class="sorter-button-wrapper">
     <label
-      v-if="item"
-      v-tippy="{ placement: 'left', maxWidth: 200 }"
-      :content="item.tippy ? item.tippy : false"
-      class="sorter-button"
+    v-if="item" class="sorter-button"
+    v-tippy="{ placement: 'left', maxWidth: 200 }" :content="item.tippy ? item.tippy : false"
     >
+      
+      <!-- HIDDEN input -->
       <input type="checkbox" :value="index" v-model="inputVmodel" />
+      
+      <!-- LABEL in the front -->
       <slot v-if="label === false" class="input-label" />
       
-      <span
-      v-if="item.type === 'sort'"
-      class="sortbox"
-      :class="{ active: isActiveSortItem }"
-      >
+      <!-- SORT ARROWS -->
+      <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
         <font-awesome fas icon="sort-down" />
         <font-awesome fas icon="sort-up" />
       </span>
       
-      <span v-if="!item.type || item.type === 'sortExtras'" class="checkbox">
+      <!-- CHECKBOXES -->
+      <span v-else class="checkbox">
         <font-awesome fas icon="square" />
         <font-awesome fas icon="check" />
       </span>
       
+      <!-- LABEL in the back -->
       <span v-if="label !== false" class="input-label">
         {{ item.label || item.key.replace(".name", "") }}
       </span>
       
+      <!-- EXTRA suffix -->
       <span class="books-in-filter" v-if="listName === 'filter'">
         ({{ filterAmounts() }})
       </span>
@@ -37,17 +39,10 @@
 </template>
 
 <script>
+
 export default {
   name: "sorter",
-  props: [
-    "name",
-    "label",
-    "dataSource",
-    "currentList",
-    "listName",
-    "item",
-    "index"
-  ],
+  props: [ "name", "label", "dataSource", "currentList", "listName", "item", "index" ],
   data: function() {
     return {};
   },
@@ -63,16 +58,24 @@ export default {
           index: this.index,
           active: value
         });
-
-        this.$nextTick(function() {
-          if (this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) {
+        
+        this.saveOptions( value );
+        
+        if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
+        
+        // this.$nextTick(function() {
+          if (this.listName === "scope") {
+            this.$root.$emit("start-scope");
+          }
+          else if (
+            ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) 
+            && this.item.key !== "sortValues"
+          ) {
             this.$root.$emit("start-sort");
           } else if (this.listName === "filter") {
             this.$root.$emit("start-filter");
-          } else if (this.listName === "scope") {
-            this.$root.$emit("start-scope");
-          }
-        });
+          } 
+        // });
       }
     },
 
@@ -103,7 +106,28 @@ export default {
         return vue.item.condition(book);
       }).length;
       
-    }
+    },
+    
+    saveOptions: function( value ) {
+      
+      if ( this.item.key === "sortValues" ) {
+        this.$updateQuery({ query: this.item.key, value: value });
+      }
+      else if ( this.item.type === "sort" ) {  
+        this.$updateQuery({ query: this.item.type, value: this.item.key });
+        this.$updateQuery({ query: 'sortDir', value: value ? "desc" : "asc" });
+      }
+      else if ( this.item.type === "filter" ) {
+        this.$updateQuery({ query: this.item.type, value: this.$store.getters.filterKeys });
+      }
+      else if ( this.listName === "scope" ) {
+        this.$updateQuery({ query: this.listName, value: this.$store.getters.scopeKeys });
+      }
+      // else {
+      //   this.$updateQuery({ query: this.item.key, value: value });
+      // }
+      
+    },
     
   },
 };

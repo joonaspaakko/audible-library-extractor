@@ -1,60 +1,67 @@
 <template>
   <div id="ale-navigation">
-    <ale-save-locally v-if="!$store.state.standalone"></ale-save-locally>
+    <div class="inner-wrap">
+        
+      <ale-save-locally v-if="!$store.state.standalone"></ale-save-locally>
 
-    <div class="text-button gallery-page">
-      <router-link :to="{ name: 'gallery' }">
-        <div class="icon">
-          <font-awesome fas icon="home" />
-          <span>Library</span>
-          <!-- <font-awesome fas icon="th" />
-          <span>Gallery</span> -->
-        </div>
-      </router-link>
-    </div>
-
-    <div class="text-button categories-page">
-      <router-link :to="{ name: 'categories' }">
-        <div class="icon">
-          <font-awesome fas icon="list" />
-          <span>Categories</span>
-        </div>
-      </router-link>
-    </div>
-
-    <div class="text-button categories-page">
-      <router-link :to="{ name: 'all-series' }">
-        <div class="icon">
-          <font-awesome fas icon="list" />
-          <span>Series</span>
-        </div>
-      </router-link>
-    </div>
-
-    <div class="text-button categories-page">
-      <!-- <router-link :to="{ name: 'categories' }"> -->
-      <div class="icon">
-        <font-awesome fas icon="list" />
-        <span>Collections</span>
+      <div class="text-button gallery-page">
+        <router-link :to="{ name: 'gallery' }">
+          <div class="icon">
+            <font-awesome fas icon="home" />
+            <span>Library</span>
+            <!-- <font-awesome fas icon="th" />
+            <span>Gallery</span> -->
+          </div>
+        </router-link>
       </div>
-      <!-- </router-link> -->
-    </div>
 
-    <light-switch></light-switch>
+      <div class="text-button categories-page">
+        <router-link :to="{ name: 'categories' }">
+          <div class="icon">
+            <font-awesome fas icon="list" />
+            <span>Categories</span>
+          </div>
+        </router-link>
+      </div>
 
-    <div
+      <div class="text-button series-page">
+        <router-link :to="{ name: 'all-series' }">
+          <div class="icon">
+            <font-awesome fas icon="list" />
+            <span>Series</span>
+          </div>
+        </router-link>
+      </div>
+
+      <div class="text-button collections-page">
+        <!-- <router-link :to="{ name: 'categories' }"> -->
+        <div class="icon">
+          <font-awesome fas icon="list" />
+          <span>Collections</span>
+        </div>
+        <!-- </router-link> -->
+      </div>
+
+      <light-switch></light-switch>
+      
+      <div class="text-button">
+        <div class="icon" @click="$root.$emit('search-focus')">
+          <font-awesome :icon="['fas', 'search']" />
+        </div>
+      </div>
+
+      <div
       class="save-csv"
       v-tippy
       content="<strong>Download the spreadsheet as a CSV file.</strong> <br>Cells print out in plain text form, which means that none of the hyperlinks are included in the export."
-      v-if="
-        this.$store.state.route &&
-          this.$store.state.route.name === 'ale-spreadsheet'
-      "
+      v-if="this.$store.state.route && this.$store.state.route.name === 'ale-spreadsheet'"
       @click="csvExportStarted"
-    >
-      <div class="icon">
-        <font-awesome fas icon="file-csv" />
+      >
+        <div class="icon">
+          <font-awesome fas icon="file-csv" />
+        </div>
       </div>
+      
     </div>
   </div>
 </template>
@@ -85,12 +92,6 @@ export default {
 
 #ale-navigation {
   text-align: center;
-  // display: flex;
-  // flex-direction: row;
-  // align-items: center;
-  // justify-items: center;
-  // align-content: center;
-  // justify-content: center;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -118,8 +119,17 @@ export default {
       color: rgba(themed(frontColor), 0.9) !important;
     }
   }
-
-  > div {
+  
+  .inner-wrap {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    align-content: center;
+    justify-content: center;
+  }
+  
+  .inner-wrap > div {
     display: inline-block;
     margin-left: 10px;
     &:first-child {

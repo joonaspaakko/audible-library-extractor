@@ -78,6 +78,7 @@ export default {
     // var isbn = _.filter(this.$store.state.library.books, 'isbns');
     // console.log( 'books with ISBN:', isbn.length, isbn );
     // console.log( _.filter( this.$store.state.library.books, ['asin', 'B08BX58B3N'] ) )
+    
   },
 
   mounted: function() {
