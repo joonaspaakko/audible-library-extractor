@@ -1,9 +1,9 @@
 <template>
   <div>
     <div
-      v-if="book.series"
-      class="label hidden-section-label my-books-in-series-label"
-      @click="booksInSeriesLabelClick"
+    v-if="book.series"
+    class="label hidden-section-label my-books-in-series-label"
+    @click="booksInSeriesLabelClick"
     >
       <!-- Had to change this to make it a bit shorter... -->
       <!-- <span class="heading">Books I own in the series</span> -->
@@ -14,14 +14,14 @@
 
     <div class="hidden-section my-books-in-series" v-if="series.toggle">
       <div
-        class="series-section"
-        v-for="(series, seriesIndex) in series.collection"
-        :key="series.asin"
+      class="series-section"
+      v-for="(series, seriesIndex) in series.collection"
+      :key="series.asin"
       >
         <div
-          class="series-heading"
-          v-tippy="{ placement: 'left' }"
-          content="This number represents every single book listing in the series page, including different versions of books you may already have."
+        class="series-heading"
+        v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'], maxWidth: 300, allowHTML: true }"
+        content="<div style='text-align: left;'>The total number of books is based on every single book listing in the series page, including different versions of books you may already have.</div>"
         >
           <div class="series-name">{{ series.name }}</div>
           <div class="series-length">
@@ -30,40 +30,25 @@
         </div>
 
         <div
-          :data-series-name="series.name"
-          class="numbers-list-item"
-          :class="numbersClass(seriesBook)"
-          v-for="(seriesBook, index) in series.books"
-          :key="seriesBook.asin"
+        :data-series-name="series.name" class="numbers-list-item" :class="numbersClass(seriesBook)"
+        v-for="(seriesBook, index) in series.books" :key="seriesBook.asin"
         >
-          <span
-            class="icon"
-            :content="iconTippyContent(seriesBook)"
-            v-tippy="{ placement: 'left' }"
-          >
+          <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
 
-          <router-link
-            v-if="seriesBook.asin !== book.asin"
-            :to="{
-              name: 'ale-series',
-              params: { series: series.asin },
-              query: { book: seriesBook.asin }
-            }"
+          <router-link v-if="seriesBook.asin !== book.asin"
+          :to="{ name: 'series', params: { series: series.asin }, query: { book: seriesBook.asin } }"
           >
-            <span class="numbers">{{
-              getBookNumber(seriesBook, series.asin)
-            }}</span>
+            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </router-link>
           <span v-else>
-            <span class="numbers">{{
-              getBookNumber(seriesBook, series.asin)
-            }}</span>
+            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </span>
         </div>
+        
       </div>
     </div>
     <!-- .by-books-in-series -->
@@ -153,9 +138,9 @@ export default {
       if (classes.finished) {
         tippyContent = "Finished!";
       } else if (classes.unfinished) {
-        tippyContent = "Haven't started yet...";
+        tippyContent = "Not started...";
       } else if (classes.reading) {
-        tippyContent = "Still listening...";
+        tippyContent = "Started...";
       }
       return tippyContent;
     },

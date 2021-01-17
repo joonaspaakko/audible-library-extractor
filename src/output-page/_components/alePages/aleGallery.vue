@@ -1,9 +1,9 @@
 <template>
   <div id="ale-gallery">
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
-    <ale-search collectionSource="library.books" />
+    <ale-search :collectionSource="collectionSource" />
     
-    <ale-grid-view v-if="$store.state.booksArray && $store.state.booksArray.length > 0" />
+    <ale-grid-view v-if="$store.getters.collectionSource && $store.getters.collectionSource.length" />
 
     <!-- <ale-list-view 
     v-if="booksArray && booksArray.length > 0"
@@ -36,11 +36,13 @@ export default {
     audioPlayer
   },
   mixins: [buildCategories, filterAndSort],
+  
   data: function() {
     return {
+      collectionSource: 'library.books',
     };
   },
-
+  
   methods: {
     updateListRenderingOptions: function() {
       const list = {
@@ -73,7 +75,6 @@ export default {
           { active: true,  current: false, key: 'narrators.name',  label: 'Narrator',     		 type: 'sort' },
           // FIXME: Is this needed?
           // You can open a the page for a series and 
-          { active: true,  current: false, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
           { active: true,  current: false, key: 'rating',  			   label: 'Rating',  				   type: 'sort' },
           { active: true,  current: false, key: 'ratings',  			 label: 'Number of ratings', type: 'sort' },
           { active: false, current: false, key: 'progress',  			 label: 'Progress',          type: 'sort' },
@@ -88,41 +89,44 @@ export default {
   },
 
   created: function() {
+    
     this.updateListRenderingOptions();
 
     const vue = this;
     if (this.$route.name === "category") {
+      
       this.general.categories = this.buildCategories();
-    } else if (this.$route.name === "series") {
-      const sortValues = _.find(this.gallery.searchOptions.lists.sortExtras, [
-        "key",
-        "sortValues"
-      ]);
-      sortValues.active = true;
-      const sort = _.find(this.gallery.searchOptions.lists.sort, [
-        "key",
-        "bookNumber"
-      ]);
-      const sortItemIndex = _.findIndex(this.gallery.searchOptions.lists.sort, [
-        "key",
-        "bookNumbers"
-      ]);
-      this.gallery.searchOptions.lists.sort[sortItemIndex].active = false;
-      this.gallery.searchOptions.lists.sortIndex = sortItemIndex;
-
-      this.gallery.customResults = _.filter(
-        this.$store.state.library.books,
-        function(book) {
-          if (book.series && vue.$route.params.series) {
-            return _.find(book.series, function(series) {
-              // console.log( series.asin === 'B077XNSN35' )
-              return series.asin === vue.$route.params.series;
-            });
-          }
-        }
-      );
+      
+    } 
+    else if (this.$route.name === "series") {
+      
+      // console.log('%c' + 'series' + '', 'background: #dbff00; color: #000; padding: 2px 5px; border-radius: 8px;', this.$store.state.library.series);
+      
+      this.$store.commit('addListRenderingOpts', { 
+        listName: 'sort', 
+        option: { active: false,  current: true, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
+        activate: true,
+      });
+      
+      const seriesASIN = this.$route.params.series;
+      const series = _.find( this.$store.state.library.series, { asin: seriesASIN });
+      
+      const books = _.filter( this.$store.state.library.books, function( book ) {
+        return _.includes( series.books, book.asin );
+      });
+      this.$store.commit("prop", { key: "seriesCollection", value: books });
+      this.collectionSource = 'seriesCollection';
+      
     }
-  }
+    
+  },
+  
+  mounted: function() {
+    
+    console.log('%c' + 'gallery Mounted' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    
+  },
+  
 };
 </script>
 

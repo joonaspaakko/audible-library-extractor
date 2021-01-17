@@ -40,8 +40,8 @@ export default {
     searchIcons,
     searchOptions
   },
-  props: ['collectionSource'],
   mixins: [filterAndSort],
+  props: ['collectionSource'],
   data: function() {
     return {
       // resultTimer: null,
@@ -76,7 +76,7 @@ export default {
   updated: function() {
     // console.log('%c' + 'SEARCH UPDATED' + '', 'background: yellow; color: #fff; padding: 2px 5px; border-radius: 8px;');
   },
-
+  
   created: function() {
     var vue = this;
     this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
@@ -151,7 +151,7 @@ export default {
       if (this.$store.getters.searchIsActive) {
         this.$store.commit("prop", { key: 'booksArray', value: this.filterBooks(this.searchResult) });
       } else {
-        const filteredBooks = this.filterBooks( _.get(this.$store.state, this.collectionSource) );
+        const filteredBooks = this.filterBooks( this.$store.getters.collectionSource );
         this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks( filteredBooks ) });
       }
       
@@ -164,13 +164,12 @@ export default {
     },
     initBooksArray: function() {
       
-      let collection = _.get(this.$store.state, this.collectionSource);
+      let collection = this.$store.getters.collectionSource;
       
       const sortIfNotDefaults = !(this.$route.query.sort === 'added' && this.$route.query.sortDir === 'desc');
       if ( sortIfNotDefaults ) {
         collection = this.sortBooks( collection );
       }
-      console.log( 'sortIfNotDefaults', sortIfNotDefaults, this.$route.query.sort, this.$route.query.sortDir, '-', !(this.$route.query.sort === 'added' && this.$route.query.sortDir === 'desc') )
       
       this.$store.commit("prop", { key: 'booksArray', value: collection });
       
@@ -203,10 +202,7 @@ export default {
           const query = this.modifyQuery(this.$store.state.searchQuery);
 
           this.fuseOptions.keys = this.aliciaKeys;
-          this.fuse = new Fuse(
-            _.get(this.$store.state, this.collectionSource),
-            this.fuseOptions
-          );
+          this.fuse = new Fuse( this.$store.getters.collectionSource, this.fuseOptions );
           let result = this.fuse.search(query);
 
           if (result.length > 0) {
@@ -222,7 +218,7 @@ export default {
         } else {
           this.searchResult = null;
           // this.$emit("update:collection", this.$store.state.library.books);
-          this.$store.commit("prop", { key: 'booksArray', value: _.get(this.$store.state, this.collectionSource) });
+          this.$store.commit("prop", { key: 'booksArray', value: this.$store.getters.collectionSource });
         }
         
       },

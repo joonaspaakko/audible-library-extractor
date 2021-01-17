@@ -1,12 +1,12 @@
 <template>
   <div
-    class="book-summary-wrapper"
-    ref="summaryWrapper"
-    :class="{ expanded: summary.readmore.toggle }"
-    :style="{
-      maxHeight: summary.maxHeight,
-      paddingBottom: summary.readmore.toggle ? '40px' : '0px'
-    }"
+  class="book-summary-wrapper"
+  ref="summaryWrapper"
+  :class="{ expanded: summary.readmore.toggle }"
+  :style="{
+    maxHeight: summary.maxHeight,
+    paddingBottom: summary.readmore.toggle ? '40px' : '0px'
+  }"
   >
     <div class="book-summary" ref="summary">
       
@@ -38,10 +38,7 @@
     v-if="summary.maxHeight"
     >
       <span>{{ summary.readmore.toggle ? "Read less" : "Read more" }}</span>
-      <font-awesome
-        fas
-        :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'"
-      />
+      <font-awesome fas :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'" />
     </div>
   </div>
 </template>
@@ -52,7 +49,7 @@ import arrayToHTML from "@output-comps/snippets/arrayToHTML";
 
 export default {
   name: "bookSummary",
-  props: ["book"],
+  props: ["book", "detailsEl"],
   mixins: [makeUrl],
   components: { arrayToHTML },
   data: function() {
@@ -96,9 +93,7 @@ export default {
         this.summary.maxHeight = 300 + "px";
         this.summary.maxHeightTemp = this.summary.maxHeight;
       } else {
-        const information = document.querySelector(
-          "#ale-bookdetails .information"
-        );
+        const information = this.detailsEl.querySelector('.information');
         const informationH = information.offsetHeight;
         const summary = this.$refs.summary;
         const summaryH = summary.offsetHeight;

@@ -1,9 +1,9 @@
 <template>
   <div
-    id="ale-bookdetails"
-    ref="bookDetails"
-    v-shortkey.once="['esc']"
-    @shortkey="closeBookDetails()"
+  id="ale-bookdetails"
+  ref="bookDetails"
+  v-shortkey.once="['esc']"
+  @shortkey="closeBookDetails()"
   >
     <div class="arrow" ref="arrow"></div>
     <div
@@ -43,7 +43,7 @@
           </div>
           <!-- .information -->
 
-          <book-summary :book="book"></book-summary>
+          <book-summary :detailsEl="$el" :book="book"></book-summary>
         </div>
 
         <carousel v-if="!loading && book.peopleAlsoBought" :books="book.peopleAlsoBought">
@@ -100,11 +100,16 @@ export default {
     return {
       maxWidth: "none",
       scrollTop: 0,
-      loading: true
+      loading: true,
+      clickedBook: null,
     };
   },
 
   created: function() {
+
+
+    this.clickedBook = document.querySelector("#ale-books.grid-view").querySelector('.ale-book[data-asin="'+ this.book.asin +'"]');
+    
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
   },
@@ -158,9 +163,7 @@ export default {
 
     resetScroll: function() {
       this.$nextTick(function() {
-        scroll({
-          top: document.querySelector(".ale-book.details-open").offsetTop - 78
-        });
+        scroll({ top: this.clickedBook.offsetTop - 78 });
       });
     },
 
@@ -250,7 +253,7 @@ export default {
           wrapper.width = wrapper.el.offsetWidth;
           
           let target = {};
-          target.el = wrapper.el.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]');
+          target.el = this.clickedBook;
           target.index = this.index;
           target.width = target.el.offsetWidth;
           
@@ -281,9 +284,9 @@ export default {
         this.$router.replace({ query: { book: undefined } });
     },
 
-    progressToolTipBoundaryEl: function() {
-      return $("#ale-bookdetails .information .cover-wrap")[0];
-    },
+    // progressToolTipBoundaryEl: function() {
+    //   return $("#ale-bookdetails .information .cover-wrap")[0];
+    // },
 
     progressTooltip: function(book) {
       if (book.progress.toLowerCase().trim() === "finished") {

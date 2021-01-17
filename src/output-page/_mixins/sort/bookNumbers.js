@@ -1,6 +1,23 @@
 export default {
   methods: {
+    
     sortBookNumbers: function(params) {
+      
+      const seriesAsin = this.$route.params.series;
+      const seriesObj = _.find( this.$store.state.library.series, { asin: seriesAsin });
+      
+      // FIXME: I think I should probably use state.booksArray rather than state.seriesCollection.... not sure?
+      
+      return _.orderBy(
+        this.$store.state.seriesCollection, 
+        function( book ) {
+          return seriesObj.books.indexOf( book.asin );
+        },
+        params.direction
+      );
+    },
+    
+    sortBookNumbersOriginal: function(params) {
       return _.orderBy(
         params.books, 
           // [

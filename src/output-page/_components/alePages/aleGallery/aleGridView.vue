@@ -1,26 +1,13 @@
 <template>
-  <div id="ale-books" class="grid-view" :class="{ 'sort-values-on': $store.getters.sortValues }" ref="booksWrapper">
-    
-    <!-- FIXME: the issue has got something to do with this key, which made it worse and toggling sort values, which I guess.... hides book details and as a result of that tries to then update the queries once more...  -->
-    <!-- :key="'details:' + detailsBook.asin+keySuffix" -->
+  <div id="ale-books" class="grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers') }" ref="booksWrapper">
     
     <book-details
-      v-if="detailsBook"
-      :key="'details:' + detailsBook.asin"
-      :book.sync="detailsBook"
-      :booksWrapper="$refs.booksWrapper"
-      :index="detailsBookIndex"
+    v-if="detailsBook"
+    :key="'details:' + detailsBook.asin"
+    :book.sync="detailsBook"
+    :booksWrapper="$refs.booksWrapper"
+    :index="detailsBookIndex"
     />
-    
-    <!-- <lazy-component
-      v-for="(book, index) in $store.state.booksArray"
-      class="ale-book"
-      :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin, mounted: book.mounted }"
-      :data-asin="book.asin"
-      :key="'book:'+book.asin+keySuffix"
-    >
-      <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
-    </lazy-component> -->
     
     <lazy
     v-for="(book, index) in $store.state.booksArray"
@@ -106,187 +93,42 @@ export default {
   },
 
   mounted: function() {
-    if (_.get(this.$route, "query.book")) {
-      this.$nextTick(function() {
-        console.log('%c' + this.$route.query.book + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;');
-        this.toggleBookDetails({
-          book: _.find(this.$store.state.booksArray, { asin: this.$route.query.book })
-        });
-
-        // const bookEl = $('#ale-books .ale-book[data-asin="'+ this.$route.query.book +'"]');
-        // if ( bookEl.length > 0 ) {
-        //   // setTimeout( function() {
-
-        //     Eventbus.$emit('galleryBookClick', {
-        //       from: 'ale-gallery-query',
-        //       index: bookEl.index(),
-        //       dontClose: true,
-        //       // animationSpeed: 0,
-        //     });
-
-        //   // }, 1500 );
-
-        // }
-      });
-    }
+    
+    console.log('%c' + 'GRID Mounted' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    
+    // Open book details on load
+    if (_.get(this.$route, "query.book")) this.toggleBookDetails({
+      book: _.find(this.$store.state.booksArray, { asin: this.$route.query.book })
+    });
+    
   },
 
   methods: {
     
     toggleBookDetails: function(e) {
+      
       if (!e.book) {
         
         this.detailsBook = null;
         this.detailsBookIndex = -1;
-        if (_.get(this.$route, "query.book") !== undefined)
-          this.$updateQuery({ query: 'book', value: null });
-        
-        // this.$router.replace({ query: { book: undefined } });  
+        if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
       
       } else {
-        if (!e.index)
-          e.index = _.findIndex(this.$store.state.booksArray, { asin: e.book.asin });
-
+        
+        if (!e.index) e.index = _.findIndex( this.$store.state.booksArray, { asin: e.book.asin });
         const sameBook = _.get(this.detailsBook, "asin") === e.book.asin;
         this.detailsBook = null;
         this.detailsBookIndex = e.index;
         this.$nextTick(function() {
           if (!sameBook) this.detailsBook = e.book;
           else {
-            if (this.$route.query !== undefined)
-              this.$updateQuery({ query: 'book', value: null });
-              // this.$router.replace({ query: { book: undefined } });
+            if (this.$route.query !== undefined) this.$updateQuery({ query: 'book', value: null });
           }
         });
+        
       }
     }
-
-    // scrollStopAnimate: function(){
-    //   $("body, html").stop();
-    // },
-
-    // detailsToggle: function( clickedIndex, animSpeed, dontClose ) {
-
-    //   const vue = this;
-    //   this.gallery.details.readmore.toggle = false;
-
-    //   const comp = this;
-    //   const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
-    //   const coverViewportOffset = el.offset().top - $(document).scrollTop();
-
-    //   // Open if closed
-    // 	const detailsClosed = !this.gallery.details.open ? true : false;
-    // 	if ( !this.gallery.details.open ) {
-    // 		this.gallery.details.open = true;
-    // 	}
-    //   // Close if the same cover is clicked a second time
-    // 	else if ( !dontClose && this.gallery.details.open && this.gallery.details.index === clickedIndex ) {
-    // 		this.gallery.details.open = false;
-    //   }
-
-    //   const detailsIndex = this.gallery.details.index;
-    //   this.gallery.details.index = clickedIndex;
-    //   this.gallery.details.changed = (detailsIndex !== clickedIndex || this.gallery.details.open);
-
-    //   this.$nextTick(() => {
-
-    //     if ( this.gallery.details.open ) {
-    //       // const el = $( $('#ale-gallery > div > .ale-book').get( clickedIndex ) );
-    //       this.calculateDetailsPosition( el, this, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, function( el ) {
-
-    //         // FIXME: alebooks sample thing
-    //         // DOESN'T WORK when plaing sample in library and clicking the book in another page....?
-    //         // Also this gets triggered quite a few times on load?
-    //         const asin = el.data('asin');
-    //         if ( vue.$route.query.book !== asin ) vue.$router.replace({ query: { book: asin } });
-
-    //       });
-    //     }
-    //     else {
-
-    //       const asin = el.data('asin');
-    //       if ( vue.$route.query.book ) vue.$router.replace({ query: { book: undefined } });
-
-    //     }
-    //     Eventbus.$emit('detailsToggle', {
-    //       from: 'aleBooks',
-    //       detailsChanged: this.gallery.details.changed
-    //     });
-
-    //   });
-
-    // },
-
-    // calculateDetailsPosition: function( el, comp, clickedIndex, detailsIndex, coverViewportOffset, animSpeed, callback ) {
-
-    //   // FIXE: This should be a slightly lighter end of the row item calc: https://jsfiddle.net/4bxnu0vy/6/
-    //   const gallery = $('#ale-gallery');
-    //   const maxWidth = gallery.width();
-    //   const firstBook = gallery.find('.ale-book').first();
-    //   const bookWidth = firstBook.width();
-    //   const bookLength = gallery.find('.ale-book').length;
-    //   const maxColLength = Math.floor( maxWidth / bookWidth );
-    //   const bookIndex = clickedIndex;
-    //   // const colPosition = (bookIndex % maxColLength)+1;
-
-    //   const firstCoverEl = firstBook.find('.ale-cover');
-    //   const bookMargins = parseInt(firstCoverEl.css('margin-left')) + parseInt(firstCoverEl.css('margin-right'))
-    //   gallery.find('.inner-wrap').css({
-    //     maxWidth: (bookWidth*maxColLength ) - bookMargins
-    //   });
-
-    //   const maxRowLength = Math.floor( bookLength / maxColLength );
-    //   const maxRowLengthRem = bookLength % maxColLength;
-    //   // if ( maxRowLengthRem > 0 ) ++maxRowLength;
-    //   const fullGrid = (maxRowLengthRem > 0 ? maxRowLength+1 : maxRowLength) * maxColLength
-    //   const remainder = fullGrid - bookLength;
-
-    //   const currentRow = Math.floor( bookIndex / maxColLength )+1;
-    //   const lastRow  = currentRow === maxRowLength;
-    //   const endOfTheRow = maxColLength * currentRow;
-    //   const endOfTheRowEl = gallery.find('.ale-book').get( (lastRow ? endOfTheRow - remainder : endOfTheRow)-1 );
-
-    //   // Details are moved at the end of the clicked row
-    //   const bookDetails = $('#ale-bookdetails').insertAfter( endOfTheRowEl );
-
-    //   const targetCenter = el.offset().left + (bookWidth/2) + 8;
-    //   const detailsArrow = bookDetails.find('> .arrow');
-    //   // var arrowHalf = parseInt( detailsArrow.css('border-left-width'))
-    //   detailsArrow.css({
-    //     left: targetCenter
-    //   });
-
-    //   const coverDocumentOffset = el.offset().top;
-    //   const doc = $("body, html");
-    //   doc.scrollTop( coverDocumentOffset - coverViewportOffset );
-    //   const distance = Math.abs( coverViewportOffset);
-    //   let animationSpeed = animSpeed != undefined ? animSpeed : 700;
-    //   if ( animSpeed != 0 ) {
-    //          if ( distance < 30  ) animationSpeed = 0;
-    //     else if ( distance < 40  ) animationSpeed = (animationSpeed / 6);
-    //     else if ( distance < 60  ) animationSpeed = (animationSpeed / 4);
-    //     else if ( distance < 50  ) animationSpeed = (animationSpeed / 5);
-    //     else if ( distance < 130 ) animationSpeed = (animationSpeed / 2);
-
-    //     if ( animationSpeed < 0 ) animationSpeed = 0;
-    //   }
-    //   doc.stop().animate({
-    //     scrollTop: coverDocumentOffset - (parseInt( firstCoverEl.css('margin-top') )*2)
-    //   }, animationSpeed, function() {
-    //     if ( callback ) callback( el );
-    //   });
-    // },
-
-    // onWindowResize: function( msg ) {
-
-    // 	if ( this.gallery.details.open ) {
-    //     const index = this.gallery.details.index;
-    //     const el = $( $('#ale-gallery > div > .ale-book').get( index ) );
-    //     const coverViewportOffset = el.offset().top - $('body, html').scrollTop();
-    //     this.calculateDetailsPosition( el, this, index, index, coverViewportOffset, 0 );
-    //   }
-
-    // },
+    
   }
 };
 </script>

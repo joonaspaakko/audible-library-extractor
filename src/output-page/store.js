@@ -14,6 +14,7 @@ export default new Vuex.Store({
     // States that don't persist
     route: null,
     library: null,
+    seriesCollection: null,
     urlOrigin: null,
     searchQuery: "",
     booksArray: null,
@@ -39,7 +40,26 @@ export default new Vuex.Store({
     stickyProp: function(state, o) {
       state.sticky[o.key] = o.value;
     },
-
+    
+    addListRenderingOpts: function(state, o) {
+      
+      state.listRenderingOpts[o.listName].push( o.option );
+      
+      if ( o.activate ) {
+        if ( o.listName === 'sort' ) {
+          const currentSorter = _.find( state.listRenderingOpts[o.listName], "current" );
+          if ( currentSorter ) currentSorter.current = false;
+          o.option.current = true;
+        }
+        else {
+          const currentlyActive = _.find( state.listRenderingOpts[o.listName], "active" );
+          currentlyActive.active = false;
+          o.option.active = true;
+        }
+      }
+      
+    },
+    
     updateListRenderingOpts: function(state, o) {
       
       let newObject = _.cloneDeep( state.listRenderingOpts[o.listName][o.index] );
@@ -77,6 +97,9 @@ export default new Vuex.Store({
     },
     searchIsActive: function( state ) {
       return state.searchQuery.trim() !== "";
+    },
+    collectionSource: function( state ) {
+      return _.get(state, state.collectionSource);
     },
   }
   

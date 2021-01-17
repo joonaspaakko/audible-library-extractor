@@ -41,31 +41,15 @@ export default {
         case "bookNumbers":
           const numbersDelim = ", ";
 
+            console.log( 'seriesNumbers' )
           if (this.book.series) {
-            let allNumbers = _.filter(this.book.series, "bookNumbers");
-            allNumbers = _.map(allNumbers, "bookNumbers");
-            allNumbers = _.flatten(allNumbers);
-            if (_.isEmpty(allNumbers)) allNumbers = null;
-            if (allNumbers === null) {
+            
+            const seriesAsin = this.$route.params.series;
+            const seriesNumbers = _.find(this.book.series, { asin: seriesAsin }).bookNumbers;
+            if ( seriesNumbers ) {
+              return _.isArray(seriesNumbers) ? seriesNumbers.join(numbersDelim) : seriesNumbers;
             }
-
-            const seriesName = this.gallery.searchOptions.lists
-              .numberSortSeriesName;
-            if (seriesName) {
-              const seriesNumbers = _.find(this.book.series, [
-                "name",
-                seriesName
-              ]).bookNumbers;
-              if (seriesNumbers) {
-                return _.isArray(seriesNumbers)
-                  ? seriesNumbers.join(numbersDelim)
-                  : seriesNumbers;
-              } else {
-                return allNumbers ? allNumbers.join(numbersDelim) : "";
-              }
-            } else {
-              return allNumbers ? allNumbers.join(numbersDelim) : "";
-            }
+            
           } else {
             return "";
           }
