@@ -1,24 +1,16 @@
 <template>
-  <font-awesome
-    class="favorite"
-    v-if="book.favorite"
-    :class="{ 'top-right': topRight }"
-    fas
-    icon="heart"
-    content="This book is one of my favorites!"
-    v-tippy="{
-      placement: 'top',
-      arrow: true,
-      theme: general.tippyTheme
-    }"
-    :style="{ width: (size || 30) + 'px', height: 'auto' }"
+  <font-awesome 
+  class="favorite" :class="{ 'top-right': topRight }"
+  fas icon="heart"
+  v-tippy content="This book is one of my favorites!"
+  :style="{ width: (size || 30) + 'px', height: 'auto' }"
   />
 </template>
 
 <script>
 export default {
   name: "favoriteBook",
-  props: ["book", "general", "topRight", "size"]
+  props: ["topRight", "size"]
 };
 </script>
 

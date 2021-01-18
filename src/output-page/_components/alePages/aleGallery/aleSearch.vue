@@ -150,7 +150,8 @@ export default {
       
       if (this.$store.getters.searchIsActive) {
         this.$store.commit("prop", { key: 'booksArray', value: this.filterBooks(this.searchResult) });
-      } else {
+      } 
+      else {
         const filteredBooks = this.filterBooks( this.$store.getters.collectionSource );
         this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks( filteredBooks ) });
       }

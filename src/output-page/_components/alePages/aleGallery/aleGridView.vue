@@ -14,7 +14,7 @@
     class="ale-book"
     :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }"
     :data-asin="book.asin"
-    :key="'book:'+book.asin"
+    :key="'book:'+book.asin+index"
     >
       <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
     </lazy>

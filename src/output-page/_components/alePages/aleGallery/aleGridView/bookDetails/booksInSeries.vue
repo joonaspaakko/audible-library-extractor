@@ -23,7 +23,11 @@
         v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'], maxWidth: 300, allowHTML: true }"
         content="<div style='text-align: left;'>The total number of books is based on every single book listing in the series page, including different versions of books you may already have.</div>"
         >
-          <div class="series-name">{{ series.name }}</div>
+          <div class="series-name">
+            <router-link :to="{ name: 'series', params: { series: series.asin } }">
+              {{ series.name }}
+            </router-link>
+          </div>
           <div class="series-length">
             {{ series.books.length }} / {{ series.length }}
           </div>

@@ -151,7 +151,7 @@ import {
   faMicroscope,
   faMoon,
   faPlay,
-  // faPlayCircle,
+  faPlayCircle,
   // faPlus,
   faPlusCircle,
   // faRandom,
@@ -192,7 +192,7 @@ library.add(
   faMicroscope,
   faMoon,
   faPlay,
-  // faPlayCircle,
+  faPlayCircle,
   // faPlus,
   faPlusCircle,
   // faRandom,
@@ -286,8 +286,10 @@ globalMethods.install = function (Vue) {
       let currentSorter = _.find( list.sort, { current: true });
       currentSorter.current = false;
       const sortIndex = _.findIndex( list.sort, { key: this.$route.query.sort });
-      list.sort[ sortIndex ].current = true;
-      list.sort[ sortIndex ].active = this.$route.query.sortDir === 'desc' ? true : false;
+      if ( sortIndex > -1 ) {
+        list.sort[ sortIndex ].current = true;
+        list.sort[ sortIndex ].active = this.$route.query.sortDir === 'desc' ? true : false;
+      }
     }
     
     if ( this.$route.query.filter ) {

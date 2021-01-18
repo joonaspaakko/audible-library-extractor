@@ -178,8 +178,7 @@ export default {
             hotpotato[key + "-chunk-" + i] = chunk;
           });
           delete hotpotato[key]; // The original array is not needed anymore
-
-          // FIXME: doesn't seem to destroy the full array??
+          
         }
       });
     },

@@ -29,19 +29,15 @@
               </a>
             </div>
             <div class="progress-info" v-html="progressInfo(book)"></div>
+            
             <div class="basic-details">
-              <div class="search-goodreads" v-if="goodReadsSearchUrl">
-                <a :href="goodReadsSearchUrl" target="_blank"
-                  >Search in Goodreads</a
-                >
-              </div>
-
+              <book-info-toolbar :book="book"></book-info-toolbar>
               <book-basic-info :book="book"></book-basic-info>
             </div>
-            <!-- .basic-details -->
+            
             <books-in-series :book="book"></books-in-series>
-          </div>
-          <!-- .information -->
+            
+          </div> <!-- .information -->
 
           <book-summary :detailsEl="$el" :book="book"></book-summary>
         </div>
@@ -76,12 +72,14 @@ import bookSummary from "./bookDetails/bookSummary";
 import makeUrl from "@output-mixins/makeFullUrl";
 
 import bookBasicInfo from "@output-comps/snippets/book-basic-info";
+import bookInfoToolbar from "@output-comps/snippets/book-info-toolbar";
 import arrayToHTML from "@output-comps/snippets/arrayToHTML";
 
 export default {
   name: "bookDetails",
   components: {
     bookBasicInfo,
+    bookInfoToolbar,
     carousel,
     booksInSeries,
     arrayToHTML,
@@ -132,21 +130,6 @@ export default {
     getMaxWidth: function() {
       return window.innerWidth > 800 ? this.maxWidth : "800px";
     },
-
-    // FIXME: Fix this
-    goodReadsSearchUrl: function() {
-      const base = "https://www.goodreads.com/search?q=";
-      return (
-        base +
-        ((this.book.ISBN_10 && this.book.ISBN_10) ||
-        (this.book.ISBN_13 && this.book.ISBN_13) ||
-        this.book.authors
-          ? encodeURIComponent(
-              this.book.authors[0].name + " " + this.book.titleShort
-            )
-          : null)
-      );
-    }
     
   },
   methods: {

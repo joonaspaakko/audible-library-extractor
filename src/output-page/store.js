@@ -43,6 +43,11 @@ export default new Vuex.Store({
     
     addListRenderingOpts: function(state, o) {
       
+      if ( o.sortValues !== undefined ) {
+        let sortValues = _.find( state.listRenderingOpts.sort, { key: 'sortValues' });
+        if ( sortValues ) sortValues.active = o.sortValues;
+      }
+      
       state.listRenderingOpts[o.listName].push( o.option );
       
       if ( o.activate ) {

@@ -1,5 +1,6 @@
 <template>
   <div id="ale-gallery">
+    
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     <ale-search :collectionSource="collectionSource" />
     
@@ -11,6 +12,7 @@
     ></ale-list-view> -->
 
     <audio-player></audio-player>
+    
   </div>
 </template>
 
@@ -21,7 +23,7 @@ import aleListView from "./aleGallery/aleListView";
 
 // import aleBreadcrumbs from '../aleBreadcrumbs'
 import audioPlayer from "@output-snippets/audio-player";
-import buildCategories from "../../_mixins/buildCategories";
+import buildCategories from "@output-mixins/buildCategories";
 import filterAndSort from "@output-mixins/filter-and-sort.js";
 import smoothscroll from "smoothscroll-polyfill";
 smoothscroll.polyfill();
@@ -106,6 +108,7 @@ export default {
         listName: 'sort', 
         option: { active: false,  current: true, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
         activate: true,
+        sortValues: true,
       });
       
       const seriesASIN = this.$route.params.series;
@@ -116,7 +119,7 @@ export default {
       });
       this.$store.commit("prop", { key: "seriesCollection", value: books });
       this.collectionSource = 'seriesCollection';
-      
+      this.$store.commit("prop", { key: 'booksArray', value: this.$store.getters.collectionSource });
     }
     
   },

@@ -1,17 +1,16 @@
 <template>
   <a
-    :href="goodreadsUrl"
-    target="_blank"
-    class="search-goodreads"
-    v-if="goodreadsUrl"
-    :class="{ 'top-right': topRight }"
+  v-if="goodreadsUrl"
+  :href="goodreadsUrl"
+  target="_blank"
+  class="search-goodreads"
+  :class="{ 'top-right': topRight }"
   >
     <div
       v-if="icon"
       class="gr-icon"
-      content="Search for the book in Goodreads"
-      v-tippy="{ placement: 'top', arrow: true, theme: general.tippyTheme }"
       :style="{ width: (size || 30) + 'px', height: (size || 30) + 'px' }"
+      v-tippy content="Search for the book in Goodreads"
     >
       <img src="images/goodreads.svg" alt="" />
     </div>
@@ -24,7 +23,7 @@ import makeGoodReadsUrl from "../../_mixins/goodReadsSearchUrl";
 
 export default {
   name: "goodReadsLink",
-  props: ["book", "general", "icon", "topRight", "size"],
+  props: ["book", "icon", "topRight", "size"],
   mixins: [makeGoodReadsUrl],
   data: function() {
     return {

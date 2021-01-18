@@ -41,7 +41,6 @@ export default {
         case "bookNumbers":
           const numbersDelim = ", ";
 
-            console.log( 'seriesNumbers' )
           if (this.book.series) {
             
             const seriesAsin = this.$route.params.series;

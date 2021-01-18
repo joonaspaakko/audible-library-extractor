@@ -5,5 +5,8 @@
 <script>
 export default {
   name: "aleLibraryView",
+  beforeDestroy: function() {
+    console.log('BEFORE DESTROY:', 'aleLibraryView')
+  },
 };
 </script>
