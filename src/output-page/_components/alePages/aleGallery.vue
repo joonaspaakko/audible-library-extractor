@@ -2,9 +2,11 @@
   <div id="ale-gallery">
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
-    <ale-search :collectionSource="collectionSource" />
+    <ale-search collectionSource="library.books">
+      <ale-grid-view />
+    </ale-search>
     
-    <ale-grid-view v-if="$store.getters.collectionSource && $store.getters.collectionSource.length" />
+    
 
     <!-- <ale-list-view 
     v-if="booksArray && booksArray.length > 0"
@@ -21,9 +23,11 @@ import aleSearch from "./aleGallery/aleSearch";
 import aleGridView from "./aleGallery/aleGridView";
 import aleListView from "./aleGallery/aleListView";
 
+import prepCategoriesSubPage from "@output-mixins/prepCategoriesSubPage.js";
+import prepSeriesSubPage from "@output-mixins/prepSeriesSubPage.js";
+
 // import aleBreadcrumbs from '../aleBreadcrumbs'
 import audioPlayer from "@output-snippets/audio-player";
-import buildCategories from "@output-mixins/buildCategories";
 import filterAndSort from "@output-mixins/filter-and-sort.js";
 import smoothscroll from "smoothscroll-polyfill";
 smoothscroll.polyfill();
@@ -37,13 +41,11 @@ export default {
     // aleBreadcrumbs,
     audioPlayer
   },
-  mixins: [buildCategories, filterAndSort],
-  
-  data: function() {
-    return {
-      collectionSource: 'library.books',
-    };
-  },
+  mixins: [
+    filterAndSort, 
+    prepCategoriesSubPage, 
+    prepSeriesSubPage
+  ],
   
   methods: {
     updateListRenderingOptions: function() {
@@ -65,8 +67,8 @@ export default {
           // { active: true, type: 'filterExtras', label: 'Favorites', key: 'favorites', condition: function( book ) { return book.favorite; } },
         ],
         sort: [
-          { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: 'Value comes from the active sort category below.' },
-          { active: false,                 key: 'randomize',       label: 'Randomize',        type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
+          { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "The shown value comes from the active sort category below. Sort by title and you'll see the title of eachbook above the cover." },
+          { active: false,                 key: 'randomize',       label: 'Randomize',        type: 'sortExtras', tippy: "Sorting is ignored and the order is randomized." },
           { key: 'divider' },
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',           label: 'Added',   			     type: 'sort', tippy: 'High number = new <br/> Low number = old' },
@@ -93,39 +95,14 @@ export default {
   created: function() {
     
     this.updateListRenderingOptions();
-
-    const vue = this;
-    if (this.$route.name === "category") {
-      
-      this.general.categories = this.buildCategories();
-      
-    } 
-    else if (this.$route.name === "series") {
-      
-      // console.log('%c' + 'series' + '', 'background: #dbff00; color: #000; padding: 2px 5px; border-radius: 8px;', this.$store.state.library.series);
-      
-      this.$store.commit('addListRenderingOpts', { 
-        listName: 'sort', 
-        option: { active: false,  current: true, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
-        activate: true,
-        sortValues: true,
-      });
-      
-      const seriesASIN = this.$route.params.series;
-      const series = _.find( this.$store.state.library.series, { asin: seriesASIN });
-      
-      const books = _.filter( this.$store.state.library.books, function( book ) {
-        return _.includes( series.books, book.asin );
-      });
-      this.$store.commit("prop", { key: "seriesCollection", value: books });
-      this.collectionSource = 'seriesCollection';
-      this.$store.commit("prop", { key: 'booksArray', value: this.$store.getters.collectionSource });
-    }
     
   },
   
   mounted: function() {
     
+    // Setup for other pages that use the gallery page to show titles
+    this.prepCategoriesSubPage();    
+    this.prepSeriesSubPage();
     console.log('%c' + 'gallery Mounted' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
     
   },

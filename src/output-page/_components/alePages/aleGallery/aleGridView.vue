@@ -10,11 +10,11 @@
     />
     
     <lazy
-    v-for="(book, index) in $store.state.booksArray"
+    v-for="(book, index) in $store.getters.collection"
     class="ale-book"
     :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }"
     :data-asin="book.asin"
-    :key="'book:'+book.asin+index"
+    :key="'book:'+book.asin"
     >
       <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
     </lazy>
@@ -57,6 +57,7 @@ export default {
   created: function() {
     const vue = this;
     const routeName = this.$route.name;
+    console.log('test', this.$store.getters.collection )
     // if ( routeName === 'ale-category' ) {
     //   const parentCat = this.$route.params.parent;
     //   const childCat = this.$route.params.child;
@@ -98,7 +99,7 @@ export default {
     
     // Open book details on load
     if (_.get(this.$route, "query.book")) this.toggleBookDetails({
-      book: _.find(this.$store.state.booksArray, { asin: this.$route.query.book })
+      book: _.find(this.$store.getters.collection, { asin: this.$route.query.book })
     });
     
   },
@@ -115,7 +116,7 @@ export default {
       
       } else {
         
-        if (!e.index) e.index = _.findIndex( this.$store.state.booksArray, { asin: e.book.asin });
+        if (!e.index) e.index = _.findIndex( this.$store.getters.collection, { asin: e.book.asin });
         const sameBook = _.get(this.detailsBook, "asin") === e.book.asin;
         this.detailsBook = null;
         this.detailsBookIndex = e.index;

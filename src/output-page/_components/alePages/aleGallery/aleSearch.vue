@@ -1,29 +1,30 @@
 <template>
-  <div
-    id="ale-search-wrap"
-    ref="searchWrap"
-    :class="{ 'search-fixed': fixedSearch }"
-  >
-    <div id="ale-search" ref="aleSearch">
-      <div class="search-wrapper" @click="$refs.searchInput.focus()">
-        <input
-          type="search"
-          ref="searchInput"
-          :value="$store.state.searchQuery"
-          @input="search"
-          :placeholder="placeholder"
-        />
-      </div>
+  <div>
+    <div
+      id="ale-search-wrap"
+      ref="searchWrap"
+      :class="{ 'search-fixed': fixedSearch }"
+    >
+      <div id="ale-search" ref="aleSearch">
+        <div class="search-wrapper" @click="$refs.searchInput.focus()">
+          <input
+            type="search"
+            ref="searchInput"
+            :value="$store.state.searchQuery"
+            @input="search"
+            :placeholder="placeholder"
+          />
+        </div>
 
-      <search-icons :list-name.sync="listName">{{ $store.state.booksArray ? $store.state.booksArray.length : "" }}</search-icons> 
-      <search-options
-        :list-name.sync="listName"
-        v-if="listName"
-      ></search-options>
-    </div>
-    <!-- #ale-search -->
+        <search-icons :list-name.sync="listName">{{ $store.getters.collection.length }}</search-icons> 
+        <search-options
+          :list-name.sync="listName"
+          v-if="listName"
+        ></search-options>
+      </div> <!-- #ale-search -->
+    </div> <!-- #ale-search-wrap -->
+    <slot></slot>
   </div>
-  <!-- #ale-search-wrap -->
 </template>
 
 <script>
@@ -69,7 +70,6 @@ export default {
         rootMargin: "-37px"
       },
       fixedSearch: false,
-      searchResult: null
     };
   },
 
@@ -78,23 +78,32 @@ export default {
   },
   
   created: function() {
+    
     var vue = this;
-    this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
     // console.log('%c' + 'SEARCH CREATED' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    this.$store.commit("prop", { key: "searchQuery", value: '' });
+    this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
+    
+    const ifUrlParams = this.$route.query.sort || this.$route.query.filter;
+    let collection = _.get(this.$store.state, this.collectionSource);
+    if ( ifUrlParams ) {
+      if ( this.$route.query.filter ) collection = this.filterBooks( collection );
+      if ( this.$route.query.sort   ) collection = this.sortBooks( collection );
+      this.$store.commit("prop", { key: 'mutatingCollection', value: collection });
+    }
+    else {
+      this.$store.commit("prop", { key: 'mutatingCollection', value: collection });
+    }
+    
+    
   },
 
   mounted: function() {
     
-    this.initBooksArray();
     // this.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', this.searchInputFocus);
-    this.searchInputFocus(this);
     // this.searchKeyupListener = $('#ale-search').on("keyup", '> input[type="search"]', this.searchInputKeyup);
     // $("#ale-search").on('touchstart', this.iosAutozoomDisable);
-    this.$refs.aleSearch.addEventListener(
-      "touchstart",
-      this.iosAutozoomDisable,
-      { passive: true }
-    );
+    this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable, { passive: true });
     // window.addEventListener("scroll", this.scrolling);
 
     this.$root.$on("start-scope", this.scope);
@@ -107,6 +116,9 @@ export default {
   },
 
   beforeDestroy: function() {
+    
+    this.$store.commit("prop", { key: "searchQuery", value: '' });
+    
     // $('#ale-search').off("focus", '> input[type="search"]', this.searchInputFocus);
     // $('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
     // $("#ale-search").off('touchstart', this.iosAutozoomDisable);
@@ -132,13 +144,6 @@ export default {
 
   methods: {
     
-    focusOnSearch: function() {
-      
-      scroll({ top: 0 });
-      this.$refs.searchInput.focus();
-      
-    },
-    
     scope: function() {
       this.$root.$emit("book-clicked", { book: null });
       if (this.$store.getters.searchIsActive ) this.search();
@@ -146,42 +151,66 @@ export default {
     filter: function() {
       
       this.$root.$emit("book-clicked", { book: null });
-      scroll({ top: 0 });
+      // scroll({ top: 0 });
       
-      if (this.$store.getters.searchIsActive) {
-        this.$store.commit("prop", { key: 'booksArray', value: this.filterBooks(this.searchResult) });
+      if ( this.$store.getters.searchIsActive ) {
+        this.$store.commit("prop", { key: 'mutatingCollection', value: this.filterBooks( _.get(this.$store.state, this.collectionSource) ) });
+        this.search();
       } 
       else {
-        const filteredBooks = this.filterBooks( this.$store.getters.collectionSource );
-        this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks( filteredBooks ) });
+        this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
       }
       
     },
     sort: function() {
       
       this.$root.$emit("book-clicked", { book: null });
-      this.$store.commit("prop", { key: 'booksArray', value: this.sortBooks( this.$store.state.booksArray ) });
+      this.$store.commit("prop", { key: ( this.$store.getters.searchIsActive ? 'searchCollection' : 'mutatingCollection'), value: this.sortBooks( this.$store.getters.collection ) });
       
     },
-    initBooksArray: function() {
+    
+    search: _.debounce( function(e) {
       
-      let collection = this.$store.getters.collectionSource;
-      
-      const sortIfNotDefaults = !(this.$route.query.sort === 'added' && this.$route.query.sortDir === 'desc');
-      if ( sortIfNotDefaults ) {
-        collection = this.sortBooks( collection );
+      // Reset 
+      this.$root.$emit("book-clicked", { book: null });
+      if (e)this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
+
+      // Start searching
+      if (this.$store.getters.searchIsActive) {
+        const query = this.modifyQuery(this.$store.state.searchQuery);
+        
+        this.fuseOptions.keys = this.aliciaKeys;
+        this.fuse = new Fuse( this.$store.state.mutatingCollection, this.fuseOptions );
+        let result = this.fuse.search(query);
+
+        if (result.length > 0) {
+          result = _.map(result, function(o) {
+            return o.item;
+          });
+        }
+        
+        this.$store.commit("prop", { key: 'searchCollection', value: result });
+      }
+      // Stop searching  
+      else {
+        this.$store.commit("prop", { key: 'searchCollection', value: [] });
       }
       
-      this.$store.commit("prop", { key: 'booksArray', value: collection });
-      
-    },
+    }, 270, { leading: false, trailing: true }),
     
     restoreOptions: function() {
       
       updateListRenderingOpts();
       
     },
-
+    
+    focusOnSearch: function() {
+      
+      scroll({ top: 0 });
+      this.$refs.searchInput.focus();
+      
+    },
+    
     scrolling: _.throttle(function(e) {
       if (!this.fixedSearch && window.pageYOffset > 44) {
         this.fixedSearch = true;
@@ -189,44 +218,7 @@ export default {
         this.fixedSearch = false;
       }
     }, 350),
-
-    search: _.debounce(
-      function(e) {
-        this.$root.$emit("book-clicked", { book: null });
-        if (e)
-          this.$store.commit("prop", {
-            key: "searchQuery",
-            value: e.target.value
-          });
-
-        if (this.$store.getters.searchIsActive) {
-          const query = this.modifyQuery(this.$store.state.searchQuery);
-
-          this.fuseOptions.keys = this.aliciaKeys;
-          this.fuse = new Fuse( this.$store.getters.collectionSource, this.fuseOptions );
-          let result = this.fuse.search(query);
-
-          if (result.length > 0) {
-            result = _.map(result, function(o) {
-              return o.item;
-            });
-          } else {
-            result = null;
-          }
-          this.searchResult = result;
-          // this.$emit("update:collection", result);
-          this.$store.commit("prop", { key: 'booksArray', value: result });
-        } else {
-          this.searchResult = null;
-          // this.$emit("update:collection", this.$store.state.library.books);
-          this.$store.commit("prop", { key: 'booksArray', value: this.$store.getters.collectionSource });
-        }
-        
-      },
-      270,
-      { leading: false, trailing: true }
-    ),
-
+    
     onWaypoint({ going, direction }) {
       // going: in, out
       // direction: top, right, bottom, left
@@ -279,23 +271,6 @@ export default {
           head.appendChild(originalMeta);
         }, 700);
       }
-    },
-
-    searchInputFocus: function(vue) {
-      // $('#ale-search > input[type="search"]').one("focus", function() {
-      //   if ( !vue.searchShouldSort ) {
-      //     vue.searchShouldSort = true;
-      //     vue.forceRerender();
-      //     console.log( 'vue.forceRerender()' );
-      //     // $('#ale-search > input[type="search"]').focus();
-      //     setTimeout(function() {
-      //       vue.$nextTick(() => {
-      //         $('#ale-search > input[type="search"]').focus();
-      //         vue.searchInputFocus( vue );
-      //       });
-      //     }, 10);
-      //   }
-      // });
     },
 
     searchInputKeyup: function(e) {

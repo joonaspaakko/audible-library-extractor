@@ -219,12 +219,12 @@ export default {
         
         case "left":
           this.$root.$emit("book-clicked", {
-            book: this.$store.state.booksArray[this.index - 1]
+            book: this.$store.getters.collection[this.index - 1]
           });
           break;
         case "right":
           this.$root.$emit("book-clicked", {
-            book: this.$store.state.booksArray[this.index + 1]
+            book: this.$store.getters.collection[this.index + 1]
           });
           break;
           
@@ -243,7 +243,7 @@ export default {
           const cols = Math.floor(wrapper.width / target.width);
           
           let getClosestTargetBook = function(index) {
-            let el = vue.$store.state.booksArray[ index ];
+            let el = vue.$store.getters.collection[ index ];
             if (!el) {
               el = getClosestTargetBook(--index);
             }
@@ -252,7 +252,7 @@ export default {
           
           this.$root.$emit("book-clicked", {
             book: e.srcKey === 'up' ? 
-              vue.$store.state.booksArray[ this.index-cols ] : 
+              vue.$store.getters.collection[ this.index-cols ] : 
               getClosestTargetBook( this.index+cols )
             
           });
@@ -315,25 +315,6 @@ export default {
         return "<div>Length: " + book.length + "</div>";
       }
     },
-    
-    booksInSeriesItemClick: function(book, seriesName) {
-      // this.searchLock({
-      // 	reason: 'Series',
-      // 	filter: { series: [{name: seriesName }] },
-      // 	sortKey: 'bookNumbers',
-      // 	sortValues: true,
-      // 	sortDirection: 'asc',
-      // 	seriesName: seriesName,
-      //   callback: function( vue ) {
-      //     vue.gallery.details.open = false; // Makes sure that when you click the open book in the "books I own in the series" list, book details won't get closed. I decided it was better to do it this way for books that are part of multiple series.
-      //     Eventbus.$emit('galleryBookClick', {
-      //       from: 'books-in-series-item-click',
-      //       index: _.findIndex(vue.$store.state.booksArray, ['asin', book.asin]),
-      //       animationSpeed: 0
-      //     });
-      //   },
-      // });
-    }
 
     // bookNumbers: function( book, seriesAsin ) {
     //   let anyNumbers = _.find( book.series, 'bookNumbers');

@@ -48,9 +48,12 @@ export default {
             if ( seriesNumbers ) {
               return _.isArray(seriesNumbers) ? seriesNumbers.join(numbersDelim) : seriesNumbers;
             }
+            else {
+              return "∞";
+            }
             
           } else {
-            return "";
+            return this.notAvailable;
           }
           break;
         case "authors.name":
@@ -89,7 +92,7 @@ export default {
     
     progress: function(book) {
       
-      if ( book.asin === "B00B5HZGUG" ) console.log( book )
+      // if ( book.asin === "B00B5HZGUG" ) console.log( book )
       
       if (book.progress && book.length) {
         if (book.progress.toLowerCase().trim() === "finished") {

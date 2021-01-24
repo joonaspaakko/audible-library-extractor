@@ -7,14 +7,14 @@
     "node": ">=10"
   },
   "scripts": {
-    "prettier": "prettier \"src/**/*.{js,vue}\"",
-    "prettier:write": "npm run prettier -- --write",
+    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch",
     "build": "cross-env NODE_ENV=production webpack",
+    "build+zip": "cross-env NODE_ENV=production webpack && node scripts/build-zip.js",
     "build:dev": "cross-env NODE_ENV=development webpack",
     "build:zip": "node scripts/build-zip.js",
-    "build+zip": "cross-env NODE_ENV=production webpack && node scripts/build-zip.js",
     "watch": "npm run build -- --watch",
-    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch"
+    "prettier": "prettier \"src/**/*.{js,vue}\"",
+    "prettier:write": "npm run prettier -- --write"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^1.2.32",

@@ -4,9 +4,10 @@ import rateLimit from "axios-rate-limit";
 export default {
   methods: {
     getISBNsFromGoogleBooks: function(hotpotato, isbnsFetched) {
-      if (!_.find(hotpotato.config.steps, { name: "isbn" }).value) {
+      if ( !_.find(hotpotato.config.steps, { name: "isbn" }).value ) {
         isbnsFetched(null, hotpotato);
-      } else {
+      } 
+      else {
         this.$root.$emit("update-big-step", {
           title: "International Standard Book Number (ISBN)",
           stepAdd: 1
@@ -39,7 +40,7 @@ export default {
             isbnBooks = _.filter(isbnBooks, "isbns");
             _.each(isbnBooks, function(isbnBook) {
               let book = _.find(hotpotato.books, { asin: isbnBook.asin });
-              book.isbns = isbnBook.isbns;
+              if ( book ) book.isbns = isbnBook.isbns;
             });
             fetchISBNs(vue, hotpotato, useStorageISBNs, isbnsFetched);
           });

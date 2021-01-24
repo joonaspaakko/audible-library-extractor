@@ -96,10 +96,7 @@ export default {
       seriesUrl: window.location.origin + "/series",
       collectionsUrl: window.location.origin + "/library/collections",
       wishlistUrl: window.location.origin + "/wl",
-      domainExtension: window.location.hostname.substring(
-        window.location.hostname.lastIndexOf("."),
-        window.location.hostname.length
-      ),
+      domainExtension: window.location.hostname.substring( window.location.hostname.lastIndexOf("."), window.location.hostname.length ),
       newBooks: [],
       library: {
         books: [],
@@ -116,6 +113,7 @@ export default {
     });
 
     // vue.init_storePageTest();
+    
   },
   methods: {
     init_step_extract: function(config, hotpotato) {
@@ -124,17 +122,17 @@ export default {
       vue.$nextTick(function() {
         hotpotato = hotpotato || {};
         hotpotato.config = config;
-
+        
+        // _.find( config.steps, { name: "storePage" }).value = true;
+      
         const waterfallArray = [
-          function(callback) {
-            callback(null, hotpotato);
-          },
+          function(callback) { callback(null, hotpotato); },
           vue.getDataFromLibraryPages, // Can be scraped alone
-          vue.getDataFromStorePages, // Requires library page data
-          vue.getDataFromSeriesPages, // Requires library page data
-          vue.getDataFromCollections, // Can be scraped alone
+          vue.getDataFromStorePages,   // Requires library page data
+          vue.getDataFromSeriesPages,  // Requires store page data (for fallback)
+          vue.getDataFromCollections,  // Can be scraped alone
           vue.getISBNsFromGoogleBooks, // Requires library page data
-          vue.getDataFromWishlist // Can be scraped alone
+          vue.getDataFromWishlist      // Can be scraped alone
         ];
 
         vue.$root.$emit("update-big-step", {
@@ -147,8 +145,7 @@ export default {
 
         waterfall(waterfallArray, function(err, hotpotato) {
           vue.$root.$emit("update-big-step", {
-            title:
-              "Closing this page in 5 seconds and opening the gallery page in a new tab",
+            title: "Closing this page in 5 seconds and opening the gallery page in a new tab",
             step: 0,
             max: 0
           });
@@ -157,12 +154,7 @@ export default {
           if (configISBN && configISBN.value) {
             const booksWithISBN = _.filter(hotpotato.books, "isbns");
             vue.$root.$emit("update-progress", {
-              text:
-                "Currently " +
-                booksWithISBN.length +
-                "/" +
-                hotpotato.books.length +
-                " books have ISBNs",
+              text: "Currently " + booksWithISBN.length + "/" + hotpotato.books.length + " books have ISBNs",
               step: 0,
               max: 0
             });

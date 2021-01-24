@@ -1,4 +1,6 @@
+import sortName from "@output-mixins/sort/name.js";
 import sortTitle from "@output-mixins/sort/title.js";
+import sortAmount from "@output-mixins/sort/amount.js";
 import sortLength from "@output-mixins/sort/length.js";
 import sortRatings from "@output-mixins/sort/ratings.js";
 import sortProgress from "@output-mixins/sort/progress.js";
@@ -10,7 +12,9 @@ import sortStringNameProp from "@output-mixins/sort/stringNameProp.js";
 
 export default {
   mixins: [
+    sortName,
     sortTitle,
+    sortAmount,
     sortLength,
     sortRatings,
     sortProgress,
@@ -105,48 +109,57 @@ export default {
         else if ( o.current ) return true;
       });
       
-      const sortOptions = {
-        books: books,
-        direction: sortByItem.active ? "desc" : "asc",
-        sortKey: sortByItem.key
-      };
+      if ( sortByItem ) {
       
-      switch (sortOptions.sortKey) {
-        case "randomize":
-          books = _.shuffle(books);
-          break;
-        case "bookNumbers":
-          // sortOptions.seriesName = this.gallery.searchOptions.lists.numberSortSeriesName;
-          sortOptions.missingNumber = 0;
-          books = this.sortBookNumbers(sortOptions);
-          break;
-        case "added":
-          books = this.sortDateAdded(sortOptions);
-          break;
-        case "releaseDate":
-          books = this.sortReleaseDate(sortOptions);
-          break;
-        case "authors.name":
-        case "narrators.name":
-        case "publishers.name":
-          books = this.sortStringNameProp(sortOptions);
-          break;
-        case "title":
-          books = this.sortTitle(sortOptions);
-          break;
-        case "length":
-          books = this.sortLength(sortOptions);
-          break;
-        case "rating":
-        case "ratings":
-          books = this.sortRatings(sortOptions);
-          break;
-        case "progress":
-          books = this.sortProgress(sortOptions);
-          break;
-        case "favorite":
-          books = this.sortFavorites(sortOptions);
-          break;
+        const sortOptions = {
+          books: books,
+          direction: sortByItem.active ? "desc" : "asc",
+          sortKey: sortByItem.key
+        };
+        
+        switch (sortOptions.sortKey) {
+          case "randomize":
+            books = _.shuffle(books);
+            break;
+          case "bookNumbers":
+            // sortOptions.seriesName = this.gallery.searchOptions.lists.numberSortSeriesName;
+            sortOptions.missingNumber = 0;
+            books = this.sortBookNumbers(sortOptions);
+            break;
+          case "added":
+            books = this.sortDateAdded(sortOptions);
+            break;
+          case "releaseDate":
+            books = this.sortReleaseDate(sortOptions);
+            break;
+          case "authors.name":
+          case "narrators.name":
+          case "publishers.name":
+            books = this.sortStringNameProp(sortOptions);
+            break;
+          case "title":
+            books = this.sortTitle(sortOptions);
+            break;
+          case "length":
+            books = this.sortLength(sortOptions);
+            break;
+          case "rating":
+          case "ratings":
+            books = this.sortRatings(sortOptions);
+            break;
+          case "progress":
+            books = this.sortProgress(sortOptions);
+            break;
+          case "favorite":
+            books = this.sortFavorites(sortOptions);
+            break;
+          case "name":
+            books = this.sortName(sortOptions);
+            break;
+          case "amount":
+            books = this.sortAmount(sortOptions);
+            break;
+        }
       }
 
       return books;

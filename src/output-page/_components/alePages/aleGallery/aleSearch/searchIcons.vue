@@ -17,6 +17,7 @@
       :content="item.tooltip"
     >
       <div
+        v-if="item.name !== 'scope' && $store.state.listRenderingOpts[ item.name ].length > 0 || item.name === 'scope' && $store.state.listRenderingOpts[ item.name ].length > 1"
         class="search-opt-btn"
         :data-option="item.name"
         :class="{ active: listName === item.name }"

@@ -104,7 +104,7 @@ export default {
     tableData: function() {
       const vue = this;
 
-      return _.map(vue.$store.state.booksArray, function(book) {
+      return _.map(vue.$store.getters.collection, function(book) {
         const newBook = {};
         _.each(vue.keys, function(key, i) {
           const sourceData = book[key];

@@ -1,58 +1,65 @@
 export default {
   methods: {
     getDataFromStorePages: function(hotpotato, storePagesFetched) {
-      if (!hotpotato.config.test) {
-        this.$root.$emit("update-big-step", {
-          title: "Store Pages",
-          stepAdd: 1
-        });
+      if ( _.find(hotpotato.config.steps, { name: "storePage", value: false }) ) {
+        storePagesFetched(null, hotpotato);
+      } 
+      else {
+        
+        if (!hotpotato.config.test) {
+          this.$root.$emit("update-big-step", {
+            title: "Store Pages",
+            stepAdd: 1
+          });
 
-        this.$root.$emit("update-progress", {
-          text: "Fetching additional data from store pages...",
-          step: 0,
-          bar: true
-        });
-      }
+          this.$root.$emit("update-progress", {
+            text: "Fetching additional data from store pages...",
+            step: 0,
+            bar: true
+          });
+        }
 
-      const vue = this;
-      const requests = prepStorePages(hotpotato);
+        const vue = this;
+        const requests = prepStorePages(hotpotato);
 
-      if (requests) {
-        vue.amapxios({
-          requests: requests,
-          returnCatch: true,
-          step: function(response, stepCallback, book) {
-            delete book.requestUrl;
+        if (requests) {
+          vue.amapxios({
+            requests: requests,
+            returnCatch: true,
+            step: function(response, stepCallback, book) {
+              delete book.requestUrl;
 
-            if (!hotpotato.config.test)
-              vue.$root.$emit("update-progress", { text2: book.title });
+              if (!hotpotato.config.test)
+                vue.$root.$emit("update-progress", { text2: book.title });
 
-            if (response.status >= 400) {
-              book.storePageMissing = true;
-            } else {
-              getStorePageData(vue, response, book, hotpotato.config.test);
+              if (response.status >= 400) {
+                book.storePageMissing = true;
+              } else {
+                getStorePageData(vue, response, book, hotpotato.config.test);
+              }
+
+              if (!hotpotato.config.test) vue.$root.$emit("update-progress-step");
+              // if ( book.cover ) vue.$root.$emit('update-progress-thumbnail', 'https://m.media-amazon.com/images/I/'+ book.cover + '._SL120_.jpg' );
+              stepCallback(book);
+            },
+            flatten: true,
+            done: function() {
+              vue.$nextTick(function() {
+                setTimeout(function() {
+                  if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
+                  storePagesFetched(null, hotpotato);
+                }, 1000);
+              });
             }
-
-            if (!hotpotato.config.test) vue.$root.$emit("update-progress-step");
-            // if ( book.cover ) vue.$root.$emit('update-progress-thumbnail', 'https://m.media-amazon.com/images/I/'+ book.cover + '._SL120_.jpg' );
-            stepCallback(book);
-          },
-          flatten: true,
-          done: function() {
-            vue.$nextTick(function() {
-              setTimeout(function() {
-                if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
-                storePagesFetched(null, hotpotato);
-              }, 1000);
-            });
-          }
-        });
-      } else {
-        vue.$nextTick(function() {
-          setTimeout(function() {
-            storePagesFetched(null, hotpotato);
-          }, 1000);
-        });
+          });
+        } else {
+          vue.$nextTick(function() {
+            setTimeout(function() {
+              storePagesFetched(null, hotpotato);
+            }, 1000);
+          });
+        }
+        
       }
     }
   }
@@ -99,7 +106,8 @@ function getStorePageData(vue, response, book, isTest) {
     book.titleShort = bookData.name;
     const ratingsLink = audible.querySelector(".ratingsLabel > a");
     if (ratingsLink) book.ratings = parseFloat(ratingsLink.textContent.match(/\d/g).join(""));
-    book.rating = Number( audible.querySelector(".ratingsLabel > span:last-of-type").textContent.trimAll() );
+    const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
+    if ( ratingEl ) book.rating = Number( ratingEl.textContent.trimAll() );
     book.summary = bookData.description || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span" ) );
     book.releaseDate = bookData.datePublished ? vue.fixDates( bookData.datePublished, 'y-m-d' ) : vue.fixDates(audible.querySelector(".releaseDateLabel")); 
     book.publishers = vue.getArray( audible.querySelectorAll(".publisherLabel > a") );

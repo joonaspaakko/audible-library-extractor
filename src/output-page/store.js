@@ -12,15 +12,16 @@ export default new Vuex.Store({
       // sortValues: false,
     },
     // States that don't persist
+    searchCollection: [],
+    mutatingCollection: [],
+    collectionSource: null,
+    pageCollection: null,
     route: null,
     library: null,
-    seriesCollection: null,
     urlOrigin: null,
     searchQuery: "",
-    booksArray: null,
     standalone: null,
     displayMode: null,
-    collectionSource: null,
     listRenderingOpts: null,
   },
 
@@ -103,8 +104,19 @@ export default new Vuex.Store({
     searchIsActive: function( state ) {
       return state.searchQuery.trim() !== "";
     },
-    collectionSource: function( state ) {
-      return _.get(state, state.collectionSource);
+    // collection: function( state ) {
+    //   return _.get(state, state.collectionSource);
+    // },
+    collection: function( state ) {
+      const searchIsActive = state.searchQuery.trim() !== "";
+      if ( searchIsActive )  console.log('SEARCH IS ACTIVE');
+      
+      if ( searchIsActive ) {
+        return state.searchCollection;
+      }
+      else {
+        return state.mutatingCollection;
+      }
     },
   }
   

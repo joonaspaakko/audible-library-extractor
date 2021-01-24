@@ -45,16 +45,18 @@ export default {
               request.pageNumbers = prep.pageNumbers;
               request.pageSize = prep.pageSize;
 
-              getBooks(vue, request, stepCallback);
+              getBooks(vue, hotpotato, request, stepCallback);
             });
           },
           function(err, responses) {
             // Each series page is fetched as a separate request.
             // This merges the books arrays and cleans up the returning object a little
+            console.log( _.flatten(responses) );
+            console.log( _.filter( _.flatten(responses), { asin: 'B071XT35PZ'}) );
+            
             _.each(_.flatten(responses), function(series) {
               const targetSeries = _.find(requests, { asin: series.asin });
-              if (targetSeries)
-                targetSeries.books = targetSeries.books.concat(series.books);
+              if (targetSeries) targetSeries.books = targetSeries.books.concat(series.books);
               targetSeries.length += series.length;
               delete targetSeries.pageNumbers;
               delete targetSeries.pageSize;
@@ -85,14 +87,14 @@ export default {
   }
 };
 
-function getBooks(vue, request, parentStepCallback) {
+function getBooks(vue, hotpotato, request, parentStepCallback) {
   let requestUrls = [];
 
   _.each(request.pageNumbers, function(page) {
     const requestDolly = _.cloneDeep(request);
     const pageSize = request.pageSize ? "&pageSize=" + request.pageSize : "";
-    (requestDolly.url += "/?page=" + page + pageSize),
-      requestUrls.push(requestDolly);
+    requestDolly.url += "/?page=" + page + pageSize;
+    requestUrls.push(requestDolly);
   });
 
   vue.amapxios({
@@ -101,10 +103,8 @@ function getBooks(vue, request, parentStepCallback) {
       const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
       response.data = null;
 
-      const bookRows = audible.querySelectorAll(
-        ".adbl-impression-container > .productListItem"
-      );
-
+      const bookRows = audible.querySelectorAll(".adbl-impression-container > .productListItem");
+      
       let series = {
         asin: request.asin,
         books: [],
@@ -112,23 +112,39 @@ function getBooks(vue, request, parentStepCallback) {
       };
 
       $(bookRows).each(function() {
-        // this.querySelector('input[name="asin"]')
-        const inLibrary = this.querySelector(".adblBuyBoxInLibraryButton");
-        // const ableToPlay = this.querySelector('.adblBuyBoxMinervaPlayNow');
-        if (inLibrary) {
-          series.books.push(
-            this.querySelector("div[data-asin]").getAttribute("data-asin")
-          );
+                
+        const asinEl = this.querySelector("div[data-asin]");
+        if ( asinEl ) {
+          const asin = asinEl.getAttribute("data-asin");
+          const inLibrary = this.querySelector(".adblBuyBoxInLibraryButton");
+          if ( inLibrary ) {
+            series.books.push( asin );
+          }
+          
         }
+        // Sometimes books may leave the store or be blocked for whatever reason and when a book 
+        // is not available, you can't tell if it's in your library by lookin at the series page (like I'm doing above). 
+        // What I ended up doing was checking the title against the short title in hotpotato.books array.
+        // There doesn't seem to be another way, since the asin is no longer there and the cover art id does not match
+        // The book in question: https://www.audible.com/pd/Alien-Out-of-the-Shadows-Audiobook/B01CYVJUBC
+        else {
+          
+          const title = this.getAttribute('aria-label');
+          const inLibrary = _.find( hotpotato.books, { 'titleShort': title });
+          if ( inLibrary ) {
+            series.books.push( inLibrary.asin );
+          }
+          
+        }
+        
       });
-
-      // request.books = asinArray;
 
       vue.$root.$emit("update-progress", {
         text: "Fetching series order from books in series..."
       });
 
       stepCallback(series);
+      
     },
     flatten: true,
     done: function(series) {

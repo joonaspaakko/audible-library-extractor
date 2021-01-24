@@ -6,36 +6,16 @@
           <span class="title is-4">Extraction Settings</span>
         </div>
         <b-field grouped class="setting-checkboxes">
-          <span
-            v-for="setting in mainSteps"
-            :key="setting.name"
-            v-tippy
-            :content="setting.tippy"
-          >
-            <b-checkbox
-              :value="setting.value"
-              :disabled="setting.disabled"
-              :type="setting.type"
-              @input="settingChanged($event, setting.name)"
-            >
+          <span v-for="setting in mainSteps" :key="setting.name" v-tippy :content="setting.tippy" >
+            <b-checkbox :value="setting.value" :disabled="setting.disabled" :type="setting.type" @input="settingChanged($event, setting.name)" >
               {{ setting.label }}
             </b-checkbox>
           </span>
         </b-field>
 
         <b-field grouped class="setting-checkboxes" v-if="extras.length">
-          <span
-            v-for="setting in extras"
-            :key="setting.name"
-            v-tippy
-            :content="setting.tippy"
-          >
-            <b-checkbox
-              :value="setting.value"
-              :disabled="setting.disabled"
-              :type="setting.type"
-              @input="settingChanged($event, setting.name)"
-            >
+          <span v-for="setting in extras" :key="setting.name" v-tippy :content="setting.tippy" >
+            <b-checkbox :value="setting.value" :disabled="setting.disabled" :type="setting.type" @input="settingChanged($event, setting.name)" >
               {{ setting.label }}
             </b-checkbox>
           </span>
@@ -54,23 +34,11 @@
 
     <div class="extract-wrapper">
       <b-field class="extract-btn">
-        <b-button
-          @click="takeNextStep('extract')"
-          type="is-info"
-          class="extract control"
-          expanded
-          size="is-large"
-        >
+        <b-button @click="takeNextStep('extract')" type="is-info" class="extract control" expanded size="is-large" >
           Start extracting
         </b-button>
         <div class="control">
-          <b-button
-            @click="takeNextStep('extract')"
-            type="is-dark"
-            icon-right="arrow-alt-circle-down"
-            icon-pack="far"
-            size="is-large"
-          ></b-button>
+          <b-button @click="takeNextStep('extract')" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large" ></b-button>
         </div>
       </b-field>
 
@@ -103,26 +71,20 @@
     </div>
 
     <b-button
-      class="settings-btn"
-      @click="settingsOpen = !settingsOpen"
-      :class="{ open: settingsOpen }"
-      size="is-small"
-      type="is-text"
-      icon-left="cog"
-      icon-pack="fas"
-      >Settings</b-button
+    class="settings-btn"
+    @click="settingsOpen = !settingsOpen"
+    :class="{ open: settingsOpen }"
+    size="is-small"
+    type="is-text"
+    icon-left="cog"
+    icon-pack="fas"
     >
+      Settings
+    </b-button>
 
     <div id="footer" class="is-small has-text-grey-light">
-      Find more information in the
-      <a href="https://github.com/joonaspaakko/audible-library-extractor"
-        >Github repository</a
-      >
-      page. <br />
-      Post issues, questions, and suggestion at:
-      <a href="https://github.com/joonaspaakko/audible-library-extractor/issues"
-        >Github issues</a
-      >.
+      Find more information in the <a href="https://github.com/joonaspaakko/audible-library-extractor">Github repository</a> page. <br />
+      Post issues, questions, and suggestion at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>.
     </div>
   </div>
 </template>
@@ -196,8 +158,7 @@ export default {
           label: "Series Order",
           type: "is-success",
           disabled: true,
-          tippy:
-            "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>"
+          tippy: "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>"
         },
         {
           name: "collections",
@@ -205,8 +166,7 @@ export default {
           label: "Collections",
           type: "is-success",
           disabled: false,
-          tippy:
-            "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>"
+          tippy: "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>"
         },
         {
           name: "isbn",
@@ -214,8 +174,7 @@ export default {
           label: "ISBN",
           type: "is-danger",
           disabled: false,
-          tippy:
-            "<div style='text-align: left;'><strong>Very slow process with +200 books.</strong> Only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Only books that are missing ISBNs are processed during a partial extraction. <br>You should only need them if you plan to import the books to Goodreads.</div>"
+          tippy: "<div style='text-align: left;'><strong>Very slow process with +200 books.</strong> Only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Only books that are missing ISBNs are processed during a partial extraction. <br>You should only need them if you plan to import the books to Goodreads.</div>"
         },
         {
           name: "isbn-update",
@@ -226,8 +185,7 @@ export default {
           extra: true,
           onStorageHasData: true,
           parent: "isbn",
-          tippy:
-            "<div style='text-align: left;'><strong>Will potentially save a lot of time.</strong> <br>Keeps previously extracted ISBNs and only tries to add ISBNs to all books without ISBNs. <br>ISBNs are not likely to change and since you've already done a full extract, might as well use the existing ISBNs. <br>Disable if you want to refresh the whole list of ISBNs during a full extract.</div>"
+          tippy: "<div style='text-align: left;'><strong>Will potentially save a lot of time.</strong> <br>Keeps previously extracted ISBNs and only tries to add ISBNs to all books without ISBNs. <br>ISBNs are not likely to change and since you've already done a full extract, might as well use the existing ISBNs. <br>Disable if you want to refresh the whole list of ISBNs during a full extract.</div>"
         },
         {
           name: "wishlist",
@@ -235,8 +193,7 @@ export default {
           label: "Wishlist",
           type: "is-warning",
           disabled: false,
-          tippy:
-            "<div style='text-align: left;'><strong>Slow process...</strong> <br><strong>Always a full extract, even when updating.</strong></div>"
+          tippy: "<div style='text-align: left;'><strong>Slow process...</strong> <br><strong>Always a full extract, even when updating.</strong></div>"
         }
       ],
       loading: true

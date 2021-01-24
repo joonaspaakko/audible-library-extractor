@@ -80,8 +80,8 @@ const aleSeries = () => import(/* webpackChunkName: "series" */ "./_components/a
 import aleLibraryView from "./_components/aleLibraryView";
 
 const routes = [
-  { path: "/", redirect: "/gallery" },
-  { name: "gallery", path: "/gallery", component: aleGallery, props: true },
+  { path: "/", redirect: "/library" },
+  { name: "gallery", path: "/library", component: aleGallery, props: true },
   // { name: 'spreadsheet', path: '/spreadsheet', component: aleSpreadsheet, props: true },
   {
     path: "/categories",
