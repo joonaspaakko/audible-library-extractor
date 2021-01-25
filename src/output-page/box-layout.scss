@@ -10,7 +10,7 @@
 
 .theme-dark .box-layout-wrapper {
   .single-box {
-    background: rgba( darken( $darkBackColor, 2), .9 );
+    background: rgba( darken( $darkBackColor, 2), .98 );
     box-shadow: $shadowMedium rgba(0,0,0,0.45);
     color: $darkFrontColor;
     border: 1px solid rgba( lighten( $darkBackColor, 32), .25 );
@@ -18,10 +18,21 @@
 }
 .theme-light .box-layout-wrapper {
   .single-box {
-    background: rgba( lighten( $lightBackColor, 5), .9 );
+    background: rgba( lighten( $lightBackColor, 5), .98 );
     box-shadow: $shadowMedium  rgba(0,0,0,0.1);
     color: $lightFrontColor;
     border: 1px solid rgba( $lightFrontColor, .25 );
+    
+    a {
+      text-decoration: none;
+      color: $lightFrontColor !important;
+    }
+    a:visited {
+      color: darken(desaturate( $audibleOrange, 5), 25) !important;
+    }
+    a:hover {
+      color: rgba( $lightFrontColor, .86) !important;
+    }
   }
 }
 

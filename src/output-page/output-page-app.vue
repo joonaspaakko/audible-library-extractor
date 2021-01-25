@@ -53,7 +53,6 @@ export default {
       general: {
         route: null,
         standalone: null,
-        // lightSwitch: 1,
         categories: null,
         tippyTheme: "dark"
       },

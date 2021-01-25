@@ -2,7 +2,7 @@
   <div id="ale-gallery">
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
-    <ale-search collectionSource="library.books">
+    <ale-search :collectionSource="collectionSource">
       <ale-grid-view />
     </ale-search>
     
@@ -47,6 +47,12 @@ export default {
     prepSeriesSubPage
   ],
   
+  data: function() {
+    return {
+      collectionSource: 'library.books',
+    };
+  },
+  
   methods: {
     updateListRenderingOptions: function() {
       const list = {
@@ -77,8 +83,6 @@ export default {
           { active: true,  current: false, key: 'length',          label: 'Length',       		 type: 'sort' },
           { active: true,  current: false, key: 'authors.name',    label: 'Author',       		 type: 'sort' },
           { active: true,  current: false, key: 'narrators.name',  label: 'Narrator',     		 type: 'sort' },
-          // FIXME: Is this needed?
-          // You can open a the page for a series and 
           { active: true,  current: false, key: 'rating',  			   label: 'Rating',  				   type: 'sort' },
           { active: true,  current: false, key: 'ratings',  			 label: 'Number of ratings', type: 'sort' },
           { active: false, current: false, key: 'progress',  			 label: 'Progress',          type: 'sort' },
@@ -96,13 +100,14 @@ export default {
     
     this.updateListRenderingOptions();
     
+    // Setup for other pages that use the gallery page to show titles
+    this.prepCategoriesSubPage();    
+    this.prepSeriesSubPage();
+    
   },
   
   mounted: function() {
     
-    // Setup for other pages that use the gallery page to show titles
-    this.prepCategoriesSubPage();    
-    this.prepSeriesSubPage();
     console.log('%c' + 'gallery Mounted' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
     
   },

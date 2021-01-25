@@ -47,6 +47,8 @@ export default {
           key: "lightSwitch",
           value: this.$store.state.sticky.lightSwitch ? 0 : 1
         });
+        
+        console.log( !this.$store.state.sticky.lightSwitchSetByUser )
 
         if (!this.$store.state.sticky.lightSwitchSetByUser)
           this.$store.commit("stickyProp", {
@@ -66,6 +68,7 @@ export default {
     },
 
     autoLightsOff: function() {
+      console.log( 'yasdfasdf', this.$store.state.sticky )
       if (
         window.matchMedia("(prefers-color-scheme)").media !== "not all" &&
         this.$store.state.sticky.lightSwitch &&

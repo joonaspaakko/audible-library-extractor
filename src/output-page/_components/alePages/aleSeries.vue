@@ -32,12 +32,9 @@
 
 import lazy from "@output-snippets/lazy.vue";
 import aleSearch from "./aleGallery/aleSearch";
-// import slugify from "../../_mixins/slugify";
-// import makeCoverUrl from "../../_mixins/makeCoverUrl";
 
 export default {
   name: "aleSeries",
-  // mixins: [slugify, makeCoverUrl],
   components: {
     aleSearch,
     lazy,
@@ -85,8 +82,6 @@ export default {
     });
     
     _.reverse( seriesCollection );
-    
-    console.log( seriesCollection )
     
     this.$store.commit("prop", { key: "pageCollection", value: seriesCollection });
     this.updateListRenderingOptions();

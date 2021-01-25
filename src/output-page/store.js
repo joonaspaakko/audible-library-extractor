@@ -28,10 +28,8 @@ export default new Vuex.Store({
   mutations: {
     fromLocalStorage: function(state) {
       const lsState = JSON.parse(localStorage.getItem("aleSettings"));
-      if (lsState) {
-        _.assign( state.sticky, lsState );
-        this.replaceState(state);
-      }
+      if (lsState) state.sticky = _.assign( state.sticky, lsState );
+      console.log( lsState )
     },
 
     prop: function(state, o) {

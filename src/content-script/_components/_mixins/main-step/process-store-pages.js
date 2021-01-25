@@ -126,7 +126,8 @@ function getStorePageData(vue, response, book, isTest) {
     vue.getDataFromCarousel(book, audible, "moreLikeThis", 6);
     // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
     book = _.omitBy(book, _.isNull);
-  } else {
+  } 
+  else {
     book.storePageMissing = true;
   }
 }

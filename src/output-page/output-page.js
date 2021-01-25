@@ -350,7 +350,7 @@ if (!standalone) {
 
 function vuexPrep( libraryData ) {
   
-  window.localStorage.clear();
+  // window.localStorage.clear();
 
   // Overwrite sticky defaults with local storage values
   store.commit("fromLocalStorage");

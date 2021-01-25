@@ -3,9 +3,9 @@ export default {
     makeGoodReadsUrl: function(book) {
       
       let isbn10 = _.find( this.book.isbns, { type: "ISBN_10" });
-      if ( isbn10.identifier ) isbn10 = isbn10.identifier
+      if ( isbn10 ) isbn10 = isbn10.identifier
       let isbn13 = _.find( this.book.isbns, { type: "ISBN_13" });
-      if ( isbn13.identifier ) isbn13 = isbn13.identifier
+      if ( isbn13 ) isbn13 = isbn13.identifier
       
       return (
         "https://www.goodreads.com/search?q=" +

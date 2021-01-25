@@ -57,7 +57,6 @@ export default {
   created: function() {
     const vue = this;
     const routeName = this.$route.name;
-    console.log('test', this.$store.getters.collection )
     // if ( routeName === 'ale-category' ) {
     //   const parentCat = this.$route.params.parent;
     //   const childCat = this.$route.params.child;

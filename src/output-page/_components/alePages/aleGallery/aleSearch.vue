@@ -79,6 +79,7 @@ export default {
   
   created: function() {
     
+    console.log('%c' + 'SEARCH CREATED' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;');
     var vue = this;
     // console.log('%c' + 'SEARCH CREATED' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
     this.$store.commit("prop", { key: "searchQuery", value: '' });
@@ -92,7 +93,8 @@ export default {
       this.$store.commit("prop", { key: 'mutatingCollection', value: collection });
     }
     else {
-      this.$store.commit("prop", { key: 'mutatingCollection', value: collection });
+      // this.$store.commit("prop", { key: 'mutatingCollection', value: collection });
+      this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( collection ) ) });
     }
     
     
