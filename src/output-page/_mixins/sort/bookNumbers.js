@@ -40,7 +40,6 @@ export default {
               // ...and once again use the first number from that range
               const dashSplit =
                 typeof numbers == "string" ? numbers.split("-") : [numbers];
-              // console.log('%c' + 'numbers' + '('+ o.titleShort +')', 'border: 1px solid red; color: white; padding: 2px 5px; border-radius: 8px;', parseFloat( dashSplit[0] ));
               return parseFloat(dashSplit[0]);
             } else {
               return params.missingNumber >= 0 ? params.missingNumber : 9999999;

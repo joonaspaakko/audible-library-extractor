@@ -1,29 +1,26 @@
 <template>
   <div id="ale-series" class="box-layout-wrapper">
     
-    <ale-search collectionSource="pageCollection">
-      
-      <lazy
-      v-for="(item, index) in $store.getters.collection"
-      class="single-box"
-      :data-asin="item.asin"
-      :key="'series:'+item.asin"
-      >
-        <h2>
-          <router-link :to="{ name: 'series', params: { series: item.asin } }">
-            {{ item.name }}
-          </router-link>
-        </h2>
-
-        <router-link class="child-category" :to="{ name: 'series', params: { series: item.asin } }">
-          <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
-            {{ item.books.length }}
-          </div>
+    <ale-search collectionSource="pageCollection"></ale-search>
+    <lazy
+    v-for="(item, index) in $store.getters.collection"
+    class="single-box"
+    :data-asin="item.asin"
+    :key="'series:'+item.asin"
+    >
+      <h2>
+        <router-link :to="{ name: 'series', params: { series: item.asin } }">
+          {{ item.name }}
         </router-link>
-        
-      </lazy>
+      </h2>
+
+      <router-link class="child-category" :to="{ name: 'series', params: { series: item.asin } }">
+        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
+          {{ item.books.length }}
+        </div>
+      </router-link>
       
-    </ale-search>
+    </lazy>
     
   </div>
 </template>

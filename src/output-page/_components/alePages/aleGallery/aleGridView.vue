@@ -94,8 +94,6 @@ export default {
 
   mounted: function() {
     
-    console.log('%c' + 'GRID Mounted' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
-    
     // Open book details on load
     if (_.get(this.$route, "query.book")) this.toggleBookDetails({
       book: _.find(this.$store.getters.collection, { asin: this.$route.query.book })

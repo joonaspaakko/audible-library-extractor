@@ -141,6 +141,12 @@ export default {
   text-align: center;
   font-size: 0px;
   line-height: 0px;
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
 
   &:after {
     content: "";

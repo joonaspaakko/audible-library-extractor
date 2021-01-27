@@ -61,7 +61,7 @@
     right: 15px;
     @include themify($themes) {
       border: 3px solid rgba( themed(frontColor), .1);
-      color: rgba( themed(frontColor), .5);
+      color: rgba( themed(frontColor), .5) !important;
     }
   }
   

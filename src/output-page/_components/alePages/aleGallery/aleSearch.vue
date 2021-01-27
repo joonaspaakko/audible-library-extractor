@@ -1,5 +1,15 @@
 <template>
   <div>
+    
+    <div class="gallery-title-wrapper" v-if="$store.state.pageTitle || $store.state.pageSubTitle">
+      <h2 class="gallery-title" v-if="$store.state.pageTitle">
+        {{ $store.state.pageTitle }}
+      </h2>
+      <h3 class="gallery-sub-title" v-if="$store.state.pageSubTitle">
+        {{ $store.state.pageSubTitle }}
+      </h3>
+    </div>
+    
     <div
       id="ale-search-wrap"
       ref="searchWrap"
@@ -23,7 +33,7 @@
         ></search-options>
       </div> <!-- #ale-search -->
     </div> <!-- #ale-search-wrap -->
-    <slot></slot>
+    
   </div>
 </template>
 
@@ -73,15 +83,9 @@ export default {
     };
   },
 
-  updated: function() {
-    // console.log('%c' + 'SEARCH UPDATED' + '', 'background: yellow; color: #fff; padding: 2px 5px; border-radius: 8px;');
-  },
-  
   created: function() {
     
-    console.log('%c' + 'SEARCH CREATED' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;');
     var vue = this;
-    // console.log('%c' + 'SEARCH CREATED' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
     this.$store.commit("prop", { key: "searchQuery", value: '' });
     this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
     
@@ -435,27 +439,58 @@ export default {
       }
     }
   }
+  
 }
 
-#ale-search-wrap.search-fixed #ale-search {
-  position: fixed;
-  top: 36px;
-  left: 30px;
-  right: 30px;
-  margin: 0 auto;
-  max-width: 600px;
-  height: 36px;
-  box-shadow: none;
-  &:before {
-    content: "";
-    position: fixed;
-    z-index: -1;
-    top: 35px;
-    left: 0px;
-    right: 0px;
-    height: 37px;
-    background: #fff;
-    box-shadow: 2px 0px 13px rgba(#000, 0.5);
+.gallery-title-wrapper {
+  margin-bottom: 20px;
+}
+
+.gallery-title {
+  font-size: 23px;
+  line-height: 24px;
+  font-weight: bold;
+  margin: 0px;
+  @include themify($themes) {
+    color: themed(frontColor);
   }
 }
+.gallery-sub-title {
+  font-size: 17px;
+  line-height: 19px;
+  font-weight: normal;
+  margin: 0px;
+  margin-top: 10px;
+  // FIXME: This style doesn't really work on the light theme...
+  @include themify($themes) {
+    color: themed(frontColor);
+    border: 1px solid themed(audibleOrange);
+    background: themed(backColor);
+  }
+  padding: 5px 10px;
+  display: inline-block;
+  border-radius: 9999px;
+}
+
+// #ale-search-wrap.search-fixed #ale-search {
+//   position: fixed;
+//   top: 36px;
+//   left: 30px;
+//   right: 30px;
+//   margin: 0 auto;
+//   max-width: 600px;
+//   height: 36px;
+//   box-shadow: none;
+//   &:before {
+//     content: "";
+//     position: fixed;
+//     z-index: -1;
+//     top: 35px;
+//     left: 0px;
+//     right: 0px;
+//     height: 37px;
+//     background: #fff;
+//     box-shadow: 2px 0px 13px rgba(#000, 0.5);
+//   }
+// }
 </style>

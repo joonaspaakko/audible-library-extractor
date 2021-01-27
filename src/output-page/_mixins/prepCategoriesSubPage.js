@@ -6,7 +6,6 @@ export default {
       if (this.$route.name === "category") {
         
         const vue = this;
-        console.log(this.$route.params);
         const category = {
           parent: this.$route.params.parent,
           child: this.$route.params.child,
@@ -18,9 +17,19 @@ export default {
             const cat = vue.slugify( book.categories[0].name );
             const kitten = vue.slugify( book.categories[1].name );
             if ( category.parent === cat && category.child === kitten ) {  return true; }
-            else if ( category.parent === cat ) { return true; }
+            else if ( category.parent === cat && !category.child ) { return true; }
           }
         });
+        
+        // Set page title
+        if ( category.parent || category.child ) {
+          const parentCategoryName = categoryBooks[0].categories[0].name;
+          const childCategoryName = categoryBooks[0].categories[1].name;
+          const titleProps = [];
+          if ( category.parent ) titleProps.push({ key: 'pageTitle',    value: parentCategoryName });
+          if ( category.child  ) titleProps.push({ key: 'pageSubTitle', value: childCategoryName  });
+          this.$store.commit("prop", titleProps);
+        }
         
         // Init arrays
         this.$store.commit("prop", { key: 'pageCollection', value: categoryBooks });

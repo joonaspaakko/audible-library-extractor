@@ -2,9 +2,9 @@
   <div id="ale-gallery">
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
-    <ale-search :collectionSource="collectionSource">
-      <ale-grid-view />
-    </ale-search>
+    <ale-search :collectionSource="collectionSource"></ale-search>
+    
+    <ale-grid-view />
     
     
 
@@ -24,7 +24,9 @@ import aleGridView from "./aleGallery/aleGridView";
 import aleListView from "./aleGallery/aleListView";
 
 import prepCategoriesSubPage from "@output-mixins/prepCategoriesSubPage.js";
+import prepCollectionsSubPage from "@output-mixins/prepCollectionsSubPage.js";
 import prepSeriesSubPage from "@output-mixins/prepSeriesSubPage.js";
+import prepWishlist from "@output-mixins/prepWishlist.js";
 
 // import aleBreadcrumbs from '../aleBreadcrumbs'
 import audioPlayer from "@output-snippets/audio-player";
@@ -44,7 +46,9 @@ export default {
   mixins: [
     filterAndSort, 
     prepCategoriesSubPage, 
-    prepSeriesSubPage
+    prepCollectionsSubPage, 
+    prepSeriesSubPage,
+    prepWishlist,
   ],
   
   data: function() {
@@ -101,14 +105,11 @@ export default {
     this.updateListRenderingOptions();
     
     // Setup for other pages that use the gallery page to show titles
+    this.$store.commit("prop", [ { key: 'pageTitle', value: null }, { key: 'pageSubTitle', value: null } ]);
     this.prepCategoriesSubPage();    
+    this.prepCollectionsSubPage();    
     this.prepSeriesSubPage();
-    
-  },
-  
-  mounted: function() {
-    
-    console.log('%c' + 'gallery Mounted' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    this.prepWishlist();
     
   },
   

@@ -32,14 +32,23 @@
           </div>
         </router-link>
       </div>
-
-      <div class="text-button collections-page">
-        <!-- <router-link :to="{ name: 'categories' }"> -->
+      
+      <div class="text-button collections-page" v-if="$store.state.library.collections">
+        <router-link :to="{ name: 'collections' }">
         <div class="icon">
           <font-awesome fas icon="list" />
           <span>Collections</span>
         </div>
-        <!-- </router-link> -->
+        </router-link>
+      </div>
+      
+      <div class="text-button wishlist-page" v-if="$store.state.library.wishlist">
+        <router-link :to="{ name: 'wishlist' }">
+        <div class="icon">
+          <font-awesome fas icon="list" />
+          <span>Wishlist</span>
+        </div>
+        </router-link>
       </div>
 
       <light-switch></light-switch>

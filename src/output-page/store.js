@@ -23,17 +23,24 @@ export default new Vuex.Store({
     standalone: null,
     displayMode: null,
     listRenderingOpts: null,
+    pageTitle: null,
+    pageSubTitle: null,
   },
 
   mutations: {
     fromLocalStorage: function(state) {
       const lsState = JSON.parse(localStorage.getItem("aleSettings"));
       if (lsState) state.sticky = _.assign( state.sticky, lsState );
-      console.log( lsState )
     },
 
     prop: function(state, o) {
-      state[o.key] = o.value;
+      const inputIsArray = _.isArray(o);
+      if ( !inputIsArray ) {
+        state[o.key] = o.value;
+      }
+      else {
+        _.each(o, function( b ) { state[b.key] = b.value; });
+      }
     },
 
     stickyProp: function(state, o) {
@@ -107,8 +114,6 @@ export default new Vuex.Store({
     // },
     collection: function( state ) {
       const searchIsActive = state.searchQuery.trim() !== "";
-      if ( searchIsActive )  console.log('SEARCH IS ACTIVE');
-      
       if ( searchIsActive ) {
         return state.searchCollection;
       }

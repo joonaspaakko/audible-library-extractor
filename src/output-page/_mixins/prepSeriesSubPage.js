@@ -5,8 +5,6 @@ export default {
       
       if (this.$route.name === "series") {
         
-        console.log('%c' + 'Series sub page created!' + '', 'background: #1ccd93; color: #fff; padding: 2px 5px; border-radius: 8px;');
-        
         // Add book number sorting + activate sort values
         this.$store.commit('addListRenderingOpts', { 
           listName: 'sort', 
@@ -22,8 +20,12 @@ export default {
         let books = _.filter( this.$store.state.library.books, function( book ) {
           return _.includes( series.books, book.asin );
         });
+        
+        // Set page title
+        const seriesName = _.find( books[0].series, { asin: seriesASIN }).name;
+        this.$store.commit("prop", { key: 'pageTitle', value: seriesName });
+        
         // Init arrays
-        // this.$store.commit("prop", { key: 'mutatingCollection', value: books });
         this.$store.commit("prop", { key: 'pageCollection', value: books });
         this.collectionSource = 'pageCollection';
         

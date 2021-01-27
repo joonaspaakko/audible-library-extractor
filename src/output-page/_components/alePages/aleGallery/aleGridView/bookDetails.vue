@@ -7,9 +7,9 @@
   >
     <div class="arrow" ref="arrow"></div>
     <div
-      id="book-info-container"
-      v-shortkey.once="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'] }"
-      @shortkey="openAdjacentBookDetails"
+    id="book-info-container"
+    v-shortkey.once="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'] }"
+    @shortkey="openAdjacentBookDetails"
     >
       <div class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
         <div class="top">
@@ -148,15 +148,6 @@ export default {
       this.$nextTick(function() {
         scroll({ top: this.clickedBook.offsetTop - 78 });
       });
-    },
-
-    scrollToDetails: function() {
-      // window.scroll({
-      //   top: this.bookEl.offsetTop - 42,
-      //   left: 0,
-      //   behavior: 'smooth'
-      // });
-      // this.$refs.bookDetails.scrollIntoView({ behavior: 'smooth' });
     },
 
     repositionBookDetails: function() {
@@ -315,17 +306,7 @@ export default {
         return "<div>Length: " + book.length + "</div>";
       }
     },
-
-    // bookNumbers: function( book, seriesAsin ) {
-    //   let anyNumbers = _.find( book.series, 'bookNumbers');
-    //   if ( anyNumbers ) {
-    //     const numbers = _.find(book.series, ['asin', seriesAsin ]).bookNumbers;
-    //     return _.isArray( numbers ) ? numbers.join(', ') : numbers;
-    //   }
-    //   else {
-    //     return '';
-    //   }
-    // },
+    
   }
 };
 </script>

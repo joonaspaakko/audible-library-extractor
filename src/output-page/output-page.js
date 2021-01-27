@@ -76,42 +76,51 @@ Vue.use(VueRouter);
 const aleGallery = () => import( /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
 // const aleSpreadsheet = () => import(/* webpackChunkName: "spreadsheet" */ './_components/alePages/aleSpreadsheet');
 const aleCategories = () => import( /* webpackChunkName: "categories" */ "./_components/alePages/aleCategories");
+const aleCollections = () => import( /* webpackChunkName: "collections" */ "./_components/alePages/aleCollections");
 const aleSeries = () => import(/* webpackChunkName: "series" */ "./_components/alePages/aleSeries");
 import aleLibraryView from "./_components/aleLibraryView";
 
 const routes = [
   { path: "/", redirect: "/library" },
-  { name: "gallery", path: "/library", component: aleGallery, props: true },
+  { name: "gallery", path: "/library", component: aleGallery },
   // { name: 'spreadsheet', path: '/spreadsheet', component: aleSpreadsheet, props: true },
   {
     path: "/categories",
     component: aleLibraryView,
-    props: true,
     children: [
-      { name: "categories", path: "", component: aleCategories, props: true },
-      {
-        name: "category",
-        path: ":parent/:child?",
-        component: aleGallery,
-        props: true
-      }
+      { name: "categories", path: "", component: aleCategories },
+      { name: "category", path: ":parent/:child?", component: aleGallery }
     ]
   },
   {
     path: "/series",
     component: aleLibraryView,
-    props: true,
     children: [
-      { name: "all-series", path: "", component: aleSeries, props: true },
-      { name: "series", path: ":series", component: aleGallery, props: true }
+      { name: "all-series", path: "", component: aleSeries },
+      { name: "series", path: ":series", component: aleGallery }
     ]
-  }
+  },
+  {
+    path: "/collections",
+    component: aleLibraryView,
+    children: [
+      { name: "collections", path: "", component: aleCollections },
+      { name: "collection", path: ":collection", component: aleGallery }
+    ]
+  },
+  {
+    path: "/wishlist",
+    component: aleLibraryView,
+    children: [
+      { name: "wishlist", path: "", component: aleGallery },
+    ]
+  },
 ];
 
 const router = new VueRouter({
   routes,
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition && to.name === "categories") {
+    if (savedPosition && (to.name === "categories" || to.name === "all-series" || to.name === "collections") ) {
       return savedPosition;
     } else {
       if (from && to.name === from.name && _.isEqual(to.params, from.params)) {

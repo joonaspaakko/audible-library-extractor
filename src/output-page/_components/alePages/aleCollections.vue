@@ -1,0 +1,149 @@
+<template>
+  <div id="ale-collections" class="box-layout-wrapper" v-if="collections">
+    
+    <div
+    class="single-box"
+    v-for="(collection, index) in collections"
+    :data-collection-id="collection.id"
+    :key="collection.id"
+    >
+      
+      <div class="sample-covers-square">
+        <div
+        class="sample-cover"
+        v-for="(book, index) in getRandomBooks(collection.books, 4)"
+        :key="book.asin"
+        >
+          <router-link :to="{ 
+          name: 'collection', 
+          params: { collection: collection.id },
+          query: { book: book.asin }
+          }">
+            <img :src="makeCoverUrl(book.cover)" alt="" />
+          </router-link>
+        </div>
+      </div>
+    
+      <div class="collection-title">
+        <h2>
+          <router-link :to="{ name: 'collection', params: { collection: collection.id } }">
+            {{ collection.title }}
+          </router-link>
+        </h2>
+      </div>
+
+      <router-link class="books-total" :to="{ name: 'collection', params: { collection: collection.id } }" >
+        <div v-html="collection.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this collection."></div>
+      </router-link>
+      
+    </div> <!-- .single-box -->
+    
+  </div>
+</template>
+
+<script>
+import slugify from "@output-mixins/slugify";
+import makeCoverUrl from "@output-mixins/makeCoverUrl";
+
+export default {
+  name: "aleCategories",
+  mixins: [slugify, makeCoverUrl],
+  
+  data: function() {
+    return {
+      collections: null,
+    };
+  },
+  
+  created: function() {
+    
+    console.log('%c' + ' ' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', this.$store.state.library.collections);
+    
+    const vue = this;
+    let collections = [];
+    _.each( this.$store.state.library.collections, function( collection ) {
+      
+      let newCollection = {
+        id: collection.id,
+        title: collection.title,
+      };
+      
+      newCollection.books = _.filter( vue.$store.state.library.books, function( book ) {
+        return _.includes( collection.books, book.asin );
+      });
+      
+      collections.push( newCollection );
+      
+    });
+    
+    // Make sure favorites are always at the top
+    this.collections = _.orderBy(collections, function( o ) { return o.id === '__FAVORITES' }, "desc");
+    
+    this.$store.commit("prop", [
+      { key: "pageCollection", value: [] }, 
+      { key: "mutatingCollection", value: [] }
+    ]);
+    
+  },
+
+  methods: {
+    getRandomBooks: function(books, number) {
+      return _.sampleSize(books, number);
+    }
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+@import "~@/_variables.scss";
+@import "~@/box-layout.scss";
+
+.single-box {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+  padding: 0px !important;
+  margin-top: 20px !important;
+  &:first-child { margin-top: 0 !important; }
+}
+
+.sample-covers-square {
+  @include themify($themes) { border: 1px solid rgba( themed(frontColor), .1); }
+  border-radius: 11px;
+  overflow: hidden;
+  width: 80px;
+  height: 80px;
+  display: inline-block;
+  .sample-cover {
+    float: left;
+    width: 50%;
+    height: 50%;
+    img {
+      display: block;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+
+.collection-title {
+  flex: 1;
+  display: flex;
+  justify-content: flex-start;
+  justify-items: flex-start;
+  align-content: center;
+  align-items: center;
+  padding: 10px 30px;
+  h2 { 
+    margin: 0 !important; 
+    font-size: 22px !important;
+    line-height: 23px !important;
+  }
+  
+}
+
+.books-total { top: unset !important; }
+
+</style>
