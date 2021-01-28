@@ -44,12 +44,12 @@ export default {
 
   methods: {
     startPlaying: function(msg) {
-      // console.log( msg )
+      
       this.audioSource = msg.book.sample;
       this.book = msg.book;
       if (msg.index) this.index = msg.index;
       if (msg.route) this.route = msg.route;
-      // console.log( msg.route )
+      
     },
 
     samplePlayerBook: function() {

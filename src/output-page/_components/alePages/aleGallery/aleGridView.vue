@@ -94,7 +94,7 @@ export default {
 
   mounted: function() {
     
-    // Open book details on load
+    // Book query: open book details on load
     if (_.get(this.$route, "query.book")) this.toggleBookDetails({
       book: _.find(this.$store.getters.collection, { asin: this.$route.query.book })
     });
@@ -218,10 +218,10 @@ export default {
 }
   
 .theme-light .ale-book:after {
-  background-image: url("../../../images/table-loader-light.gif");
+  background-image: url("@output-images/table-loader-light.gif");
 }
 .theme-dark .ale-book:after {
-  background-image: url("../../../images/table-loader-dark.gif");
+  background-image: url("@output-images/table-loader-dark.gif");
 }
 
 @media (max-width: 616px) {

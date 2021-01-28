@@ -205,36 +205,36 @@ body {
 //   /* Here goes the CSS rules that will only apply if app is running standalone */
 // }
 
-#audible-app-link {
-  width: 35px;
-  height: 35px;
-  border-radius: 999999px;
-  background: $audibleOrange;
-  background: #f29a33;
-  background: #ffc338;
-  background: #ffc338;
-  background: -moz-linear-gradient(top, #ffc338 0%, #f29a33 100%);
-  background: -webkit-linear-gradient(top, #ffc338 0%, #f29a33 100%);
-  background: linear-gradient(to bottom, #ffc338 0%, #f29a33 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffc338', endColorstr='#f29a33',GradientType=0 );
-  border: 1px solid #f29a33;
-  box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.2);
-  position: fixed;
-  z-index: 9999999999;
-  bottom: 10px;
-  right: 10px;
-  display: flex;
-  justify-items: center;
-  justify-content: center;
-  align-items: center;
-  align-content: center;
-  text-align: center;
-  padding: 8px;
-  img {
-    width: 100%;
-    height: auto;
-  }
-}
+// #audible-app-link {
+//   width: 35px;
+//   height: 35px;
+//   border-radius: 999999px;
+//   background: $audibleOrange;
+//   background: #f29a33;
+//   background: #ffc338;
+//   background: #ffc338;
+//   background: -moz-linear-gradient(top, #ffc338 0%, #f29a33 100%);
+//   background: -webkit-linear-gradient(top, #ffc338 0%, #f29a33 100%);
+//   background: linear-gradient(to bottom, #ffc338 0%, #f29a33 100%);
+//   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ffc338', endColorstr='#f29a33',GradientType=0 );
+//   border: 1px solid #f29a33;
+//   box-shadow: 0 3px 10px rgba(0, 0, 0, 0.1), 0 1px 4px rgba(0, 0, 0, 0.2);
+//   position: fixed;
+//   z-index: 9999999999;
+//   bottom: 10px;
+//   right: 10px;
+//   display: flex;
+//   justify-items: center;
+//   justify-content: center;
+//   align-items: center;
+//   align-content: center;
+//   text-align: center;
+//   padding: 8px;
+//   img {
+//     width: 100%;
+//     height: auto;
+//   }
+// }
 
 .theme-dark .tippy-popper {
   .tippy-tooltip {

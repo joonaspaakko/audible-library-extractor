@@ -1,9 +1,11 @@
 <template>
   <div class="book-info-toolbar">
-    <favorite-book   :size="25" :book="book" v-if="book.favorite" />
-    <sampleButton    :size="25" :book="book" />
-    <!-- <sampleButton    :size="25" :book="book" :index="rowIndex" /> -->
-    <good-reads-link :size="25" :book="book" :icon="true" />
+    <favorite-book   :size="size" :book="book" v-if="book.favorite" />
+    <sampleButton    :size="size" :book="book" />
+    <!-- <sampleButton    :size="size" :book="book" :index="rowIndex" /> -->
+    <good-reads-link :size="size" :book="book" :icon="true" />
+    <open-in-app     :size="size" :book="book" :icon="true" />
+    <open-web-player :size="size" :book="book" :icon="true" />
   </div>
 </template>
 
@@ -11,6 +13,8 @@
 import goodReadsLink from "@output-comps/snippets/goodReadsLink";
 import favoriteBook from "@output-comps/snippets/favoriteBook";
 import sampleButton from "@output-comps/snippets/sampleButton";
+import openInApp from "@output-comps/snippets/openInApp";
+import openWebPlayer from "@output-comps/snippets/openWebPlayer";
 
 export default {
   name: "book-info-toolbar",
@@ -19,22 +23,63 @@ export default {
     goodReadsLink,
     favoriteBook,
     sampleButton,
-  }
+    openInApp,
+    openWebPlayer,
+  },
+  data: function() {
+    return {
+      size: 20,
+    };
+  },
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
+@import "~@/_variables.scss";
 
-.corner-actions {
-  position: absolute;
-  z-index: 3;
-  top: 15px;
-  right: 15px;
-  display: inline-flex;
+.book-info-toolbar {
+  display: flex;
   flex-direction: row;
-  > * {
-    margin-left: 7px;
+  justify-content: space-between;
+  justify-items: space-between;
+  padding: 0 10%;
+  border-radius: 99999px;
+  @include themify($themes) {
+    background: darken(themed(backColor), 1);
+    box-shadow: inset 0 3px 15px rgba(darken(themed(backColor), 30), 0.8);
   }
+    
+  .top-right {
+    position: absolute;
+    z-index: 3;
+    top: 15px;
+    right: 15px;
+  }
+
+  > * {
+    &, & > * { outline: none; }
+    // margin-left: 7px; 
+    // &:first-child { margin-left: 0; }
+    padding: 4px 8px;
+    display: inline-block;
+  }
+  
+  .gr-icon {
+    cursor: pointer;
+    display: flex;
+    align-content: center;
+    justify-content: center;
+    align-items: center;
+    justify-items: center;
+    img {
+      display: inline-block;
+      max-width: 70%;
+      height: auto;
+    }
+    background: #fff;
+    border-radius: 10px;
+  }
+  
 }
 
 </style>

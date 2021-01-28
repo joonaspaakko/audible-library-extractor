@@ -34,6 +34,7 @@ const config = {
     alias: {
       'node_modules': path.join(__dirname, 'node_modules'),
       '@': path.join(__dirname, '/src/output-page'),
+      '@output-images': path.join(__dirname, '/src/output-page/images'),
       '@output-page': path.join(__dirname, '/src/output-page'),
       '@output-comps': path.join(__dirname, '/src/output-page/_components'),
       '@output-snippets': path.join(__dirname, '/src/output-page/_components/snippets'),
@@ -101,7 +102,7 @@ var copyPluginArray = { patterns: [
   { from: 'assets', to: 'assets' },
   { from: 'output-page/favicons', to: 'output-page/favicons' },
   { from: 'output-page/extension-js', to: 'output-page/extension-js' },
-  { from: 'output-page/images/', to: 'images/' },
+  // { from: 'output-page/images/', to: 'images/' },
   { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
   {
     from: 'manifest.json',

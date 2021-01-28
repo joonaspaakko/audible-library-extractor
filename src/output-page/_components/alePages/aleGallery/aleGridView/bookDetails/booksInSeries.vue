@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-    v-if="book.series"
+    v-if="series.books.length"
     class="label hidden-section-label my-books-in-series-label"
     @click="booksInSeriesLabelClick"
     >

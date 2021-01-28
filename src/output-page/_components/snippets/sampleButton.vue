@@ -6,6 +6,7 @@
     @click="playSample(book, rowIndex)"
     :class="{ 'top-right': topRight }"
     :style="{ width: (size || 30) + 'px', height: 'auto' }"
+    v-tippy content="Play sample audio"
   />
 </template>
 
@@ -15,15 +16,17 @@ export default {
   props: ["book", "index", "topRight", "size"],
   methods: {
     playSample: function(book, index) {
-      // Eventbus.$emit("play-audio", {
-      //   from: "sampleButton",
-      //   route: this.$route,
-      //   book: book,
-      //   index: index
-      // });
+      this.$root.$emit("play-audio", {
+        from: "sampleButton",
+        route: this.$route,
+        book: book,
+        index: index
+      });
     }
   }
 };
 </script>
 
-<style lang="scss" scoped></style>
+<style lang="scss" scoped>
+.pointer { cursor: pointer; }
+</style>
