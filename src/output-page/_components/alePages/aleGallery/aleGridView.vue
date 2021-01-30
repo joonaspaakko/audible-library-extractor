@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-books" class="grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers') }" ref="booksWrapper">
+  <div class="ale-books grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers') }" ref="booksWrapper">
     
     <book-details
     v-if="detailsBook"
@@ -39,47 +39,12 @@ export default {
     return {
       detailsBook: null,
       detailsBookIndex: -1,
-      mounts: {
-        
-      },
     };
   },
-  
-  // computed: {
-  //   keySuffix: function() {
-  //     return '|sortVals:'+this.$store.getters.sortValues +
-  //            '|sort:'+this.$store.getters.sortBy +
-  //            '|sort:'+_.values( this.mounts ) +
-  //            '|filters:'+this.$store.getters.filterKeys;
-  //   },
-  // },
   
   created: function() {
     const vue = this;
     const routeName = this.$route.name;
-    // if ( routeName === 'ale-category' ) {
-    //   const parentCat = this.$route.params.parent;
-    //   const childCat = this.$route.params.child;
-    //   if ( parentCat ) {
-
-    //     vue.gallery.customResults = _.filter( vue.library.books, function( book ) {
-    //       if ( book.categories ) {
-    //         var match = false;
-    //         if ( childCat ) {
-    //           if ( vue.slugify( book.categories[0].name ) === parentCat && vue.slugify( book.categories[1].name ) === childCat ) {
-    //             return true;
-    //           }
-    //         }
-    //         else {
-    //           if ( vue.slugify( book.categories[0].name ) === parentCat ) {
-    //             return true;
-    //           }
-    //         }
-    //       }
-    //     });
-
-    //   }
-    // }
 
     this.$root.$on("book-clicked", this.toggleBookDetails);
     // $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
@@ -134,7 +99,10 @@ export default {
 <style lang="scss">
 @import "~@/_variables.scss";
 
-#ale-books.grid-view {
+.ale-books.grid-view {
+  max-width: $containerSize;
+  margin: 0 auto 550px auto;
+  text-align: center;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
@@ -258,7 +226,7 @@ export default {
 }
 
 @media (max-width: 504px) {
-  #ale-books.grid-view {
+  .ale-books.grid-view {
     .ale-book {
       width: 40vw;
       height: 40vw;

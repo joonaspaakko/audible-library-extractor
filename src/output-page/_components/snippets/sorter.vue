@@ -42,7 +42,7 @@
 
 export default {
   name: "sorter",
-  props: [ "name", "label", "dataSource", "currentList", "listName", "item", "index" ],
+  props: [ "name", "label", "currentList", "listName", "item", "index" ],
   data: function() {
     return {};
   },
@@ -82,19 +82,8 @@ export default {
     isActiveSortItem: function() {
       const changedIndex = _.findIndex(this.currentList, "current");
       return changedIndex === this.index;
-    }
-
-    // index: function() {
-    //   return _.findIndex( this.dataSource, { key: this.item.key });
-    // },
-
-    // item: function() {
-    //   const name = this.name;
-    //   const regex = new RegExp('^'+this.name);
-    //   return _.find( this.dataSource, function(o) {
-    //     return o.key.match(regex);
-    //   });
-    // },
+    },
+    
   },
   
   methods: {

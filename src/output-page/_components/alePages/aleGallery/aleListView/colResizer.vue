@@ -56,11 +56,7 @@ export default {
     resizeMouseUp: function(e) {
       if (this.dragging) {
         this.endPosition = e.clientX;
-        const prevDistance = this.width
-          ? this.width
-          : $(e.currentTarget)
-              .parent()
-              .width();
+        const prevDistance = this.width ? this.width : e.currentTarget.parentElement.offsetWidth;
         const dragDistance = Math.abs(this.startPosition - this.endPosition);
         const addition = this.endPosition > this.startPosition ? true : false;
         const width = prevDistance + (addition ? +dragDistance : -dragDistance);

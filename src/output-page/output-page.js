@@ -172,8 +172,8 @@ import {
   // faSpinner,
   faSquare,
   faSun,
-  // faTable,
-  // faTh,
+  faTable,
+  faTh,
   faTimesCircle,
   // faUnlockAlt,
 } from "@fortawesome/free-solid-svg-icons";
@@ -213,8 +213,8 @@ library.add(
   // faSpinner,
   faSquare,
   faSun,
-  // faTable,
-  // faTh,
+  faTable,
+  faTh,
   faTimesCircle,
   // faUnlockAlt,
 );

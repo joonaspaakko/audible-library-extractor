@@ -4,24 +4,22 @@
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     <ale-search :collectionSource="collectionSource"></ale-search>
     
-    <ale-grid-view />
+    <ale-grid-view v-if="$store.state.sticky.viewMode === 'grid'" />
+    <ale-list-view v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
     
+    <audio-player />
     
-
-    <!-- <ale-list-view 
-    v-if="booksArray && booksArray.length > 0"
-    :booksArray="booksArray" 
-    ></ale-list-view> -->
-
-    <audio-player></audio-player>
+    <!-- TODO: a general reminder to fix parts of the light theme. Many things look kinda off...
+    -->
+    
+    <!-- TODO: a general reminder to fix mobile styles... Mostly just finishing touches
+    -->
     
   </div>
 </template>
 
 <script>
 import aleSearch from "./aleGallery/aleSearch";
-import aleGridView from "./aleGallery/aleGridView";
-import aleListView from "./aleGallery/aleListView";
 
 import prepCategoriesSubPage from "@output-mixins/prepCategoriesSubPage.js";
 import prepCollectionsSubPage from "@output-mixins/prepCollectionsSubPage.js";
@@ -38,8 +36,8 @@ export default {
   name: "aleGallery",
   components: {
     aleSearch,
-    aleGridView,
-    aleListView,
+    aleGridView: () => import( /* webpackChunkName: "grid-view" */ "./aleGallery/aleGridView"),
+    aleListView: () => import( /* webpackChunkName: "spreadsheet-view" */ "./aleGallery/aleListView"),
     // aleBreadcrumbs,
     audioPlayer
   },
@@ -111,6 +109,10 @@ export default {
     this.prepSeriesSubPage();
     this.prepWishlist();
     
+    if ( this.$store.state.sticky.viewMode === 'spreadsheet' ) {
+      
+    }
+    
   },
   
 };
@@ -119,9 +121,6 @@ export default {
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
 #ale-gallery {
-  max-width: $containerSize;
-  margin: 0 auto 550px auto;
-  text-align: center;
   padding: 0 20px;
   &:before {
     content: ".";

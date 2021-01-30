@@ -6,6 +6,7 @@
       class="ale-col"
       :class="col.class"
       :name="col.name"
+      @click="$root.$emit('book-clicked', { book })"
     >
       <div class="ale-col-inner">
         <span v-if="col.key === 'title'" class="icons-n-stuff">
@@ -18,9 +19,9 @@
             :size="16"
           ></sampleButton>
           <!-- Just not incredibly performant -->
-          <!-- <div class="thumbnail-wrapper">
+          <div class="thumbnail-wrapper">
             <img v-if="!imageLoading" :src="coverUrl27" alt="">
-          </div> -->
+          </div>
         </span>
 
         <span class="text-container"> {{ col.text || "&nbsp" }}</span>
@@ -33,7 +34,6 @@
       :arrow="false"
       maxWidth="800"
       placement="top-start"
-      :theme="general.tippyTheme"
       :interactive="true"
       trigger="focus"
       :hideOnClick="false"
@@ -51,7 +51,6 @@
             <favorite-book
               :size="25"
               :book="book"
-              :general="general"
             ></favorite-book>
             <sampleButton
               :size="25"
@@ -61,7 +60,6 @@
             <good-reads-link
               :size="25"
               :book="book"
-              :general="general"
               :icon="true"
             ></good-reads-link>
           </div>
@@ -72,7 +70,7 @@
             </a>
           </h2>
 
-          <book-basic-info :book="book" :general="general"></book-basic-info>
+          <book-basic-info :book="book" ></book-basic-info>
 
           <div class="summary" v-html="book.blurb"></div>
         </div>
@@ -93,7 +91,7 @@ import bookBasicInfo from "@output-comps/snippets/book-basic-info";
 
 export default {
   name: "aleListItem",
-  props: ["book", "general", "rowIndex", "keys"],
+  props: ["book", "rowIndex", "keys"],
   mixins: [stringifyArray, makeCoverUrl, makeFullUrl],
   components: {
     goodReadsLink,
@@ -115,13 +113,13 @@ export default {
   },
 
   created: function() {
+    
     this.bookUrl = this.makeFullUrl(this.book.url);
     this.coverUrl = this.makeCoverUrl(this.book.cover);
-    if (this.coverUrl)
-      this.coverUrl27 = this.coverUrl.replace("_SL500_", "_SL27_");
+    if (this.coverUrl) this.coverUrl27 = this.coverUrl.replace("_SL500_", "_SL27_");
     this.bookTitle = this.book.title || this.book.titleShort;
-
     this.columns = this.prepareColumns();
+    
   },
 
   mounted: function() {

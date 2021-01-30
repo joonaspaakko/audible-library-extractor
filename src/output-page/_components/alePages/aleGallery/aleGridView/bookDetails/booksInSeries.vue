@@ -1,7 +1,7 @@
 <template>
   <div>
     <div
-    v-if="series.books.length"
+    v-if="inSeries"
     class="label hidden-section-label my-books-in-series-label"
     @click="booksInSeriesLabelClick"
     >
@@ -65,6 +65,7 @@ export default {
   props: ["book"],
   data: function() {
     return {
+      inSeries: false,
       series: {
         collection: null,
         toggle: false
@@ -76,6 +77,16 @@ export default {
     
     this.series.collection = this.getBooksInSeries();
     this.series.count = this.getSeriesCount();
+    
+    // Check if this book is in a series
+    const vue = this;
+    _.each(this.series.collection, function(series) {
+      if ( series.books.length ) {
+        vue.inSeries = true;
+        return false;
+      }
+    });
+    
   },
 
   methods: {

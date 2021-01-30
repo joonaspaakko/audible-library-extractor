@@ -1,46 +1,48 @@
 <template>
-  <div
-    id="ale-books"
-    class="list-view"
-    v-shortkey.once="{
-      down: ['arrowdown'],
-      right: ['arrowright'],
-      up: ['arrowup'],
-      left: ['arrowleft'],
-      tab: ['tab'],
-      tabShift: ['tab', 'shift']
-    }"
-    @shortkey="adjacentDetails"
-  >
-    <div class="list-view" v-shortkey.once="['esc']" @shortkey="closeTippy">
-      <table>
-        <thead>
-          <ale-header
+<div
+class="ale-books list-view"
+ref="listView"
+v-shortkey.once="{
+  down: ['arrowdown'],
+  right: ['arrowright'],
+  up: ['arrowup'],
+  left: ['arrowleft'],
+  tab: ['tab'],
+  tabShift: ['tab', 'shift']
+}"
+@shortkey="adjacentDetails"
+:style="{ top: spreadsheetTop + 'px' }"
+>
+
+  <div class="list-view-inner-wrap" v-shortkey.once="['esc']" @shortkey="closeTippy">
+    <table>
+      <thead>
+        <ale-header :keys="keys"></ale-header>
+      </thead>
+      <tbody>
+        
+        <!-- :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }" -->
+        <lazy
+        v-for="(book, index) in $store.getters.collection"
+        class="ale-row"
+        :data-asin="book.asin"
+        :key="'book:'+book.asin"
+        :name="'rowTippy-' + book.asin"
+        ref="domBooks"
+        >
+          <ale-list-row
+            :book="book"
+            :rowIndex="index"
             :keys="keys"
-            :general="general"
-            :gallery="gallery"
-          ></ale-header>
-        </thead>
-        <tbody>
-          <lazy-component
-            v-for="(book, index) in booksArray"
-            class="ale-row"
-            :key="book.asin"
-            :name="'rowTippy-' + book.asin"
-            @show="lazyShow"
-          >
-            <ale-list-row
-              :book="book"
-              :general="general"
-              :rowIndex="index"
-              :keys="keys"
-              @updateTippyEl="setTippyInst"
-            ></ale-list-row>
-          </lazy-component>
-        </tbody>
-      </table>
-    </div>
+            @updateTippyEl="setTippyInst"
+          ></ale-list-row>
+        </lazy>
+        
+      </tbody>
+    </table>
   </div>
+  
+</div>
 </template>
 
 <script>
@@ -48,21 +50,28 @@
 // import makeCoverUrl from '../../../_mixins/makeCoverUrl';
 import aleHeader from "./aleListView/aleHeader";
 import aleListRow from "./aleListView/aleRow";
+import lazy from "@output-snippets/lazy.vue";
+import stringifyArray from "@output-mixins/stringifyArray";
 
 export default {
   name: "aleBooks",
-  props: ["booksArray", "library", "gallery", "general"],
   components: {
+    lazy,
     aleHeader,
-    aleListRow
+    aleListRow,
+    bookDetails: () => import( /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
   },
+  mixins: [stringifyArray],
   data: function() {
     return {
+      spreadsheetTop: 170,
       keys: "",
       tippyRowInst: null,
-      listViewEl: null,
       prevScrollTop: 0,
-      dontCloseTippy: null
+      dontCloseTippy: null,
+      
+      detailsBook: null,
+      detailsBookIndex: -1,
     };
   },
 
@@ -71,21 +80,63 @@ export default {
   },
 
   mounted: function() {
-    this.listViewEl = $(".list-view");
-    this.listViewEl.on("scroll", this.listScrolled);
+    
+    this.$root.$on("book-clicked", this.toggleBookDetails);
+    this.$refs.listView.addEventListener("scroll", this.listScrolled, { passive: true });
+    
+    this.setSpreadsheetOffset();
+    
   },
 
   beforeDestroy: function() {
-    this.listViewEl.off("scroll", this.listScrolled);
+    
+    this.$root.$off("book-clicked", this.toggleBookDetails);
+    this.$refs.listView.removeEventListener("scroll", this.listScrolled);
   },
 
   methods: {
-    lazyShow: function(comp) {
-      this.$nextTick(function() {
-        comp.$el.classList.add("loaded");
-      });
+    // lazyShow: function(comp) {
+    //   this.$nextTick(function() {
+    //     comp.$el.classList.add("loaded");
+    //   });
+    // },
+    
+    setSpreadsheetOffset: function() {
+      
+      const searchWrap = document.querySelector('#ale-search-wrap');
+      const searchOffset = window.pageYOffset + searchWrap.getBoundingClientRect().top;
+      const searchHeight = searchWrap.offsetHeight;
+      const searchMarginBottom = searchWrap.style.marginBottom;
+      this.spreadsheetTop = searchOffset + searchHeight;
+      console.log( this.spreadsheetTop,  searchMarginBottom );
+    
     },
-
+    
+    toggleBookDetails: function(e) {
+      
+      if (!e.book) {
+        
+        this.detailsBook = null;
+        this.detailsBookIndex = -1;
+        if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+      
+      } 
+      else {
+        
+        if (!e.index) e.index = _.findIndex( this.$store.getters.collection, { asin: e.book.asin });
+        const sameBook = _.get(this.detailsBook, "asin") === e.book.asin;
+        this.detailsBook = null;
+        this.detailsBookIndex = e.index;
+        this.$nextTick(function() {
+          if (!sameBook) this.detailsBook = e.book;
+          else {
+            if (this.$route.query !== undefined) this.$updateQuery({ query: 'book', value: null });
+          }
+        });
+        
+      }
+    },
+    
     // Shortcut logic for navigating to adjacent books with the tooltip info box open.
     adjacentDetails: function(e) {
       if (this.tippyRowInst) {
@@ -137,7 +188,7 @@ export default {
           this.tippyRowInst.state.isVisible &&
           !this.dontCloseTippy
         ) {
-          const scrollTop = this.listViewEl.scrollTop();
+          const scrollTop = this.$refs.listView.scrollTop();
           const scrollDistance = Math.abs(scrollTop - this.prevScrollTop);
           if (scrollDistance >= 150) {
             this.closeTippy();
@@ -148,11 +199,12 @@ export default {
       300,
       { leading: true, trailing: false }
     ),
-
+    
     prepareKeys: function() {
       const vue = this;
+      let collection = _.get(this.$store.state, this.$store.state.collectionSource);
       // Flattens all available keys into an array: ['title', 'sample'] ...etc
-      let keys = _.union(_.flatten(_.map(vue.library.books, e => _.keys(e))));
+      let keys = _.union(_.flatten(_.map(collection, e => _.keys(e))));
 
       // Here I make sure these keys get prioritized to the front of the table...
       let priorityKeys = [
@@ -190,7 +242,7 @@ export default {
         "moreLikeThis",
         "peopleAlsoBought",
         "asin",
-        "coverUrl",
+        "cover",
         "sample" // Slipped into titleShort in prepareData() method so they can be in a fixed column together
         // "added",
         // "series",
@@ -222,16 +274,12 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "~@/_variables.scss";
 
-#ale-gallery {
-  margin-bottom: 0 !important;
-}
-
-#ale-books.list-view {
+.ale-books.list-view {
   position: absolute;
-  top: 200px;
+  top: 170px;
   left: 20px;
   right: 20px;
   bottom: 20px;
@@ -244,7 +292,7 @@ export default {
   }
 }
 
-.list-view {
+.list-view-inner-wrap {
   position: absolute;
   top: 5px;
   right: 5px;
@@ -286,6 +334,11 @@ export default {
   .ale-row {
     text-align: left;
     height: 28px;
+    &:last-child {
+      @include themify($themes) {
+        border-bottom: 1px solid rgba(themed(frontColor), 0.14);
+      }
+    }
   }
   .ale-row-inner {
     white-space: nowrap;
@@ -314,6 +367,7 @@ export default {
     .text-container {
       overflow: hidden;
       text-overflow: ellipsis;
+      flex-shrink: 2;
     }
 
     &,
@@ -379,18 +433,21 @@ export default {
     position: relative;
     z-index: 0;
     &:before {
-      background: url("../../../images/table-loader-light.gif") no-repeat 10px
-        center;
+      background-repeat: no-repeat;
+      background-position: center center;
       content: "";
       display: inline-block;
       position: -webkit-sticky;
       position: sticky;
       left: 0px;
-      z-index: 1;
-      width: 50px;
-      height: 28px;
+      z-index: 2;
+      margin-top: 1px;
+      margin-left: 15px;
+      width: 27px;
+      height: 27px;
+      background-size: 20px;
     }
-    &.loaded:before {
+    &.mounted:before {
       display: none;
     }
   }
@@ -399,8 +456,7 @@ export default {
 .theme-light {
   .ale-row {
     &:before {
-      background: url("../../../images/table-loader-light.gif") no-repeat 10px
-        center;
+      background-image: url("../../../images/table-loader-light.gif");
     }
   }
 
@@ -445,8 +501,9 @@ export default {
 
 .theme-dark {
   .ale-row {
-    background: url("../../../images/table-loader-dark.gif") no-repeat 10px
-      center;
+    &:before {
+      background-image: url("../../../images/table-loader-dark.gif");
+    }
   }
 
   .list-view {
@@ -501,6 +558,9 @@ export default {
   }
   .col-added {
     width: 50px;
+  }
+  .col-book-numbers {
+    width: 60px;
   }
   .col-categories {
     width: 350px;

@@ -106,7 +106,7 @@ export default {
   created: function() {
 
 
-    this.clickedBook = document.querySelector("#ale-books.grid-view").querySelector('.ale-book[data-asin="'+ this.book.asin +'"]');
+    this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]');
     
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
@@ -151,7 +151,7 @@ export default {
     },
 
     repositionBookDetails: function() {
-      const gridView = document.querySelector("#ale-books.grid-view");
+      const gridView = document.querySelector(".ale-books");
       const domBooks = gridView.querySelectorAll(".ale-book");
 
       const target = {};
@@ -182,7 +182,9 @@ export default {
         };
         info.rowEndEl = info.getRowEndEl(info.rowEnd - 1);
       }
-
+      
+      let lastRowEndEl = document.querySelector('.target-row-end');
+      if ( lastRowEndEl ) lastRowEndEl.classList.remove('target-row-end');
       info.rowEndEl.classList.add("target-row-end");
       info.rowEndEl.parentNode.insertBefore(
         this.$refs.bookDetails,
@@ -223,7 +225,7 @@ export default {
         case "down":
 
           let wrapper = {};
-          wrapper.el = document.querySelector("#ale-books.grid-view");
+          wrapper.el = document.querySelector(".ale-books");
           wrapper.width = wrapper.el.offsetWidth;
           
           let target = {};

@@ -10,6 +10,7 @@ export default new Vuex.Store({
       lightSwitch: 1,
       lightSwitchSetByUser: false,
       // sortValues: false,
+      viewMode: 'grid',
     },
     // States that don't persist
     searchCollection: [],

@@ -32,6 +32,9 @@
           v-if="listName"
         ></search-options>
       </div> <!-- #ale-search -->
+      
+      <view-mode-switcher />
+      
     </div> <!-- #ale-search-wrap -->
     
   </div>
@@ -42,6 +45,7 @@ import Fuse from "fuse.js";
 
 import searchIcons from "./aleSearch/searchIcons";
 import searchOptions from "./aleSearch/searchOptions";
+import viewModeSwitcher from "@output-snippets/viewModeSwitcher";
 
 import filterAndSort from "@output-mixins/filter-and-sort.js";
 
@@ -49,7 +53,8 @@ export default {
   name: "aleBookdetails",
   components: {
     searchIcons,
-    searchOptions
+    searchOptions,
+    viewModeSwitcher,
   },
   mixins: [filterAndSort],
   props: ['collectionSource'],
@@ -335,7 +340,7 @@ export default {
   align-content: center;
   justify-content: center;
   margin: 0 auto;
-  margin-bottom: 30px;
+  padding-bottom: 30px;
   max-width: 600px;
   height: 46px;
 }
@@ -444,6 +449,7 @@ export default {
 
 .gallery-title-wrapper {
   margin-bottom: 20px;
+  text-align: center;
 }
 
 .gallery-title {

@@ -9,15 +9,18 @@
       >
         <col-resizer :identifier="item.class"></col-resizer>
         <div class="ale-col-inner">
+          
           <sorter
-            :general="general"
-            :gallery="gallery"
+            v-if="sorterIndex(item) > -1" 
             :label="false"
             :item="sorterItem(item.key)"
             :index="sorterIndex(item)"
+            :currentList="optionsList" 
+            :listName="listName"
           >
             <span class="text-container">{{ item.label }}</span>
           </sorter>
+          <span v-else class="text-container">{{ item.label }}</span>
         </div>
       </th>
     </tr>
@@ -30,18 +33,21 @@ import sorter from "../../../snippets/sorter";
 
 export default {
   name: "aleHeader",
-  props: ["keys", "general", "gallery"],
+  props: ["keys"],
   components: {
     colResizer,
     sorter
   },
   data: function() {
     return {
+      listName: 'sort',
+      optionsList: null,
       headers: null
     };
   },
 
   created: function() {
+    this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
     this.headers = this.prepareHeaders(this.keys);
   },
 
@@ -68,14 +74,14 @@ export default {
     },
 
     sorterIndex: function(item) {
-      return _.findIndex(this.gallery.searchOptions.lists.sort, {
+      return _.findIndex(this.optionsList, {
         key: item.key
       });
     },
 
     sorterItem: function(name) {
       const regex = new RegExp("^" + name);
-      return _.find(this.gallery.searchOptions.lists.sort, function(o) {
+      return _.find(this.optionsList, function(o) {
         return o.key.match(regex);
       });
     }
