@@ -139,7 +139,6 @@ export default {
 @media (prefers-color-scheme: light) {
   background-color: $lightBackColor;
 }
-
 html.theme-dark {
   background-color: $darkBackColor;
 }

@@ -5,6 +5,7 @@
       <h2 class="gallery-title" v-if="$store.state.pageTitle">
         {{ $store.state.pageTitle }}
       </h2>
+      <div class="divider"></div>
       <h3 class="gallery-sub-title" v-if="$store.state.pageSubTitle">
         {{ $store.state.pageSubTitle }}
       </h3>
@@ -450,6 +451,13 @@ export default {
 .gallery-title-wrapper {
   margin-bottom: 20px;
   text-align: center;
+  > * { 
+    display: inline-block; 
+    position: relative;
+  }
+  .divider {
+    display: block !important;
+  }
 }
 
 .gallery-title {
@@ -461,21 +469,55 @@ export default {
     color: themed(frontColor);
   }
 }
+
 .gallery-sub-title {
   font-size: 17px;
   line-height: 19px;
   font-weight: normal;
   margin: 0px;
   margin-top: 10px;
-  // FIXME: This style doesn't really work on the light theme...
-  @include themify($themes) {
-    color: themed(frontColor);
-    border: 1px solid themed(audibleOrange);
-    background: themed(backColor);
-  }
   padding: 5px 10px;
-  display: inline-block;
   border-radius: 9999px;
+}
+
+.theme-light .gallery-sub-title {
+  color: $lightFrontColor;
+  border: 1px solid $lightFrontColor;
+  background: $lightBackColor;
+}
+
+.theme-dark .gallery-sub-title {
+  color: $darkFrontColor;
+  border: 1px solid $audibleOrange;
+  background: $darkBackColor;
+}
+
+.theme-light .gallery-title:before,
+.theme-light .gallery-sub-title:before, {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0px;
+  right: -10px;
+  bottom: 0px;
+  left: -10px;
+  background: rgba( $lightBackColor, .7);
+  border-radius: 9999px;
+  box-shadow: 0 0 150px 150px rgba( $lightBackColor, .7);
+}
+
+.theme-dark .gallery-title:before,
+.theme-dark .gallery-sub-title:before, {
+  content: '';
+  position: absolute;
+  z-index: -1;
+  top: 0px;
+  right: -10px;
+  bottom: 0px;
+  left: -10px;
+  background: rgba( $darkBackColor, .5);
+  border-radius: 9999px;
+  box-shadow: 0 0 100px 100px rgba( $darkBackColor, .5);
 }
 
 // #ale-search-wrap.search-fixed #ale-search {
