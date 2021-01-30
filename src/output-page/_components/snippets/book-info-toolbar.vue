@@ -1,5 +1,8 @@
 <template>
   <div class="book-info-toolbar">
+    <!-- TODO: not sure if favorite book icon makes sense here...
+               note: it's also visible in the spreadsheet tooltip book details
+    -->
     <favorite-book   :size="size" :book="book" v-if="book.favorite" />
     <sampleButton    :size="size" :book="book" />
     <!-- <sampleButton    :size="size" :book="book" :index="rowIndex" /> -->
@@ -46,7 +49,7 @@ export default {
   border-radius: 99999px;
   @include themify($themes) {
     background: darken(themed(backColor), 1);
-    box-shadow: inset 0 3px 15px rgba(darken(themed(backColor), 30), 0.8);
+    box-shadow: inset 0 3px 15px rgba(darken(themed(backColor), 30), 0.4);
   }
     
   .top-right {
@@ -71,7 +74,7 @@ export default {
     justify-content: center;
     align-items: center;
     justify-items: center;
-    img {
+    img, svg {
       display: inline-block;
       max-width: 70%;
       height: auto;

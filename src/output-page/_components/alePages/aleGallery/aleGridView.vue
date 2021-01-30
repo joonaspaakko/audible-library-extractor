@@ -170,6 +170,7 @@ export default {
     // Image set a few lines down...
   }
 
+  &.mounted:before,
   &.mounted:after {
     display: none !important;
   }

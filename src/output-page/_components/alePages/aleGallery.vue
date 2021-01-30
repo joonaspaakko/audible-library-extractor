@@ -109,10 +109,6 @@ export default {
     this.prepSeriesSubPage();
     this.prepWishlist();
     
-    if ( this.$store.state.sticky.viewMode === 'spreadsheet' ) {
-      
-    }
-    
   },
   
 };

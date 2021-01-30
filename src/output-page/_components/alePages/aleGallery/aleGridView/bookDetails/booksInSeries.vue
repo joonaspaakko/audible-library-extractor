@@ -21,7 +21,7 @@
         <div
         class="series-heading"
         v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'], maxWidth: 300, allowHTML: true }"
-        content="<div style='text-align: left;'>The total number of books is based on every single book listing in the series page, including different versions of books you may already have.</div>"
+        content="<div style='text-align: left;'>The total number of books is based on every single book listing in the series page, including different versions or bundles of books you may already have.</div>"
         >
           <div class="series-name">
             <router-link :to="{ name: 'series', params: { series: series.asin } }">
@@ -41,16 +41,12 @@
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
 
-          <router-link v-if="seriesBook.asin !== book.asin"
+          <router-link
           :to="{ name: 'series', params: { series: series.asin }, query: { book: seriesBook.asin } }"
           >
             <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </router-link>
-          <span v-else>
-            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
-            <span class="title">{{ seriesBook.title }}</span>
-          </span>
         </div>
         
       </div>
@@ -138,10 +134,8 @@ export default {
     numbersClass: function(book) {
       var progress = book.progress;
       return {
-        finished:
-          progress && progress.toLowerCase().match("finished") ? true : false,
-        reading:
-          progress && !progress.toLowerCase().match("finished") ? true : false,
+        finished: progress && progress.toLowerCase().match("finished") ? true : false,
+        reading: progress && !progress.toLowerCase().match("finished") ? true : false,
         unfinished: !book.progress,
         current: this.book.asin === book.asin
       };
@@ -236,6 +230,18 @@ export default {
         }
       }
     }
+    
+    a {
+      @include themify($themes) {
+        color: themed(frontColor) !important;
+      }
+      &:visited {
+        @include themify($themes) {
+          color: rgba( themed(frontColor), .6) !important;
+        }
+      }
+    }
+    
   }
 }
 
