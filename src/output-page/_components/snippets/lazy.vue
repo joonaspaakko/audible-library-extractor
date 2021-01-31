@@ -1,7 +1,10 @@
 <template>
-  <div :class="{ mounted: intersected }">
+  <div v-if="!tag" :class="{ mounted: intersected }">
     <slot v-if="intersected" />
   </div>
+  <td v-else-if="tag === 'td'" :class="{ mounted: intersected }">
+    <slot v-if="intersected" />
+  </td>
 </template>
 
 <script>
@@ -9,7 +12,7 @@ import makeUrl from "@output-mixins/makeFullUrl";
 
 export default {
   name: "lazy",
-  props: ['row'],
+  props: ['row', 'tag'],
   data: function() {
     return {
       observer: null, 

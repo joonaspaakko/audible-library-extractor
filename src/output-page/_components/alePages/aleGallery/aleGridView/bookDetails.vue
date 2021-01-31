@@ -4,14 +4,19 @@
   ref="bookDetails"
   v-shortkey.once="['esc']"
   @shortkey="closeBookDetails()"
-  >
-    <div class="arrow" ref="arrow"></div>
+  :class="{ 'spreadsheet-details': $store.state.sticky.viewMode === 'spreadsheet' }"
+  > 
+    <div v-if="$store.state.sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
     <div
     id="book-info-container"
-    v-shortkey.once="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'] }"
+    v-shortkey.once="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'], tab: ['tab'], tabShift: ['tab', 'shift'] }"
     @shortkey="openAdjacentBookDetails"
     >
+    
       <div class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
+        
+        <font-awesome class="book-details-info" :icon="['fas', 'info-circle']" v-tippy="{ placement: 'left', flipBehavior: ['left', 'right'], allowHTML: true }" content="<div style='text-align: left;'><h3 style='margin: 0; padding-top: 10px; padding-left: 15px;'>Shortcuts</h3><ul><li><strong>Close:</strong> Esc</li><li><strong>Previous book:</strong> shift+tab, left arrow, up arrow (spreadsheet)</li><li><strong>Next book:</strong> tab, right arrow, down arrow (spreadsheet)</li><li><strong>Previous row:</strong> up arrow (Grid view)</li><li><strong>Next row:</strong> down arrow (Grid view)</li></ul></div>" />
+        
         <div class="top">
           <div class="information" ref="information">
             <div class="cover-wrap">
@@ -42,12 +47,12 @@
           <book-summary :detailsEl="$el" :book="book"></book-summary>
         </div>
 
-        <carousel v-if="!loading && book.peopleAlsoBought" :books="book.peopleAlsoBought">
+        <carousel v-if="!loading && book.peopleAlsoBought" :books="book.peopleAlsoBought" :key="this.maxWidth">
           <!-- People who bought this also bought: -->
           Listeners also enjoyed
         </carousel>
 
-        <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis">
+        <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis" :key="this.maxWidth">
           More listens like this
         </carousel>
       </div>
@@ -96,7 +101,7 @@ export default {
   props: ["book", "index", "booksWrapper"],
   data: function() {
     return {
-      maxWidth: "none",
+      maxWidth: "unset",
       scrollTop: 0,
       loading: true,
       clickedBook: null,
@@ -104,9 +109,9 @@ export default {
   },
 
   created: function() {
-
-
-    this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]');
+    
+    this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
+    
     
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
@@ -128,7 +133,12 @@ export default {
 
   computed: {
     getMaxWidth: function() {
-      return window.innerWidth > 800 ? this.maxWidth : "800px";
+      if ( this.$store.state.sticky.viewMode === 'spreadsheet' ) {
+        return this.maxWidth;
+      }
+      else {
+        return window.innerWidth > 800 ? this.maxWidth : "800px";
+      }
     },
     
   },
@@ -146,13 +156,18 @@ export default {
 
     resetScroll: function() {
       this.$nextTick(function() {
-        scroll({ top: this.clickedBook.offsetTop - 78 });
+        if ( this.$store.state.sticky.viewMode === 'grid' ) {
+          scroll({ top: this.clickedBook.offsetTop - 78 });
+        }
+        else {
+          document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 78 });
+        }
       });
     },
 
     repositionBookDetails: function() {
       const gridView = document.querySelector(".ale-books");
-      const domBooks = gridView.querySelectorAll(".ale-book");
+      const domBooks = gridView.querySelector(".ale-book") ? gridView.querySelectorAll(".ale-book") : gridView.querySelector('table tbody').querySelectorAll(".ale-row");
 
       const target = {};
       target.el = domBooks[this.index];
@@ -165,7 +180,7 @@ export default {
       wrapper.width = wrapper.el.offsetWidth;
 
       const info = {};
-      info.cols = Math.floor(wrapper.width / target.width);
+      info.cols = Math.floor(wrapper.width / target.width) || 1;
 
       if (info.cols < 2) {
         info.rowEndEl = target.el;
@@ -191,9 +206,9 @@ export default {
         info.rowEndEl.nextSibling
       );
 
-      this.repositionBookDetailsArrow(target.el);
-
-      return target.width * info.cols;
+      if ( this.$store.state.sticky.viewMode !== 'spreadsheet' ) this.repositionBookDetailsArrow(target.el);
+      
+      return (this.$store.state.sticky.viewMode === 'spreadsheet') ? wrapper.width-60 : (target.width * info.cols);
     },
 
     repositionBookDetailsArrow: function(clickedEl) {
@@ -208,49 +223,73 @@ export default {
       const vue = this;
       // These rely on how the book details will close if the sent book is null,
       // meaning that when you come to the end of the line it will just close the details.
-      switch (e.srcKey) {
-        
-        case "left":
-          this.$root.$emit("book-clicked", {
-            book: this.$store.getters.collection[this.index - 1]
-          });
-          break;
-        case "right":
-          this.$root.$emit("book-clicked", {
-            book: this.$store.getters.collection[this.index + 1]
-          });
-          break;
+      if ( this.$store.state.sticky.viewMode === 'grid' ) {
+        switch (e.srcKey) {
           
-        case "up":
-        case "down":
-
-          let wrapper = {};
-          wrapper.el = document.querySelector(".ale-books");
-          wrapper.width = wrapper.el.offsetWidth;
-          
-          let target = {};
-          target.el = this.clickedBook;
-          target.index = this.index;
-          target.width = target.el.offsetWidth;
-          
-          const cols = Math.floor(wrapper.width / target.width);
-          
-          let getClosestTargetBook = function(index) {
-            let el = vue.$store.getters.collection[ index ];
-            if (!el) {
-              el = getClosestTargetBook(--index);
-            }
-            return el;
-          };
-          
-          this.$root.$emit("book-clicked", {
-            book: e.srcKey === 'up' ? 
-              vue.$store.getters.collection[ this.index-cols ] : 
-              getClosestTargetBook( this.index+cols )
+          case "left":
+          case "tabShift":
+            this.$root.$emit("book-clicked", {
+              book: this.$store.getters.collection[this.index - 1]
+            });
+            break;
+          case "right":
+          case "tab":
+            this.$root.$emit("book-clicked", {
+              book: this.$store.getters.collection[this.index + 1]
+            });
+            break;
             
-          });
-          break;
+          case "up":
+          case "down":
+
+            let wrapper = {};
+            wrapper.el = document.querySelector(".ale-books");
+            wrapper.width = wrapper.el.offsetWidth;
+            
+            let target = {};
+            target.el = this.clickedBook;
+            target.index = this.index;
+            target.width = target.el.offsetWidth;
+            
+            const cols = Math.floor(wrapper.width / target.width);
+            
+            let getClosestTargetBook = function(index) {
+              let el = vue.$store.getters.collection[ index ];
+              if (!el) {
+                el = getClosestTargetBook(--index);
+              }
+              return el;
+            };
+            
+            this.$root.$emit("book-clicked", {
+              book: e.srcKey === 'up' ? 
+                vue.$store.getters.collection[ this.index-cols ] : 
+                getClosestTargetBook( this.index+cols )
+              
+            });
+            break;
+            
+        }
+      }
+      else {
+        switch (e.srcKey) {
           
+          case "left":
+          case "up":
+          case "tabShift":
+            this.$root.$emit("book-clicked", {
+              book: this.$store.getters.collection[this.index - 1]
+            });
+            break;
+          case "right":
+          case "down":
+          case "tab":
+            this.$root.$emit("book-clicked", {
+              book: this.$store.getters.collection[this.index + 1]
+            });
+            break;
+            
+        }
       }
     },
 
@@ -268,17 +307,13 @@ export default {
       if (book.progress.toLowerCase().trim() === "finished") {
         const length = this.timeStringToSeconds(book.length);
         return "Finished: ( " + this.secondsToTimeString(length) + " )";
-      } else {
+      } 
+      else {
         const progress = this.timeStringToSeconds(book.progress);
         const length = this.timeStringToSeconds(book.length);
 
         const difference = length - progress;
-        return (
-          "Progress: " +
-          this.secondsToTimeString(difference) +
-          " / " +
-          this.secondsToTimeString(length)
-        );
+        return ( "Progress: " + this.secondsToTimeString(difference) + " / " + this.secondsToTimeString(length) );
       }
     },
 
@@ -373,6 +408,8 @@ export default {
     position: relative;
     z-index: 0;
     > .top {
+      position: relative;
+      z-index: 1;
       width: 100%;
       display: flex;
       flex-direction: row;
@@ -485,6 +522,7 @@ export default {
       margin: 10px 0 5px 0;
     }
   }
+  
 } // #ale-bookdetails
 
 .theme-light #ale-bookdetails {
@@ -530,19 +568,6 @@ export default {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e615171b', endColorstr='#15171b',GradientType=0 );
 }
 
-// #ale-bookdetails {
-
-// 	.VueCarousel-dot-container {
-// 		&, & > button {
-//       margin-top: 0 !important;
-//     }
-//     [aria-selected="false"] {
-//       @include themify($themes) { background-color: rgba( themed(frontColor), .43) !important; }
-//     }
-// 	}
-
-// } // #ale-bookdetails
-
 @media (max-width: 640px) {
   #ale-bookdetails {
     // #book-info-container {
@@ -565,6 +590,40 @@ export default {
         }
       }
     }
+  }
+}
+
+
+
+#ale-bookdetails.spreadsheet-details {
+  border-top-width: 1px;
+  font-size: 14px;
+  line-height: 1.55em;
+  width: 100%;
+  left: unset;
+  right: unset;
+  margin: 0;
+  text-align: left;
+  padding-left: 0px;
+  
+  .inner-wrap {
+    padding-left: 30px;
+    position: -webkit-sticky;
+    position: sticky;
+    left: 0px;
+    z-index: 2;
+    margin: 0px;
+  }
+}
+
+.book-details-info {
+  position: absolute;
+  z-index: 2;
+  top: -20px;
+  right: 0px;
+  font-size: 18px;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), 0.1);
   }
 }
 </style>

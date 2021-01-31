@@ -6,6 +6,7 @@
       <li class="search-option" 
       :class="{ extras: item.type && item.type.match(/extra/i), divider: item.key === 'divider' }" 
       v-for="(item, index) in optionsList" :key="item.key"
+      v-if="!($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues')"
       >
         <listItem v-if="item.key !== 'divider'" 
         :label="item.label" :item="item" :index="index" 

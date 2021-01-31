@@ -1,10 +1,10 @@
 <template>
   <div id="ale-background" v-if="books">
     <img
-      ref="bgCovers"
       v-for="(book, index) in books"
-      :key="book.asin"
+      :key="book.cover+index"
       :src="makeCoverUrl(book.cover, 200)"
+      :class="{ 'flip-out': book.flipOut }"
       alt=""
     />
   </div>
@@ -19,6 +19,7 @@ export default {
   data: function() {
     return {
       books: null,
+      booksLength: null,
       windowWidth: null,
       timer1: null,
       timer2: null
@@ -38,8 +39,10 @@ export default {
 
     this.$root.$on("afterWindowResize", this.onWindowResize);
   },
-  destroyed: function() {
+  beforeDestroyed: function() {
     this.$root.$off("afterWindowResize", this.onWindowResize);
+    clearInterval(this.timer1);
+    clearInterval(this.timer2);
   },
 
   methods: {
@@ -62,10 +65,10 @@ export default {
       } else if (this.windowWidth < 1300) {
         bgLength = calculateBgLength(12);
       }
-
-      const books = (function(books) {
+      
+      let books = (function(books) {
         const booksLength = books.length;
-        if (booksLength <= bgLength) {
+        if ( booksLength <= bgLength ) {
           const fits = Math.floor(bgLength / booksLength);
           const difference = bgLength - booksLength * fits;
           const loopLength = fits;
@@ -80,7 +83,16 @@ export default {
           return _.sampleSize(books, bgLength);
         }
       })(this.$store.state.library.books);
-
+      
+      // Reduce the number of properties to bear necessities
+      books = _.map( books, function( book ) {
+        let newObject = _.pick(book, ['cover']);
+        newObject.flipOut = false;
+        return newObject;
+      });
+      
+      this.booksLength = books.length;
+      
       return books;
     },
 
@@ -99,19 +111,19 @@ export default {
     },
 
     coverSwitcheroo: function() {
+      
       const vue = this;
-      const gridImages = vue.$refs.bgCovers;
-      const gridImagesLength = gridImages.length - 1;
-      const img1 = gridImages[vue.randomNumber(0, gridImagesLength)];
-      const img2 =
-        vue.$store.state.library.books[
-          vue.randomNumber(0, vue.$store.state.library.books.length - 1)
-        ].cover;
-      img1.classList.add("flip-out");
+      const targetIndex = this.randomNumber(0, this.booksLength-1);
+      const targetBook = this.books[ targetIndex ];
+      
+      targetBook.flipOut = true;
       setTimeout(function() {
-        img1.setAttribute("src", vue.makeCoverUrl(img2, 200));
-        img1.classList.remove("flip-out");
-      }, 1000);
+        const newIndex = vue.randomNumber(0, vue.$store.state.library.books.length-1);
+        const newBook = vue.$store.state.library.books[ newIndex ];
+        targetBook.cover = newBook.cover;
+        targetBook.flipOut = false;
+      }, 850);
+      
     },
 
     randomNumber: function(min, max) {
@@ -189,12 +201,12 @@ export default {
     transition: all 900ms;
     opacity: 1;
     transform: rotateY(0deg);
+    animation: 1000ms showImage;
     &.flip-out {
       opacity: 0;
       transform: rotateY(180deg);
       transition-duration: 1000ms;
     }
-    -webkit-transform: translateZ(0);
     @-webkit-keyframes showImage {
       0% {
         opacity: 0;
@@ -211,8 +223,6 @@ export default {
         opacity: 1;
       }
     }
-    -webkit-animation: 1000ms showImage;
-    animation: 1000ms showImage;
   }
 }
 // In ios, the gradient "mask" flickers when a cover animates behind it.

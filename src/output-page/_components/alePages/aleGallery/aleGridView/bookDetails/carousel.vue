@@ -4,7 +4,7 @@
 			<slot></slot>
 		</h3>
 				
-		<splide :options="options">
+		<splide :options="options" ref="splide" v-if="loaded">
 			<splide-slide class="ale-carousel-item" v-for="(book, index) in books" :key="index">
 				
 					<a :href="makeUrl('book', book.asin)" target="_blank" v-tippy :content="sliderTippyContent( book )">
@@ -26,7 +26,7 @@ import makeCoverUrl from '@output-mixins/makeCoverUrl';
 
 export default {
   name: 'carousel',
-  props: ['books'],
+  props: ['books', 'width'],
   mixins: [
     makeFullUrl,
     makeCoverUrl,
@@ -39,25 +39,28 @@ export default {
 	
 	data: function() {
 		return {
+			loaded: false,
 			options: {
-				type: 'loop',
-				rewind   : true,
-				autoWidth: true,
-				trimSpace: false,
-				gap      : '4px',
-				lazyLoad: 'nearby',
-				preloadPages: 0,
-				perPage  : 5,
-				breakpoints: {
-					783: {
-						perPage: 4,
-					},
-					530: {
-						perPage: 3,
-					},
-				},
+				type        : 'loop',
+				rewind      : true,
+				// autoWidth   : true,
+				width				: null,
+				trimSpace   : false,
+				gap         : '4px',
+				lazyLoad    : 'nearby',
+				preloadPages: 1,
+				perPage     : 5,
 			},
 		}
+	},
+	
+	mounted: function() {
+		
+		this.options.width = this.$el.offsetWidth;
+		const carouselWidth = this.$el.offsetWidth - (42*2);
+		this.options.perPage = Math.floor(carouselWidth / 132);
+		this.loaded = true;
+		
 	},
 	
 	methods: {
@@ -90,6 +93,7 @@ export default {
 	&:first-child { margin-top: 0 !important; }
 	
 	.ale-heading {
+		text-align: center;
 		margin: 0px;
 		margin-top: 20px;
 	}

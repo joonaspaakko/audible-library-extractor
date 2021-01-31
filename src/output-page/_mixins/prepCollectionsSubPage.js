@@ -15,8 +15,6 @@ export default {
             return _.includes( collection.books, book.asin );
           });
           
-          console.log( collection )
-          
           // Set page title
           const titleProps = [];
           if ( collection.title || collection.description ) {

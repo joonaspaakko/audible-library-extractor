@@ -1,24 +1,19 @@
 <template>
-  <tr class="ale-row-inner">
-    <td
-      v-for="col in columns"
-      :key="col.key"
-      class="ale-col"
-      :class="col.class"
-      :name="col.name"
-      @click="$root.$emit('book-clicked', { book })"
+  <tr class="ale-row-inner" @click="$root.$emit('book-clicked', { book })">
+    
+    <lazy
+    tag="td"
+    v-for="col in columns"
+    :key="col.key"
+    class="ale-col"
+    :class="col.class"
+    :name="col.name"
     >
       <div class="ale-col-inner">
+        
         <span v-if="col.key === 'title'" class="icons-n-stuff">
-          <span class="info-icon"
-            ><font-awesome fas icon="chevron-down" class="pointer"
-          /></span>
-          <sampleButton
-            :book="book"
-            :index="rowIndex"
-            :size="16"
-          ></sampleButton>
-          <!-- Just not incredibly performant -->
+          <span class="info-icon"><font-awesome fas icon="chevron-down" class="pointer"/></span>
+          <sampleButton :book="book" :index="rowIndex" :size="16"></sampleButton>
           <div class="thumbnail-wrapper">
             <img v-if="!imageLoading" :src="coverUrl27" alt="">
           </div>
@@ -26,56 +21,8 @@
 
         <span class="text-container"> {{ col.text || "&nbsp" }}</span>
       </div>
-    </td>
-
-    <tippy
-      v-if="book.title"
-      :to="'rowTippy-' + book.asin"
-      :arrow="false"
-      maxWidth="800"
-      placement="top-start"
-      :interactive="true"
-      trigger="focus"
-      :hideOnClick="false"
-      @show="onShow"
-      @hide="onHide"
-    >
-      <div class="tippy-content-wrapper" v-if="!tippyLoading">
-        <div class="book-cover">
-          <a :href="bookUrl" target="_blank">
-            <img :src="coverUrl" alt="" />
-          </a>
-        </div>
-        <div class="book-information">
-          <div class="corner-actions">
-            <favorite-book
-              :size="25"
-              :book="book"
-            ></favorite-book>
-            <sampleButton
-              :size="25"
-              :book="book"
-              :index="rowIndex"
-            ></sampleButton>
-            <good-reads-link
-              :size="25"
-              :book="book"
-              :icon="true"
-            ></good-reads-link>
-          </div>
-
-          <h2 class="title">
-            <a :href="bookUrl">
-              {{ bookTitle }}
-            </a>
-          </h2>
-
-          <book-basic-info :book="book" ></book-basic-info>
-
-          <div class="summary" v-html="book.blurb"></div>
-        </div>
-      </div>
-    </tippy>
+    </lazy>
+    
   </tr>
 </template>
 
@@ -84,20 +31,16 @@ import makeCoverUrl from "@output-mixins/makeCoverUrl";
 import stringifyArray from "@output-mixins/stringifyArray";
 import makeFullUrl from "@output-mixins/makeFullUrl";
 
-import goodReadsLink from "@output-comps/snippets/goodReadsLink";
-import favoriteBook from "@output-comps/snippets/favoriteBook";
+import lazy from "@output-snippets/lazy.vue";
 import sampleButton from "@output-comps/snippets/sampleButton";
-import bookBasicInfo from "@output-comps/snippets/book-basic-info";
 
 export default {
   name: "aleListItem",
   props: ["book", "rowIndex", "keys"],
   mixins: [stringifyArray, makeCoverUrl, makeFullUrl],
   components: {
-    goodReadsLink,
-    favoriteBook,
+    lazy,
     sampleButton,
-    bookBasicInfo
   },
   data: function() {
     return {
@@ -108,7 +51,6 @@ export default {
       goodreadsUrl: "",
       columns: null,
       imageLoading: true,
-      tippyLoading: true
     };
   },
 
@@ -132,14 +74,6 @@ export default {
   },
 
   methods: {
-    onShow: function(instance) {
-      const vue = this;
-      vue.tippyLoading = false;
-      this.$emit("updateTippyEl", instance);
-    },
-    onHide: function() {
-      // this.$emit('updateTippyEl', null);
-    },
 
     prepareColumns: function() {
       const vue = this;
@@ -163,7 +97,6 @@ export default {
             break;
 
           case "title":
-            // col.name = 'rowTippy-'+vue.book.asin;
             col.text = vue.bookTitle;
             col.class += " sticky-col";
             break;
@@ -195,49 +128,6 @@ export default {
 
 <style lang="scss">
 @import "~@/_variables.scss";
-
-.tippy-content-wrapper {
-  display: flex;
-  flex-direction: row;
-  padding: 7+5px 7+1px;
-  > div {
-    padding-left: 20px;
-    &:first-child {
-      padding-left: 0;
-    }
-  }
-  .book-cover {
-    position: relative;
-    z-index: 0;
-    img {
-      width: 150px;
-    }
-  }
-  .book-information {
-    max-width: 750px;
-    text-align: left;
-    .title {
-      margin: 0px;
-      margin-bottom: 10px;
-      font-size: 1.2em;
-    }
-    .summary {
-      margin-top: 10px;
-    }
-  }
-
-  .corner-actions {
-    position: absolute;
-    z-index: 3;
-    top: 15px;
-    right: 15px;
-    display: inline-flex;
-    flex-direction: row;
-    > * {
-      margin-left: 7px;
-    }
-  }
-}
 
 .ale-row-inner {
   .icons-n-stuff .thumbnail-wrapper {

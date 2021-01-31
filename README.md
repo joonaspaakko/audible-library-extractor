@@ -1,3 +1,4 @@
+
 # Audible Library Extractor
 
 Automatically generates a searchable gallery & spreadsheet by scanning your audible library. The goal with this project is to help your show others what you have in your Audible library. Once the library has been scanned, you can immediately privately view the gallery. From there you can extract the files that you can share with others by uploading the files online or perhaps sharing the files via email, if you want to get old school about it. Here's an old video showing how what the extension extraction process looks like [Youtube video](https://youtu.be/SxqG8BXIsg0).

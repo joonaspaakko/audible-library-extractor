@@ -49,6 +49,7 @@ export default {
   created: function() {
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
     this.headers = this.prepareHeaders(this.keys);
+    // FIXME: need to first of all add the missing ".name" sorters and I alo need to add generic sorters to some of the other columns
   },
 
   methods: {

@@ -2,19 +2,18 @@
 <div
 class="ale-books list-view"
 ref="listView"
-v-shortkey.once="{
-  down: ['arrowdown'],
-  right: ['arrowright'],
-  up: ['arrowup'],
-  left: ['arrowleft'],
-  tab: ['tab'],
-  tabShift: ['tab', 'shift']
-}"
-@shortkey="adjacentDetails"
 :style="{ top: spreadsheetTop + 'px' }"
 >
 
-  <div class="list-view-inner-wrap" v-shortkey.once="['esc']" @shortkey="closeTippy">
+  <book-details
+  v-if="detailsBook"
+  :key="'details:' + detailsBook.asin"
+  :book.sync="detailsBook"
+  :booksWrapper="$refs.booksWrapper"
+  :index="detailsBookIndex"
+  />
+  
+  <div class="list-view-inner-wrap">
     <table>
       <thead>
         <ale-header :keys="keys"></ale-header>
@@ -27,14 +26,12 @@ v-shortkey.once="{
         class="ale-row"
         :data-asin="book.asin"
         :key="'book:'+book.asin"
-        :name="'rowTippy-' + book.asin"
         ref="domBooks"
         >
           <ale-list-row
             :book="book"
             :rowIndex="index"
             :keys="keys"
-            @updateTippyEl="setTippyInst"
           ></ale-list-row>
         </lazy>
         
@@ -66,9 +63,7 @@ export default {
     return {
       spreadsheetTop: 170,
       keys: "",
-      tippyRowInst: null,
       prevScrollTop: 0,
-      dontCloseTippy: null,
       
       detailsBook: null,
       detailsBookIndex: -1,
@@ -82,33 +77,27 @@ export default {
   mounted: function() {
     
     this.$root.$on("book-clicked", this.toggleBookDetails);
-    this.$refs.listView.addEventListener("scroll", this.listScrolled, { passive: true });
-    
     this.setSpreadsheetOffset();
+    
+    // Book query: open book details on load
+    if (_.get(this.$route, "query.book")) this.toggleBookDetails({
+      book: _.find(this.$store.getters.collection, { asin: this.$route.query.book })
+    });
     
   },
 
   beforeDestroy: function() {
-    
     this.$root.$off("book-clicked", this.toggleBookDetails);
-    this.$refs.listView.removeEventListener("scroll", this.listScrolled);
   },
 
   methods: {
-    // lazyShow: function(comp) {
-    //   this.$nextTick(function() {
-    //     comp.$el.classList.add("loaded");
-    //   });
-    // },
     
     setSpreadsheetOffset: function() {
       
       const searchWrap = document.querySelector('#ale-search-wrap');
       const searchOffset = window.pageYOffset + searchWrap.getBoundingClientRect().top;
       const searchHeight = searchWrap.offsetHeight;
-      const searchMarginBottom = searchWrap.style.marginBottom;
       this.spreadsheetTop = searchOffset + searchHeight;
-      console.log( this.spreadsheetTop,  searchMarginBottom );
     
     },
     
@@ -136,69 +125,6 @@ export default {
         
       }
     },
-    
-    // Shortcut logic for navigating to adjacent books with the tooltip info box open.
-    adjacentDetails: function(e) {
-      if (this.tippyRowInst) {
-        const vue = this;
-        if (this.dontCloseTippy) clearTimeout(this.dontCloseTippy);
-        this.dontCloseTippy = setTimeout(function() {
-          vue.dontCloseTippy = false;
-        }, 500);
-
-        const tippyEl = this.tippyRowInst.reference;
-        tippyEl.scrollIntoView({ block: "center" });
-
-        switch (e.srcKey) {
-          case "up":
-          case "left":
-          case "tabShift":
-            if (tippyEl.previousSibling) {
-              tippyEl.blur();
-              tippyEl.previousSibling.focus();
-            }
-            break;
-          case "down":
-          case "right":
-          case "tab":
-            if (tippyEl.nextSibling) {
-              tippyEl.blur();
-              tippyEl.nextSibling.focus();
-            }
-            break;
-        }
-      }
-    },
-
-    closeTippy: function() {
-      if (this.tippyRowInst && this.tippyRowInst.state.isVisible)
-        this.tippyRowInst.hide();
-    },
-
-    setTippyInst: function(tippyRowInst) {
-      if (this.tippyRowInst && this.tippyRowInst !== tippyRowInst)
-        this.tippyRowInst.hide();
-      this.tippyRowInst = tippyRowInst;
-    },
-
-    listScrolled: _.throttle(
-      function(e) {
-        if (
-          this.tippyRowInst &&
-          this.tippyRowInst.state.isVisible &&
-          !this.dontCloseTippy
-        ) {
-          const scrollTop = this.$refs.listView.scrollTop();
-          const scrollDistance = Math.abs(scrollTop - this.prevScrollTop);
-          if (scrollDistance >= 150) {
-            this.closeTippy();
-            this.prevScrollTop = scrollTop;
-          }
-        }
-      },
-      300,
-      { leading: true, trailing: false }
-    ),
     
     prepareKeys: function() {
       const vue = this;
@@ -490,12 +416,6 @@ export default {
 
   .ale-row {
     outline: none;
-    &:focus,
-    &.tippy-active {
-      .ale-col {
-        background: #fce9ce !important;
-      }
-    }
   }
 }
 
@@ -543,12 +463,6 @@ export default {
 
   .ale-row {
     outline: none;
-    &:focus,
-    &.tippy-active {
-      .ale-col {
-        background: #372b1f !important;
-      }
-    }
   }
 }
 

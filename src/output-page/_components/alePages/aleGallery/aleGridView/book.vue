@@ -1,10 +1,10 @@
 <template>
-  <div class="details-inner-wrap" :data-title="book.title" ref="bookInnerWrap">
+  <div class="details-inner-wrap">
     
     <sort-values v-if="sortValuesEnabled" :book="book"></sort-values>
 
     <div class="ale-cover">
-      <div class="ale-play-sample" @click="playSample(book, index)">
+      <div class="ale-play-sample" v-if="book.sample" @click="playSample(book, index)">
         <div><font-awesome fas icon="play" /></div>
       </div>
 
@@ -40,7 +40,7 @@
         <img
           class="ale-cover-image"
           :src="makeCoverUrl(book.cover, 280)"
-          :alt="imageAlt(book, index)"
+          alt=""
         />
       </div>
     </div>
@@ -58,20 +58,10 @@ export default {
     'sort-values': () => import( /* webpackChunkName: "sort-values" */ './aleSortValues.vue'),
   },
 
-  mounted: function() {
-    
-    // document
-    //   .querySelector('.ale-book[data-asin="' + this.book.asin + '"]')
-    //   .classList.add("mounted");
-    
-    
-    
-  },
-
   methods: {
-    imageAlt: function(book, index) {
-      return book.authors[0].name + " - " + book.title;
-    },
+    // imageAlt: function(book, index) {
+    //   return book.authors[0].name + " - " + book.title;
+    // },
 
     playSample: function(book, index) {
       this.$root.$emit("play-audio", {

@@ -3,6 +3,7 @@
     id="audible-library-extractor"
     :class="{ 'mobile-browser-navigation-on': mobileBrowserNavigation }"
   >
+    
     <ale-background></ale-background>
     <ale-navigation></ale-navigation>
     <router-view></router-view>

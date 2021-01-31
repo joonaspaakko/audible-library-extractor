@@ -43,9 +43,6 @@ export default {
   },
   
   created: function() {
-    const vue = this;
-    const routeName = this.$route.name;
-
     this.$root.$on("book-clicked", this.toggleBookDetails);
     // $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
     // this.$root.$on('afterWindowResize', this.onWindowResize );
