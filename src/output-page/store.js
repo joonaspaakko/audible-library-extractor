@@ -13,6 +13,7 @@ export default new Vuex.Store({
       viewMode: 'grid',
     },
     // States that don't persist
+    searchMounted: false,
     searchCollection: [],
     mutatingCollection: [],
     collectionSource: null,
@@ -26,6 +27,7 @@ export default new Vuex.Store({
     listRenderingOpts: null,
     pageTitle: null,
     pageSubTitle: null,
+    windowWidth: window.innerWidth,
   },
 
   mutations: {

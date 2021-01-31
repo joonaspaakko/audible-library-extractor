@@ -205,6 +205,7 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
+  display: flex;
   justify-content: center;
   align-content: center;
   align-items: center;
@@ -212,7 +213,7 @@ export default {
   color: #fff;
   background: rgba(#000, 0.2);
   // transition: all 200ms ease-in-out;
-  display: none;
+  opacity: 0;
   &:after {
     content: "";
     position: absolute;
@@ -248,17 +249,16 @@ export default {
   }
 }
 .ale-click-wrap:hover {
-  &:hover .ale-info-indicator {
-    display: flex;
+  .ale-info-indicator {
+    opacity: 1;
+    div {
+      width: 50%;
+      height: 50%;
+      font-size: 140%;
+    }
   }
-
-  &:hover .ale-info-indicator div {
-    width: 50%;
-    height: 50%;
-    font-size: 140%;
-  }
-
-  &:hover .ale-cover > div > img {
+  
+  .ale-cover-image {
     filter: blur(1px) grayscale(30%);
   }
 }

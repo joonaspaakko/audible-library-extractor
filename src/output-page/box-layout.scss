@@ -24,14 +24,20 @@
     border: 1px solid rgba( $lightFrontColor, .25 );
     
     a {
+      display: inline-block;
       text-decoration: none;
       color: $lightFrontColor !important;
+      display: flex;
+      justify-content: flex-start;
+      justify-items: flex-start;
+      align-content: center;
+      align-items: center;
     }
     a:visited {
-      color: darken(desaturate( $audibleOrange, 5), 25) !important;
+      color: lighten( $lightFrontColor, 35) !important;
     }
     a:hover {
-      color: rgba( $lightFrontColor, .86) !important;
+      color: lighten( $lightFrontColor, 20) !important;
     }
   }
 }
@@ -49,7 +55,6 @@
   .books-total {
     outline: none;
     cursor: pointer;
-    display: inline-block;
     border-radius: 9999999px;
     width: 40px;
     height: 40px;
@@ -59,9 +64,19 @@
     z-index: 2;
     top: 15px;
     right: 15px;
+    display: flex !important;
+    justify-content: center !important;
+    justify-items: center !important;
+    align-content: center !important;
+    align-items: center !important;
     @include themify($themes) {
       border: 3px solid rgba( themed(frontColor), .1);
-      color: rgba( themed(frontColor), .5) !important;
+      color: rgba( themed(frontColor), .85) !important;
+    }
+    & > div {
+      @include themify($themes) {
+        color: rgba( themed(frontColor), .85) !important;
+      }
     }
   }
   
@@ -72,20 +87,7 @@
     margin-bottom: 15px;
     font-size: 1.8em;
     line-height: 1.1em;
-    font-weight: 300;
-    a {
-      width: 100%;
-      display: inline-block;
-      text-decoration: none;
-      @include themify($themes) {
-        color: rgba( themed(frontColor), 1);
-      }
-      &:hover {
-        @include themify($themes) {
-          color: rgba( themed(audibleOrange), 1);
-        }
-      }
-    }
+    font-weight: 400;
   }
   
   .child-categories {
@@ -97,6 +99,7 @@
     display: inline-block; 
     padding-right: 5px;
     a {
+      display: inline;
       text-decoration: none;
       @include themify($themes) {
         color: rgba( themed(frontColor), .5);

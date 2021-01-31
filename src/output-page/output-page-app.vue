@@ -83,15 +83,10 @@ export default {
 
   mounted: function() {
     const vue = this;
-    window.addEventListener(
-      "resize",
-      _.debounce(
-        function() {
-          vue.onWindowResize(vue);
-        },
-        320,
-        { leading: true, trailing: true }
-      )
+    window.addEventListener("resize", 
+      _.debounce( function() { 
+        vue.onWindowResize(vue); 
+      }, 320, { leading: true, trailing: true })
     );
   },
 
@@ -104,13 +99,18 @@ export default {
   methods: {
 
     onWindowResize: function(vue) {
+      
       const currentWidth = window.innerWidth;
       const currentHeight = window.innerHeight;
       const widthChanged = vue.window.width !== currentWidth;
       const heightChanged = vue.window.height !== currentHeight;
       if (widthChanged || heightChanged) {
+        
         vue.window.width = currentWidth;
         vue.window.height = currentHeight;
+        
+        if ( widthChanged ) this.$store.commit('prop', { key: 'windowWidth', value: currentWidth});
+        
         vue.$root.$emit("afterWindowResize", {
           from: "app",
           width: currentWidth,
@@ -118,7 +118,9 @@ export default {
           height: currentHeight,
           heightChanged: heightChanged
         });
+        
       }
+      
     }
   },
 

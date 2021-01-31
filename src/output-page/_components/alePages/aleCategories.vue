@@ -27,6 +27,8 @@
         </div>
       </div>
       
+      <!-- FIXME: on mobile the covers that get squished are cropped...
+       -->
       <div class="sample-covers">
         <div
         class="sample-cover"

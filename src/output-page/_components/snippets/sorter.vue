@@ -5,11 +5,13 @@
     v-tippy="{ placement: 'left', maxWidth: 200 }" :content="item.tippy ? item.tippy : false"
     >
       
+      <!-- LABEL in the front -->
+      <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem, highlight: highlight }">
+        <slot />
+      </span>
+      
       <!-- HIDDEN input -->
       <input type="checkbox" :value="index" v-model="inputVmodel" />
-      
-      <!-- LABEL in the front -->
-      <slot v-if="label === false" class="input-label" />
       
       <!-- SORT ARROWS -->
       <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
@@ -34,7 +36,6 @@
       </span>
       
     </label>
-    <slot v-else />
   </span>
 </template>
 
@@ -42,7 +43,7 @@
 
 export default {
   name: "sorter",
-  props: [ "name", "label", "currentList", "listName", "item", "index" ],
+  props: [ "name", "label", "currentList", "listName", "item", "index", "highlight" ],
   data: function() {
     return {};
   },
@@ -133,6 +134,7 @@ export default {
 }
 
 .sorter-button {
+  outline: none;
   width: 100%;
   height: 100%;
   display: flex;
@@ -234,5 +236,20 @@ export default {
       color: rgba( themed(frontColor), .6);
     }
   }
+  
+  
+  .input-label {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    flex-shrink: 2;  
+  }
+  
+  .input-label.active.highlight {
+    @include themify($themes) {
+      color: themed(audibleOrange);
+    }
+  }
+  
 } // #search-options
 </style>

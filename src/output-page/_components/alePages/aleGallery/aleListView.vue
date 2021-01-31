@@ -291,13 +291,13 @@ export default {
     text-align: left;
 
     .text-container {
+      white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
-      flex-shrink: 2;
+      flex-shrink: 2;  
     }
-
-    &,
-    & > .icons-n-stuff {
+    
+    &, & > .icons-n-stuff {
       display: flex;
       justify-items: start;
       align-items: center;

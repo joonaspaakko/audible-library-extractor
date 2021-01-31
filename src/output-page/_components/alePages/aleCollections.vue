@@ -24,15 +24,13 @@
         </div>
       </div>
     
-      <div class="collection-title">
+      <router-link class="collection-title" :to="{ name: 'collection', params: { collection: collection.id } }">
         <h2>
-          <router-link :to="{ name: 'collection', params: { collection: collection.id } }">
             {{ collection.title }}
-          </router-link>
         </h2>
-      </div>
+      </router-link>
 
-      <router-link class="books-total" :to="{ name: 'collection', params: { collection: collection.id } }" >
+      <router-link v-if="collection.books && collection.books.length" class="books-total" :to="{ name: 'collection', params: { collection: collection.id } }" >
         <div v-html="collection.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this collection."></div>
       </router-link>
       
@@ -56,8 +54,6 @@ export default {
   },
   
   created: function() {
-    
-    console.log('%c' + ' ' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', this.$store.state.library.collections);
     
     const vue = this;
     let collections = [];
@@ -129,6 +125,8 @@ export default {
 
 
 .collection-title {
+  display: inline-block;
+  align-self: stretch;
   flex: 1;
   display: flex;
   justify-content: flex-start;

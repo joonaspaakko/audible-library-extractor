@@ -109,9 +109,7 @@ export default {
       _.each(files, function(url) {
         // loading a file and add it in a zip file
         JSZipUtils.getBinaryContent(url, function(err, data) {
-          if (err) {
-            throw err; // or handle the error
-          }
+          if (err) throw err;
 
           if (url === "output-page.js") {
             url = url.replace(".js", "." + vue.cacheBuster + ".js");

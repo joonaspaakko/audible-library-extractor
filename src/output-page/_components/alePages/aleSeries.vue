@@ -14,8 +14,8 @@
         </router-link>
       </h2>
 
-      <router-link class="child-category" :to="{ name: 'series', params: { series: item.asin } }">
-        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
+      <router-link v-if="item.books && item.books.length" class="books-total" :to="{ name: 'series', params: { series: item.asin } }">
+        <div content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
           {{ item.books.length }}
         </div>
       </router-link>
@@ -121,18 +121,26 @@ export default {
 @import "~@/_variables.scss";
 @import "~@/box-layout.scss";
 .single-box {
-  padding: 10px 14px !important;
-    margin-top: 10px !important; 
+  min-height: 21px !important;
+  display: flex !important;
+  align-content: center !important;
+  align-items: center !important;
+  padding: 7px 14px !important;
+  margin-top: 5px !important; 
   h2 { 
+    display: inline-block;
+    width: 100%;
     margin-bottom: 0 !important; 
-    font-size: 1.35em !important;
-    line-height: 1.4em !important;
+    font-size: 1.20em !important;
+    line-height: 1.30em !important;
   }
   .books-total {
-    width: 25px !important;
-    height: 25px !important;
-    line-height: 25px !important;
-    top: 7px !important;
+    width: 23px !important;
+    height: 23px !important;
+    line-height: 23px !important;
+    font-size: .9em !important;
+    top: unset !important;
+    border-width: 2px !important;
   }
 }
 </style>

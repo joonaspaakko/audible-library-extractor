@@ -596,13 +596,15 @@ export default {
 
 
 #ale-bookdetails.spreadsheet-details {
-  border-top-width: 1px;
+  @include themify($themes) {
+    border-top: 2px solid rgba( themed(audibleOrange), .5);
+  }
   font-size: 14px;
   line-height: 1.55em;
   width: 100%;
   left: unset;
   right: unset;
-  margin: 0;
+  margin: 2px 0 0 0;
   text-align: left;
   padding-left: 0px;
   
@@ -619,7 +621,7 @@ export default {
 .book-details-info {
   position: absolute;
   z-index: 2;
-  top: -20px;
+  top: -25px;
   right: 0px;
   font-size: 18px;
   @include themify($themes) {

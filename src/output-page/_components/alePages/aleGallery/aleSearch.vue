@@ -34,7 +34,7 @@
         ></search-options>
       </div> <!-- #ale-search -->
       
-      <view-mode-switcher />
+      <view-mode-switcher v-if="$route.name !== 'all-series'" />
       
     </div> <!-- #ale-search-wrap -->
     
@@ -122,8 +122,8 @@ export default {
     this.$root.$on("start-sort", this.sort);
     this.$root.$on("start-filter", this.filter);
     this.$root.$on("start-re-render", this.reRender);
-    
     this.$root.$on("search-focus", this.focusOnSearch);
+    this.$store.commit('prop', { key: 'searchMounted', value: true });
     
   },
 
@@ -149,8 +149,8 @@ export default {
     this.$root.$off("start-sort", this.sort);
     this.$root.$off("start-filter", this.filter);
     this.$root.$off("start-re-render", this.reRender);
-    
     this.$root.$off("search-focus", this.focusOnSearch);
+    this.$store.commit('prop', { key: 'searchMounted', value: false });
     
   },
 

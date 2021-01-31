@@ -10,6 +10,9 @@
         <col-resizer :identifier="item.class"></col-resizer>
         <div class="ale-col-inner">
           
+          <!-- FIXME: remember to add sorting to all remaining col headers
+           -->
+          
           <sorter
             v-if="sorterIndex(item) > -1" 
             :label="false"
@@ -17,8 +20,9 @@
             :index="sorterIndex(item)"
             :currentList="optionsList" 
             :listName="listName"
+            :highlight="true"
           >
-            <span class="text-container">{{ item.label }}</span>
+            {{ item.label }}
           </sorter>
           <span v-else class="text-container">{{ item.label }}</span>
         </div>

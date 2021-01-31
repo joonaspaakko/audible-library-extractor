@@ -3,7 +3,7 @@ export default {
   mixins: [slugify],
   methods: {
     prepCollectionsSubPage: function(book) {
-      console.log( this.$route.name )
+      
       if (this.$route.name === "collection") {
         
         const vue = this;
