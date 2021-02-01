@@ -119,6 +119,7 @@ const routes = [
 
 const router = new VueRouter({
   routes,
+  base: '/output-page/',
   scrollBehavior(to, from, savedPosition) {
     if (savedPosition && (to.name === "categories" || to.name === "all-series" || to.name === "collections") ) {
       return savedPosition;
@@ -356,7 +357,7 @@ if (!standalone) {
     });
   } catch (e) {}
 } else {
-  startVue(JSON.parse($("#library-data").text()));
+  startVue( JSON.parse(document.querySelector("#library-data").textContent) );
 }
 
 function vuexPrep( libraryData ) {
@@ -372,7 +373,7 @@ function vuexPrep( libraryData ) {
     }
   });
   
-  store.commit("prop", { key: "library", value: libraryData });
+  store.commit("prop", { key: "library", value: libraryData, freeze: true });
   store.commit("prop", { key: "standalone", value: standalone });
   store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });
   store.commit("prop", { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] });

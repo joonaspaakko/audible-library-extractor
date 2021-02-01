@@ -102,7 +102,7 @@ var copyPluginArray = { patterns: [
   { from: 'assets', to: 'assets' },
   { from: 'output-page/favicons', to: 'output-page/favicons' },
   { from: 'output-page/extension-js', to: 'output-page/extension-js' },
-  // { from: 'output-page/images/', to: 'images/' },
+  // { from: 'output-page/images/', to: 'output-page/images/' },
   { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
   {
     from: 'manifest.json',
@@ -118,11 +118,7 @@ var copyPluginArray = { patterns: [
       return JSON.stringify(jsonContent, null, 2);
     },
   },
-  { from: __dirname + '/dist/chunks', to: __dirname + '/dist/output-page/chunks', force: true }
 ]};
-
-config.plugins.push( new CopyPlugin(copyPluginArray) );
-
 
 if (config.mode === 'production') {
 
@@ -143,6 +139,11 @@ if (config.mode === 'production') {
 
   config.plugins.push(new CleanWebpackPlugin());
 }
+else {
+  copyPluginArray.patterns.push({ from: __dirname + '/dist/chunks', to: __dirname + '/dist/output-page/chunks', force: true })
+}
+
+config.plugins.push( new CopyPlugin(copyPluginArray) );
 
 
 if (config.mode === 'production') {

@@ -8,7 +8,6 @@
 </template>
 
 <script>
-import makeUrl from "@output-mixins/makeFullUrl";
 
 export default {
   name: "lazy",

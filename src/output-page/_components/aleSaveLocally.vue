@@ -15,8 +15,12 @@
 // import { saveAs } from 'file-saver';
 // import JSZipUtils from 'jszip-utils';
 
+import makeCoverUrl from "@output-mixins/makeCoverUrl";
+
 export default {
   name: "aleSaveLocally",
+  mixins: [makeCoverUrl],
+  
   data: function() {
     return {
       zip: null,
@@ -71,28 +75,52 @@ export default {
         '.js"><\/script>' +
         "</body>" +
         "</html>";
-
+      
       zip.file("index.html", indexHTML);
-
-      const files = [
+      
+      
+      // If I can't fetch these files locally, then what's the point...
+      
+      // const asins = _.map( this.$store.state.library.books, function( o ) {
+      //   if ( o.asin ) return o.asin;
+      // });
+      // zip.file("data/library/asins.json", JSON.stringify(asins));
+      // _.each( this.$store.state.library.books, function( book ) {
+      //   zip.file("data/library/book."+ book.asin +".json", JSON.stringify( book ));
+      // });
+      
+      // zip.file("data/collections.json", JSON.stringify(this.$store.state.library.collections));
+      // zip.file("data/series.json",      JSON.stringify(this.$store.state.library.series));
+      // zip.file("data/wishlist.json",    JSON.stringify(this.$store.state.library.wishlist));
+      // zip.file("data/extras.json",      JSON.stringify(this.$store.state.library.extras));
+      
+      let files = [
         "output-page.js",
         "output-page.css",
-        "cover-placeholder.svg",
 
-        "chunks/categories.css",
-        "chunks/categories.js",
-        "chunks/gallery.css",
-        "chunks/gallery.js",
-        "chunks/series.css",
-        "chunks/series.js",
-        "chunks/spreadsheet.css",
-        "chunks/spreadsheet.js",
-        "chunks/vendors~gallery.css",
-        "chunks/vendors~gallery.js",
-        "chunks/vendors~gallery~spreadsheet.js",
-        "chunks/vendors~spreadsheet.css",
-        "chunks/vendors~spreadsheet.js",
-
+        'chunks/splide.js.LICENSE.txt',
+        'chunks/871.js',
+        'chunks/499.js',
+        'chunks/sort-values.js',
+        'chunks/sort-values.css',
+        'chunks/splide.js',
+        'chunks/book.js',
+        'chunks/book.css',
+        'chunks/book-Details.js',
+        'chunks/book-Details.css',
+        'chunks/spreadsheet-view.js',
+        'chunks/spreadsheet-view.css',
+        'chunks/grid-view.js',
+        'chunks/grid-view.css',
+        'chunks/series.js',
+        'chunks/series.css',
+        'chunks/collections.js',
+        'chunks/collections.css',
+        'chunks/categories.css',
+        'chunks/categories.js',
+        'chunks/gallery.js',
+        'chunks/gallery.css',
+        
         "favicons/android-chrome-192x192.png",
         "favicons/android-chrome-512x512.png",
         "favicons/apple-touch-icon.png",
@@ -104,10 +132,17 @@ export default {
         "favicons/safari-pinned-tab.svg",
         "favicons/site.webmanifest"
       ];
-
+      
+      // Just thinking out loud...
+      // let books = this.$store.state.library.wishlist.concat( this.$store.state.library.books );
+      // books = _.map( books, function( o ) {
+      //   if ( o.cover ) return vue.makeCoverUrl( o.cover );
+      // });
+      // books = _.union( books );
+      // files = files.concat( books );
+      
       let count = 0;
       _.each(files, function(url) {
-        // loading a file and add it in a zip file
         JSZipUtils.getBinaryContent(url, function(err, data) {
           if (err) throw err;
 

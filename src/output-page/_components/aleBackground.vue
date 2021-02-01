@@ -11,7 +11,7 @@
 </template>
 
 <script>
-import makeCoverUrl from "../_mixins/makeCoverUrl";
+import makeCoverUrl from "@output-mixins/makeCoverUrl";
 
 export default {
   name: "aleBackground",

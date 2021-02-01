@@ -38,11 +38,13 @@ export default new Vuex.Store({
 
     prop: function(state, o) {
       const inputIsArray = _.isArray(o);
-      if ( !inputIsArray ) {
-        state[o.key] = o.value;
+      if ( !o.freeze ) {
+        if ( !inputIsArray ) state[o.key] = o.value;
+        else _.each(o, function( b ) { state[b.key] = b.value; });
       }
       else {
-        _.each(o, function( b ) { state[b.key] = b.value; });
+        if ( !inputIsArray ) state[o.key] = Object.freeze( o.value );
+        else _.each(o, function( b ) { state[b.key] = Object.freeze( b.value ); });
       }
     },
 
