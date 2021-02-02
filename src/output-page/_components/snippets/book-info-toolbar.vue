@@ -47,6 +47,7 @@ export default {
   justify-items: space-between;
   padding: 0 10%;
   border-radius: 99999px;
+  height: 30px;
   @include themify($themes) {
     background: darken(themed(backColor), 1);
     box-shadow: inset 0 3px 15px rgba(darken(themed(backColor), 30), 0.4);
@@ -60,7 +61,14 @@ export default {
   }
 
   > * {
-    &, & > * { outline: none; }
+    &, & > * { 
+      outline: none; 
+      display: flex;
+      align-content: center;
+      justify-content: center;
+      align-items: center;
+      justify-items: center;
+    }
     // margin-left: 7px; 
     // &:first-child { margin-left: 0; }
     padding: 4px 8px;

@@ -143,9 +143,9 @@ export default {
     
   },
   methods: {
-    onWindowResize: function() {
+    onWindowResize: function( msg ) {
       this.maxWidth = this.repositionBookDetails() + "px";
-      this.resetScroll();
+      if ( msg.widthChanged ) { this.resetScroll(); }
     },
 
     changeUrl: function() {

@@ -1,5 +1,5 @@
 <template>
-  <div class="light-switch">
+  <div class="light-switch text-button">
     <div
       class="icon"
       @click="lightSwitchToggle(false)"

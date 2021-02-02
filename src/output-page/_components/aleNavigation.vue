@@ -69,7 +69,6 @@
       
       <div class="special-icons-wrapper">
         
-        
         <light-switch></light-switch>
         
         <div class="text-button" v-if="$store.state.searchMounted">
@@ -78,7 +77,9 @@
           </div>
         </div>
         
-        <ale-save-locally v-if="!$store.state.standalone"></ale-save-locally>
+        <div class="text-button" v-if="!$store.state.standalone">
+          <ale-save-locally></ale-save-locally>
+        </div>
         
         <div
         class="save-csv"
@@ -129,7 +130,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "~@/_variables.scss";
 
 #ale-navigation {
@@ -214,14 +215,10 @@ export default {
   div.special-icons-wrapper {
     display: flex;
     flex-direction: row;
-    padding: 7px 12px;
+    padding: 7px 2px;
     border-radius: 9999px;
     @include themify($themes) {
       border: 1px solid rgba( themed(frontColor), .1);
-    }
-    > * {
-      margin-left: 15px;
-      &:first-child { margin-left: 0px; }
     }
   }
   
