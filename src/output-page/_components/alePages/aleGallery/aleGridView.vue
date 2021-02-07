@@ -113,6 +113,11 @@ export default {
   }
 }
 
+
+body:not(.is-ios) .ale-book:hover .ale-play-sample {
+  display: inline-block;
+}
+
 .ale-book {
   position: relative;
   z-index: 0;
@@ -120,8 +125,7 @@ export default {
   display: inline-block;
   // font-size: 0;
 
-  &.details-open .ale-play-sample,
-  &:hover .ale-play-sample {
+  &.details-open .ale-play-sample {
     display: inline-block;
   }
 
@@ -211,6 +215,18 @@ export default {
   }
 }
 
+@media (max-width: 504px) {
+  .ale-books.grid-view {
+    .ale-book {
+      width: 44vw;
+      height: 44vw;
+    }
+  }
+  .sort-values-on .ale-book {
+    height: 44vw + 27;
+  }
+}
+
 @media (max-width: 423px) {
   #ale-search {
     padding: 8px 15px;
@@ -219,15 +235,6 @@ export default {
     }
     > .icons {
       font-size: 0.9em;
-    }
-  }
-}
-
-@media (max-width: 504px) {
-  .ale-books.grid-view {
-    .ale-book {
-      width: 40vw;
-      height: 40vw;
     }
   }
 }

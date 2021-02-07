@@ -19,7 +19,7 @@
 .theme-light .box-layout-wrapper {
   .single-box {
     background: rgba( lighten( $lightBackColor, 5), .98 );
-    box-shadow: $shadowMedium  rgba(0,0,0,0.1);
+    box-shadow: $shadowSmall  rgba(0,0,0,0.2), $shadowMedium  rgba(0,0,0,0.2);
     color: $lightFrontColor;
     border: 1px solid rgba( $lightFrontColor, .25 );
     

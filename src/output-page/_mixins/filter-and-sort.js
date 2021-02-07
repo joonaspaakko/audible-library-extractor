@@ -110,7 +110,7 @@ export default {
       });
       
       if ( sortByItem ) {
-      
+        
         const sortOptions = {
           books: books,
           direction: sortByItem.active ? "desc" : "asc",
@@ -161,7 +161,7 @@ export default {
             break;
         }
       }
-
+      
       return books;
     }
   }

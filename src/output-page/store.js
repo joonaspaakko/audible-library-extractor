@@ -28,6 +28,7 @@ export default new Vuex.Store({
     pageTitle: null,
     pageSubTitle: null,
     windowWidth: window.innerWidth,
+    showBackground: false,
   },
 
   mutations: {

@@ -73,17 +73,15 @@ import {
 import VueRouter from "vue-router";
 Vue.use(VueRouter);
 
-const aleGallery = () => import( /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
-// const aleSpreadsheet = () => import(/* webpackChunkName: "spreadsheet" */ './_components/alePages/aleSpreadsheet');
+const aleGallery = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
 const aleCategories = () => import( /* webpackChunkName: "categories" */ "./_components/alePages/aleCategories");
 const aleCollections = () => import( /* webpackChunkName: "collections" */ "./_components/alePages/aleCollections");
-const aleSeries = () => import(/* webpackChunkName: "series" */ "./_components/alePages/aleSeries");
+const aleSeries = () => import( /* webpackChunkName: "series" */ "./_components/alePages/aleSeries");
 import aleLibraryView from "./_components/aleLibraryView";
 
 const routes = [
   { path: "/", redirect: "/library" },
   { name: "gallery", path: "/library", component: aleGallery },
-  // { name: 'spreadsheet', path: '/spreadsheet', component: aleSpreadsheet, props: true },
   {
     path: "/categories",
     component: aleLibraryView,

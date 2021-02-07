@@ -100,15 +100,20 @@ export default {
 
   created: function() {
     
+    this.$store.commit("prop", [ { key: 'pageTitle', value: null }, { key: 'pageSubTitle', value: null } ]);
+    
     this.updateListRenderingOptions();
     
     // Setup for other pages that use the gallery page to show titles
-    this.$store.commit("prop", [ { key: 'pageTitle', value: null }, { key: 'pageSubTitle', value: null } ]);
     this.prepCategoriesSubPage();    
     this.prepCollectionsSubPage();    
     this.prepSeriesSubPage();
     this.prepWishlist();
     
+  },
+  
+  beforeDestroy: function() {
+    this.$store.commit("prop", [ { key: 'pageTitle', value: null }, { key: 'pageSubTitle', value: null } ]);
   },
   
 };

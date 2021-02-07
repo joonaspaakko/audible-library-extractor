@@ -1,10 +1,10 @@
 <template>
   <div
     id="audible-library-extractor"
-    :class="{ 'mobile-browser-navigation-on': mobileBrowserNavigation }"
   >
+    <!-- :class="{ 'mobile-browser-navigation-on': mobileBrowserNavigation }" -->
     
-    <ale-background></ale-background>
+    <ale-background v-if="$store.state.showBackground"></ale-background>
     <ale-navigation></ale-navigation>
     <router-view></router-view>
 
@@ -38,17 +38,16 @@
 </template>
 
 <script>
-import aleBackground from "./_components/aleBackground";
 import aleNavigation from "./_components/aleNavigation";
-import aleBreadcrumbs from "./_components/aleBreadcrumbs";
+// import aleBreadcrumbs from "./_components/aleBreadcrumbs";
 
 export default {
   components: {
-    aleBackground,
+    aleBackground: () => import('./_components/aleBackground'),
     aleNavigation,
-    aleBreadcrumbs
+    // aleBreadcrumbs
   },
-  // props: ['library'],
+  
   data: function() {
     return {
       general: {
@@ -65,12 +64,12 @@ export default {
   },
 
   computed: {
-    mobileBrowserNavigation: function() {
-      return (
-        this.$store.state.displayMode &&
-        (this.$routerHistory.hasPrevious() || this.$routerHistory.hasForward())
-      );
-    }
+    // mobileBrowserNavigation: function() {
+    //   return (
+    //     this.$store.state.displayMode &&
+    //     (this.$routerHistory.hasPrevious() || this.$routerHistory.hasForward())
+    //   );
+    // }
   },
 
   created: function() {
@@ -78,6 +77,9 @@ export default {
     // var isbn = _.filter(this.$store.state.library.books, 'isbns');
     // console.log( 'books with ISBN:', isbn.length, isbn );
     // console.log( _.filter( this.$store.state.library.books, ['asin', 'B08BX58B3N'] ) )
+    if ( this.checkIf_iOS() ) {
+      document.querySelector('body').classList.add('is-ios');
+    }
     
   },
 
@@ -88,8 +90,9 @@ export default {
         vue.onWindowResize(vue); 
       }, 320, { leading: true, trailing: true })
     );
+    
+    this.showTheBackgroundGrid();
   },
-
   // beforeDestroy: function() {
 
   //   window.removeEventListener('resize', this.onWindowResize);
@@ -97,7 +100,29 @@ export default {
   // },
 
   methods: {
-
+    
+    checkIf_iOS: function() {
+      return [
+        'iPad Simulator',
+        'iPhone Simulator',
+        'iPod Simulator',
+        'iPad',
+        'iPhone',
+        'iPod'
+      ].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+    },
+    
+    showTheBackgroundGrid: function() {
+      if ( !this.$store.state.showBackground ) {
+        const vue = this;
+        this.$nextTick(function() {
+          setTimeout(function() {
+            vue.$store.commit("prop", { key: 'showBackground', value: true });
+          }, 1200);
+        });
+      }
+    },
+    
     onWindowResize: function(vue) {
       
       const currentWidth = window.innerWidth;

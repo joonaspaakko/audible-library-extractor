@@ -134,10 +134,7 @@ export default {
     // $('#ale-search').off("focus", '> input[type="search"]', this.searchInputFocus);
     // $('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
     // $("#ale-search").off('touchstart', this.iosAutozoomDisable);
-    this.$refs.aleSearch.removeEventListener(
-      "touchstart",
-      this.iosAutozoomDisable
-    );
+    this.$refs.aleSearch.removeEventListener( "touchstart", this.iosAutozoomDisable);
     
     // this.searchFocusListener = null;
     // this.searchKeyupListener = null;
@@ -164,6 +161,7 @@ export default {
       
       this.$root.$emit("book-clicked", { book: null });
       // scroll({ top: 0 });
+      
       
       if ( this.$store.getters.searchIsActive ) {
         this.$store.commit("prop", { key: 'mutatingCollection', value: this.filterBooks( _.get(this.$store.state, this.collectionSource) ) });
@@ -257,28 +255,23 @@ export default {
 
     iosAutozoomDisable: function() {
       // IOS input focus zoom workaround
-      if (
-        navigator.userAgent.length &&
-        /iPhone|iPad|iPod/i.test(navigator.userAgent)
-      ) {
-        // $('head').find('meta[name=viewport]').remove();
+      if ( document.querySelector('.is-ios') ) {
+        
         const head = document.querySelector("head");
         head.querySelector("meta[name=viewport]").remove();
 
         let tempMeta = document.createElement("meta");
-        tempMeta.content =
-          "width=device-width, initial-scale=1.0, user-scalable=0";
+        tempMeta.content = "width=device-width, initial-scale=1.0, user-scalable=0";
         tempMeta.setAttribute = "viewport";
         head.appendChild(tempMeta);
-        // $('<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />').appendTo('head');
+        $('<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />').appendTo('head');
 
         clearTimeout(this.enableZoomTimer);
         this.enableZoomTimer = setTimeout(function() {
           head.querySelector("meta[name=viewport]").remove();
 
           let originalMeta = document.createElement("meta");
-          originalMeta.content =
-            "width=device-width, initial-scale=1.0, user-scalable=1";
+          originalMeta.content = "width=device-width, initial-scale=1.0, user-scalable=1";
           originalMeta.setAttribute = "viewport";
           head.appendChild(originalMeta);
         }, 700);
@@ -448,6 +441,7 @@ export default {
   
 }
 
+
 .gallery-title-wrapper {
   margin-bottom: 20px;
   text-align: center;
@@ -471,8 +465,8 @@ export default {
 }
 
 .gallery-sub-title {
-  font-size: 17px;
-  line-height: 19px;
+  font-size: 14px;
+  line-height: 16px;
   font-weight: normal;
   margin: 0px;
   margin-top: 10px;
@@ -482,8 +476,10 @@ export default {
 
 .theme-light .gallery-sub-title {
   color: $lightFrontColor;
+  // color: $lightBackColor;
   border: 1px solid $lightFrontColor;
   background: $lightBackColor;
+  // background: $lightFrontColor;
 }
 
 .theme-dark .gallery-sub-title {
@@ -497,13 +493,12 @@ export default {
   content: '';
   position: absolute;
   z-index: -1;
-  top: 0px;
-  right: -10px;
-  bottom: 0px;
-  left: -10px;
-  background: rgba( $lightBackColor, .7);
+  top: -10px;
+  right: -15px;
+  bottom: -10px;
+  left: -15px;
+  background: rgba( $lightBackColor, 1);
   border-radius: 9999px;
-  box-shadow: 0 0 150px 150px rgba( $lightBackColor, .7);
 }
 
 .theme-dark .gallery-title:before,
@@ -511,34 +506,18 @@ export default {
   content: '';
   position: absolute;
   z-index: -1;
-  top: 0px;
-  right: -10px;
-  bottom: 0px;
-  left: -10px;
-  background: rgba( $darkBackColor, .5);
+  top: -10px;
+  right: -15px;
+  bottom: -10px;
+  left: -15px;
+  background: rgba( $darkBackColor, 1);
   border-radius: 9999px;
-  box-shadow: 0 0 100px 100px rgba( $darkBackColor, .5);
 }
 
-// #ale-search-wrap.search-fixed #ale-search {
-//   position: fixed;
-//   top: 36px;
-//   left: 30px;
-//   right: 30px;
-//   margin: 0 auto;
-//   max-width: 600px;
-//   height: 36px;
-//   box-shadow: none;
-//   &:before {
-//     content: "";
-//     position: fixed;
-//     z-index: -1;
-//     top: 35px;
-//     left: 0px;
-//     right: 0px;
-//     height: 37px;
-//     background: #fff;
-//     box-shadow: 2px 0px 13px rgba(#000, 0.5);
-//   }
-// }
+.gallery-title:before {
+  top: -15px !important;
+  right: -25px !important;
+  bottom: -15px !important;
+  left: -25px !important;
+}
 </style>

@@ -27,15 +27,10 @@ export default {
   },
 
   mounted: function() {
-    const vue = this;
+    
     this.windowWidth = window.innerWidth;
-
-    this.$nextTick(function() {
-      setTimeout(function() {
-        vue.books = vue.getBooks();
-        vue.flipAnimationRandomizer();
-      }, 1500);
-    });
+    this.books = this.getBooks();
+    this.flipAnimationRandomizer();
 
     this.$root.$on("afterWindowResize", this.onWindowResize);
   },

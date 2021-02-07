@@ -121,7 +121,7 @@ export default {
     this.$store.commit("prop", { key: "mutatingCollection", value: [] });
     
   },
-
+  
   methods: {
     getRandomBooks: function(books, number) {
       return _.sampleSize(books, number);

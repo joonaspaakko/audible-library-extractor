@@ -26,9 +26,9 @@
                     <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
                   </div>
                 </div>
-                <img
+                <img 
                   class="cover"
-                  v-if="book.cover"
+                  v-if="book.cover && $store.state.windowWidth > 640"
                   :src="makeCoverUrl(book.cover)"
                 />
               </a>
@@ -109,10 +109,8 @@ export default {
   },
 
   created: function() {
-    
+    this.resetScroll();
     this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
-    
-    
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
   },
@@ -120,7 +118,6 @@ export default {
   mounted: function() {
     
     this.maxWidth = this.repositionBookDetails() + "px";
-    this.resetScroll();
     // this.changeUrl();
     this.$updateQuery({ query: 'book', value: this.book.asin });
     this.loading = false;
@@ -446,6 +443,7 @@ export default {
     }
 
     .cover-wrap {
+      min-height: 5px;
       position: relative;
       padding: 0;
       overflow: hidden;
@@ -584,9 +582,6 @@ export default {
           margin-right: 0;
           margin-bottom: 40px;
           flex: auto;
-          .cover-wrap {
-            max-height: 65px;
-          }
         }
       }
     }

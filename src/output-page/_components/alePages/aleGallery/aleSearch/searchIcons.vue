@@ -15,13 +15,13 @@
       :class="{ disabled: !item.on }"
       v-tippy
       :content="item.tooltip"
+      @click="openSearchOptions(item, $event)"
     >
       <div
         v-if="item.name !== 'scope' && $store.state.listRenderingOpts[ item.name ].length > 0 || item.name === 'scope' && $store.state.listRenderingOpts[ item.name ].length > 1"
         class="search-opt-btn"
         :data-option="item.name"
         :class="{ active: listName === item.name }"
-        @click="openSearchOptions(item, $event)"
       >
         <font-awesome fas :icon="item.icon" />
       </div>

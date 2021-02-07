@@ -37,11 +37,7 @@
         <div class="ale-info-indicator">
           <div><font-awesome fas icon="book" /></div>
         </div>
-        <img
-          class="ale-cover-image"
-          :src="makeCoverUrl(book.cover, 280)"
-          alt=""
-        />
+        <img class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
       </div>
     </div>
   </div>
@@ -121,8 +117,7 @@ export default {
       // transition: all 150ms ease;
       overflow: hidden;
       > span {
-        display: inline-block;
-        opacity: 0;
+        display: none;
         // transition: opacity 0ms ease;
         white-space: nowrap;
       }
@@ -149,7 +144,7 @@ export default {
       font-weight: 700;
       > span {
         // transition-duration: 150ms;
-        opacity: 1;
+        display: inline-block;
         margin-left: 5px;
         &:first-child { margin-left: 0; }
       }
@@ -205,7 +200,6 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
-  display: flex;
   justify-content: center;
   align-content: center;
   align-items: center;
@@ -213,7 +207,7 @@ export default {
   color: #fff;
   background: rgba(#000, 0.2);
   // transition: all 200ms ease-in-out;
-  opacity: 0;
+  display: none;
   &:after {
     content: "";
     position: absolute;
@@ -248,9 +242,10 @@ export default {
     justify-items: center;
   }
 }
+
 .ale-click-wrap:hover {
   .ale-info-indicator {
-    opacity: 1;
+    display: flex;
     div {
       width: 50%;
       height: 50%;
@@ -302,4 +297,14 @@ export default {
   height: 0;
   overflow: hidden;
 }
+
+body.is-ios .ale-click-wrap {
+  .ale-info-indicator {
+    display: none;
+  }
+  .ale-cover-image {
+    filter: none;
+  }
+}
+
 </style>

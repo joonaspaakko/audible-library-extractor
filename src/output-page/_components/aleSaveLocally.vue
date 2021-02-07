@@ -45,34 +45,31 @@ export default {
         "<!DOCTYPE html>" +
         '<html lang="en" class="theme-light standalone-gallery">' +
         "<head>" +
-        '<meta charset="UTF-8">' +
-        // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-        '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-        '<meta http-equiv="X-UA-Compatible" content="ie=edge">' +
-        '<meta name="apple-mobile-web-app-capable" content="yes">' +
-        '<meta name="mobile-web-app-capable" content="yes">' +
-        '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +
-        '<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">' +
-        '<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">' +
-        '<link rel="manifest" href="favicons/site.webmanifest">' +
-        '<link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">' +
-        '<link rel="shortcut icon" href="favicons/favicon.ico">' +
-        '<meta name="msapplication-TileColor" content="#222222">' +
-        '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
-        '<meta name="theme-color" content="#f29a33">' +
-        "<title>My Audible Library</title>" +
-        '<script id="library-data" type="application/json">' +
-        libraryData +
-        "<\/script>" +
-        '<link id="ale-css" rel="stylesheet" href="output-page.' +
-        vue.cacheBuster +
-        '.css">' +
+          '<meta charset="UTF-8">' +
+          // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
+          '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
+          '<meta http-equiv="X-UA-Compatible" content="ie=edge">' +
+          '<meta name="apple-mobile-web-app-capable" content="yes">' +
+          '<meta name="mobile-web-app-capable" content="yes">' +
+          '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +
+          '<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">' +
+          '<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">' +
+          '<link rel="manifest" href="favicons/manifest.json">' +
+          '<link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">' +
+          '<link rel="shortcut icon" href="favicons/favicon.ico">' +
+          '<meta name="msapplication-TileColor" content="#222222">' +
+          '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
+          '<meta name="theme-color" content="#f29a33">' +
+          "<title>My Audible Library</title>" +
+          '<script id="library-data" type="application/json">' + libraryData + "<\/script>" +
+          '<link id="ale-css" rel="stylesheet" href="output-page.' + vue.cacheBuster + '.css">' +
         "</head>" +
         "<body>" +
-        '<div id="audible-library-extractor"></div>' +
-        '<script id="ale-js" src="output-page.' +
-        vue.cacheBuster +
-        '.js"><\/script>' +
+        
+          '<div id="audible-library-extractor"></div>' +
+          '<script id="ale-js" src="output-page.' + vue.cacheBuster +'.js"><\/script>' +
+          "<noscript>This library requires javascript to work!</noscript>" +
+          
         "</body>" +
         "</html>";
       
@@ -97,9 +94,9 @@ export default {
       let files = [
         "output-page.js",
         "output-page.css",
-
+        
         'chunks/splide.js.LICENSE.txt',
-        'chunks/871.js',
+        'chunks/501.js',
         'chunks/499.js',
         'chunks/sort-values.js',
         'chunks/sort-values.css',
@@ -112,14 +109,16 @@ export default {
         'chunks/spreadsheet-view.css',
         'chunks/grid-view.js',
         'chunks/grid-view.css',
+        'chunks/581.js',
+        'chunks/581.css',
         'chunks/series.js',
         'chunks/series.css',
         'chunks/collections.js',
         'chunks/collections.css',
-        'chunks/categories.css',
         'chunks/categories.js',
-        'chunks/gallery.js',
+        'chunks/categories.css',
         'chunks/gallery.css',
+        'chunks/gallery.js',
         
         "favicons/android-chrome-192x192.png",
         "favicons/android-chrome-512x512.png",
@@ -130,7 +129,7 @@ export default {
         "favicons/favicon.ico",
         "favicons/mstile-150x150.png",
         "favicons/safari-pinned-tab.svg",
-        "favicons/site.webmanifest"
+        "favicons/manifest.json"
       ];
       
       // Just thinking out loud...

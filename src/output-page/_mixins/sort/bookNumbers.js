@@ -7,10 +7,8 @@ export default {
       const seriesObj = _.find( this.$store.state.library.series, { asin: seriesAsin });
       
       return _.orderBy(
-        this.$store.state.pageCollection, 
-        function( book ) {
-          return seriesObj.books.indexOf( book.asin );
-        },
+        params.books, 
+        function( book ) { return seriesObj.books.indexOf( book.asin ); },
         params.direction
       );
     },
