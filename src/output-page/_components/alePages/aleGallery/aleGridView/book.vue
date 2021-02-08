@@ -306,5 +306,17 @@ body.is-ios .ale-click-wrap {
     filter: none;
   }
 }
+@media (max-width: 640px) {
+  
+  .ale-play-sample {
+    bottom: 5px !important;
+    right: 5px !important;
+    > div {
+      width: 15px;
+      height: 15px;
+    }
+  }
+  
+}
 
 </style>

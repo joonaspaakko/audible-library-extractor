@@ -23,6 +23,7 @@
             ref="searchInput"
             :value="$store.state.searchQuery"
             @input="search"
+            @keyup.enter="searchEnterBlur"
             :placeholder="placeholder"
           />
         </div>
@@ -61,12 +62,7 @@ export default {
   props: ['collectionSource'],
   data: function() {
     return {
-      // resultTimer: null,
       enableZoomTimer: null,
-      // searchShouldSort: false,
-      // searchFocusListener: null,
-      // searchOptionsHider: null,
-
       fuse: null,
       // Defaults
       fuseOptions: {
@@ -112,12 +108,8 @@ export default {
 
   mounted: function() {
     
-    // this.searchFocusListener = $('#ale-search').on("focus", '> input[type="search"]', this.searchInputFocus);
-    // this.searchKeyupListener = $('#ale-search').on("keyup", '> input[type="search"]', this.searchInputKeyup);
-    // $("#ale-search").on('touchstart', this.iosAutozoomDisable);
-    this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable, { passive: true });
-    // window.addEventListener("scroll", this.scrolling);
-
+    this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable );
+    
     this.$root.$on("start-scope", this.scope);
     this.$root.$on("start-sort", this.sort);
     this.$root.$on("start-filter", this.filter);
@@ -130,17 +122,7 @@ export default {
   beforeDestroy: function() {
     
     this.$store.commit("prop", { key: "searchQuery", value: '' });
-    
-    // $('#ale-search').off("focus", '> input[type="search"]', this.searchInputFocus);
-    // $('#ale-search').off("keyup", '> input[type="search"]', this.searchInputFocus);
-    // $("#ale-search").off('touchstart', this.iosAutozoomDisable);
     this.$refs.aleSearch.removeEventListener( "touchstart", this.iosAutozoomDisable);
-    
-    // this.searchFocusListener = null;
-    // this.searchKeyupListener = null;
-    // this.searchOptionsHider = null;
-
-    // window.removeEventListener("scroll", this.scrolling);
 
     this.$root.$off("start-scope", this.scope);
     this.$root.$off("start-sort", this.sort);
@@ -208,6 +190,10 @@ export default {
       
     }, 270, { leading: false, trailing: true }),
     
+    searchEnterBlur: _.debounce( function(e) {
+      this.$refs.searchInput.blur();
+    }, 100, { leading: false, trailing: true }),
+    
     restoreOptions: function() {
       
       updateListRenderingOpts();
@@ -258,33 +244,16 @@ export default {
       if ( document.querySelector('.is-ios') ) {
         
         const head = document.querySelector("head");
-        head.querySelector("meta[name=viewport]").remove();
-
-        let tempMeta = document.createElement("meta");
-        tempMeta.content = "width=device-width, initial-scale=1.0, user-scalable=0";
-        tempMeta.setAttribute = "viewport";
-        head.appendChild(tempMeta);
-        $('<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=0" />').appendTo('head');
-
+        let metaViewport = head.querySelector("meta[name=viewport]");
+        metaViewport.content = "width=device-width, initial-scale=1.0, user-scalable=0";
+        
         clearTimeout(this.enableZoomTimer);
         this.enableZoomTimer = setTimeout(function() {
-          head.querySelector("meta[name=viewport]").remove();
-
-          let originalMeta = document.createElement("meta");
-          originalMeta.content = "width=device-width, initial-scale=1.0, user-scalable=1";
-          originalMeta.setAttribute = "viewport";
-          head.appendChild(originalMeta);
+          metaViewport.content = "width=device-width, initial-scale=1.0, user-scalable=1";
         }, 700);
       }
     },
-
-    searchInputKeyup: function(e) {
-      // if (e.which == 13) {
-      // 	document.activeElement.blur();
-      // 	$('#ale-search > input[type="search"]').blur();
-      // }
-    },
-
+    
   },
   computed: {
     aliciaKeys: function() {
@@ -296,19 +265,6 @@ export default {
         if (item.active) return item.key;
       });
     },
-
-    // searchIsActive: function() {
-    //   return this.gallery.searchActive;
-    // },
-
-    // currentOptionsListName: function() {
-    //   return this.gallery.searchOptions.lists.current;
-    // },
-
-    // currentOptionsList: function() {
-    //   const key = this.gallery.searchOptions.lists.current;
-    //   return this.gallery.searchOptions.lists[ key ];
-    // },
 
     placeholder: function() {
       const placeholderKeys = (function(keys) {
@@ -475,11 +431,9 @@ export default {
 }
 
 .theme-light .gallery-sub-title {
-  color: $lightFrontColor;
-  // color: $lightBackColor;
+  color: $lightBackColor;
   border: 1px solid $lightFrontColor;
-  background: $lightBackColor;
-  // background: $lightFrontColor;
+  background: $lightFrontColor;
 }
 
 .theme-dark .gallery-sub-title {
@@ -488,36 +442,4 @@ export default {
   background: $darkBackColor;
 }
 
-.theme-light .gallery-title:before,
-.theme-light .gallery-sub-title:before, {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: -10px;
-  right: -15px;
-  bottom: -10px;
-  left: -15px;
-  background: rgba( $lightBackColor, 1);
-  border-radius: 9999px;
-}
-
-.theme-dark .gallery-title:before,
-.theme-dark .gallery-sub-title:before, {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: -10px;
-  right: -15px;
-  bottom: -10px;
-  left: -15px;
-  background: rgba( $darkBackColor, 1);
-  border-radius: 9999px;
-}
-
-.gallery-title:before {
-  top: -15px !important;
-  right: -25px !important;
-  bottom: -15px !important;
-  left: -25px !important;
-}
 </style>

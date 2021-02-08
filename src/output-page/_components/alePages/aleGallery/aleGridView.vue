@@ -204,11 +204,11 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
   }
 
   #ale-search {
-    > .icons {
-      padding-left: 0;
-      .icon-wrap {
-        &:first-child {
-          margin-left: 0;
+    .icon-wrap {
+      &:first-child {
+        margin-left: 0;
+        > div {
+          padding-left: 0 7px;
         }
       }
     }
@@ -225,17 +225,16 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
   .sort-values-on .ale-book {
     height: 44vw + 27;
   }
-}
-
-@media (max-width: 423px) {
+  
   #ale-search {
-    padding: 8px 15px;
-    [type="search"] {
-      width: 100%;
+    > .icons { 
+      padding-left: 0px;
+      .icon-wrap:first-child > div { padding-left: 0px; }
     }
     > .icons {
       font-size: 0.9em;
     }
   }
 }
+
 </style>

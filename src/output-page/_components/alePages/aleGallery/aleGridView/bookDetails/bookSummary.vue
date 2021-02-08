@@ -93,14 +93,16 @@ export default {
         this.summary.maxHeight = 300 + "px";
         this.summary.maxHeightTemp = this.summary.maxHeight;
       } else {
-        const information = this.detailsEl.querySelector('.information');
-        const informationH = information.offsetHeight;
-        const summary = this.$refs.summary;
-        const summaryH = summary.offsetHeight;
-        const summaryTooSwoll = summaryH > informationH;
-        // this.summary.readmore.exists = summaryTooSwoll ? true : false;
-        this.summary.maxHeight = summaryTooSwoll ? informationH + "px" : null;
-        this.summary.maxHeightTemp = informationH + "px";
+        this.$nextTick(function() {
+          const information = this.detailsEl.querySelector('.information');
+          const informationH = information.offsetHeight;
+          const summary = this.$refs.summary;
+          const summaryH = summary.offsetHeight;
+          const summaryTooSwoll = summaryH > informationH;
+          // this.summary.readmore.exists = summaryTooSwoll ? true : false;
+          this.summary.maxHeight = summaryTooSwoll ? informationH + "px" : null;
+          this.summary.maxHeightTemp = informationH + "px";
+        });
       }
     },
 

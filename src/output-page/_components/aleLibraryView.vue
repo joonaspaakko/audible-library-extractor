@@ -1,9 +1,9 @@
 <template>
-  <router-view></router-view>
+  <router-view :key="$route.name"></router-view>
 </template>
 
 <script>
 export default {
-  name: "aleLibraryView",
+  name: "aleLibraryView"
 };
 </script>

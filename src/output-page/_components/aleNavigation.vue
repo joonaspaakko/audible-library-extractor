@@ -245,11 +245,11 @@ export default {
     z-index: 9999999999999;
     background: rgba(#000, .88);
     > * {
-      padding: 4% 0px;
-      font-size: 1.7em;
-      line-height: 1.5em;
+      padding: 3.2% 0px;
+      font-size: 1.6em;
+      line-height: 1.4em;
     }
-    padding-bottom: 30px;
+    padding-bottom: 20px;
     &, a {
       color: rgba(#fff, 0.85) !important;
     }

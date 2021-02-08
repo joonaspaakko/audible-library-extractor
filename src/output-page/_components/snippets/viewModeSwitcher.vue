@@ -52,6 +52,8 @@ export default {
   margin-left: 10px;
   width: 30px;
   height: 30px;
+  min-width: 30px;
+  min-height: 30px;
   border-radius: 9999px;
   display: flex;
   justify-content: center;

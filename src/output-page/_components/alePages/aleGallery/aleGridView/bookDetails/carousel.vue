@@ -56,10 +56,19 @@ export default {
 	
 	mounted: function() {
 		
-		this.options.width = this.$el.offsetWidth;
-		const carouselWidth = this.$el.offsetWidth - (42*2);
-		this.options.perPage = Math.floor(carouselWidth / 132);
-		this.loaded = true;
+		this.$nextTick(function() {	
+			const winWidth = window.innerWidth;
+			const windowMobile = winWidth <= '716';
+			this.options.width = windowMobile ? winWidth : this.$el.offsetWidth;
+			const carouselWidth = windowMobile ? winWidth - (42*2) : this.$el.offsetWidth - (42*2);
+			let coverSize = 127;
+			if ( winWidth <= '500' ) coverSize = 102;
+			if ( winWidth <= '415' ) coverSize = 72;
+												
+			this.options.perPage = Math.floor(carouselWidth / coverSize);
+			this.loaded = true;
+		});
+		
 		
 	},
 	
@@ -154,6 +163,20 @@ export default {
 	
 }
 
+
+@media (max-width: 716px) {
+	.splide {
+		box-sizing: border-box !important;
+		position: relative;
+		left: 50%;
+		right: 50%;
+		width: 100vw;
+		margin-left: -50vw;
+		margin-right: -50vw;
+		max-width: unset !important;
+	}
+}
+
 @media ( max-width: 500px ) {
 
   .ale-carousel {
@@ -179,6 +202,8 @@ export default {
 		
   } // .ale-carousel
   
+	.splide__pagination__page { width: 10px !important; }
+	
 }
 
 @media ( max-width: 415px ) {
