@@ -95,6 +95,11 @@
       </div>
       
     </div>
+    <div class="inner-wrap" v-if="showAudioPlayer">
+      
+      <audio-player :showAudioPlayer.sync="showAudioPlayer" :sampleData.sync="sampleData" />
+      
+    </div>
   </div>
 </template>
 
@@ -106,13 +111,24 @@ export default {
   name: "aleMenuActions",
   components: {
     aleSaveLocally,
-    lightSwitch
+    lightSwitch,
+    audioPlayer: () => import( /* webpackChunkName: "audio-player" */ "@output-snippets/audio-player"),
   },
   
   data: function() {
     return {
       mobileMenuOpen: false,
+      showAudioPlayer: false,
+      sampleData: null,
     };
+  },
+  
+  created: function() {
+    this.$root.$on("play-audio", this.playSample);
+  },
+
+  beforeDestroy: function() {
+    this.$root.$off("play-audio", this.playSample);
   },
   
   methods: {
@@ -124,6 +140,13 @@ export default {
     
     toggleMobileMenu: function() {
       this.mobileMenuOpen = !this.mobileMenuOpen;
+    },
+    
+    playSample: function( msg ) {
+      
+      this.showAudioPlayer = true;
+      this.sampleData = msg;
+      
     },
     
   }

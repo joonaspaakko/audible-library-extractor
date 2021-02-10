@@ -7,14 +7,6 @@
     <ale-grid-view v-if="$store.state.sticky.viewMode === 'grid'" />
     <ale-list-view v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
     
-    <audio-player />
-    
-    <!-- TODO: a general reminder to fix parts of the light theme. Many things look kinda off...
-    -->
-    
-    <!-- TODO: a general reminder to fix mobile styles... Mostly just finishing touches
-    -->
-    
   </div>
 </template>
 
@@ -27,7 +19,6 @@ import prepSeriesSubPage from "@output-mixins/prepSeriesSubPage.js";
 import prepWishlist from "@output-mixins/prepWishlist.js";
 
 // import aleBreadcrumbs from '../aleBreadcrumbs'
-import audioPlayer from "@output-snippets/audio-player";
 import filterAndSort from "@output-mixins/filter-and-sort.js";
 import smoothscroll from "smoothscroll-polyfill";
 smoothscroll.polyfill();
@@ -39,7 +30,6 @@ export default {
     aleGridView: () => import( /* webpackChunkName: "grid-view" */ "./aleGallery/aleGridView"),
     aleListView: () => import( /* webpackChunkName: "spreadsheet-view" */ "./aleGallery/aleListView"),
     // aleBreadcrumbs,
-    audioPlayer
   },
   mixins: [
     filterAndSort, 

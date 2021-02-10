@@ -1,22 +1,22 @@
 <template>
   <div id="audio-player" v-if="audioSource">
+    
+    <div class="book" v-if="book.title || book.titleShort" @click="openBook">
+      <strong>Sample:</strong>
+      {{ book.title || book.titleShort }}
+    </div>
+    
     <mini-audio
       :audio-source="audioSource"
       preload
       autoplay
       ref="audioPlayer"
     ></mini-audio>
-    <div class="custom-icons" :class="{ 'book-index-known': index }">
-      <div class="book" :content="book.title" v-tippy>
-        <router-link :to="{ path: route.path, query: { book: book.asin } }">
-          <font-awesome fas icon="book" />
-        </router-link>
-        <!-- <font-awesome fas icon="book" @click="samplePlayerBook" /> -->
-      </div>
-      <div class="close">
-        <font-awesome fas icon="times-circle" @click="samplePlayerClose" />
-      </div>
-    </div>
+    
+    <span class="close" ref="closeBtn">
+      <font-awesome fas icon="times-circle" @click="samplePlayerClose" /> 
+    </span>
+    
   </div>
   <!-- #audio-player -->
 </template>
@@ -25,54 +25,84 @@
 
 export default {
   name: "audioPlayer",
+  props: ['showAudioPlayer', 'sampleData'],
   data: function() {
     return {
       title: null,
       audioSource: null,
-      index: null,
       route: null
     };
   },
 
   created: function() {
-    this.$root.$on("play-audio", this.startPlaying);
-  },
-
-  beforeDestroy: function() {
-    this.$root.$off("play-audio", this.startPlaying);
+    this.startPlaying();
+    this.$nextTick(function() {
+      
+      const iconsWrapper = this.$refs.audioPlayer.$el.querySelector('.operate');
+      
+      // Close button after stop button
+      let children = iconsWrapper.querySelectorAll('span');
+      let oldestChild = children[ children.length-1 ];
+      oldestChild.insertAdjacentElement('beforebegin', this.$refs.closeBtn);
+      
+      // Scrubber to the front
+      children = iconsWrapper.querySelectorAll('span');
+      oldestChild = children[ children.length-1 ];
+      const scrubber = this.$refs.audioPlayer.$el.querySelector('.slider');
+      iconsWrapper.insertBefore(scrubber, iconsWrapper.firstChild);
+      
+      // Time indicator to the front
+      iconsWrapper.insertBefore(oldestChild, iconsWrapper.firstChild);
+      
+    });
   },
 
   methods: {
-    startPlaying: function(msg) {
+    
+    startPlaying: function() {
       
-      this.audioSource = msg.book.sample;
-      this.book = msg.book;
-      if (msg.index) this.index = msg.index;
-      if (msg.route) this.route = msg.route;
+      this.audioSource = this.sampleData.book.sample;
+      this.book = this.sampleData.book;
+      if (this.sampleData.route) this.route = this.sampleData.route;
       
     },
 
-    samplePlayerBook: function() {
-      const vue = this;
-      if (vue.index) {
-        // Eventbus.$emit("galleryBookClick", {
-          // from: "sample-audio-player",
-          // index: vue.index,
-          // animationSpeed: 1500,
-          // dontClose: true
-        // });
+    openBook: function() {
+      
+      if ( this.route.fullPath !== this.$route.fullPath ) {
+        this.$router.push({ 
+          path: this.route.path, 
+          query: this.route.query, 
+          params: this.route.params, 
+        });
       }
+      
+      console.log( 'BOOKDETAILS FOUND', document.querySelector('#ale-bookdetails') )
+      if ( document.querySelector('#ale-bookdetails') ) {
+        this.$root.$emit('book-clicked', { book: this.book });
+        this.$nextTick(function() {
+          this.$root.$emit('book-clicked', { book: this.book });
+        });
+      }
+      else {
+        this.$root.$emit('book-clicked', { book: this.book }); 
+      }
+      
     },
 
     samplePlayerClose: function() {
       this.audioSource = null;
+      this.$emit('update:sampleData', null);
+      this.$emit('update:showAudioPlayer', false);
     }
+    
   }
 };
 </script>
 
 <style lang="scss">
 @import "~@/_variables.scss";
+@import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap');
 
 #audio-player {
   -webkit-touch-callout: none;
@@ -81,69 +111,89 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  max-width: 400px;
-  margin: 0 auto;
-  position: fixed;
-  z-index: 900;
-  right: 0px;
-  bottom: 15px;
-  left: 0px;
+  max-width: unset;
+  width: 100%;
+  text-align: center;
+  margin: 0 auto !important;
+  margin-top: 5px !important;
+  padding: 11px 0px 11px;
+  @include themify($themes) {
+    background: themed(backColor);
+  }
+  
   .vueAudioBetter {
-    max-width: 400px;
-    margin: 0;
+    font-family: 'Inconsolata', monospace;
+    overflow: visible;
+    display: block;
+    max-width: 686px;
+    margin: 0 auto;
     width: auto;
-    padding-right: 72px;
+    height: auto;
+    padding: 0px;
+    box-shadow: unset;
+    background: none;
     @include themify($themes) {
-      background: themed(audibleOrange);
-      box-shadow: themed(shadowSmall);
+      color: themed(frontColor);
     }
-
-    // color: $lightFrontColor;
+    
     .iconfont.icon-notificationfill {
       display: none;
     }
     .slider {
       flex-grow: 1;
-      margin-left: 15px;
+      margin: 0 20px 0 26px !important;
     }
-  }
-  .custom-icons {
-    position: absolute;
-    top: 0;
-    right: 14px;
-    bottom: 0;
-    font-size: 16px;
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
-    align-content: center;
-    justify-items: center;
-    align-items: center;
-
-    &.book-index-known .book,
-    .close {
-      cursor: pointer;
+    span {
+      font-size: 14px !important;
     }
-
-    > div {
-      margin-left: 10px;
-      &:first-child {
-        margin-left: 0px;
-      }
-      outline: none;
-      &:active {
-        position: relative;
-        top: 2px;
-        left: 2px;
-      }
+    .iconfont {
+      font-size: 16px !important;
     }
   }
 
   .vueAudioBetter span,
   svg,
   a {
-    // cursor: default;
-    color: rgba(#111, 0.95) !important;
+    @include themify($themes) {
+      color: themed(frontColor) !important;
+    }
   }
+  
+  
+  .vueAudioBetter .operate {
+    height: auto;
+    margin-top: 4px;
+    line-height: 14px;
+    font-size: 0px;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    justify-items: center;
+    align-content: center;
+    align-items: center;
+    > * {
+      margin-left: 7px;
+      &:first-child { margin-left: 0;}
+    }
+    .close {
+      &, svg {
+        display: inherit;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+  
+  .book {
+    cursor: pointer;
+    display: block;
+    font-size: 14px;
+    line-height: 17px;
+  }
+  
+}
+
+.theme-light #audio-player .vueAudioBetter .slider {
+  background: rgba($lightFrontColor, .15);
 }
 </style>

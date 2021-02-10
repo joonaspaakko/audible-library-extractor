@@ -153,11 +153,14 @@ export default {
 
     resetScroll: function() {
       this.$nextTick(function() {
+        
+        const navigationHeight = document.querySelector('#ale-navigation').offsetHeight;
+        const offset = 25;
         if ( this.$store.state.sticky.viewMode === 'grid' ) {
-          scroll({ top: this.clickedBook.offsetTop - 78 });
+          scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });
         }
         else {
-          document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 78 });
+          document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });
         }
       });
     },
