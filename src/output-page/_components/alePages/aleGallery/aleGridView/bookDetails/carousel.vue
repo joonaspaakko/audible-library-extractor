@@ -8,7 +8,7 @@
 			<splide-slide class="ale-carousel-item" v-for="(book, index) in books" :key="index">
 				
 					<a :href="makeUrl('book', book.asin)" target="_blank" v-tippy :content="sliderTippyContent( book )">
-						<img class="cover" :data-splide-lazy="makeCoverUrl(book.cover)" alt="">
+						<img class="cover" :data-splide-lazy="makeCoverUrl(book.cover, 150)" alt="">
 					</a>
 					
 			</splide-slide>
@@ -51,21 +51,23 @@ export default {
 				preloadPages: 1,
 				perPage     : 5,
 			},
+			coverSize: 127,
 		}
 	},
 	
 	mounted: function() {
 		
 		this.$nextTick(function() {	
+			
 			const winWidth = window.innerWidth;
 			const windowMobile = winWidth <= '716';
 			this.options.width = windowMobile ? winWidth : this.$el.offsetWidth;
 			const carouselWidth = windowMobile ? winWidth - (42*2) : this.$el.offsetWidth - (42*2);
-			let coverSize = 127;
-			if ( winWidth <= '500' ) coverSize = 102;
-			if ( winWidth <= '415' ) coverSize = 72;
-												
-			this.options.perPage = Math.floor(carouselWidth / coverSize);
+			
+			if ( winWidth <= '500' ) this.coverSize = 102;
+			if ( winWidth <= '415' ) this.coverSize = 72;
+			
+			this.options.perPage = Math.floor(carouselWidth / this.coverSize);
 			this.loaded = true;
 		});
 		

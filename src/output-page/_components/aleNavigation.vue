@@ -72,7 +72,7 @@
         <light-switch></light-switch>
         
         <div class="text-button" v-if="$store.state.searchMounted">
-          <div class="icon" @click="$root.$emit('search-focus')">
+          <div class="icon" @click="startSearching">
             <font-awesome :icon="['fas', 'search']" />
           </div>
         </div>
@@ -147,6 +147,12 @@ export default {
       this.showAudioPlayer = true;
       this.sampleData = msg;
       
+    },
+    
+    startSearching: function() {
+      
+      this.$root.$emit("ios-auto-zoom-disable");
+      this.$root.$emit('search-focus');
     },
     
   }

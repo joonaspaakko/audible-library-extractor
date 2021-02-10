@@ -108,6 +108,7 @@ export default {
 
   mounted: function() {
     
+    this.$root.$on("ios-auto-zoom-disable", this.iosAutozoomDisable);
     this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable );
     
     this.$root.$on("start-scope", this.scope);
@@ -122,6 +123,7 @@ export default {
   beforeDestroy: function() {
     
     this.$store.commit("prop", { key: "searchQuery", value: '' });
+    this.$root.$off("ios-auto-zoom-disable", this.iosAutozoomDisable);
     this.$refs.aleSearch.removeEventListener( "touchstart", this.iosAutozoomDisable);
 
     this.$root.$off("start-scope", this.scope);

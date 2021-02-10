@@ -133,4 +133,9 @@ export default {
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
 @import "~@/box-layout.scss";
+
+.box-layout-wrapper .single-box .sample-covers img { 
+  width: 100%; 
+}
+
 </style>

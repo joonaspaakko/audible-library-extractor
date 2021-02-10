@@ -8,18 +8,15 @@
     :data-asin="item.asin"
     :key="'series:'+item.asin"
     >
-      <h2>
-        <router-link :to="{ name: 'series', params: { series: item.asin } }">
-          {{ item.name }}
-        </router-link>
-      </h2>
+      <router-link :to="{ name: 'series', params: { series: item.asin } }">
+        
+        <h2>{{ item.name }}</h2>
 
-      <router-link v-if="item.books && item.books.length" class="books-total" :to="{ name: 'series', params: { series: item.asin } }">
-        <div content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
+        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
           {{ item.books.length }}
         </div>
-      </router-link>
       
+      </router-link>
     </lazy>
     
   </div>
@@ -121,12 +118,18 @@ export default {
 @import "~@/_variables.scss";
 @import "~@/box-layout.scss";
 .single-box {
-  min-height: 21px !important;
+  min-height: 35px !important;
   display: flex !important;
   align-content: center !important;
   align-items: center !important;
-  padding: 7px 14px !important;
+  padding: 0px !important;
   margin-top: 5px !important; 
+  > a {
+    padding: 7px 14px !important;
+    display: inline-block !important; 
+    width: 100%;
+    box-sizing: border-box;
+  }
   h2 { 
     display: inline-block;
     width: 100%;
@@ -141,6 +144,8 @@ export default {
     font-size: .9em !important;
     top: unset !important;
     border-width: 2px !important;
+    top: 4px !important;
+    right: 4px !important;
   }
 }
 </style>

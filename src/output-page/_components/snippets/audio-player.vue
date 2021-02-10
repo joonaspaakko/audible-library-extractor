@@ -176,6 +176,7 @@ export default {
       &:first-child { margin-left: 0;}
     }
     .close {
+      cursor: pointer;
       &, svg {
         display: inherit;
         width: 16px;
