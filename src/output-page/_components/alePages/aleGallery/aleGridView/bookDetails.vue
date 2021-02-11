@@ -28,7 +28,7 @@
                 </div>
                 <img 
                   class="cover"
-                  v-if="book.cover && $store.state.windowWidth > 640"
+                  v-if="book.cover && $store.state.windowWidth > 688"
                   :src="makeCoverUrl(book.cover)"
                 />
               </a>
@@ -569,13 +569,9 @@ export default {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e615171b', endColorstr='#15171b',GradientType=0 );
 }
 
-@media (max-width: 640px) {
+@media (max-width: 688px) {
   #ale-bookdetails {
-    // #book-info-container {
-    //   padding: 0 45px;
-    // }
     .inner-wrap {
-      max-width: none !important;
       .top {
         display: flex;
         flex-direction: column;

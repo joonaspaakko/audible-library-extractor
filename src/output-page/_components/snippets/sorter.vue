@@ -54,11 +54,16 @@ export default {
         return this.currentList[this.index].active;
       },
       set: function(value) {
-        this.$store.commit("updateListRenderingOpts", {
+        
+        let changes = {
           listName: this.listName,
           index: this.index,
           active: value
-        });
+        };
+        
+        if ( this.currentList[this.index].group ) changes.group = true;
+        
+        this.$store.commit("updateListRenderingOpts", changes);
         
         this.saveOptions( value );
         

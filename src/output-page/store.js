@@ -79,17 +79,24 @@ export default new Vuex.Store({
     
     updateListRenderingOpts: function(state, o) {
       
-      let newObject = _.cloneDeep( state.listRenderingOpts[o.listName][o.index] );
-      newObject.active = o.active;
+      let currentList = state.listRenderingOpts[o.listName];
+      let currentItem = currentList[o.index];
       
-      // Changes the currently active sorter (in sort: active state controls the direction)
-      if ( o.listName === "sort" && newObject.type === 'sort' ) {
-        const currentSorter = _.find( state.listRenderingOpts[o.listName], "current" );
-        currentSorter.current = false;
-        newObject.current = true;
+      if ( o.group ) {
+        let groupies = _.filter( currentList, { group: currentItem.group });
+        _.each( groupies, function( groupie, index ) {
+          groupie.active = false;
+        });
       }
       
-      state.listRenderingOpts[ o.listName ].splice(o.index, 1, newObject);
+      currentItem.active = o.active;
+      
+      // Changes the currently active sorter (in sort: active state controls the direction)
+      if ( o.listName === "sort" && currentItem.type === 'sort' ) {
+        const currentSorter = _.find( currentList, "current" );
+        currentSorter.current = false;
+        currentItem.current = true;
+      }
             
     },
     

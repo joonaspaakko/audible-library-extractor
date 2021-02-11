@@ -35,7 +35,7 @@
         ></search-options>
       </div> <!-- #ale-search -->
       
-      <view-mode-switcher v-if="$route.name !== 'all-series'" />
+      <view-mode-switcher v-if="$route.name !== 'all-series' && $store.state.windowWidth >= 450" />
       
     </div> <!-- #ale-search-wrap -->
     
@@ -47,7 +47,6 @@ import Fuse from "fuse.js";
 
 import searchIcons from "./aleSearch/searchIcons";
 import searchOptions from "./aleSearch/searchOptions";
-import viewModeSwitcher from "@output-snippets/viewModeSwitcher";
 
 import filterAndSort from "@output-mixins/filter-and-sort.js";
 
@@ -56,7 +55,7 @@ export default {
   components: {
     searchIcons,
     searchOptions,
-    viewModeSwitcher,
+    viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
   },
   mixins: [filterAndSort],
   props: ['collectionSource'],
@@ -298,6 +297,7 @@ export default {
 }
 
 #ale-search {
+  width: 100%;
   height: 46px;
   flex-grow: 1;
   display: flex;
@@ -332,6 +332,8 @@ export default {
       border: none;
       font-family: inherit;
       font-weight: 400;
+      min-width: 30px;
+      width: 100%;
     }
 
     input[type="search"]::-webkit-search-cancel-button {
@@ -442,6 +444,12 @@ export default {
   color: $darkFrontColor;
   border: 1px solid $audibleOrange;
   background: $darkBackColor;
+}
+
+@media (max-width: 370px) {
+  #ale-search .icons > .icon-wrap > div {
+    padding: 0 5px;
+  }
 }
 
 </style>

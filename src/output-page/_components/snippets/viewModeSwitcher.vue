@@ -1,8 +1,8 @@
 <template>
-  <div id="view-mode-switcher" @click="changeViewMode">
+  <div id="view-mode-switcher" :class="{ 'no-style': justIcon }" @click="changeViewMode">
     
-    <font-awesome v-if="sticky.viewMode === 'grid'"             :icon="['fas', 'table']" />
-    <font-awesome v-else-if="sticky.viewMode === 'spreadsheet'" :icon="['fas', 'th']"    />
+    <font-awesome class="icon" v-if="sticky.viewMode === 'grid'"             :icon="['fas', 'table']" />
+    <font-awesome class="icon" v-else-if="sticky.viewMode === 'spreadsheet'" :icon="['fas', 'th']"    />
     
   </div>
 </template>
@@ -11,6 +11,7 @@
 
 export default {
   name: "viewModeSwitcher",
+  props: ['justIcon'],
   data: function() {
     return {
       sticky: this.$store.state.sticky,
@@ -72,6 +73,22 @@ export default {
   font-size: 13px;
   @include themify($themes) {
     box-shadow: 0 5px 20px rgba(themed(outerColor), 0.9);
+  }
+  
+  &.no-style {
+    background: transparent;
+    padding: 0px;
+    margin: 0px;
+    color: inherit;
+    box-shadow: unset;
+    min-width: unset;
+    min-height: unset;
+    width: inherit;
+    height: inherit;
+    svg {
+      width: auto;
+      padding: 0 12px;
+    }
   }
   
 }

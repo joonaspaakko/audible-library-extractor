@@ -70,6 +70,8 @@
       <div class="special-icons-wrapper">
         
         <light-switch></light-switch>
+                
+        <view-mode-switcher :justIcon="true" v-if="$route.name !== 'all-series' && $store.state.windowWidth < 450" />
         
         <div class="text-button" v-if="$store.state.searchMounted">
           <div class="icon" @click="startSearching">
@@ -112,6 +114,7 @@ export default {
   components: {
     aleSaveLocally,
     lightSwitch,
+    viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
     audioPlayer: () => import( /* webpackChunkName: "audio-player" */ "@output-snippets/audio-player"),
   },
   

@@ -91,11 +91,11 @@ export default {
         ],
         filter: [
           { active: true, type: 'filter', label: 'Books 1',    key: 'series1',   condition: function( series ) { return series.books.length <= 1; }},
-          { active: true, type: 'filter', label: 'Books > 1',  key: 'series>1',  condition: function( series ) { return series.books.length >= 2; }},
-          { active: true, type: 'filter', label: 'Books > 5',  key: 'series>5',  condition: function( series ) { return series.books.length >= 5; }},
-          { active: true, type: 'filter', label: 'Books > 10', key: 'series>10', condition: function( series ) { return series.books.length >= 10; }},
-          { active: true, type: 'filter', label: 'Books > 20', key: 'series>20', condition: function( series ) { return series.books.length >= 20; }},
-          { active: true, type: 'filter', label: 'Books > 30', key: 'series>30', condition: function( series ) { return series.books.length >= 30; }},
+          { active: true, type: 'filter', label: 'Books > 1',  group: 'greaterThan', key: 'series>1',  condition: function( series ) { return series.books.length >= 2; }},
+          { active: false, type: 'filter', label: 'Books > 5',  group: 'greaterThan', key: 'series>5',  condition: function( series ) { return series.books.length >= 5; }},
+          { active: false, type: 'filter', label: 'Books > 10', group: 'greaterThan', key: 'series>10', condition: function( series ) { return series.books.length >= 10; }},
+          { active: false, type: 'filter', label: 'Books > 20', group: 'greaterThan', key: 'series>20', condition: function( series ) { return series.books.length >= 20; }},
+          { active: false, type: 'filter', label: 'Books > 30', group: 'greaterThan', key: 'series>30', condition: function( series ) { return series.books.length >= 30; }},
         ],
         sort: [
           { active: false,                 key: 'randomize', label: 'Randomize',       type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
@@ -106,7 +106,7 @@ export default {
           { active: true,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
         ],
       };
-      
+       
       this.$setListRenderingOpts( list );
       
     }
