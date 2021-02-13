@@ -24,6 +24,14 @@ const config = {
     filename: '[name].js',
     chunkFilename: 'chunks/[name].js',
   },
+  watchOptions: {
+    aggregateTimeout: 300,
+    poll: true,
+    ignored: [
+      // path.join(__dirname, '/dist'),
+      path.join(__dirname, '/node_modules')
+    ],
+  },
   resolve: {
     extensions: ['.js', '.vue'],
     alias: {

@@ -148,6 +148,7 @@ import {
   faBookReader,
   faCheck,
   faInfoCircle,
+  faCircle,
   // faCheckCircle, faExclamationTriangle, faExclamationCircle,
   // faDotCircle,
   // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
@@ -190,6 +191,7 @@ library.add(
   faBookReader,
   faCheck,
   faInfoCircle,
+  faCircle,
   // faCheckCircle, faExclamationTriangle, faExclamationCircle,
   // faDotCircle,
   // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
@@ -304,7 +306,7 @@ globalMethods.install = function (Vue) {
     
     if ( this.$route.query.filter ) {
       
-      let paramFilters = this.$route.query.filter.split(',');
+      let paramFilters = decodeURIComponent(this.$route.query.filter).split(',');
       
       _.each( list.filter, function( filter ) {
         filter.active = false;
@@ -317,7 +319,7 @@ globalMethods.install = function (Vue) {
     
     if ( this.$route.query.scope ) {
       
-      let paramScope = this.$route.query.scope.split(',');
+      let paramScope = decodeURIComponent(this.$route.query.scope).split(',');
       
       _.each( list.scope, function( scope ) {
         scope.active = false;

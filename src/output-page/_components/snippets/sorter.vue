@@ -19,6 +19,11 @@
         <font-awesome fas icon="sort-up" />
       </span>
       
+      <!-- RADIOBUTTONS -->
+      <span v-else-if="item.type === 'filterExtras' && !item.forceCheckbox" class="radiobutton">
+        <font-awesome fas icon="circle" />
+        <font-awesome fas icon="circle" />
+      </span>
       <!-- CHECKBOXES -->
       <span v-else class="checkbox">
         <font-awesome fas icon="square" />
@@ -97,9 +102,19 @@ export default {
     filterAmounts: function( ) {
       
       const vue = this;
-      return _.filter( _.get(vue.$store.state, vue.$store.state.collectionSource), function(book) {
-        return vue.item.condition(book);
-      }).length;
+      const filterExtraRules = _.find( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
+      
+      if ( this.item.type === 'filter' ) {
+        return _.filter( _.get(vue.$store.state, vue.$store.state.collectionSource), function(book) {
+          const extrasCondition = filterExtraRules ? filterExtraRules.condition(book) : true;
+          return extrasCondition && vue.item.condition(book);
+        }).length;
+      }
+      else {
+        return _.filter( _.get(vue.$store.state, vue.$store.state.collectionSource), function(book) {
+          return vue.item.condition(book);
+        }).length;
+      }
       
     },
     
@@ -112,11 +127,11 @@ export default {
         this.$updateQuery({ query: this.item.type, value: this.item.key });
         this.$updateQuery({ query: 'sortDir', value: value ? "desc" : "asc" });
       }
-      else if ( this.item.type === "filter" ) {
-        this.$updateQuery({ query: this.item.type, value: this.$store.getters.filterKeys });
+      else if ( this.listName === "filter" ) {
+        this.$updateQuery({ query: this.item.type, value: encodeURIComponent(this.$store.getters.filterKeys) });
       }
       else if ( this.listName === "scope" ) {
-        this.$updateQuery({ query: this.listName, value: this.$store.getters.scopeKeys });
+        this.$updateQuery({ query: this.listName, value: encodeURIComponent(this.$store.getters.scopeKeys) });
       }
       // else {
       //   this.$updateQuery({ query: this.item.key, value: value });
@@ -161,6 +176,7 @@ export default {
   input {
     display: none;
   }
+  .radiobutton,
   .checkbox,
   .sortbox {
     display: inline-block;
@@ -192,10 +208,13 @@ export default {
         opacity: 0.35;
       }
     }
+    &.radiobutton,
     &.checkbox {
+      [data-icon="circle"]:first-child,
       [data-icon="square"] {
         opacity: 0.2;
       }
+      [data-icon="circle"]:last-child,
       [data-icon="check"] {
         opacity: 0;
         padding: 3px 0px 0px 3px;
@@ -203,8 +222,14 @@ export default {
         height: 9px;
         color: #fff;
       }
+      [data-icon="circle"]:last-child {
+        padding: 4px 0px 0px 4px;
+        width: 6px;
+        height: 6px;
+      }
     }
   }
+  input:checked + .radiobutton,
   input:checked + .checkbox,
   input:checked + .sortbox {
     &.sortbox.active {
@@ -215,17 +240,22 @@ export default {
         opacity: 1;
       }
     }
+    &.radiobutton, 
     &.checkbox {
+      
+      [data-icon="circle"]:first-child,
       [data-icon="square"] {
         opacity: 1;
         color: #65aa3a;
       }
+      [data-icon="circle"]:last-child,
       [data-icon="check"] {
         opacity: 1;
       }
     }
   }
 
+  input[disabled="disabled"] + .radiobutton [data-icon="circle"]:last-child,
   input[disabled="disabled"] + .checkbox [data-icon="check"] {
     display: none;
   }

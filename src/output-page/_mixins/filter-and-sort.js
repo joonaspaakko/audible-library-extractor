@@ -28,10 +28,10 @@ export default {
     
     filterBooks: function(books) {
       
-      const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: true });
-      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras' }); // These mix in with the rest so they are checked active or not...
+      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
+      const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: false });
       
-      if (filterRules || filterExtraRules ) {
+      if ( filterExtraRules || filterRules ) {
         
         const runConditionCheck = function( book ) {
           
@@ -49,15 +49,8 @@ export default {
               if ( o.key === 1 ) {
                 return result;
               }
-              else if ( o.key === 2 ) {
-                if ( cFilter.active ) {
-                  // return o.prevResult || result;
-                  return o.prevResult;
-                }
-                else { 
-                  if ( result ) { return false }
-                  else { return o.prevResult}
-                }
+              else if ( o.key === 2 && o.prevResult ) {
+                return result ? false : true;
               }
               
             }
@@ -69,8 +62,9 @@ export default {
           };
           
           let result = false;
-          result = checkExtras({ key: 1, array: filterRules });
-          result = checkExtras({ key: 2, array: filterExtraRules, prevResult: result });
+          console.log( filterExtraRules )
+          result = checkExtras({ key: 1, array: filterExtraRules });
+          result = checkExtras({ key: 2, array: filterRules, prevResult: result });
           
           return result;
           

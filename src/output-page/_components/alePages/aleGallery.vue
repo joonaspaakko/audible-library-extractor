@@ -47,6 +47,7 @@ export default {
   
   methods: {
     updateListRenderingOptions: function() {
+      const vue = this;
       const list = {
         scope: [
           { active: true,  key: 'title' },
@@ -58,15 +59,61 @@ export default {
         ],
         filter: [
           { active: true, type: 'filter', label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
-          { active: true, type: 'filter', label: 'Started', key: 'started', condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
-          { active: true, type: 'filter', label: 'Finished', key: 'finished', condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
+          { active: true, type: 'filter', label: 'Started',     key: 'started',    condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
+          { active: true, type: 'filter', label: 'Finished',    key: 'finished',   condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
           // FIXME: I have to think a little bit more about how to add more filters if at all...
-          // { key: 'divider' },
-          // { active: true, type: 'filterExtras', label: 'Favorites', key: 'favorites', condition: function( book ) { return book.favorite; } },
+          { key: 'divider' },
+          { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
+          { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
+          { active: false, type: 'filterExtras', label: 'From plus catalog', key: 'from-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog; } },
+          { active: false, type: 'filterExtras', label: 'Left plus catalog', key: 'left-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.leftPlusCatalog; } },
+          { active: false, type: 'filterExtras', label: 'Multiple narrators', key: 'multiple-narrators', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length > 1; } },
+          { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
+          { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
+          { active: false, type: 'filterExtras', label: 'In series > 1', key: '>1series', group: 'filterExtras', condition: function( book ) { 
+            let result = false;
+            _.each( book.series, function( cSeries ) {
+              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
+              if ( series.books.length > 1 ) result = true; return false;
+            });
+            return result; 
+          } },
+          { active: false, type: 'filterExtras', label: 'In series > 5', key: '>5series', group: 'filterExtras', condition: function( book ) { 
+            let result = false;
+            _.each( book.series, function( cSeries ) {
+              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
+              if ( series.books.length > 5 ) result = true; return false;
+            });
+            return result; 
+          } },
+          { active: false, type: 'filterExtras', label: 'In series > 10', key: '>10series', group: 'filterExtras', condition: function( book ) { 
+            let result = false;
+            _.each( book.series, function( cSeries ) {
+              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
+              if ( series.books.length > 10 ) result = true; return false;
+            });
+            return result; 
+          } },
+          { active: false, type: 'filterExtras', label: 'In series > 20', key: '>20series', group: 'filterExtras', condition: function( book ) { 
+            let result = false;
+            _.each( book.series, function( cSeries ) {
+              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
+              if ( series.books.length > 201) result = true; return false;
+            });
+            return result; 
+          } },
+          { active: false, type: 'filterExtras', label: 'In series > 30', key: '>30series', group: 'filterExtras', condition: function( book ) { 
+            let result = false;
+            _.each( book.series, function( cSeries ) {
+              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
+              if ( series.books.length > 30 ) result = true; return false;
+            });
+            return result; 
+          } },
         ],
         sort: [
           { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "The shown value comes from the active sort category below. Sort by title and you'll see the title of eachbook above the cover." },
-          { active: false,                 key: 'randomize',       label: 'Randomize',        type: 'sortExtras', tippy: "Sorting is ignored and the order is randomized." },
+          { active: false,               key: 'randomize',       label: 'Randomize',        type: 'sortExtras', tippy: "Sorting is ignored and the order is randomized." },
           { key: 'divider' },
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',           label: 'Added',   			     type: 'sort', tippy: 'High number = new <br/> Low number = old' },
