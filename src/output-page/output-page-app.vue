@@ -1,39 +1,10 @@
 <template>
-  <div
-    id="audible-library-extractor"
-  >
-    <!-- :class="{ 'mobile-browser-navigation-on': mobileBrowserNavigation }" -->
-    
+  <div id="audible-library-extractor">
+        
     <ale-background v-if="$store.state.showBackground"></ale-background>
     <ale-navigation></ale-navigation>
     <router-view></router-view>
-
-    <!-- <a
-      v-if="this.$store.state.displayMode"
-      id="audible-app-link"
-      href="audible://"
-    >
-      <img
-        alt=""
-        src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTEuNSA5My43IiB3aWR0aD0iMTUxLjUiIGhlaWdodD0iOTMuNyI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjxnPjxnPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggODAuN2w3NS43LTQ3LjJ2MTIuOEw3NS44IDkzLjcgMCA0Ni4zVjMzLjVsNzUuOCA0Ny4yeiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggMjEuNWE0OC4xNyA0OC4xNyAwIDAgMC00MC43IDIxLjkgMTIuOTQgMTIuOTQgMCAwIDEgMS44LTEuNmMyMS4zLTE3LjcgNTItMTMuNyA2OC43IDguNmwxMS4xLTcuMWE0OS44MiA0OS44MiAwIDAgMC00MC45LTIxLjgiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03NS44IDQzLjRhMjcuNzIgMjcuNzIgMCAwIDAtMjIuNCAxMS41IDIyLjcgMjIuNyAwIDAgMSAxMy41LTQuNGM4LjIgMCAxNS41IDQuMiAyMC40IDExLjNsMTAuNi02LjZhMjUuNzkgMjUuNzkgMCAwIDAtMjIuMS0xMS44TTI0LjYgMjQuMkM1NS44LS40IDk5LjkgNi4zIDEyMy40IDM5bC4yLjIgMTEuNS03LjFhNzAuODIgNzAuODIgMCAwIDAtMTE4LjYgMCA2MC42MyA2MC42MyAwIDAgMSA4LjEtNy45Ii8+PC9nPjwvZz48L3N2Zz4="
-      />
-    </a> -->
-
-    <!-- <div id="browser-navigation" v-if="mobileBrowserNavigation">
-      
-      <router-link
-      v-if="$routerHistory.hasPrevious()"
-      :to="{ path: $routerHistory.previous().path }">
-        <font-awesome fas icon="chevron-left" />
-      </router-link>
-      
-      <router-link
-      v-if="$routerHistory.hasForward()"
-      :to="{ path: $routerHistory.next().path }">
-        <font-awesome fas icon="chevron-right" />
-      </router-link>
-      
-    </div> -->
+    
   </div>
 </template>
 
@@ -61,15 +32,6 @@ export default {
         height: null
       }
     };
-  },
-
-  computed: {
-    // mobileBrowserNavigation: function() {
-    //   return (
-    //     this.$store.state.displayMode &&
-    //     (this.$routerHistory.hasPrevious() || this.$routerHistory.hasForward())
-    //   );
-    // }
   },
 
   created: function() {
@@ -213,21 +175,6 @@ body {
     }
   }
 
-  &.mobile-browser-navigation-on {
-    margin-top: 45px;
-  }
-  #browser-navigation {
-    position: fixed;
-    z-index: 20;
-    top: 0;
-    right: 0;
-    left: 0;
-    color: #222;
-    background: #fff;
-    height: 45px;
-    font-size: 20px;
-    line-height: 45px;
-  }
 }
 
 // @media all and (display-mode: standalone) {

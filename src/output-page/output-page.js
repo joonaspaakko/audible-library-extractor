@@ -119,7 +119,8 @@ const router = new VueRouter({
   routes,
   base: '/output-page/',
   scrollBehavior(to, from, savedPosition) {
-    if (savedPosition && (to.name === "categories" || to.name === "all-series" || to.name === "collections") ) {
+    // if (savedPosition && (to.name === "categories" || to.name === "all-series" || to.name === "collections" || to.name === "wishlist") ) {
+    if (savedPosition ) {
       return savedPosition;
     } else {
       if (from && to.name === from.name && _.isEqual(to.params, from.params)) {
@@ -131,15 +132,15 @@ const router = new VueRouter({
   }
 });
 
-// import VueRouterBackButton from "vue-router-back-button";
-// Vue.use(VueRouterBackButton, { router });
+import VueRouterBackButton from "vue-router-back-button";
+Vue.use(VueRouterBackButton, { router });
 
 // FONT AWESOME
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
   faChevronDown,
-  // faChevronLeft,
-  // faChevronRight,
+  faChevronLeft,
+  faChevronRight,
   faChevronUp,
   faArchive,
   // faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
@@ -181,8 +182,8 @@ import {
 
 library.add(
   faChevronDown,
-  // faChevronLeft,
-  // faChevronRight,
+  faChevronLeft,
+  faChevronRight,
   faChevronUp,
   faArchive,
   // faArrowUp, faAngleRight, faAngleLeft, faAngleDown,

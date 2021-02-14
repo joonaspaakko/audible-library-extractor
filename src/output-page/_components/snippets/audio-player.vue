@@ -116,7 +116,8 @@ export default {
   text-align: center;
   margin: 0 auto !important;
   margin-top: 5px !important;
-  padding: 11px 0px 11px;
+  padding: 11px 20px;
+  box-sizing: border-box;
   @include themify($themes) {
     background: themed(backColor);
   }

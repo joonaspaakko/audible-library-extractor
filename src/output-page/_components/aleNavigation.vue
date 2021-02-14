@@ -67,10 +67,26 @@
       @click="toggleMobileMenu()"
       />
       
+      <div id="mobile-back-btn" v-if="mobileBrowserNavigation()">
+        
+        <router-link
+        v-if="$routerHistory.hasPrevious()"
+        :to="{ path: $routerHistory.previous().path }">
+          <font-awesome fas icon="chevron-left" /> 
+        </router-link>
+        
+        <router-link
+        v-if="$routerHistory.hasForward()"
+        :to="{ path: $routerHistory.next().path }">
+          <font-awesome fas icon="chevron-right" /> 
+        </router-link>
+        
+      </div>
+      
       <div class="special-icons-wrapper">
         
         <light-switch></light-switch>
-                
+        
         <view-mode-switcher :justIcon="true" v-if="$route.name !== 'all-series' && $store.state.windowWidth < 450" />
         
         <div class="text-button" v-if="$store.state.searchMounted">
@@ -135,6 +151,14 @@ export default {
   },
   
   methods: {
+    
+    mobileBrowserNavigation: function() {
+      return (
+        this.$store.state.displayMode &&
+        (this.$routerHistory.hasPrevious() || this.$routerHistory.hasForward())
+      );
+    },
+    
     csvExportStarted: function() {
       // Eventbus.$emit("csvExportStarted", {
       //   from: "aleMenuActions"
@@ -178,6 +202,10 @@ export default {
   top: 0;
   right: 0;
   left: 0;
+  &.mobile-nav {
+    top: unset;
+    bottom: 0;
+  }
   @include themify($themes) {
     background: lighten(themed(backColor), 5);
   }
@@ -290,6 +318,20 @@ export default {
   .close-mobile-menu,
   .brgr-btn {
     cursor: pointer;
+  }
+  
+  #mobile-back-btn {
+    display: flex;
+    flex-direction: row;
+    padding: 0 5px;
+    margin-left: 10px;
+    border-radius: 9999px;
+    @include themify($themes) {
+      border: 1px solid rgba( themed(frontColor), .1);
+    }
+    > a {
+      padding: 7px 10px;
+    }
   }
 }
 
