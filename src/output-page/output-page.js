@@ -317,6 +317,20 @@ globalMethods.install = function (Vue) {
       
     }
     
+    if ( this.$route.query.filterExtras ) {
+      
+      let paramFilterExtras = decodeURIComponent(this.$route.query.filterExtras).split(',');
+      
+      _.each( list.filter, function( filter ) {
+        filter.active = false;
+        console.log( paramFilterExtras )
+        _.each( paramFilterExtras, function( paramFilter ) {
+          if ( filter.key === paramFilter ) filter.active = true;
+        });
+      });
+      
+    }
+    
     if ( this.$route.query.scope ) {
       
       let paramScope = decodeURIComponent(this.$route.query.scope).split(',');

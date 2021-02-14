@@ -286,5 +286,9 @@ export default {
     }
   }
   
+  .radiobutton {
+    top: 2px;
+  }
+  
 } // #search-options
 </style>

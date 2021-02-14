@@ -70,7 +70,15 @@ export default {
           { active: false, type: 'filterExtras', label: 'Multiple narrators', key: 'multiple-narrators', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length > 1; } },
           { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
-          { active: false, type: 'filterExtras', label: 'In series > 1', key: '>1series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series 1', key: '1inSeries', group: 'filterExtras', condition: function( book ) { 
+            let result = false;
+            _.each( book.series, function( cSeries ) {
+              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
+              if ( series.books.length === 1 ) result = true; return false;
+            });
+            return result; 
+          } },
+          { active: false, type: 'filterExtras', label: 'Books in series > 1', key: '>1series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -78,7 +86,7 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'In series > 5', key: '>5series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 5', key: '>5series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -86,7 +94,7 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'In series > 10', key: '>10series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 10', key: '>10series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -94,15 +102,15 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'In series > 20', key: '>20series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 20', key: '>20series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series.books.length > 201) result = true; return false;
+              if ( series.books.length > 20 ) result = true; return false;
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'In series > 30', key: '>30series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 30', key: '>30series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -112,7 +120,7 @@ export default {
           } },
         ],
         sort: [
-          { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "The shown value comes from the active sort category below. Sort by title and you'll see the title of eachbook above the cover." },
+          { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "Shows the active sorter's value on top of the cover in the grid view." },
           { active: false,               key: 'randomize',       label: 'Randomize',        type: 'sortExtras', tippy: "Sorting is ignored and the order is randomized." },
           { key: 'divider' },
           // active: true = arrow down / descending
