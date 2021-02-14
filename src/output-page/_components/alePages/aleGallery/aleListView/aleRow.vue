@@ -19,7 +19,7 @@
           </div>
         </span>
 
-        <span class="text-container"> {{ col.text || "&nbsp" }}</span>
+        <span class="text-container"> {{ col.text || "&nbsp;" }}</span>
       </div>
     </lazy>
     
@@ -78,8 +78,8 @@ export default {
     prepareColumns: function() {
       const vue = this;
       return _.map(this.keys, function(key) {
-        const col = {};
-
+        
+        let col = {};
         col.key = key;
         col.class = "col-" + _.kebabCase(key);
 
@@ -90,20 +90,19 @@ export default {
           case "series":
           case "publishers":
             col.text = vue.stringifyArray(
-              vue.book[key],
+              vue.book[ key ],
               "name",
               key === "categories" ? " > " : null
             );
             break;
 
           case "title":
-            col.text = vue.bookTitle;
+            col.text = vue.book[ key ] || vue.book.titleShort;
             col.class += " sticky-col";
             break;
 
           case "bookNumbers":
-            let allNumbers = _.filter(vue.book.series, "bookNumbers");
-            allNumbers = _.map(allNumbers, "bookNumbers");
+            let allNumbers = _.map(vue.book.series, "bookNumbers");
             allNumbers = _.flatten(allNumbers);
             if (_.isEmpty(allNumbers)) allNumbers = null;
             else if (_.isArray(allNumbers)) {
@@ -111,15 +110,26 @@ export default {
             }
             col.text = allNumbers;
             break;
+          
+          case "isbn10":
+            const isbn10 = _.find( vue.book.isbns, { type: "ISBN_10" });
+            if ( isbn10 ) col.text = isbn10.identifier;
+            break;
+          case "isbn13":
+            const isbn13 = _.find( vue.book.isbns, { type: "ISBN_13" });
+            if ( isbn13 ) col.text = isbn13.identifier;
+            break;
 
           default:
-            col.text = vue.book[key];
+            col.text = vue.book[ key ];
             col.name = "";
             break;
         }
 
         if (!col.text) col.text = null;
+        
         return col;
+        
       });
     }
   }

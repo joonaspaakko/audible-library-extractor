@@ -25,7 +25,7 @@ const config = {
     chunkFilename: 'chunks/[name].js',
   },
   watchOptions: {
-    aggregateTimeout: 300,
+    aggregateTimeout: 100,
     poll: true,
     ignored: [
       // path.join(__dirname, '/dist'),

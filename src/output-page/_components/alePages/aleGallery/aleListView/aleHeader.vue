@@ -20,7 +20,6 @@
             :index="sorterIndex(item)"
             :currentList="optionsList" 
             :listName="listName"
-            :highlight="true"
           >
             {{ item.label }}
           </sorter>
@@ -53,7 +52,6 @@ export default {
   created: function() {
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
     this.headers = this.prepareHeaders(this.keys);
-    // FIXME: need to first of all add the missing ".name" sorters and I alo need to add generic sorters to some of the other columns
   },
 
   methods: {
@@ -71,6 +69,11 @@ export default {
           case "titleShort":
           case "title":
             header.class = header.class + " sticky-col";
+            break;
+          case "authors":
+          case "narrators":
+          case "publishers":
+            header.key += '.name';
             break;
         }
 

@@ -21,7 +21,8 @@ export default {
   mixins: [timeStringToSeconds, secondsToTimeString, progressbarWidth],
   data: function() {
     return {
-      notAvailable: "N/A"
+      // notAvailable: "N/A"
+      notAvailable: "&nbsp;"
     };
   },
   
@@ -39,8 +40,26 @@ export default {
       switch( sortKey ) {
         
         case "bookNumbers":
+          if (this.book.series) {
+            
+            let allNumbers = _.filter( this.book.series, 'bookNumbers')
+            allNumbers = _.map( allNumbers, "bookNumbers");
+            allNumbers = _.flatten(allNumbers);
+            if (_.isEmpty(allNumbers)) allNumbers = null;
+            else if (_.isArray(allNumbers)) {
+              console.log( allNumbers, this.book.series )
+              allNumbers = allNumbers.join(", ");
+            }
+            console.log( allNumbers )
+            return allNumbers || "∞";
+            
+          } else {
+            return '';
+          }
+          break;
+          
+        case "seriesOrder":
           const numbersDelim = ", ";
-
           if (this.book.series) {
             
             const seriesAsin = this.$route.params.series;
@@ -82,7 +101,36 @@ export default {
         case "title":
           return this.book.titleShort || this.book.title || this.notAvailable;
           break;
-
+          
+        case "series":
+          if ( this.book.series ) {
+            return _.map(this.book.series, 'name').join(', ');
+          }
+          else { return this.notAvailable; }
+          break;
+          
+        case "categories":
+          if ( this.book.categories ) {
+            return this.book.categories[0].name;
+          }
+          else { return this.notAvailable; }
+          break;
+          
+        case "isbn10":
+        case "isbn13":
+          console.log( this.book.isbns )
+          if ( this.book.isbns ) {
+            if ( sortKey === 'isbn10' ) {
+              const isbn10 = _.find(this.book.isbns, ["type", "ISBN_10"]);
+              if (isbn10) return isbn10.identifier;
+            }
+            else if ( sortKey === 'isbn13' ) {
+              const isbn13 = _.find(this.book.isbns, ["type", "ISBN_13"]);
+              if (isbn13) return isbn13.identifier;
+            }
+          }
+          break;
+          
         default:
           if ( this.book[sortKey] ) return this.book[sortKey]
           else return this.notAvailable;
@@ -122,8 +170,19 @@ export default {
 @import "~@/_variables.scss";
 
 .ale-book .sort-values-container {
+  -webkit-user-select: text !important; 
+  -khtml-user-select: text !important; 
+  -moz-user-select: text !important; 
+  -ms-user-select: text !important; 
+  user-select: text !important; 
+
   // width: $thumbnailSize + 2;
   > div {
+    -webkit-user-select: text !important; 
+    -khtml-user-select: text !important; 
+    -moz-user-select: text !important; 
+    -ms-user-select: text !important; 
+    user-select: text !important; 
     white-space: nowrap;
     overflow: hidden;
     -ms-text-overflow: ellipsis;
@@ -144,6 +203,9 @@ export default {
     
     &.sort-favorite {
       color: #e93f33 !important;
+    }
+    &:empty {
+      display: none; 
     }
   }
   

@@ -1,6 +1,7 @@
 export default {
   methods: {
     sortTitle: function(params) {
+      const vue = this;
       return _.orderBy(
         params.books,
         function(o) {
@@ -19,10 +20,16 @@ export default {
               // return titleLowercase.toLowerCase();
               return o.title || o.titleShort;
             } else {
-              return sortValue;
+              if ( vue.$store.state.sticky.viewMode === 'grid' && _.isArray( sortValue ) && (_.find( sortValue, 'name') ? true : false) ) { 
+                console.log( _.map(sortValue, 'name').join(', ') )
+                return _.map(sortValue, 'name').join(', ');
+              }
+              else { 
+                return sortValue; 
+              }
             }
           } else {
-            return null;
+            return false;
           }
         },
         params.direction

@@ -2,11 +2,11 @@
   <span class="sorter-button-wrapper">
     <label
     v-if="item" class="sorter-button"
-    v-tippy="{ placement: 'left', maxWidth: 200 }" :content="item.tippy ? item.tippy : false"
+    v-tippy="{ placement: 'left' }" :content="item.tippy ? item.tippy : false"
     >
       
       <!-- LABEL in the front -->
-      <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem, highlight: highlight }">
+      <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
         <slot />
       </span>
       
@@ -31,7 +31,7 @@
       </span>
       
       <!-- LABEL in the back -->
-      <span v-if="label !== false" class="input-label">
+      <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem }">
         {{ item.label || item.key.replace(".name", "") }}
       </span>
       
@@ -48,7 +48,7 @@
 
 export default {
   name: "sorter",
-  props: [ "name", "label", "currentList", "listName", "item", "index", "highlight" ],
+  props: [ "label", "currentList", "listName", "item", "index", "highlight" ],
   data: function() {
     return {};
   },
@@ -280,7 +280,7 @@ export default {
     flex-shrink: 2;  
   }
   
-  .input-label.active.highlight {
+  .input-label.active {
     @include themify($themes) {
       color: themed(audibleOrange);
     }

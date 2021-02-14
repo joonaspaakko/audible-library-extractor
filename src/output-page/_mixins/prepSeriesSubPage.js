@@ -8,7 +8,7 @@ export default {
         // Add book number sorting + activate sort values
         this.$store.commit('addListRenderingOpts', { 
           listName: 'sort', 
-          option: { active: false,  current: true, key: 'bookNumbers',     label: 'Book number',  		 type: 'sort', tippy: "If you are sorting numbers without a specific series selected the sorting may be inaccurate." },
+          option: { active: false,  current: true, key: 'seriesOrder', label: 'Series order', type: 'sort' },
           activate: true,
           sortValues: true,
         });

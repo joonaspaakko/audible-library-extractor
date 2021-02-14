@@ -1,4 +1,6 @@
+
 import sortName from "@output-mixins/sort/name.js";
+import sortIsbns from "@output-mixins/sort/isbns.js";
 import sortTitle from "@output-mixins/sort/title.js";
 import sortAmount from "@output-mixins/sort/amount.js";
 import sortLength from "@output-mixins/sort/length.js";
@@ -13,6 +15,7 @@ import sortStringNameProp from "@output-mixins/sort/stringNameProp.js";
 export default {
   mixins: [
     sortName,
+    sortIsbns,
     sortTitle,
     sortAmount,
     sortLength,
@@ -62,7 +65,6 @@ export default {
           };
           
           let result = false;
-          console.log( filterExtraRules )
           result = checkExtras({ key: 1, array: filterExtraRules });
           result = checkExtras({ key: 2, array: filterRules, prevResult: result });
           
@@ -118,6 +120,11 @@ export default {
           case "bookNumbers":
             // sortOptions.seriesName = this.gallery.searchOptions.lists.numberSortSeriesName;
             sortOptions.missingNumber = 0;
+            books = this.sortBookNumbersOriginal(sortOptions);
+            break;
+          case "seriesOrder":
+            // sortOptions.seriesName = this.gallery.searchOptions.lists.numberSortSeriesName;
+            sortOptions.missingNumber = 0;
             books = this.sortBookNumbers(sortOptions);
             break;
           case "added":
@@ -132,11 +139,23 @@ export default {
             books = this.sortStringNameProp(sortOptions);
             break;
           case "title":
+          case "series":
+          case "format":
+          case "categories":
+          case "isNew":
+          case "language":
+          case "fromPlusCatalog":
+          case "favorite":
+          case "downloaded":
+          case "leftPlusCatalog":
+          case "storePageMissing":
+          case "storePageChanged":
             books = this.sortTitle(sortOptions);
             break;
           case "length":
             books = this.sortLength(sortOptions);
             break;
+          case "myRating":
           case "rating":
           case "ratings":
             books = this.sortRatings(sortOptions);
@@ -152,6 +171,10 @@ export default {
             break;
           case "amount":
             books = this.sortAmount(sortOptions);
+            break;
+          case "isbn10":
+          case "isbn13":
+            books = this.sortIsbns(sortOptions);
             break;
         }
       }

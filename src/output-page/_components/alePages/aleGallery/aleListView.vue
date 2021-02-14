@@ -132,6 +132,11 @@ export default {
       // Flattens all available keys into an array: ['title', 'sample'] ...etc
       let keys = _.union(_.flatten(_.map(collection, e => _.keys(e))));
 
+      keys = keys.concat([
+        'isbn10', 
+        'isbn13'
+      ]);
+
       // Here I make sure these keys get prioritized to the front of the table...
       let priorityKeys = [
         "added",
@@ -141,14 +146,15 @@ export default {
         "authors",
         "narrators",
         "categories",
-        "summary",
         "length",
         "progress",
         "releaseDate",
         "publishers",
         "myRating",
         "rating",
-        "ratings"
+        "ratings",
+        "fromPlusCatalog",
+        "leftPlusCatalog",
       ];
       let leftoverKeys = _.remove(keys, function(key) {
         return !_.includes(priorityKeys, key);
@@ -169,7 +175,10 @@ export default {
         "peopleAlsoBought",
         "asin",
         "cover",
-        "sample" // Slipped into titleShort in prepareData() method so they can be in a fixed column together
+        "sample", // Slipped into titleShort in prepareData() method so they can be in a fixed column together
+        "sample", // Slipped into titleShort in prepareData() method so they can be in a fixed column together
+        "cover", // Same...
+        "isbns",
         // "added",
         // "series",
         // "authors",
