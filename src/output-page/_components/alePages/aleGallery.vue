@@ -87,7 +87,7 @@ export default {
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series.books.length === 1 ) result = true; return false;
+              if ( series.books && series.books.length === 1 ) result = true; return false;
             });
             return result; 
           } },
@@ -95,7 +95,7 @@ export default {
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series.books.length > 1 ) result = true; return false;
+              if ( series.books && series.books.length > 1 ) result = true; return false;
             });
             return result; 
           } },
@@ -103,7 +103,7 @@ export default {
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series.books.length > 5 ) result = true; return false;
+              if ( series.books && series.books.length > 5 ) result = true; return false;
             });
             return result; 
           } },
@@ -111,7 +111,7 @@ export default {
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series.books.length > 10 ) result = true; return false;
+              if ( series.books && series.books.length > 10 ) result = true; return false;
             });
             return result; 
           } },
@@ -119,7 +119,7 @@ export default {
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series.books.length > 20 ) result = true; return false;
+              if ( series.books && series.books.length > 20 ) result = true; return false;
             });
             return result; 
           } },
@@ -127,7 +127,7 @@ export default {
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series.books.length > 30 ) result = true; return false;
+              if ( series.books && series.books.length > 30 ) result = true; return false;
             });
             return result; 
           } },
@@ -170,6 +170,14 @@ export default {
     }
   },
 
+  beforeCreate: function() {
+    
+    if ( this.$route.query.view ) {
+      this.$store.commit('stickyProp', { key: 'viewMode', value: this.$route.query.view });
+    }
+    
+  },
+  
   created: function() {
     
     this.updateListRenderingOptions();

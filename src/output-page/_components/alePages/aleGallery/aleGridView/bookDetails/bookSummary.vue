@@ -93,9 +93,11 @@ export default {
 
   methods: {
     getSummaryMaxHeight: function() {
-      if (window.innerWidth <= 688) {
-        this.summary.maxHeight = this.$refs.summaryMetaTop.offsetHeight + 260 + "px";
-        this.summary.maxHeightTemp = this.summary.maxHeight;
+      if ( window.innerWidth <= 688 ) {
+        if ( summaryHTML ) {
+          this.summary.maxHeight = this.$refs.summaryMetaTop.offsetHeight + 260 + "px";
+          this.summary.maxHeightTemp = this.summary.maxHeight;
+        }
       } else {
         this.$nextTick(function() {
           const information = this.detailsEl.querySelector('.information');

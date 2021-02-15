@@ -33,7 +33,7 @@ export default {
       }
     };
   },
-
+  
   created: function() {
     
     // var isbn = _.filter(this.$store.state.library.books, 'isbns');

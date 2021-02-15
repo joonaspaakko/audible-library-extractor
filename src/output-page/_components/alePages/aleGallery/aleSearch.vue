@@ -2,10 +2,13 @@
   <div>
     
     <div
-      id="ale-search-wrap"
-      ref="searchWrap"
-      :class="{ 'search-fixed': fixedSearch }"
+    id="ale-search-wrap"
+    ref="searchWrap"
+    :class="{ 'search-fixed': fixedSearch }"
     >
+      
+      <div id="search-dropdown-overlay" v-show="listName"></div>
+      
       <div id="ale-search" ref="aleSearch">
         <div class="search-wrapper" @click="$refs.searchInput.focus()">
           <input
@@ -17,7 +20,7 @@
             :placeholder="placeholder"
           />
         </div>
-
+        
         <search-icons :list-name.sync="listName">{{ $store.getters.collection.length }}</search-icons> 
         <search-options
           :list-name.sync="listName"
@@ -77,7 +80,7 @@ export default {
   created: function() {
     
     var vue = this;
-    this.$store.commit("prop", { key: "searchQuery", value: '' });
+    // this.$store.commit("prop", { key: "searchQuery", value: '' });
     this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
     
     const ifUrlParams = this.$route.query.sort || this.$route.query.filter;
@@ -92,10 +95,18 @@ export default {
       this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( collection ) ) });
     }
     
-    
   },
 
   mounted: function() {
+    
+    if ( this.$route.query.search ) {
+      this.$nextTick(function() {
+        const searchQuery = decodeURIComponent(this.$route.query.search);
+        this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
+        this.$root.$emit("book-clicked", { book: null });
+        this.search();
+      });
+    }
     
     this.$root.$on("ios-auto-zoom-disable", this.iosAutozoomDisable);
     this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable );
@@ -156,7 +167,10 @@ export default {
       
       // Reset 
       this.$root.$emit("book-clicked", { book: null });
-      if (e)this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
+      if (e) {
+        this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
+        this.$updateQuery({ query: 'search', value: encodeURIComponent(e.target.value) });
+      }
 
       // Start searching
       if (this.$store.getters.searchIsActive) {
@@ -342,7 +356,7 @@ export default {
 
   .icons {
     position: relative;
-    z-index: 0;
+    z-index: 2;
     padding: 0 18px 0 9px;
     color: rgba(#222, 0.65);
     display: flex;
@@ -395,6 +409,19 @@ export default {
   #ale-search .icons > .icon-wrap > div {
     padding: 0 5px;
   }
+}
+
+
+
+#search-dropdown-overlay {
+  position: fixed;
+  z-index: 700;
+  background: rgba(#505050, .2);
+  backdrop-filter: grayscale(.96);
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 </style>

@@ -345,7 +345,6 @@ globalMethods.install = function (Vue) {
       
     }
     
-    
     this.$store.commit("prop", { key: "listRenderingOpts", value: list });
     
   };

@@ -251,7 +251,7 @@ export default {
     .inner-wrap > div {
       margin-left: 25px !important;
       &:first-child {
-        margin-left: 0px;
+        margin-left: 0px !important;
       }
     }
   }

@@ -113,7 +113,7 @@ export default {
 #search-options {
   cursor: default !important;
   position: absolute;
-  z-index: 1;
+  z-index: 10;
   top: 51px;
   right: 0;
   font-size: 1em;
