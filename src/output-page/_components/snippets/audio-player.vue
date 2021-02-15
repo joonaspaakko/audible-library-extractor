@@ -77,7 +77,6 @@ export default {
         });
       }
       
-      console.log( 'BOOKDETAILS FOUND', document.querySelector('#ale-bookdetails') )
       if ( document.querySelector('#ale-bookdetails') ) {
         this.$root.$emit('book-clicked', { book: this.book });
         this.$nextTick(function() {
@@ -94,7 +93,11 @@ export default {
       this.audioSource = null;
       this.$emit('update:sampleData', null);
       this.$emit('update:showAudioPlayer', false);
-    }
+    },
+    
+    beforeDestroyed: function() {
+     this.samplePlayerClose();
+    },
     
   }
 };
@@ -146,6 +149,7 @@ export default {
     }
     span {
       font-size: 14px !important;
+      white-space: nowrap;
     }
     .iconfont {
       font-size: 16px !important;
@@ -198,4 +202,20 @@ export default {
 .theme-light #audio-player .vueAudioBetter .slider {
   background: rgba($lightFrontColor, .15);
 }
+#ale-navigation.mobile-nav #audio-player {
+  .vueAudioBetter {
+    span {
+      font-size: 15px !important;
+    }
+    .iconfont {
+      font-size: 25px !important;
+    }
+    .operate .close,
+    .operate .close svg {
+      width: 25px;
+      height: 25px;
+    }
+  }
+}
+
 </style>

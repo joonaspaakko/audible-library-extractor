@@ -23,7 +23,7 @@ export default {
         
         // Set page title
         const seriesName = _.find( books[0].series, { asin: seriesASIN }).name;
-        this.$store.commit("prop", { key: 'pageTitle', value: seriesName });
+        this.pageTitle = seriesName;
         
         // Init arrays
         this.$store.commit("prop", { key: 'pageCollection', value: books });

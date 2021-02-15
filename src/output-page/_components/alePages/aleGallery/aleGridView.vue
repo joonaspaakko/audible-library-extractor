@@ -1,5 +1,5 @@
 <template>
-  <div class="ale-books grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers') }" ref="booksWrapper">
+  <div class="ale-books grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ) }" ref="booksWrapper">
     
     <book-details
     v-if="detailsBook"

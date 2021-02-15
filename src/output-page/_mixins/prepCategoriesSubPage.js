@@ -25,10 +25,8 @@ export default {
         if ( category.parent || category.child ) {
           const parentCategoryName = categoryBooks[0].categories[0].name;
           const childCategoryName = categoryBooks[0].categories[1].name;
-          const titleProps = [];
-          if ( category.parent ) titleProps.push({ key: 'pageTitle',    value: parentCategoryName });
-          if ( category.child  ) titleProps.push({ key: 'pageSubTitle', value: childCategoryName  });
-          this.$store.commit("prop", titleProps);
+          if ( category.parent ) this.pageTitle = parentCategoryName;
+          if ( category.child  ) this.pageSubTitle = childCategoryName;
         }
         
         // Init arrays

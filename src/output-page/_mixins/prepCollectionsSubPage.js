@@ -16,11 +16,9 @@ export default {
           });
           
           // Set page title
-          const titleProps = [];
           if ( collection.title || collection.description ) {
-            if ( collection.title        ) titleProps.push({ key: 'pageTitle',    value: collection.title       });
-            if ( collection.description  ) titleProps.push({ key: 'pageSubTitle', value: collection.description });
-            this.$store.commit("prop", titleProps);
+            if ( collection.title        ) this.pageTitle = collection.title;
+            if ( collection.description  ) this.pageSubTitle = collection.description;
           }
           
           // Init arrays

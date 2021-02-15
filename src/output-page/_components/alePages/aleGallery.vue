@@ -2,6 +2,17 @@
   <div id="ale-gallery">
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
+    
+    <div class="gallery-title-wrapper" v-if="pageTitle || pageSubTitle">
+      <h2 class="gallery-title" v-if="pageTitle">
+        {{ pageTitle }}
+      </h2>
+      <div class="divider"></div>
+      <h3 class="gallery-sub-title" v-if="pageSubTitle">
+        {{ pageSubTitle }}
+      </h3>
+    </div>
+    
     <ale-search :collectionSource="collectionSource"></ale-search>
     
     <ale-grid-view v-if="$store.state.sticky.viewMode === 'grid'" />
@@ -42,6 +53,8 @@ export default {
   data: function() {
     return {
       collectionSource: 'library.books',
+      pageTitle: null,
+      pageSubTitle: null,
     };
   },
   
@@ -159,8 +172,6 @@ export default {
 
   created: function() {
     
-    this.$store.commit("prop", [ { key: 'pageTitle', value: null }, { key: 'pageSubTitle', value: null } ]);
-    
     this.updateListRenderingOptions();
     
     // Setup for other pages that use the gallery page to show titles
@@ -169,10 +180,6 @@ export default {
     this.prepSeriesSubPage();
     this.prepWishlist();
     
-  },
-  
-  beforeDestroy: function() {
-    this.$store.commit("prop", [ { key: 'pageTitle', value: null }, { key: 'pageSubTitle', value: null } ]);
   },
   
 };
@@ -191,4 +198,49 @@ export default {
     clear: both;
   }
 }
+
+.gallery-title-wrapper {
+  margin-bottom: 20px;
+  text-align: center;
+  > * { 
+    display: inline-block; 
+    position: relative;
+  }
+  .divider {
+    display: block !important;
+  }
+}
+
+.gallery-title {
+  font-size: 23px;
+  line-height: 24px;
+  font-weight: bold;
+  margin: 0px;
+  @include themify($themes) {
+    color: themed(frontColor);
+  }
+}
+
+.gallery-sub-title {
+  font-size: 14px;
+  line-height: 16px;
+  font-weight: normal;
+  margin: 0px;
+  margin-top: 10px;
+  padding: 5px 10px;
+  border-radius: 9999px;
+}
+
+.theme-light .gallery-sub-title {
+  color: $lightBackColor;
+  border: 1px solid $lightFrontColor;
+  background: $lightFrontColor;
+}
+
+.theme-dark .gallery-sub-title {
+  color: $darkFrontColor;
+  border: 1px solid $audibleOrange;
+  background: $darkBackColor;
+}
+
 </style>

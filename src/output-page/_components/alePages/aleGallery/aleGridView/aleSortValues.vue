@@ -225,15 +225,14 @@ export default {
   margin-right: 0px;
 }
 
+.ale-book .sort-values-container div.sort-seriesOrder,
 .ale-book .sort-values-container div.sort-bookNumbers {
   width: auto;
   margin: 0;
-  padding: 0;
   position: absolute;
   z-index: 10;
   top: 6px;
   right: 6px;
-  border-radius: none;
   // bottom: 0;
   // left: 0;
   // display: flex;
@@ -241,16 +240,22 @@ export default {
   // align-items: center;
   font-weight: 700;
   // box-shadow: -4px 4px 8px rgba( #000, .8 );
-  border-radius: 2px;
+  // border-radius: 2px;
   padding: 3px 6px;
   // @include themify($themes) {
   //   color: themed(backColor);
   //   background: themed(frontColor);
   // }
   color: #fff;
-  @include themify($themes) {
-    background: themed(audibleOrange);
-  }
+  background: #c30d2d;
+  box-shadow: -1px 1px 2px rgba( #000, .25 );
+  // border: 1px solid darken( #c30d2d, 10);
+  // border-radius: 0 3px 0 3px;
+  border-radius: 3px;
+  // @include themify($themes) {
+  //   background: themed(audibleOrange);
+  //   border: 1px solid darken( themed(audibleOrange), 20);
+  // }
 }
 
 .ale-book .sort-values-container .sort-progress .progress-bar {

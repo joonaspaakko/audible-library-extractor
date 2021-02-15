@@ -24,9 +24,9 @@
         content="<div style='text-align: left;'>The total number of books is based on every single book listing in the series page, including different versions or bundles of books you may already have.</div>"
         >
           <div class="series-name">
-            <router-link :to="{ name: 'series', params: { series: series.asin } }">
+            <a href="#" @click.prevent="goToBookInSeries( series )">
               {{ series.name }}
-            </router-link>
+            </a>
           </div>
           <div class="series-length">
             {{ series.books.length }} / {{ series.length }}
@@ -40,13 +40,11 @@
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
-
-          <router-link
-          :to="{ name: 'series', params: { series: series.asin }, query: { book: seriesBook.asin } }"
-          >
+          
+          <a href="#" @click.prevent="goToBookInSeries( series, seriesBook )">
             <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
-          </router-link>
+          </a>
         </div>
         
       </div>
@@ -86,6 +84,38 @@ export default {
   },
 
   methods: {
+    
+    goToBookInSeries: function( series, book ) {
+      
+      if ( book ) {
+        if ( this.$route.name !== 'series' ) {
+          this.$router.push({ 
+            name: 'series', 
+            params: { series: series.asin }, 
+            query: { book: book.asin }, 
+          });
+        }
+        else {
+          this.$root.$emit('book-clicked', { book: book });
+        }
+      }
+      else if ( series ) {
+        
+        if ( this.$route.name !== 'series' ) {
+          this.$router.push({ 
+            name: 'series', 
+            params: { series: series.asin }, 
+          });
+        }
+        else {
+          this.$root.$emit('book-clicked', { book: null });
+          scroll({ top: 0 });
+        }
+        
+      }
+      
+    },
+    
     getBookNumber: function(book, seriesAsin) {
       const numbers = _.find(book.series, { asin: seriesAsin }).bookNumbers;
       return numbers ? numbers.join(",") : "";

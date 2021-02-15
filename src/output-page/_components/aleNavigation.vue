@@ -60,12 +60,14 @@
         
       </div>
       
-      <font-awesome 
-      class="brgr-btn" 
-      v-if="$store.state.windowWidth < 630" 
-      :icon="['fas', 'bars']" 
-      @click="toggleMobileMenu()"
-      />
+      <div>
+        <font-awesome 
+        class="brgr-btn" 
+        v-if="$store.state.windowWidth < 630" 
+        :icon="['fas', 'bars']" 
+        @click="toggleMobileMenu()"
+        />
+      </div>
       
       <div id="mobile-back-btn" v-if="mobileBrowserNavigation()">
         
@@ -171,8 +173,11 @@ export default {
     
     playSample: function( msg ) {
       
-      this.showAudioPlayer = true;
-      this.sampleData = msg;
+      this.showAudioPlayer = false;
+      this.$nextTick(function() {
+        this.showAudioPlayer = true;
+        this.sampleData = msg;
+      });
       
     },
     
@@ -205,6 +210,7 @@ export default {
   &.mobile-nav {
     top: unset;
     bottom: 0;
+    font-size: 23px;
   }
   @include themify($themes) {
     background: lighten(themed(backColor), 5);
@@ -237,6 +243,16 @@ export default {
     margin-left: 10px;
     &:first-child {
       margin-left: 0px;
+    }
+  }
+  
+  &.mobile-nav {
+    .inner-wrap-wrapper > div,
+    .inner-wrap > div {
+      margin-left: 25px !important;
+      &:first-child {
+        margin-left: 0px;
+      }
     }
   }
 
@@ -306,8 +322,8 @@ export default {
     background: rgba(#000, .88);
     > * {
       padding: 3.2% 0px;
-      font-size: 1.6em;
-      line-height: 1.4em;
+      font-size: 1.2em;
+      line-height: 1.1em;
     }
     padding-bottom: 20px;
     &, a {
@@ -324,7 +340,6 @@ export default {
     display: flex;
     flex-direction: row;
     padding: 0 5px;
-    margin-left: 10px;
     border-radius: 9999px;
     @include themify($themes) {
       border: 1px solid rgba( themed(frontColor), .1);

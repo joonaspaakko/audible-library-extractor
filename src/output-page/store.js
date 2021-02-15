@@ -25,8 +25,6 @@ export default new Vuex.Store({
     standalone: null,
     displayMode: null,
     listRenderingOpts: null,
-    pageTitle: null,
-    pageSubTitle: null,
     windowWidth: window.innerWidth,
     showBackground: false,
   },

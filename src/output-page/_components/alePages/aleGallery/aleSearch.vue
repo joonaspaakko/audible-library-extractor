@@ -1,16 +1,6 @@
 <template>
   <div>
     
-    <div class="gallery-title-wrapper" v-if="$store.state.pageTitle || $store.state.pageSubTitle">
-      <h2 class="gallery-title" v-if="$store.state.pageTitle">
-        {{ $store.state.pageTitle }}
-      </h2>
-      <div class="divider"></div>
-      <h3 class="gallery-sub-title" v-if="$store.state.pageSubTitle">
-        {{ $store.state.pageSubTitle }}
-      </h3>
-    </div>
-    
     <div
       id="ale-search-wrap"
       ref="searchWrap"
@@ -399,51 +389,6 @@ export default {
     }
   }
   
-}
-
-
-.gallery-title-wrapper {
-  margin-bottom: 20px;
-  text-align: center;
-  > * { 
-    display: inline-block; 
-    position: relative;
-  }
-  .divider {
-    display: block !important;
-  }
-}
-
-.gallery-title {
-  font-size: 23px;
-  line-height: 24px;
-  font-weight: bold;
-  margin: 0px;
-  @include themify($themes) {
-    color: themed(frontColor);
-  }
-}
-
-.gallery-sub-title {
-  font-size: 14px;
-  line-height: 16px;
-  font-weight: normal;
-  margin: 0px;
-  margin-top: 10px;
-  padding: 5px 10px;
-  border-radius: 9999px;
-}
-
-.theme-light .gallery-sub-title {
-  color: $lightBackColor;
-  border: 1px solid $lightFrontColor;
-  background: $lightFrontColor;
-}
-
-.theme-dark .gallery-sub-title {
-  color: $darkFrontColor;
-  border: 1px solid $audibleOrange;
-  background: $darkBackColor;
 }
 
 @media (max-width: 370px) {

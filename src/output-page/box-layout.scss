@@ -81,6 +81,7 @@
   }
   
   h2 { 
+    box-sizing: border-box !important;
     display: block;
     padding-right: 50px; 
     margin: 0;
@@ -88,6 +89,10 @@
     font-size: 1.8em;
     line-height: 1.1em;
     font-weight: 400;
+  }
+  
+  > a {
+    box-sizing: border-box !important;
   }
   
   .child-categories {
