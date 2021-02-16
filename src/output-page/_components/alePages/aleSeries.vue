@@ -100,7 +100,7 @@ export default {
         ],
         sort: [
           { active: false,                 key: 'randomize', label: 'Randomize',       type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
-          { key: 'divider' },
+          { type: 'divider', key: 'divider1' },
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: 'Arrow down = new first <br/> Arrow up = old first' },
           { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort' },

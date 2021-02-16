@@ -4,11 +4,11 @@
     
     <ul>
       <li class="search-option" 
-      :class="{ extras: item.type && item.type.match(/extra/i), divider: item.key === 'divider' }" 
+      :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }" 
       v-for="(item, index) in optionsList" :key="item.key"
       v-if="!($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues')"
       >
-        <listItem v-if="item.key !== 'divider'" 
+        <listItem v-if="item.type !== 'divider'" 
         :label="item.label" :item="item" :index="index" 
         :currentList="optionsList" :listName="listName"
         ></listItem>
@@ -120,6 +120,7 @@ export default {
   line-height: 1.9em;
   padding: 12px 15px 12px 14px !important;
   margin: 0px !important;
+  margin-bottom: 300px !important;
   border-radius: 3px;
   -webkit-touch-callout: none;
   -webkit-user-select: none;

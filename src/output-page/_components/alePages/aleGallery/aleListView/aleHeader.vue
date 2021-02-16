@@ -20,6 +20,7 @@
             :index="sorterIndex(item)"
             :currentList="optionsList" 
             :listName="listName"
+            :tippyTop="true"
           >
             {{ item.label }}
           </sorter>

@@ -2,7 +2,7 @@
   <span class="sorter-button-wrapper">
     <label
     v-if="item" class="sorter-button"
-    v-tippy="{ placement: 'left' }" :content="item.tippy ? item.tippy : false"
+    v-tippy="{ placement: (tippyTop ? 'top' : 'left'), flipBehavior: (tippyTop ? ['left', 'right', 'top', 'bottom'] : ['top', 'bottom', 'left', 'right']) }" :content="item.tippy ? item.tippy : false"
     >
       
       <!-- LABEL in the front -->
@@ -48,7 +48,7 @@
 
 export default {
   name: "sorter",
-  props: [ "label", "currentList", "listName", "item", "index", "highlight" ],
+  props: [ "label", "currentList", "listName", "item", "index", "tippyTop" ],
   data: function() {
     return {};
   },

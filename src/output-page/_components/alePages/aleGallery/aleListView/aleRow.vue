@@ -102,7 +102,8 @@ export default {
             break;
 
           case "bookNumbers":
-            let allNumbers = _.map(vue.book.series, "bookNumbers");
+            let allNumbers = _.filter(vue.book.series, "bookNumbers");
+            allNumbers = _.map(allNumbers, "bookNumbers");
             allNumbers = _.flatten(allNumbers);
             if (_.isEmpty(allNumbers)) allNumbers = null;
             else if (_.isArray(allNumbers)) {

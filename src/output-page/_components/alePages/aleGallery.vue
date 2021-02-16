@@ -75,7 +75,8 @@ export default {
           { active: true, type: 'filter', label: 'Started',     key: 'started',    condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
           { active: true, type: 'filter', label: 'Finished',    key: 'finished',   condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
           // FIXME: I have to think a little bit more about how to add more filters if at all...
-          { key: 'divider' },
+          { type: 'divider', key: 'divider1' },
+          
           { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
           { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
           { active: false, type: 'filterExtras', label: 'From plus catalog', key: 'from-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog; } },
@@ -83,6 +84,9 @@ export default {
           { active: false, type: 'filterExtras', label: 'Multiple narrators', key: 'multiple-narrators', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length > 1; } },
           { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
+          
+          { type: 'divider', key: 'divider2' },
+          
           { active: false, type: 'filterExtras', label: 'Books in series 1', key: '1inSeries', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
@@ -131,32 +135,55 @@ export default {
             });
             return result; 
           } },
+          
+          { type: 'divider', key: 'divider3' },
+          { active: false, type: 'filterExtras', label: 'Rating 1', key: 'rating-1', group: 'filterExtras', condition: function( book ) { return book.rating >= 1 && book.rating < 2; }},
+          { active: false, type: 'filterExtras', label: 'Rating 2', key: 'rating-2', group: 'filterExtras', condition: function( book ) { return book.rating >= 2 && book.rating < 3; }},
+          { active: false, type: 'filterExtras', label: 'Rating 3', key: 'rating-3', group: 'filterExtras', condition: function( book ) { return book.rating >= 3 && book.rating < 4; }},
+          { active: false, type: 'filterExtras', label: 'Rating 4', key: 'rating-4', group: 'filterExtras', condition: function( book ) { return book.rating >= 4 && book.rating < 5; }},
+          { active: false, type: 'filterExtras', label: 'Rating 5', key: 'rating-5', group: 'filterExtras', condition: function( book ) { return book.rating === 5; }},
+          
+          { type: 'divider', key: 'divider4' },
+          { active: false, type: 'filterExtras', label: 'My rating 1', key: 'my-rating-1', group: 'filterExtras', condition: function( book ) { return book.myRating >= 1 && book.myRating < 2; }},
+          { active: false, type: 'filterExtras', label: 'My rating 2', key: 'my-rating-2', group: 'filterExtras', condition: function( book ) { return book.myRating >= 2 && book.myRating < 3; }},
+          { active: false, type: 'filterExtras', label: 'My rating 3', key: 'my-rating-3', group: 'filterExtras', condition: function( book ) { return book.myRating >= 3 && book.myRating < 4; }},
+          { active: false, type: 'filterExtras', label: 'My rating 4', key: 'my-rating-4', group: 'filterExtras', condition: function( book ) { return book.myRating >= 4 && book.myRating < 5; }},
+          { active: false, type: 'filterExtras', label: 'My rating 5', key: 'my-rating-5', group: 'filterExtras', condition: function( book ) { return book.myRating === 5; }},
         ],
         sort: [
           { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "Shows the active sorter's value on top of the cover in the grid view." },
           { active: false,               key: 'randomize',       label: 'Randomize',        type: 'sortExtras', tippy: "Sorting is ignored and the order is randomized." },
-          { key: 'divider' },
+          
+          { type: 'divider', key: 'divider1' },
           // active: true = arrow down / descending
           { active: true , current: true , key: 'added'           , label: 'Added'             , type: 'sort'  , tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
           { active: true , current: false, key: 'title'           , label: 'Title'             , type: 'sort' }, 
           { active: false , current: false, key: 'releaseDate'     , label: 'Release date'      , type: 'sort' }, 
           { active: false , current: false, key: 'length'          , label: 'Length'            , type: 'sort' }, 
           { active: true , current: false, key: 'authors.name'    , label: 'Author'            , type: 'sort' }, 
+          
+          { type: 'divider', key: 'divider2' },
           { active: true , current: false, key: 'narrators.name'  , label: 'Narrator'          , type: 'sort' }, 
           { active: false , current: false, key: 'rating'          , label: 'Rating'            , type: 'sort' }, 
           { active: false , current: false, key: 'ratings'         , label: 'Number of ratings' , type: 'sort' }, 
           { active: false, current: false, key: 'progress'        , label: 'Progress'          , type: 'sort' }, 
           { active: true , current: false, key: 'publishers.name' , label: 'Publishers'        , type: 'sort' }, 
+          
+          { type: 'divider', key: 'divider3' },
           { active: false , current: false, key: 'favorite'        , label: 'Favorite'          , type: 'sort' }, 
           { active: true , current: false, key: 'series'          , label: 'Series'            , type: 'sort' }, 
           { active: false , current: false, key: 'myRating'        , label: 'My rating'         , type: 'sort' }, 
           { active: true , current: false, key: 'categories'      , label: 'Categories'        , type: 'sort' }, 
           { active: false , current: false, key: 'isNew'           , label: 'Newly added'       , type: 'sort'  , tippy: 'This status resets every time you do a full extraction.' },
+          
+          { type: 'divider', key: 'divider4' },
           { active: true , current: false, key: 'language'        , label: 'Language'          , type: 'sort' }, 
           { active: true,  current: false, key: 'format',        label: 'Format', type: 'sort' },
           { active: false , current: false, key: 'fromPlusCatalog' , label: 'From plus catalog' , type: 'sort' }, 
           { active: false , current: false, key: 'leftPlusCatalog' , label: 'Left plus catalog' , type: 'sort' }, 
           { active: false , current: false, key: 'downloaded'      , label: 'Downloaded'        , type: 'sort' }, 
+          
+          { type: 'divider', key: 'divider5' },
           { active: false , current: false, key: 'storePageMissing', label: 'Store page missing', type: 'sort', tippy: 'The original store page could not be found. There may be a new store page that replaced it.' }, 
           { active: false , current: false, key: 'storePageChanged', label: 'Store page changed', type: 'sort', tippy: 'There is a store page that exists, but it is for a different version of the book.' }, 
           { active: false , current: false, key: 'isbn10'          , label: 'Isbn 10'           , type: 'sort' }, 
