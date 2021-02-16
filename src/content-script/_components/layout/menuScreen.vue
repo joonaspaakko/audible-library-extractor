@@ -146,13 +146,6 @@ export default {
           disabled: true
         },
         {
-          name: "storePage",
-          value: true,
-          label: "Store Pages",
-          type: "is-success",
-          disabled: true
-        },
-        {
           name: "seriesOrder",
           value: true,
           label: "Series Order",

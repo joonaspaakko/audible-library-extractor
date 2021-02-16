@@ -22,7 +22,7 @@ export default {
           ? "Updating old books and adding new books..."
           : "Scanning library for books..."
       });
-
+      
       vue.scrapingPrep(vue.libraryUrl, function(prep) {
         const requestURL = prep.urlObj.toString();
         vue.amapxios({

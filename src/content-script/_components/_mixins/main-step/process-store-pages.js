@@ -7,11 +7,7 @@ export default {
       else {
         
         if (!hotpotato.config.test) {
-          this.$root.$emit("update-big-step", {
-            title: "Store Pages",
-            stepAdd: 1
-          });
-
+          
           this.$root.$emit("update-progress", {
             text: "Fetching additional data from store pages...",
             step: 0,

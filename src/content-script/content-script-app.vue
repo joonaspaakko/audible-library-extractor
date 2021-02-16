@@ -32,6 +32,32 @@ global.DOMPurify = DOMPurify;
 global.Url = Url;
 global.waterfall = waterfall;
 
+axiosRetry(axios, {
+  retries: 3,
+  retryDelay: axiosRetry.exponentialDelay,
+  retryCondition: function(error) {
+    return (
+      axiosRetry.isNetworkOrIdempotentRequestError(error) ||
+      error.response.status == "429"
+    );
+  }
+});
+
+String.prototype.trimAll = function() {
+  if (this) {
+    return this.trim().replace(/\s+/g, " ");
+  } else {
+    return null;
+  }
+};
+String.prototype.trimToColon = function() {
+  if (this) {
+    return this.substring(this.indexOf(":") + 1).trim();
+  } else {
+    return null;
+  }
+};
+
 // Components
 import overlay from "./_components/layout/overlay";
 import menuScreen from "./_components/layout/menuScreen";
