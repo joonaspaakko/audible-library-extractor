@@ -16,18 +16,13 @@ export default {
       waterfall(
         [
           function(callback) {
-            let url = new Url(baseUrl);
+            let url = new Url( DOMPurify.sanitize(baseUrl) );
             url.query.ale = true;
 
             axios.get(url.toString()).then(function(response) {
-              const audible = $($.parseHTML(response.data)).find(
-                "div.adbl-main"
-              );
+              const audible = $($.parseHTML(response.data)).find("div.adbl-main");
               const pageSizeDropdown = audible.find('select[name="pageSize"]');
-              const maxPageSize =
-                pageSizeDropdown.length > 0
-                  ? pageSizeDropdown.find("option:last").val()
-                  : null;
+              const maxPageSize = pageSizeDropdown.length > 0 ? DOMPurify.sanitize(pageSizeDropdown.find("option:last").val()) : null;
               url.query.pageSize = maxPageSize;
 
               let obj = {};
@@ -46,14 +41,9 @@ export default {
 
           function(o, callback) {
             axios.get(o.urlObj.toString()).then(function(response) {
-              const audible = $($.parseHTML(response.data)).find(
-                "div.adbl-main"
-              );
+              const audible = $($.parseHTML(response.data)).find("div.adbl-main");
               const pagination = audible.find(".pagingElements");
-              const pagesLength =
-                pagination.length > 0
-                  ? pagination.find(".pageNumberElement:last").data("value")
-                  : 1;
+              const pagesLength = pagination.length > 0 ? parseFloat( DOMPurify.sanitize(pagination.find(".pageNumberElement:last").data("value")) ) : 1;
               o.pageNumbers = _.range(1, pagesLength + 1);
               o.pageSize = o.urlObj.query.pageSize || null;
               callback(null, o);

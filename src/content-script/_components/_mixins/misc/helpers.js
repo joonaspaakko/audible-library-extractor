@@ -1,8 +1,11 @@
 export default {
   methods: {
     shortenLength: function(string) {
-      const lengthInSeconds = this.timeStringToSeconds(string);
-      return this.secondsToTimeString(lengthInSeconds, true);
+      if ( string ) {
+        string = DOMPurify.sanitize( string.trimAll() );
+        const lengthInSeconds = this.timeStringToSeconds(string);
+        return this.secondsToTimeString(lengthInSeconds, true);
+      }
     },
 
     getSummary: function(el) {
@@ -16,9 +19,10 @@ export default {
     },
 
     fixDates: function( source, overrideFormat ) {
+      
       if ( source ) {
         
-        var date = (typeof source === 'object') ? source.textContent.trimToColon() : source;
+        var date = (typeof source === 'object') ? DOMPurify.sanitize( source.textContent.trimToColon() ) : DOMPurify.sanitize( source );
         const domainExtension = this.domainExtension;
 
         const regionalDateFormats = {
@@ -113,7 +117,7 @@ export default {
     getArray: function(elements) {
       const objArray = [];
       $(elements).each(function() {
-        const url = new Url($(this).attr("href"), true);
+        const url = new Url( DOMPurify.sanitize( $(this).attr("href") ), true);
         var searchNarrator;
         var searchProvider;
         if (url.query.searchNarrator) searchNarrator = url.query.searchNarrator;
@@ -125,9 +129,7 @@ export default {
         searchProvider = null;
 
         let obj = {
-          name: $(this)
-            .text()
-            .trim()
+          name: DOMPurify.sanitize( $(this).text().trim() )
         };
         const minifiedUrl = minifyUrl(url.toString());
         if (minifiedUrl) obj.url = minifiedUrl;

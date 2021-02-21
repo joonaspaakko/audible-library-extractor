@@ -5,7 +5,10 @@ export default {
   methods: {
     getISBNsFromGoogleBooks: function(hotpotato, isbnsFetched) {
       if ( !_.find(hotpotato.config.steps, { name: "isbn" }).value ) {
+        
+        this.$root.$emit("reset-progress");
         isbnsFetched(null, hotpotato);
+        
       } 
       else {
         this.$root.$emit("update-big-step", {
@@ -25,11 +28,8 @@ export default {
         const vue = this;
 
         const getISBNS = _.find(hotpotato.config.steps, { name: "isbn" }).value;
-        const useISBNsFromStorage = _.find(hotpotato.config.steps, {
-          name: "isbn-update"
-        }).value;
-        const useStorageISBNs = getISBNS && useISBNsFromStorage;
-        if (useStorageISBNs) {
+        const useStorageISBNs = getISBNS && true;
+        if ( useStorageISBNs ) {
           browser.storage.local.get(null).then(storageData => {
             const bookChunksLength = storageData["books-chunk-length"];
             const bookChunkNumbers = _.range(0, bookChunksLength);
@@ -56,29 +56,20 @@ function fetchISBNs(vue, hotpotato, useStorageISBNs, isbnsFetched) {
   const requestUrls = [];
 
   // hotpotato.books.length = 100;
-  const booksOfInterest =
-    hotpotato.config.partialScan || useStorageISBNs
-      ? _.filter(hotpotato.books, function(o) {
-          return !o.isbns;
-        })
-      : hotpotato.books;
+  const booksOfInterest = hotpotato.config.partialScan || useStorageISBNs ? 
+    _.filter(hotpotato.books, function(o) { 
+      return !o.isbns; 
+    }) : hotpotato.books;
 
   _.each(booksOfInterest, function(book) {
-    if (book.title && book.authors) {
+    if ( book.title && book.authors ) {
       // const query = /*'intitle:' +*/ book.title + '+inauthor:' + book.authors[0].name;
-      const query =
-        /*'intitle:' +*/ encodeURIComponent(book.title) +
-        "+inauthor:" +
-        encodeURIComponent(book.authors[0].name);
+      const query = /*'intitle:' +*/ encodeURIComponent(book.title) + "+inauthor:" + encodeURIComponent(book.authors[0].name);
       // const langrestrict = book.language === 'English' ? 'langRestrict=en&' : '';
       const langrestrict = "";
 
       requestUrls.push({
-        url:
-          "https://www.googleapis.com/books/v1/volumes?" +
-          langrestrict +
-          "&maxResults=5&q=" +
-          query,
+        url: "https://www.googleapis.com/books/v1/volumes?" + langrestrict + "&maxResults=5&q=" + query,
         asin: book.asin,
         title: book.title
       });
@@ -124,36 +115,31 @@ function fetchISBNs(vue, hotpotato, useStorageISBNs, isbnsFetched) {
             const api_book = _.find(response.data.items, function(item) {
               let foundIsbn = false;
               _.each(item.volumeInfo.industryIdentifiers, function(identifier) {
-                if (
-                  identifier.type === "ISBN_10" ||
-                  identifier.type === "ISBN_13"
-                )
-                  foundIsbn = true;
+                if ( identifier.type === "ISBN_10" || identifier.type === "ISBN_13" ) foundIsbn = true;
               });
               return foundIsbn;
             });
 
             if (api_book) {
               let isbns = [];
-              _.each(api_book.volumeInfo.industryIdentifiers, function(
-                identifier
-              ) {
-                if (
-                  identifier.type === "ISBN_10" ||
-                  identifier.type === "ISBN_13"
-                )
-                  isbns.push(identifier);
+              _.each(api_book.volumeInfo.industryIdentifiers, function( identifier ) {
+                if ( identifier.type === "ISBN_10" || identifier.type === "ISBN_13" ) {
+                  let obj = {
+                    type: DOMPurify.sanitize(identifier.type),
+                    identifier: DOMPurify.sanitize(identifier.identifier)
+                  };
+                  isbns.push( obj );
+                }
               });
               if (isbns.length > 0) {
                 book.isbns = isbns;
-                if (_.get(api_book, "volumeInfo.imageLinks.smallThumbnail"))
+                
+                if (_.get(api_book, "volumeInfo.imageLinks.smallThumbnail")) {
                   vue.$root.$emit(
-                    "update-progress-thumbnail",
-                    api_book.volumeInfo.imageLinks.smallThumbnail.replace(
-                      "http://",
-                      "https://"
-                    )
+                    "update-progress-thumbnail", DOMPurify.sanitize( api_book.volumeInfo.imageLinks.smallThumbnail.replace("http://","https://") )
                   );
+                }
+                
               }
             }
           }

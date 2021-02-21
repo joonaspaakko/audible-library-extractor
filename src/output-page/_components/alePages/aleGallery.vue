@@ -207,6 +207,8 @@ export default {
   
   created: function() {
     
+    console.log( this.$store.state.library.books )
+    
     this.updateListRenderingOptions();
     
     // Setup for other pages that use the gallery page to show titles

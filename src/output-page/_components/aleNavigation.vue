@@ -4,7 +4,7 @@
       
       <div class="inner-wrap-wrapper">
         
-        <div class="text-button gallery-page">
+        <div class="text-button gallery-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'gallery' }" @click.native="mobileMenuOpen = false">
             <div class="icon">
               <font-awesome fas icon="home" />
@@ -15,7 +15,7 @@
           </router-link>
         </div>
 
-        <div class="text-button categories-page">
+        <div class="text-button categories-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'categories' }" @click.native="mobileMenuOpen = false">
             <div class="icon">
               <font-awesome fas icon="list" />
@@ -24,7 +24,7 @@
           </router-link>
         </div>
 
-        <div class="text-button series-page">
+        <div class="text-button series-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'all-series' }" @click.native="mobileMenuOpen = false">
             <div class="icon">
               <font-awesome fas icon="list" />

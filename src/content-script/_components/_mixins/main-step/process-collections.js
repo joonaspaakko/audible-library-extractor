@@ -4,7 +4,10 @@ export default {
   methods: {
     getDataFromCollections: function(hotpotato, collectionsFetched) {
       if (!_.find(hotpotato.config.steps, { name: "collections" }).value) {
+        
+        this.$root.$emit("reset-progress");
         collectionsFetched(null, hotpotato);
+        
       } else {
         this.$root.$emit("update-big-step", {
           title: "Collections",
@@ -24,7 +27,7 @@ export default {
             // 1 page with the highest page size (50), but just in case this functions is ready to make multiple calls...
             function(prep, callback) {
               vue.$root.$emit("update-progress", {
-                text: "Looking for collections...",
+                text: "Fetching collections...",
                 step: 0,
                 max: 0,
                 bar: true
@@ -75,10 +78,7 @@ export default {
               const targetCollection = _.find(collections, {
                 id: collection.id
               });
-              if (targetCollection)
-                targetCollection.books = targetCollection.books.concat(
-                  collection.books
-                );
+              if (targetCollection) targetCollection.books = targetCollection.books.concat( collection.books );
               delete targetCollection.pageNumbers;
               delete targetCollection.pageSize;
               delete targetCollection.url;
@@ -103,29 +103,19 @@ function getInitialCollectionDataFromPage(vue, response, completeStep) {
   const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
   response.data = null;
   const collections = [];
-  const collectionRows = audible.querySelectorAll(
-    "#adbl-lib-col-main > .adbl-library-collection-row"
-  );
+  const collectionRows = audible.querySelectorAll("#adbl-lib-col-main > .adbl-library-collection-row");
 
   $(collectionRows).each(function() {
     const _thisRow = this;
 
     // Ignores empty collections - Assumes it's empty if it doesn't have any product images
-    if (
-      _thisRow.querySelector(
-        ".product-image-grid-container:not(.empty-product-image-grid)"
-      )
-    ) {
+    if ( _thisRow.querySelector(".product-image-grid-container:not(.empty-product-image-grid)") ) {
       let collection = {};
 
-      collection.id = _thisRow.getAttribute("data-collection-id"); // Collection page is formed using the id: audible.com/library/collections/{id}
-      collection.title = _thisRow.querySelector(
-        ".bc-size-headline3"
-      ).textContent;
-      const description = _thisRow.querySelector(
-        "ul .bc-text.bc-size-body.bc-color-secondary"
-      );
-      if (description) collection.description = description.textContent;
+      collection.id = DOMPurify.sanitize( _thisRow.getAttribute("data-collection-id") ); // Collection page is formed using the id: audible.com/library/collections/{id}
+      collection.title = DOMPurify.sanitize( _thisRow.querySelector(".bc-size-headline3").textContent );
+      const description = _thisRow.querySelector("ul .bc-text.bc-size-body.bc-color-secondary");
+      if (description) collection.description = DOMPurify.sanitize( description.textContent );
       collection.books = [];
 
       collections.push(collection);
@@ -141,32 +131,27 @@ function getBooks(vue, request, parentStepCallback) {
   _.each(request.pageNumbers, function(page) {
     const requestDolly = _.cloneDeep(request);
     const pageSize = request.pageSize ? "&pageSize=" + request.pageSize : "";
-    (requestDolly.url += "/?page=" + page + pageSize),
-      requestUrls.push(requestDolly);
+    requestDolly.url += "/?page=" + page + pageSize;
+    requestUrls.push(requestDolly);
   });
 
   vue.amapxios({
     requests: requestUrls,
     step: function(response, stepCallback, request) {
+      
       const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
       response.data = null;
-
-      let asinArray = [];
-
-      const bookRows = audible.querySelectorAll(
-        "#adbl-library-content-main > .adbl-library-content-row"
-      );
+      
+      const bookRows = audible.querySelectorAll("#adbl-library-content-main > .adbl-library-content-row");
       $(bookRows).each(function() {
         // this.querySelector('input[name="asin"]')
-        const bookASIN = this.getAttribute("id").replace(
-          "adbl-library-content-row-",
-          ""
-        );
+        const bookASIN = this.getAttribute("id").replace("adbl-library-content-row-","");
         // const bookTitle = this.querySelector( ':scope > div.bc-row-responsive.bc-spacing-top-s2 > div.bc-col-responsive.bc-spacing-top-none.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a > span' ).textContent.trim();
-        request.books.push(bookASIN);
+        request.books.push( DOMPurify.sanitize(bookASIN) );
       });
 
       stepCallback(request);
+      
     },
     flatten: true,
     done: function(collections) {

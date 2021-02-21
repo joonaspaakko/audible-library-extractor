@@ -1,10 +1,8 @@
 export default {
   methods: {
     getDataFromStorePages: function(hotpotato, storePagesFetched) {
-      if ( _.find(hotpotato.config.steps, { name: "storePage", value: false }) ) {
-        storePagesFetched(null, hotpotato);
-      } 
-      else {
+      
+      if ( hotpotato.config.getStorePages ) {
         
         if (!hotpotato.config.test) {
           
@@ -16,8 +14,10 @@ export default {
         }
 
         const vue = this;
-        const requests = prepStorePages(hotpotato);
-
+        const requests = prepStorePages(hotpotato, hotpotato.config.getStorePages);
+        
+        hotpotato.config.getStorePages = false;
+        
         if (requests) {
           vue.amapxios({
             requests: requests,
@@ -51,31 +51,38 @@ export default {
         } else {
           vue.$nextTick(function() {
             setTimeout(function() {
+              vue.$root.$emit("reset-progress");
               storePagesFetched(null, hotpotato);
             }, 1000);
           });
         }
         
       }
+      else {
+        
+        hotpotato.config.getStorePages = false;
+        this.$root.$emit("reset-progress");
+        storePagesFetched(null, hotpotato);
+        
+      }
     }
   }
 };
 
-function prepStorePages(hotpotato) {
-  let source = hotpotato.config.partialScan
-    ? _.filter(hotpotato.books, "isNew")
-    : hotpotato.books;
-
-  if (source.length > 0) {
-    _.each(source, function(book) {
+function prepStorePages(hotpotato, getStorePages) {
+  
+  _.each( hotpotato[ getStorePages ], function( book ) { 
+    if ( hotpotato.config.partialScan ) {
+      if ( book.isNew ) book.requestUrl = book.storePageRequestUrl;
+    }
+    else {
       book.requestUrl = book.storePageRequestUrl;
-      delete book.storePageRequestUrl;
-    });
-
-    return source;
-  } else {
-    return null;
-  }
+    }
+    delete book.storePageRequestUrl;
+  });
+  
+  return hotpotato.config.partialScan ? _.filter(hotpotato[ getStorePages ], "isNew") : hotpotato[ getStorePages ];
+  
 }
 
 function getStorePageData(vue, response, book, isTest) {
@@ -83,7 +90,7 @@ function getStorePageData(vue, response, book, isTest) {
   const audible = html.find("div.adbl-main")[0];
   let jsonData = html.find("#bottom-0 > script:first")[0];
   if (jsonData) jsonData = JSON.parse(jsonData.textContent);
-  const bookData = jsonData[0] || {};
+  const bookData = jsonData ? jsonData[0] : {};
   html = null;
 
   response.data = null;
@@ -99,19 +106,19 @@ function getStorePageData(vue, response, book, isTest) {
   // This "#sample-player..." selector tries to weed out missing store pages
   if ( isTest || audible.querySelector("#sample-player-" + book.asin + " > button") ) {
     
-    book.titleShort = bookData.name;
+    book.titleShort = DOMPurify.sanitize(bookData.name);
     const ratingsLink = audible.querySelector(".ratingsLabel > a");
-    if (ratingsLink) book.ratings = parseFloat(ratingsLink.textContent.match(/\d/g).join(""));
+    if (ratingsLink) book.ratings = parseFloat( DOMPurify.sanitize(ratingsLink.textContent.match(/\d/g).join("")) );
     const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
-    if ( ratingEl ) book.rating = Number( ratingEl.textContent.trimAll() );
-    book.summary = bookData.description || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span" ) );
-    book.releaseDate = bookData.datePublished ? vue.fixDates( bookData.datePublished, 'y-m-d' ) : vue.fixDates(audible.querySelector(".releaseDateLabel")); 
+    if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
+    book.summary = DOMPurify.sanitize(bookData.description) || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span" ) );
+    book.releaseDate = DOMPurify.sanitize(bookData.datePublished) ? vue.fixDates( bookData.datePublished, 'y-m-d' ) : vue.fixDates( audible.querySelector(".releaseDateLabel") ); 
     book.publishers = vue.getArray( audible.querySelectorAll(".publisherLabel > a") );
     book.length = book.length || vue.shortenLength( audible.querySelector(".runtimeLabel").textContent.trimToColon() );
     book.categories = vue.getArray( audible.querySelector(".categoriesLabel") ? audible.querySelectorAll(".categoriesLabel > a") : audible.querySelectorAll(".bc-breadcrumb > a") );
-    book.sample = isTest ? null : audible.querySelector("#sample-player-" + book.asin + " > button").getAttribute("data-mp3");
-    book.language = bookData.inLanguage ? _.startCase(bookData.inLanguage) : audible.querySelector(".languageLabel").textContent.trimToColon();
-    book.format = audible.querySelector(".format").textContent.trimAll();
+    book.sample = isTest ? null : DOMPurify.sanitize(audible.querySelector("#sample-player-" + book.asin + " > button").getAttribute("data-mp3"));
+    book.language = bookData.inLanguage ? DOMPurify.sanitize(_.startCase(bookData.inLanguage)) : DOMPurify.sanitize(audible.querySelector(".languageLabel").textContent.trimToColon());
+    book.format = DOMPurify.sanitize(audible.querySelector(".format").textContent.trimAll());
     if (!book.series) book.series = vue.getSeries(audible.querySelector(".seriesLabel"));
 
     // Around July 2020 audible has removed any mention of the added date.

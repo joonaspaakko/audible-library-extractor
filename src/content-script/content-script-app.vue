@@ -1,9 +1,9 @@
 <template>
   <overlay>
     <menu-screen
-      v-if="ui === 'menu-screen'"
-      :storageHasData="storageHasData"
-      :storageConfig="storageConfig"
+    v-if="ui === 'menu-screen'"
+    :storageHasData="storageHasData"
+    :storageConfig="storageConfig"
     ></menu-screen>
     <scraping-progress v-if="ui === 'scraping'"></scraping-progress>
   </overlay>
@@ -70,14 +70,7 @@ import scrapingPrep from "./_components/_mixins/calls/scrapingPrep.js";
 // Misc
 import getDataFromCarousel from "./_components/_mixins/misc/fetch-store-page-carousel-data.js";
 // Misc - Helpers
-import shortenLength from "./_components/_mixins/misc/helpers.js";
-import getSummary from "./_components/_mixins/misc/helpers.js";
-import fixDates from "./_components/_mixins/misc/helpers.js";
-import getSeries from "./_components/_mixins/misc/helpers.js";
-import getArray from "./_components/_mixins/misc/helpers.js";
-import addedOrder from "./_components/_mixins/misc/helpers.js";
-import makeFrenchFries from "./_components/_mixins/misc/helpers.js";
-import glueFriesBackTogether from "./_components/_mixins/misc/helpers.js";
+import helpers from "./_components/_mixins/misc/helpers.js";
 
 // Steps
 import getDataFromLibraryPages from "./_components/_mixins/main-step/process-library-pages.js";
@@ -109,11 +102,7 @@ export default {
     getDataFromSeriesPages,
     getDataFromCollections,
     getDataFromWishlist,
-    shortenLength,
-    getSummary,
-    fixDates,
-    getSeries,
-    getArray
+    helpers,
   ],
   props: ["storageHasData", "storageConfig"],
   data: function() {
@@ -141,66 +130,74 @@ export default {
     // vue.init_storePageTest();
     
   },
+  
   methods: {
-    init_step_extract: function(config, hotpotato) {
-      const vue = this;
-      vue.ui = "scraping";
-      vue.$nextTick(function() {
-        hotpotato = hotpotato || {};
-        hotpotato.config = config;
-        
-        // _.find( config.steps, { name: "storePage" }).value = true;
+    init_step_extract: function(config) {
       
-        const waterfallArray = [
-          function(callback) { callback(null, hotpotato); },
-          vue.getDataFromLibraryPages, // Can be scraped alone
-          vue.getDataFromStorePages,   // Requires library page data
-          vue.getDataFromSeriesPages,  // Requires store page data (for fallback)
-          vue.getDataFromCollections,  // Can be scraped alone
-          vue.getISBNsFromGoogleBooks, // Requires library page data
-          vue.getDataFromWishlist      // Can be scraped alone
-        ];
-
-        vue.$root.$emit("update-big-step", {
-          max: config.steps
-            ? _.filter(config.steps, function(o) {
-                return o.value && !o.extra;
-              }).length
-            : waterfallArray.length - 1 // First function is just a kind of a failsafe and doesn't count
-        });
-
-        waterfall(waterfallArray, function(err, hotpotato) {
+      const vue = this;
+      browser.storage.local.get(null).then(hotpotato => {
+        
+        if ( hotpotato.chunks ) vue.glueFriesBackTogether(hotpotato);
+        
+        vue.ui = "scraping";
+        vue.$nextTick(function() {
+          
+          
+          hotpotato = hotpotato || {};
+          hotpotato.config = config;
+          if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
+          
+          // _.find( config.steps, { name: "storePage" }).value = true;
+        
+          const waterfallArray = [
+            function(callback) { callback(null, hotpotato); },
+            vue.getDataFromLibraryPages, // Can be scraped alone
+            vue.getDataFromStorePages,   // Requires library page data
+            vue.getDataFromSeriesPages,  // Requires store page data (for fallback)
+            vue.getDataFromCollections,  // Can be scraped alone
+            vue.getISBNsFromGoogleBooks, // Requires library page data
+            vue.getDataFromWishlist,      // Can be scraped alone
+            vue.getDataFromStorePages,   // Requires wishlist data
+          ];
+          
           vue.$root.$emit("update-big-step", {
-            title: "Closing this page in 5 seconds and opening the gallery page in a new tab",
-            step: 0,
-            max: 0
+            max: config.steps
+              ? _.filter(config.steps, function(o) {
+                  return o.value && !o.extra;
+                }).length
+              : waterfallArray.length - 1 // First function is just a kind of a failsafe and doesn't count
           });
 
-          const configISBN = _.find(hotpotato.config.steps, { name: "isbn" });
-          if (configISBN && configISBN.value) {
-            const booksWithISBN = _.filter(hotpotato.books, "isbns");
-            vue.$root.$emit("update-progress", {
-              text: "Currently " + booksWithISBN.length + "/" + hotpotato.books.length + " books have ISBNs",
+          waterfall(waterfallArray, function(err, hotpotato) {
+            vue.$root.$emit("update-big-step", {
+              title: "Closing this page in 5 seconds and opening the gallery page in a new tab",
               step: 0,
               max: 0
             });
-          }
 
-          setTimeout(function() {
-            vue.goToOutputPage(hotpotato);
-          }, 5500);
+            const configISBN = _.find(hotpotato.config.steps, { name: "isbn" });
+            if (configISBN && configISBN.value) {
+              const booksWithISBN = _.filter(hotpotato.books, "isbns");
+              vue.$root.$emit("update-progress", {
+                text: "Currently " + booksWithISBN.length + "/" + hotpotato.books.length + " books have ISBNs",
+                step: 0,
+                max: 0
+              });
+            }
+
+            setTimeout(function() {
+              vue.goToOutputPage(hotpotato);
+            }, 5500);
+          });
         });
+        
       });
+      
     },
 
     init_step_update: function(config) {
-      const vue = this;
-      browser.storage.local.get(null).then(hotpotato => {
-        if (hotpotato.chunks) vue.glueFriesBackTogether(hotpotato);
-        config.partialScan = true;
-        config.oldBooksLength = hotpotato.books.length;
-        vue.init_step_extract(config, hotpotato);
-      });
+      config.partialScan = true;
+      vue.init_step_extract(config);
     },
 
     init_step_output: function() {
@@ -214,10 +211,11 @@ export default {
         hotpotato.config = { steps: hotpotato.config.steps };
 
         if (!hotpotato.chunks) {
-          this.addedOrder(hotpotato.books);
+          if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
+          if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
           this.makeFrenchFries(hotpotato);
         }
-
+        
         browser.storage.local.clear().then(() => {
           browser.storage.local.set(hotpotato).then(() => {
             browser.runtime.sendMessage({ action: "openOutput" });

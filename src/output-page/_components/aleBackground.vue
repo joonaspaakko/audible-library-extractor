@@ -18,6 +18,7 @@ export default {
   mixins: [makeCoverUrl],
   data: function() {
     return {
+      coverSource: null,
       books: null,
       booksLength: null,
       windowWidth: null,
@@ -27,6 +28,8 @@ export default {
   },
 
   mounted: function() {
+    
+    this.coverSource = this.$store.state.library.books ? this.$store.state.library.books : this.$store.state.library.wishlist;
     
     this.windowWidth = window.innerWidth;
     this.books = this.getBooks();
@@ -77,7 +80,7 @@ export default {
         } else {
           return _.sampleSize(books, bgLength);
         }
-      })(this.$store.state.library.books);
+      })( this.coverSource );
       
       // Reduce the number of properties to bear necessities
       books = _.map( books, function( book ) {
@@ -113,8 +116,8 @@ export default {
       
       targetBook.flipOut = true;
       setTimeout(function() {
-        const newIndex = vue.randomNumber(0, vue.$store.state.library.books.length-1);
-        const newBook = vue.$store.state.library.books[ newIndex ];
+        const newIndex = vue.randomNumber(0, vue.coverSource.length-1);
+        const newBook = vue.coverSource[ newIndex ];
         targetBook.cover = newBook.cover;
         targetBook.flipOut = false;
       }, 850);

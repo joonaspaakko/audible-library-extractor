@@ -23,11 +23,7 @@ export default {
             .catch(function(e) {
               console.log(e);
               if (!e.response) {
-                console.log(
-                  "%c" + "axios caught an error" + "",
-                  "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",
-                  e
-                );
+                console.log( "%c" + "axios caught an error" + "", "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;", e );
               } else if (options.returnCatch) {
                 options.step(
                   e.response,

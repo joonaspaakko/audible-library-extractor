@@ -34,6 +34,14 @@ export default {
     };
   },
   
+  beforeCreate: function() {
+    if ( !this.$store.state.library.books && this.$store.state.library.wishlist ) {
+      this.$router.push({ 
+        name: 'wishlist',
+      });
+    }
+  },
+  
   created: function() {
     
     // var isbn = _.filter(this.$store.state.library.books, 'isbns');

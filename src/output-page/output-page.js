@@ -353,6 +353,7 @@ Vue.use( globalMethods );
 
 
 // APP prep
+// In the extension environment...
 const standalone = document.querySelector("html.standalone-gallery");
 if (!standalone) {
   try {
@@ -370,7 +371,9 @@ if (!standalone) {
       }
     });
   } catch (e) {}
-} else {
+} 
+// As a standalone website...
+else {
   startVue( JSON.parse(document.querySelector("#library-data").textContent) );
 }
 

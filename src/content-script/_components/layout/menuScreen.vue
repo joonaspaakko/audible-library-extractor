@@ -5,28 +5,43 @@
         <div class="settings-heading fade-in">
           <span class="title is-4">Extraction Settings</span>
         </div>
-        <b-field grouped class="setting-checkboxes">
-          <span v-for="setting in mainSteps" :key="setting.name" v-tippy :content="setting.tippy" >
-            <b-checkbox :value="setting.value" :disabled="setting.disabled" :type="setting.type" @input="settingChanged($event, setting.name)" >
-              {{ setting.label }}
-            </b-checkbox>
+        <b-field grouped group-multiline class="setting-checkboxes">
+          <span v-for="( setting, index) in mainSteps" :key="setting.name">
+            
+            
+            <b-field style="margin: 5px;">
+              <p class="control">
+                <b-button size="is-default" :disabled="true" style="cursor: default;">
+                  {{ ++index }}
+                </b-button>  
+              </p>
+              <p class="control" v-tippy :content="setting.tippy">
+                <b-button size="is-default" class="checkbox-btn">
+                  <b-checkbox v-model="setting.value" :disabled="setting.disabled" :type="setting.type" @input="settingChanged($event, setting.name)" >
+                    {{ setting.label }}
+                  </b-checkbox>
+                </b-button>  
+              </p>
+              <p class="control" v-if="setting.trash" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
+                <b-button size="is-default" @click="deleteData( setting )">
+                  <b-icon pack="fas" icon="trash-alt" size="is-small"></b-icon>
+                </b-button>  
+              </p>
+            </b-field>
+            
           </span>
         </b-field>
-
-        <b-field grouped class="setting-checkboxes" v-if="extras.length">
-          <span v-for="setting in extras" :key="setting.name" v-tippy :content="setting.tippy" >
-            <b-checkbox :value="setting.value" :disabled="setting.disabled" :type="setting.type" @input="settingChanged($event, setting.name)" >
-              {{ setting.label }}
-            </b-checkbox>
+        
+        <div class="linky-links">
+          <span><a href="#" @click.prevent="unselectAll">unselect all</a> </span>
+          <span class="divider">•</span>
+          <span>
+            <a href="#" @click.prevent="selectAll">select all</a> 
           </span>
-        </b-field>
+        </div>
 
         <b-message class="description">
-          You can fetch <strong>collections</strong> and
-          <strong>wishlist</strong> now and discard them later when saving the
-          gallery as a stand-alone website. <strong>ISBNs</strong> are merged
-          with the library books and can't be removed later, not that there
-          should be any need to do that.
+          Both export types retain the previously outside of the selected options. So if you extracted the library previously, you don't have to extract it again if you want to for example just add the wishlist.
           <!-- You can fetch <b-tag type="is-warning">collections</b-tag> and <b-tag type="is-warning">wishlist</b-tag> now and discard them later when saving the gallery as a stand-alone website. <b-tag type="is-warning">ISBNs</b-tag> are merged with the library books and can't be removed later, not that there should be any need to do that. -->
         </b-message>
       </div>
@@ -44,7 +59,7 @@
 
       <b-field class="other-btns">
         <b-button
-          :disabled="!storageHasData"
+          :disabled="outputPageDisabled"
           @click="takeNextStep('update')"
           class="control"
           size="is-small"
@@ -56,7 +71,7 @@
           Partial extraction
         </b-button>
         <b-button
-          :disabled="!storageHasData"
+          :disabled="outputPageDisabled"
           @click="takeNextStep('output')"
           class="control"
           size="is-small"
@@ -98,10 +113,11 @@ import {
   faShareSquare,
   faSyncAlt,
   faTimes,
-  faCog
+  faCog,
+  faTrashAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import { faArrowAltCircleDown } from "@fortawesome/free-regular-svg-icons";
-library.add(faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, faCog);
+library.add(faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, faCog, faTrashAlt);
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
 
@@ -135,23 +151,21 @@ export default {
   props: ["storageHasData", "storageConfig"],
   data() {
     return {
+      inStorage: {
+        books: this.storageHasBooks
+      },
+      outputPageDisabled: false,
       settingsOpen: false,
-      extrasOn: false,
       extractSettings: [
         {
           name: "library",
           value: true,
+          disabled: true,
           label: "Library",
           type: "is-success",
-          disabled: true
-        },
-        {
-          name: "seriesOrder",
-          value: true,
-          label: "Series Order",
-          type: "is-success",
-          disabled: true,
-          tippy: "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>"
+          tippy: "<div style='text-align: left;'>If this option is checked and disabled, it's because there's no library data in memory and <br>some selected options require it fro function: collections, isbn</div>",
+          trash: this.storageHasData.books,
+          trashTippy: 'This will also remove ISBN data, because that data is attached to the library.'
         },
         {
           name: "collections",
@@ -159,7 +173,8 @@ export default {
           label: "Collections",
           type: "is-success",
           disabled: false,
-          tippy: "<div style='text-align: left;'><strong>Always a full extract, even when updating.</strong></div>"
+          tippy: "<div style='text-align: left;'><strong>Always a full extract.</strong> Fairly quick extraction process.</div>",
+          trash: this.storageHasData.collections
         },
         {
           name: "isbn",
@@ -167,26 +182,17 @@ export default {
           label: "ISBN",
           type: "is-danger",
           disabled: false,
-          tippy: "<div style='text-align: left;'><strong>Very slow process with +200 books.</strong> Only fetch these if you need them. <br>Attempts to fetch ISBNs for every book in your library. <br>Only books that are missing ISBNs are processed during a partial extraction. <br>You should only need them if you plan to import the books to Goodreads.</div>"
-        },
-        {
-          name: "isbn-update",
-          value: true,
-          label: "Add missing ISBNs on full extract",
-          type: "is-success",
-          disabled: false,
-          extra: true,
-          onStorageHasData: true,
-          parent: "isbn",
-          tippy: "<div style='text-align: left;'><strong>Will potentially save a lot of time.</strong> <br>Keeps previously extracted ISBNs and only tries to add ISBNs to all books without ISBNs. <br>ISBNs are not likely to change and since you've already done a full extract, might as well use the existing ISBNs. <br>Disable if you want to refresh the whole list of ISBNs during a full extract.</div>"
+          tippy: "<div style='text-align: left;'>Attempts to fetch ISBNs for every book in your library, but if you have extracted ISBNs before, <br>it will only try to fetch them for books without ISBNs. <br><br><strong>Very slow process when it needs to process more than 200 books.</strong> <br><br>Only fetch these if you need them. You should only need them if you plan to import the books to Goodreads.</div>",
+          trash: this.storageHasData.isbn
         },
         {
           name: "wishlist",
           value: false,
           label: "Wishlist",
-          type: "is-warning",
+          type: "is-danger",
           disabled: false,
-          tippy: "<div style='text-align: left;'><strong>Slow process...</strong> <br><strong>Always a full extract, even when updating.</strong></div>"
+          tippy: "<div style='text-align: left;'><strong>Slow process...</strong> + <strong>Always a full extract.</strong> <br><br>This has potential to increase the gallery's file size by a lot if your wishlist is huge. Though that only really matters if you're uploading the gallery online, if that is something you care about. A book in wishlist takes about the same amount of space as one book in the library.</div>",
+          trash: this.storageHasData.wishlist
         }
       ],
       loading: true
@@ -199,46 +205,175 @@ export default {
         return !o.extra;
       });
     },
-
-    extras: function() {
-      const vue = this;
-      return _.filter(vue.extractSettings, function(o) {
-        if (o.extra && o.onStorageHasData && vue.storageHasData) {
-          const parentChecked = _.find(vue.mainSteps, { name: o.parent }).value;
-          if (parentChecked) return o;
-        }
-      });
+  },
+  
+  created: function() {
+    
+    if ( !(this.storageHasData.books || this.storageHasData.wishlist) ) {
+      this.outputPageDisabled = true;
     }
+    else {
+      _.find(this.extractSettings, { name: 'library' }).disabled = false;
+    }
+    
   },
 
   mounted: function() {
-    // Just to make sure that accidental clicks don't do anything when the overlay is opened
-    // - If the button that opens the overlay was perfectly aligned with any of the buttons in this component, a double click would start doing things prematurely
+    
     const vue = this;
-    this.$nextTick(function() {
-      setTimeout(function() {
-        vue.loading = false;
-      }, 1000);
-    });
-
+    
     // Updates default values from browser storage
     if (this.storageConfig && this.storageConfig.steps) {
       _.each(this.storageConfig.steps, function(step) {
         let foundOriginalDolly = _.find(vue.extractSettings, {
           name: step.name
         });
-        foundOriginalDolly.value = step.value;
+        if ( foundOriginalDolly ) foundOriginalDolly.value = step.value;
       });
     }
+    
+    // Just to make sure that accidental clicks don't do anything when the overlay is opened
+    // - If the button that opens the overlay was perfectly aligned with any of the buttons in this component, a double click would start doing things prematurely
+    this.$nextTick(function() {
+      setTimeout(function() {
+        vue.loading = false;
+      }, 1000);
+    });
+
   },
 
   methods: {
-    extrasParentOn: function(setting) {
-      var parentChecked = _.find(this.mainSteps, { name: setting.parent })
-        .value;
-      return parentChecked;
+    
+    unselectAll: function() {
+      _.each( this.extractSettings, function( setting ) {
+        setting.value = false;
+      });
     },
-
+    selectAll: function() {
+      _.each( this.extractSettings, function( setting ) {
+        setting.value = true;
+      });
+    },
+    
+    deleteData: function( setting ) {
+      
+      const vue = this;
+      
+      switch( setting.name ) {
+        
+        case 'library':
+          vue.deleteChunkData( { name: 'books'}, function( data ) {
+            vue.deleteChunkData( { name: 'series'}, function( data ) {
+              
+              
+              data.chunks = _.remove( data.chunks, function( value ) {
+                return value !== 'isbn';
+              });
+              
+              if ( data.config ) {
+                data.config.steps = _.remove( data.config.steps, function( o ) {
+                  return o.name !== 'isbn';
+                });
+              }
+              browser.storage.local.clear().then(() => {
+                browser.storage.local.set(data).then(() => {
+                  
+                  console.log('%c' + 'library' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', data);
+                  
+                });
+              });
+              
+            });
+          });
+          break;
+          
+        case 'collections':
+        case 'wishlist':
+          vue.deleteChunkData( setting );
+          break;
+        
+        case 'isbn':
+          browser.storage.local.get(null).then(data => {
+            
+            _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
+              
+              let booksChunk = data[ 'books-chunk-'+index ];
+              _.each( booksChunk, function( book ) {
+                if ( book.isbns ) delete book.isbns;
+              });
+              
+            });
+            
+            if ( data.config ) {
+              data.config.steps = _.remove( data.config.steps, function( o ) {
+                return o.name !== 'isbn';
+              });
+            }
+            
+            browser.storage.local.clear().then(() => {
+              browser.storage.local.set(data).then(() => {
+                
+                let isbnSetting = _.find( vue.extractSettings, { name: 'isbn' });
+                if ( isbnSetting ) isbnSetting.trash = false;
+                
+              });
+            });
+            
+          });
+          break;
+        
+      }
+      
+    },
+    
+    deleteChunkData: function( setting, callback ) {
+      
+      const vue = this;
+      
+      browser.storage.local.get(null).then(data => {
+        
+        _.each( _.range( 0, data[ setting.name + '-chunk-length'] ), function( index ) { 
+          delete data[ setting.name + '-chunk-'+index ];
+        });
+        delete data[setting.name + '-chunk-length'];
+        
+        data.chunks = _.remove( data.chunks, function( value ) {
+          return value !== setting.name;
+        });
+        
+        if ( data.config ) {
+          data.config.steps = _.remove( data.config.steps, function( o ) {
+            if ( setting.name === 'books' )
+              return o.name !== 'library';
+            else
+              return o.name !== setting.name;
+          });
+        }
+        
+        browser.storage.local.clear().then(() => {
+          browser.storage.local.set(data).then(() => {
+            
+            let s;
+            if ( setting.name === 'books' ) {
+              s = _.find( vue.extractSettings, { name: 'library' });
+              if ( s ) s.trash = false;
+            }
+            else {
+              s = _.find( vue.extractSettings, { name: setting.name });
+              if ( s ) s.trash = false;
+            }
+            
+            if ( data.chunks.indexOf('books') === -1 && data.chunks.indexOf('wishlist') === -1 ) vue.outputPageDisabled = true;
+            
+            if ( callback ) callback( data );
+            
+          });
+        });
+        
+      });
+      
+    },
+    
     takeNextStep: function(step) {
       this.$root.$emit("do-next-step", {
         step: step,
@@ -251,16 +386,49 @@ export default {
     },
 
     settingChanged: function(inputValue, inputName) {
-      const currentSetting = _.find(this.extractSettings, { name: inputName });
-      currentSetting.value = inputValue;
-    }
+      let currentSetting = _.find(this.extractSettings, { name: inputName });
+      
+      this.forceTrue( inputValue, inputName, currentSetting );
+      
+    },
+    
+    forceTrue: function( inputValue, inputName, currentSetting ) {
+    
+      switch ( inputName ) {
+        case 'isbn':
+        case 'collections':
+          // Enable library setting if there is no previously collected book data
+          if ( !this.storageHasBooks ) {
+            
+            let library = _.find(this.extractSettings, { name: 'library' });
+            
+            if ( !(this.storageHasData.books || this.storageHasData.wishlist) ) {
+              if ( inputValue ) {
+                library.value = true;
+                library.disabled = true;
+              }
+              else if ( inputName === 'isbn' ) {
+                let collections = _.find(this.extractSettings, { name: 'collections' });
+                if ( !collections.value ) library.disabled = false;
+              }
+              else if ( inputName === 'collections' ) {
+                let isbn = _.find(this.extractSettings, { name: 'isbn' });
+                if ( !isbn.value ) library.disabled = false;
+              }
+            }
+          }
+          break;
+      }
+      
+    },
+    
   }
 };
 </script>
 
 <style lang="scss">
 #ale-menu-screen {
-  max-width: 650px;
+  max-width: 810px;
   margin: 0 auto;
 
   .has-text-grey-light {
@@ -276,6 +444,7 @@ export default {
   .extract-wrapper {
     width: 300px;
     margin: 35px auto 0;
+    .field-body { width: 100%; }
   }
 
   .extract-btn {
@@ -378,7 +547,32 @@ export default {
     }
 
     .setting-checkboxes {
-      margin: 40px 0;
+      margin: 25px 50px;
+      margin-right: 46px;
+      button {
+        padding: 10px 12px 9px;
+        font-size: 13.5px;
+        line-height: 13.5px;
+        // .b-checkbox { margin-top: 2px; }
+        
+        
+      }
+      button span {
+        display: flex;
+        justify-content: center;
+        align-content: center;
+        justify-items: center;
+        align-content: center;
+      }
+      .checkbox-btn {
+        padding: 0;
+        .b-checkbox { 
+          padding: 10px 12px 9px;
+          margin: 0; 
+          .control-label { margin-top: -1px; }
+        }
+      }
+      
     }
   }
 
@@ -421,5 +615,16 @@ export default {
       border-radius: 5px;
     }
   }
+  
+  .linky-links {
+    margin-bottom: 25px;
+    font-size: 13px;
+    span { 
+      margin-left: 6px; &:first-child { margin-left: 0 }
+    }
+    .divider { color: #444; }
+    a { color: #666; }
+  }
+  
 }
 </style>

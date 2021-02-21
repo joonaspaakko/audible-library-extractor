@@ -1,9 +1,7 @@
 export default {
   methods: {
     getDataFromCarousel: function(parentBook, audible, key, carouselID) {
-      const carousel = audible.querySelector(
-        "#adbl-web-carousel-c" + carouselID
-      );
+      const carousel = audible.querySelector( "#adbl-web-carousel-c" + carouselID );
 
       if (carousel) {
         const books = [];
@@ -12,25 +10,20 @@ export default {
         flyouts.forEach(function(el) {
           const book = {};
           const imageWrapper = el.previousElementSibling;
-          const image = imageWrapper.querySelector(
-            '[id^="product-carousel-image"]'
-          );
-          const cover =
-            image.getAttribute("src") || image.getAttribute("data-lazy");
+          const image = imageWrapper.querySelector('[id^="product-carousel-image"]');
+          const cover = image.getAttribute("src") || image.getAttribute("data-lazy");
 
           const coverId = cover.match(/\/images\/I\/(.*)._SL/);
-          if (coverId && coverId[1]) book.cover = coverId[1];
+          if (coverId && coverId[1]) book.cover = DOMPurify.sanitize( coverId[1] );
 
-          book.asin =
-            "" +
-            imageWrapper.querySelector("[data-asin]").getAttribute("data-asin");
+          book.asin = "" + DOMPurify.sanitize(imageWrapper.querySelector("[data-asin]").getAttribute("data-asin"));
 
           var list = el.querySelector("ul");
           var listItems = list.querySelectorAll("li:not(.bc-size-base)");
           var subHeading = list.querySelector("li.bc-size-base:nth-child(2)");
-          if (subHeading) book.subHeading = subHeading.textContent.trim();
+          if (subHeading) book.subHeading = DOMPurify.sanitize(subHeading.textContent.trim());
           listItems.forEach(function(el, i) {
-            let text = el.textContent.trimAll();
+            let text = DOMPurify.sanitize(el.textContent.trimAll());
 
             if (!el.querySelector("h2")) {
               text = text.trimToColon();
