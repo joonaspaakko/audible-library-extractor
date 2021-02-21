@@ -4,7 +4,7 @@ export default {
       
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "library", value: true }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
         
         let booksInSeries = hotpotato.config.partialScan ? _.filter(hotpotato.books, 'isNew') : hotpotato.books;
 

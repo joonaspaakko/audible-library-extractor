@@ -3,7 +3,7 @@ export default {
     getDataFromLibraryPages: function(hotpotato, libraryPagesFetched) {
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "library", value: true }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
           
         // derank any books that were new additions in the last partial scan.
         if (hotpotato.config.partialScan) {
@@ -76,7 +76,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
     if (rowItemIsBook) {
       const bookASIN = DOMPurify.sanitize(_thisRow.getAttribute("id").replace("adbl-library-content-row-", ""));
       const bookInMemory = !hotpotato.config.partialScan? undefined: _.find(hotpotato.books, ["asin", bookASIN]);
-      const fullScan_ALL_partialScan_NEW =(hotpotato.config.partialScan && !bookInMemory) || !hotpotato.config.partialScan;
+      const fullScan_ALL_partialScan_NEW = (hotpotato.config.partialScan && !bookInMemory) || !hotpotato.config.partialScan;
       let book = hotpotato.config.partialScan && bookInMemory ? bookInMemory : {};
 
       const storePageLink = _thisRow.querySelector(":scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a");
@@ -145,7 +145,10 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
         console.log("%c" + "book" + "","background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",book.title,book);
         book.isNew = true;
       }
-      if (fullScan_ALL_partialScan_NEW) vue.$root.$emit("update-progress-max");
+      if (fullScan_ALL_partialScan_NEW) {
+        console.log( hotpotato.books, book );
+        vue.$root.$emit("update-progress-max");
+      }
       books.push(book);
     }
   });

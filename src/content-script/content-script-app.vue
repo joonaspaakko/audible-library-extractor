@@ -176,10 +176,10 @@ export default {
             });
 
             const configISBN = _.find(hotpotato.config.steps, { name: "isbn" });
-            if (configISBN && configISBN.value) {
-              const booksWithISBN = _.filter(hotpotato.books, "isbns");
+            const foundISBNs = _.filter(hotpotato.books, 'isbns');
+            if (configISBN && configISBN.value ||foundISBNs.length > 0 ) {
               vue.$root.$emit("update-progress", {
-                text: "Currently " + booksWithISBN.length + "/" + hotpotato.books.length + " books have ISBNs",
+                text: "Currently " + foundISBNs.length + "/" + hotpotato.books.length + " books have ISBNs",
                 step: 0,
                 max: 0
               });
@@ -197,7 +197,7 @@ export default {
 
     init_step_update: function(config) {
       config.partialScan = true;
-      vue.init_step_extract(config);
+      this.init_step_extract(config);
     },
 
     init_step_output: function() {

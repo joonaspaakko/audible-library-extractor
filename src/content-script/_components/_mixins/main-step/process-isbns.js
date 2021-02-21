@@ -4,7 +4,7 @@ import rateLimit from "axios-rate-limit";
 export default {
   methods: {
     getISBNsFromGoogleBooks: function(hotpotato, isbnsFetched) {
-      if ( !_.find(hotpotato.config.steps, { name: "isbn" }).value ) {
+      if ( !_.find(hotpotato.config.steps, { name: "isbn" }) ) {
         
         this.$root.$emit("reset-progress");
         isbnsFetched(null, hotpotato);

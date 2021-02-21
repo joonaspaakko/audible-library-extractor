@@ -8,7 +8,6 @@
         <b-field grouped group-multiline class="setting-checkboxes">
           <span v-for="( setting, index) in mainSteps" :key="setting.name">
             
-            
             <b-field style="margin: 5px;">
               <p class="control">
                 <b-button size="is-default" :disabled="true" style="cursor: default;">
@@ -20,6 +19,11 @@
                   <b-checkbox v-model="setting.value" :disabled="setting.disabled" :type="setting.type" @input="settingChanged($event, setting.name)" >
                     {{ setting.label }}
                   </b-checkbox>
+                </b-button>  
+              </p>
+              <p class="control" v-if="setting.update && setting.trash" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'left', 'bottom'] }" :content="setting.updateTippy">
+                <b-button type="is-warning" size="is-default" @click="partialExtraction( setting )">
+                  <b-icon pack="fas" icon="sync-alt" size="is-small"></b-icon>
                 </b-button>  
               </p>
               <p class="control" v-if="setting.trash" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
@@ -41,7 +45,7 @@
         </div>
 
         <b-message class="description">
-          Both export types retain the previously outside of the selected options. So if you extracted the library previously, you don't have to extract it again if you want to for example just add the wishlist.
+          The extraction process will always retain any previously extracted data, so it will just add or overwrite data from the selected options. For example: if you extracted the library previously, you don't have to extract it again if you just want to for example add the wishlist.
           <!-- You can fetch <b-tag type="is-warning">collections</b-tag> and <b-tag type="is-warning">wishlist</b-tag> now and discard them later when saving the gallery as a stand-alone website. <b-tag type="is-warning">ISBNs</b-tag> are merged with the library books and can't be removed later, not that there should be any need to do that. -->
         </b-message>
       </div>
@@ -50,7 +54,7 @@
     <div class="extract-wrapper">
       <b-field class="extract-btn">
         <b-button @click="takeNextStep('extract')" type="is-info" class="extract control" expanded size="is-large" >
-          Start extracting
+          Extract selected items
         </b-button>
         <div class="control">
           <b-button @click="takeNextStep('extract')" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large" ></b-button>
@@ -58,7 +62,7 @@
       </b-field>
 
       <b-field class="other-btns">
-        <b-button
+        <!-- <b-button
           :disabled="outputPageDisabled"
           @click="takeNextStep('update')"
           class="control"
@@ -69,23 +73,20 @@
           content="<strong>Usable after one full extraction.</strong> <br>A faster extraction that primarily add new books but also updates data that is likely to change."
         >
           Partial extraction
-        </b-button>
+        </b-button> -->
         <b-button
-          :disabled="outputPageDisabled"
-          @click="takeNextStep('output')"
-          class="control"
-          size="is-small"
-          icon-right="share-square"
-          icon-pack="fas"
-          v-tippy
-          content="<strong>Usable after one full extraction.</strong> <br>Skips scanning and goes sraight to the library gallery."
+        :disabled="outputPageDisabled"
+        @click="takeNextStep('output')"
+        class="control" size="is-small"
+        icon-pack="fas" icon-right="share-square"
+        v-tippy content="<strong>Usable after one full extraction.</strong> <br>Skips scanning and goes sraight to the library gallery."
         >
           Output page
         </b-button>
       </b-field>
     </div>
 
-    <b-button
+    <!-- <b-button
     class="settings-btn"
     @click="settingsOpen = !settingsOpen"
     :class="{ open: settingsOpen }"
@@ -95,7 +96,7 @@
     icon-pack="fas"
     >
       Settings
-    </b-button>
+    </b-button> -->
 
     <div id="footer" class="is-small has-text-grey-light">
       Find more information in the <a href="https://github.com/joonaspaakko/audible-library-extractor">Github repository</a> page. <br />
@@ -155,7 +156,7 @@ export default {
         books: this.storageHasBooks
       },
       outputPageDisabled: false,
-      settingsOpen: false,
+      settingsOpen: true,
       extractSettings: [
         {
           name: "library",
@@ -163,9 +164,26 @@ export default {
           disabled: true,
           label: "Library",
           type: "is-success",
-          tippy: "<div style='text-align: left;'>If this option is checked and disabled, it's because there's no library data in memory and <br>some selected options require it fro function: collections, isbn</div>",
+          tippy: "<div style='text-align: left;'>If this option is checked and disabled, it's because there's no library data in memory and <br>some selected options require it to function: collections, isbn</div>",
           trash: this.storageHasData.books,
-          trashTippy: 'This will also remove ISBN data, because that data is attached to the library.'
+          trashTippy: 'This will also remove ISBN data, because that data is attached to the library.',
+          update: true,
+          updateTippy: `
+          <div style="text-align: left;" class="udpate-tooltip">
+            <strong>Update library data.</strong> Usable after one full extraction.<br><br>
+            This is a faster partial extraction that: 
+            <ol>
+              <li>Adds new books just like it would on a full extract</li>
+              <li>Gets rid of books that were removed from the library</li>
+              <li>
+                Updates information on old books that is likely to change:
+                <br>
+                <code>leftPlusCatalog, downloaded, favorite, progress, length, myRating</code>
+                <ul>
+              </li>
+            </ol>
+          </div>
+          `,
         },
         {
           name: "collections",
@@ -182,7 +200,7 @@ export default {
           label: "ISBN",
           type: "is-danger",
           disabled: false,
-          tippy: "<div style='text-align: left;'>Attempts to fetch ISBNs for every book in your library, but if you have extracted ISBNs before, <br>it will only try to fetch them for books without ISBNs. <br><br><strong>Very slow process when it needs to process more than 200 books.</strong> <br><br>Only fetch these if you need them. You should only need them if you plan to import the books to Goodreads.</div>",
+          tippy: "<div style='text-align: left;'>Attempts to fetch ISBNs for every book in your library, but if you have extracted ISBNs before, <br>it will only try to fetch them for books without ISBNs. <br><br><strong>Very slow process when it needs to process more than 200 books.</strong> <br><br>You should only need ISBNs if you plan to import the books to Goodreads.</div>",
           trash: this.storageHasData.isbn
         },
         {
@@ -243,6 +261,18 @@ export default {
   },
 
   methods: {
+    
+    partialExtraction: function( setting ) {
+      
+      const library = _.filter( this.extractSettings, { name: 'library' });
+      
+      this.takeNextStep('update', {
+        steps: _.map( library, function(o) {
+          return { name: o.name, value: o.value, extra: o.extra };
+        })
+      });
+      
+    },
     
     unselectAll: function() {
       _.each( this.extractSettings, function( setting ) {
@@ -374,15 +404,19 @@ export default {
       
     },
     
-    takeNextStep: function(step) {
+    takeNextStep: function(step, config) {
+      
+      config = config || {
+        steps: _.map(this.extractSettings, function(o) {
+          return { name: o.name, value: o.value, extra: o.extra };
+        })
+      };
+      
       this.$root.$emit("do-next-step", {
         step: step,
-        config: {
-          steps: _.map(this.extractSettings, function(o) {
-            return { name: o.name, value: o.value, extra: o.extra };
-          })
-        }
+        config: config
       });
+      
     },
 
     settingChanged: function(inputValue, inputName) {
@@ -461,8 +495,8 @@ export default {
     position: relative;
     z-index: 1;
     padding-top: 10px;
-    margin: 0 auto 20px auto;
-    border: 2px solid #e1e1e1;
+    margin: 20px auto 20px auto;
+    border: 1px solid #e1e1e1;
     border-radius: 6px;
 
     span.check {
@@ -486,6 +520,9 @@ export default {
       line-height: 22px;
       margin: 0;
       .message-body {
+        padding: 13px;
+        font-size: .9em;
+        line-height: 1.2em;
         border: none !important;
       }
       &.darker-gray {
@@ -512,6 +549,7 @@ export default {
       left: 0;
       right: 0;
       top: -13px;
+      font-size: 1.3em;
       span {
         display: inline-block;
         padding: 0 5px;
@@ -547,8 +585,8 @@ export default {
     }
 
     .setting-checkboxes {
-      margin: 25px 50px;
-      margin-right: 46px;
+      margin: 15px 20px;
+      // margin-right: 46px;
       button {
         padding: 10px 12px 9px;
         font-size: 13.5px;
@@ -580,6 +618,8 @@ export default {
     max-width: 300px;
     margin: 6px auto 0;
     button {
+      width: 100%;
+      box-sizing: border-box;
       height: auto;
       padding-top: 9px;
       padding-bottom: 9px;
@@ -617,7 +657,7 @@ export default {
   }
   
   .linky-links {
-    margin-bottom: 25px;
+    margin-bottom: 15px;
     font-size: 13px;
     span { 
       margin-left: 6px; &:first-child { margin-left: 0 }
@@ -626,5 +666,21 @@ export default {
     a { color: #666; }
   }
   
+}
+
+.udpate-tooltip {
+  padding: 15px;
+  
+  ol, ul {
+    padding-left: 15px;
+    li { list-style: inside circle; }
+  }
+  ol > li { list-style: decimal; }
+  
+  code {
+    padding: 4px;
+    border: 1px solid darken( #f1f1f1, 5);
+    background: rgba( #f1f1f1, .7);
+  }
 }
 </style>

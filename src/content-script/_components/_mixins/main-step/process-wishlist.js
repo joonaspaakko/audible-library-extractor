@@ -1,7 +1,7 @@
 export default {
   methods: {
     getDataFromWishlist: function(hotpotato, wishlistFetched) {
-      if ( _.find(hotpotato.config.steps, { name: "wishlist", value: false }) ) {
+      if ( !_.find(hotpotato.config.steps, { name: "wishlist" }) ) {
         
         this.$root.$emit("reset-progress");
         wishlistFetched(null, hotpotato);
