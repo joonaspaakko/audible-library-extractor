@@ -10,7 +10,7 @@
 
 .theme-dark .box-layout-wrapper {
   .single-box {
-    background: rgba( darken( $darkBackColor, 2), .98 );
+    background: rgba( darken( $darkBackColor, 1), .98 );
     box-shadow: $shadowMedium rgba(0,0,0,0.45);
     color: $darkFrontColor;
     border: 1px solid rgba( lighten( $darkBackColor, 32), .25 );

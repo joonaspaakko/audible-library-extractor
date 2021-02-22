@@ -76,32 +76,32 @@ export default {
       }
     },
 
-    getSeries: function(element) {
+    getSeries: function(element, reverse) {
       const series = [];
       if (element) {
-        const childSpan = element.querySelector(":scope > span");
-        const html = childSpan ? DOMPurify.sanitize(childSpan.outerHTML) : DOMPurify.sanitize(element.outerHTML);
-        var string = html.trimAll();
-        string = string.replace("</span>", "").trimToColon();
+        const html = DOMPurify.sanitize( $(element).html() );
+        var string = html.trimAll().trimToColon();
         string = $.parseHTML(string);
-
+        
+        
         $.each(string, function(index, object) {
-          var string =
-            object.textContent.trim().replace(/^,/, "").trimAll() || "";
+          var string = object.textContent.trim().replace(/^,/, "").trimAll() || "";
 
           var titleRow = (index + 1) % 2;
           var numberRow = !titleRow;
           if (titleRow) {
+            
             const url = object.href.split("?")[0].replace(window.location.origin, "");
             series.push({
               name: string,
               // url: url, // Url formed using the asin instead to minimize data size
-              asin: url.substring(url.lastIndexOf("/") + 1)
+              asin: reverse ? url.substring(url.lastIndexOf("asin=") + 1) : url.substring(url.lastIndexOf("/") + 1),
             });
+            
           } else if (numberRow) {
-            if (string.match(/\d/)) {
+            if ( string.match(/\d/) ) {
               // Trims text from the front: ("Book ", removes trailing comma, and splits numbers separated by commas
-              var numbers = string.replace(/^[^0-9]*/, "").replace(/,$/, "").trim().split(",");
+              var numbers = string.replace(/^[^0-9]*/, "").replace(/,$/, "").replace(/;$/, "").trim().split(",");
               // Numbers are added to the previous item
               var lastItem = series[series.length - 1];
               lastItem.bookNumbers = $.map(numbers, function(n) {
@@ -111,7 +111,7 @@ export default {
           }
         });
       }
-      return series.length > 0 ? series : null;
+      return series.length > 0 ? (reverse ? series.reverse() : series) : null;
     },
 
     getArray: function(elements) {

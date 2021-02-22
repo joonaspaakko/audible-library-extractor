@@ -33,6 +33,7 @@ export default {
   mixins: [makeUrl],
   created: function() {
     // this.inputDataExists = this.checkIfArrayHasData();
+    console.log( this.label, this.array )
   },
 
   computed: {

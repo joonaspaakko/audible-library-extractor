@@ -8,7 +8,7 @@ export default {
         // Add book number sorting + activate sort values
         this.$store.commit('addListRenderingOpts', { 
           listName: 'sort', 
-          option: { active: false,  current: true, key: 'seriesOrder', label: 'Series order', type: 'sort' },
+          option: { active: false,  current: true, key: 'seriesOrder', label: 'Series order', type: 'sort', tippy: 'The infinite symbol (∞) means the book is in a series but does not have a number.' },
           activate: true,
           sortValues: true,
         });

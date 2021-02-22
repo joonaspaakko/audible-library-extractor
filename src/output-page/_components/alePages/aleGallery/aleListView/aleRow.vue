@@ -89,7 +89,6 @@ export default {
           case "categories":
           case "series":
           case "publishers":
-            if ( key === 'authors' ) console.log( 'test' + key, vue.book[ key ], vue.book )
             col.text = vue.stringifyArray(
               vue.book[ key ],
               "name",
@@ -110,7 +109,7 @@ export default {
             else if (_.isArray(allNumbers)) {
               allNumbers = allNumbers.join(", ");
             }
-            col.text = allNumbers;
+            col.text = vue.book.series ? (allNumbers || '∞') : '';
             break;
           
           case "isbn10":

@@ -108,7 +108,12 @@ export default new Vuex.Store({
       return _.find( state.listRenderingOpts.sort, 'current').key;
     },
     filterKeys: function( state ) {
-      return _.map(_.filter( state.listRenderingOpts.filter, 'active'), function( o ) {
+      return _.map(_.filter( state.listRenderingOpts.filter, { type: 'filter', active: true }), function( o ) {
+        return o.key;
+      }).join(',');
+    },
+    filterExtrasKeys: function( state ) {
+      return _.map(_.filter( state.listRenderingOpts.filter, { type: 'filterExtras', active: true }), function( o ) {
         return o.key;
       }).join(',');
     },

@@ -51,7 +51,7 @@ export default {
           this.mouseX = e.clientX;
         }
       }
-    }, 100),
+    }, 65),
 
     resizeMouseUp: function(e) {
       if (this.dragging) {

@@ -2,6 +2,7 @@ export default {
   methods: {
     getDataFromStorePages: function(hotpotato, storePagesFetched) {
       
+      console.log( hotpotato.config.getStorePages, '!!!!!!!' )
       if ( hotpotato.config.getStorePages ) {
         
         if (!hotpotato.config.test) {

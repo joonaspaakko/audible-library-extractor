@@ -128,7 +128,7 @@ function getBooks(vue, response, hotpotato, completeStep) {
 
       // SERIES
       const series = _thisRow.querySelector(":scope > td:nth-child(2) > div > span > span > ul > li:nth-child(2) > div");
-      if (series) book.series = vue.getSeries(series);
+      if (series) book.series = vue.getSeries(series, 'reverseOutput');
 
       // LENGTH
       const length = _thisRow.querySelector(":scope > td:nth-child(2) > div > span > span > ul > li:nth-child(3) > span");

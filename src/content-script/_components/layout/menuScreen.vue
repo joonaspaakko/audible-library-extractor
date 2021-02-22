@@ -242,10 +242,11 @@ export default {
     
     // Updates default values from browser storage
     if (this.storageConfig && this.storageConfig.steps) {
+      _.each(this.extractSettings, function(step) {
+        step.value = false; // Reset steps
+      });
       _.each(this.storageConfig.steps, function(step) {
-        let foundOriginalDolly = _.find(vue.extractSettings, {
-          name: step.name
-        });
+        let foundOriginalDolly = _.find(vue.extractSettings, { name: step.name });
         if ( foundOriginalDolly ) foundOriginalDolly.value = step.value;
       });
     }
@@ -307,8 +308,6 @@ export default {
               }
               browser.storage.local.clear().then(() => {
                 browser.storage.local.set(data).then(() => {
-                  
-                  console.log('%c' + 'library' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', data);
                   
                 });
               });
@@ -406,22 +405,26 @@ export default {
     
     takeNextStep: function(step, config) {
       
-      config = config || {
-        steps: _.map(this.extractSettings, function(o) {
-          return { name: o.name, value: o.value, extra: o.extra };
-        })
-      };
-      
-      this.$root.$emit("do-next-step", {
-        step: step,
-        config: config
-      });
-      
+      let activeSettings = _.filter( this.extractSettings, 'value');
+      if ( activeSettings.length > 0 ) {
+        
+        config = config || {
+          steps: _.map( activeSettings, function(o) {
+            return { name: o.name, value: o.value, extra: o.extra };
+          })
+        };
+        
+        this.$root.$emit("do-next-step", {
+          step: step,
+          config: config
+        });
+        
+      }
     },
 
     settingChanged: function(inputValue, inputName) {
-      let currentSetting = _.find(this.extractSettings, { name: inputName });
       
+      let currentSetting = _.find(this.extractSettings, { name: inputName });
       this.forceTrue( inputValue, inputName, currentSetting );
       
     },

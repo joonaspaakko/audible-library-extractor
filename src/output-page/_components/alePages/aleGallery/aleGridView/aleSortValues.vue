@@ -47,10 +47,8 @@ export default {
             allNumbers = _.flatten(allNumbers);
             if (_.isEmpty(allNumbers)) allNumbers = null;
             else if (_.isArray(allNumbers)) {
-              console.log( allNumbers, this.book.series )
               allNumbers = allNumbers.join(", ");
             }
-            console.log( allNumbers )
             return allNumbers || "∞";
             
           } else {
@@ -118,7 +116,6 @@ export default {
           
         case "isbn10":
         case "isbn13":
-          console.log( this.book.isbns )
           if ( this.book.isbns ) {
             if ( sortKey === 'isbn10' ) {
               const isbn10 = _.find(this.book.isbns, ["type", "ISBN_10"]);

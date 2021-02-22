@@ -7,7 +7,7 @@ export default {
         function(o) {
           return o[keyMinusName]
             ? o[keyMinusName][0].name.toLowerCase()
-            : false;
+            : null;
         },
         params.direction
       );

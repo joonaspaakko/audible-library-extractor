@@ -83,10 +83,10 @@ export default {
     // this.$store.commit("prop", { key: "searchQuery", value: '' });
     this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
     
-    const ifUrlParams = this.$route.query.sort || this.$route.query.filter;
+    const ifUrlParams = this.$route.query.sort || this.$route.query.filter || this.$route.query.filterExtras;
     let collection = _.get(this.$store.state, this.collectionSource);
     if ( ifUrlParams ) {
-      if ( this.$route.query.filter ) collection = this.filterBooks( collection );
+      if ( this.$route.query.filter || this.$route.query.filterExtras ) collection = this.filterBooks( collection );
       if ( this.$route.query.sort   ) collection = this.sortBooks( collection );
       this.$store.commit("prop", { key: 'mutatingCollection', value: collection });
     }

@@ -7,7 +7,7 @@
         <div class="text-button gallery-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'gallery' }" @click.native="mobileMenuOpen = false">
             <div class="icon">
-              <font-awesome fas icon="home" />
+              <font-awesome fas icon="book" />
               <span>Library</span>
               <!-- <font-awesome fas icon="th" />
               <span>Gallery</span> -->
@@ -18,7 +18,7 @@
         <div class="text-button categories-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'categories' }" @click.native="mobileMenuOpen = false">
             <div class="icon">
-              <font-awesome fas icon="list" />
+              <font-awesome fas icon="indent" />
               <span>Categories</span>
             </div>
           </router-link>
@@ -27,7 +27,7 @@
         <div class="text-button series-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'all-series' }" @click.native="mobileMenuOpen = false">
             <div class="icon">
-              <font-awesome fas icon="list" />
+              <font-awesome fas icon="list-ol" />
               <span>Series</span>
             </div>
           </router-link>
@@ -36,7 +36,7 @@
         <div class="text-button collections-page" v-if="$store.state.library.collections">
           <router-link :to="{ name: 'collections' }" @click.native="mobileMenuOpen = false">
           <div class="icon">
-            <font-awesome fas icon="list" />
+            <font-awesome fas icon="folder-open" />
             <span>Collections</span>
           </div>
           </router-link>
@@ -45,7 +45,7 @@
         <div class="text-button wishlist-page" v-if="$store.state.library.wishlist">
           <router-link :to="{ name: 'wishlist' }" @click.native="mobileMenuOpen = false">
           <div class="icon">
-            <font-awesome fas icon="list" />
+            <font-awesome fas icon="bookmark" />
             <span>Wishlist</span>
           </div>
           </router-link>

@@ -524,11 +524,17 @@ export default {
   .col-favorite {
     width: 90px;
   }
-  .col-store-page-missing {
-    width: 130px;
+  .col-isbn-10 {
+    width: 100px;
   }
-  .col-store-page-changed {
-    width: 130px;
+  .col-isbn-13 {
+    width: 120px;
+  }
+  .col-store-page-missing,
+  .col-store-page-changed,
+  .col-from-plus-catalog,
+  .col-left-plus-catalog {
+    width: 80px;
   }
 
   tbody .col-title {

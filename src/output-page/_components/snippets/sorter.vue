@@ -128,7 +128,12 @@ export default {
         this.$updateQuery({ query: 'sortDir', value: value ? "desc" : "asc" });
       }
       else if ( this.listName === "filter" ) {
-        this.$updateQuery({ query: this.item.type, value: encodeURIComponent(this.$store.getters.filterKeys) });
+        if ( this.item.type === 'filter') {
+          this.$updateQuery({ query: this.item.type, value: encodeURIComponent(this.$store.getters.filterKeys) });
+        }
+        if ( this.item.type === 'filterExtras' ) {
+          this.$updateQuery({ query: this.item.type, value: encodeURIComponent(this.$store.getters.filterExtrasKeys) });
+        }
       }
       else if ( this.listName === "scope" ) {
         this.$updateQuery({ query: this.listName, value: encodeURIComponent(this.$store.getters.scopeKeys) });

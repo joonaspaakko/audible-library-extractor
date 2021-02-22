@@ -135,9 +135,15 @@ const router = new VueRouter({
 import VueRouterBackButton from "vue-router-back-button";
 Vue.use(VueRouterBackButton, { router });
 
+
+
 // FONT AWESOME
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
+  faFolderOpen,
+  faIndent,
+  faListOl,
+  faBookmark,
   faChevronDown,
   faChevronLeft,
   faChevronRight,
@@ -181,6 +187,10 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
+  faFolderOpen,
+  faIndent,
+  faListOl,
+  faBookmark,
   faChevronDown,
   faChevronLeft,
   faChevronRight,
@@ -309,7 +319,7 @@ globalMethods.install = function (Vue) {
       
       let paramFilters = decodeURIComponent(this.$route.query.filter).split(',');
       
-      _.each( list.filter, function( filter ) {
+      _.each( _.filter(list.filter, { type: 'filter' }), function( filter ) {
         filter.active = false;
         _.each( paramFilters, function( paramFilter ) {
           if ( filter.key === paramFilter ) filter.active = true;
@@ -320,14 +330,10 @@ globalMethods.install = function (Vue) {
     
     if ( this.$route.query.filterExtras ) {
       
-      let paramFilterExtras = decodeURIComponent(this.$route.query.filterExtras).split(',');
-      
-      _.each( list.filter, function( filter ) {
+      let paramFilterExtras = decodeURIComponent(this.$route.query.filterExtras);
+      _.each( _.filter(list.filter, { type: 'filterExtras' }), function( filter ) {
         filter.active = false;
-        console.log( paramFilterExtras )
-        _.each( paramFilterExtras, function( paramFilter ) {
-          if ( filter.key === paramFilter ) filter.active = true;
-        });
+        if ( filter.key === paramFilterExtras ) filter.active = true;
       });
       
     }

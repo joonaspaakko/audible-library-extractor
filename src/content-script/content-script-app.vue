@@ -134,6 +134,7 @@ export default {
   methods: {
     init_step_extract: function(config) {
       
+      console.log('%c' + ' ' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', config);
       const vue = this;
       browser.storage.local.get(null).then(hotpotato => {
         
@@ -146,7 +147,7 @@ export default {
           hotpotato = hotpotato || {};
           hotpotato.config = config;
           if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
-          
+          console.log('%c' + ' ' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', hotpotato.config);
           // _.find( config.steps, { name: "storePage" }).value = true;
         
           const waterfallArray = [
@@ -228,16 +229,14 @@ export default {
       const vue = this;
 
       const hotpotato = {
-        config: { test: true },
+        config: { test: true, getStorePages: 'books' },
         books: [
           // { storePageRequestUrl: 'https://www.audible.com/pd/Goon-Squad-Audiobook/B01MFBRCHN', },
           // { storePageRequestUrl: 'https://www.audible.com/pd/The-Martian-Audiobook/B082BHJMFF', },
           // { storePageRequestUrl: 'https://www.audible.com/pd/The-Dire-King-Audiobook/B0751GMDXN', },
           // { storePageRequestUrl: 'https://www.audible.com/pd/Aliens-of-Extraordinary-Ability-Audiobook/B07TXLC1NF', },
-          {
-            storePageRequestUrl:
-              "https://www.audible.com/pd/Nomad-Audiobook/B017J3ZQDG"
-          }
+          { storePageRequestUrl: "https://www.audible.com/pd/B017J3ZQDG"},
+          { storePageRequestUrl: "https://www.audible.com/pd/B01F7M9KZG"},
         ]
       };
 

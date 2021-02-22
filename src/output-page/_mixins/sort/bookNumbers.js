@@ -31,7 +31,10 @@ export default {
               return parseFloat(dashSplit[0]);
             } 
             else {
-              return 0;
+              
+              let inSeries = _.find(o.series);
+              if ( inSeries ) return -1; // In series: no number
+              else return -2; // Not in series
             }
           },
         // ],

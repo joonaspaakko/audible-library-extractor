@@ -15,7 +15,6 @@ browser.tabs.onUpdated.addListener(tabId => {
 // https://developer.chrome.com/extensions/pageAction
 // https://developer.chrome.com/extensions/pageAction#event-onClicked
 browser.pageAction.onClicked.addListener(tabId => {
-  console.log("test");
   // https://developer.chrome.com/extensions/tabs
   // https://developer.chrome.com/extensions/tabs#method-query
   // Permissions: "tabs"

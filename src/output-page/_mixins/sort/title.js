@@ -21,7 +21,6 @@ export default {
               return o.title || o.titleShort;
             } else {
               if ( vue.$store.state.sticky.viewMode === 'grid' && _.isArray( sortValue ) && (_.find( sortValue, 'name') ? true : false) ) { 
-                console.log( _.map(sortValue, 'name').join(', ') )
                 return _.map(sortValue, 'name').join(', ');
               }
               else { 
@@ -29,7 +28,7 @@ export default {
               }
             }
           } else {
-            return false;
+            return null;
           }
         },
         params.direction
