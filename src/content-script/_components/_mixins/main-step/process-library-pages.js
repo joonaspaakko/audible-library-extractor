@@ -123,44 +123,43 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
       if (favorite) book.favorite = true;
 
       // Progress
-      const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]');
-      const finished = _thisRow.querySelector('[id^="time-remaining-finished"]:not(.bc-pub-hidden)') ? true : false;
-      const timeRemaining = DOMPurify.sanitize(_thisRow.querySelector('[id^="time-remaining"]:not(.bc-pub-hidden)').textContent.trimAll());
+      // const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]');
+      // const finished = _thisRow.querySelector('[id^="time-remaining-finished"]:not(.bc-pub-hidden)') ? true : false;
+      // const timeRemaining = DOMPurify.sanitize(_thisRow.querySelector('[id^="time-remaining"]:not(.bc-pub-hidden)').textContent.trimAll());
       
-      if (progressbar || finished) {
-        book.progress = timeRemaining;
-      } else {
-        book.length = timeRemaining;
-        book.progress = 0;
-      }
-      
-      
-      if ( 
-        book.title.lastIndexOf('Besiege') > -1 ||
-        book.title.lastIndexOf('The Rise and Fall of D.O.D.O.: A Novel') > -1 ||
-        book.title.lastIndexOf('Dragon Blood - Omnibus') > -1
-      ) {
-        console.log('');
-        console.log(  book.title, ' - progress:', book.progress, ' - length:', book.length, 'finished?:', _thisRow.querySelector('[id^="time-remaining-finished"]') );
-      }
-      
-      // const finished = _thisRow.querySelector('[id^="time-remaining-finished"]'); // finished
-      // const timeRemainingDisplay = _thisRow.querySelector('[id^="time-remaining-display"]'); // not started || started
-      
-      // if ( timeRemainingDisplay ) {
-      //   const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]'); // started
-      //   if ( progressbar ) {
-      //     book.progress = DOMPurify.sanitize( timeRemainingDisplay.textContent.trimAll() );
-      //   }
-      //   // not started
-      //   else {      
-      //     book.length = DOMPurify.sanitize( timeRemainingDisplay.textContent.trimAll() );
-      //   }
+      // if (progressbar || finished) {
+      //   book.progress = timeRemaining;
+      // } else {
+      //   book.length = timeRemaining;
+      //   book.progress = 0;
       // }
-      // // finished
-      // else if ( finished ) {
-      //   book.progress = DOMPurify.sanitize( finished.textContent.trimAll() );
+      
+      
+      // if ( 
+      //   book.title.lastIndexOf('Besiege') > -1 ||
+      //   book.title.lastIndexOf('The Rise and Fall of D.O.D.O.: A Novel') > -1 ||
+      //   book.title.lastIndexOf('Dragon Blood - Omnibus') > -1
+      // ) {
+      //   console.log('');
+      //   console.log(  book.title, ' - progress:', book.progress, ' - length:', book.length, 'finished?:', _thisRow.querySelector('[id^="time-remaining-finished"]') );
       // }
+      
+      const finished = _thisRow.querySelector('[id^="time-remaining-finished"]'); // finished
+      const timeRemainingDisplay = _thisRow.querySelector('[id^="time-remaining-display"]'); // not started || started
+      
+      if ( timeRemainingDisplay ) {
+        const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]'); // started
+        if ( progressbar )
+          book.progress = DOMPurify.sanitize( timeRemainingDisplay.textContent.trimAll() );
+        // not started
+        else 
+          book.length = DOMPurify.sanitize( timeRemainingDisplay.textContent.trimAll() );
+      }
+      // finished
+      // This is expected to fail...
+      else if ( finished ) {
+        book.progress = DOMPurify.sanitize( finished.textContent.trimAll() );
+      }
       
       // if ( 
       //   book.title.lastIndexOf('Besiege') > -1 ||

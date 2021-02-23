@@ -74,6 +74,7 @@ import helpers from "./_components/_mixins/misc/helpers.js";
 
 // Steps
 import getDataFromLibraryPages from "./_components/_mixins/main-step/process-library-pages.js";
+import getDataFromLibraryPagesFin from "./_components/_mixins/main-step/process-library-pages-fin.js";
 import getDataFromStorePages from "./_components/_mixins/main-step/process-store-pages.js";
 import getISBNsFromGoogleBooks from "./_components/_mixins/main-step/process-isbns.js";
 import getDataFromSeriesPages from "./_components/_mixins/main-step/process-series-pages.js";
@@ -96,6 +97,7 @@ export default {
     amapxios,
     scrapingPrep,
     getDataFromLibraryPages,
+    getDataFromLibraryPagesFin,
     getDataFromStorePages,
     getISBNsFromGoogleBooks,
     getDataFromCarousel,
@@ -108,6 +110,7 @@ export default {
   data: function() {
     return {
       libraryUrl: window.location.origin + "/library/titles",
+      libraryUrlFin: window.location.origin + "/library/titles?isFinished=true",
       seriesUrl: window.location.origin + "/series",
       collectionsUrl: window.location.origin + "/library/collections",
       wishlistUrl: window.location.origin + "/wl",
@@ -152,13 +155,14 @@ export default {
         
           const waterfallArray = [
             function(callback) { callback(null, hotpotato); },
-            vue.getDataFromLibraryPages, // Can be scraped alone
-            vue.getDataFromStorePages,   // Requires library page data
-            vue.getDataFromSeriesPages,  // Requires store page data (for fallback)
-            vue.getDataFromCollections,  // Can be scraped alone
-            vue.getISBNsFromGoogleBooks, // Requires library page data
-            vue.getDataFromWishlist,      // Can be scraped alone
-            vue.getDataFromStorePages,   // Requires wishlist data
+            vue.getDataFromLibraryPages,    // Can be scraped alone
+            vue.getDataFromLibraryPagesFin, // Requires library page data
+            vue.getDataFromStorePages,      // Requires library page data
+            vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
+            vue.getDataFromCollections,     // Can be scraped alone
+            vue.getISBNsFromGoogleBooks,    // Requires library page data
+            vue.getDataFromWishlist,        // Can be scraped alone
+            vue.getDataFromStorePages,      // Requires wishlist data
           ];
           
           vue.$root.$emit("update-big-step", {
