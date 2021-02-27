@@ -137,7 +137,6 @@ export default {
   methods: {
     init_step_extract: function(config) {
       
-      console.log('%c' + ' ' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', config);
       const vue = this;
       browser.storage.local.get(null).then(hotpotato => {
         
@@ -150,13 +149,12 @@ export default {
           hotpotato = hotpotato || {};
           hotpotato.config = config;
           if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
-          console.log('%c' + ' ' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', hotpotato.config);
           // _.find( config.steps, { name: "storePage" }).value = true;
         
           const waterfallArray = [
             function(callback) { callback(null, hotpotato); },
             vue.getDataFromLibraryPages,    // Can be scraped alone
-            vue.getDataFromLibraryPagesFin, // Requires library page data
+            // vue.getDataFromLibraryPagesFin, // Requires library page data
             vue.getDataFromStorePages,      // Requires library page data
             vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
             vue.getDataFromCollections,     // Can be scraped alone

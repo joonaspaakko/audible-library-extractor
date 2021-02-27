@@ -25,10 +25,11 @@ export default {
         
         vue.scrapingPrep(vue.libraryUrl, function(prep) {
           
+          console.log( prep );
           const requestURL = prep.urlObj.toString();
           vue.amapxios({
             requests: _.map(prep.pageNumbers, function(page) {
-              return requestURL + "&page=" + page;
+              return requestURL + "&page=" + page; // + '&stampyStamp=' + (new Date().getTime());
             }),
             step: function(response, stepCallback) {
               processLibraryPage(vue, response, hotpotato, stepCallback);
@@ -44,7 +45,7 @@ export default {
               });
             }
           });
-        });
+        }, false, false, 40);
         
       }
       else {
@@ -59,6 +60,7 @@ export default {
 };
 
 function processLibraryPage(vue, response, hotpotato, stepCallback) {
+  
   const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
   response.data = null;
 
@@ -123,16 +125,16 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
       if (favorite) book.favorite = true;
 
       // Progress
-      // const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]');
-      // const finished = _thisRow.querySelector('[id^="time-remaining-finished"]:not(.bc-pub-hidden)') ? true : false;
-      // const timeRemaining = DOMPurify.sanitize(_thisRow.querySelector('[id^="time-remaining"]:not(.bc-pub-hidden)').textContent.trimAll());
+      const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]');
+      const finished = _thisRow.querySelector('[id^="time-remaining-finished"]:not(.bc-pub-hidden)') ? true : false;
+      const timeRemaining = DOMPurify.sanitize(_thisRow.querySelector('[id^="time-remaining"]:not(.bc-pub-hidden)').textContent.trimAll());
       
-      // if (progressbar || finished) {
-      //   book.progress = timeRemaining;
-      // } else {
-      //   book.length = timeRemaining;
-      //   book.progress = 0;
-      // }
+      if (progressbar || finished) {
+        book.progress = timeRemaining;
+      } else {
+        book.length = timeRemaining;
+        book.progress = 0;
+      }
       
       
       // if ( 
@@ -144,34 +146,38 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
       //   console.log(  book.title, ' - progress:', book.progress, ' - length:', book.length, 'finished?:', _thisRow.querySelector('[id^="time-remaining-finished"]') );
       // }
       
-      const finished = _thisRow.querySelector('[id^="time-remaining-finished"]'); // finished
+      // const adblLibraryAction = _thisRow.querySelector('.adbl-library-action');
+      // let getTXT = adblLibraryAction.textContent.trimAll().split(' ');
+      // console.log('%c' + 'teeeest' + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;', book.title, getTXT.join(' | ') );
+      
+      /*
+      const adblLibraryAction = _thisRow.querySelector('.adbl-library-action');
       const timeRemainingDisplay = _thisRow.querySelector('[id^="time-remaining-display"]'); // not started || started
+      let isFinished = _thisRow.querySelector('input[name="isFinished"]'); // finished
+      isFinished = isFinished.getAttribute('value') == 'true';
       
-      if ( timeRemainingDisplay ) {
+      if ( isFinished ) {
+        const finishedCont = _thisRow.querySelector('[id^="time-remaining-finished"]');
+        book.progress = DOMPurify.sanitize( finishedCont.textContent.trimAll() );
+        console.log('%c' + 'finished' + '', 'background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;', book.title);
+      }
+      else if ( timeRemainingDisplay ) {
         const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]'); // started
-        if ( progressbar )
+        if ( progressbar ) {
           book.progress = DOMPurify.sanitize( timeRemainingDisplay.textContent.trimAll() );
+          console.log('%c' + 'started (progress)' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;', book.title);
+        }
         // not started
-        else 
+        else {
           book.length = DOMPurify.sanitize( timeRemainingDisplay.textContent.trimAll() );
+          book.progress = 0;
+          console.log('%c' + 'not started' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', book.title);
+        }
       }
-      // finished
-      // This is expected to fail...
-      else if ( finished ) {
-        book.progress = DOMPurify.sanitize( finished.textContent.trimAll() );
+      else {
+        console.log('%c' + 'nothing at all...' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', book.title);
       }
-      
-      // if ( 
-      //   book.title.lastIndexOf('Besiege') > -1 ||
-      //   book.title.lastIndexOf('The Rise and Fall of D.O.D.O.: A Novel') > -1 ||
-      //   book.title.lastIndexOf('Dragon Blood - Omnibus') > -1
-      // ) {
-      //   console.log('');
-      //   console.log(  book.title, (timeRemainingDisplay ? timeRemainingDisplay.textContent.trimAll() : ''), 0, (finished ? finished.textContent.trimAll() : ''), timeRemainingDisplay, finished);
-      // }
-      
-      
-      
+      */
 
       // Own rating
       const myRating = DOMPurify.sanitize(_thisRow.querySelector("div.bc-rating-stars.adbl-prod-rate-review-bar.adbl-prod-rate-review-bar-overall").getAttribute("data-star-count"));
@@ -182,7 +188,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
       // - - - - - - -
 
       if (hotpotato.config.partialScan && bookInMemory === undefined) {
-        console.log("%c" + "book" + "","background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",book.title,book);
+        // console.log("%c" + "book" + "","background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",book.title,book);
         book.isNew = true;
       }
       if (fullScan_ALL_partialScan_NEW) {
@@ -193,4 +199,5 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
   });
 
   stepCallback(books);
+  
 }

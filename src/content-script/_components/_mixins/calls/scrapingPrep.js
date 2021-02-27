@@ -6,12 +6,7 @@
 
 export default {
   methods: {
-    scrapingPrep: function(
-      baseUrl,
-      callbach,
-      returnResponse,
-      returnAfterFirstCall
-    ) {
+    scrapingPrep: function( baseUrl, callbach, returnResponse, returnAfterFirstCall, maxSize ) {
       const vue = this;
       waterfall(
         [
@@ -23,7 +18,7 @@ export default {
               const audible = $($.parseHTML(response.data)).find("div.adbl-main");
               const pageSizeDropdown = audible.find('select[name="pageSize"]');
               const maxPageSize = pageSizeDropdown.length > 0 ? DOMPurify.sanitize(pageSizeDropdown.find("option:last").val()) : null;
-              url.query.pageSize = maxPageSize;
+              url.query.pageSize = maxSize ? (maxPageSize > maxSize ? maxSize : maxPageSize) : maxPageSize;
 
               let obj = {};
               if (returnResponse) obj.response = response;

@@ -69,4 +69,5 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
   });
 
   stepCallback();
+  
 }
