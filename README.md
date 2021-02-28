@@ -1,16 +1,15 @@
 
-# Audible Library Extractor
+# Audible Library Extractor browser extension ((metadata only))
 
-Automatically generates a searchable gallery & spreadsheet by scanning your audible library. The goal with this project is to help your show others what you have in your Audible library. Once the library has been scanned, you can immediately privately view the gallery. From there you can extract the files that you can share with others by uploading the files online or perhaps sharing the files via email, if you want to get old school about it. Here's an old video showing how what the extension extraction process looks like [Youtube video](https://youtu.be/SxqG8BXIsg0).
+> Supported browsers: Chrome + Firefox 
 
-You can check my Audible library [here](https://joonaspaakko.github.io/my-audible-library/). 
+Automatically generates a searchable gallery by scanning your audible library. If you upload the gallery online, you can share it with others. The gallery can also be very handy for your own use, to find what to listen to next.
 
-- The extension automatically generates a searchable gallery & spreadsheet by scanning your audible library
-- The gallery is mainly designed to help you share what you have in your library, but it's also designed to help you find books to listen to
-- The spreadsheet is a view mode in the gallery, but you can also save it as a CSV file through the gallery. You could also select each cell and copy & paste into a spreadsheet application if you want to skip dealing with files.
-- The gallery generates a list of all the books you own in the series of the book you're viewing and marks the one's you have finished. This helps a lot when trying to figure out which book comes next in a series.
-- The gallery works on mobile devices
-- Only handles metadata, so it doesn't extract the audio files
+- You can check my Audible library here: [https://joonaspaakko.github.io/my-audible-library/](https://joonaspaakko.github.io/my-audible-library/)
+- Screenshots: [screenshot 1](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-1.png?raw=true), [screenshot 2](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true), [screenshot 3](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true), [screenshot 4](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true), [screenshot 5](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-3.png?raw=true)
+
+
+![](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-1.png)
 
 ## How to install developement releases
 
@@ -43,17 +42,17 @@ I would not recommend installing these developement releases, but if you have to
 
 ## How to use the extension
 
-> Check this video if you can't make sense of the list of steps below: [Youtube video](https://youtu.be/SxqG8BXIsg0). First 10 seconds should tell you all you need to know.
-
-1. Go to your Audible library
-2. Click the orange `Audible library extractor` button
-	- The button is at the top right above where the list of books starts
-3. In the next view you can start the extraction process by pressing the big blue button.
-4. After the extraction is done the current tab is closed and a new output page for the gallery is opened.
+1. Go to your Audible library, 
+2. Click the `Audible Library Extractor` link or the extension icon.
+    - If you can't find the link, check this [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true).
+3. In the next view you can choose what to extract and start the extraction process by clicking the big blue button: [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true) 
+4. The extraction will take a few minutes. It depends on the size of your library and any of the other things you choose to extract.
+6. After the extraction is done the current tab is closed and a new output page for the gallery is opened.
+    - You can choose to save the gallery as a standalone web gallery using the [floppy disk button at the top right corner](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true).
 
 ### Region support?
 
-I would love for this to work on all of the different regions but as of now I would expect it to only work in any English Audible websites. The gallery is in English only.
+I would love for this to work on all of the different regions but as of now I would expect it to only work in `audible.com` and possibly any English Audible websites. If you're having trouble using the extension in another region, please post an issue and any useful details to pinpoint the issue(s). The gallery itself is in English and there are no plans to support multiple languages.
 
 ______	
 
@@ -98,49 +97,13 @@ This is a fairly complex process if you've never used Github/Git to make reposit
 
 **What if I want to upload my updated gallery again?**
 
-This is super simple. You just save it locally again, replace the files in this Github project folder on your computer and then in the Github Desktop client open the audible library project: `commit changes` → `push origin` → Done.
+1. I assume you have probably run the partial library extraction.
+2. Then save the gallery again using the floppy disk icon.
+3. Remove all files in your github repository folder on your computer.
+4. Extract the new .zip → copy over to the github repository folder.
+5. In the Github Desktop client open the audible library project
+7. Commit changes
+8. Push origin
+9. And the website should be online in a couple minutes.
 
 </details>
-
-## Project goals
-
-> Just the big mile markers... There will be many minor and major features and issues to patch between each one listed below.
-
-- [x] Library scanning (scraping):
-  - [x] Extract the whole library and its relevant data
-  - [x] Library update
-    - Added, but still has some bugs. I believe it only works right now if you've added new books since the last scan. Otherwise it will freeze.
-- [x] Gallery:
-  - [x] A locally viewable gallery
-  - [x] Lazy loading for images
-  - [x] Search
-    - [x] Search scopes
-    - [ ] Autocomplete
-  - [x] Filter buttons
-  - [x] Sorting
-  - [ ] Audio player for the sample audio
-    - [ ] Ability to play the full mp3 files saved by OpenAudible.
-      - I'm not sure how feasible this idea is, but it would be cool if the player could play the full audiobook if they exist in the gallery folder.
-- [x] Spreadsheet:
-  - [x] CSV export _Right now you can select all cells and copy it to clipboard. No export button yet._
-  - [ ] Making the CSV compatible with the import feature in Goodreads
-    - To make sure the imported books get the best chance of finding a match in Goodreads it should include the International Standard Book Number (ISB), that audible doesn't provide in the website, so the plan is to fetch it from the Google books API and place it in the spreadsheet.
-- [x] Ability to save the output page locally as a standalone web gallery.
-  - The purpose of this is so that you can share it with others by uploading it online or possibly sharing via email or something.
-  - [x] Mobile support
-- [x] ~~Firefox support.~~ I've now checked that at least the basic functionality of the extension works in Firefox.
-
-____
-____
-
-## Misc info
-
-If you are interested in downloading/converting the audio files to mp3's, possibly the simplest option is [OpenAudible](https://openaudible.org/).
-
-**Looking for something to manage/stream/download/listen audibooks?**
-
-> First of all, these are both kinda advanced and depending on your usage may require an always on server computer.
-
-[Booksonic](https://booksonic.org/) might be the first thing you want to check. I believe it's a fork of [Subsonic](http://www.subsonic.org/) made specifically for Audibobooks. I haven't looked into it in a while, but I believe Subsonic's mobile app should work with Booksonic too, which I think people have used specifically on ios, since booksonic doesn't have an ios client.
-
-Another route is [Plex Media Server](https://www.plex.tv/). It's okay for this purpose, but it doesn't have a real audiobook support. For the best experience with PMS, you need [Prologue](https://prologue-app.com/), which is ios only. PMS does allow you to download books if you have plex pass.
