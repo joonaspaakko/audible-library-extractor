@@ -8,10 +8,12 @@ export default {
         // Add book number sorting + activate sort values
         this.$store.commit('addListRenderingOpts', { 
           listName: 'sort', 
-          option: { active: false,  current: true, key: 'seriesOrder', label: 'Series order', type: 'sort', tippy: 'The infinite symbol (∞) means the book is in a series but does not have a number.' },
-          activate: true,
+          option: { active: false,  current: false, key: 'seriesOrder', label: 'Series order', type: 'sort', tippy: 'The infinite symbol (∞) means the book is in a series but does not have a number.' },
+          activate: (this.$route.query.sort && this.$route.query.sort !== 'seriesOrder') ? false : true,
           sortValues: true,
         });
+        
+        console.log( _.filter( this.$store.state.listRenderingOpts.sort, { current: true }) )
         
         const seriesASIN = this.$route.params.series;
         const series = _.find( this.$store.state.library.series, { asin: seriesASIN });

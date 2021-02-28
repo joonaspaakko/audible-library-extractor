@@ -12,6 +12,8 @@
         class="ale-click-wrap"
         @click="$root.$emit('book-clicked', { book })"
       >
+        
+        <div class="blurb-tooltip" v-if="book.blurb" v-tippy="{ placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
       
         <div class="info-icons-wrapper">
           <!-- FAVORITE -->
@@ -28,7 +30,7 @@
 
           <!-- FROM PLUS CATALOG -->
           <div class="plus-catalog-marker" v-if="book.fromPlusCatalog">
-            <span v-if="book.leftPlusCatalog"><font-awesome fas icon="lock" /></span>
+            <span v-if="book.unavailable"><font-awesome fas icon="lock" /></span>
             <span v-else><font-awesome fas icon="plus-circle" /></span>
             <span>catalog</span>
           </div>
@@ -297,6 +299,22 @@ export default {
   height: 0;
   overflow: hidden;
 }
+
+.blurb-tooltip {
+  display: none;
+  position: absolute;
+  top: 0px;
+  left: 0px;
+  z-index: 10;
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 25px 25px 0 0;
+  border-color: rgba(#000000, .7) transparent transparent transparent;
+  outline: none;
+}
+.ale-click-wrap:hover .blurb-tooltip { display: block; }
+body.is-ios .blurb-tooltip { display: none; }
 
 body.is-ios .ale-click-wrap {
   .ale-info-indicator {

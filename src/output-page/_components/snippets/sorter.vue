@@ -73,26 +73,28 @@ export default {
         this.saveOptions( value );
         
         if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
+      
+        if (this.listName === "scope") {
+          this.$root.$emit("start-scope");
+        }
+        else if (
+          ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) 
+          && this.item.key !== "sortValues"
+        ) {
+          this.$store.commit("prop", { 'key': 'searchSort', value: false });
+          this.$root.$emit("start-sort");
+        } else if (this.listName === "filter") {
+          this.$root.$emit("start-filter");
+        } 
         
-        // this.$nextTick(function() {
-          if (this.listName === "scope") {
-            this.$root.$emit("start-scope");
-          }
-          else if (
-            ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) 
-            && this.item.key !== "sortValues"
-          ) {
-            this.$root.$emit("start-sort");
-          } else if (this.listName === "filter") {
-            this.$root.$emit("start-filter");
-          } 
-        // });
       }
     },
 
     isActiveSortItem: function() {
-      const changedIndex = _.findIndex(this.currentList, "current");
-      return changedIndex === this.index;
+      if ( !this.$store.state.searchSort ) {
+        const changedIndex = _.findIndex(this.currentList, "current");
+        return changedIndex === this.index;
+      }
     },
     
   },

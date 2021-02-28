@@ -145,7 +145,6 @@ export default {
         vue.ui = "scraping";
         vue.$nextTick(function() {
           
-          
           hotpotato = hotpotato || {};
           hotpotato.config = config;
           if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;

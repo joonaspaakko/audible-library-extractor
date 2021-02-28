@@ -307,6 +307,7 @@ globalMethods.install = function (Vue) {
     
     if ( this.$route.query.sort ) {
       let currentSorter = _.find( list.sort, { current: true });
+      console.log( 'currentSorter', currentSorter)
       currentSorter.current = false;
       const sortIndex = _.findIndex( list.sort, { key: this.$route.query.sort });
       if ( sortIndex > -1 ) {

@@ -80,7 +80,7 @@ export default {
           { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
           { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
           { active: false, type: 'filterExtras', label: 'From plus catalog', key: 'from-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog; } },
-          { active: false, type: 'filterExtras', label: 'Left plus catalog', key: 'left-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.leftPlusCatalog; } },
+          { active: false, type: 'filterExtras', label: 'Left plus catalog', key: 'left-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; } },
           { active: false, type: 'filterExtras', label: 'Multiple narrators', key: 'multiple-narrators', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length > 1; } },
           { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
@@ -95,7 +95,7 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 1', key: '>1series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 1', key: 'plus1series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -103,7 +103,7 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 5', key: '>5series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 5', key: 'plus5series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -111,7 +111,7 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 10', key: '>10series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 10', key: 'plus10series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -119,7 +119,7 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 20', key: '>20series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 20', key: 'plus20series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -127,7 +127,7 @@ export default {
             });
             return result; 
           } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 30', key: '>30series', group: 'filterExtras', condition: function( book ) { 
+          { active: false, type: 'filterExtras', label: 'Books in series > 30', key: 'plus30series', group: 'filterExtras', condition: function( book ) { 
             let result = false;
             _.each( book.series, function( cSeries ) {
               const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
@@ -180,7 +180,7 @@ export default {
           { active: true , current: false, key: 'language'        , label: 'Language'          , type: 'sort' }, 
           { active: true,  current: false, key: 'format',        label: 'Format', type: 'sort' },
           { active: false , current: false, key: 'fromPlusCatalog' , label: 'From plus catalog' , type: 'sort' }, 
-          { active: false , current: false, key: 'leftPlusCatalog' , label: 'Left plus catalog' , type: 'sort' }, 
+          { active: false , current: false, key: 'unavailable' , label: 'Unavailable' , type: 'sort', tippy: 'From the plus catalog and currently unavailable...' }, 
           { active: false , current: false, key: 'downloaded'      , label: 'Downloaded'        , type: 'sort' }, 
           
           { type: 'divider', key: 'divider5' },

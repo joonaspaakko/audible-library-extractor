@@ -92,17 +92,17 @@ export default {
         filter: [
           { active: true,  type: 'filterExtras', label: 'All',         key: 'all',   group: 'radioHead', condition: function( series ) { return true; }},
           { active: false,  type: 'filterExtras', label: 'Books 1',    key: 'series1', group: 'radioHead',   condition: function( series ) { return series.books.length === 1; }},
-          { active: false,  type: 'filterExtras', label: 'Books > 1',  key: 'series>1',  group: 'radioHead', condition: function( series ) { return series.books.length > 1; }},
-          { active: false, type: 'filterExtras', label: 'Books > 5',  key: 'series>5',  group: 'radioHead', condition: function( series ) { return series.books.length > 5; }},
-          { active: false, type: 'filterExtras', label: 'Books > 10', key: 'series>10', group: 'radioHead', condition: function( series ) { return series.books.length > 10; }},
-          { active: false, type: 'filterExtras', label: 'Books > 20', key: 'series>20', group: 'radioHead', condition: function( series ) { return series.books.length > 20; }},
-          { active: false, type: 'filterExtras', label: 'Books > 30', key: 'series>30', group: 'radioHead', condition: function( series ) { return series.books.length > 30; }},
+          { active: false,  type: 'filterExtras', label: 'Books > 1',  key: 'series-1',  group: 'radioHead', condition: function( series ) { return series.books.length > 1; }},
+          { active: false, type: 'filterExtras', label: 'Books > 5',  key: 'series-5',  group: 'radioHead', condition: function( series ) { return series.books.length > 5; }},
+          { active: false, type: 'filterExtras', label: 'Books > 10', key: 'series-10', group: 'radioHead', condition: function( series ) { return series.books.length > 10; }},
+          { active: false, type: 'filterExtras', label: 'Books > 20', key: 'series-20', group: 'radioHead', condition: function( series ) { return series.books.length > 20; }},
+          { active: false, type: 'filterExtras', label: 'Books > 30', key: 'series-30', group: 'radioHead', condition: function( series ) { return series.books.length > 30; }},
         ],
         sort: [
           { active: false,                 key: 'randomize', label: 'Randomize',       type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
           { type: 'divider', key: 'divider1' },
           // active: true = arrow down / descending
-          { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: 'Arrow down = new first <br/> Arrow up = old first' },
+          { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
           { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort' },
           { active: true,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
         ],

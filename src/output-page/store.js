@@ -22,6 +22,7 @@ export default new Vuex.Store({
     library: null,
     urlOrigin: null,
     searchQuery: "",
+    searchSort: false,
     standalone: null,
     displayMode: null,
     listRenderingOpts: null,

@@ -26,41 +26,19 @@ export default {
         });
 
         const vue = this;
-
-        const getISBNS = _.find(hotpotato.config.steps, { name: "isbn" }).value;
-        const useStorageISBNs = getISBNS && true;
-        if ( useStorageISBNs ) {
-          browser.storage.local.get(null).then(storageData => {
-            const bookChunksLength = storageData["books-chunk-length"];
-            const bookChunkNumbers = _.range(0, bookChunksLength);
-            let isbnBooks = [];
-            _.each(bookChunkNumbers, function(n) {
-              isbnBooks = isbnBooks.concat(storageData["books-chunk-" + n]);
-            });
-            isbnBooks = _.filter(isbnBooks, "isbns");
-            _.each(isbnBooks, function(isbnBook) {
-              let book = _.find(hotpotato.books, { asin: isbnBook.asin });
-              if ( book ) book.isbns = isbnBook.isbns;
-            });
-            fetchISBNs(vue, hotpotato, useStorageISBNs, isbnsFetched);
-          });
-        } else {
-          fetchISBNs(vue, hotpotato, null, isbnsFetched);
-        }
+        fetchISBNs(vue, hotpotato, isbnsFetched);
+        
       }
     }
   }
 };
 
-function fetchISBNs(vue, hotpotato, useStorageISBNs, isbnsFetched) {
-  const requestUrls = [];
-
+function fetchISBNs(vue, hotpotato, isbnsFetched) {
+  
   // hotpotato.books.length = 100;
-  const booksOfInterest = hotpotato.config.partialScan || useStorageISBNs ? 
-    _.filter(hotpotato.books, function(o) { 
-      return !o.isbns; 
-    }) : hotpotato.books;
-
+  const requestUrls = [];
+  let booksOfInterest = _.filter(hotpotato.books, function(o) { return !o.isbns; });
+  
   _.each(booksOfInterest, function(book) {
     if ( book.title && book.authors ) {
       // const query = /*'intitle:' +*/ book.title + '+inauthor:' + book.authors[0].name;

@@ -154,7 +154,7 @@ export default {
         "rating",
         "ratings",
         "fromPlusCatalog",
-        "leftPlusCatalog",
+        "unavailable",
       ];
       let leftoverKeys = _.remove(keys, function(key) {
         return !_.includes(priorityKeys, key);
@@ -443,6 +443,7 @@ export default {
       }
     }
   }
+  
   .ale-row {
     .ale-col {
       background: #15171a;
@@ -459,7 +460,7 @@ export default {
   .list-view,
   .ale-row,
   .ale-col {
-    border-color: lighten($darkBackColor, 11);
+    border-color: lighten($darkBackColor, 15) !important;
   }
 
   .list-view-header .ale-col {
@@ -558,4 +559,11 @@ export default {
 .ale-col {
   position: relative;
 }
+
+@media ( min-width: 920px ) {
+  #ale-bookdetails .summary-read-more {
+    text-align: left !important;
+  }
+}
+
 </style>

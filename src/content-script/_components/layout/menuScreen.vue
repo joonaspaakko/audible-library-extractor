@@ -178,7 +178,7 @@ export default {
               <li>
                 Updates information on old books that is likely to change:
                 <br>
-                <code>leftPlusCatalog, downloaded, favorite, progress, length, myRating</code>
+                <code>unavailable(plus catalog), downloaded, favorite, progress, length, myRating</code>
                 <ul>
               </li>
             </ol>

@@ -25,7 +25,6 @@ export default {
         
         vue.scrapingPrep(vue.libraryUrl, function(prep) {
           
-          console.log( prep );
           const requestURL = prep.urlObj.toString();
           vue.amapxios({
             requests: _.map(prep.pageNumbers, function(page) {
@@ -77,10 +76,13 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
     // Ignore anything that isn't a book, like for example podcasts...
     if (rowItemIsBook) {
       const bookASIN = DOMPurify.sanitize(_thisRow.getAttribute("id").replace("adbl-library-content-row-", ""));
-      const bookInMemory = !hotpotato.config.partialScan? undefined: _.find(hotpotato.books, ["asin", bookASIN]);
+      const bookInMemory = _.find(hotpotato.books, ["asin", bookASIN]);
       const fullScan_ALL_partialScan_NEW = (hotpotato.config.partialScan && !bookInMemory) || !hotpotato.config.partialScan;
       let book = hotpotato.config.partialScan && bookInMemory ? bookInMemory : {};
-
+      
+      // Always pass over old ISBNs
+      if ( bookInMemory && bookInMemory.isbns ) book.isbns = bookInMemory.isbns;
+      
       const storePageLink = _thisRow.querySelector(":scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a");
       
       if (storePageLink) {
@@ -91,7 +93,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
 
       // UPDATE SCAN: fetch these only if the book is a new addition...
       // FULL SCAN: fetch always
-      if (fullScan_ALL_partialScan_NEW) {
+      if ( fullScan_ALL_partialScan_NEW ) {
         book.asin = bookASIN;
         const getCover = DOMPurify.sanitize(_thisRow.querySelector("a > img.bc-pub-block:first-of-type").getAttribute("src"));
         // FIXME: there is probably a better way to do this:
@@ -115,8 +117,8 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
 
       // "Came from the plus catalog but is no longer available there"
       const unavailableBtn = _thisRow.querySelector(".adbl-library-inaccessible-button");
-      if (unavailableBtn) book.leftPlusCatalog = true;
-
+      if (unavailableBtn) book.unavailable = true;
+      
       // Downloaded
       book.downloaded = _thisRow.querySelector(".adbl-library-action > div:nth-child(4) > span") ? true : null;
 

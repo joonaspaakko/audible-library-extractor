@@ -168,9 +168,17 @@ export default {
       // Reset 
       this.$root.$emit("book-clicked", { book: null });
       if (e) {
+        
         this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
         this.$updateQuery({ query: 'search', value: encodeURIComponent(e.target.value) });
+        
       }
+      
+      // This was really just for making sure sorters aren't shown as active when searching )
+      this.$store.commit("prop", { 
+        key: 'searchSort', 
+        value: this.$store.getters.searchIsActive
+      });
 
       // Start searching
       if (this.$store.getters.searchIsActive) {

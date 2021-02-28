@@ -7,10 +7,11 @@
     </div>
     
     <mini-audio
-      :audio-source="audioSource"
-      preload
-      autoplay
-      ref="audioPlayer"
+    :audio-source="audioSource"
+    :preload="true"
+    :html5="true"
+    :autoplay="true"
+    ref="audioPlayer"
     ></mini-audio>
     
     <span class="close" ref="closeBtn">

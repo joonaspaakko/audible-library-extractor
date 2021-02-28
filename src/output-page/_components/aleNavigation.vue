@@ -212,9 +212,6 @@ export default {
     bottom: 0;
     font-size: 23px;
   }
-  @include themify($themes) {
-    background: lighten(themed(backColor), 5);
-  }
   box-shadow: 2px 0px 13px rgba(#000, 0.5);
   padding: 5px 0;
   line-height: 0px;
@@ -348,6 +345,14 @@ export default {
       padding: 7px 10px;
     }
   }
+}
+
+.theme-light #ale-navigation {
+  background: #fff;
+}
+
+.theme-dark #ale-navigation {
+  background: #121517;
 }
 
 </style>

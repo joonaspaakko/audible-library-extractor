@@ -527,25 +527,28 @@ export default {
 } // #ale-bookdetails
 
 .theme-light #ale-bookdetails {
+  .information {
+    background: #fff;
+  }
   background: -moz-linear-gradient(
     top,
-    rgba(249, 248, 248, 0.9) 0%,
-    rgba(249, 248, 248, 1) 49%,
-    rgba(249, 248, 248, 1) 100%
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 1) 49%,
+    rgba(255, 255, 255, 1) 100%
   );
   background: -webkit-linear-gradient(
     top,
-    rgba(249, 248, 248, 0.9) 0%,
-    rgba(249, 248, 248, 1) 49%,
-    rgba(249, 248, 248, 1) 100%
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 1) 49%,
+    rgba(255, 255, 255, 1) 100%
   );
   background: linear-gradient(
     to bottom,
-    rgba(249, 248, 248, 0.9) 0%,
-    rgba(249, 248, 248, 1) 49%,
-    rgba(249, 248, 248, 1) 100%
+    rgba(255, 255, 255, 0.9) 0%,
+    rgba(255, 255, 255, 1) 49%,
+    rgba(255, 255, 255, 1) 100%
   );
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e6f9f8f8', endColorstr='#f9f8f8',GradientType=0 );
+  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fff', endColorstr='#fff',GradientType=0 );
 }
 .theme-dark #ale-bookdetails {
   background: -moz-linear-gradient(

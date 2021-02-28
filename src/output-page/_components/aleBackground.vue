@@ -29,8 +29,6 @@ export default {
 
   mounted: function() {
     
-    this.coverSource = this.$store.state.library.books ? this.$store.state.library.books : this.$store.state.library.wishlist;
-    
     this.windowWidth = window.innerWidth;
     this.books = this.getBooks();
     this.flipAnimationRandomizer();
@@ -44,15 +42,14 @@ export default {
   },
 
   methods: {
-    getBooks: function() {
+    
+    bgGridSize: function() {
+      
       // 15 (>1300)
       // 12 (<1300)
       // 8 (<1000)
       // 6 (<760)
       // 4 (<530)
-      function calculateBgLength(n) {
-        return 6 * n;
-      }
       let bgLength = calculateBgLength(15);
       if (this.windowWidth < 530) {
         bgLength = calculateBgLength(5);
@@ -63,6 +60,18 @@ export default {
       } else if (this.windowWidth < 1300) {
         bgLength = calculateBgLength(12);
       }
+      
+      function calculateBgLength(n) { return 6 * n; }
+      
+      return bgLength;
+      
+    },
+    
+    getBooks: function() {
+      
+      const bgLength = this.bgGridSize();
+      
+      this.coverSource = this.$store.state.library.books ? this.$store.state.library.books : this.$store.state.library.wishlist;
       
       let books = (function(books) {
         const booksLength = books.length;
@@ -141,6 +150,56 @@ export default {
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
 
+html.theme-dark #ale-background:after {
+  $bgColor: $darkBackColor;
+  
+  background: -moz-linear-gradient(
+    top,
+    rgba($bgColor, 0) 0%,
+    rgba($bgColor, 0.6) 24%,
+    $bgColor 78%,
+    $bgColor 100%
+  );
+  background: -webkit-linear-gradient(
+    top,
+    rgba($bgColor, 0) 0%,
+    rgba($bgColor, 0.6) 24%,
+    $bgColor 78%,
+    $bgColor 100%
+  );
+  background: linear-gradient(
+    to bottom,
+    rgba($bgColor, 0) 0%,
+    rgba($bgColor, 0.6) 24%,
+    $bgColor 78%,
+    $bgColor 100%
+  );
+}
+
+html.theme-light #ale-background:after {
+  background: -moz-linear-gradient(
+    top,
+    rgba($lightBackColor, 0) 0%,
+    rgba($lightBackColor, 0.6) 24%,
+    $lightBackColor 78%,
+    $lightBackColor 100%
+  );
+  background: -webkit-linear-gradient(
+    top,
+    rgba($lightBackColor, 0) 0%,
+    rgba($lightBackColor, 0.6) 24%,
+    $lightBackColor 78%,
+    $lightBackColor 100%
+  );
+  background: linear-gradient(
+    to bottom,
+    rgba($lightBackColor, 0) 0%,
+    rgba($lightBackColor, 0.6) 24%,
+    $lightBackColor 78%,
+    $lightBackColor 100%
+  );
+}
+
 #ale-background {
   position: fixed;
   z-index: -1;
@@ -166,29 +225,6 @@ export default {
     right: 0;
     bottom: 0;
     left: 0;
-    @include themify($themes) {
-      background: -moz-linear-gradient(
-        top,
-        rgba(themed(backColor), 0) 0%,
-        rgba(themed(backColor), 0.6) 24%,
-        themed(backColor) 78%,
-        themed(backColor) 100%
-      );
-      background: -webkit-linear-gradient(
-        top,
-        rgba(themed(backColor), 0) 0%,
-        rgba(themed(backColor), 0.6) 24%,
-        themed(backColor) 78%,
-        themed(backColor) 100%
-      );
-      background: linear-gradient(
-        to bottom,
-        rgba(themed(backColor), 0) 0%,
-        rgba(themed(backColor), 0.6) 24%,
-        themed(backColor) 78%,
-        themed(backColor) 100%
-      );
-    }
   }
 
   img {

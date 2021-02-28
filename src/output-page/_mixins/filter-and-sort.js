@@ -145,9 +145,9 @@ export default {
           case "isNew":
           case "language":
           case "fromPlusCatalog":
+          case "unavailable":
           case "favorite":
           case "downloaded":
-          case "leftPlusCatalog":
           case "storePageMissing":
           case "storePageChanged":
             books = this.sortTitle(sortOptions);
