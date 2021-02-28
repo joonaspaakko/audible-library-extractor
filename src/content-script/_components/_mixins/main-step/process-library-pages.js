@@ -4,14 +4,7 @@ export default {
       const vue = this;
       
       if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
-          
-        // derank any books that were new additions in the last partial scan.
-        if (hotpotato.config.partialScan) {
-          _.each(hotpotato.books, function(book) {
-            if (book.isNew) delete book.isNew;
-          });
-        }
-
+        
         this.$root.$emit("update-big-step", {
           title: "Library",
           stepAdd: 1
@@ -192,6 +185,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
       if (hotpotato.config.partialScan && bookInMemory === undefined) {
         // console.log("%c" + "book" + "","background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",book.title,book);
         book.isNew = true;
+        book.isNewThisRound = true;
       }
       if (fullScan_ALL_partialScan_NEW) {
         vue.$root.$emit("update-progress-max");

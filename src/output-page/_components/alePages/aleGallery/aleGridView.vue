@@ -218,11 +218,11 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
 @media (max-width: 630px) {
 
   .ale-book {
-    width: calc( 34.4vw - 20px);
-    height: calc( 34.4vw - 20px);
+    width: calc( 34.4vw - 24px);
+    height: calc( 34.4vw - 24px);
   }
   .sort-values-on .ale-book {
-    height: calc(34.4vw - 20px + 27px);
+    height: calc(34.4vw - 24px + 27px);
   }
   
 }
@@ -261,11 +261,11 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
 @media (max-width: 504px) {
   
   .ale-book {
-    width: calc( 50vw - 20px);
-    height: calc( 50vw - 20px);
+    width: calc( 50vw - 25px);
+    height: calc( 50vw - 25px);
   }
   .sort-values-on .ale-book {
-    height: calc(50vw - 20px + 27px);
+    height: calc(50vw - 25px + 27px);
   }
 }
 

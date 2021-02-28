@@ -6,7 +6,7 @@ export default {
       
       if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
         
-        let booksInSeries = hotpotato.config.partialScan ? _.filter(hotpotato.books, 'isNew') : hotpotato.books;
+        let booksInSeries = hotpotato.config.partialScan ? _.filter(hotpotato.books, 'isNewThisRound') : hotpotato.books;
 
         if ( booksInSeries.length > 0 ) {
           

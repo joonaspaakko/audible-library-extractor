@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-gallery">
+  <div id="ale-gallery" :data-audio-player-visible="$store.state.audioPlayerVisible">
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     
@@ -15,8 +15,10 @@
     
     <ale-search :collectionSource="collectionSource"></ale-search>
     
-    <ale-grid-view v-if="$store.state.sticky.viewMode === 'grid'" />
-    <ale-list-view v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+    <div v-if="$store.getters.collection && $store.getters.collection.length > 0">
+      <ale-grid-view v-if="$store.state.sticky.viewMode === 'grid'" />
+      <ale-list-view v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+    </div>
     
   </div>
 </template>
@@ -28,6 +30,8 @@ import prepCategoriesSubPage from "@output-mixins/prepCategoriesSubPage.js";
 import prepCollectionsSubPage from "@output-mixins/prepCollectionsSubPage.js";
 import prepSeriesSubPage from "@output-mixins/prepSeriesSubPage.js";
 import prepWishlist from "@output-mixins/prepWishlist.js";
+
+import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
 
 // import aleBreadcrumbs from '../aleBreadcrumbs'
 import filterAndSort from "@output-mixins/filter-and-sort.js";
@@ -48,6 +52,7 @@ export default {
     prepCollectionsSubPage, 
     prepSeriesSubPage,
     prepWishlist,
+    timeStringToSeconds,
   ],
   
   data: function() {
@@ -56,6 +61,26 @@ export default {
       pageTitle: null,
       pageSubTitle: null,
     };
+  },
+  
+  beforeCreate: function() {
+    
+    if ( this.$route.query.view ) {
+      this.$store.commit('stickyProp', { key: 'viewMode', value: this.$route.query.view });
+    }
+    
+  },
+  
+  created: function() {
+    
+    this.updateListRenderingOptions();
+    
+    // Setup for other pages that use the gallery page to show titles
+    this.prepCategoriesSubPage();    
+    this.prepCollectionsSubPage();    
+    this.prepSeriesSubPage();
+    this.prepWishlist();
+    
   },
   
   methods: {
@@ -74,18 +99,72 @@ export default {
           { active: true, type: 'filter', label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
           { active: true, type: 'filter', label: 'Started',     key: 'started',    condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
           { active: true, type: 'filter', label: 'Finished',    key: 'finished',   condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
-          // FIXME: I have to think a little bit more about how to add more filters if at all...
+          
           { type: 'divider', key: 'divider1' },
           
           { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
           { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
-          { active: false, type: 'filterExtras', label: 'From plus catalog', key: 'from-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog; } },
-          { active: false, type: 'filterExtras', label: 'Left plus catalog', key: 'left-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; } },
-          { active: false, type: 'filterExtras', label: 'Multiple narrators', key: 'multiple-narrators', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length > 1; } },
           { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
+          { active: false, type: 'filterExtras', label: 'From plus catalog', key: 'from-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog; } },
+          { active: false, type: 'filterExtras', label: 'Unavailable', key: 'unavailable', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; } },
+          { active: false, type: 'filterExtras', label: 'Store page unavailable', key: 'store-page-unavailable', group: 'filterExtras', condition: function( book ) { return book.storePageChanged || book.storePageMissing; } },
+          { active: false, type: 'filterExtras', label: 'New books', key: 'new-books', group: 'filterExtras', condition: function( book ) { return book.isNew; } },
           
-          { type: 'divider', key: 'divider2' },
+          { type: 'divider', key: 'divider2.0' },
+
+          { active: false, type: 'filterExtras', label: 'Length 0-1h', key: 'length-0-1h', group: 'filterExtras', condition: function( book ) { 
+            if (book.length) {
+              const length = vue.timeStringToSeconds(book.length);
+              return length <= 3600; 
+            } 
+          } },
+          { active: false, type: 'filterExtras', label: 'Length 1-3h', key: 'length-1-3h', group: 'filterExtras', condition: function( book ) { 
+            if (book.length) {
+              const length = vue.timeStringToSeconds(book.length);
+              return length > 3600 && length <= 10800; 
+            } 
+          } },
+          { active: false, type: 'filterExtras', label: 'Length 3-5h', key: 'length-3-5h', group: 'filterExtras', condition: function( book ) { 
+            if (book.length) {
+              const length = vue.timeStringToSeconds(book.length);
+              return length > 10800 && length <= 18000; 
+            } 
+          } },
+          { active: false, type: 'filterExtras', label: 'Length 5-10h', key: 'length-5-10h', group: 'filterExtras', condition: function( book ) {
+            if (book.length) {
+              const length = vue.timeStringToSeconds(book.length);
+              return length > 18000 && length <= 36000; 
+            } 
+          } },
+          { active: false, type: 'filterExtras', label: 'Length 10-20h', key: 'length-10-20h', group: 'filterExtras', condition: function( book ) { 
+            if (book.length) {
+              const length = vue.timeStringToSeconds(book.length);
+              return length > 36000 && length <= 72000; 
+            } 
+          } },
+          { active: false, type: 'filterExtras', label: 'Length 20-30h', key: 'length-20-30h', group: 'filterExtras', condition: function( book ) {
+            if (book.length) {
+              const length = vue.timeStringToSeconds(book.length);
+              return length > 72000 && length <= 108000; 
+            } 
+          } },
+          { active: false, type: 'filterExtras', label: 'Length +30h', key: 'length-plus30h', group: 'filterExtras', condition: function( book ) {
+            if (book.length) {
+              const length = vue.timeStringToSeconds(book.length);
+              return length > 108000; 
+            } 
+          } },
+          
+          { type: 'divider', key: 'divider2.1' },
+          
+          { active: false, type: 'filterExtras', label: 'Multiple narrators', key: 'multiple-narrators', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length > 1; } },
+          { active: false, type: 'filterExtras', label: 'Multiple narrators 2', key: 'multiple-narrators2', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length === 2; } },
+          { active: false, type: 'filterExtras', label: 'Multiple narrators 3-5', key: 'multiple-narrators-3-5', group: 'filterExtras', condition: function( book ) { return book.narrators && (book.narrators.length > 2 && book.narrators.length <= 5); } },
+          { active: false, type: 'filterExtras', label: 'Multiple narrators 6-10', key: 'multiple-narrators-6-10', group: 'filterExtras', condition: function( book ) { return book.narrators && (book.narrators.length > 5 && book.narrators.length <= 10); } },
+          { active: false, type: 'filterExtras', label: 'Multiple narrators > 10', key: 'multiple-narrators-greater-10', group: 'filterExtras', condition: function( book ) { return book.narrators && (book.narrators.length > 10); } },
+          
+          { type: 'divider', key: 'divider3' },
           
           { active: false, type: 'filterExtras', label: 'Books in series 1', key: '1inSeries', group: 'filterExtras', condition: function( book ) { 
             let result = false;
@@ -136,19 +215,19 @@ export default {
             return result; 
           } },
           
-          { type: 'divider', key: 'divider3' },
-          { active: false, type: 'filterExtras', label: 'Rating 1', key: 'rating-1', group: 'filterExtras', condition: function( book ) { return book.rating >= 1 && book.rating < 2; }},
-          { active: false, type: 'filterExtras', label: 'Rating 2', key: 'rating-2', group: 'filterExtras', condition: function( book ) { return book.rating >= 2 && book.rating < 3; }},
-          { active: false, type: 'filterExtras', label: 'Rating 3', key: 'rating-3', group: 'filterExtras', condition: function( book ) { return book.rating >= 3 && book.rating < 4; }},
-          { active: false, type: 'filterExtras', label: 'Rating 4', key: 'rating-4', group: 'filterExtras', condition: function( book ) { return book.rating >= 4 && book.rating < 5; }},
-          { active: false, type: 'filterExtras', label: 'Rating 5', key: 'rating-5', group: 'filterExtras', condition: function( book ) { return book.rating === 5; }},
-          
           { type: 'divider', key: 'divider4' },
-          { active: false, type: 'filterExtras', label: 'My rating 1', key: 'my-rating-1', group: 'filterExtras', condition: function( book ) { return book.myRating >= 1 && book.myRating < 2; }},
-          { active: false, type: 'filterExtras', label: 'My rating 2', key: 'my-rating-2', group: 'filterExtras', condition: function( book ) { return book.myRating >= 2 && book.myRating < 3; }},
-          { active: false, type: 'filterExtras', label: 'My rating 3', key: 'my-rating-3', group: 'filterExtras', condition: function( book ) { return book.myRating >= 3 && book.myRating < 4; }},
-          { active: false, type: 'filterExtras', label: 'My rating 4', key: 'my-rating-4', group: 'filterExtras', condition: function( book ) { return book.myRating >= 4 && book.myRating < 5; }},
-          { active: false, type: 'filterExtras', label: 'My rating 5', key: 'my-rating-5', group: 'filterExtras', condition: function( book ) { return book.myRating === 5; }},
+          { active: false, type: 'filterExtras', label: 'Average rating 1', key: 'rating-1', group: 'filterExtras', condition: function( book ) { return book.rating >= 1 && book.rating < 2; }},
+          { active: false, type: 'filterExtras', label: 'Average rating 2', key: 'rating-2', group: 'filterExtras', condition: function( book ) { return book.rating >= 2 && book.rating < 3; }},
+          { active: false, type: 'filterExtras', label: 'Average rating 3', key: 'rating-3', group: 'filterExtras', condition: function( book ) { return book.rating >= 3 && book.rating < 4; }},
+          { active: false, type: 'filterExtras', label: 'Average rating 4', key: 'rating-4', group: 'filterExtras', condition: function( book ) { return book.rating >= 4 && book.rating < 5; }},
+          { active: false, type: 'filterExtras', label: 'Average rating 5', key: 'rating-5', group: 'filterExtras', condition: function( book ) { return book.rating === 5; }},
+          
+          { type: 'divider', key: 'divider5' },
+          { active: false, type: 'filterExtras', label: 'My rating 1', key: 'my-rating-1', group: 'filterExtras', condition: function( book ) { return book.myRating >= 1 && book.myRating < 2; }, tippy: 'Not for me'},
+          { active: false, type: 'filterExtras', label: 'My rating 2', key: 'my-rating-2', group: 'filterExtras', condition: function( book ) { return book.myRating >= 2 && book.myRating < 3; }, tippy: 'It’s okay'},
+          { active: false, type: 'filterExtras', label: 'My rating 3', key: 'my-rating-3', group: 'filterExtras', condition: function( book ) { return book.myRating >= 3 && book.myRating < 4; }, tippy: 'Pretty good'},
+          { active: false, type: 'filterExtras', label: 'My rating 4', key: 'my-rating-4', group: 'filterExtras', condition: function( book ) { return book.myRating >= 4 && book.myRating < 5; }, tippy: 'It’s great'},
+          { active: false, type: 'filterExtras', label: 'My rating 5', key: 'my-rating-5', group: 'filterExtras', condition: function( book ) { return book.myRating === 5; }, tippy: 'I love it'},
         ],
         sort: [
           { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "Shows the active sorter's value on top of the cover in the grid view." },
@@ -174,7 +253,7 @@ export default {
           { active: true , current: false, key: 'series'          , label: 'Series'            , type: 'sort', tippy: 'Sorts books by the series name alphabetically.' }, 
           { active: false , current: false, key: 'myRating'        , label: 'My rating'         , type: 'sort' }, 
           { active: true , current: false, key: 'categories'      , label: 'Categories'        , type: 'sort' }, 
-          { active: false , current: false, key: 'isNew'           , label: 'Newly added'       , type: 'sort'  , tippy: 'This status resets every time you do a partial extraction on library.' },
+          { active: false , current: false, key: 'isNew'           , label: 'New books'       , type: 'sort' },
           
           { type: 'divider', key: 'divider4' },
           { active: true , current: false, key: 'language'        , label: 'Language'          , type: 'sort' }, 
@@ -196,26 +275,6 @@ export default {
       
     }
   },
-
-  beforeCreate: function() {
-    
-    if ( this.$route.query.view ) {
-      this.$store.commit('stickyProp', { key: 'viewMode', value: this.$route.query.view });
-    }
-    
-  },
-  
-  created: function() {
-    
-    this.updateListRenderingOptions();
-    
-    // Setup for other pages that use the gallery page to show titles
-    this.prepCategoriesSubPage();    
-    this.prepCollectionsSubPage();    
-    this.prepSeriesSubPage();
-    this.prepWishlist();
-    
-  },
   
 };
 </script>
@@ -232,6 +291,13 @@ export default {
     height: 0;
     clear: both;
   }
+  
+  @media ( min-width: 630px ) {
+    &[data-audio-player-visible="true"] {
+      padding-top: 64px;
+    }
+  }
+  
 }
 
 .gallery-title-wrapper {

@@ -140,6 +140,7 @@ Vue.use(VueRouterBackButton, { router });
 // FONT AWESOME
 import { library } from "@fortawesome/fontawesome-svg-core";
 import {
+  faShoppingBag,
   faFolderOpen,
   faIndent,
   faListOl,
@@ -187,6 +188,7 @@ import {
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
+  faShoppingBag,
   faFolderOpen,
   faIndent,
   faListOl,
@@ -307,7 +309,6 @@ globalMethods.install = function (Vue) {
     
     if ( this.$route.query.sort ) {
       let currentSorter = _.find( list.sort, { current: true });
-      console.log( 'currentSorter', currentSorter)
       currentSorter.current = false;
       const sortIndex = _.findIndex( list.sort, { key: this.$route.query.sort });
       if ( sortIndex > -1 ) {
@@ -357,7 +358,6 @@ globalMethods.install = function (Vue) {
   };
 }
 Vue.use( globalMethods );
-
 
 // APP prep
 // In the extension environment...

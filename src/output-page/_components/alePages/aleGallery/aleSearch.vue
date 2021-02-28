@@ -95,18 +95,15 @@ export default {
       this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( collection ) ) });
     }
     
+    if ( this.$route.query.search ) {
+      const searchQuery = decodeURIComponent(this.$route.query.search);
+      this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
+      this.search();
+    }
+    
   },
 
   mounted: function() {
-    
-    if ( this.$route.query.search ) {
-      this.$nextTick(function() {
-        const searchQuery = decodeURIComponent(this.$route.query.search);
-        this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
-        this.$root.$emit("book-clicked", { book: null });
-        this.search();
-      });
-    }
     
     this.$root.$on("ios-auto-zoom-disable", this.iosAutozoomDisable);
     this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable );
@@ -145,7 +142,6 @@ export default {
       
       this.$root.$emit("book-clicked", { book: null });
       // scroll({ top: 0 });
-      
       
       if ( this.$store.getters.searchIsActive ) {
         this.$store.commit("prop", { key: 'mutatingCollection', value: this.filterBooks( _.get(this.$store.state, this.collectionSource) ) });

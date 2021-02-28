@@ -91,8 +91,14 @@ export default {
     },
 
     isActiveSortItem: function() {
-      if ( !this.$store.state.searchSort ) {
-        const changedIndex = _.findIndex(this.currentList, "current");
+      if ( this.listName === "sort" ) {
+        if (  !this.$store.state.searchSort ) {
+          const changedIndex = _.findIndex(this.currentList, "current");
+          return changedIndex === this.index;
+        }
+      }
+      else if ( this.listName === "filter" ) {
+        const changedIndex = _.findIndex(this.currentList, { active: true, type: 'filterExtras' });
         return changedIndex === this.index;
       }
     },

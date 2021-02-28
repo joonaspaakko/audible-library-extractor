@@ -34,8 +34,10 @@ browser.pageAction.onClicked.addListener(tabId => {
 // LISTENS FOR A MESSAGES form the content script
 browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === "openOutput") {
+    
     // Close the tab where extraction started
     browser.tabs.remove(sender.tab.id);
+    
     // Open the output page
     browser.tabs.create({
       url: "./output-page/index.html",
@@ -43,8 +45,6 @@ browser.runtime.onMessage.addListener((message, sender) => {
       index: sender.tab.index + 1,
       openerTabId: sender.tab.id
     });
+    
   }
 });
-
-// Probe: url
-// https://www.audible.com/library?ipRedirectOverride=true&overrideBaseCountry=true

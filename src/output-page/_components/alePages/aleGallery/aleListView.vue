@@ -513,6 +513,9 @@ export default {
   .col-ratings {
     width: 70px;
   }
+  .col-is-new {
+    width: 60px;
+  }
   .col-downloaded {
     width: 70px;
   }
@@ -534,7 +537,7 @@ export default {
   .col-store-page-missing,
   .col-store-page-changed,
   .col-from-plus-catalog,
-  .col-left-plus-catalog {
+  .col-unavailable {
     width: 80px;
   }
 

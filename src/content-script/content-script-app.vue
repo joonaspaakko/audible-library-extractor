@@ -172,7 +172,7 @@ export default {
 
           waterfall(waterfallArray, function(err, hotpotato) {
             vue.$root.$emit("update-big-step", {
-              title: "Closing this page in 5 seconds and opening the gallery page in a new tab",
+              title: "Opening the gallery page in 5 seconds...",
               step: 0,
               max: 0
             });
@@ -189,7 +189,7 @@ export default {
 
             setTimeout(function() {
               vue.goToOutputPage(hotpotato);
-            }, 5500);
+            }, 5000);
           });
         });
         
@@ -207,6 +207,14 @@ export default {
     },
 
     goToOutputPage: function(hotpotato) {
+      
+      if ( hotpotato.books && _.find(hotpotato.books, 'isNewThisRound') ) {
+        let isNewThisRound = _.filter(hotpotato.books, 'isNewThisRound');
+        _.each(isNewThisRound, function( book ) {
+          delete book.isNewThisRound;
+        });
+      }
+      
       if (hotpotato.useStorageData) {
         browser.runtime.sendMessage({ action: "openOutput" });
       } else {
@@ -220,7 +228,9 @@ export default {
         
         browser.storage.local.clear().then(() => {
           browser.storage.local.set(hotpotato).then(() => {
+            
             browser.runtime.sendMessage({ action: "openOutput" });
+            
           });
         });
       }

@@ -27,11 +27,21 @@
             <span class="strong-label">Released:</span>
             <span>{{ book.releaseDate }}</span>
           </div>
+          
+          <div class="store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why ome data is unavailable.">
+            <font-awesome :icon="['fas', 'shopping-bag']" />
+            changed
+          </div>
+          <div class="store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was either removed or it became unavailable in your region since the purchase. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why ome data is unavailable.">
+            <font-awesome :icon="['fas', 'shopping-bag']" />
+            missing
+          </div>
+          
         </div>
         
       </div>
       
-      <div class="summary-inner-wrap" v-html="summaryHTML"></div>
+      <div class="summary-inner-wrap" v-if="summaryHTML" v-html="summaryHTML"></div>
       
     </div>
 
@@ -94,7 +104,7 @@ export default {
   methods: {
     getSummaryMaxHeight: function() {
       if ( window.innerWidth <= 688 ) {
-        if ( summaryHTML ) {
+        if ( this.summaryHTML ) {
           this.summary.maxHeight = this.$refs.summaryMetaTop.offsetHeight + 260 + "px";
           this.summary.maxHeightTemp = this.summary.maxHeight;
         }
@@ -183,6 +193,26 @@ export default {
       height: 75px;
     }
   }
+  
+  .store-page-missing,
+  .store-page-changed,
+  .store-page-info {
+    border-radius: 999999px;
+    padding: 2px 7px;
+    background: #990017;
+    color: #fff;
+    svg { padding-right: 2px; }
+  }
+  
+  .store-page-changed {
+    background: #bd3f00;
+  }
+  
+  .store-page-info {
+    padding: 2px;
+    background: #252525;
+  }
+  
 }
 
 // Normalizes the top margin in the summary area.
@@ -200,21 +230,21 @@ export default {
 .theme-light #ale-bookdetails .summary-read-more:after {
   background: -moz-linear-gradient(
     top,
-    rgba(249, 248, 248, 0) 0%,
-    rgba(249, 248, 248, 1) 51%,
-    rgba(249, 248, 248, 1) 99%
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 1) 51%,
+    rgba(255, 255, 255, 1) 99%
   );
   background: -webkit-linear-gradient(
     top,
-    rgba(249, 248, 248, 0) 0%,
-    rgba(249, 248, 248, 1) 51%,
-    rgba(249, 248, 248, 1) 99%
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 1) 51%,
+    rgba(255, 255, 255, 1) 99%
   );
   background: linear-gradient(
     to bottom,
-    rgba(249, 248, 248, 0) 0%,
-    rgba(249, 248, 248, 1) 51%,
-    rgba(249, 248, 248, 1) 99%
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 1) 51%,
+    rgba(255, 255, 255, 1) 99%
   );
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#00f9f8f8', endColorstr='#f9f8f8',GradientType=0 );
 }

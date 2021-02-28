@@ -48,10 +48,6 @@ export default {
   padding: 0 10%;
   border-radius: 99999px;
   height: 30px;
-  @include themify($themes) {
-    background: darken(themed(backColor), 1);
-    box-shadow: inset 0 3px 15px rgba(darken(themed(backColor), 30), 0.4);
-  }
     
   .top-right {
     position: absolute;
@@ -91,6 +87,15 @@ export default {
     border-radius: 10px;
   }
   
+}
+
+.theme-dark .book-info-toolbar {
+  background: lighten($darkBackColor, 6);
+  box-shadow: inset 0 3px 10px rgba($darkBackColor, .8);
+}
+.theme-light .book-info-toolbar {
+  background: darken($lightBackColor, 1);
+  box-shadow: inset 0 3px 10px rgba( darken($lightBackColor, 30), 0.4);
 }
 
 </style>

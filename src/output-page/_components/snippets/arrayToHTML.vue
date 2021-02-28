@@ -1,5 +1,5 @@
 <template>
-  <div :class="identifierClass">
+  <div :class="identifierClass" v-if="inputDataExists">
     <strong class="strong-label">{{ label }}:</strong>
     <span v-for="(item, index) in array" :key="item.name + '(' + index + ')'">
       <span>
@@ -26,14 +26,13 @@ export default {
   name: "arrayToHTML",
   data: function() {
     return {
-      // inputDataExists: null,
+      inputDataExists: null,
     };
   },
   props: ["label", "array", "delim"],
   mixins: [makeUrl],
   created: function() {
-    // this.inputDataExists = this.checkIfArrayHasData();
-    console.log( this.label, this.array )
+    this.inputDataExists = this.checkIfArrayHasData();
   },
 
   computed: {
@@ -43,15 +42,9 @@ export default {
   },
 
   methods: {
-    // urlComp: function( input ) {
-    //   const url = new Url( this.general.urlOrigin + input );
-    //   url.query.ipRedirectOverride = true;
-    //   url.query.overrideBaseCountry = true;
-    //   return url.toString();
-    // },
-    // checkIfArrayHasData: function() {
-    //   return this.array && !_.isEmpty( this.array );
-    // },
+    checkIfArrayHasData: function() {
+      return this.array && !_.isEmpty( this.array );
+    },
   }
 };
 </script>

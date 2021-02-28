@@ -1,6 +1,6 @@
 {
   "name": "Audible Library Extractor",
-  "description": "Extracts your Audible library.......",
+  "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
   "manifest_version": 2,
   "icons": {
     "16": "assets/icons/16.png",

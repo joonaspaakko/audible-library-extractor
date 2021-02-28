@@ -9,8 +9,6 @@ export default {
         this.$store.commit("prop", { key: 'pageCollection', value: this.$store.state.library.wishlist });
         this.collectionSource = 'pageCollection';
         
-        console.log( _.filter( this.$store.state.library.wishlist, 'series' ) );
-        
       }
     }
   }
