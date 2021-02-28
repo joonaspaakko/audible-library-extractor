@@ -28,6 +28,7 @@ export default new Vuex.Store({
     listRenderingOpts: null,
     windowWidth: window.innerWidth,
     showBackground: false,
+    audioPlayerVisible: false,
   },
 
   mutations: {

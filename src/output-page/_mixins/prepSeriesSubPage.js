@@ -13,8 +13,6 @@ export default {
           sortValues: true,
         });
         
-        console.log( _.filter( this.$store.state.listRenderingOpts.sort, { current: true }) )
-        
         const seriesASIN = this.$route.params.series;
         const series = _.find( this.$store.state.library.series, { asin: seriesASIN });
         

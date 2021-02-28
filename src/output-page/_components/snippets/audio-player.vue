@@ -56,6 +56,13 @@ export default {
       iconsWrapper.insertBefore(oldestChild, iconsWrapper.firstChild);
       
     });
+    
+    this.$store.commit('prop', { key: 'audioPlayerVisible', value: true });
+    
+  },
+  
+  beforeDestroy: function() {
+    this.$store.commit('prop', { key: 'audioPlayerVisible', value: false });
   },
 
   methods: {

@@ -23,7 +23,7 @@ export default {
         index: index
       });
     }
-  }
+  },
 };
 </script>
 

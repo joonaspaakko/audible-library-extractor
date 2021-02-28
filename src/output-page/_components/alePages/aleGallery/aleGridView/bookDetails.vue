@@ -80,6 +80,7 @@ import bookBasicInfo from "@output-comps/snippets/book-basic-info";
 import bookInfoToolbar from "@output-comps/snippets/book-info-toolbar";
 import arrayToHTML from "@output-comps/snippets/arrayToHTML";
 
+
 export default {
   name: "bookDetails",
   components: {
@@ -181,7 +182,9 @@ export default {
 
       const info = {};
       info.cols = Math.floor(wrapper.width / target.width) || 1;
-
+      
+      console.log('%c' + info.cols + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;', wrapper.width, target.width);
+      
       if (info.cols < 2) {
         info.rowEndEl = target.el;
       } else {
@@ -295,8 +298,7 @@ export default {
 
     closeBookDetails: function() {
       this.$emit("update:book", null);
-      if (this.$route.query !== undefined)
-        this.$router.replace({ query: { book: undefined } });
+      if (this.$route.query !== undefined) this.$router.replace({ query: { book: undefined } });
     },
 
     // progressToolTipBoundaryEl: function() {

@@ -21,7 +21,7 @@
         <div
         class="series-heading"
         v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'], maxWidth: 300, allowHTML: true }"
-        content="<div style='text-align: left;'>The total number of books is based on every single book listing in the series page, including different versions or bundles of books you may already have.</div>"
+        content="<div style='text-align: left;'>The total number of books is based on every single listing in the series page, including different versions or bundles with books you may already have.</div>"
         >
           <div class="series-name">
             <a href="#" @click.prevent="goToBookInSeries( series )">

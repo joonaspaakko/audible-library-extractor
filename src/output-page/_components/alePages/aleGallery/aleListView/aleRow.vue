@@ -76,13 +76,14 @@ export default {
   methods: {
 
     prepareColumns: function() {
+      
       const vue = this;
       return _.map(this.keys, function(key) {
         
         let col = {};
         col.key = key;
         col.class = "col-" + _.kebabCase(key);
-
+        
         switch (key) {
           case "authors":
           case "narrators":

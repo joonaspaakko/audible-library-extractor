@@ -227,6 +227,10 @@ body {
     box-shadow: 0 3px 15px rgba(#000, 0.95) !important;
     .tippy-content {
       color: $darkFrontColor;
+      a {
+        text-decoration: underline !important;
+        color: $darkFrontColor;
+      }
     }
   }
 
@@ -245,11 +249,15 @@ body {
 }
 .theme-light .tippy-popper {
   .tippy-tooltip {
-    background: $lightBackColor;
+    background: #fff;
     border: 1px solid darken($lightBackColor, 10);
     box-shadow: 0 3px 10px rgba(#000, 0.35) !important;
     .tippy-content {
       color: $lightFrontColor;
+      a {
+        text-decoration: underline !important;
+        color: $lightFrontColor;
+      }
     }
   }
   &[x-placement^="top"] .tippy-arrow {

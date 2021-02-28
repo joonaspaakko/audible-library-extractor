@@ -39,9 +39,9 @@
         <div class="linky-links">
           <span><a href="#" @click.prevent="unselectAll">unselect all</a> </span>
           <span class="divider">•</span>
-          <span>
-            <a href="#" @click.prevent="selectAll">select all</a> 
-          </span>
+          <span><a href="#" @click.prevent="selectAll">select all</a> </span>
+          <span class="divider">•</span>
+          <span><a href="#" v-tippy="{ maxWidth: 400 }" content='When you update the library, newly added books get marked "New books" and you can filter and sort based on that status in the gallery. With this you can unmark all of those books. <br><br> <strong>Cannot be undone!!</strong>' @click.prevent="resetNewTitles"><strong>reset new titles</strong></a> </span>
         </div>
 
         <b-message class="description">
@@ -79,9 +79,8 @@
         @click="takeNextStep('output')"
         class="control" size="is-small"
         icon-pack="fas" icon-right="share-square"
-        v-tippy content="<strong>Usable after one full extraction.</strong> <br>Skips scanning and goes sraight to the library gallery."
         >
-          Output page
+          Open gallery
         </b-button>
       </b-field>
     </div>
@@ -456,6 +455,27 @@ export default {
           }
           break;
       }
+      
+    },
+    
+    resetNewTitles: function() {
+      
+      browser.storage.local.get(null).then(data => {
+        
+        _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
+          
+          let booksChunk = data[ 'books-chunk-'+index ];
+          _.each( booksChunk, function( book ) {
+            if (book.isNew) delete book.isNew;
+          });
+          
+        });
+        
+        browser.storage.local.clear().then(() => {
+          browser.storage.local.set(data).then(() => {});
+        });
+        
+      });
       
     },
     

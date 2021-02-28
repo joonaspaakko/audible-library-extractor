@@ -3,8 +3,6 @@
     <div
       class="icon"
       @click="lightSwitchToggle(false)"
-      :content="tippyContent"
-      v-tippy="{ placement: 'top' }"
     >
       <font-awesome fas :icon="lightSwitchIcon" />
     </div>
@@ -16,21 +14,11 @@ export default {
   name: "lightSwitch",
   data: function() {
     return {
-      tippyContent: ""
+      tippyContent: "",
     };
   },
 
-  created: function() {
-    this.tippyContent =
-      "Toggle " +
-      (this.$store.state.sticky.lightSwitch
-        ? "<strong>light</strong>"
-        : "light") +
-      " and " +
-      (!this.$store.state.sticky.lightSwitch
-        ? "<strong>dark</strong>"
-        : "dark") +
-      " theme";
+  created: function() {      
     this.lightSwitchToggle(true);
   },
 

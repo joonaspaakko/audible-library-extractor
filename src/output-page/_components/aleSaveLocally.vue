@@ -54,7 +54,7 @@ export default {
           '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +
           '<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">' +
           '<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">' +
-          '<link rel="manifest" href="favicons/manifest.json">' +
+          '<link rel="manifest" href="favicons/app.webmanifest">' +
           '<link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">' +
           '<link rel="shortcut icon" href="favicons/favicon.ico">' +
           '<meta name="msapplication-TileColor" content="#222222">' +
@@ -95,34 +95,34 @@ export default {
         "output-page.js",
         "output-page.css",
         
-        'chunks/204.css',
-        'chunks/204.js',
-        'chunks/499.js',
-        'chunks/685.js',
-        'chunks/audio-player.css',
-        'chunks/audio-player.js',
-        'chunks/book-Details.css',
-        'chunks/book-Details.js',
-        'chunks/book.css',
-        'chunks/book.js',
-        'chunks/categories.css',
-        'chunks/categories.js',
-        'chunks/collections.css',
-        'chunks/collections.js',
-        'chunks/gallery.css',
-        'chunks/gallery.js',
-        'chunks/grid-view.css',
-        'chunks/grid-view.js',
-        'chunks/series.css',
-        'chunks/series.js',
-        'chunks/sort-values.css',
-        'chunks/sort-values.js',
-        'chunks/splide.js',
-        'chunks/splide.js.LICENSE.txt',
-        'chunks/spreadsheet-view.css',
-        'chunks/spreadsheet-view.js',
-        'chunks/view-mode-switcher.css',
-        'chunks/view-mode-switcher.js',
+        "chunks/312.js",
+        "chunks/482.css",
+        "chunks/482.js",
+        "chunks/499.js",
+        "chunks/audio-player.css",
+        "chunks/audio-player.js",
+        "chunks/book-Details.css",
+        "chunks/book-Details.js",
+        "chunks/book.css",
+        "chunks/book.js",
+        "chunks/categories.css",
+        "chunks/categories.js",
+        "chunks/collections.css",
+        "chunks/collections.js",
+        "chunks/gallery.css",
+        "chunks/gallery.js",
+        "chunks/grid-view.css",
+        "chunks/grid-view.js",
+        "chunks/series.css",
+        "chunks/series.js",
+        "chunks/sort-values.css",
+        "chunks/sort-values.js",
+        "chunks/splide.js",
+        "chunks/splide.js.LICENSE.txt",
+        "chunks/spreadsheet-view.css",
+        "chunks/spreadsheet-view.js",
+        "chunks/view-mode-switcher.css",
+        "chunks/view-mode-switcher.js",
         
         "favicons/android-chrome-192x192.png",
         "favicons/android-chrome-512x512.png",
@@ -133,7 +133,7 @@ export default {
         "favicons/favicon.ico",
         "favicons/mstile-150x150.png",
         "favicons/safari-pinned-tab.svg",
-        "favicons/manifest.json"
+        "favicons/app.webmanifest"
       ];
       
       // Just thinking out loud...

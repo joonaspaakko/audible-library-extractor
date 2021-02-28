@@ -73,7 +73,7 @@ function prepStorePages(hotpotato, getStorePages) {
   
   _.each( hotpotato[ getStorePages ], function( book ) { 
     if ( hotpotato.config.partialScan ) {
-      if ( book.isNew ) book.requestUrl = book.storePageRequestUrl;
+      if ( book.isNewThisRound ) book.requestUrl = book.storePageRequestUrl;
     }
     else {
       book.requestUrl = book.storePageRequestUrl;
@@ -81,7 +81,7 @@ function prepStorePages(hotpotato, getStorePages) {
     delete book.storePageRequestUrl;
   });
   
-  return hotpotato.config.partialScan ? _.filter(hotpotato[ getStorePages ], "isNew") : hotpotato[ getStorePages ];
+  return hotpotato.config.partialScan ? _.filter(hotpotato[ getStorePages ], "isNewThisRound") : hotpotato[ getStorePages ];
   
 }
 

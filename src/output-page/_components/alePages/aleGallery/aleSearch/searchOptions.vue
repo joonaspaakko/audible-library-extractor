@@ -133,6 +133,7 @@ export default {
     color: themed(frontColor);
     background: lighten(themed(backColor), 10);
     box-shadow: 0 3px 15px rgba(#000, 0.7);
+    border: 2px solid themed(audibleOrange);
   }
 
   ul,
@@ -151,8 +152,21 @@ export default {
     border-style: solid;
     border-width: 0 10px 10px 10px;
     @include themify($themes) {
-      border-color: transparent transparent lighten(themed(backColor), 10)
-        transparent;
+      border-color: transparent transparent lighten(themed(backColor), 10) transparent;
+    }
+    &:before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      top: -3px;
+      left: -10px;
+      width: 0;
+      height: 0;
+      border-style: solid;
+      border-width: 0 10px 10px 10px;
+      @include themify($themes) {
+        border-color: transparent transparent themed(audibleOrange) transparent;
+      }
     }
   }
 
