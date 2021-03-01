@@ -6,7 +6,7 @@
 Automatically generates a searchable gallery by scanning your audible library. If you upload the gallery online, you can share it with others. The gallery can also be very handy for your own use, to find what to listen to next.
 
 ### Install
-- Firefox - <kbd>https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/</kbd>
+- Firefox - [https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/)
 - ~~Chrome~~ - Chrome webstore release is still pending approval, so you need to install the development release: [instructions](https://github.com/joonaspaakko/audible-library-extractor#how-to-install-developement-releases)
 
 _____
