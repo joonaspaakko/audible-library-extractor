@@ -5,6 +5,12 @@
 
 Automatically generates a searchable gallery by scanning your audible library. If you upload the gallery online, you can share it with others. The gallery can also be very handy for your own use, to find what to listen to next.
 
+### Install
+- Firefox - <kbd>https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/</kbd>
+- ~~Chrome~~ - No Chrome webstore release is still pending approval, so you need to install the delevopment release: [instructions](https://github.com/joonaspaakko/audible-library-extractor#how-to-install-developement-releases)
+
+_____
+
 - You can check my Audible library here: [https://joonaspaakko.github.io/my-audible-library/](https://joonaspaakko.github.io/my-audible-library/)
 - Screenshots: [screenshot 1](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-1.png?raw=true), [screenshot 2](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true), [screenshot 3](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true), [screenshot 4](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true), [screenshot 5](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-3.png?raw=true)
 
