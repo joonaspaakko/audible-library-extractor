@@ -7,7 +7,7 @@ Automatically generates a searchable gallery by scanning your audible library. I
 
 ### Install
 - Firefox - <kbd>https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/</kbd>
-- ~~Chrome~~ - No Chrome webstore release is still pending approval, so you need to install the delevopment release: [instructions](https://github.com/joonaspaakko/audible-library-extractor#how-to-install-developement-releases)
+- ~~Chrome~~ - Chrome webstore release is still pending approval, so you need to install the development release: [instructions](https://github.com/joonaspaakko/audible-library-extractor#how-to-install-developement-releases)
 
 _____
 
