@@ -1,13 +1,13 @@
 
 # Audible Library Extractor browser extension ((metadata only))
 
-> Supported browsers: Chrome + Firefox 
+> Supported browsers: Chrome, Firefox, [Edge (technically)](https://www.howtogeek.com/411830/how-to-install-google-chrome-extensions-in-microsoft-edge/)
 
 Automatically generates a searchable gallery by scanning your audible library. If you upload the gallery online, you can share it with others. The gallery can also be very handy for your own use, to find what to listen to next.
 
 ### Install
 - Firefox - [https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/)
-- ~~Chrome~~ - Chrome webstore release is still pending approval, so you need to install the development release: [instructions](https://github.com/joonaspaakko/audible-library-extractor#how-to-install-developement-releases)
+- Chrome - [https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall](https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall)
 
 _____
 
@@ -16,6 +16,20 @@ _____
 
 
 ![](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-1.png)
+
+## How to use the extension
+
+1. Go to your Audible library, 
+2. Click the `Audible Library Extractor` link or the extension icon.
+    - If you can't find the link, check this [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true).
+3. In the next view you can choose what to extract and start the extraction process by clicking the big blue button: [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true) 
+4. The extraction will take a few minutes. It depends on the size of your library and any of the other things you choose to extract.
+6. After the extraction is done the current tab is closed and a new output page for the gallery is opened.
+    - You can choose to save the gallery as a standalone web gallery using the [floppy disk button at the top right corner](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true).
+
+### Region support?
+
+I would love for this to work on all of the different regions but as of now I would expect it to only work in `audible.com` and possibly any English Audible websites. If you're having trouble using the extension in another region, please post an issue and any useful details to pinpoint the issue(s). The gallery itself is in English and there are no plans to support multiple languages.
 
 ## How to install developement releases
 
@@ -45,20 +59,6 @@ I would not recommend installing these developement releases, but if you have to
 4. Locate and add the release `.zip` file.
 
 </details>
-
-## How to use the extension
-
-1. Go to your Audible library, 
-2. Click the `Audible Library Extractor` link or the extension icon.
-    - If you can't find the link, check this [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true).
-3. In the next view you can choose what to extract and start the extraction process by clicking the big blue button: [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true) 
-4. The extraction will take a few minutes. It depends on the size of your library and any of the other things you choose to extract.
-6. After the extraction is done the current tab is closed and a new output page for the gallery is opened.
-    - You can choose to save the gallery as a standalone web gallery using the [floppy disk button at the top right corner](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true).
-
-### Region support?
-
-I would love for this to work on all of the different regions but as of now I would expect it to only work in `audible.com` and possibly any English Audible websites. If you're having trouble using the extension in another region, please post an issue and any useful details to pinpoint the issue(s). The gallery itself is in English and there are no plans to support multiple languages.
 
 ______	
 
