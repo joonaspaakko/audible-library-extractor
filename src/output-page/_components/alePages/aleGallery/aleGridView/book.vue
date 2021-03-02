@@ -314,14 +314,14 @@ export default {
   outline: none;
 }
 .ale-click-wrap:hover .blurb-tooltip { display: block; }
-body.is-ios .blurb-tooltip { display: none; }
+body.is-ios .blurb-tooltip { display: none !important; }
 
 body.is-ios .ale-click-wrap {
   .ale-info-indicator {
-    display: none;
+    display: none !important;
   }
   .ale-cover-image {
-    filter: none;
+    filter: none !important;
   }
 }
 @media (max-width: 640px) {
