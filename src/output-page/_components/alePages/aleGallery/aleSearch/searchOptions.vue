@@ -1,20 +1,23 @@
 <template>
   <div id="search-options" ref="options" :class="listName+'-options'" :style="css.options">
-    <div class="search-opts-arrow" :style="css.arrow"></div>
-    
-    <ul>
-      <li class="search-option" 
-      :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }" 
-      v-for="(item, index) in optionsList" :key="item.key"
-      v-if="!($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues')"
-      >
-        <listItem v-if="item.type !== 'divider'" 
-        :label="item.label" :item="item" :index="index" 
-        :currentList="optionsList" :listName="listName"
-        ></listItem>
-      </li>
-    </ul>
-    
+    <div class="search-options-inner-wrap">
+      
+      <div class="search-opts-arrow" :style="css.arrow"></div>
+      
+      <ul>
+        <li class="search-option" 
+        :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }" 
+        v-for="(item, index) in optionsList" :key="item.key"
+        v-if="!($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues')"
+        >
+          <listItem v-if="item.type !== 'divider'" 
+          :label="item.label" :item="item" :index="index" 
+          :currentList="optionsList" :listName="listName"
+          ></listItem>
+        </li>
+      </ul>
+      
+    </div>
   </div>
 </template>
 
@@ -111,6 +114,7 @@ export default {
 @import "~@/_variables.scss";
 
 #search-options {
+  display: inline-block;
   cursor: default !important;
   position: absolute;
   z-index: 10;
@@ -118,23 +122,30 @@ export default {
   right: 0;
   font-size: 1em;
   line-height: 1.9em;
-  padding: 12px 15px 12px 14px !important;
-  margin: 0px !important;
-  margin-bottom: 300px !important;
-  border-radius: 3px;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-
-  @include themify($themes) {
-    color: themed(frontColor);
-    background: lighten(themed(backColor), 10);
-    box-shadow: 0 3px 15px rgba(#000, 0.7);
-    border: 2px solid themed(audibleOrange);
+  padding-bottom: 300px !important;
+  
+  .search-options-inner-wrap {
+    position: relative;
+    z-index: 5;
+    display: inline-block;
+    padding: 12px 15px 12px 14px !important;
+    margin: 0px !important;
+    border-radius: 3px;
+    
+    @include themify($themes) {
+      color: themed(frontColor);
+      background: lighten(themed(backColor), 10);
+      box-shadow: 0 3px 15px rgba(#000, 0.7);
+      border: 2px solid themed(audibleOrange);
+    }
   }
+
 
   ul,
   li {
@@ -145,27 +156,28 @@ export default {
   }
   .search-opts-arrow {
     position: absolute;
-    top: -9px;
+    z-index: 1;
+    top: -11px;
     left: 0;
     width: 0;
     height: 0;
     border-style: solid;
     border-width: 0 10px 10px 10px;
     @include themify($themes) {
-      border-color: transparent transparent lighten(themed(backColor), 10) transparent;
+      border-color: transparent transparent themed(audibleOrange) transparent;
     }
     &:before {
       content: '';
       position: absolute;
-      z-index: -1;
-      top: -3px;
+      z-index: 2;
+      top: 3px;
       left: -10px;
       width: 0;
       height: 0;
       border-style: solid;
       border-width: 0 10px 10px 10px;
       @include themify($themes) {
-        border-color: transparent transparent themed(audibleOrange) transparent;
+        border-color: transparent transparent lighten(themed(backColor), 10) transparent;
       }
     }
   }
