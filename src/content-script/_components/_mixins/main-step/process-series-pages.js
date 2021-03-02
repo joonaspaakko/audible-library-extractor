@@ -57,9 +57,36 @@ export default {
                 delete targetSeries.pageSize;
                 delete targetSeries.url;
               });
-
+              
               hotpotato.series = requests;
-
+              
+              // Removes stragglers:
+              // Partial scan only fetches series for new books, but since the library scan will drop out any
+              // removed books, the next chunk of code makes sure the series collection is updated as well. 
+              // Not the most efficient piece of code ever, but it does the thing.
+              if ( hotpotato.config.partialScan ) {
+                
+                hotpotato.series = hotpotato.series.concat( requests );
+                
+                const removeSeries = [];
+                _.each( hotpotato.series, function( series ) {
+                  _.each( series.books, function( bookAsin, bookIndex ) {
+                    
+                    let bookExists = _.find( hotpotato.books, { asin: bookAsin });
+                    if ( !bookExists ) {
+                      series.books.splice( bookIndex, 1);
+                      if ( series.books.length < 1 ) removeSeries.push( series.asin ) ;
+                    }
+                    
+                  });
+                });
+                
+                _.remove( hotpotato.series, function( series ) {
+                  return _.includes( removeSeries, series.asin );
+                });
+                
+              }
+              
               if (!err) {
                 vue.$nextTick(function() {
                   setTimeout(function() {

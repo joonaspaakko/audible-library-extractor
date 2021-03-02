@@ -234,6 +234,7 @@ export default {
           });
         });
       }
+      
     },
 
     init_storePageTest: function() {

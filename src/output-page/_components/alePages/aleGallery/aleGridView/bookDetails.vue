@@ -183,8 +183,6 @@ export default {
       const info = {};
       info.cols = Math.floor(wrapper.width / target.width) || 1;
       
-      console.log('%c' + info.cols + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;', wrapper.width, target.width);
-      
       if (info.cols < 2) {
         info.rowEndEl = target.el;
       } else {
