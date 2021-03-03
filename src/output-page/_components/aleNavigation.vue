@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-navigation" :class="{ 'mobile-nav': $store.state.windowWidth < 630, 'mobile-nav-open': mobileMenuOpen }">
+  <div id="ale-navigation" :class="{ 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
     <div class="inner-wrap">
       
       <div class="inner-wrap-wrapper">
@@ -63,7 +63,7 @@
       <div>
         <font-awesome 
         class="brgr-btn" 
-        v-if="$store.state.windowWidth < 630" 
+        v-if="mobileThreshold" 
         :icon="['fas', 'bars']" 
         @click="toggleMobileMenu()"
         />
@@ -89,7 +89,7 @@
         
         <light-switch></light-switch>
         
-        <view-mode-switcher :justIcon="true" v-if="$route.name !== 'all-series' && $store.state.windowWidth < 450" />
+        <view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted && mobileThreshold" />
         
         <div class="text-button" v-if="$store.state.searchMounted" v-tippy="{ interactive: true, allowHTML: true, delay: 700 }" style="outline: none;" content="
           <strong>Click to start searching.</strong>
@@ -210,7 +210,14 @@ export default {
       mobileMenuOpen: false,
       showAudioPlayer: false,
       sampleData: null,
+      mobileWidth: 630,
     };
+  },
+  
+  computed: {
+    mobileThreshold: function() {
+      return this.$store.state.windowWidth < this.mobileWidth;
+    }
   },
   
   created: function() {
