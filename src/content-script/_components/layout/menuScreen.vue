@@ -173,13 +173,16 @@ export default {
             This is a faster partial extraction that: 
             <ol>
               <li>Adds new books just like it would on a full extract</li>
-              <li>Gets rid of books that were removed from the library</li>
+              <li>Clears books that were removed from the library</li>
               <li>
                 Updates information on old books that is likely to change:
                 <br>
-                <code>unavailable(plus catalog), downloaded, favorite, progress, length, myRating</code>
                 <ul>
+                <li><code style="padding: 1px 3px;">unavailable(plus catalog), downloaded, favorite, progress(status), length, myRating</code></li>
+                </ul>
               </li>
+              <li>Updates series data by removing books that are no longer in the library and by adding new ones</li>
+              <li>Clears removed library books from collections. <br>Doesn't add new collection entries though, that requires a separate full scan.</li>
             </ol>
           </div>
           `,

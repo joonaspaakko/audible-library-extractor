@@ -204,6 +204,70 @@ export default {
         });
         delete data.chunks;
       }
-    }
+    },
+    
+    // - Remove books no longer in the library 
+    // - Remove series if it no longer has any books in it.
+    removeFromSeries: function( potatoSeries, removedBooks ) {
+      
+      _.each( removedBooks, function( book ) {
+        
+        if ( book.series ) {
+          _.each( book.series, function( bookSeries ) {
+            
+            let targetSeries = _.find( potatoSeries, { asin: bookSeries.asin });
+            // Remove book from series
+            _.remove( targetSeries.books, function( asin ) { return asin === book.asin; });
+            if ( targetSeries.books.length < 1 ) {
+              // Remove series from potato series because it's empty, yo! WWooooOOOOO!!!
+              _.remove( potatoSeries, function( o ) { return o.asin === bookSeries.asin; });
+            }
+            
+          });
+        }
+        
+      });
+      
+    },
+    
+    // - Remove book from collections if it was removed from the library
+    removeFromCollections: function( potatoCollections, removedBooks ) {
+      
+      _.each( potatoCollections, function( collection ) {
+        
+        if ( collection.books.length > 0 ) {
+          _.each( removedBooks, function( book ) {
+            const bookInCollection = _.includes( collection.books, book.asin );
+            // Remove book from collection...
+            if ( bookInCollection ) _.remove( collection.books, function( asin ) { return asin === book.asin; });
+            if ( collection.books.length < 1 ) {
+              // Remove collection if it's empty... 
+              _.remove( potatoCollections, function( o ) { return o.id === collection.id; });
+            }
+          });
+        }
+        
+      });
+      
+    },
+    
+    mergeBooksWithSeries: function( potatoSeries, newSeriesCollection ) {
+      
+      _.each( newSeriesCollection, function( series ) {
+        
+        const seriesExists = _.find(potatoSeries, { asin: series.asin });
+        if ( seriesExists ) {
+          _.merge( seriesExists,  )
+        }
+        else {
+          potatoSeries.push( series );
+        }
+        
+        
+      });
+      
+      
+    },
+    
   }
 };

@@ -146,8 +146,9 @@ export default {
         vue.$nextTick(function() {
           
           hotpotato = hotpotato || {};
-          hotpotato.config = config;
           if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
+          hotpotato.config = config;
+          
           // _.find( config.steps, { name: "storePage" }).value = true;
         
           const waterfallArray = [
@@ -163,10 +164,9 @@ export default {
           ];
           
           vue.$root.$emit("update-big-step", {
-            max: config.steps
-              ? _.filter(config.steps, function(o) {
-                  return o.value && !o.extra;
-                }).length
+            max: config.steps ? _.filter(config.steps, function(o) {
+                return o.value && !o.extra;
+              }).length
               : waterfallArray.length - 1 // First function is just a kind of a failsafe and doesn't count
           });
 
@@ -199,6 +199,8 @@ export default {
 
     init_step_update: function(config) {
       config.partialScan = true;
+      // Make sure library is the only step when doing a partial extraction...
+      config.steps = [{ name: 'library', value: true }];
       this.init_step_extract(config);
     },
 
