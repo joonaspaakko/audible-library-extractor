@@ -386,6 +386,7 @@ export default {
   
   &.mobile-nav.mobile-nav-open .inner-wrap-wrapper {
     backdrop-filter: grayscale(100%);
+    -webkit-backdrop-filter: grayscale(100%);
     display: flex;
     flex-direction: column;
     justify-content: flex-end !important;
@@ -431,7 +432,7 @@ export default {
 }
 
 .theme-dark #ale-navigation {
-  background: #121517;
+  background: lighten( #121517, 4);
 }
 
 </style>

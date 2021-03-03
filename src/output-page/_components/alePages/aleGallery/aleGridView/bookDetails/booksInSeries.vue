@@ -36,12 +36,13 @@
         <div
         :data-series-name="series.name" class="numbers-list-item" :class="numbersClass(seriesBook)"
         v-for="(seriesBook, index) in series.books" :key="seriesBook.asin"
+        @click.prevent="goToBookInSeries( series, seriesBook )"
         >
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
           
-          <a href="#" @click.prevent="goToBookInSeries( series, seriesBook )">
+          <a href="#">
             <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </a>
@@ -336,4 +337,12 @@ div.hidden-section {
     flex: 1;
   }
 }
+
+
+@media ( max-width: 630px ) {
+  .my-books-in-series .numbers-list-item a {
+    
+  }
+}
+
 </style>

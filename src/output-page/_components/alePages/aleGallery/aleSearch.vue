@@ -420,8 +420,12 @@ export default {
 #search-dropdown-overlay {
   position: fixed;
   z-index: 700;
-  background: rgba(#505050, .2);
+  -webkit-backdrop-filter: grayscale(.96);
   backdrop-filter: grayscale(.96);
+    background: rgba(#505050, .55);
+  @supports (backdrop-filter: grayscale(.96)) or (-webkit-backdrop-filter: grayscale(.96)) {
+    background: rgba(#505050, .2);
+  }
   top: 0;
   right: 0;
   bottom: 0;

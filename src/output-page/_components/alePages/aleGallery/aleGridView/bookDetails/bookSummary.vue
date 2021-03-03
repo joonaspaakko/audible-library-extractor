@@ -28,11 +28,11 @@
             <span>{{ book.releaseDate }}</span>
           </div>
           
-          <div class="store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why ome data is unavailable.">
+          <div class="store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why some data is unavailable.">
             <font-awesome :icon="['fas', 'shopping-bag']" />
             changed
           </div>
-          <div class="store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was either removed or it became unavailable in your region since the purchase. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why ome data is unavailable.">
+          <div class="store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was either removed or it became unavailable in your region since the purchase. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
             <font-awesome :icon="['fas', 'shopping-bag']" />
             missing
           </div>

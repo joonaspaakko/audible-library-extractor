@@ -193,6 +193,8 @@ export default {
     font-size: .9em;
     font-weight: 700;
     border-radius: 2px 2px 0 0;
+    border: 1px solid red;
+    box-sizing: border-box;
     color: #fff;
     @include themify($themes) {
       background: themed(audibleOrange);
@@ -210,11 +212,13 @@ export default {
 
 .theme-dark .ale-book .sort-values-container > div {
   color: #fff;
-  background: #000;
+  background: lighten( $darkBackColor, 9);
+  border-color: lighten( $darkBackColor, 14);
 }
 .theme-light .ale-book .sort-values-container > div {
   color: #fff;
   background: #202020;
+  border-color: lighten( #202020, 5);
 }
 
 .ale-book.details-open .sort-values-container > div {

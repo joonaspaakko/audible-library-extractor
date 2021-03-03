@@ -2,7 +2,6 @@ global.browser = require("webextension-polyfill");
 
 // https://developer.chrome.com/extensions/tabs
 // https://developer.chrome.com/extensions/tabs#event-onUpdated
-// Permissions: "tabs"
 browser.tabs.onUpdated.addListener(tabId => {
   // Error silencing: sometimes when you close a tab right after its created,
   // the pageAction.show() will throw an error because the tab doesn't exist anymore
@@ -17,7 +16,6 @@ browser.tabs.onUpdated.addListener(tabId => {
 browser.pageAction.onClicked.addListener(tabId => {
   // https://developer.chrome.com/extensions/tabs
   // https://developer.chrome.com/extensions/tabs#method-query
-  // Permissions: "tabs"
   browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
     var tab = tabs[0];
 

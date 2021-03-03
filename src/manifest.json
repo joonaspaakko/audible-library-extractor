@@ -16,7 +16,6 @@
     "default_title": "You need to be in the library page to start extracting."
   },
   "permissions": [
-    "tabs",
     "storage",
 		"unlimitedStorage"
   ],
