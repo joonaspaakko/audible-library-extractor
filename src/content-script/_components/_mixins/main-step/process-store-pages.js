@@ -112,7 +112,7 @@ function getStorePageData(vue, response, book, isTest) {
     const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
     if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
     book.summary = DOMPurify.sanitize(bookData.description) || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span" ) );
-    book.releaseDate = DOMPurify.sanitize(bookData.datePublished) ? vue.fixDates( bookData.datePublished, 'y-m-d' ) : vue.fixDates( audible.querySelector(".releaseDateLabel") ); 
+    book.releaseDate = DOMPurify.sanitize(bookData.datePublished) ? DOMPurify.sanitize(bookData.datePublished) : vue.fixDates( audible.querySelector(".releaseDateLabel") ); 
     book.publishers = vue.getArray( audible.querySelectorAll(".publisherLabel > a") );
     book.length = book.length || vue.shortenLength( audible.querySelector(".runtimeLabel").textContent.trimToColon() );
     book.categories = vue.getArray( audible.querySelector(".categoriesLabel") ? audible.querySelectorAll(".categoriesLabel > a") : audible.querySelectorAll(".bc-breadcrumb > a") );

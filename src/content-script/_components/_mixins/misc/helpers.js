@@ -18,11 +18,11 @@ export default {
       return DOMPurify.sanitize(el.outerHTML.trimAll());
     },
 
-    fixDates: function( source, overrideFormat ) {
+    fixDates: function( source ) {
       
-      if ( source ) {
+      var date = (typeof source === 'object') ? DOMPurify.sanitize( source.textContent.trimToColon() ) : DOMPurify.sanitize( source );
+      if ( source && date ) {
         
-        var date = (typeof source === 'object') ? DOMPurify.sanitize( source.textContent.trimToColon() ) : DOMPurify.sanitize( source );
         const domainExtension = this.domainExtension;
 
         const regionalDateFormats = {
@@ -33,43 +33,54 @@ export default {
           ".fr":     ["d-m-y", "dd-MM-yyyy"],
           ".it":     ["d-m-y", "dd-MM-yyyy"],
           ".com.au": ["d-m-y", "dd-MM-yyyy"],
-          ".in":     ["d-m-y", "dd-MM-yyyy"]
+          ".in":     ["d-m-y", "dd-MM-yyyy"],
+          // ".jp":     ["y-m-d", "yyyy-MM-dd"], // Looked at the audible.co.jp date format (book release date) and I'm pretty sure there is no point in me touching that.
         };
 
-        const formatString = overrideFormat || regionalDateFormats[domainExtension][0] || regionalDateFormats[".com"][0];
-        const formatSplit = formatString.split("-");
-
-        const newDate = {
-          y: null,
-          m: null,
-          d: null
-        };
-        $.each(date.split("-"), function(i, date) {
-          newDate[formatSplit[i]] = date;
-        });
-        date = null;
-        // Some audible sites display all years in two digits,
-        // which is very difficult to transform to 4 digits.
-        // For example, if the year is 20, is it 1920, 2020, or 1420?
-        // This conversion to 4 digits is not bulletproof, but better than nothing.
-        if (newDate.y.length <= 2) {
-          if (newDate.y >= 95 && newDate.y <= 99) {
-            newDate.y = "19" + newDate.y;
-          } else if (newDate.y < 95) {
-            newDate.y = "20" + newDate.y;
-          }
+        const formatString = regionalDateFormats[domainExtension] ? regionalDateFormats[domainExtension][0] : null;
+        let splitDate = date.split("-");
+        
+        // Only try to fix date if we know the region and its date format...
+        // Or if the values are not separated by a dash
+        
+        if ( !formatString || !date.match(/\-/) || splitDate.length !== 3 ) {
+          return date;
         }
-        const ISO8601 = [newDate.y, newDate.m, newDate.d];
-        // const originalFormat = regionalDateFormats[domainExtension][1] || regionalDateFormats['.com'][1];
-
-        // This was just an idea to be a bit more flexible with how it shows up in the gallery, but it's not so simple
-        // What if the person viewing it is not from the same country? The only proper way to do it I feel would be to
-        // Show visitors whatever format is dominant in their country... but that seems too much work, so: "year-month-day" it is for now at least
-        // return {
-        //   value: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), 'yyyy-MM-dd'),
-        //   original: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), originalFormat),
-        // };
-        return dateFormat( new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), "yyyy-MM-dd");
+        else {
+          const formatSplit = formatString.split("-");
+  
+          const newDate = {
+            y: null,
+            m: null,
+            d: null
+          };
+          $.each(splitDate, function(i, date) {
+            newDate[formatSplit[i]] = date;
+          });
+          date = null;
+          // Some audible sites display all years in two digits,
+          // which is very difficult to transform to 4 digits.
+          // For example, if the year is 20, is it 1920, 2020, or 1420?
+          // This conversion to 4 digits is not bulletproof, but better than nothing.
+          if (newDate.y.length <= 2) {
+            if (newDate.y >= 95 && newDate.y <= 99) {
+              newDate.y = "19" + newDate.y;
+            } else if (newDate.y < 95) {
+              newDate.y = "20" + newDate.y;
+            }
+          }
+          const ISO8601 = [newDate.y, newDate.m, newDate.d];
+          // const originalFormat = regionalDateFormats[domainExtension][1] || regionalDateFormats['.com'][1];
+  
+          // This was just an idea to be a bit more flexible with how it shows up in the gallery, but it's not so simple
+          // What if the person viewing it is not from the same country? The only proper way to do it I feel would be to
+          // Show visitors whatever format is dominant in their country... but that seems too much work, so: "year-month-day" it is for now at least
+          // return {
+          //   value: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), 'yyyy-MM-dd'),
+          //   original: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), originalFormat),
+          // };
+          return dateFormat( new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), "yyyy-MM-dd");
+        }
         
       } else {
         return null;

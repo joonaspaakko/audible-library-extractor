@@ -114,7 +114,7 @@ export default {
       seriesUrl: window.location.origin + "/series",
       collectionsUrl: window.location.origin + "/library/collections",
       wishlistUrl: window.location.origin + "/wl",
-      domainExtension: window.location.hostname.substring( window.location.hostname.lastIndexOf("."), window.location.hostname.length ),
+      domainExtension: window.location.hostname.replace('www.audible', ''),
       newBooks: [],
       library: {
         books: [],
