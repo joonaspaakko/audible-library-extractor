@@ -14,19 +14,19 @@ export default {
         
         let categoryBooks = _.filter( this.$store.state.library.books, function( book ) {
           if ( book.categories ) {
-            const cat = vue.slugify( book.categories[0].name );
-            const kitten = vue.slugify( book.categories[1].name );
-            if ( category.parent === cat && category.child === kitten ) {  return true; }
-            else if ( category.parent === cat && !category.child ) { return true; }
+            const cat = book.categories[0] ? vue.slugify( book.categories[0].name ) : false;
+            const kitten = book.categories[1] ? vue.slugify( book.categories[1].name ) : false;
+            if ( cat && kitten && (category.parent === cat && category.child === kitten) ) {  return true; }
+            else if ( cat && (category.parent === cat && !category.child) ) { return true; }
           }
         });
         
         // Set page title
-        if ( category.parent || category.child ) {
-          const parentCategoryName = categoryBooks[0].categories[0].name;
-          const childCategoryName = categoryBooks[0].categories[1].name;
-          if ( category.parent ) this.pageTitle = parentCategoryName;
-          if ( category.child  ) this.pageSubTitle = childCategoryName;
+        if ( categoryBooks && (category.parent || category.child)  ) {
+          const parentCategoryName = categoryBooks[0].categories[0] ? categoryBooks[0].categories[0].name : null;
+          const childCategoryName = categoryBooks[0].categories[1] ? categoryBooks[0].categories[1].name : null;
+          if ( parentCategoryName ) this.pageTitle = parentCategoryName;
+          if ( parentCategoryName ) this.pageSubTitle = childCategoryName;
         }
         
         // Init arrays

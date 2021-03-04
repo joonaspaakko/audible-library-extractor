@@ -6,40 +6,43 @@
     :data-category="parent.name"
     v-for="(parent, index) in categories"
     :key="parent.name"
+    v-if="parent && parent.name"
     >
     
       <h2>
-        <router-link :to="{ name: 'category', params: { parent: parent.slug } }">
+        <router-link v-if="parent.slug" :to="{ name: 'category', params: { parent: parent.slug } }">
           {{ parent.name }}
         </router-link>
+        <span v-else>{{ parent.name }}</span>
       </h2>
 
-      <router-link class="books-total" :to="{ name: 'category', params: { parent: parent.slug } }">
-        <div v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
+      <router-link v-if="parent.slug" class="books-total" :to="{ name: 'category', params: { parent: parent.slug } }">
+        <div v-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       </router-link>
-
-      <div class="child-categories">
-        <div v-for="(child, index) in parent.sub" :key="child.name">
-          <router-link :to="{ name: 'category', params: { parent: parent.slug, child: child.slug } }">
+      <div v-else-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
+      
+      <div class="child-categories" v-if="parent.sub">
+        <div v-for="(child, index) in parent.sub" :key="child.name" v-if="child && child.name">
+          <router-link v-if="(parent && parent.slug) && (child && child.slug)" :to="{ name: 'category', params: { parent: parent.slug, child: child.slug } }">
             {{ child.name }}
           </router-link>
-          <span class="number-of-books">({{ child.books.length }})</span>
+          <span v-else></span>
+          <span v-if="child.books" class="number-of-books">({{ child.books.length }})</span>
         </div>
       </div>
       
-      <!-- FIXME: on mobile the covers that get squished are cropped...
-       -->
       <div class="sample-covers">
         <div
         class="sample-cover"
+        v-if="parent && parent.books"
         v-for="(book, index) in getRandomBooks(parent.books, 5)"
         :key="book.asin"
         >
           <router-link :to="{ 
             name: 'category', 
             params: { 
-              parent: book.categories ? slugify(book.categories[0].name) : null, 
-              child: book.categories ? slugify(book.categories[1].name) : null 
+              parent: book.categories[0] ? slugify(book.categories[0].name) : null, 
+              child:  book.categories[1] ? slugify(book.categories[1].name) : null 
             }, 
             query: { book: book.asin } 
           }">
@@ -74,6 +77,7 @@ export default {
     // Make category arrays
     categories.parent = [];
     _.each( this.$store.state.library.books, function(book, index) {
+      
       if (book.categories) {
         // Parent categories...
         const parentCategory = book.categories[0].name;
@@ -123,9 +127,12 @@ export default {
   },
   
   methods: {
+    
     getRandomBooks: function(books, number) {
-      return _.sampleSize(books, number);
-    }
+      let booksWithCategories = _.filter(books, function( book ) { return (book.categories && book.categories.length > 1) && book.cover });
+      return _.sampleSize(booksWithCategories, number);
+    },
+    
   }
 };
 </script>
