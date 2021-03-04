@@ -66,7 +66,7 @@ export default {
     outsideClick: function(e) {
       const vue = this;
       if (vue.listName) {
-        var options = e.target.closest("#search-options");
+        var options = e.target.closest("#search-options > .search-options-inner-wrap");
         var optionsBtn = e.target.closest(".search-opt-btn");
         if (!options && !optionsBtn) {
           vue.$emit("update:listName", false);

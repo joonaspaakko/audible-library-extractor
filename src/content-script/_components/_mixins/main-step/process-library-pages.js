@@ -81,7 +81,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
     const rowItemIsBook =
       _thisRow.querySelector('[name="contentType"][value="Product"]') ||
       _thisRow.querySelector('[name="contentType"][value="Performance"]');
-      
+    
     // Ignore anything that isn't a book, like for example podcasts...
     if (rowItemIsBook) {
       const bookASIN = DOMPurify.sanitize(_thisRow.getAttribute("id").replace("adbl-library-content-row-", ""));

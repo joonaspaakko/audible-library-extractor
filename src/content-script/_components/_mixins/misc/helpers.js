@@ -34,7 +34,7 @@ export default {
           ".it":     ["d-m-y", "dd-MM-yyyy"],
           ".com.au": ["d-m-y", "dd-MM-yyyy"],
           ".in":     ["d-m-y", "dd-MM-yyyy"],
-          // ".jp":     ["y-m-d", "yyyy-MM-dd"], // Looked at the audible.co.jp date format (book release date) and I'm pretty sure there is no point in me touching that.
+          // ".co.jp":     ["y-m-d", "yyyy-MM-dd"], // Looked at the audible.co.jp date format (book release date) and I'm pretty sure there is no point in me touching that.
         };
 
         const formatString = regionalDateFormats[domainExtension] ? regionalDateFormats[domainExtension][0] : null;
