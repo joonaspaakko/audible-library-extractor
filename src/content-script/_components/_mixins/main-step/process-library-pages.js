@@ -78,12 +78,23 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
   titleRows.forEach(function(el) {
     const _thisRow = el;
     
-    const rowItemIsBook =
-      _thisRow.querySelector('[name="contentType"][value="Product"]') ||
-      _thisRow.querySelector('[name="contentType"][value="Performance"]');
-      
+    
+    // const rowItem = {
+    //   is: {
+    //     product:  _thisRow.querySelector('[name="contentType"][value="Product"]'),
+    //     performance: _thisRow.querySelector('[name="contentType"][value="Performance"]'),
+    //     lecture: _thisRow.querySelector('[name="contentType"][value="Lecture"]'),
+    //     podcast: _thisRow.querySelector('[name="contentType"][value="Podcast"]'),
+    //   }
+    // };
+    
+    // The idea is to avoid items with this chevron button, because they are structurally different. 
+    // So far the only item type I know to have that is podcasts, but this will skip all such items.
+    let rowItemNotABook = !!_thisRow.querySelector('.adbl-episodes-link .chevron-container');
+    
     // Ignore anything that isn't a book, like for example podcasts...
-    if (rowItemIsBook) {
+    if ( !rowItemNotABook ) {
+      
       const bookASIN = DOMPurify.sanitize(_thisRow.getAttribute("id").replace("adbl-library-content-row-", ""));
       const bookInMemory = _.find(hotpotato.books, ["asin", bookASIN]);
       const fullScan_ALL_partialScan_NEW = (hotpotato.config.partialScan && !bookInMemory) || !hotpotato.config.partialScan;
@@ -207,6 +218,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
         vue.$root.$emit("update-progress-max");
       }
       books.push(book);
+      
     }
   });
 

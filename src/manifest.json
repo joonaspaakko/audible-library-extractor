@@ -54,7 +54,7 @@
         "*://www.audible.com.au/library*",
         "*://www.audible.in/library*",
         "*://www.audible.co.jp/library*",
-        "*://www.audible.fr/library*",
+        "*://www.audible.fr/library*"
       ],
     "js": ["content-script/audible-library-extractor-content-script.js"],
     "css": ["content-script/audible-library-extractor-content-script.css"]
