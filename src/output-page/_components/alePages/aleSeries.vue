@@ -104,7 +104,7 @@ export default {
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
           { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort' },
-          { active: false,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
+          { active: true,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
         ],
       };
        
