@@ -61,12 +61,18 @@ export default {
           if (this.book.series) {
             
             const seriesAsin = this.$route.params.series;
-            const seriesNumbers = _.find(this.book.series, { asin: seriesAsin }).bookNumbers;
-            if ( seriesNumbers ) {
-              return _.isArray(seriesNumbers) ? seriesNumbers.join(numbersDelim) : seriesNumbers;
+            const series = _.find(this.book.series, { asin: seriesAsin });
+            if ( series ) {
+              const seriesNumbers = series.bookNumbers;
+              if ( seriesNumbers ) {
+                return _.isArray(seriesNumbers) ? seriesNumbers.join(numbersDelim) : seriesNumbers;
+              }
+              else {
+                return "∞";
+              }
             }
             else {
-              return "∞";
+              return this.notAvailable;
             }
             
           } else {

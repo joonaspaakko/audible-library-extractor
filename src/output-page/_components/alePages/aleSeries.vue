@@ -42,8 +42,11 @@ export default {
   created: function() {
     
     const vue = this;
-    const seriesCollection = [];
+    let seriesCollection = [];
     let addedCounter = 1;
+    
+    let librarySeries = this.$store.state.library.series;
+    
     // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
     _.eachRight(this.$store.state.library.books, function(book) {
       
@@ -61,8 +64,12 @@ export default {
               added: addedCounter,
               books: [ book ],
             };
-            ++addedCounter;
-            seriesCollection.push( newSeries );
+            
+            // Only add if it's in the library series array as well...
+            if ( _.find( librarySeries, { asin: series.asin }) ) {
+              ++addedCounter;
+              seriesCollection.push( newSeries );
+            }
           }
           // Series already exists in the collection so just add the book...
           else {
