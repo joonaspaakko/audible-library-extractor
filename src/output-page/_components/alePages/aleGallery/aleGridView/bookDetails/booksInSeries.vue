@@ -340,8 +340,8 @@ div.hidden-section {
 
 
 @media ( max-width: 630px ) {
-  .my-books-in-series .numbers-list-item a {
-    
+  .my-books-in-series .numbers-list-item {
+    padding: 4px 0;
   }
 }
 

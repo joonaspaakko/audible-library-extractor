@@ -221,7 +221,7 @@ export default {
   background: $lightBackColor;
   border-radius: 8px;
   @include themify($themes) {
-    background: rgba(lighten(themed(backColor), 3), 0.98);
+    background: rgba(lighten(themed(backColor), 3), 0.8);
     box-shadow: themed(shadowSmall);
     color: themed(frontColor);
   }

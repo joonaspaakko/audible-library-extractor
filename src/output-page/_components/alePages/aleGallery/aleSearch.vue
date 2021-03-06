@@ -98,6 +98,7 @@ export default {
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);
       this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
+      this.fuseOptions.shouldSort = false
       this.search();
     }
     
@@ -159,22 +160,27 @@ export default {
       
     },
     
-    search: _.debounce( function(e) {
+    search: _.debounce( function( e, shouldSort ) {
       
       // Reset 
       this.$root.$emit("book-clicked", { book: null });
-      if (e) {
+      
+      const triggeredByEvent = e;
+      if ( triggeredByEvent ) {
         
+        this.fuseOptions.shouldSort = true;
         this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
         this.$updateQuery({ query: 'search', value: encodeURIComponent(e.target.value) });
         
       }
       
       // This was really just for making sure sorters aren't shown as active when searching )
-      this.$store.commit("prop", { 
-        key: 'searchSort', 
-        value: this.$store.getters.searchIsActive
-      });
+      if ( this.fuseOptions.shouldSort ) {
+        this.$store.commit("prop", { 
+          key: 'searchSort', 
+          value: this.$store.getters.searchIsActive
+        });
+      }
 
       // Start searching
       if (this.$store.getters.searchIsActive) {
@@ -183,7 +189,7 @@ export default {
         this.fuseOptions.keys = this.aliciaKeys;
         this.fuse = new Fuse( this.$store.state.mutatingCollection, this.fuseOptions );
         let result = this.fuse.search(query);
-
+        
         if (result.length > 0) {
           result = _.map(result, function(o) {
             return o.item;

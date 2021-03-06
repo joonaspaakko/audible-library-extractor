@@ -92,7 +92,8 @@ export default {
 
     isActiveSortItem: function() {
       if ( this.listName === "sort" ) {
-        if (  !this.$store.state.searchSort ) {
+        
+        if ( !this.$store.state.searchSort ) {
           const changedIndex = _.findIndex(this.currentList, "current");
           return changedIndex === this.index;
         }
