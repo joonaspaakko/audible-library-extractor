@@ -85,17 +85,40 @@
       </b-field>
     </div>
 
-    <!-- <b-button
+    <b-button
     class="settings-btn"
-    @click="settingsOpen = !settingsOpen"
-    :class="{ open: settingsOpen }"
     size="is-small"
     type="is-text"
-    icon-left="cog"
+    icon-left="code"
     icon-pack="fas"
+    v-tippy="{ 
+      allowHTML: true, 
+      trigger: 'click',
+      interactive: true,
+    }"
+    content="
+    <div style='text-align: left; max-height: 350px; overflow: scroll; padding: 20px;'>
+      <strong>v.0.2.5</strong>
+      <ul>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/28' target='_blank'>Fixed #28</a>: Series/sub page fails to show the right content</li>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/27' target='_blank'>Fixed #27</a>: The Great Courses (books) omitted</li>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/24' target='_blank'>Fixed #24</a>: Search overrides sorting URL parameter on page load</li>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/23' target='_blank'>Fixed #23</a>: Wishlist scraping errored out due to fetching second lvl domain names like “.co.uk” wrong</li>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/22' target='_blank'>Fixed #22</a>: Categories page empty (sometimes)</li>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/21' target='_blank'>Fixed #21</a>: View mode button showing up on pages it shouldn’t</li>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/20' target='_blank'>Fixed #20</a>: Filter and sorter menu disappearing behing the bottom mobile nav</li>
+        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/19' target='_blank'>Fixed #19</a>: Partial library scan breaking series</li>
+      <ul>
+      <br>
+      <strong>v.0.2.4</strong>
+        <ul>
+          <li>First public beta version</li>
+        </ul>
+    </div>
+    "
     >
-      Settings
-    </b-button> -->
+      Changelog
+    </b-button>
 
     <div id="footer" class="is-small has-text-grey-light">
       Find more information in the <a href="https://github.com/joonaspaakko/audible-library-extractor">Github repository</a> page. <br />
@@ -115,9 +138,10 @@ import {
   faTimes,
   faCog,
   faTrashAlt,
+  faCode,
 } from "@fortawesome/free-solid-svg-icons";
 import { faArrowAltCircleDown } from "@fortawesome/free-regular-svg-icons";
-library.add(faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, faCog, faTrashAlt);
+library.add(faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, faCog, faTrashAlt, faCode);
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
 
