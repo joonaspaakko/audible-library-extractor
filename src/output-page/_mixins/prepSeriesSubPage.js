@@ -22,8 +22,12 @@ export default {
         });
         
         // Set page title
-        const seriesName = _.find( books[0].series, { asin: seriesASIN }).name;
-        this.pageTitle = seriesName;
+        if ( books.length > 0 ) {
+          const series = _.find( books[0].series, { asin: seriesASIN });
+          if ( series ) {
+            this.pageTitle = series.name;
+          }
+        }
         
         // Init arrays
         this.$store.commit("prop", { key: 'pageCollection', value: books });

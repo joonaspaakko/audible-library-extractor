@@ -8,6 +8,7 @@ Automatically generates a searchable gallery by scanning your audible library. I
 ### Install
 - Firefox - [https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/)
 - Chrome - [https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall](https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall)
+    - Can be installed in the [Chromium based Edge](https://www.howtogeek.com/411830/how-to-install-google-chrome-extensions-in-microsoft-edge/)
 
 _____
 
@@ -99,17 +100,24 @@ This is a fairly complex process if you've never used Github/Git to make reposit
 		3. Choose `Master branch` in the `Source` dropdown and when that’s done. It should tell you what the website address is, which should be along the lines of `https://YOUR-USERNAME.github.io/YOUR-REPOSITORY-NAME`.
 	- You can find more comprehensive instructions [here](https://pages.github.com/). To get the right instructions just select `Project site` and `Start from scratch`. You can skip to step 4 in the Github article.
 4. When you've got all this done and the project repository is set as a website, you can share the address with anyone. And to be clear, they don't need a Github account to view the gallery.
+  - It may take a few minutes for the page to be online
+
 
 
 **What if I want to upload my updated gallery again?**
 
-1. I assume you have probably run the partial library extraction.
-2. Then save the gallery again using the floppy disk icon.
-3. Remove all files in your github repository folder on your computer.
-4. Extract the new .zip → copy over to the github repository folder.
+So maybe you've rated some books, finished books, started new ones and you want to update the standalone gallery you're previously updated online...
+
+1. The best way to update your library is to use the yellow refresh icon in the extraction settings.
+2. When you have extracted the gallery again, save the gallery again using the save icon.
+3. Replace the old files in your Github repisotyr folder on your computer:
+    - Remove all files in the github repository folder on your computer.
+    - Unpack the newly _downloaded_ .zip file contents there.
 5. In the Github Desktop client open the audible library project
-7. Commit changes
-8. Push origin
+7. Commit changes(on the left side):
+	  - Add summary text. Just like before, it can be just a dash `-` in this case.
+		- Click the `Commit to master` button
+8. Click the `Push origin` button (right side)
 9. And the website should be online in a couple minutes.
 
 </details>
