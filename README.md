@@ -1,5 +1,5 @@
 
-# Audible Library Extractor browser extension ((metadata only))
+# Audible Library Extractor browser extension ((metadata only)) <!-- omit in toc -->
 
 > Supported browsers: Chrome, Firefox, [Edge (technically)](https://www.howtogeek.com/411830/how-to-install-google-chrome-extensions-in-microsoft-edge/)
 
@@ -10,7 +10,9 @@ Automatically generates a searchable gallery by scanning your audible library. I
 - Chrome - [https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall](https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall)
     - Can be installed in the [Chromium based Edge](https://www.howtogeek.com/411830/how-to-install-google-chrome-extensions-in-microsoft-edge/)
 
-_____
+&nbsp;
+----
+&nbsp;
 
 - You can check my Audible library here: [https://joonaspaakko.github.io/my-audible-library/](https://joonaspaakko.github.io/my-audible-library/)
 - Screenshots: [screenshot 1](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-1.png?raw=true), [screenshot 2](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true), [screenshot 3](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true), [screenshot 4](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true), [screenshot 5](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-3.png?raw=true)
@@ -18,7 +20,7 @@ _____
 
 ![](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-1.png)
 
-## How to use the extension
+## How to use the extension <!-- omit in toc -->
 
 1. Go to your Audible library, 
 2. Click the `Audible Library Extractor` link or the extension icon.
@@ -28,14 +30,36 @@ _____
 6. After the extraction is done the current tab is closed and a new output page for the gallery is opened.
     - You can choose to save the gallery as a standalone web gallery using the [floppy disk button at the top right corner](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true).
 
-### Region support?
+
+&nbsp;
+______
+______
+
+&nbsp;
+	
+
+- [Region support?](#region-support)
+- [How to install developement releases](#how-to-install-developement-releases)
+  - [Chrome](#chrome)
+  - [Firefox](#firefox)
+- [Save gallery locally](#save-gallery-locally)
+  - [Uploading your gallery to Github as a website](#uploading-your-gallery-to-github-as-a-website)
+- [Advanced search](#advanced-search)
+  - [Search operators](#search-operators)
+  - [Advanced search example](#advanced-search-example)
+- [URL Parameters & link specificity](#url-parameters--link-specificity)
+  - [URL param example](#url-param-example)
+
+&nbsp;
+&nbsp;
+
+## Region support?
 
 I would love for this to work on all of the different regions but as of now I would expect it to only work in `audible.com` and possibly any English Audible websites. If you're having trouble using the extension in another region, please post an issue and any useful details to pinpoint the issue(s). The gallery itself is in English and there are no plans to support multiple languages.
 
 ## How to install developement releases
 
-<details>
-  <summary>Read more...</summary>
+<details><summary>Read more...</summary>
 
 > These instructions are for [all releases](https://github.com/joonaspaakko/audible-library-extractor/releases) you can find on GitHub.
 
@@ -61,7 +85,10 @@ I would not recommend installing these developement releases, but if you have to
 
 </details>
 
-______	
+
+&nbsp;
+----
+&nbsp;
 
 ## Save gallery locally
 
@@ -73,8 +100,7 @@ As an example, here's [my Audible library in Github](https://joonaspaakko.github
 
 ### Uploading your gallery to Github as a website
 
-<details>
-  <summary>Read more...</summary>
+<details><summary>Read more...</summary>
 
 This is a fairly complex process if you've never used Github/Git to make repositories, but it is a free way to get your site on the internets, so there's that. The complexity comes mostly from how Git/Github works and what it's mainly for. You don't need to touch any code, it's just a matter of learning how it works and clicking your way through the process._
 
@@ -119,5 +145,96 @@ So maybe you've rated some books, finished books, started new ones and you want 
 		- Click the `Commit to master` button
 8. Click the `Push origin` button (right side)
 9. And the website should be online in a couple minutes.
+
+</details>
+
+
+&nbsp;
+----
+&nbsp;
+	
+
+## Advanced search
+
+The search has advanced functionality for making your searches more specific and you can even search for many different things at once. [More about that below.](#advanced-search-example) I have tried to make the search configuration fairly strict and given your library like doesn’t consist of the entire Audible selection, odds are you won’t be needing any of these.
+
+
+<details><summary>Read more...</summary>
+
+### Search operators
+
+> You can also find this list in the gallery by hovering over the magnifying glass icon on the top right for a while.
+
+White space acts as an **AND** operator, while a single pipe `|` character acts as an **OR** operator. To escape white space, use double quote ex. `=“scheme language”` for exact match.
+
+| Token     | Match type                 | Description                          |
+|-----------|----------------------------|--------------------------------------|
+| `jscript`   | fuzzy-match                | Items that fuzzy match jscript       |
+| `=scheme`   | exact-match                | Items that are scheme                |
+| `'python`   | include-match              | Items that include python            |
+| `!ruby`     | inverse-exact-match        | Items that do not include ruby       |
+| `^java`     | prefix-exact-match         | Items that start with java           |
+| `!^earlang` | inverse-prefix-exact-match | Items that do not start with earlang |
+| `.js$`      | suffix-exact-match         | Items that end with .js              |
+| `!.go$`     | inverse-suffix-exact-match | Items that do not end with .go       |
+
+### Advanced search example
+
+If you do a search like this in my library: 
+```
+storm front | space team$ | demon accords book 1 | ^hunted
+```
+
+...[it will return 4 books](https://joonaspaakko.github.io/my-audible-library/#/library?scope=title&search=storm%2520front%2520%257C%2520space%2520team%2524%2520%257C%2520demon%2520accords%2520book%25201%2520%257C%2520%255Ehunted&sortValues=true&sort=title&sortDir=asc). I deliberately made each search term specific enough to return 1 book each, but you could of course widen the net if you wanted to. 
+Because the search query is added as a url parameter just like `scope, filter, sorting`, you can share searches with anyone, as long as your library is uploaded online. 
+Here’s a link to the search in my library.
+The results of this example may change in the future as my library changes. Of course I could be using exact matches, but who has the time for that. Right now the results are:
+
+* **Storm Front**: The Dresden Files, Book 1
+* **Space Team**
+* **Hunted**: The Iron Druid Chronicles, Book 6
+* God Touched: The **Demon Accords**, **Book 1**
+
+</details>
+
+
+&nbsp;
+----
+&nbsp;
+
+
+## URL Parameters & link specificity
+
+Some actions add url parameters, which means that you can share specific sections of your library.
+
+Actions that change `url` / `url parameters`:
+
+- Obviously, changing the page you're in changes the url. 
+    - This also wipes url params. Going back to the previous pages will bring them back, if you did so accidentally.
+- Searching
+- Search scope
+- Filters
+- Sorting — Excluding: `randomize` 
+- Opening/closing book details — Like when you click the cover in the `grid view` or the row in `spreadsheet view`
+
+<details><summary>Read more...</summary>
+
+### URL param example
+
+Here I've searched for `demon`, search scope `title`, filtered to show only `finished` books, sorting `title` / `asc` (ascending), book details open for `B07M9ZJ9CY`
+```
+https://joonaspaakko.github.io/my-audible-library/#/library?search=demon&sort=title&sortDir=asc&filter=finished&scope=title&book=B07M9ZJ9CY
+```
+
+You add or remove URL params by the actions listed above so there's no need to really parse the url or manually put it together, but just as a good to know thing, here's a breakdown of the example URL above:
+
+- **search**=`demon`
+- **sort**=`title`
+- **sortDir**=`asc`
+- **filter**=`finished`
+- **scope**=`title`
+- **book**=`B07M9ZJ9CY`
+  
+Also, the [advanced search](#advanced-search) operators enable you to add even more specificity. The one search operator that should be mentioned here is the or operator: `|`, which you can use to basically divide your search into multiple separate searches, which also makes it so you can link to specific books that have no relation to each other: [example](https://joonaspaakko.github.io/my-audible-library/#/library?scope=title&search=storm%2520front%2520%257C%2520space%2520team%2524%2520%257C%2520demon%2520accords%2520book%25201%2520%257C%2520%255Ehunted&sortValues=true&sort=title&sortDir=asc). Like maybe you want to show a friend specific books or something.
 
 </details>
