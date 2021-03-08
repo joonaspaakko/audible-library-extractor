@@ -10,9 +10,9 @@ Automatically generates a searchable gallery by scanning your audible library. I
 - Chrome - [https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall](https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall)
     - Can be installed in the [Chromium based Edge](https://www.howtogeek.com/411830/how-to-install-google-chrome-extensions-in-microsoft-edge/)
 
-&nbsp;
+&nbsp; <!-- omit in toc -->
 ----
-&nbsp;
+&nbsp; <!-- omit in toc -->
 
 - You can check my Audible library here: [https://joonaspaakko.github.io/my-audible-library/](https://joonaspaakko.github.io/my-audible-library/)
 - Screenshots: [screenshot 1](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-1.png?raw=true), [screenshot 2](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true), [screenshot 3](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true), [screenshot 4](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true), [screenshot 5](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-3.png?raw=true)
@@ -31,27 +31,22 @@ Automatically generates a searchable gallery by scanning your audible library. I
     - You can choose to save the gallery as a standalone web gallery using the [floppy disk button at the top right corner](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true).
 
 
-&nbsp;
+&nbsp; <!-- omit in toc -->
 ______
 ______
 
-&nbsp;
+&nbsp; <!-- omit in toc -->
 	
 
 - [Region support?](#region-support)
 - [How to install developement releases](#how-to-install-developement-releases)
-  - [Chrome](#chrome)
-  - [Firefox](#firefox)
 - [Save gallery locally](#save-gallery-locally)
   - [Uploading your gallery to Github as a website](#uploading-your-gallery-to-github-as-a-website)
 - [Advanced search](#advanced-search)
-  - [Search operators](#search-operators)
-  - [Advanced search example](#advanced-search-example)
 - [URL Parameters & link specificity](#url-parameters--link-specificity)
-  - [URL param example](#url-param-example)
 
-&nbsp;
-&nbsp;
+&nbsp; <!-- omit in toc -->
+&nbsp; <!-- omit in toc -->
 
 ## Region support?
 
@@ -65,7 +60,7 @@ I would love for this to work on all of the different regions but as of now I wo
 
 I would not recommend installing these developement releases, but if you have to, here's how:
 
-### Chrome
+### Chrome  <!-- omit in toc -->
   
 0. Get the latest audible-library-extractor zip file from the [releases page](https://github.com/joonaspaakko/audible-library-extractor/releases).
 1. Go to `chrome://extensions`.
@@ -73,7 +68,7 @@ I would not recommend installing these developement releases, but if you have to
 2. Turn on the developer mode from the top right
 3. Drag the zip file in the browser window to install
 
-### Firefox
+### Firefox  <!-- omit in toc -->
 
 > This is a temporary installation that will be gone after a restart.
 
@@ -86,9 +81,9 @@ I would not recommend installing these developement releases, but if you have to
 </details>
 
 
-&nbsp;
+&nbsp; <!-- omit in toc -->
 ----
-&nbsp;
+&nbsp; <!-- omit in toc -->
 
 ## Save gallery locally
 
@@ -149,19 +144,19 @@ So maybe you've rated some books, finished books, started new ones and you want 
 </details>
 
 
-&nbsp;
+&nbsp; <!-- omit in toc -->
 ----
-&nbsp;
+&nbsp; <!-- omit in toc -->
 	
 
 ## Advanced search
 
-The search has advanced functionality for making your searches more specific and you can even search for many different things at once. [More about that below.](#advanced-search-example) I have tried to make the search configuration fairly strict and given your library like doesn’t consist of the entire Audible selection, odds are you won’t be needing any of these.
+The search has advanced functionality for making your searches more specific and you can even search for many different things at once. I have tried to make the search configuration fairly strict and given your library like doesn’t consist of the entire Audible selection, odds are you won’t be needing any of these.
 
 
 <details><summary>Read more...</summary>
 
-### Search operators
+### Search operators  <!-- omit in toc -->
 
 > You can also find this list in the gallery by hovering over the magnifying glass icon on the top right for a while.
 
@@ -178,7 +173,7 @@ White space acts as an **AND** operator, while a single pipe `|` character acts 
 | `.js$`      | suffix-exact-match         | Items that end with .js              |
 | `!.go$`     | inverse-suffix-exact-match | Items that do not end with .go       |
 
-### Advanced search example
+### Advanced search example  <!-- omit in toc -->
 
 If you do a search like this in my library: 
 ```
@@ -198,9 +193,9 @@ The results of this example may change in the future as my library changes. Of c
 </details>
 
 
-&nbsp;
+&nbsp; <!-- omit in toc -->
 ----
-&nbsp;
+&nbsp; <!-- omit in toc -->
 
 
 ## URL Parameters & link specificity
@@ -219,7 +214,7 @@ Actions that change `url` / `url parameters`:
 
 <details><summary>Read more...</summary>
 
-### URL param example
+### URL param example  <!-- omit in toc -->
 
 Here I've searched for `demon`, search scope `title`, filtered to show only `finished` books, sorting `title` / `asc` (ascending), book details open for `B07M9ZJ9CY`
 ```
