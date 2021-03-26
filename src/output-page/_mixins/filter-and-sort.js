@@ -31,68 +31,30 @@ export default {
     
     filterBooks: function(books) {
       
+      const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: true });
       const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
-      const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: false });
       
-      if ( filterExtraRules || filterRules ) {
+      if ( filterRules || filterExtraRules ) {
         
-        const runConditionCheck = function( book ) {
+        let vue = this;
+        
+        let conditionCheck = function( book ) {
           
-          const checkExtras = function( o ) {
-            
-            if ( o.array.length ) {
-              let result = false;
-              let cFilter = null;
-              _.each( o.array, function(filter) { 
-                cFilter = filter;
-                result = filter.condition(book) ? true : false; 
-                if (result) return false;
-              });
-              
-              if ( o.key === 1 ) {
-                return result;
-              }
-              else if ( o.key === 2 && o.prevResult ) {
-                return result ? false : true;
-              }
-              
-            }
-            // If array is empty don't make any changes...
-            else {
-              return o.key === 1 ? result : o.prevResult;
-            }
-            
-          };
+          let filterConditions = _.map( filterRules, function( filter ) {
+            return !!filter.condition( book );
+          });
+          let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
+            return !!filter.condition( book );
+          });
           
-          let result = false;
-          result = checkExtras({ key: 1, array: filterExtraRules });
-          result = checkExtras({ key: 2, array: filterRules, prevResult: result });
-          
-          return result;
+          return _.includes( filterConditions, true ) && !_.includes( filterExtrasConditions, false );
           
         };
         
         return _.filter(books, function(book) {
-          return runConditionCheck( book );
+          return conditionCheck( book );
         });
-      } else {
-        return books;
-      }
-      
-    },
-    filterBooks2: function(books) {
-      
-      const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: true });
-
-      if (filterRules) {
-        return _.filter(books, function(book) {
-          let result = false;
-          _.each(filterRules, function(filter) {
-            result = filter.condition(book);
-            if (result) return false;
-          });
-          return result;
-        });
+        
       } else {
         return books;
       }

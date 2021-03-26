@@ -155,7 +155,8 @@ export default {
     resetScroll: function() {
       this.$nextTick(function() {
         
-        const navigationHeight = document.querySelector('#ale-navigation').offsetHeight;
+        let topNav = document.querySelector('#ale-navigation.regular');
+        const navigationHeight = topNav ? document.querySelector('#ale-navigation.regular').offsetHeight : 0;
         const offset = 25;
         if ( this.$store.state.sticky.viewMode === 'grid' ) {
           scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });

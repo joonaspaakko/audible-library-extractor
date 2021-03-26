@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-navigation" :class="{ 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
+  <div id="ale-navigation" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
     <div class="inner-wrap">
       
       <div class="inner-wrap-wrapper">

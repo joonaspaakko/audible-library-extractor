@@ -82,14 +82,14 @@ export default new Vuex.Store({
       let currentList = state.listRenderingOpts[o.listName];
       let currentItem = currentList[o.index];
       
-      if ( o.group ) {
-        let groupies = _.filter( currentList, { group: currentItem.group });
-        _.each( groupies, function( groupie, index ) {
-          groupie.active = false;
-        });
-      }
-      
+      // if ( o.group ) {
+      //   let groupies = _.filter( currentList, { group: currentItem.group });
+      //   _.each( groupies, function( groupie, index ) {
+      //     groupie.active = false;
+      //   });
+      // }
       currentItem.active = o.active;
+      if ( o.range ) currentItem.range = o.range;
       
       // Changes the currently active sorter (in sort: active state controls the direction)
       if ( o.listName === "sort" && currentItem.type === 'sort' ) {
@@ -127,9 +127,9 @@ export default new Vuex.Store({
     searchIsActive: function( state ) {
       return state.searchQuery.trim() !== "";
     },
-    // collection: function( state ) {
-    //   return _.get(state, state.collectionSource);
-    // },
+    collectionSource: function( state ) {
+      return _.get(state, state.collectionSource);
+    },
     collection: function( state ) {
       const searchIsActive = state.searchQuery.trim() !== "";
       if ( searchIsActive ) {

@@ -1,91 +1,126 @@
 <template>
   <span class="sorter-button-wrapper">
-    <label
-    v-if="item" class="sorter-button"
+    <span
+    v-if="item"
     v-tippy="{ placement: (tippyTop ? 'top' : 'left'), flipBehavior: (tippyTop ? ['left', 'right', 'top', 'bottom'] : ['top', 'bottom', 'left', 'right']) }" :content="item.tippy ? item.tippy : false"
+    :class="item.key"
     >
+      <label class="sorter-button">
+        
+        <!-- LABEL in the front -->
+        <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
+          <slot />
+        </span>
+        
+        <!-- HIDDEN input -->
+        <input type="checkbox" :value="index" v-model="inputVmodel" />
+        
+        <!-- SORT ARROWS -->
+        <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
+          <font-awesome fas icon="sort-down" />
+          <font-awesome fas icon="sort-up" />
+        </span>
+        
+        <!-- RADIOBUTTONS -->
+        <span v-else-if="item.radiobutton" class="radiobutton">
+          <font-awesome fas icon="circle" />
+          <font-awesome fas icon="circle" />
+        </span>
+        <!-- CHECKBOXES -->
+        <span v-else class="checkbox">
+          <font-awesome fas icon="square" />
+          <font-awesome fas icon="check" />
+        </span>
+        <!-- LABEL in the back -->
+        <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem }">
+          {{ item.label || item.key.replace(".name", "") }}
+        </span>
+        
+        <!-- EXTRA suffix -->
+        <span class="books-in-filter" v-if="listName === 'filter'">
+          {{ getFilterAmounts() }}
+          <!-- Ok, so I tried... -->
+          <!-- <span class="of-total" v-if="item.type === 'filterExtras' && $store.getters.collectionSource">
+            / {{ $store.getters.collectionSource.length }}
+          </span> -->
+        </span>
+        
+      </label>
       
-      <!-- LABEL in the front -->
-      <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
-        <slot />
-      </span>
-      
-      <!-- HIDDEN input -->
-      <input type="checkbox" :value="index" v-model="inputVmodel" />
-      
-      <!-- SORT ARROWS -->
-      <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
-        <font-awesome fas icon="sort-down" />
-        <font-awesome fas icon="sort-up" />
-      </span>
-      
-      <!-- RADIOBUTTONS -->
-      <span v-else-if="item.type === 'filterExtras' && !item.forceCheckbox" class="radiobutton">
-        <font-awesome fas icon="circle" />
-        <font-awesome fas icon="circle" />
-      </span>
-      <!-- CHECKBOXES -->
-      <span v-else class="checkbox">
-        <font-awesome fas icon="square" />
-        <font-awesome fas icon="check" />
-      </span>
-      
-      <!-- LABEL in the back -->
-      <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem }">
-        {{ item.label || item.key.replace(".name", "") }}
-      </span>
-      
-      <!-- EXTRA suffix -->
-      <span class="books-in-filter" v-if="listName === 'filter'">
-        ({{ filterAmounts() }})
-      </span>
-      
-    </label>
+      <div class="range-slider" v-if="item.range">
+        <span style="cursor: w-resize;" @click="adjustRange('left')">{{ rangeVal[0] }}{{ item.rangeSuffix }}</span>
+        <vue-slider :hideLabel="true" :interval="item.rangeInterval || 1" :marks="Math.abs(range.min - range.max) <= 10" :value="rangeVal" :min="range.min" :max="range.max" :min-range="item.rangeMinDist || 0" :enable-cross="false" @change="rangeChanged" :tooltip-formatter="'{value}'+item.rangeSuffix" :tooltip-placement="['bottom', 'bottom']" tooltip="focus"></vue-slider>
+        <span style="cursor: e-resize;" @click="adjustRange('right')">{{ rangeVal[1] }}{{ item.rangeSuffix }}</span>
+      </div>
+        
+    </span>
   </span>
 </template>
 
 <script>
 
+import VueSlider from 'vue-slider-component'
+import 'vue-slider-component/theme/default.css'
+
 export default {
   name: "sorter",
   props: [ "label", "currentList", "listName", "item", "index", "tippyTop" ],
+  components: {
+    VueSlider
+  },
   data: function() {
-    return {};
+    return {
+      range: null,
+      filterAmounts: null
+    };
+  },
+  
+  created: function() {
+    
+    if ( this.item.range ) {
+      
+      const min = this.item.rangeMin();
+      const max = this.item.rangeMax();
+      this.range = {
+        min: min,
+        max: max,
+        value: _.isArray(this.item.range) ? this.item.range : [min, max],
+      };
+      
+      let changes = {
+        listName: this.listName,
+        index: this.index,
+        value: this.item.value,
+        range: this.range.value,
+        active: this.item.active,
+      };
+      this.$store.commit("updateListRenderingOpts", changes);
+      
+    }
+    
   },
 
   computed: {
+    
+    rangeVal: function() {
+      return (this.item.range && this.item.range !== true) ? this.item.range : this.range.value;
+    },
+    
     inputVmodel: {
       get: function() {
-        return this.currentList[this.index].active;
+        return this.item.active;
       },
       set: function(value) {
         
         let changes = {
           listName: this.listName,
           index: this.index,
-          active: value
+          active: value,
         };
         
-        if ( this.currentList[this.index].group ) changes.group = true;
-        
+        if ( this.item.group ) changes.group = true;
         this.$store.commit("updateListRenderingOpts", changes);
-        
-        this.saveOptions( value );
-        
-        if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
-      
-        if (this.listName === "scope") {
-          this.$root.$emit("start-scope");
-        }
-        else if (
-          ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) 
-          && this.item.key !== "sortValues"
-        ) {
-          this.$store.commit("prop", { 'key': 'searchSort', value: false });
-          this.$root.$emit("start-sort");
-        } else if (this.listName === "filter") {
-          this.$root.$emit("start-filter");
-        } 
+        this.doTheThings( value );
         
       }
     },
@@ -99,8 +134,9 @@ export default {
         }
       }
       else if ( this.listName === "filter" ) {
-        const changedIndex = _.findIndex(this.currentList, { active: true, type: 'filterExtras' });
-        return changedIndex === this.index;
+        // const changedIndex = _.findIndex(this.currentList, { active: true, type: 'filterExtras' });
+        // return changedIndex === this.index;
+        return false;
       }
     },
     
@@ -108,22 +144,83 @@ export default {
   
   methods: {
     
-    filterAmounts: function( ) {
+    rangeChanged: _.debounce( function( value ) {
       
-      const vue = this;
-      const filterExtraRules = _.find( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
+      let changes = {
+        listName: this.listName,
+        index: this.index,
+        active: true,
+        range: value,
+      };
       
-      if ( this.item.type === 'filter' ) {
-        return _.filter( _.get(vue.$store.state, vue.$store.state.collectionSource), function(book) {
-          const extrasCondition = filterExtraRules ? filterExtraRules.condition(book) : true;
-          return extrasCondition && vue.item.condition(book);
-        }).length;
+      if ( this.item.group ) changes.group = true;
+      this.$store.commit("updateListRenderingOpts", changes);
+      this.doTheThings( value, true);
+      
+    }, 300, { leading: false, trailing: true }),
+    
+    adjustRange: function( direction ) {
+      
+      let changes = {
+        listName: this.listName,
+        index: this.index,
+        active: true,
+        range: _.cloneDeep(this.rangeVal),
+      };
+      
+      if ( direction === 'left' ) {
+        changes.range[0] = this.range.min;
       }
       else {
-        return _.filter( _.get(vue.$store.state, vue.$store.state.collectionSource), function(book) {
-          return vue.item.condition(book);
-        }).length;
+        changes.range[1] = this.range.max;
       }
+      
+      if ( this.item.group ) changes.group = true;
+      this.$store.commit("updateListRenderingOpts", changes);
+      this.doTheThings( changes.range, true);
+    },
+    
+    doTheThings: function( value, range ) {
+      
+      this.saveOptions( value );
+      
+      if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
+    
+      if (this.listName === "scope") {
+        this.$root.$emit("start-scope");
+      }
+      else if (
+        ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) 
+        && this.item.key !== "sortValues"
+      ) {
+        this.$store.commit("prop", { 'key': 'searchSort', value: false });
+        this.$root.$emit("start-sort");
+      } else if (this.listName === "filter") {
+        this.$root.$emit("start-filter", range ? value : null);
+      } 
+        
+    },
+    
+    getFilterAmounts: function( ) {
+      
+      this.$root.$emit('repositionSearchOpts');
+      
+      const vue = this;
+      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
+      
+      let conditionCheck = function( book ) {
+        
+        let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
+          return !!filter.condition( book );
+        });
+        
+        return !_.includes( filterExtrasConditions, false );
+        
+      };
+      
+      return _.filter( _.get(vue.$store.state, vue.$store.state.collectionSource), function(book) {
+        return vue.item.condition(book) && conditionCheck( book );
+      }).length;
       
     },
     
@@ -141,7 +238,17 @@ export default {
           this.$updateQuery({ query: this.item.type, value: encodeURIComponent(this.$store.getters.filterKeys) });
         }
         if ( this.item.type === 'filterExtras' ) {
-          this.$updateQuery({ query: this.item.type, value: encodeURIComponent(this.$store.getters.filterExtrasKeys) });
+          let vue = this;
+          if ( vue.$store.getters.filterExtrasKeys ) {
+            const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
+              const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
+              if ( keyItem && keyItem.range ) {
+                return key + ':' + keyItem.range[0] +'-'+ keyItem.range[1];
+              }
+              else { return key; }
+            });
+            this.$updateQuery({ query: this.item.type, value: encodeURIComponent(rangedKeys) });
+          }
         }
       }
       else if ( this.listName === "scope" ) {
@@ -165,6 +272,22 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  > span {
+    outline: none;
+  }
+}
+
+.range-slider {
+  display: flex;
+  flex-direction: row;
+  align-content: center;
+  align-items: center;
+  justify-items: stretch;
+  justify-content: stretch;
+  white-space: nowrap;
+  div { flex: 1; }
+  span:first-child { padding-right: 10px; }
+  span:last-child { padding-left: 10px; }
 }
 
 .sorter-button {
@@ -304,5 +427,25 @@ export default {
     top: 2px;
   }
   
+  .of-total {
+    opacity: .5;
+  }
+  
 } // #search-options
+</style>
+
+
+<style lang="scss">
+  @import "~@/_variables.scss";
+  .vue-slider-dot-tooltip-inner,
+  .vue-slider-process {
+    @include themify($themes) {
+      background: themed(audibleOrange);
+    }
+  }
+  .vue-slider-dot-tooltip-inner {
+    @include themify($themes) {
+      border-color: themed(audibleOrange);
+    }
+  }
 </style>
