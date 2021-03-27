@@ -2,7 +2,7 @@
   <span class="sorter-button-wrapper">
     <label
     v-if="item" class="sorter-button"
-    v-tippy="{ placement: (tippyTop ? 'top' : 'left'), flipBehavior: (tippyTop ? ['left', 'right', 'top', 'bottom'] : ['top', 'bottom', 'left', 'right']) }" :content="item.tippy ? item.tippy : false"
+    v-tippy="{ maxWidth: 350, placement: (tippyTop ? 'top' : 'left'), flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']) }" :content="item.tippy ? item.tippy : false"
     >
       
       <!-- LABEL in the front -->

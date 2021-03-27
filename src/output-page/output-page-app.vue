@@ -148,6 +148,10 @@ html.theme-light {
 
 .is-ios .tippy-popper { display: none !important; }
 
+  @media ( max-width: 630px ) {
+    .tippy-popper { display: none !important; }
+  }
+
 html {
   padding-top: 1px;
   margin: 0;
