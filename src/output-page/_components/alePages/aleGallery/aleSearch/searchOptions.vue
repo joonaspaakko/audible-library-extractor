@@ -4,11 +4,23 @@
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
       
+      <ul v-if="listName === 'filter'" class="regular-filters" :style="css.filter">
+        <li class="search-option" 
+        v-for="(item, index) in optionsList" :key="item.key"
+        v-if="item.type === 'filter'"
+        >
+          <listItem 
+          :label="item.label" :item="item" :index="index" 
+          :currentList="optionsList" :listName="listName"
+          ></listItem>
+        </li>
+      </ul>
+      
       <ul>
         <li class="search-option" 
         :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }" 
         v-for="(item, index) in optionsList" :key="item.key"
-        v-if="!($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues')"
+        v-if="!($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter'"
         >
           <listItem v-if="item.type !== 'divider'" 
           :label="item.label" :item="item" :index="index" 
@@ -34,16 +46,23 @@ export default {
     return {
       css: {
         arrow: { left: "0px" },
-        options: { right: "0px" }
+        options: { right: "0px" },
+        filter: { top: '40px' },
       }
     };
   },
 
   created: function() {
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName];
+    
+    if ( this.listName === 'filter' ) {
+      let topNav = document.querySelector('#ale-navigation.regular');
+      this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
+    }
   },
 
   mounted: function() {
+    
     // Reposition options list
     this.repositionSearchOptions();
     // Start listening for an outside click...
@@ -53,8 +72,14 @@ export default {
   },
 
   beforeDestroy: function() {
-    document.removeEventListener("mouseup", this.outsideClick);
+    
+    this.$root.$on("repositionSearchOpts", this.repositionSearchOptions);
+    // Start listening for an outside click...
+    if (this.listName) document.addEventListener("mousedown", this.outsideClick);
     this.$root.$off("afterWindowResize", this.repositionSearchOptions);
+    
+    window.scroll({ top: 0, behavior: 'smooth' });
+    
   },
 
   watch: {
@@ -68,7 +93,7 @@ export default {
     outsideClick: function(e) {
       const vue = this;
       if (vue.listName) {
-        var options = e.target.closest("#search-options");
+        var options = e.target.closest(".search-options-inner-wrap");
         var optionsBtn = e.target.closest(".search-opt-btn");
         if (!options && !optionsBtn) {
           vue.$emit("update:listName", false);
@@ -139,6 +164,9 @@ export default {
     padding: 12px 15px 12px 14px !important;
     margin: 0px !important;
     border-radius: 3px;
+    // max-height: 200px;
+    // overflow-x: hidden;
+    // overflow-y: auto;
     
     @include themify($themes) {
       color: themed(frontColor);
@@ -280,5 +308,20 @@ export default {
     text-decoration: line-through;
     opacity: 0.35;
   }
+  
+  .regular-filters {
+    @include themify($themes) {
+      background: lighten(themed(backColor), 12);
+      box-shadow: 0 7px 14px rgba(themed(backColor), .4);
+      border-bottom: 2px solid rgba(themed(frontColor), 0.01);
+    }
+    margin: -11px -15px 15px -14px;
+    padding: 14px;
+    position: sticky;
+    top: 40px;
+    z-index: 10;
+    margin-bottom: 10px;
+  }
+  
 } // #search-options
 </style>

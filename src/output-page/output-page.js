@@ -335,9 +335,23 @@ globalMethods.install = function (Vue) {
     if ( this.$route.query.filterExtras ) {
       
       let paramFilterExtras = decodeURIComponent(this.$route.query.filterExtras);
-      _.each( _.filter(list.filter, { type: 'filterExtras' }), function( filter ) {
-        filter.active = false;
-        if ( filter.key === paramFilterExtras ) filter.active = true;
+      paramFilterExtras = paramFilterExtras.split(',');
+      
+      _.each( paramFilterExtras, function( key ) {
+        
+        let splitColon = key.split(':');
+        let targetKey = splitColon[0];
+        let targetItem = _.find(list.filter, { type: 'filterExtras', key: targetKey });
+        
+        targetItem.active = true;
+        
+        if ( splitColon.length > 1 ) {
+          let splitDash = splitColon[1].split('-');
+          let min = splitDash[0];
+          let max = splitDash[1];
+          targetItem.range = [min, max];
+        }
+        
       });
       
     }

@@ -18,9 +18,9 @@ export default {
           { active: true, type: 'filter', label: 'Started',     key: 'started',    condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
           { active: true, type: 'filter', label: 'Finished',    key: 'finished',   condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
           
-          { type: 'divider', key: 'divider1' },
+          // { type: 'divider', key: 'divider1' },
           
-          { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
+          // { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
           { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
           { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
@@ -31,121 +31,131 @@ export default {
           
           { type: 'divider', key: 'divider2.0' },
 
-          { active: false, type: 'filterExtras', label: 'Length 0-1h', key: 'length-0-1h', group: 'filterExtras', condition: function( book ) { 
-            if (book.length) {
-              const length = vue.timeStringToSeconds(book.length);
-              return length <= 3600; 
-            } 
-          } },
-          { active: false, type: 'filterExtras', label: 'Length 1-3h', key: 'length-1-3h', group: 'filterExtras', condition: function( book ) { 
-            if (book.length) {
-              const length = vue.timeStringToSeconds(book.length);
-              return length > 3600 && length <= 10800; 
-            } 
-          } },
-          { active: false, type: 'filterExtras', label: 'Length 3-5h', key: 'length-3-5h', group: 'filterExtras', condition: function( book ) { 
-            if (book.length) {
-              const length = vue.timeStringToSeconds(book.length);
-              return length > 10800 && length <= 18000; 
-            } 
-          } },
-          { active: false, type: 'filterExtras', label: 'Length 5-10h', key: 'length-5-10h', group: 'filterExtras', condition: function( book ) {
-            if (book.length) {
-              const length = vue.timeStringToSeconds(book.length);
-              return length > 18000 && length <= 36000; 
-            } 
-          } },
-          { active: false, type: 'filterExtras', label: 'Length 10-20h', key: 'length-10-20h', group: 'filterExtras', condition: function( book ) { 
-            if (book.length) {
-              const length = vue.timeStringToSeconds(book.length);
-              return length > 36000 && length <= 72000; 
-            } 
-          } },
-          { active: false, type: 'filterExtras', label: 'Length 20-30h', key: 'length-20-30h', group: 'filterExtras', condition: function( book ) {
-            if (book.length) {
-              const length = vue.timeStringToSeconds(book.length);
-              return length > 72000 && length <= 108000; 
-            } 
-          } },
-          { active: false, type: 'filterExtras', label: 'Length +30h', key: 'length-plus30h', group: 'filterExtras', condition: function( book ) {
-            if (book.length) {
-              const length = vue.timeStringToSeconds(book.length);
-              return length > 108000; 
+          { active: false, type: 'filterExtras', label: 'Length', key: 'length', group: 'filterExtras', range: true, rangeMinDist: 1, rangeSuffix: 'h', 
+          rangeMin: function() { 
+            return 0; 
+          }, 
+          rangeMax: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let longest = _.maxBy( books, function( book ){ return vue.timeStringToSeconds(book.length); }); 
+            // seconds to minutes + rounded UP
+            return longest ? Math.ceil(vue.timeStringToSeconds(longest.length) / 3600) : 0; 
+          }, 
+          condition: function( book ) { 
+            if (book.length ) {
+              let min = this.range[0];
+              let max = this.range[1];
+              let length = vue.timeStringToSeconds(book.length) / 3600;
+              return length >= min && length <= max; 
+              // return Math.ceil(length) >= min && Math.floor(length) <= max; 
             } 
           } },
           
           { type: 'divider', key: 'divider2.1' },
           
-          { active: false, type: 'filterExtras', label: 'Multiple narrators', key: 'multiple-narrators', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length > 1; } },
-          { active: false, type: 'filterExtras', label: 'Multiple narrators 2', key: 'multiple-narrators2', group: 'filterExtras', condition: function( book ) { return book.narrators && book.narrators.length === 2; } },
-          { active: false, type: 'filterExtras', label: 'Multiple narrators 3-5', key: 'multiple-narrators-3-5', group: 'filterExtras', condition: function( book ) { return book.narrators && (book.narrators.length > 2 && book.narrators.length <= 5); } },
-          { active: false, type: 'filterExtras', label: 'Multiple narrators 6-10', key: 'multiple-narrators-6-10', group: 'filterExtras', condition: function( book ) { return book.narrators && (book.narrators.length > 5 && book.narrators.length <= 10); } },
-          { active: false, type: 'filterExtras', label: 'Multiple narrators > 10', key: 'multiple-narrators-greater-10', group: 'filterExtras', condition: function( book ) { return book.narrators && (book.narrators.length > 10); } },
+          { active: false, type: 'filterExtras', label: 'Narrators', key: 'narrators', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
+          rangeMin: function() { 
+            return 1;
+          }, 
+          rangeMax: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let most = _.maxBy( books, function( book ){ return (book.narrators) ? book.narrators.length : 0; }); 
+            return most ? most.narrators.length : 0; 
+          }, 
+          condition: function( book ) { 
+            if (book.narrators ) {
+              let min = this.range[0];
+              let max = this.range[1];
+              let length = book.narrators.length;
+              return length >= min && length <= max; 
+            } 
+          } },
           
           { type: 'divider', key: 'divider3' },
           
-          { active: false, type: 'filterExtras', label: 'Books in series 1', key: '1inSeries', group: 'filterExtras', condition: function( book ) { 
-            let result = false;
-            _.each( book.series, function( cSeries ) {
-              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series && series.books && series.books.length === 1 ) result = true; return false;
-            });
-            return result; 
-          } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 1', key: 'plus1series', group: 'filterExtras', condition: function( book ) { 
-            let result = false;
-            _.each( book.series, function( cSeries ) {
-              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series && series.books && series.books.length > 1 ) result = true; return false;
-            });
-            return result; 
-          } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 5', key: 'plus5series', group: 'filterExtras', condition: function( book ) { 
-            let result = false;
-            _.each( book.series, function( cSeries ) {
-              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series && series.books && series.books.length > 5 ) result = true; return false;
-            });
-            return result; 
-          } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 10', key: 'plus10series', group: 'filterExtras', condition: function( book ) { 
-            let result = false;
-            _.each( book.series, function( cSeries ) {
-              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series && series.books && series.books.length > 10 ) result = true; return false;
-            });
-            return result; 
-          } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 20', key: 'plus20series', group: 'filterExtras', condition: function( book ) { 
-            let result = false;
-            _.each( book.series, function( cSeries ) {
-              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series && series.books && series.books.length > 20 ) result = true; return false;
-            });
-            return result; 
-          } },
-          { active: false, type: 'filterExtras', label: 'Books in series > 30', key: 'plus30series', group: 'filterExtras', condition: function( book ) { 
-            let result = false;
-            _.each( book.series, function( cSeries ) {
-              const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-              if ( series && series.books && series.books.length > 30 ) result = true; return false;
-            });
-            return result; 
+          { active: false, type: 'filterExtras', label: 'Books in series', key: 'booksinseries', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
+          rangeMin: function() { 
+            return 1;
+          }, 
+          rangeMax: function() { 
+            let books = _.filter( _.get(vue.$store.state, vue.collectionSource), 'series' );
+            
+            let most = 0;
+            _.each( books, function( book ){ 
+                let bigBoe = _.maxBy( book.series, function( series ) {
+                  let foundSeries = _.find( vue.$store.state.library.series, { asin: series.asin });
+                  if ( foundSeries && foundSeries.books ) return foundSeries.books.length;
+                });
+                const bigBoeLength = _.find( vue.$store.state.library.series, { asin: bigBoe.asin }).books.length;
+                if ( most < bigBoeLength ) most = bigBoeLength;
+            }); 
+            
+            return most; 
+          }, 
+          condition: function( book ) { 
+            if ( book.series ) {
+              
+              let min = this.range[0];
+              let max = this.range[1];
+              
+              let result = false;
+              _.each( book.series, function( cSeries ) {
+                const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
+                if ( series.books.length >= min && series.books.length <= max ) {
+                  result = true;
+                  return false;
+                }
+              });
+              
+              return result; 
+              
+            } 
           } },
           
           { type: 'divider', key: 'divider4' },
-          { active: false, type: 'filterExtras', label: 'Average rating 1', key: 'rating-1', group: 'filterExtras', condition: function( book ) { return book.rating >= 1 && book.rating < 2; }},
-          { active: false, type: 'filterExtras', label: 'Average rating 2', key: 'rating-2', group: 'filterExtras', condition: function( book ) { return book.rating >= 2 && book.rating < 3; }},
-          { active: false, type: 'filterExtras', label: 'Average rating 3', key: 'rating-3', group: 'filterExtras', condition: function( book ) { return book.rating >= 3 && book.rating < 4; }},
-          { active: false, type: 'filterExtras', label: 'Average rating 4', key: 'rating-4', group: 'filterExtras', condition: function( book ) { return book.rating >= 4 && book.rating < 5; }},
-          { active: false, type: 'filterExtras', label: 'Average rating 5', key: 'rating-5', group: 'filterExtras', condition: function( book ) { return book.rating === 5; }},
+          { active: false, type: 'filterExtras', label: 'Average rating', key: 'rating', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
+          rangeMin: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let smallestRating = _.minBy( books, function( book ){ if (book.rating) return parseFloat(book.rating); }); 
+            // return smallestRating ? Math.floor(parseFloat(smallestRating.rating)) : 0; 
+            return smallestRating ? parseFloat(smallestRating.rating) : 0; 
+          }, 
+          rangeMax: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let biggestRating = _.maxBy( books, function( book ){ if (book.rating) return parseFloat(book.rating); }); 
+            // return biggestRating ? Math.ceil(parseFloat(biggestRating.rating)) : 0; 
+            return biggestRating ? parseFloat(biggestRating.rating) : 0; 
+          }, 
+          condition: function( book ) { 
+            if ( book.rating ) {
+              let min = this.range[0];
+              let max = this.range[1];
+              let rating = parseFloat( book.rating );
+              // return Math.floor(rating) >= min && Math.ceil(rating) <= max; 
+              return rating >= min && rating <= max; 
+            } 
+          }, rangeInterval: .1 },
           
           { type: 'divider', key: 'divider5' },
-          { active: false, type: 'filterExtras', label: 'My rating 1', key: 'my-rating-1', group: 'filterExtras', condition: function( book ) { return book.myRating >= 1 && book.myRating < 2; }, tippy: 'Not for me'},
-          { active: false, type: 'filterExtras', label: 'My rating 2', key: 'my-rating-2', group: 'filterExtras', condition: function( book ) { return book.myRating >= 2 && book.myRating < 3; }, tippy: 'It’s okay'},
-          { active: false, type: 'filterExtras', label: 'My rating 3', key: 'my-rating-3', group: 'filterExtras', condition: function( book ) { return book.myRating >= 3 && book.myRating < 4; }, tippy: 'Pretty good'},
-          { active: false, type: 'filterExtras', label: 'My rating 4', key: 'my-rating-4', group: 'filterExtras', condition: function( book ) { return book.myRating >= 4 && book.myRating < 5; }, tippy: 'It’s great'},
-          { active: false, type: 'filterExtras', label: 'My rating 5', key: 'my-rating-5', group: 'filterExtras', condition: function( book ) { return book.myRating === 5; }, tippy: 'I love it'},
+          { active: false, type: 'filterExtras', label: 'My rating', key: 'myrating', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
+          rangeMin: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let smallestRating = _.minBy( books, function( book ){ if (book.myRating) return parseFloat(book.myRating); }); 
+            return smallestRating ? parseFloat(smallestRating.myRating) : 0; 
+          }, 
+          rangeMax: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let biggestRating = _.maxBy( books, function( book ){ if (book.myRating) return parseFloat(book.myRating); }); 
+            return biggestRating ? parseFloat(biggestRating.myRating) : 0; 
+          }, 
+          condition: function( book ) { 
+            if ( book.myRating ) {
+              let min = this.range[0];
+              let max = this.range[1];
+              let rating = parseFloat( book.myRating );
+              return rating >= min && rating <= max; 
+            } 
+          } },
         ],
         sort: [
           { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "Shows the active sorter's value on top of the cover in the grid view." },
