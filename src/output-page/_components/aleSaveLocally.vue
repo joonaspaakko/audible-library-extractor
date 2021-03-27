@@ -94,14 +94,14 @@ export default {
       let files = [
         "output-page.js",
         "output-page.css",
-
+        
         "chunks/splide.js.LICENSE.txt",
         "chunks/906.js",
         "chunks/918.js",
         "chunks/sort-values.js",
+        "chunks/book.js",
         "chunks/sort-values.css",
         "chunks/splide.js",
-        "chunks/book.js",
         "chunks/book.css",
         "chunks/book-Details.js",
         "chunks/book-Details.css",
@@ -113,6 +113,7 @@ export default {
         "chunks/audio-player.css",
         "chunks/view-mode-switcher.js",
         "chunks/view-mode-switcher.css",
+        "chunks/gallery.css",
         "chunks/248.js",
         "chunks/248.css",
         "chunks/series.js",
@@ -122,7 +123,6 @@ export default {
         "chunks/categories.js",
         "chunks/categories.css",
         "chunks/gallery.js",
-        "chunks/gallery.css",
         
         "favicons/android-chrome-192x192.png",
         "favicons/android-chrome-512x512.png",

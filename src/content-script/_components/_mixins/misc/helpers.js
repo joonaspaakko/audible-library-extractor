@@ -2,10 +2,14 @@ export default {
   methods: {
     shortenLength: function(string) {
       if ( string ) {
-        string = DOMPurify.sanitize( string.trimAll() );
-        const lengthInSeconds = this.timeStringToSeconds(string);
-        return this.secondsToTimeString(lengthInSeconds, true);
+        string = DOMPurify.sanitize( string.trimToColon().trimAll() );
+        if ( string.match(/\d/) ) {
+          const lengthInSeconds = this.timeStringToSeconds(string);
+          return this.secondsToTimeString(lengthInSeconds, true);
+        }
+        else { return null; }
       }
+      else { return null; }
     },
 
     getSummary: function(el) {

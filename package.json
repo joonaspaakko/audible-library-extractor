@@ -1,6 +1,6 @@
 {
   "name": "audible-library-extractor",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
   "author": "Joonas Pääkkö <paakkoj@gmail.com>",
   "engines": {
@@ -9,9 +9,9 @@
   "scripts": {
     "watch:dev": "cross-env HMR=true npm run build:dev -- --watch",
     "build": "cross-env NODE_ENV=production webpack",
-    "build+zip": "cross-env NODE_ENV=production webpack && node scripts/build-zip.js",
-    "build:dev": "cross-env NODE_ENV=development webpack",
     "build:zip": "node scripts/build-zip.js",
+    "---": "",
+    "build:dev": "cross-env NODE_ENV=development webpack",
     "watch": "npm run build -- --watch",
     "prettier": "prettier \"src/**/*.{js,vue}\"",
     "prettier:write": "npm run prettier -- --write"

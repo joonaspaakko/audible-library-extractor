@@ -3,7 +3,7 @@ export default {
     timeStringToSeconds: function(string) {
       // This is a little janky and very specific to
       // the progress and length time format in Audible
-      const hasMinutes = string.match(/[0-9]+m|[0-9]+ min/);
+      const hasMinutes = string.match(/[0-9]( ?)+(m|min|分)/);
       const numbers = string.match(/\d+/g);
       const v = {};
       const hoursToSec = function(n) {
