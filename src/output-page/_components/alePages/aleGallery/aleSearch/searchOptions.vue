@@ -46,13 +46,15 @@ export default {
   mounted: function() {
     // Reposition options list
     this.repositionSearchOptions();
-
     // Start listening for an outside click...
     if (this.listName) document.addEventListener("mouseup", this.outsideClick);
+    this.$root.$on("afterWindowResize", this.repositionSearchOptions);
+
   },
 
   beforeDestroy: function() {
     document.removeEventListener("mouseup", this.outsideClick);
+    this.$root.$off("afterWindowResize", this.repositionSearchOptions);
   },
 
   watch: {

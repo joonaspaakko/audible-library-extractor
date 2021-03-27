@@ -4,9 +4,12 @@ export default {
       return _.orderBy(
         params.books,
         function(o) {
-          return o.releaseDate
-            ? new Date(o.releaseDate.split("-"))
-            : new Date("1800", "01", "01");
+          if ( o.releaseDate ) {
+            return new Date(o.releaseDate.split('-').join('/'));
+          }
+          else {
+            return 0;
+          }
         },
         params.direction
       );

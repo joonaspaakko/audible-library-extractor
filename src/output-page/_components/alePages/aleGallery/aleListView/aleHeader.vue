@@ -10,9 +10,6 @@
         <col-resizer :identifier="item.class"></col-resizer>
         <div class="ale-col-inner">
           
-          <!-- FIXME: remember to add sorting to all remaining col headers
-           -->
-          
           <sorter
             v-if="sorterIndex(item) > -1" 
             :label="false"

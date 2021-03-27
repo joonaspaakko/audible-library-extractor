@@ -26,12 +26,6 @@ export default {
     };
   },
   
-  created: function() {
-    
-    // console.log('%c' + 'SORT VALUES CREATED' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
-    
-  },
-  
   methods: {
     
     sortContents: function() {
@@ -82,15 +76,26 @@ export default {
         case "authors.name":
         case "narrators.name":
         case "publishers.name":
-          return _.get( this.book, sortKey.replace('.name', '[0].name') );
+          var name = _.get( this.book, sortKey.replace('.name', '[0].name') );
+          return name || this.notAvailable;
           break;
         case "rating":
-          const ratings = this.book.ratings ? " <small>("+ this.book.ratings +")</small>" : "";
-          return this.book[sortKey] + ratings;
+          if ( this.book.ratings ) {
+            const ratings = this.book.ratings ? " <small>("+ this.book.ratings +")</small>" : "";
+            return this.book[sortKey] + ratings;
+          }
+          else {
+            return this.notAvailable;
+          }
           break;
         case "ratings":
-          const rating = this.book.rating ? " <small>(" + this.book.rating + ")</small>" : "";
-          return this.book[sortKey] + rating;
+          if ( this.book.rating ) {
+            const rating = this.book.rating ? " <small>(" + this.book.rating + ")</small>" : "";
+            return this.book[sortKey] + rating;
+          }
+          else {
+            return this.notAvailable;
+          }
           break;
         case "progress":
             var css = this.progressbarWidth(this.book);
@@ -131,6 +136,12 @@ export default {
               const isbn13 = _.find(this.book.isbns, ["type", "ISBN_13"]);
               if (isbn13) return isbn13.identifier;
             }
+            else {
+              return this.notAvailable;
+            }
+          }
+          else {
+            return this.notAvailable;
           }
           break;
           
