@@ -174,13 +174,13 @@ export default {
       const target = {};
       target.el = domBooks[this.index];
       target.index = this.index;
-      target.width = target.el.offsetWidth;
+      target.width = target.el.getBoundingClientRect().width;
       target.siblings = domBooks; // + target.el
 
       const wrapper = {};
       wrapper.el = gridView;
-      wrapper.width = wrapper.el.offsetWidth;
-
+      wrapper.width = wrapper.el.getBoundingClientRect().width;
+      console.log( target.width, wrapper.width )
       const info = {};
       info.cols = Math.floor(wrapper.width / target.width) || 1;
       

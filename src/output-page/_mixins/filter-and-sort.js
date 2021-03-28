@@ -48,8 +48,6 @@ export default {
             return !!filter.condition( book );
           });
           
-          console.log( filterExtrasConditions )
-          
           return ( regularFilters ? _.includes( filterConditions, true ) : true ) && !_.includes( filterExtrasConditions, false );
           
         };

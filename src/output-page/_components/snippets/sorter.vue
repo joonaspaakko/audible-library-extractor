@@ -127,7 +127,6 @@ export default {
   computed: {
     
     rangeVal: function() {
-      console.log( (this.item.range && this.item.range !== true) ? this.item.range : this.range.value )
       return (this.item.range && this.item.range !== true) ? this.item.range : this.range.value;
     },
     

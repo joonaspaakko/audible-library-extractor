@@ -229,7 +229,6 @@ function lengthMarksCalc( max ) {
     
     var remainder = max-20;
     var tens = Math.floor( remainder / 10 );
-    console.log( remainder, tens );
     
     if ( tens === 0 ) {
       if ( max <=  marks[marks.length-1] + 4  ) marks.pop();

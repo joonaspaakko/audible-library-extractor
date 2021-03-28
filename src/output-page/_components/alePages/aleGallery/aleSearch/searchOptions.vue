@@ -98,7 +98,6 @@ export default {
     repositionSearchOptions: _.debounce( function( value ) {
       this.$nextTick(function() {
         const searchOpts = {};
-        console.log( this.$refs, this.$refs.options )
         searchOpts.el = this.$refs.options;
         searchOpts.width = searchOpts.el.offsetWidth;
         searchOpts.left = searchOpts.el.offsetLeft;
