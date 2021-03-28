@@ -5,7 +5,7 @@
       <div class="inner-wrap-wrapper">
         
         <div class="text-button gallery-page" v-if="$store.state.library.books">
-          <router-link :to="{ name: 'gallery' }" @click.native="mobileMenuOpen = false">
+          <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
               <font-awesome fas icon="book" />
               <span>Library</span>
@@ -16,7 +16,7 @@
         </div>
 
         <div class="text-button categories-page" v-if="$store.state.library.books">
-          <router-link :to="{ name: 'categories' }" @click.native="mobileMenuOpen = false">
+          <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
             <div class="icon">
               <font-awesome fas icon="indent" />
               <span>Categories</span>
@@ -25,7 +25,7 @@
         </div>
 
         <div class="text-button series-page" v-if="$store.state.library.books">
-          <router-link :to="{ name: 'all-series' }" @click.native="mobileMenuOpen = false">
+          <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
             <div class="icon">
               <font-awesome fas icon="list-ol" />
               <span>Series</span>
@@ -34,7 +34,7 @@
         </div>
         
         <div class="text-button collections-page" v-if="$store.state.library.collections">
-          <router-link :to="{ name: 'collections' }" @click.native="mobileMenuOpen = false">
+          <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
           <div class="icon">
             <font-awesome fas icon="folder-open" />
             <span>Collections</span>
@@ -43,7 +43,7 @@
         </div>
         
         <div class="text-button wishlist-page" v-if="$store.state.library.wishlist">
-          <router-link :to="{ name: 'wishlist' }" @click.native="mobileMenuOpen = false">
+          <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">
           <div class="icon">
             <font-awesome fas icon="bookmark" />
             <span>Wishlist</span>
@@ -229,6 +229,16 @@ export default {
   },
   
   methods: {
+    
+    linkClicked: function( linkName ) {
+      
+      this.mobileMenuOpen = false;
+      
+      if ( this.$route.name === linkName ) {
+        this.$root.$emit('refresh-page');
+      }
+      
+    },
     
     mobileBrowserNavigation: function() {
       return (

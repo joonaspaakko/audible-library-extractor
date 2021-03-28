@@ -49,7 +49,12 @@ export default {
               return length >= min && length <= max; 
               // return Math.ceil(length) >= min && Math.floor(length) <= max; 
             } 
-          } },
+          },
+          // Good idea, but I think it made it too restrictive and 0-10 was a little tightly packed.
+          // rangeMarks: function( max ) {
+          //   return lengthMarksCalc( max );
+          // } 
+          },
           
           { type: 'divider', key: 'divider2.1' },
           
@@ -205,3 +210,47 @@ export default {
     
   }
 };
+
+
+function lengthMarksCalc( max ) {
+  
+  var marks = [0,1,2,3,4,5,6,7,8,9,10,15,20];
+
+  if ( max < 20 ) {
+    while ( marks[marks.length-1] > max ) {
+      marks.pop();
+    }
+    if ( max > marks[marks.length-1] ) {
+      if ( max <=  marks[marks.length-1] + 2  ) marks.pop();
+      marks.push(max);
+    }
+  }
+  else {
+    
+    var remainder = max-20;
+    var tens = Math.floor( remainder / 10 );
+    console.log( remainder, tens );
+    
+    if ( tens === 0 ) {
+      if ( max <=  marks[marks.length-1] + 4  ) marks.pop();
+      marks.push(max);
+    }
+    else {
+      
+      var tensArray = _.range(1,tens+1);
+      _.each( tensArray, function() {
+        marks.push( marks[marks.length-1] + 10 );
+      });
+          
+      if ( max > marks[marks.length-1] ) {  
+        if ( max <=  marks[marks.length-1] + 4  ) marks.pop();
+        marks.push(max);
+      }
+      
+    }
+
+  }
+
+  return marks;
+  
+}

@@ -1,9 +1,14 @@
 <template>
   <span class="sorter-button-wrapper">
-    <label
-    v-if="item" class="sorter-button"
-    v-tippy="{ maxWidth: 350, placement: (tippyTop ? 'top' : 'left'), flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']) }" :content="item.tippy ? item.tippy : false"
+    <span
+    v-if="item"
     :class="item.key"
+    v-tippy="{ 
+      maxWidth: 350, 
+      placement: (tippyTop ? 'top' : 'left'), 
+      flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']) 
+    }" 
+    :content="item.tippy ? item.tippy : false"
     >
       <label class="sorter-button">
         
@@ -49,7 +54,24 @@
       
       <div class="range-slider" v-if="item.range">
         <span style="cursor: w-resize;" @click="adjustRange('left')">{{ rangeVal[0] }}{{ item.rangeSuffix }}</span>
-        <vue-slider :hideLabel="true" :interval="item.rangeInterval || 1" :marks="Math.abs(range.min - range.max) <= 10" :value="rangeVal" :min="range.min" :max="range.max" :min-range="item.rangeMinDist || 0" :enable-cross="false" @change="rangeChanged" :tooltip-formatter="'{value}'+item.rangeSuffix" :tooltip-placement="['bottom', 'bottom']" tooltip="focus"></vue-slider>
+        <vue-slider 
+        :dragOnClick="true" 
+        :adsorb="true"
+        :lazy="true" 
+        :hideLabel="true" 
+        :included="!!(range.marks)" 
+        :interval="item.rangeInterval || 1" 
+        :marks="range.marks || Math.abs(range.min - range.max) <= 10" 
+        :value="rangeVal" 
+        :min="range.min" 
+        :max="range.max" 
+        :min-range="item.rangeMinDist || 0" 
+        :enable-cross="false" 
+        @change="rangeChanged" 
+        :tooltip-formatter="'{value}'+item.rangeSuffix" 
+        :tooltip-placement="['top', 'bottom']" 
+        tooltip="focus"
+        ></vue-slider>
         <span style="cursor: e-resize;" @click="adjustRange('right')">{{ rangeVal[1] }}{{ item.rangeSuffix }}</span>
       </div>
         
@@ -87,6 +109,8 @@ export default {
         value: _.isArray(this.item.range) ? this.item.range : [min, max],
       };
       
+      if ( this.item.rangeMarks ) this.range.marks = this.item.rangeMarks( max );
+      
       let changes = {
         listName: this.listName,
         index: this.index,
@@ -103,6 +127,7 @@ export default {
   computed: {
     
     rangeVal: function() {
+      console.log( (this.item.range && this.item.range !== true) ? this.item.range : this.range.value )
       return (this.item.range && this.item.range !== true) ? this.item.range : this.range.value;
     },
     
@@ -144,7 +169,7 @@ export default {
   
   methods: {
     
-    rangeChanged: _.debounce( function( value ) {
+    rangeChanged: function( value ) {
       
       let changes = {
         listName: this.listName,
@@ -157,7 +182,7 @@ export default {
       this.$store.commit("updateListRenderingOpts", changes);
       this.doTheThings( value, true);
       
-    }, 300, { leading: false, trailing: true }),
+    },
     
     adjustRange: function( direction ) {
       
@@ -446,6 +471,12 @@ export default {
   .vue-slider-dot-tooltip-inner {
     @include themify($themes) {
       border-color: themed(audibleOrange);
+    }
+  }
+  .vue-slider-mark {
+    width: 1px !important;
+    @include themify($themes) {
+      background-color: rgba(#000, .15);
     }
   }
 </style>

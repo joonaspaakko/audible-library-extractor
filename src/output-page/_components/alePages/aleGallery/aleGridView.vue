@@ -118,6 +118,13 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
   display: inline-block;
 }
 
+.theme-dark .ale-book.details-open .details-inner-wrap {
+  background: lighten( $darkBackColor, 9);
+}
+.theme-light  .ale-book.details-open .details-inner-wrap {
+  background: #202020;
+}
+
 .ale-book {
   position: relative;
   z-index: 0;
@@ -129,12 +136,10 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
     display: inline-block;
   }
 
-  &.details-open {
-    .details-inner-wrap {
-      @include themify($themes) {
-        border-color: themed(audibleOrange);
-        box-shadow: 0 0 0 3px themed(audibleOrange), 0 2px 10px rgba(#000, 0.7);
-      }
+  &.details-open .details-inner-wrap {
+    @include themify($themes) {
+      border-color: themed(audibleOrange);
+      box-shadow: 0 0 0 3px themed(audibleOrange), 0 2px 10px rgba(#000, 0.7);
     }
   }
 

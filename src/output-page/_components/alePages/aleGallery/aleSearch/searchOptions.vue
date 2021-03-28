@@ -4,7 +4,7 @@
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
       
-      <ul v-if="listName === 'filter'" class="regular-filters" :style="css.filter">
+      <ul v-if="listName === 'filter' && $store.getters.filterKeys" class="regular-filters" :style="css.filter">
         <li class="search-option" 
         v-for="(item, index) in optionsList" :key="item.key"
         v-if="item.type === 'filter'"
@@ -53,7 +53,7 @@ export default {
   },
 
   created: function() {
-    this.optionsList = this.$store.state.listRenderingOpts[ this.listName];
+    this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
     
     if ( this.listName === 'filter' ) {
       let topNav = document.querySelector('#ale-navigation.regular');
@@ -66,27 +66,21 @@ export default {
     // Reposition options list
     this.repositionSearchOptions();
     // Start listening for an outside click...
-    if (this.listName) document.addEventListener("mouseup", this.outsideClick);
+    if (this.listName) document.addEventListener("mousedown", this.outsideClick);
+    this.$root.$on("repositionSearchOpts", this.repositionSearchOptions);
     this.$root.$on("afterWindowResize", this.repositionSearchOptions);
 
   },
 
   beforeDestroy: function() {
     
-    this.$root.$on("repositionSearchOpts", this.repositionSearchOptions);
     // Start listening for an outside click...
     if (this.listName) document.addEventListener("mousedown", this.outsideClick);
+    this.$root.$off("repositionSearchOpts", this.repositionSearchOptions);
     this.$root.$off("afterWindowResize", this.repositionSearchOptions);
     
-    window.scroll({ top: 0, behavior: 'smooth' });
+    scroll({ top: 0, behavior: 'smooth' });
     
-  },
-
-  watch: {
-    optionsList: function() {
-      // Reposition options list
-      this.repositionSearchOptions();
-    }
   },
 
   methods: {
@@ -101,9 +95,10 @@ export default {
       }
     },
     
-    repositionSearchOptions: function() {
+    repositionSearchOptions: _.debounce( function( value ) {
       this.$nextTick(function() {
         const searchOpts = {};
+        console.log( this.$refs, this.$refs.options )
         searchOpts.el = this.$refs.options;
         searchOpts.width = searchOpts.el.offsetWidth;
         searchOpts.left = searchOpts.el.offsetLeft;
@@ -132,7 +127,7 @@ export default {
         this.css.options.right = searchOpts.position + fitToWindow + "px";
         this.css.arrow.left = searchOpts.width / 2 - 10 + fitToWindow + "px";
       });
-    }
+    }, 300, { leading: true, trailing: false }),
   }
 };
 </script>

@@ -123,6 +123,7 @@ const router = new VueRouter({
   scrollBehavior(to, from, savedPosition) {
     // if (savedPosition && (to.name === "categories" || to.name === "all-series" || to.name === "collections" || to.name === "wishlist") ) {
     if (savedPosition ) {
+      this.app.$root.$emit('refresh-page');
       return savedPosition;
     } else {
       if (from && to.name === from.name && _.isEqual(to.params, from.params)) {

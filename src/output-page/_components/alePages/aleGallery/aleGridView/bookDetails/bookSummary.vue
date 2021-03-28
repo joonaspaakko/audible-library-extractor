@@ -32,7 +32,7 @@
             <font-awesome :icon="['fas', 'shopping-bag']" />
             changed
           </div>
-          <div class="store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was either removed or it became unavailable in your region since the purchase. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
+          <div class="store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was possibly removed or it became unavailable in your region since it was added. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
             <font-awesome :icon="['fas', 'shopping-bag']" />
             missing
           </div>

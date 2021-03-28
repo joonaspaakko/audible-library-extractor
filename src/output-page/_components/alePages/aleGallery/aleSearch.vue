@@ -4,7 +4,7 @@
     <div
     id="ale-search-wrap"
     ref="searchWrap"
-    :class="{ 'search-fixed': fixedSearch }"
+    :class="{ 'search-fixed': fixedSearch, 'highlight-search': highlightSearch }"
     >
       
       <div id="search-dropdown-overlay" v-show="listName"></div>
@@ -74,6 +74,7 @@ export default {
         rootMargin: "-37px"
       },
       fixedSearch: false,
+      highlightSearch: false,
     };
   },
 
@@ -217,7 +218,10 @@ export default {
     
     focusOnSearch: function() {
       
+      let vue = this;
       scroll({ top: 0 });
+      this.highlightSearch = true;
+      setTimeout(function() { vue.highlightSearch = false; }, 1200);
       this.$refs.searchInput.focus();
       
     },
@@ -308,9 +312,17 @@ export default {
   padding-bottom: 30px;
   max-width: 600px;
   height: 46px;
+  
+  &.highlight-search #ale-search {
+    border: 3px solid $audibleOrange;
+  }
+  
 }
 
 #ale-search {
+  transition: border 250ms ease-in-out;
+  transition-delay: 500ms;
+  border: 0px solid $audibleOrange;
   width: 100%;
   height: 46px;
   flex-grow: 1;
@@ -338,6 +350,7 @@ export default {
     cursor: text;
 
     input[type="search"] {
+      background-color: transparent;
       text-overflow: ellipsis;
       padding: 0px;
       outline: none;

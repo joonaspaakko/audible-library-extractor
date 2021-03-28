@@ -32,6 +32,7 @@ export default {
     filterBooks: function(books) {
       
       const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: true });
+      const regularFilters = _.find( this.$store.state.listRenderingOpts.filter, { type: 'filter' });
       const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
       
       if ( filterRules || filterExtraRules ) {
@@ -47,7 +48,9 @@ export default {
             return !!filter.condition( book );
           });
           
-          return _.includes( filterConditions, true ) && !_.includes( filterExtrasConditions, false );
+          console.log( filterExtrasConditions )
+          
+          return ( regularFilters ? _.includes( filterConditions, true ) : true ) && !_.includes( filterExtrasConditions, false );
           
         };
         

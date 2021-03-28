@@ -3,7 +3,8 @@
         
     <ale-background v-if="$store.state.showBackground"></ale-background>
     <ale-navigation></ale-navigation>
-    <router-view :key="$route.name"></router-view>
+    <router-view :key="$route.name+viewRefresh"></router-view>
+    <!-- <router-view :key="$route.name+($route.query.refresh ? '-refresh' : '')"></router-view> -->
     
   </div>
 </template>
@@ -21,6 +22,7 @@ export default {
   
   data: function() {
     return {
+      viewRefresh: '',
       general: {
         route: null,
         standalone: null,
@@ -34,14 +36,6 @@ export default {
     };
   },
   
-  beforeCreate: function() {
-    if ( !this.$store.state.library.books && this.$store.state.library.wishlist ) {
-      this.$router.push({ 
-        name: 'wishlist',
-      });
-    }
-  },
-  
   created: function() {
     
     // var isbn = _.filter(this.$store.state.library.books, 'isbns');
@@ -50,6 +44,8 @@ export default {
     if ( this.checkIf_iOS() ) {
       document.querySelector('body').classList.add('is-ios');
     }
+    
+    this.$root.$on('refresh-page', this.refreshPage);
     
   },
 
@@ -62,14 +58,24 @@ export default {
     );
     
     this.showTheBackgroundGrid();
+    
   },
-  // beforeDestroy: function() {
+  
+  beforeDestroy: function() {
+    
+    this.$root.$off('refresh-page', this.refreshPage);
 
-  //   window.removeEventListener('resize', this.onWindowResize);
-
-  // },
+  },
 
   methods: {
+    
+    refreshPage: function() {
+      console.log('refreshPage')
+      this.viewRefresh = true;
+      this.$nextTick(function() {
+        this.viewRefresh = '';
+      });
+    },
     
     checkIf_iOS: function() {
       return [
@@ -121,10 +127,20 @@ export default {
 
   watch: {
     $route: function(route, previousRoute) {
-      // console.log( route, previousRoute );
+      
       this.$store.commit("prop", { key: "route", value: route });
+      
+      // console.log( route, previousRoute )
+      // console.log( this.$routerHistory, this.$router )
+      // if ( route.name === previousRoute.name  ) {
+        // this.$nextTick(function() {
+        //   this.$updateQuery({ query: 'refresh', value: null });
+        // });
+      // }
+      
     }
-  }
+  },
+  
 };
 </script>
 
