@@ -109,6 +109,9 @@ export default new Vuex.Store({
     sortBy: function( state ) {
       return _.find( state.listRenderingOpts.sort, 'current').key;
     },
+    regularFilters: function( state ) {
+      return _.filter( state.listRenderingOpts.filter, { type: 'filter' }).length > 0;
+    },
     filterKeys: function( state ) {
       return _.map(_.filter( state.listRenderingOpts.filter, { type: 'filter', active: true }), function( o ) {
         return o.key;

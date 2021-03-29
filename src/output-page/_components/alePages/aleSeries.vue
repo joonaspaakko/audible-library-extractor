@@ -105,10 +105,6 @@ export default {
           // { active: false, type: 'filterExtras', label: 'Books > 20', key: 'series-20', group: 'radioHead', condition: function( series ) { return series.books.length > 20; }},
           // { active: false, type: 'filterExtras', label: 'Books > 30', key: 'series-30', group: 'radioHead', condition: function( series ) { return series.books.length > 30; }},
           
-          
-          
-          // FIXME: series page not showing up initially.........?? only after you meddle with the filters...
-          
           { active: true, type: 'filterExtras', label: 'Books in series', key: 'inSeries', range: [1, (function() {
             let series = _.get(vue.$store.state, vue.collectionSource);
             let max = _.maxBy( series, function( series ){ 

@@ -210,7 +210,7 @@ export default {
       
       if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
     
-      if (this.listName === "scope") {
+      if ( this.listName === "scope" ) {
         this.$root.$emit("start-scope");
       }
       else if (
@@ -219,7 +219,7 @@ export default {
       ) {
         this.$store.commit("prop", { 'key': 'searchSort', value: false });
         this.$root.$emit("start-sort");
-      } else if (this.listName === "filter") {
+      } else if ( this.listName === "filter" ) {
         this.$root.$emit("start-filter", range ? value : null);
       } 
         

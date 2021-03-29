@@ -180,7 +180,6 @@ export default {
       const wrapper = {};
       wrapper.el = gridView;
       wrapper.width = wrapper.el.getBoundingClientRect().width;
-      console.log( target.width, wrapper.width )
       const info = {};
       info.cols = Math.floor(wrapper.width / target.width) || 1;
       

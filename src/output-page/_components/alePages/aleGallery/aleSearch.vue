@@ -99,7 +99,7 @@ export default {
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);
       this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
-      this.fuseOptions.shouldSort = false
+      this.fuseOptions.shouldSort = false;
       this.search();
     }
     
@@ -138,20 +138,27 @@ export default {
     
     scope: function() {
       this.$root.$emit("book-clicked", { book: null });
-      if (this.$store.getters.searchIsActive ) this.search();
+      // No need to shuffle anything when there's no active search
+      if ( this.$store.getters.searchIsActive ) {
+        this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
+        // this.$nextTick(function() {
+          this.fuseOptions.shouldSort = false;
+          this.search();
+        // });
+      } 
     },
     filter: function() {
       
       this.$root.$emit("book-clicked", { book: null });
-      // scroll({ top: 0 });
+      
+      this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
       
       if ( this.$store.getters.searchIsActive ) {
-        this.$store.commit("prop", { key: 'mutatingCollection', value: this.filterBooks( _.get(this.$store.state, this.collectionSource) ) });
-        this.search();
+        // this.$nextTick(function() {
+          this.fuseOptions.shouldSort = false;
+          this.search();
+        // });
       } 
-      else {
-        this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
-      }
       
     },
     sort: function() {

@@ -4,7 +4,7 @@
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
       
-      <ul v-if="listName === 'filter' && $store.getters.filterKeys" class="regular-filters" :style="css.filter">
+      <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="css.filter">
         <li class="search-option" 
         v-for="(item, index) in optionsList" :key="item.key"
         v-if="item.type === 'filter'"
