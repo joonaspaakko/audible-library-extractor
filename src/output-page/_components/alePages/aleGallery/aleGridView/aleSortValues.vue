@@ -145,6 +145,13 @@ export default {
           }
           break;
           
+        case "narratorsNumber":
+          if ( this.book.narrators ) {
+            return this.book.narrators.length;
+          }
+          else { return this.notAvailable; }
+          break;
+          
         default:
           if ( this.book[sortKey] ) return this.book[sortKey]
           else return this.notAvailable;

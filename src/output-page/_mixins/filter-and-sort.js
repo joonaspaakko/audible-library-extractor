@@ -5,6 +5,7 @@ import sortTitle from "@output-mixins/sort/title.js";
 import sortAmount from "@output-mixins/sort/amount.js";
 import sortLength from "@output-mixins/sort/length.js";
 import sortRatings from "@output-mixins/sort/ratings.js";
+import sortByLength from "@output-mixins/sort/byLength.js";
 import sortProgress from "@output-mixins/sort/progress.js";
 import sortDateAdded from "@output-mixins/sort/dateAdded.js";
 import sortFavorites from "@output-mixins/sort/favorites.js";
@@ -21,6 +22,7 @@ export default {
     sortLength,
     sortRatings,
     sortProgress,
+    sortByLength,
     sortDateAdded,
     sortFavorites,
     sortBookNumbers,
@@ -100,6 +102,9 @@ export default {
           case "narrators.name":
           case "publishers.name":
             books = this.sortStringNameProp(sortOptions);
+            break;
+          case "narratorsNumber":
+            books = this.sortByLength(sortOptions);
             break;
           case "title":
           case "series":

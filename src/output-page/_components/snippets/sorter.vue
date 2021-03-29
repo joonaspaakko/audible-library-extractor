@@ -168,7 +168,7 @@ export default {
   
   methods: {
     
-    rangeChanged: function( value ) {
+    rangeChanged: function( value ) { 
       
       let changes = {
         listName: this.listName,
@@ -242,7 +242,7 @@ export default {
         
       };
       
-      return _.filter( _.get(vue.$store.state, vue.$store.state.collectionSource), function(book) {
+      return _.filter( this.$store.getters.collection, function(book) {
         return vue.item.condition(book) && conditionCheck( book );
       }).length;
       
@@ -473,9 +473,9 @@ export default {
     }
   }
   .vue-slider-mark {
-    width: 1px !important;
+    width: 2px !important;
     @include themify($themes) {
-      background-color: rgba(#000, .15);
+      background-color: rgba(#000, .05);
     }
   }
 </style>

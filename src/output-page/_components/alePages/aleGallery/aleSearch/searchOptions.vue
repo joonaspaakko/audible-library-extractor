@@ -316,6 +316,15 @@ export default {
     z-index: 10;
     margin-bottom: 10px;
   }
-  
+  .vue-slider-dot-handle:after {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: -4px;
+    bottom: -10px;
+    left: -4px;
+    // background: rgba(255,0,0,.4);
+    cursor: pointer;
+  }
 } // #search-options
 </style>

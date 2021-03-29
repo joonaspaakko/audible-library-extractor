@@ -24,6 +24,7 @@ export default {
           { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
           { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
+          { active: false, type: 'filterExtras', label: 'Not from plus catalog', key: 'not-from-plus-catalog', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog; } },
           { active: false, type: 'filterExtras', label: 'From plus catalog', key: 'from-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog; } },
           { active: false, type: 'filterExtras', label: 'Unavailable', key: 'unavailable', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; } },
           { active: false, type: 'filterExtras', label: 'Store page unavailable', key: 'store-page-unavailable', group: 'filterExtras', condition: function( book ) { return book.storePageChanged || book.storePageMissing; } },
@@ -141,6 +142,32 @@ export default {
             } 
           }, rangeInterval: .1 },
           
+          { type: 'divider', key: 'divider5.2' },
+          { active: false, type: 'filterExtras', label: 'Ratings', key: 'number-of-ratings', group: 'filterExtras', range: true, rangeMinDist: 1, rangeSuffix: '', 
+          rangeMin: function() { 
+            // return 1; 
+            
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let bigBoe = _.minBy( books, function( book ){ if ( book.ratings ) return parseFloat(book.ratings) }); 
+            // seconds to minutes + rounded UP
+            return bigBoe ? bigBoe.ratings : 0; 
+            
+          }, 
+          rangeMax: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let bigBoe = _.maxBy( books, function( book ){ if ( book.ratings ) return parseFloat(book.ratings) }); 
+            // seconds to minutes + rounded UP
+            return bigBoe ? bigBoe.ratings : 0; 
+          }, 
+          condition: function( book ) { 
+            if (book.ratings ) {
+              let min = this.range[0];
+              let max = this.range[1];
+              let ratings = parseFloat(book.ratings);
+              return ratings >= min && ratings <= max; 
+            } 
+          } },
+          
           { type: 'divider', key: 'divider5' },
           { active: false, type: 'filterExtras', label: 'My rating', key: 'myrating', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
           rangeMin: function() { 
@@ -172,19 +199,21 @@ export default {
           { active: true , current: false, key: 'title'           , label: 'Title'             , type: 'sort' }, 
           { active: true , current: false, key: 'authors.name'    , label: 'Author'            , type: 'sort' }, 
           { active: true , current: false, key: 'narrators.name'  , label: 'Narrator'          , type: 'sort' }, 
+          { active: true , current: false, key: 'narratorsNumber'  , label: 'Number of narrators'          , type: 'sort' }, 
+          // { active: true , current: false, key: 'seriesNumber'  , label: 'Series length'          , type: 'sort' }, 
           { active: false , current: false, key: 'releaseDate'     , label: 'Release date'      , type: 'sort' }, 
           { active: false , current: false, key: 'length'          , label: 'Length'            , type: 'sort' }, 
           
           { type: 'divider', key: 'divider2' },
-          { active: false , current: false, key: 'rating'          , label: 'Rating'            , type: 'sort' }, 
-          { active: false , current: false, key: 'ratings'         , label: 'Number of ratings' , type: 'sort' }, 
-          { active: false, current: false, key: 'progress'        , label: 'Progress'          , type: 'sort' }, 
+          { active: false , current: false, key: 'rating'          , label: 'Average rating'            , type: 'sort' }, 
+          { active: false , current: false, key: 'ratings'         , label: 'Number of ratings' , type: 'sort' },
+          { active: false , current: false, key: 'myRating'        , label: 'My rating'         , type: 'sort' },
           { active: true , current: false, key: 'publishers.name' , label: 'Publishers'        , type: 'sort' }, 
           
           { type: 'divider', key: 'divider3' },
           { active: false , current: false, key: 'favorite'        , label: 'Favorite'          , type: 'sort' }, 
           { active: true , current: false, key: 'series'          , label: 'Series'            , type: 'sort', tippy: 'Sorts books by the series name alphabetically.' }, 
-          { active: false , current: false, key: 'myRating'        , label: 'My rating'         , type: 'sort' }, 
+          { active: false, current: false, key: 'progress'        , label: 'Progress'          , type: 'sort' }, 
           { active: true , current: false, key: 'categories'      , label: 'Categories'        , type: 'sort' }, 
           { active: false , current: false, key: 'isNew'           , label: 'New books'       , type: 'sort' },
           
