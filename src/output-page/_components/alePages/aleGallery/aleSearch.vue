@@ -60,8 +60,10 @@ export default {
       fuseOptions: {
         keys: ["title"],
         location: 0,
-        distance: 400,
+        distance: 150,
+        // threshold: 0.25,
         threshold: 0.25,
+        // ignoreLocation: true,
         shouldSort: true,
         includeScore: false,
         includeMatches: false,
@@ -99,7 +101,7 @@ export default {
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);
       this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
-      this.fuseOptions.shouldSort = false;
+      if ( this.$route.query.sort ) this.fuseOptions.shouldSort = false;
       this.search();
     }
     
@@ -142,7 +144,7 @@ export default {
       if ( this.$store.getters.searchIsActive ) {
         this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
         // this.$nextTick(function() {
-          this.fuseOptions.shouldSort = false;
+          if ( !this.$store.state.searchSort ) this.fuseOptions.shouldSort = false;
           this.search();
         // });
       } 
@@ -155,7 +157,7 @@ export default {
       
       if ( this.$store.getters.searchIsActive ) {
         // this.$nextTick(function() {
-          this.fuseOptions.shouldSort = false;
+          if ( !this.$store.state.searchSort ) this.fuseOptions.shouldSort = false;
           this.search();
         // });
       } 
@@ -179,6 +181,18 @@ export default {
         this.fuseOptions.shouldSort = true;
         this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
         this.$updateQuery({ query: 'search', value: encodeURIComponent(e.target.value) });
+        
+        if ( e.target.value.trim() !== "" ) {
+          if ( this.$route.query.sort ) {
+            this.$updateQuery({ query: 'sort', value: null });
+            this.$updateQuery({ query: 'sortDir', value: null }); 
+          }
+        }
+        else {
+          var activeSorter = _.find( this.$store.state.listRenderingOpts.sort, 'current');
+          this.$updateQuery({ query: 'sort', value: activeSorter.key });
+          this.$updateQuery({ query: 'sortDir', value: activeSorter.active ? "desc" : "asc" });
+        }
         
       }
       

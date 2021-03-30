@@ -10,7 +10,7 @@
     }" 
     :content="item.tippy ? item.tippy : false"
     >
-      <label class="sorter-button">
+      <label class="sorter-button" :class="{ ranged: item.range }">
         
         <!-- LABEL in the front -->
         <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
@@ -69,7 +69,7 @@
         :enable-cross="false" 
         @change="rangeChanged" 
         :tooltip-formatter="'{value}'+item.rangeSuffix" 
-        :tooltip-placement="['top', 'bottom']" 
+        tooltip-placement="top" 
         tooltip="focus"
         ></vue-slider>
         <span style="cursor: e-resize;" @click="adjustRange('right')">{{ rangeVal[1] }}{{ item.rangeSuffix }}</span>
@@ -242,7 +242,17 @@ export default {
         
       };
       
-      return _.filter( this.$store.getters.collection, function(book) {
+      // I could just do "this.$store.getters.collection", but it would've shown 0 for unchecked regular filters.
+      // So with this change even unchecked regular filters show a number... So you kinda know what you're missing.
+      let collection = this.item.type === 'filter' ? 
+          (
+            this.$store.getters.searchIsActive ? 
+              this.$store.state.searchCollection : 
+              this.$store.getters.collectionSource 
+          ) : 
+          this.$store.getters.collection;
+          
+      return _.filter( collection, function(book) {
         return vue.item.condition(book) && conditionCheck( book );
       }).length;
       
@@ -253,7 +263,7 @@ export default {
       if ( this.item.key === "sortValues" ) {
         this.$updateQuery({ query: this.item.key, value: value });
       }
-      else if ( this.item.type === "sort" ) {  
+      else if ( this.item.type === "sort" ) { 
         this.$updateQuery({ query: this.item.type, value: this.item.key });
         this.$updateQuery({ query: 'sortDir', value: value ? "desc" : "asc" });
       }
@@ -455,7 +465,12 @@ export default {
     opacity: .5;
   }
   
-} // #search-options
+  &.ranged {
+    display: inline-block !important;
+    width: auto !important;
+  }
+  
+} // .sort-button
 </style>
 
 

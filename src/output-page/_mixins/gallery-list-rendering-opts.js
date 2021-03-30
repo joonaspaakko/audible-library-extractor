@@ -12,6 +12,7 @@ export default {
           { active: true,  key: 'series.name' },
           { active: false, key: 'categories.name' },
           { active: false, key: 'publishers.name' },
+          { active: true,  key: 'blurb' },
         ],
         filter: [
           { active: true, type: 'filter', label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
@@ -200,20 +201,20 @@ export default {
           { active: true , current: false, key: 'authors.name'    , label: 'Author'            , type: 'sort' }, 
           { active: true , current: false, key: 'narrators.name'  , label: 'Narrator'          , type: 'sort' }, 
           { active: true , current: false, key: 'narratorsNumber'  , label: 'Number of narrators'          , type: 'sort' }, 
-          // { active: true , current: false, key: 'seriesNumber'  , label: 'Series length'          , type: 'sort' }, 
-          { active: false , current: false, key: 'releaseDate'     , label: 'Release date'      , type: 'sort' }, 
           { active: false , current: false, key: 'length'          , label: 'Length'            , type: 'sort' }, 
+          { active: true , current: false, key: 'series'          , label: 'Series'            , type: 'sort', tippy: 'Sorts books by the series name alphabetically.' }, 
+          // { active: true , current: false, key: 'seriesNumber'  , label: 'Series length'          , type: 'sort' }, 
           
           { type: 'divider', key: 'divider2' },
+          { active: false , current: false, key: 'releaseDate'     , label: 'Release date'      , type: 'sort' }, 
           { active: false , current: false, key: 'rating'          , label: 'Average rating'            , type: 'sort' }, 
           { active: false , current: false, key: 'ratings'         , label: 'Number of ratings' , type: 'sort' },
           { active: false , current: false, key: 'myRating'        , label: 'My rating'         , type: 'sort' },
           { active: true , current: false, key: 'publishers.name' , label: 'Publishers'        , type: 'sort' }, 
           
-          { type: 'divider', key: 'divider3' },
-          { active: false , current: false, key: 'favorite'        , label: 'Favorite'          , type: 'sort' }, 
-          { active: true , current: false, key: 'series'          , label: 'Series'            , type: 'sort', tippy: 'Sorts books by the series name alphabetically.' }, 
+          { type: 'divider', key: 'divider3' }, 
           { active: false, current: false, key: 'progress'        , label: 'Progress'          , type: 'sort' }, 
+          { active: false , current: false, key: 'favorite'        , label: 'Favorite'          , type: 'sort' },
           { active: true , current: false, key: 'categories'      , label: 'Categories'        , type: 'sort' }, 
           { active: false , current: false, key: 'isNew'           , label: 'New books'       , type: 'sort' },
           

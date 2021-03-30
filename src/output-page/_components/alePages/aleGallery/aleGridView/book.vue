@@ -309,9 +309,10 @@ export default {
   width: 0;
   height: 0;
   border-style: solid;
-  border-width: 25px 25px 0 0;
+  border-width: 35px 35px 0 0;
   border-color: rgba(#000000, .7) transparent transparent transparent;
   outline: none;
+  border-radius: 0 0 100% 0;
 }
 .ale-click-wrap:hover .blurb-tooltip { display: block; }
 body.is-ios .blurb-tooltip { display: none !important; }

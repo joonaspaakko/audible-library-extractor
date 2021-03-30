@@ -70,7 +70,6 @@ export default {
   methods: {
     
     refreshPage: function() {
-      console.log('refreshPage')
       this.viewRefresh = true;
       this.$nextTick(function() {
         this.viewRefresh = '';

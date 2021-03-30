@@ -60,7 +60,15 @@ export default new Vuex.Store({
         if ( sortValues ) sortValues.active = o.sortValues;
       }
       
-      state.listRenderingOpts[o.listName].push( o.option );
+      if ( o.splice ) {
+        state.listRenderingOpts[o.listName].splice(o.splice, 0, o.option);
+      }
+      else if ( o.unshift ) {
+        state.listRenderingOpts[o.listName].unshift( o.option );
+      }
+      else {
+        state.listRenderingOpts[o.listName].push( o.option );
+      }
       
       if ( o.activate ) {
         if ( o.listName === 'sort' ) {

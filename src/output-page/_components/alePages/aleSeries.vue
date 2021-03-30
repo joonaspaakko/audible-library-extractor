@@ -126,7 +126,6 @@ export default {
             if ( series.books ) {
               let min = this.range[0];
               let max = this.range[1];
-              console.log( min, series.books.length, max, this )
               return series.books.length >= min && series.books.length <= max; 
             } 
           } },
