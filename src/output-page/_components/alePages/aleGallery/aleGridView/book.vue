@@ -39,7 +39,14 @@
         <div class="ale-info-indicator">
           <div><font-awesome fas icon="book" /></div>
         </div>
-        <img class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
+        
+        <div v-if="!book.cover" class="placeholder-cover">
+          <div class="cover-content">
+            <div class="title" v-if="book.titleShort || book.title">{{ book.titleShort || book.title }}</div>
+            <div class="author" v-if="book.authors">{{ book.authors[0].name }}</div>
+          </div>
+        </div>
+        <img v-else class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
       </div>
     </div>
   </div>
@@ -163,6 +170,7 @@ export default {
   @include themify($themes) {
     border: 1px solid rgba(themed(outerColor), 0.3);
   }
+  .placeholder-cover,
   img.ale-cover-image {
     display: block;
     width: 100%;
@@ -193,6 +201,70 @@ export default {
     -webkit-animation: 300ms showImage;
     animation: 300ms showImage;
   }
+  
+  .placeholder-cover {
+    width: 100%;
+    height: 100%;
+    padding-bottom: 100%;
+    @include themify($themes) {
+      color: themed(frontColor);
+      background-color: lighten( themed(backColor), 10);
+    }
+    position: relative;
+    z-index: 1;
+    &:after {
+      content: '';
+      position: absolute;
+      z-index: 5;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTEuNSA5My43IiB3aWR0aD0iMTUxLjUiIGhlaWdodD0iOTMuNyI+PHBhdGggZD0iTTc1LjggODAuN2w3NS43LTQ3LjJ2MTIuOEw3NS44IDkzLjcgMCA0Ni4zVjMzLjV6IiBmaWxsPSIjZjc5YTFjIi8+PHBhdGggZD0iTTc1LjggMjEuNWE0OC4yIDQ4LjIgMCAwIDAtNDAuNyAyMS45IDEzLjcgMTMuNyAwIDAgMSAxLjgtMS42YzIxLjMtMTcuNyA1Mi0xMy43IDY4LjcgOC42bDExLjEtNy4xYTQ5LjcgNDkuNyAwIDAgMC00MC45LTIxLjgiIGZpbGw9IiNmNzlhMWMiLz48cGF0aCBkPSJNNzUuOCA0My40YTI3LjYgMjcuNiAwIDAgMC0yMi40IDExLjUgMjIuNSAyMi41IDAgMCAxIDEzLjUtNC40YzguMiAwIDE1LjUgNC4yIDIwLjQgMTEuM2wxMC42LTYuNmEyNS44IDI1LjggMCAwIDAtMjIuMS0xMS44TTI0LjYgMjQuMkM1NS44LS40IDk5LjkgNi4zIDEyMy40IDM5bC4yLjIgMTEuNS03LjFhNzAuOCA3MC44IDAgMCAwLTk4LTIwLjYgNzIuMiA3Mi4yIDAgMCAwLTIwLjYgMjAuNiA2MC41IDYwLjUgMCAwIDEgOC4xLTcuOSIgZmlsbD0iI2Y3OWExYyIvPjwvc3ZnPg==");
+      background-position: center 45%; 
+      background-repeat: no-repeat;
+      background-size: 65%;
+      opacity: .08;
+    }
+    .cover-content {
+      position: absolute;
+      z-index: 10;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      justify-items: center;
+      align-items: center;
+      align-content: center;
+    }
+    
+    .title {
+      margin-top: auto;
+      font-weight: bold;
+      opacity: .7;
+      text-overflow: ellipsis;
+      max-height: 70%;
+      overflow: hidden;
+    }
+    .author {
+      opacity: .7;
+      @include themify($themes) {
+        color: themed(audibleOrange);
+      }
+      margin-top: auto;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      width: calc( 100% - 20px);
+      margin-left: auto;
+      margin-right: auto;
+    }
+  }
+  
 }
 
 .ale-info-indicator {
@@ -255,6 +327,7 @@ export default {
     }
   }
   
+  .placeholder-cover,
   .ale-cover-image {
     filter: blur(1px) grayscale(30%);
   }
@@ -321,6 +394,7 @@ body.is-ios .ale-click-wrap {
   .ale-info-indicator {
     display: none !important;
   }
+  .placeholder-cover,
   .ale-cover-image {
     filter: none !important;
   }

@@ -89,9 +89,7 @@ export default {
         } else {
           return _.sampleSize(books, bgLength);
         }
-      })( this.coverSource );
-      
-      books = _.filter( books, function( book ) { return !!book.cover });
+      })( _.filter( this.coverSource, 'cover') );
       
       // Reduce the number of properties to bear necessities
       books = _.map( books, function( book ) {
@@ -127,8 +125,9 @@ export default {
       
       targetBook.flipOut = true;
       setTimeout(function() {
-        const newIndex = vue.randomNumber(0, vue.coverSource.length-1);
-        const newBook = vue.coverSource[ newIndex ];
+        const covers = _.filter( vue.coverSource, 'cover');
+        const newIndex = vue.randomNumber(0, covers.length-1);
+        const newBook = covers[ newIndex ];
         targetBook.cover = newBook.cover;
         targetBook.flipOut = false;
       }, 850);
