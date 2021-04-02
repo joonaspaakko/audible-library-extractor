@@ -91,6 +91,8 @@ export default {
         }
       })( this.coverSource );
       
+      books = _.filter( books, function( book ) { return !!book.cover });
+      
       // Reduce the number of properties to bear necessities
       books = _.map( books, function( book ) {
         let newObject = _.pick(book, ['cover']);

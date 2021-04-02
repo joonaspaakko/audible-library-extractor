@@ -115,11 +115,9 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
       // FULL SCAN: fetch always
       if ( fullScan_ALL_partialScan_NEW ) {
         book.asin = bookASIN;
+        
         const getCover = DOMPurify.sanitize(_thisRow.querySelector("a > img.bc-pub-block:first-of-type").getAttribute("src"));
-        // FIXME: there is probably a better way to do this:
-        if (getCover.lastIndexOf("img-coverart-prod-unavailable") > -1) {
-          // book.cover = getCover;
-        } else {
+        if ( getCover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
           const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
           if (coverId && coverId[1]) book.cover = coverId[1];
         }

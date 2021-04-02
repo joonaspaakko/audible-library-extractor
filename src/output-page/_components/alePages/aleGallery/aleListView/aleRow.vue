@@ -144,8 +144,10 @@ export default {
 .ale-row-inner {
   .icons-n-stuff .thumbnail-wrapper {
     display: inline-block;
-    width: 27px;
-    height: 27px;
+    &, img {
+      width: 27px;
+      height: 27px;
+    }
   }
 }
 </style>

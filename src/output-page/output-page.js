@@ -414,6 +414,8 @@ function vuexPrep( libraryData ) {
     }
   });
   
+  // delete libraryData.books[0].cover;
+  
   store.commit("prop", { key: "library", value: libraryData, freeze: true });
   store.commit("prop", { key: "standalone", value: standalone });
   store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });

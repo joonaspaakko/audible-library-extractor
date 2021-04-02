@@ -86,6 +86,7 @@ function prepStorePages(hotpotato, getStorePages) {
 }
 
 function getStorePageData(vue, response, book, isTest) {
+  
   var html = $($.parseHTML(response.data));
   const audible = html.find("div.adbl-main")[0];
   let jsonData = html.find("#bottom-0 > script:first")[0];
@@ -105,6 +106,16 @@ function getStorePageData(vue, response, book, isTest) {
 
   // This "#sample-player..." selector tries to weed out missing store pages
   if ( isTest || audible.querySelector("#sample-player-" + book.asin + " > button") ) {
+    
+    if ( !book.cover ) {
+      const regularCover = audible.querySelector('#center-1 > div > div > div > div.bc-col-responsive.bc-col-3 > div > div:nth-child(1) > img');
+      const heroPageCover = audible.querySelector('#center-1 > div.bc-container > div > div:nth-child(1) > img');
+      const getCover = DOMPurify.sanitize( ( regularCover || heroPageCover ).getAttribute("src") );
+      if ( getCover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
+        const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
+        if (coverId && coverId[1]) book.cover = coverId[1];
+      }
+    }
     
     book.titleShort = DOMPurify.sanitize(bookData.name);
     const ratingsLink = audible.querySelector(".ratingsLabel > a");

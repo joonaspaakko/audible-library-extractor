@@ -118,9 +118,11 @@ function getBooks(vue, response, hotpotato, completeStep) {
       if (titleLink) book.title = DOMPurify.sanitize( titleLink.textContent.trimAll() );
 
       // COVER
-      const cover = DOMPurify.sanitize( _thisRow.querySelector("img[data-lazy]").getAttribute("src") );
-      const coverId = cover.match(/\/images\/I\/(.*)._SL/);
-      if (coverId.length > 1) book.cover = coverId[1];
+      const getCover = DOMPurify.sanitize( _thisRow.querySelector("img[data-lazy]").getAttribute("src") );
+      if ( getCover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
+        const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
+        if (coverId && coverId[1]) book.cover = coverId[1];
+      }
 
       // SAMPLE
       const sample = _thisRow.querySelector("[data-mp3]");

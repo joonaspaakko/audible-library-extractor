@@ -11,11 +11,13 @@
 
 <script>
 import aleNavigation from "./_components/aleNavigation";
+import aleBackground from "./_components/aleBackground";
 // import aleBreadcrumbs from "./_components/aleBreadcrumbs";
 
 export default {
   components: {
-    aleBackground: () => import('./_components/aleBackground'),
+    // aleBackground: () => import('./_components/aleBackground'),
+    aleBackground,
     aleNavigation,
     // aleBreadcrumbs
   },
