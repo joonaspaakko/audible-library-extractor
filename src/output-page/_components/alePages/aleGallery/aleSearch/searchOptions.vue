@@ -5,6 +5,7 @@
       <div class="search-opts-arrow" :style="css.arrow"></div>
       
       <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="css.filter">
+        <li class="total">{{ $store.getters.collection.length }} / {{ total }}</li>
         <li class="search-option" 
         v-for="(item, index) in optionsList" :key="item.key"
         v-if="item.type === 'filter'"
@@ -48,7 +49,8 @@ export default {
         arrow: { left: "0px" },
         options: { right: "0px" },
         filter: { top: '40px' },
-      }
+      },
+      total: null,
     };
   },
 
@@ -58,7 +60,12 @@ export default {
     if ( this.listName === 'filter' ) {
       let topNav = document.querySelector('#ale-navigation.regular');
       this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
+      
+      this.total = this.$store.getters.searchIsActive ? 
+                      this.$store.state.searchCollection.length : 
+                      this.$store.getters.collectionSource.length;
     }
+    
   },
 
   mounted: function() {
@@ -170,7 +177,6 @@ export default {
     }
   }
 
-
   ul,
   li {
     list-style: none;
@@ -203,6 +209,31 @@ export default {
       @include themify($themes) {
         border-color: transparent transparent lighten(themed(backColor), 10) transparent;
       }
+    }
+  }
+  
+  .total {
+    position: absolute;
+    z-index: 20;
+    right: 10px;
+    // bottom: 5px;
+    bottom: -8px;
+    height: 16px;
+    line-height: 16px;
+    padding: 2px 7px;
+    border-radius: 999999px;
+    display: inline-block;
+    font-size: .75em;
+    @include themify($themes) {
+      // color: themed(backColor);
+      background: rgba( lighten(themed(frontColor), 10), .6);
+      color: rgba( lighten(themed(frontColor), 10), .65);
+      box-shadow: 0 1px 5px rgba(themed(outerColor), .4);
+      
+      // border: 1px solid rgba( lighten(themed(frontColor), 10), .4);
+      background: lighten(themed(backColor), 12);
+      border: 1px solid rgba(themed(frontColor), 0.12);
+      
     }
   }
 
@@ -306,10 +337,10 @@ export default {
   .regular-filters {
     @include themify($themes) {
       background: lighten(themed(backColor), 12);
-      box-shadow: 0 7px 14px rgba(themed(backColor), .4);
+      box-shadow: 0 5px 12px rgba(themed(outerColor), .3);
       border-bottom: 2px solid rgba(themed(frontColor), 0.01);
     }
-    margin: -11px -15px 15px -14px;
+    margin: -11px -14px 15px -14px;
     padding: 14px;
     position: sticky;
     top: 40px;

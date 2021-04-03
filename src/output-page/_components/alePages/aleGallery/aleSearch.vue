@@ -335,15 +335,19 @@ export default {
   height: 46px;
   
   &.highlight-search #ale-search {
-    border: 3px solid $audibleOrange;
+    // border: 3px solid $audibleOrange;
+    background-color: $audibleOrange;
+    &, & input { color: #fff; }
+    ::placeholder { color: #fff; opacity: 1; }
+    :-ms-input-placeholder { color: #fff; }
+    ::-ms-input-placeholder { color: #fff; }
   }
   
 }
 
 #ale-search {
-  transition: border 250ms ease-in-out;
-  transition-delay: 500ms;
-  border: 0px solid $audibleOrange;
+  // transition: all 10ms ease-in-out;
+  // transition-delay: 500ms;
   width: 100%;
   height: 46px;
   flex-grow: 1;

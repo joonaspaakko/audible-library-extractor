@@ -22,14 +22,20 @@ export default {
           // { type: 'divider', key: 'divider1' },
           
           // { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
-          { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
-          { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { active: false, type: 'filterExtras', label: 'In series', key: 'inseries', group: 'filterExtras', condition: function( book ) { return book.series; } },
+          { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
+          { type: 'divider', key: 'divider1.1' },
           { active: false, type: 'filterExtras', label: 'Not from plus catalog', key: 'not-from-plus-catalog', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog; } },
-          { active: false, type: 'filterExtras', label: 'From plus catalog', key: 'from-plus-catalog', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog; } },
-          { active: false, type: 'filterExtras', label: 'Unavailable', key: 'unavailable', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; } },
-          { active: false, type: 'filterExtras', label: 'Store page unavailable', key: 'store-page-unavailable', group: 'filterExtras', condition: function( book ) { return book.storePageChanged || book.storePageMissing; } },
-          { active: false, type: 'filterExtras', label: 'New books', key: 'new-books', group: 'filterExtras', condition: function( book ) { return book.isNew; } },
+          { active: false, type: 'filterExtras', label: 'Plus catalog: Available', key: 'plus-catalog-available', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && !book.unavailable; } },
+          { active: false, type: 'filterExtras', label: 'Plus catalog: Unavailable', key: 'plus-catalog-unavailable', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; }, tippy: "Books that are from the plus catalog, but they are locked. Conditions: a book left the plus catalog or inactive membership." },
+          { type: 'divider', key: 'divider1.3' },
+          { active: false, type: 'filterExtras', label: 'Store page available', key: 'store-page-available', group: 'filterExtras', condition: function( book ) { return !(book.storePageChanged || book.storePageMissing); } },
+          { active: false, type: 'filterExtras', label: 'Store page unavailable', key: 'store-page-unavailable', group: 'filterExtras', condition: function( book ) { return book.storePageChanged || book.storePageMissing; }, tippy: "Store page has been removed or changed after it was added." },
+          { type: 'divider', key: 'divider1.4' },
+          { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
+          { active: false, type: 'filterExtras', label: 'No rating', key: 'no-rating', group: 'filterExtras', condition: function( book ) { return !book.myRating; }, tippy: "Books you haven't rated yet." },
+          { active: false, type: 'filterExtras', label: 'New books', key: 'new-books', group: 'filterExtras', condition: function( book ) { return book.isNew; }, tippy: "Most recent additions." },
+          { active: false, type: 'filterExtras', label: 'Giftable books', key: 'giftable', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog && !book.unavailable && !book.storePageChanged && !book.storePageMissing; }, tippy: 'Excludes all books that are from the plug catalog and books with removed or changed store pages, since those cannot be gifted using the "Send this book" feature.' },
           
           { type: 'divider', key: 'divider2.0' },
 
@@ -189,6 +195,27 @@ export default {
               return rating >= min && rating <= max; 
             } 
           } },
+          
+          { type: 'divider', key: 'divider5.1' },
+          { active: false, type: 'filterExtras', label: 'Added', key: 'added', group: 'filterExtras',  range: true, rangeMinDist: 1, rangeSuffix: '', 
+          rangeMin: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let smalled = _.minBy( books, function( book ){ if (book.added) return parseFloat(book.added); }); 
+            return smalled ? parseFloat(smalled.added) : 0; 
+          }, 
+          rangeMax: function() { 
+            let books = _.get(vue.$store.state, vue.collectionSource);
+            let biggest = _.maxBy( books, function( book ){ if (book.added) return parseFloat(book.added); }); 
+            return biggest ? parseFloat(biggest.added) : 0; 
+          }, 
+          condition: function( book ) { 
+            if ( book.added ) {
+              let min = this.range[0];
+              let max = this.range[1];
+              let added = parseFloat( book.added );
+              return added >= min && added <= max; 
+            } 
+          }, rangeInterval: 1, tippy: "Low number = old book <br> High number = new book" },
         ],
         sort: [
           { active: false, sticky: true, key: 'sortValues',      label: 'Show sort values', type: 'sortExtras', tippy: "Shows the active sorter's value on top of the cover in the grid view." },

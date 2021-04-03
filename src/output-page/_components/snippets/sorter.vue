@@ -10,7 +10,7 @@
     }" 
     :content="item.tippy ? item.tippy : false"
     >
-      <label class="sorter-button" :class="{ ranged: item.range }">
+      <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false) }">
         
         <!-- LABEL in the front -->
         <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
@@ -43,7 +43,7 @@
         
         <!-- EXTRA suffix -->
         <span class="books-in-filter" v-if="listName === 'filter'">
-          {{ getFilterAmounts() }}
+          {{ filterAmounts }}
           <!-- Ok, so I tried... -->
           <!-- <span class="of-total" v-if="item.type === 'filterExtras' && $store.getters.collectionSource">
             / {{ $store.getters.collectionSource.length }}
@@ -93,7 +93,6 @@ export default {
   data: function() {
     return {
       range: null,
-      filterAmounts: null
     };
   },
   
@@ -125,6 +124,41 @@ export default {
   },
 
   computed: {
+    
+    
+    
+    filterAmounts: function( ) {
+      
+      this.$root.$emit('repositionSearchOpts');
+      
+      const vue = this;
+      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
+      
+      let conditionCheck = function( book ) {
+        
+        let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
+          return !!filter.condition( book );
+        });
+        
+        return !_.includes( filterExtrasConditions, false );
+        
+      };
+      
+      // I could just do "this.$store.getters.collection", but it would've shown 0 for unchecked regular filters.
+      // So with this change even unchecked regular filters show a number... So you kinda know what you're missing.
+      let collection = this.item.type === 'filter' ? 
+          (
+            this.$store.getters.searchIsActive ? 
+              this.$store.state.searchCollection : 
+              this.$store.getters.collectionSource 
+          ) : 
+          this.$store.getters.collection;
+          
+      return _.filter( collection, function(book) {
+        return vue.item.condition(book) && conditionCheck( book );
+      }).length;
+      
+    },
     
     rangeVal: function() {
       return (this.item.range && this.item.range !== true) ? this.item.range : this.range.value;
@@ -225,39 +259,6 @@ export default {
         
     },
     
-    getFilterAmounts: function( ) {
-      
-      this.$root.$emit('repositionSearchOpts');
-      
-      const vue = this;
-      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
-      
-      let conditionCheck = function( book ) {
-        
-        let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
-          return !!filter.condition( book );
-        });
-        
-        return !_.includes( filterExtrasConditions, false );
-        
-      };
-      
-      // I could just do "this.$store.getters.collection", but it would've shown 0 for unchecked regular filters.
-      // So with this change even unchecked regular filters show a number... So you kinda know what you're missing.
-      let collection = this.item.type === 'filter' ? 
-          (
-            this.$store.getters.searchIsActive ? 
-              this.$store.state.searchCollection : 
-              this.$store.getters.collectionSource 
-          ) : 
-          this.$store.getters.collection;
-          
-      return _.filter( collection, function(book) {
-        return vue.item.condition(book) && conditionCheck( book );
-      }).length;
-      
-    },
-    
     saveOptions: function( value ) {
       
       if ( this.item.key === "sortValues" ) {
@@ -273,7 +274,7 @@ export default {
         }
         if ( this.item.type === 'filterExtras' ) {
           let vue = this;
-          if ( vue.$store.getters.filterExtrasKeys ) {
+          if ( vue.$store.getters.filterExtrasKeys || !value ) {
             const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
               const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
               if ( keyItem && keyItem.range ) {
@@ -308,6 +309,7 @@ export default {
   white-space: nowrap;
   > span {
     outline: none;
+    display: block;
   }
 }
 
@@ -425,11 +427,14 @@ export default {
       }
     }
   }
-
+  
+  // &.faux-disabled .checkbox [data-icon="check"],
   input[disabled="disabled"] + .radiobutton [data-icon="circle"]:last-child,
   input[disabled="disabled"] + .checkbox [data-icon="check"] {
     display: none;
   }
+  
+  &.faux-disabled .input-label,
   input[disabled="disabled"] ~ .input-label {
     text-decoration: line-through;
     opacity: 0.35;
