@@ -1,16 +1,19 @@
 // import { param } from "jquery";
+import rateLimit from "axios-rate-limit";
 
 export default {
   methods: {
     amapxios: function(options) {
       const vue = this;
-
+      
+      
       asyncMap(
         options.requests,
         function(request, stepCallback) {
-          const axiosConfig = options.config ? options.config : null;
-          axios
-            .get(request.requestUrl || request.url || request, axiosConfig)
+          const axiosConfig = options.config || {};
+          const axiosLimited = rateLimit(axios.create(), { maxRPS: 15 });
+          axiosLimited
+            .get((request.requestUrl || request.url || request), axiosConfig)
             .then(function(response) {
               options.step(
                 response,
