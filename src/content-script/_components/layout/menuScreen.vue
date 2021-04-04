@@ -184,7 +184,7 @@ export default {
         {
           name: "library",
           value: true,
-          disabled: true,
+          disabled: this.storageHasData.books,
           label: "Library",
           type: "is-success",
           tippy: "<div style='text-align: left;'>If this option is checked and disabled, it's because there's no library data in memory and <br>some selected options require it to function: collections, isbn</div>",

@@ -56,7 +56,8 @@ function audibleLibraryExtractor(data) {
   // Storage data is dropped immediately. I just want to know if the data exists
   // in load so I can enable/disable things based on that info.
   // Later it's fetched again if needed.
-  const storageHasData = !$.isEmptyObject(data);
+  let storageHasData = !$.isEmptyObject(data);
+  if ( storageHasData && !!data.chunks && data.chunks.length === 0 ) storageHasData = false;
   
   Vue.directive("visible", function(el, binding) {
     el.style.visibility = !!binding.value ? "visible" : "hidden";

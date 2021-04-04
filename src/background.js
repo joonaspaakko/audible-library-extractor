@@ -10,7 +10,6 @@ browser.runtime.onMessage.addListener(function(msg, sender) {
 // https://developer.chrome.com/extensions/pageAction
 // https://developer.chrome.com/extensions/pageAction#event-onClicked
 browser.pageAction.onClicked.addListener(tabId => {
-  console.log( 'pageAction clicked');
   // https://developer.chrome.com/extensions/tabs
   // https://developer.chrome.com/extensions/tabs#method-query
   browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
@@ -42,4 +41,81 @@ browser.runtime.onMessage.addListener((message, sender) => {
     });
     
   }
+});
+
+// CONTEXT MENU
+var domainExtension;
+browser.tabs.onActivated.addListener(() => {
+  
+  // https://developer.chrome.com/apps/storage
+  // Permission: "storage"
+  browser.storage.local.get(null).then(data => {
+    
+    // https://developer.chrome.com/docs/extensions/reference/contextMenus/
+    // Permissions: contextMenus
+    browser.contextMenus.removeAll();
+    
+    var dataExists = typeof data === 'object' && data !== null;
+    if ( dataExists && data.extras && data.extras['domain-extension'] ) domainExtension = data.extras['domain-extension'];
+    if ( dataExists && !!data.chunks && data.chunks.length === 0 ) dataExists = false;
+    
+    data = null;
+    
+    if ( dataExists ) {
+      browser.contextMenus.create({
+        id: 'ale-to-gallery',
+        title: "Open gallery",
+        contexts: ["browser_action", "page_action"]
+      });
+    }
+    
+    if ( domainExtension ) {
+      browser.contextMenus.create({
+        id: 'ale-to-audible',
+        title: "Open Audible library",
+        contexts: ["browser_action", "page_action"]
+      });
+    }
+    
+    browser.contextMenus.create({
+      id: 'ale-to-github',
+      title: "Github: project page",
+      contexts: ["browser_action", "page_action"]
+    });
+    
+    browser.contextMenus.create({
+      id: 'ale-to-github-issues',
+      title: "Github: issues",
+      contexts: ["browser_action", "page_action"]
+    });
+    
+  });
+  
+});
+
+chrome.contextMenus.onClicked.addListener((info, tab) => {
+      
+  var newTab = {
+    active: true,
+    index: tab.index + 1,
+    openerTabId: tab.id
+  };
+  
+  if ( info.menuItemId === 'ale-to-gallery' ) {
+    newTab.url = "./output-page/index.html";
+    browser.tabs.create(newTab);
+  }
+  else if ( info.menuItemId === 'ale-to-audible' ) {
+    newTab.url = "https://audible"+ domainExtension +"/library/titles";
+    browser.tabs.create(newTab);
+  }
+  if ( info.menuItemId === 'ale-to-github' ) {
+    newTab.url = "https://github.com/joonaspaakko/audible-library-extractor";
+    browser.tabs.create(newTab);
+  }
+  else if ( info.menuItemId === 'ale-to-github-issues' ) {
+    newTab.url = "https://github.com/joonaspaakko/audible-library-extractor/issues";
+    browser.tabs.create(newTab);
+  }
+  
 });

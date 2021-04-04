@@ -18,7 +18,8 @@
   "permissions": [
     "storage",
     "unlimitedStorage",
-    "https://www.googleapis.com/*"
+    "https://www.googleapis.com/*",
+    "contextMenus"
   ],
   "web_accessible_resources": [
     "assets/images/audible-library-extractor-logo.svg",
