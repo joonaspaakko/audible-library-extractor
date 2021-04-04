@@ -164,7 +164,11 @@ function getBooks(vue, response, hotpotato, completeStep) {
       // DATE ADDED
       const dateAdded = _thisRow.querySelector(":scope > td:nth-child(5) > div > span > div > div > span");
       if (dateAdded) book.dateAdded = vue.fixDates( dateAdded );
-
+      
+      // From plus catalog
+      const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button');
+      if (fromPlusCatalog) book.fromPlusCatalog = true;
+      
       wishlist.push(book);
       
       vue.$root.$emit("update-progress-step");

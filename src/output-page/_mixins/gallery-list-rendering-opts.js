@@ -16,8 +16,8 @@ export default {
         ],
         filter: [
           { active: true, type: 'filter', label: 'Not started', key: 'notStarted', condition: function( book ) { return !book.progress; } },
-          { active: true, type: 'filter', label: 'Started',     key: 'started',    condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }  },
-          { active: true, type: 'filter', label: 'Finished',    key: 'finished',   condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }  },
+          { active: true, type: 'filter', label: 'Started',     key: 'started',    condition: function( book ) { return book.progress && !book.progress.toLowerCase().match('finished') ? true : false; }, excludeFromWishlist: true  },
+          { active: true, type: 'filter', label: 'Finished',    key: 'finished',   condition: function( book ) { return book.progress && book.progress.toLowerCase().match('finished') ? true : false; }, excludeFromWishlist: true  },
           
           // { type: 'divider', key: 'divider1' },
           
@@ -26,16 +26,16 @@ export default {
           { active: false, type: 'filterExtras', label: 'Not in series', key: 'not-inseries', group: 'filterExtras', condition: function( book ) { return !book.series; } },
           { type: 'divider', key: 'divider1.1' },
           { active: false, type: 'filterExtras', label: 'Not from plus catalog', key: 'not-from-plus-catalog', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog; } },
-          { active: false, type: 'filterExtras', label: 'Plus catalog: Available', key: 'plus-catalog-available', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && !book.unavailable; } },
-          { active: false, type: 'filterExtras', label: 'Plus catalog: Unavailable', key: 'plus-catalog-unavailable', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; }, tippy: "Books that are from the plus catalog, but they are locked. Conditions: a book left the plus catalog or inactive membership." },
+          { active: false, type: 'filterExtras', label: 'Plus catalog: Available', key: 'plus-catalog-available', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && !book.unavailable; }, tippy: "It is possible for this status to change after last gallery update..." },
+          { active: false, type: 'filterExtras', label: 'Plus catalog: Unavailable', excludeFromWishlist: true, key: 'plus-catalog-unavailable', group: 'filterExtras', condition: function( book ) { return book.fromPlusCatalog && book.unavailable; }, tippy: "Books that are from the plus catalog, but they are locked. Conditions: a book left the plus catalog or inactive membership." },
           { type: 'divider', key: 'divider1.3' },
           { active: false, type: 'filterExtras', label: 'Store page available', key: 'store-page-available', group: 'filterExtras', condition: function( book ) { return !(book.storePageChanged || book.storePageMissing); } },
           { active: false, type: 'filterExtras', label: 'Store page unavailable', key: 'store-page-unavailable', group: 'filterExtras', condition: function( book ) { return book.storePageChanged || book.storePageMissing; }, tippy: "Store page has been removed or changed after it was added." },
-          { type: 'divider', key: 'divider1.4' },
-          { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites',    group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
-          { active: false, type: 'filterExtras', label: 'No rating', key: 'no-rating', group: 'filterExtras', condition: function( book ) { return !book.myRating; }, tippy: "Books you haven't rated yet." },
-          { active: false, type: 'filterExtras', label: 'New books', key: 'new-books', group: 'filterExtras', condition: function( book ) { return book.isNew; }, tippy: "Most recent additions." },
-          { active: false, type: 'filterExtras', label: 'Giftable books', key: 'giftable', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog && !book.unavailable && !book.storePageChanged && !book.storePageMissing; }, tippy: 'Excludes all books that are from the plug catalog and books with removed or changed store pages, since those cannot be gifted using the "Send this book" feature.' },
+          { type: 'divider', key: 'divider1.4', excludeFromWishlist: true },
+          { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites', excludeFromWishlist: true, group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
+          { active: false, type: 'filterExtras', label: 'No rating', excludeFromWishlist: true, key: 'no-rating', group: 'filterExtras', condition: function( book ) { return !book.myRating; }, tippy: "Books you haven't rated yet." },
+          { active: false, type: 'filterExtras', label: 'New books', excludeFromWishlist: true, key: 'new-books', group: 'filterExtras', condition: function( book ) { return book.isNew; }, tippy: "Most recent additions." },
+          { active: false, type: 'filterExtras', label: 'Giftable books', excludeFromWishlist: true, key: 'giftable', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog && !book.unavailable && !book.storePageChanged && !book.storePageMissing; }, tippy: 'Excludes all books that are from the plug catalog and books with removed or changed store pages, since those cannot be gifted using the "Send this book" feature.' },
           
           { type: 'divider', key: 'divider2.0' },
 
@@ -84,23 +84,25 @@ export default {
             } 
           } },
           
-          { type: 'divider', key: 'divider3' },
+          { type: 'divider', key: 'divider3', excludeFromWishlist: true, },
           
-          { active: false, type: 'filterExtras', label: 'Books in series', key: 'booksinseries', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
+          { active: false, type: 'filterExtras', excludeFromWishlist: true, label: 'Books in series', key: 'booksinseries', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
           rangeMin: function() { 
             return 1;
           }, 
           rangeMax: function() { 
             let books = _.filter( _.get(vue.$store.state, vue.collectionSource), 'series' );
             
-            let most = 0;
+            let most = 1;
             _.each( books, function( book ){ 
                 let bigBoe = _.maxBy( book.series, function( series ) {
                   let foundSeries = _.find( vue.$store.state.library.series, { asin: series.asin });
                   if ( foundSeries && foundSeries.books ) return foundSeries.books.length;
                 });
-                const bigBoeLength = _.find( vue.$store.state.library.series, { asin: bigBoe.asin }).books.length;
-                if ( most < bigBoeLength ) most = bigBoeLength;
+                if ( bigBoe ) {
+                  const bigBoeLength = _.find( vue.$store.state.library.series, { asin: bigBoe.asin }).books.length;
+                  if ( most < bigBoeLength ) most = bigBoeLength;
+                }
             }); 
             
             return most; 
@@ -114,9 +116,11 @@ export default {
               let result = false;
               _.each( book.series, function( cSeries ) {
                 const series = _.find( vue.$store.state.library.series, { asin: cSeries.asin });
-                if ( series.books.length >= min && series.books.length <= max ) {
-                  result = true;
-                  return false;
+                if ( series ) {
+                  if ( series.books.length >= min && series.books.length <= max ) {
+                    result = true;
+                    return false;
+                  }
                 }
               });
               
@@ -175,8 +179,8 @@ export default {
             } 
           } },
           
-          { type: 'divider', key: 'divider5' },
-          { active: false, type: 'filterExtras', label: 'My rating', key: 'myrating', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
+          { type: 'divider', key: 'divider5', excludeFromWishlist: true },
+          { active: false, type: 'filterExtras', label: 'My rating', excludeFromWishlist: true, key: 'myrating', group: 'filterExtras',  range: true, rangeMinDist: 0, rangeSuffix: '', 
           rangeMin: function() { 
             let books = _.get(vue.$store.state, vue.collectionSource);
             let smallestRating = _.minBy( books, function( book ){ if (book.myRating) return parseFloat(book.myRating); }); 
@@ -236,27 +240,27 @@ export default {
           { active: false , current: false, key: 'releaseDate'     , label: 'Release date'      , type: 'sort' }, 
           { active: false , current: false, key: 'rating'          , label: 'Average rating'            , type: 'sort' }, 
           { active: false , current: false, key: 'ratings'         , label: 'Number of ratings' , type: 'sort' },
-          { active: false , current: false, key: 'myRating'        , label: 'My rating'         , type: 'sort' },
+          { active: false , current: false, key: 'myRating'        , label: 'My rating'         , type: 'sort', excludeFromWishlist: true },
           { active: true , current: false, key: 'publishers.name' , label: 'Publishers'        , type: 'sort' }, 
           
           { type: 'divider', key: 'divider3' }, 
-          { active: false, current: false, key: 'progress'        , label: 'Progress'          , type: 'sort' }, 
+          { active: false, current: false, key: 'progress'        , label: 'Progress'          , type: 'sort', excludeFromWishlist: true }, 
           { active: false , current: false, key: 'favorite'        , label: 'Favorite'          , type: 'sort' },
           { active: true , current: false, key: 'categories'      , label: 'Categories'        , type: 'sort' }, 
-          { active: false , current: false, key: 'isNew'           , label: 'New books'       , type: 'sort' },
+          { active: false , current: false, key: 'isNew'           , label: 'New books'       , type: 'sort', excludeFromWishlist: true },
           
           { type: 'divider', key: 'divider4' },
           { active: true , current: false, key: 'language'        , label: 'Language'          , type: 'sort' }, 
           { active: true,  current: false, key: 'format',        label: 'Format', type: 'sort' },
           { active: false , current: false, key: 'fromPlusCatalog' , label: 'From plus catalog' , type: 'sort' }, 
-          { active: false , current: false, key: 'unavailable' , label: 'Unavailable' , type: 'sort', tippy: 'From the plus catalog and currently unavailable...' }, 
-          { active: false , current: false, key: 'downloaded'      , label: 'Downloaded'        , type: 'sort' }, 
+          { active: false , current: false, key: 'unavailable' , label: 'Plus catalog: Unavailable' , type: 'sort' }, 
+          { active: false , current: false, key: 'downloaded'      , label: 'Downloaded'        , type: 'sort', excludeFromWishlist: true }, 
           
           { type: 'divider', key: 'divider5' },
           { active: false , current: false, key: 'storePageMissing', label: 'Store page missing', type: 'sort', tippy: 'The original store page could not be found. There may be a new store page that replaced it.' }, 
           { active: false , current: false, key: 'storePageChanged', label: 'Store page changed', type: 'sort', tippy: 'There is a store page that exists, but it is for a different version of the book.' }, 
-          { active: false , current: false, key: 'isbn10'          , label: 'Isbn 10'           , type: 'sort' }, 
-          { active: false , current: false, key: 'isbn13'          , label: 'Isbn 13'           , type: 'sort' }, 
+          { active: false , current: false, key: 'isbn10'          , label: 'Isbn 10'           , type: 'sort', excludeFromWishlist: true }, 
+          { active: false , current: false, key: 'isbn13'          , label: 'Isbn 13'           , type: 'sort', excludeFromWishlist: true }, 
           { active: true,  current: false, key: 'bookNumbers', label: 'Book Numbers', type: 'sort', tippy: '<strong>This is only a simple number sort.</strong> <br> If you want the correct series order, as listed in Audible, check the series page in the top menu or the "my books in the series" button in book details. <br><br>Click any book cover (or row) to reveal book details. <br><br> The infinite symbol (∞) means the book is in a series but does not have a number.' },
         ],
       };

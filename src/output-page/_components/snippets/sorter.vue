@@ -18,7 +18,7 @@
         </span>
         
         <!-- HIDDEN input -->
-        <input type="checkbox" :value="index" v-model="inputVmodel" />
+        <input type="checkbox" :value="index" v-model="inputVmodel" :disabled="item.range ? item.range && range.min === range.max : false" />
         
         <!-- SORT ARROWS -->
         <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
@@ -117,6 +117,8 @@ export default {
         range: this.range.value,
         active: this.item.active,
       };
+      
+      console.log('other changes', changes, this.range);
       this.$store.commit("updateListRenderingOpts", changes);
       
     }
@@ -211,6 +213,8 @@ export default {
         range: value,
       };
       
+      
+      console.log('RANGE CHANGED', changes, this.range )
       if ( this.item.group ) changes.group = true;
       this.$store.commit("updateListRenderingOpts", changes);
       this.doTheThings( value, true);
@@ -240,7 +244,7 @@ export default {
     
     doTheThings: function( value, range ) {
       
-      this.saveOptions( value );
+      this.saveOptions( value, range);
       
       if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
     
@@ -259,7 +263,7 @@ export default {
         
     },
     
-    saveOptions: function( value ) {
+    saveOptions: function( value, range ) {
       
       if ( this.item.key === "sortValues" ) {
         this.$updateQuery({ query: this.item.key, value: value });
@@ -274,7 +278,8 @@ export default {
         }
         if ( this.item.type === 'filterExtras' ) {
           let vue = this;
-          if ( vue.$store.getters.filterExtrasKeys || !value ) {
+          if ( vue.$store.getters.filterExtrasKeys || !value && !range ) {
+            console.log( !value && !range, value, range, '-', vue.$store.getters.filterExtrasKeys )
             const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
               const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
               if ( keyItem && keyItem.range ) {

@@ -8,7 +8,7 @@
         <li class="total">{{ $store.getters.collection.length }} / {{ total }}</li>
         <li class="search-option" 
         v-for="(item, index) in optionsList" :key="item.key"
-        v-if="item.type === 'filter'"
+        v-if="$route.name === 'wishlist' ? item.type === 'filter' && !item.excludeFromWishlist : item.type === 'filter'"
         >
           <listItem 
           :label="item.label" :item="item" :index="index" 
@@ -21,7 +21,7 @@
         <li class="search-option" 
         :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }" 
         v-for="(item, index) in optionsList" :key="item.key"
-        v-if="!($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter'"
+        v-if="$route.name === 'wishlist' ? !item.excludeFromWishlist && !($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter' : !($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter'"
         >
           <listItem v-if="item.type !== 'divider'" 
           :label="item.label" :item="item" :index="index" 
