@@ -1,19 +1,16 @@
 global.browser = require("webextension-polyfill");
 
-// https://developer.chrome.com/extensions/tabs
-// https://developer.chrome.com/extensions/tabs#event-onUpdated
-browser.tabs.onUpdated.addListener(tabId => {
-  // Error silencing: sometimes when you close a tab right after its created,
-  // the pageAction.show() will throw an error because the tab doesn't exist anymore
-  browser.tabs.get(tabId).then(data => {
-    if (!browser.runtime.lastError) browser.pageAction.show(tabId);
-  });
+browser.runtime.onMessage.addListener(function(msg, sender) {
+  if ( msg.pageAction == true && !browser.runtime.lastError ) {
+    browser.pageAction.show( sender.tab.id );
+  }
 });
 
 // Extension icon click action....
 // https://developer.chrome.com/extensions/pageAction
 // https://developer.chrome.com/extensions/pageAction#event-onClicked
 browser.pageAction.onClicked.addListener(tabId => {
+  console.log( 'pageAction clicked');
   // https://developer.chrome.com/extensions/tabs
   // https://developer.chrome.com/extensions/tabs#method-query
   browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {

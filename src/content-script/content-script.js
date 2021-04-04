@@ -6,6 +6,8 @@ import App from "./content-script-app";
 Vue.config.productionTip = false;
 Vue.config.devtools = false;
 
+browser.runtime.sendMessage({ pageAction: true });
+
 let overlayBtnHeading = $('<h2>', {
   id: 'audible-library-extractor-btn',
   class: 'bc-heading bc-color-base bc-lens-heading bc-text-bold',
@@ -48,8 +50,6 @@ browser.runtime.onMessage.addListener(message => {
 });
 
 function audibleLibraryExtractor(data) {
-  
-  browser.runtime.sendMessage({ pageAction: true });
   
   $('<div>', { id: 'audible-library-extractor'}).prependTo("body");
   
