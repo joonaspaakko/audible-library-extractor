@@ -171,25 +171,23 @@ export default {
           });
 
           waterfall(waterfallArray, function(err, hotpotato) {
+            vue.$root.$emit("reset-progress");
             vue.$root.$emit("update-big-step", {
-              title: "Opening the gallery page in 5 seconds...",
+              title: "Opening the gallery after packing up the data...",
               step: 0,
               max: 0
             });
 
-            const configISBN = _.find(hotpotato.config.steps, { name: "isbn" });
-            const foundISBNs = _.filter(hotpotato.books, 'isbns');
-            if (configISBN && configISBN.value ||foundISBNs.length > 0 ) {
-              vue.$root.$emit("update-progress", {
-                text: "Currently " + foundISBNs.length + "/" + hotpotato.books.length + " books have ISBNs",
-                step: 0,
-                max: 0
-              });
-            }
-
-            setTimeout(function() {
-              vue.goToOutputPage(hotpotato);
-            }, 5000);
+            // const configISBN = _.find(hotpotato.config.steps, { name: "isbn" });
+            // const foundISBNs = _.filter(hotpotato.books, 'isbns');
+            // if (configISBN && configISBN.value ||foundISBNs.length > 0 ) {
+            //   vue.$root.$emit("update-progress", {
+            //     text: "Currently " + foundISBNs.length + "/" + hotpotato.books.length + " books have ISBNs",
+            //     step: 0,
+            //     max: 0
+            //   });
+            // }
+            vue.goToOutputPage(hotpotato);
           });
         });
         
@@ -241,7 +239,7 @@ export default {
 
     init_storePageTest: function() {
       const vue = this;
-
+      
       const hotpotato = {
         config: { test: true, getStorePages: 'books' },
         books: [

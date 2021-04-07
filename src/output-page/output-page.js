@@ -181,13 +181,13 @@ import {
   faSort,
   faSortDown,
   faSortUp,
-  // faSpinner,
+  faSpinner,
   faSquare,
   faSun,
   faTable,
   faTh,
   faTimesCircle,
-  // faUnlockAlt,
+  faUnlockAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -229,13 +229,13 @@ library.add(
   faSort,
   faSortDown,
   faSortUp,
-  // faSpinner,
+  faSpinner,
   faSquare,
   faSun,
   faTable,
   faTh,
   faTimesCircle,
-  // faUnlockAlt,
+  faUnlockAlt,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
@@ -376,10 +376,19 @@ globalMethods.install = function (Vue) {
 }
 Vue.use( globalMethods );
 
-// APP prep
-// In the extension environment...
+
 const standalone = document.querySelector("html.standalone-gallery");
-if (!standalone) {
+
+// APP prep
+// For testing purposes: offloading JSON
+var offLoadJSON = false;
+if ( offLoadJSON ) {
+  // startVue( 
+  //   require('./data.json') 
+  // );
+}
+// In the extension environment...
+else if (!standalone) {
   try {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"

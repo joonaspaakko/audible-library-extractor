@@ -55,9 +55,7 @@ browser.tabs.onActivated.addListener(() => {
     // Permissions: contextMenus
     browser.contextMenus.removeAll();
     
-    var dataExists = typeof data === 'object' && data !== null;
-    if ( dataExists && data.extras && data.extras['domain-extension'] ) domainExtension = data.extras['domain-extension'];
-    if ( dataExists && !!data.chunks && data.chunks.length === 0 ) dataExists = false;
+    var dataExists = typeof data === 'object' && data !== null && !!data.chunks && data.chunks.length === 0;
     
     data = null;
     
@@ -93,7 +91,7 @@ browser.tabs.onActivated.addListener(() => {
   
 });
 
-chrome.contextMenus.onClicked.addListener((info, tab) => {
+browser.contextMenus.onClicked.addListener((info, tab) => {
       
   var newTab = {
     active: true,

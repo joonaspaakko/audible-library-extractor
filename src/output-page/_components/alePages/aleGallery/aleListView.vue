@@ -22,7 +22,7 @@ ref="listView"
         
         <!-- :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }" -->
         <lazy
-        v-for="(book, index) in $store.getters.collection"
+        v-for="(book, index) in $store.state.chunkCollection"
         class="ale-row"
         :data-asin="book.asin"
         :key="'book:'+book.asin"
@@ -71,19 +71,14 @@ export default {
   },
 
   created: function() {
+    
     this.keys = this.prepareKeys();
+    this.$root.$on("book-clicked", this.toggleBookDetails);
+    
   },
 
   mounted: function() {
-    
-    this.$root.$on("book-clicked", this.toggleBookDetails);
     this.setSpreadsheetOffset();
-    
-    // Book query: open book details on load
-    if (_.get(this.$route, "query.book")) this.toggleBookDetails({
-      book: _.find(this.$store.getters.collection, { asin: this.$route.query.book })
-    });
-    
   },
 
   beforeDestroy: function() {

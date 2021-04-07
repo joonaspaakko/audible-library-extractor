@@ -146,10 +146,8 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
     function(err, result) {
       if (!err) {
         vue.$nextTick(function() {
-          setTimeout(function() {
-            vue.$root.$emit("reset-progress");
-            isbnsFetched(null, hotpotato);
-          }, 1000);
+          vue.$root.$emit("reset-progress");
+          isbnsFetched(null, hotpotato);
         });
       } else console.log(err);
     }

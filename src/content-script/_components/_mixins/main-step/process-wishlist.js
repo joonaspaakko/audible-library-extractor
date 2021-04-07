@@ -70,14 +70,12 @@ export default {
             hotpotato.wishlist = books;
 
             vue.$nextTick(function() {
-              setTimeout(function() {
-                hotpotato.config.getStorePages = 'wishlist';
-                
-                vue.$root.$emit("update-progress", {
-                  max: hotpotato.wishlist.length
-                });
-                wishlistFetched(null, hotpotato);
-              }, 1000);
+              hotpotato.config.getStorePages = 'wishlist';
+              
+              vue.$root.$emit("update-progress", {
+                max: hotpotato.wishlist.length
+              });
+              wishlistFetched(null, hotpotato);
             });
             
           }

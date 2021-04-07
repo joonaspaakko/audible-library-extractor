@@ -10,7 +10,7 @@
     />
     
     <lazy
-    v-for="(book, index) in $store.getters.collection"
+    v-for="(book, index) in $store.state.chunkCollection"
     class="ale-book"
     :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }"
     :data-asin="book.asin"
@@ -44,23 +44,10 @@ export default {
   
   created: function() {
     this.$root.$on("book-clicked", this.toggleBookDetails);
-    // $("body, html").on("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
-    // this.$root.$on('afterWindowResize', this.onWindowResize );
   },
 
   beforeDestroy: function() {
     this.$root.$off("book-clicked", this.toggleBookDetails);
-    // $("body, html").off("scroll mousedown wheel DOMMouseScroll mousewheel keyup touchmove", this.scrollStopAnimate);
-    // this.$root.$off('afterWindowResize', this.onWindowResize );
-  },
-
-  mounted: function() {
-    
-    // Book query: open book details on load
-    if (_.get(this.$route, "query.book")) this.toggleBookDetails({
-      book: _.find(this.$store.getters.collection, { asin: this.$route.query.book })
-    });
-    
   },
 
   methods: {

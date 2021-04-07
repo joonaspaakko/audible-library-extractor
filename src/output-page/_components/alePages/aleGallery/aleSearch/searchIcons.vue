@@ -3,7 +3,7 @@
     <div class="icon-wrap" v-tippy content="Visible books">
       <div class="book-in-selection">
         <div class="inner-wrap">
-          <slot></slot>
+          {{ $store.getters.collection.length }}
         </div>
       </div>
     </div>

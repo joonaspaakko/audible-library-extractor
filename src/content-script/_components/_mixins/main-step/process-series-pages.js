@@ -67,10 +67,8 @@ export default {
               
               if (!err) {
                 vue.$nextTick(function() {
-                  setTimeout(function() {
-                    vue.$root.$emit("reset-progress");
-                    seriesFetched(null, hotpotato);
-                  }, 1000);
+                  vue.$root.$emit("reset-progress");
+                  seriesFetched(null, hotpotato);
                 });
               } else console.log(err);
             }

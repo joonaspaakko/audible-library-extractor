@@ -1,8 +1,7 @@
 <template>
   <tr class="ale-row-inner" @click="$root.$emit('book-clicked', { book })">
     
-    <lazy
-    tag="td"
+    <td
     v-for="col in columns"
     :key="col.key"
     class="ale-col"
@@ -21,7 +20,7 @@
 
         <span class="text-container"> {{ col.text || "&nbsp;" }}</span>
       </div>
-    </lazy>
+    </td>
     
   </tr>
 </template>

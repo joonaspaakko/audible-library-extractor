@@ -86,10 +86,8 @@ export default {
             hotpotato.collections = collections;
 
             vue.$nextTick(function() {
-              setTimeout(function() {
-                vue.$root.$emit("reset-progress");
-                collectionsFetched(null, hotpotato);
-              }, 1000);
+              vue.$root.$emit("reset-progress");
+              collectionsFetched(null, hotpotato);
             });
           }
         );

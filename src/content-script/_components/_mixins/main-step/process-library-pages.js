@@ -29,27 +29,25 @@ export default {
             flatten: true,
             done: function(books) {
               vue.$nextTick(function() {
-                setTimeout(function() {
+                
+                // Removes unnecessary data from series and collections durin a partial extraction
+                if ( hotpotato.config.partialScan ) {
                   
-                  // Removes unnecessary data from series and collections durin a partial extraction
-                  if ( hotpotato.config.partialScan ) {
-                    
-                    const changedBooks = _.xorBy( hotpotato.books, books, 'asin');
-                    if ( changedBooks.length > 0 ) {
-                      let removedBooks = _.filter( changedBooks, function( book ) { return !book.isNewThisRound; });
-                      if ( removedBooks.length > 0 )  {
-                        vue.removeFromSeries( hotpotato.series, removedBooks );
-                        vue.removeFromCollections( hotpotato.collections, removedBooks );
-                      }
+                  const changedBooks = _.xorBy( hotpotato.books, books, 'asin');
+                  if ( changedBooks.length > 0 ) {
+                    let removedBooks = _.filter( changedBooks, function( book ) { return !book.isNewThisRound; });
+                    if ( removedBooks.length > 0 )  {
+                      vue.removeFromSeries( hotpotato.series, removedBooks );
+                      vue.removeFromCollections( hotpotato.collections, removedBooks );
                     }
-                    
                   }
                   
-                  hotpotato.books = books;
-                  hotpotato.config.getStorePages = 'books';
-                  libraryPagesFetched(null, hotpotato);
+                }
+                
+                hotpotato.books = books;
+                hotpotato.config.getStorePages = 'books';
+                libraryPagesFetched(null, hotpotato);
                   
-                }, 1000);
               });
             }
           });

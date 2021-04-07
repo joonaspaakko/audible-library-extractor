@@ -15,9 +15,17 @@
     
     <ale-search :collectionSource="collectionSource"></ale-search>
     
+    <div v-if="collapseView" class="collection-expanded-btn" @click="expandView">
+      <div>
+        <span>Expand view</span>
+        <span v-if="realLength">( {{ realLength }} )</span>
+        <font-awesome :icon="['fas', 'unlock-alt']" />
+      </div>
+    </div>
+    
     <div v-if="$store.getters.collection && $store.getters.collection.length > 0">
-      <ale-grid-view v-if="$store.state.sticky.viewMode === 'grid'" />
-      <ale-list-view v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+      <ale-grid-view @hook:mounted="gridViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-if="$store.state.sticky.viewMode === 'grid'" />
+      <ale-list-view @hook:mounted="listViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
     </div>
     
   </div>
@@ -62,6 +70,10 @@ export default {
       collectionSource: 'library.books',
       pageTitle: null,
       pageSubTitle: null,
+      scrollContainer: null,
+      pageLoadBook: null,
+      collapseView: null,
+      realLength: 0,
     };
   },
   
@@ -82,6 +94,79 @@ export default {
     this.prepCollectionsSubPage();    
     this.prepSeriesSubPage();
     this.prepWishlist();
+    
+    
+    this.pageLoadBook = _.get(this.$route, "query.book");
+    this.collapseView = this.pageLoadBook && this.$route.name !== 'series';
+    
+  },
+  
+  watch: {
+    '$store.getters.collection': function() {
+      
+      this.$store.commit("chunkCollectionReset");
+      
+      if ( this.pageLoadBook && this.$route.name === 'series' ) {
+        this.$store.commit("prop", { key: 'chunkCollection', value: this.$store.getters.collection });
+      }
+      else {
+        this.$store.commit("chunkCollectionAdd");
+      }
+      
+    },
+  },
+  
+  methods: {
+    
+    childrenMounted: function() {
+      
+      // Book query: open book details on load
+      if ( this.pageLoadBook ) {
+        
+        let book = _.find(this.$store.getters.collection, { asin: this.pageLoadBook });
+        this.realLength = this.$store.getters.collection.length;
+        if ( this.collapseView && ( this.realLength === 1 ) ) this.collapseView = false;
+        if ( this.collapseView ) {
+          this.$store.commit("prop", { key: 'mutatingCollection', value: [book] });
+        }
+        this.$root.$emit("book-clicked", { book: book });
+        
+      };
+      
+    },
+    
+    expandView: function() {
+      this.$updateQuery({ query: 'book', value: false, history: true });
+      this.$root.$emit('refresh-page');
+    },
+    
+    gridViewMounted: function() {
+      
+      this.childrenMounted();
+      
+      this.scrollContainer = window;
+      this.scrollContainer.addEventListener('scroll', this.addDomItems);
+      
+    },
+    listViewMounted: function() {
+      
+      this.childrenMounted();
+      
+      this.scrollContainer = document.querySelector('.list-view-inner-wrap');
+      this.scrollContainer.addEventListener('scroll', this.addDomItems);
+      
+    },
+    viewsBeforeDestroy: function() {
+      this.scrollContainer.removeEventListener('scroll', this.addDomItems);
+    },
+    addDomItems: _.throttle( function(e) {
+      
+      let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
+      let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
+      let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
+      if( atTheBottom ) this.$store.commit('chunkCollectionAdd');
+      
+    }, 600, { leading: true, trailing: true }),
     
   },
   
@@ -104,6 +189,34 @@ export default {
   @media ( min-width: 630px ) {
     &[data-audio-player-visible="true"] {
       padding-top: 64px;
+    }
+  }
+  
+  .collection-expanded-btn {
+    cursor: pointer;
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    text-align: center;
+    margin-top: -8px;
+    position: relative;
+    z-index: 200;
+    > div {
+      display: inline-block;
+      margin-bottom: 20px;
+      padding: 7px 20px;
+      border-radius: 8px;
+      @include themify($themes) {
+        color: themed(frontColor);
+        border: 1px solid themed(audibleOrange);
+        background: themed(backColor);
+      }
+      span {
+        padding-right: 6px;
+      }
     }
   }
   

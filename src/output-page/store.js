@@ -29,6 +29,9 @@ export default new Vuex.Store({
     windowWidth: window.innerWidth,
     showBackground: false,
     audioPlayerVisible: false,
+    chunkCollection: [],
+    chunkLocation: 0,
+    chunkDistance: 40,
   },
 
   mutations: {
@@ -106,6 +109,26 @@ export default new Vuex.Store({
         currentItem.current = true;
       }
             
+    },
+    
+    chunkCollectionReset: function( state ) {
+      state.chunkDistance = state.sticky.viewMode === 'grid' ? 52 : 80;
+      state.chunkLocation = 0;
+      state.chunkCollection = [];
+    },
+    
+    chunkCollectionAdd: function( state ) {
+      
+      const searchIsActive = state.searchQuery.trim() !== "";
+      const source = searchIsActive ? state.searchCollection : state.mutatingCollection;
+      if ( source.length > 0 ) {
+        const sliceOfLife = source.slice( state.chunkLocation, state.chunkLocation+state.chunkDistance );
+        if ( sliceOfLife.length > 0 ) {
+          state.chunkCollection = state.chunkCollection.concat( sliceOfLife );
+          state.chunkLocation += state.chunkDistance;
+        }
+      }
+      
     },
     
   },

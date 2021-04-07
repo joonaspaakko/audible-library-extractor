@@ -6,12 +6,23 @@ export default {
     amapxios: function(options) {
       const vue = this;
       
+      const letMeAxiosAQuestion = axios.create();
+      axiosRetry(letMeAxiosAQuestion, {
+        retries: 3,
+        retryDelay: 1000,
+        retryCondition: function(error) {
+          return (
+            error.response.status == "500"
+          );
+        }
+      });
+      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 15 });
       
       asyncMap(
         options.requests,
         function(request, stepCallback) {
           const axiosConfig = options.config || {};
-          const axiosLimited = rateLimit(axios.create(), { maxRPS: 15 });
+          
           axiosLimited
             .get((request.requestUrl || request.url || request), axiosConfig)
             .then(function(response) {

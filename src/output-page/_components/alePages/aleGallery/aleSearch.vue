@@ -21,7 +21,7 @@
           />
         </div>
         
-        <search-icons :list-name.sync="listName">{{ $store.getters.collection.length }}</search-icons> 
+        <search-icons :list-name.sync="listName"></search-icons> 
         <search-options
           :list-name.sync="listName"
           v-if="listName"
@@ -115,9 +115,9 @@ export default {
     this.$root.$on("start-scope", this.scope);
     this.$root.$on("start-sort", this.sort);
     this.$root.$on("start-filter", this.filter);
-    this.$root.$on("start-re-render", this.reRender);
     this.$root.$on("search-focus", this.focusOnSearch);
     this.$store.commit('prop', { key: 'searchMounted', value: true });
+    // this.$root.$on("start-re-render", this.reRender);
     
   },
 
@@ -130,9 +130,9 @@ export default {
     this.$root.$off("start-scope", this.scope);
     this.$root.$off("start-sort", this.sort);
     this.$root.$off("start-filter", this.filter);
-    this.$root.$off("start-re-render", this.reRender);
     this.$root.$off("search-focus", this.focusOnSearch);
     this.$store.commit('prop', { key: 'searchMounted', value: false });
+    // this.$root.$off("start-re-render", this.reRender);
     
   },
 

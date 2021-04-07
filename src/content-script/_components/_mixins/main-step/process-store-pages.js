@@ -41,19 +41,15 @@ export default {
             flatten: true,
             done: function() {
               vue.$nextTick(function() {
-                setTimeout(function() {
-                  if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
-                  storePagesFetched(null, hotpotato);
-                }, 1000);
+                if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
+                storePagesFetched(null, hotpotato);
               });
             }
           });
         } else {
           vue.$nextTick(function() {
-            setTimeout(function() {
-              vue.$root.$emit("reset-progress");
-              storePagesFetched(null, hotpotato);
-            }, 1000);
+            vue.$root.$emit("reset-progress");
+            storePagesFetched(null, hotpotato);
           });
         }
         
