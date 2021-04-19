@@ -110,8 +110,8 @@ export default {
   },
 
   created: function() {
-    this.resetScroll();
     this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
+    this.resetScroll();
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
   },
@@ -120,6 +120,7 @@ export default {
     
     this.maxWidth = this.repositionBookDetails() + "px";
     // this.changeUrl();
+    console.log( '('+ this.book.asin +')', this.book.title )
     this.$updateQuery({ query: 'book', value: this.book.asin });
     this.loading = false;
     
@@ -162,6 +163,7 @@ export default {
           scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });
         }
         else {
+          console.log( this.clickedBook )
           document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });
         }
       });
@@ -172,6 +174,7 @@ export default {
       const domBooks = gridView.querySelector(".ale-book") ? gridView.querySelectorAll(".ale-book") : gridView.querySelector('table tbody').querySelectorAll(".ale-row");
 
       const target = {};
+      // console.log( this.index, domBooks )
       target.el = domBooks[this.index];
       target.index = this.index;
       target.width = target.el.getBoundingClientRect().width;

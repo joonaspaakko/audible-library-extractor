@@ -53,6 +53,7 @@ export default {
   methods: {
     
     toggleBookDetails: function(e) {
+      console.log('GRID toggle book detailas');
       
       if (!e.book) {
         
@@ -60,13 +61,15 @@ export default {
         this.detailsBookIndex = -1;
         if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
       
-      } else {
+      } 
+      else {
         
         if (!e.index) e.index = _.findIndex( this.$store.getters.collection, { asin: e.book.asin });
         const sameBook = _.get(this.detailsBook, "asin") === e.book.asin;
         this.detailsBook = null;
         this.detailsBookIndex = e.index;
         this.$nextTick(function() {
+          console.log('toggleBookDetails', e.book.title)
           if (!sameBook) this.detailsBook = e.book;
           else {
             if (this.$route.query !== undefined) this.$updateQuery({ query: 'book', value: null });

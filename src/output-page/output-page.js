@@ -119,7 +119,7 @@ const routes = [
 
 const router = new VueRouter({
   routes,
-  base: '/output-page/',
+  // base: '/output-page/',
   scrollBehavior(to, from, savedPosition) {
     // if (savedPosition && (to.name === "categories" || to.name === "all-series" || to.name === "collections" || to.name === "wishlist") ) {
     if (savedPosition ) {
@@ -274,6 +274,8 @@ updateVuexQuery.install = function (Vue) {
     
     let queryClone = JSON.parse( JSON.stringify( queries ) );
     
+    console.log( 'queryClone1', queryClone, query,value )
+    
     // Toggle
     if ( value === undefined ) {
       if ( queryClone[ query ] ) delete queryClone[ query ];  
@@ -286,6 +288,7 @@ updateVuexQuery.install = function (Vue) {
       else queryClone[ query ] = value;
     }
     
+    console.log( 'queryClone2', queryClone )
     // push() writes a history state...
     if ( history ) {
       this.$router.push({ query: queryClone }).catch(() => {}); 

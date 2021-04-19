@@ -11,6 +11,7 @@ export default new Vuex.Store({
       lightSwitchSetByUser: false,
       // sortValues: false,
       viewMode: 'grid',
+      chunkLocation: 0,
     },
     // States that don't persist
     searchMounted: false,
@@ -30,7 +31,6 @@ export default new Vuex.Store({
     showBackground: false,
     audioPlayerVisible: false,
     chunkCollection: [],
-    chunkLocation: 0,
     chunkDistance: 40,
   },
 
@@ -113,19 +113,34 @@ export default new Vuex.Store({
     
     chunkCollectionReset: function( state ) {
       state.chunkDistance = state.sticky.viewMode === 'grid' ? 52 : 80;
-      state.chunkLocation = 0;
+      state.sticky.chunkLocation = 0;
       state.chunkCollection = [];
     },
     
-    chunkCollectionAdd: function( state ) {
+    chunkCollectionAdd: function( state, config ) {
+      
+      config = config || {};
       
       const searchIsActive = state.searchQuery.trim() !== "";
       const source = searchIsActive ? state.searchCollection : state.mutatingCollection;
       if ( source.length > 0 ) {
-        const sliceOfLife = source.slice( state.chunkLocation, state.chunkLocation+state.chunkDistance );
+        // console.log( '-----config.chunkDistance', config.chunkDistance )
+        const location = config.chunkDistance ? config.chunkDistance : parseFloat( state.sticky.chunkLocation );
+        let sliceOfLife = config.chunkDistance ? source.slice( 0, location ) : source.slice( location, location+state.chunkDistance );
         if ( sliceOfLife.length > 0 ) {
-          state.chunkCollection = state.chunkCollection.concat( sliceOfLife );
-          state.chunkLocation += state.chunkDistance;
+          
+          if ( config.chunkDistance ) {
+            state.chunkCollection = sliceOfLife;
+          }
+          else {
+            state.chunkCollection = state.chunkCollection.concat( sliceOfLife );
+          }
+          
+          // console.log( 'test1' )
+          // console.log( state.chunkCollection )
+          // console.log( 'test2' )
+          state.sticky.chunkLocation = location + state.chunkDistance;
+          
         }
       }
       

@@ -97,6 +97,7 @@ export default {
     },
     
     toggleBookDetails: function(e) {
+      console.log('LIST toggle book detailas');
       
       if (!e.book) {
         
@@ -112,6 +113,7 @@ export default {
         this.detailsBook = null;
         this.detailsBookIndex = e.index;
         this.$nextTick(function() {
+          console.log('toggleBookDetails', e.book.title)
           if (!sameBook) this.detailsBook = e.book;
           else {
             if (this.$route.query !== undefined) this.$updateQuery({ query: 'book', value: null });
