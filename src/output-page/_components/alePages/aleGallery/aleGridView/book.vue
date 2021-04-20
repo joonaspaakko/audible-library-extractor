@@ -46,7 +46,9 @@
             <div class="author" v-if="book.authors">{{ book.authors[0].name }}</div>
           </div>
         </div>
-        <img v-else class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
+        <div v-else class="cover-img-wrapper">
+          <img class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
+        </div>
       </div>
     </div>
   </div>
@@ -200,6 +202,25 @@ export default {
     }
     -webkit-animation: 300ms showImage;
     animation: 300ms showImage;
+  }
+  
+  .cover-img-wrapper {
+    width: 100%;
+    height: 100%;
+    padding-bottom: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-content: center;
+    justify-items: center;
+    align-items: center;
+    @include themify($themes) {
+      background-color: lighten( themed(backColor), 10);
+    }
+    img {
+      position: absolute;
+      padding-top: 100%;
+    }
   }
   
   .placeholder-cover {

@@ -94,7 +94,6 @@ export default {
     this.prepSeriesSubPage();
     this.prepWishlist();
     
-    
     // this.pageLoadBook = _.get(this.$route, "query.book");
     // ID: tn664iGW (related to 3Ez82Egn)
     // Makes it so just the book with book details open with open on page load
@@ -218,7 +217,9 @@ export default {
     viewsBeforeDestroy: function() {
       this.scrollContainer.removeEventListener('scroll', this.addDomItems);
     },
+    
     addDomItems: _.throttle( function(e) {
+      
       let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
       let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
       let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
