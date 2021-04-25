@@ -1,5 +1,5 @@
 <template>
-  <router-view :key="$route.name"></router-view>
+  <router-view :key="$route.name+$store.state.viewRefresh"></router-view>
 </template>
 
 <script>

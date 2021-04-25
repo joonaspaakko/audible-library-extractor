@@ -94,6 +94,8 @@ export default {
     this.prepSeriesSubPage();
     this.prepWishlist();
     
+    // FIXME: going from open bookdetails to another page and then backing out of that page causes an error in bookdetails
+    
     // this.pageLoadBook = _.get(this.$route, "query.book");
     // ID: tn664iGW (related to 3Ez82Egn)
     // Makes it so just the book with book details open with open on page load
@@ -119,6 +121,7 @@ export default {
   methods: {
     
     childrenMounted: function() {
+      
       this.$nextTick(function() {
         
         const scrollPosition = this.$route.query.y ? parseFloat(this.$route.query.y) : 0;
@@ -132,7 +135,6 @@ export default {
           let bookHeight = grid ? wrapper.querySelector('.ale-book').getBoundingClientRect().height : wrapper.querySelector('table tbody .ale-row').getBoundingClientRect().height;
           let wrapperMax = grid ? wrapper.getBoundingClientRect().width : wrapper.getBoundingClientRect().height;
           let cols = Math.floor(wrapperMax / bookHeight) || 1;
-          console.log( 'cols', cols );
           
           // this.$store.commit("chunkCollectionAdd", { chunkDistance: this.$store.state.chunkDistance * factor });
           
@@ -140,7 +142,6 @@ export default {
           let max = Math.ceil( (bookIndex+1) / cols );
           let currentRow = Math.floor(bookIndex / cols) + 1;
           let rowEnd = currentRow * cols;
-          console.log( 'currentRow', currentRow, 'rowEnd', rowEnd, 'bookindex', bookIndex+1, 'max', max, 'added', max / (bookIndex+1) );
           this.$store.commit("chunkCollectionAdd", { chunkDistance: rowEnd + this.$store.state.chunkDistance });
           // ID: 3Ez82Egn (related to tn664iGW)
           // Makes it so just the book with book details open with open on page load
@@ -149,7 +150,8 @@ export default {
           // if ( this.collapseView ) {
             //   this.$store.commit("prop", { key: 'mutatingCollection', value: [book] });
           // }
-          this.$nextTick(function () { 
+          
+          this.$nextTick(function() {
             this.$root.$emit("book-clicked", { book: this.$store.getters.collection[bookIndex] });
           });
           
@@ -161,16 +163,11 @@ export default {
           let grid = this.$store.state.sticky.viewMode === 'grid';
           let bookHeight = grid ? wrapper.querySelector('.ale-book').getBoundingClientRect().height : wrapper.querySelector('table tbody .ale-row').getBoundingClientRect().height;
           let visibleArea = scrollPosition + window.innerHeight - wrapperOffset;
-          console.log( 'visibleArea', visibleArea )
           let maxItems = Math.ceil(visibleArea / bookHeight) || 1;
-          console.log( 'maxItems', maxItems )
           let wrapperMax = grid ? wrapper.getBoundingClientRect().width : wrapper.getBoundingClientRect().height;
           let cols = Math.floor(wrapperMax / bookHeight) || 1;
-          console.log( 'cols', cols );
           let visibleBooks = grid ? maxItems*cols : cols;
-          console.log( 'visibleBooks:', visibleBooks, 'chunkDistance:', this.$store.state.chunkDistance  );
           let factor = Math.ceil(visibleBooks / this.$store.state.chunkDistance) || 1;
-          console.log( 'FACTOR:', factor )
           if ( factor > 1 ) {
             this.$store.commit("chunkCollectionAdd", { chunkDistance: this.$store.state.chunkDistance * factor });
           }

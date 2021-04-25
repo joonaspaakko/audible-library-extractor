@@ -27,6 +27,7 @@ ref="listView"
         :data-asin="book.asin"
         :key="'book:'+book.asin"
         ref="domBooks"
+        v-if="book"
         >
           <ale-list-row
             :book="book"

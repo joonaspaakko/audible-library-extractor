@@ -3,7 +3,7 @@
         
     <ale-background v-if="$store.state.showBackground"></ale-background>
     <ale-navigation></ale-navigation>
-    <router-view :key="$route.name+viewRefresh"></router-view>
+    <router-view :key="$route.name+$store.state.viewRefresh"></router-view>
     <!-- <router-view :key="$route.name+($route.query.refresh ? '-refresh' : '')"></router-view> -->
     
   </div>
@@ -24,7 +24,6 @@ export default {
   
   data: function() {
     return {
-      viewRefresh: '',
       general: {
         route: null,
         standalone: null,
@@ -72,9 +71,9 @@ export default {
   methods: {
     
     refreshPage: function() {
-      this.viewRefresh = true;
+      this.$store.commit('prop', { key: 'viewRefresh', value: 'refresh' });
       this.$nextTick(function() {
-        this.viewRefresh = '';
+        this.$store.commit('prop', { key: 'viewRefresh', value: '' });
       });
     },
     

@@ -15,6 +15,7 @@
     :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }"
     :data-asin="book.asin"
     :key="'book:'+book.asin"
+    v-if="book"
     >
       <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
     </lazy>
@@ -53,7 +54,6 @@ export default {
   methods: {
     
     toggleBookDetails: function(e) {
-      console.log('GRID toggle book detailas');
       
       if (!e.book) {
         
@@ -69,7 +69,6 @@ export default {
         this.detailsBook = null;
         this.detailsBookIndex = e.index;
         this.$nextTick(function() {
-          console.log('toggleBookDetails', e.book.title)
           if (!sameBook) this.detailsBook = e.book;
           else {
             if (this.$route.query !== undefined) this.$updateQuery({ query: 'book', value: null });

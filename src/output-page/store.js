@@ -32,6 +32,7 @@ export default new Vuex.Store({
     audioPlayerVisible: false,
     chunkCollection: [],
     chunkDistance: 40,
+    viewRefresh: '',
   },
 
   mutations: {
@@ -124,7 +125,6 @@ export default new Vuex.Store({
       const searchIsActive = state.searchQuery.trim() !== "";
       const source = searchIsActive ? state.searchCollection : state.mutatingCollection;
       if ( source.length > 0 ) {
-        // console.log( '-----config.chunkDistance', config.chunkDistance )
         const location = config.chunkDistance ? config.chunkDistance : parseFloat( state.sticky.chunkLocation );
         let sliceOfLife = config.chunkDistance ? source.slice( 0, location ) : source.slice( location, location+state.chunkDistance );
         if ( sliceOfLife.length > 0 ) {
@@ -136,9 +136,6 @@ export default new Vuex.Store({
             state.chunkCollection = state.chunkCollection.concat( sliceOfLife );
           }
           
-          // console.log( 'test1' )
-          // console.log( state.chunkCollection )
-          // console.log( 'test2' )
           state.sticky.chunkLocation = location + state.chunkDistance;
           
         }
