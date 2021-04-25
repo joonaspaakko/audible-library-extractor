@@ -1,12 +1,16 @@
 <template>
   <div id="ale-background" v-if="books">
-    <img
-      v-for="(book, index) in books"
-      :key="book.cover+index"
+    <div 
+    v-for="(book, index) in books"
+    :key="book.cover+index"
+    class="image-wrapper"
+    :class="{ 'flip-out': book.flipOut }"
+    >
+      <img
       :src="makeCoverUrl(book.cover, 200)"
-      :class="{ 'flip-out': book.flipOut }"
       alt=""
     />
+    </div>
   </div>
 </template>
 
@@ -228,7 +232,8 @@ html.theme-light #ale-background:after {
     left: 0;
   }
 
-  img {
+  .image-wrapper {
+    display: inline-block;
     position: relative;
     z-index: 0;
     width: 6%;
@@ -245,18 +250,26 @@ html.theme-light #ale-background:after {
     @-webkit-keyframes showImage {
       0% {
         opacity: 0;
+        // transform: rotateY(-180deg);
       }
       100% {
         opacity: 1;
+        // transform: rotateY(0deg);
       }
     }
     @keyframes showImage {
       0% {
         opacity: 0;
+        // transform: rotateY(-180deg);
       }
       100% {
         opacity: 1;
+        // transform: rotateY(0deg);
       }
+    }
+    img {
+      display: inline-block; 
+      width: 100%;
     }
   }
 }
@@ -288,22 +301,22 @@ html.theme-light #ale-background:after {
 }
 
 @media (max-width: 1300px) {
-  #ale-background img {
+  #ale-background .image-wrapper {
     width: 7.55%;
   }
 }
 @media (max-width: 1000px) {
-  #ale-background img {
+  #ale-background .image-wrapper {
     width: 11.37%;
   }
 }
 @media (max-width: 760px) {
-  #ale-background img {
+  #ale-background .image-wrapper {
     width: 15.09%;
   }
 }
 @media (max-width: 530px) {
-  #ale-background img {
+  #ale-background .image-wrapper {
     width: 17.95%;
   }
 }

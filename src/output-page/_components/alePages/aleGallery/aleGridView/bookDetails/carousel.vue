@@ -82,7 +82,7 @@ export default {
 					(book.title 		 ? '<div><h3 style="font-size: 1.2em; font-weight: bold; margin: 0 0 3px 0;">'+ book.title +'</h3>' : '') +
 					(book.subHeading ? '<div><h2 style="font-size: 1.1em; font-weight: normal; margin: 0 0 3px 0;">'+ book.subHeading +'</h2>' : '') +
 					(book.authors 	 ? '<div><strong>Authors: </strong>'+ book.authors +'</div>' : '') +
-					(book.narrators  ? '<div><strong>Authors: </strong>'+ book.narrators +'</div>' : '') +
+					(book.narrators  ? '<div><strong>Narrators: </strong>'+ book.narrators +'</div>' : '') +
 					(book.length 		 ? '<div><strong>Length: </strong>'+ book.length +'</div>' : '') +
 				'</div>';
 			return html;

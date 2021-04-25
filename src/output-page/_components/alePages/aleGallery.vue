@@ -94,8 +94,6 @@ export default {
     this.prepSeriesSubPage();
     this.prepWishlist();
     
-    // FIXME: going from open bookdetails to another page and then backing out of that page causes an error in bookdetails
-    
     // this.pageLoadBook = _.get(this.$route, "query.book");
     // ID: tn664iGW (related to 3Ez82Egn)
     // Makes it so just the book with book details open with open on page load

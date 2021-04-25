@@ -1,7 +1,6 @@
 <template>
-  <div>
+  <div v-if="inSeries">
     <div
-    v-if="inSeries"
     class="label hidden-section-label my-books-in-series-label"
     @click="booksInSeriesLabelClick"
     >
@@ -9,10 +8,10 @@
       <!-- <span class="heading">Books I own in the series</span> -->
       <span class="heading">My books in the series</span>
       <span class="count">{{ series.count }}</span>
-      <font-awesome fas :icon="series.toggle ? 'chevron-up' : 'chevron-down'" />
+      <font-awesome fas :icon="$store.state.sticky.booksInSeriesToggle ? 'chevron-up' : 'chevron-down'" />
     </div>
 
-    <div class="hidden-section my-books-in-series" v-if="series.toggle">
+    <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
       <div
       class="series-section"
       v-for="(series, seriesIndex) in series.collection"
@@ -81,6 +80,16 @@ export default {
         return false;
       }
     });
+    
+  },
+  
+  mounted: function() {
+    
+    if ( this.$store.state.sticky.booksInSeriesToggle ) {
+      this.$nextTick(() => {
+        this.$root.$emit("resizeSummary");
+      });
+    }
     
   },
 
@@ -156,7 +165,7 @@ export default {
     },
 
     booksInSeriesLabelClick: function() {
-      this.series.toggle = !this.series.toggle;
+      this.$store.commit('stickyProp', { key: 'booksInSeriesToggle', value: !this.$store.state.sticky.booksInSeriesToggle });
       this.$nextTick(() => {
         this.$root.$emit("resizeSummary");
       });
