@@ -4,7 +4,7 @@
       
       <div class="inner-wrap-wrapper">
         
-        <div class="text-button gallery-page" v-if="$store.state.library.books">
+        <div class="text-button gallery-page parent-item" v-if="$store.state.library.books">
           <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
               <font-awesome fas icon="book" />
@@ -14,8 +14,54 @@
             </div>
           </router-link>
         </div>
+        
+        <div class="text-button parent-item" v-if="$store.state.library.books">
+            <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
+              <font-awesome fas icon="chevron-down" />
+              <span>Sub pages</span>
+              <div class="sub-menu">
+                
+                <div class="text-button" v-if="$store.state.library.books">
+                  <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
+                    <div class="icon">
+                      <font-awesome fas icon="indent" />
+                      <span>Categories</span>
+                    </div>
+                  </router-link>
+                </div>
+                
+                <div class="text-button" v-if="$store.state.library.books">
+                  <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
+                    <div class="icon">
+                      <font-awesome fas icon="list-ol" />
+                      <span>Series</span>
+                    </div>
+                  </router-link>
+                </div>
+                
+                <div class="text-button" v-if="$store.state.library.books">
+                  <router-link :to="{ name: 'authors' }" @click.native="linkClicked('authors')">
+                    <div class="icon">
+                      <font-awesome fas icon="users" />
+                      <span>Authors</span>
+                    </div>
+                  </router-link>
+                </div>
+                
+                <div class="text-button" v-if="$store.state.library.books">
+                  <router-link :to="{ name: 'narrators' }" @click.native="linkClicked('narrators')">
+                    <div class="icon">
+                      <font-awesome fas icon="user-friends" />
+                      <span>Narrators</span>
+                    </div>
+                  </router-link>
+                </div>
+                
+              </div>
+            </div>
+        </div>
 
-        <div class="text-button categories-page" v-if="$store.state.library.books">
+        <!-- <div class="text-button categories-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
             <div class="icon">
               <font-awesome fas icon="indent" />
@@ -31,7 +77,7 @@
               <span>Series</span>
             </div>
           </router-link>
-        </div>
+        </div> -->
         
         <div class="text-button collections-page" v-if="$store.state.library.collections">
           <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
@@ -407,10 +453,16 @@ export default {
     left: 0;
     z-index: 9999999999999;
     background: rgba(#000, .88);
-    > * {
-      padding: 3.2% 0px;
-      font-size: 1.1em;
-      line-height: 1.0em;
+    > *,
+    > .parent-item .sub-menu > * {
+      padding: 3.2% 0px !important;
+      font-size: 1.1em !important;
+      line-height: 1.0em !important;
+    }
+    > .parent-item { 
+      margin: 0 !important;
+      padding: 0 !important; 
+      > .icon { padding: 0 !important; }
     }
     padding-bottom: 20px;
     &, a {
@@ -435,13 +487,65 @@ export default {
       padding: 7px 10px;
     }
   }
+  
+  .text-button {
+    &.parent-item > .icon { cursor: default; }
+    position: relative;
+    z-index: 0;
+    .sub-menu {
+      cursor: default;
+      display: none;
+      position: absolute;
+      top: 13px;
+      left: 0;
+      z-index: 10;
+      padding: 10px 0;
+      border-radius: 0 0 3px 3px;
+      @include themify($themes) {
+        color: themed( frontColor );
+        box-shadow: 0 5px 15px rgba( themed(outerColor), .7);
+        // border: 1px solid rgba( themed(frontColor), .2);
+      }
+      // border-top: none;
+      > .text-button > a {
+        text-align: left;
+        display: block;
+        margin-top: 6px;
+        padding: 6px 0px;
+      }
+    }
+    &:hover .sub-menu {
+      display: inline-block;
+    }
+    &.parent-item .router-link-active > [data-icon] {
+      @include themify($themes) {
+        color: themed(audibleOrange);
+      }
+    }
+  }
+  
+  &.mobile-nav {
+    .parent-item > .icon > * {
+      display: none;
+    }
+    .sub-menu {
+      display: inline-block !important;
+      position: static;
+      padding: 0;
+      background: transparent !important;
+      a { text-align: center !important; }
+    }
+  }
+  
 }
 
-.theme-light #ale-navigation {
+.theme-light #ale-navigation,
+.theme-light #ale-navigation .sub-menu {
   background: #fff;
 }
 
-.theme-dark #ale-navigation {
+.theme-dark #ale-navigation,
+.theme-dark #ale-navigation .sub-menu {
   background: lighten( #121517, 4);
 }
 

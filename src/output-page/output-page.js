@@ -77,28 +77,46 @@ Vue.use(VueRouter);
 
 const aleGallery = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
 const aleCategories = () => import( /* webpackChunkName: "categories" */ "./_components/alePages/aleCategories");
+const aleAuthors = () => import( /* webpackChunkName: "authors" */ "./_components/alePages/aleAuthors");
+const aleNarrators = () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/aleNarrators");
 const aleCollections = () => import( /* webpackChunkName: "collections" */ "./_components/alePages/aleCollections");
 const aleSeries = () => import( /* webpackChunkName: "series" */ "./_components/alePages/aleSeries");
 import aleLibraryView from "./_components/aleLibraryView";
 
 const routes = [
   { path: "/", redirect: "/library" },
-  { name: "gallery", path: "/library", component: aleGallery },
+  { name: "gallery", path: "/library", component: aleGallery,},
   {
     path: "/categories",
     component: aleLibraryView,
     children: [
-      { name: "categories", path: "", component: aleCategories },
-      { name: "category", path: ":parent/:child?", component: aleGallery }
-    ]
+      { name: "categories", path: "", component: aleCategories, meta: { subPage: true } },
+      { name: "category", path: ":parent/:child?", component: aleGallery, meta: { subPage: true } }
+    ],
   },
   {
     path: "/series",
     component: aleLibraryView,
     children: [
-      { name: "all-series", path: "", component: aleSeries },
-      { name: "series", path: ":series", component: aleGallery }
-    ]
+      { name: "all-series", path: "", component: aleSeries, meta: { subPage: true } },
+      { name: "series", path: ":series", component: aleGallery, meta: { subPage: true } }
+    ],
+  },
+  {
+    path: "/authors",
+    component: aleLibraryView,
+    children: [
+      { name: "authors", path: "", component: aleAuthors, meta: { subPage: true } },
+      { name: "author", path: ":author", component: aleGallery, meta: { subPage: true } }
+    ],
+  },
+  {
+    path: "/narrators",
+    component: aleLibraryView,
+    children: [
+      { name: "narrators", path: "", component: aleNarrators, meta: { subPage: true } },
+      { name: "narrator", path: ":narrator", component: aleGallery, meta: { subPage: true } }
+    ],
   },
   {
     path: "/collections",
@@ -185,6 +203,8 @@ import {
   faTh,
   faTimesCircle,
   faUnlockAlt,
+  faUsers,
+  faUserFriends,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -233,6 +253,8 @@ library.add(
   faTh,
   faTimesCircle,
   faUnlockAlt,
+  faUsers,
+  faUserFriends,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
