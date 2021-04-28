@@ -80,10 +80,15 @@ export default {
     };
   },
 
-  created: function() {
+  mounted: function() {
     
     var vue = this;
-    // this.$store.commit("prop", { key: "searchQuery", value: '' });
+    
+    if ( this.$route.query.search ) {
+      const searchQuery = decodeURIComponent(this.$route.query.search);
+      this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
+    }
+    
     this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
     
     const ifUrlParams = this.$route.query.sort || this.$route.query.filter || this.$route.query.filterExtras;
@@ -100,14 +105,9 @@ export default {
     
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);
-      this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
       if ( this.$route.query.sort ) this.fuseOptions.shouldSort = false;
       this.search();
     }
-    
-  },
-
-  mounted: function() {
     
     this.$root.$on("ios-auto-zoom-disable", this.iosAutozoomDisable);
     this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable );
@@ -135,7 +135,7 @@ export default {
     // this.$root.$off("start-re-render", this.reRender);
     
   },
-
+  
   methods: {
     
     scope: function() {
@@ -173,6 +173,7 @@ export default {
     search: _.debounce( function( e, shouldSort ) {
       
       // Reset 
+      const searchQuery = decodeURIComponent(this.$route.query.search);
       this.$root.$emit("book-clicked", { book: null });
       
       const triggeredByEvent = e;
@@ -203,7 +204,7 @@ export default {
           value: this.$store.getters.searchIsActive
         });
       }
-
+      
       // Start searching
       if (this.$store.getters.searchIsActive) {
         const query = this.modifyQuery(this.$store.state.searchQuery);

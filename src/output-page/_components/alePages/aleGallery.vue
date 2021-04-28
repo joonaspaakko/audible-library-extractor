@@ -13,7 +13,7 @@
       </h3>
     </div>
     
-    <ale-search :collectionSource="collectionSource"></ale-search>
+    <ale-search v-if="prepsCompleted" :collectionSource="collectionSource"></ale-search>
     
     <div v-if="collapseView" class="collection-expanded-btn" @click="expandView">
       <div>
@@ -37,6 +37,7 @@ import aleSearch from "./aleGallery/aleSearch";
 import prepCategoriesSubPage from "@output-mixins/prepCategoriesSubPage.js";
 import prepCollectionsSubPage from "@output-mixins/prepCollectionsSubPage.js";
 import prepSeriesSubPage from "@output-mixins/prepSeriesSubPage.js";
+import prepNarratorsSubPage from "@output-mixins/prepNarratorsSubPage.js";
 import prepWishlist from "@output-mixins/prepWishlist.js";
 
 import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
@@ -60,6 +61,7 @@ export default {
     prepCategoriesSubPage, 
     prepCollectionsSubPage, 
     prepSeriesSubPage,
+    prepNarratorsSubPage,
     prepWishlist,
     timeStringToSeconds,
     galleryListRenderingOpts,
@@ -73,6 +75,7 @@ export default {
       scrollContainer: null,
       collapseView: null,
       realLength: 0,
+      prepsCompleted: false,
     };
   },
   
@@ -92,7 +95,10 @@ export default {
     this.prepCategoriesSubPage();    
     this.prepCollectionsSubPage();    
     this.prepSeriesSubPage();
+    this.prepNarratorsSubPage();
     this.prepWishlist();
+    
+    this.prepsCompleted = true;
     
     // this.pageLoadBook = _.get(this.$route, "query.book");
     // ID: tn664iGW (related to 3Ez82Egn)

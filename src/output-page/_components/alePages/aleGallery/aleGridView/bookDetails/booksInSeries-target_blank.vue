@@ -141,11 +141,7 @@ export default {
     makeLinkToSeries: function( route ) {
       
       let routeData = this.$router.resolve( route );
-      console.log( this.$store.state.standalone )
-      console.log( routeData )
-      console.log( route )
       let newUrl = window.location.href.split('#')[0] + routeData.href.replace('/output-page/', '');
-      console.log( newUrl )
       return newUrl;
       
     },
@@ -153,12 +149,7 @@ export default {
     makeLinkToSeries2: function( route ) {
       
       let routeData = this.$router.resolve( route );
-      console.log( this.$store.state.standalone )
-      console.log( routeData )
-      console.log( route )
       let newUrl = window.location.href.split('#')[0] + routeData.href.replace('/output-page/', '');
-      console.log( newUrl )
-      console.log( routeData.resolved.path )
       return routeData.resolved.path;
       
     },
