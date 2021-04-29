@@ -1,6 +1,6 @@
 <template>
-  <div id="ale-series" class="box-layout-wrapper">
-    <ale-search :collectionSource="collectionSource"></ale-search>
+  <div id="ale-series" class="box-layout-wrapper" v-if="collectionSource.length && listReady">
+    <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     <lazy
     v-for="(item, index) in $store.getters.collection"
     class="single-box"
@@ -36,6 +36,9 @@ export default {
     return {
       series: null,
       collectionSource: 'pageCollection',
+      pageTitle: 'Series',
+      pageSubTitle: null,
+      listReady: false,
     };
   },
 
@@ -62,7 +65,7 @@ export default {
               name: series.name,
               asin: series.asin,
               added: addedCounter,
-              books: [ book ],
+              books: [ book.title || book.shortTitle ],
             };
             
             // Only add if it's in the library series array as well...
@@ -73,7 +76,7 @@ export default {
           }
           // Series already exists in the collection so just add the book...
           else {
-            seriesAdded.books.push( book );
+            seriesAdded.books.push( book.title || book.shortTitle );
             return false;
           }
           
@@ -87,6 +90,8 @@ export default {
     this.$store.commit("prop", { key: "pageCollection", value: seriesCollection });
     this.updateListRenderingOptions();
     
+    this.listReady = true;
+    
   },
   
   methods: {
@@ -94,8 +99,8 @@ export default {
       let vue = this;
       const list = {
         scope: [
-          { active: true,  key: 'name' },
-          // { active: true,  key: 'bookNumbers' },
+          { active: true,  key: 'name', tippy: 'Search narrators by name' },
+          { active: true,  key: 'books', tippy: 'Search narrators by book titles' },
         ],
         filter: [
           // { active: false,  type: 'filterExtras', label: 'Books 1',    key: 'series1', group: 'radioHead',   condition: function( series ) { return series.books.length === 1; }},
@@ -111,7 +116,7 @@ export default {
               if (series.books) return series.books.length;
             });
             return max ? max.books.length : 1; 
-          }())], rangeMinDist: 1, rangeSuffix: '', 
+          }())], rangeMinDist: 0, rangeSuffix: '', 
           rangeMin: function() { 
             return 1; 
           }, 
@@ -135,7 +140,7 @@ export default {
           { type: 'divider', key: 'divider1' },
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
-          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort' },
+          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort', tippy: "Sort by series name" },
           { active: false,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
         ],
       };

@@ -1,6 +1,8 @@
 <template>
   <div id="ale-categories" class="box-layout-wrapper" v-if="categories">
     
+    <page-title :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
+    
     <div
     class="single-box"
     :data-category="parent.name"
@@ -59,14 +61,20 @@
 <script>
 import slugify from "@output-mixins/slugify";
 import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import pageTitle from "@output-snippets/page-title.vue";
 
 export default {
   name: "aleCategories",
   mixins: [slugify, makeCoverUrl],
+  components: { 
+    pageTitle,
+  },
   
   data: function() {
     return {
       categories: null,
+      pageTitle: 'Categories',
+      pageSubTitle: null,
     };
   },
   

@@ -1,6 +1,6 @@
 <template>
   <div id="ale-narrators" class="box-layout-wrapper" v-if="collectionSource.length && listReady">
-    <ale-search :collectionSource="collectionSource"></ale-search>
+    <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     
     <lazy
     v-for="(item, index) in $store.getters.collection"
@@ -40,6 +40,8 @@ export default {
     return {
       collectionSource: 'pageCollection',
       listReady: false,
+      pageTitle: 'Narrators',
+      pageSubTitle: null,
     };
   },
 
@@ -64,7 +66,7 @@ export default {
               name: narrator.name,
               url: vue.slugify(narrator.name),
               added: addedCounter,
-              books: [book.asin],
+              books: [ book.title || book.shortTitle ],
             };
             
             narratorsCollection.push( newSeries );
@@ -73,7 +75,7 @@ export default {
           }
           // Series already exists in the collection so just add the book...
           else {
-            narratorsAdded.books.push( book.asin );
+            narratorsAdded.books.push( book.title || book.shortTitle );
             return false;
           }
           
@@ -96,8 +98,8 @@ export default {
       let vue = this;
       const list = {
         scope: [
-          { active: true,  key: 'name' },
-          // { active: true,  key: 'bookNumbers' },
+          { active: true,  key: 'name', tippy: 'Search narrators by name' },
+          { active: true,  key: 'books', tippy: 'Search narrators by book titles' },
         ],
         filter: [
           
@@ -107,7 +109,7 @@ export default {
               if (narrator.books) return narrator.books.length;
             });
             return max ? max.books.length : 1; 
-          }())], rangeMinDist: 1, rangeSuffix: '', 
+          }())], rangeMinDist: 0, rangeSuffix: '', 
           rangeMin: function() { 
             return 1; 
           }, 
@@ -131,7 +133,7 @@ export default {
           { type: 'divider', key: 'divider1' },
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
-          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort' },
+          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort', tippy: "Sort by narrator's name" },
           { active: false,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
         ],
       };

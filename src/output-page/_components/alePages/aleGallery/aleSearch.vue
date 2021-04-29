@@ -1,6 +1,8 @@
 <template>
   <div>
     
+    <page-title :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
+    
     <div
     id="ale-search-wrap"
     ref="searchWrap"
@@ -40,8 +42,9 @@ import Fuse from "fuse.js";
 
 import searchIcons from "./aleSearch/searchIcons";
 import searchOptions from "./aleSearch/searchOptions";
-
 import filterAndSort from "@output-mixins/filter-and-sort.js";
+import pageTitle from "@output-snippets/page-title.vue";
+
 
 export default {
   name: "aleBookdetails",
@@ -49,9 +52,10 @@ export default {
     searchIcons,
     searchOptions,
     viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
+    pageTitle,
   },
   mixins: [filterAndSort],
-  props: ['collectionSource'],
+  props: ['collectionSource', 'pageTitle', 'pageSubTitle'],
   data: function() {
     return {
       enableZoomTimer: null,
