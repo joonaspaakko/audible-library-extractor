@@ -15,6 +15,13 @@
 export default {
   name: "pageTitle",
   props: ['pageTitle', 'pageSubTitle'],
+  mounted: function() {
+    
+    if ( this.pageTitle && (this.$route.meta.title || this.$route.meta.title === '') ) {
+      document.title = 'ALE • ' + (( this.$route.meta.title === this.pageTitle ) ? this.pageTitle : (this.$route.meta.title + ': ' + this.pageTitle));
+    }
+    
+  },
 };
 </script>
 

@@ -130,6 +130,10 @@ export default {
       
       this.$store.commit("prop", { key: "route", value: route });
       
+      if ( route.meta.title ) {
+        document.title = 'ALE • ' + route.meta.title || 'My Audible Library';
+      }
+
       // console.log( route, previousRoute )
       // console.log( this.$routerHistory, this.$router )
       // if ( route.name === previousRoute.name  ) {

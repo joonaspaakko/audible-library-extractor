@@ -85,52 +85,52 @@ import aleLibraryView from "./_components/aleLibraryView";
 
 const routes = [
   { path: "/", redirect: "/library" },
-  { name: "gallery", path: "/library", component: aleGallery,},
+  { name: "gallery", path: "/library", component: aleGallery, meta: { title: 'Library' } },
   {
     path: "/categories",
     component: aleLibraryView,
     children: [
-      { name: "categories", path: "", component: aleCategories, meta: { subPage: true } },
-      { name: "category", path: ":parent/:child?", component: aleGallery, meta: { subPage: true } }
+      { name: "categories", path: "", component: aleCategories, meta: { subPage: true, title: 'Categories' } },
+      { name: "category", path: ":parent/:child?", component: aleGallery, meta: { subPage: true, title: 'Categories' } }
     ],
   },
   {
     path: "/series",
     component: aleLibraryView,
     children: [
-      { name: "all-series", path: "", component: aleSeries, meta: { subPage: true } },
-      { name: "series", path: ":series", component: aleGallery, meta: { subPage: true } }
+      { name: "all-series", path: "", component: aleSeries, meta: { subPage: true, title: 'Series' } },
+      { name: "series", path: ":series", component: aleGallery, meta: { subPage: true, title: 'Series' } }
     ],
   },
   {
     path: "/authors",
     component: aleLibraryView,
     children: [
-      { name: "authors", path: "", component: aleAuthors, meta: { subPage: true } },
-      { name: "author", path: ":author", component: aleGallery, meta: { subPage: true } }
+      { name: "authors", path: "", component: aleAuthors, meta: { subPage: true, title: 'Authors' } },
+      { name: "author", path: ":author", component: aleGallery, meta: { subPage: true, title: 'Authors' } }
     ],
   },
   {
     path: "/narrators",
     component: aleLibraryView,
     children: [
-      { name: "narrators", path: "", component: aleNarrators, meta: { subPage: true } },
-      { name: "narrator", path: ":narrator", component: aleGallery, meta: { subPage: true } }
+      { name: "narrators", path: "", component: aleNarrators, meta: { subPage: true, title: 'Narrators' } },
+      { name: "narrator", path: ":narrator", component: aleGallery, meta: { subPage: true, title: 'Narrators' } }
     ],
   },
   {
     path: "/collections",
     component: aleLibraryView,
     children: [
-      { name: "collections", path: "", component: aleCollections },
-      { name: "collection", path: ":collection", component: aleGallery }
+      { name: "collections", path: "", component: aleCollections, meta: { title: 'Collections' } },
+      { name: "collection", path: ":collection", component: aleGallery, meta: { title: 'Collections' } }
     ]
   },
   {
     path: "/wishlist",
     component: aleLibraryView,
     children: [
-      { name: "wishlist", path: "", component: aleGallery },
+      { name: "wishlist", path: "", component: aleGallery, meta: { title: 'Wishlist' } },
     ]
   },
 ];
