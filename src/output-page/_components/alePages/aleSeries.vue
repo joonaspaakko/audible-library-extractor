@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-series" class="box-layout-wrapper" v-if="collectionSource.length && listReady">
+  <div id="ale-series" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
     <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     <lazy
     v-for="(item, index) in $store.getters.collection"
@@ -34,7 +34,6 @@ export default {
   },
   data: function() {
     return {
-      series: null,
       collectionSource: 'pageCollection',
       pageTitle: 'Series',
       pageSubTitle: null,
@@ -42,6 +41,13 @@ export default {
     };
   },
 
+  beforeCreate: function() {
+    
+    this.$store.commit("prop", { key: "pageCollection", value: [] });
+    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
+    
+  },
+  
   created: function() {
     
     const vue = this;

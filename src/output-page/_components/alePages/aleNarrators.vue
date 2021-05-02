@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-narrators" class="box-layout-wrapper" v-if="collectionSource.length && listReady">
+  <div id="ale-narrators" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
     <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     
     <lazy
@@ -44,7 +44,14 @@ export default {
       pageSubTitle: null,
     };
   },
-
+  
+  beforeCreate: function() {
+    
+    this.$store.commit("prop", { key: "pageCollection", value: [] });
+    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
+    
+  },
+  
   created: function() {
     
     const vue = this;

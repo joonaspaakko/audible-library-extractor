@@ -78,6 +78,13 @@ export default {
     };
   },
   
+  beforeCreate: function() {
+    
+    this.$store.commit("prop", { key: "pageCollection", value: [] });
+    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
+    
+  },
+  
   created: function() {
 
     const vue = this;
