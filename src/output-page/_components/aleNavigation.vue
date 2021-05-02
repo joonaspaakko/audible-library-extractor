@@ -4,7 +4,7 @@
       
       <div class="inner-wrap-wrapper">
         
-        <div class="text-button gallery-page parent-item" v-if="$store.state.library.books">
+        <div class="text-button gallery-page" v-if="$store.state.library.books">
           <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
               <font-awesome fas icon="book" />
@@ -16,49 +16,49 @@
         </div>
         
         <div class="text-button parent-item" v-if="$store.state.library.books">
-            <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
-              <font-awesome fas icon="chevron-down" />
-              <span>Sub pages</span>
-              <div class="sub-menu">
-                
-                <div class="text-button" v-if="$store.state.library.books">
-                  <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-                    <div class="icon">
-                      <font-awesome fas icon="indent" />
-                      <span>Categories</span>
-                    </div>
-                  </router-link>
-                </div>
-                
-                <div class="text-button" v-if="$store.state.library.books">
-                  <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
-                    <div class="icon">
-                      <font-awesome fas icon="list-ol" />
-                      <span>Series</span>
-                    </div>
-                  </router-link>
-                </div>
-                
-                <div class="text-button" v-if="$store.state.library.books">
-                  <router-link :to="{ name: 'authors' }" @click.native="linkClicked('authors')">
-                    <div class="icon">
-                      <font-awesome fas icon="users" />
-                      <span>Authors</span>
-                    </div>
-                  </router-link>
-                </div>
-                
-                <div class="text-button" v-if="$store.state.library.books">
-                  <router-link :to="{ name: 'narrators' }" @click.native="linkClicked('narrators')">
-                    <div class="icon">
-                      <font-awesome fas icon="user-friends" />
-                      <span>Narrators</span>
-                    </div>
-                  </router-link>
-                </div>
-                
+          <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
+            <font-awesome fas icon="chevron-down" />
+            <span>Sub pages</span>
+            <div class="sub-menu">
+              
+              <div class="text-button" v-if="$store.state.library.books">
+                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
+                  <div class="icon">
+                    <font-awesome fas icon="indent" />
+                    <span>Categories</span>
+                  </div>
+                </router-link>
               </div>
+              
+              <div class="text-button" v-if="$store.state.library.books">
+                <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
+                  <div class="icon">
+                    <font-awesome fas icon="list-ol" />
+                    <span>Series</span>
+                  </div>
+                </router-link>
+              </div>
+              
+              <div class="text-button" v-if="$store.state.library.books">
+                <router-link :to="{ name: 'authors' }" @click.native="linkClicked('authors')">
+                  <div class="icon">
+                    <font-awesome fas icon="users" />
+                    <span>Authors</span>
+                  </div>
+                </router-link>
+              </div>
+              
+              <div class="text-button" v-if="$store.state.library.books">
+                <router-link :to="{ name: 'narrators' }" @click.native="linkClicked('narrators')">
+                  <div class="icon">
+                    <font-awesome fas icon="user-friends" />
+                    <span>Narrators</span>
+                  </div>
+                </router-link>
+              </div>
+              
             </div>
+          </div>
         </div>
 
         <!-- <div class="text-button categories-page" v-if="$store.state.library.books">
@@ -106,10 +106,9 @@
         
       </div>
       
-      <div>
+      <div v-if="mobileThreshold" class="burger-menu">
         <font-awesome 
         class="brgr-btn" 
-        v-if="mobileThreshold" 
         :icon="['fas', 'bars']" 
         @click="toggleMobileMenu()"
         />
@@ -348,7 +347,6 @@ export default {
     }
   }
   box-shadow: 2px 0px 13px rgba(#000, 0.5);
-  padding: 5px 0;
   line-height: 0px;
 
   &,
@@ -360,22 +358,30 @@ export default {
   }
   
   .inner-wrap,
+  .inner-wrap-wrapper,
+  .inner-wrap-wrapper > div {
+    display: flex;
+    flex-direction: row;
+    align-items: stretch;
+    justify-items: center;
+    align-content: stretch;
+    justify-content: center;
+  }
+  
   .inner-wrap-wrapper {
+    margin-left: 10px;
+    &:first-child {
+      margin-left: 0px;
+    }
+  }
+  
+  .inner-wrap-wrapper > div > * {
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-items: center;
     align-content: center;
     justify-content: center;
-  }
-  
-  .inner-wrap-wrapper > div,
-  .inner-wrap > div {
-    display: inline-block;
-    margin-left: 10px;
-    &:first-child {
-      margin-left: 0px;
-    }
   }
   
   &.mobile-nav {
@@ -421,6 +427,7 @@ export default {
   }
   
   div.special-icons-wrapper {
+    margin: 5px 0;
     display: flex;
     flex-direction: row;
     padding: 7px 2px;
@@ -470,6 +477,15 @@ export default {
     }
   }
   
+  .burger-menu {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-items: center;
+    align-content: center;
+    justify-content: center;
+  }
+  
   .close-mobile-menu,
   .brgr-btn {
     cursor: pointer;
@@ -496,10 +512,10 @@ export default {
       cursor: default;
       display: none;
       position: absolute;
-      top: 13px;
+      top: 40px;
       left: 0;
       z-index: 10;
-      padding: 10px 0;
+      padding-bottom: 6px;
       border-radius: 0 0 3px 3px;
       @include themify($themes) {
         color: themed( frontColor );
@@ -533,6 +549,7 @@ export default {
       position: static;
       padding: 0;
       background: transparent !important;
+      box-shadow: none !important;
       a { text-align: center !important; }
     }
   }
