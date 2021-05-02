@@ -1,72 +1,47 @@
 <template>
-  <div id="ale-categories" class="box-layout-wrapper" v-if="categories">
+  <div id="ale-authors" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
+    <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     
-    <div
+    <lazy
+    v-for="(item, index) in $store.getters.collection"
     class="single-box"
-    :data-category="parent.name"
-    v-for="(parent, index) in categories"
-    :key="parent.name"
-    v-if="parent && parent.name"
+    :data-name="item.name"
+    v-if="item.name"
+    :key="'authors:'+item.url"
     >
-    
-      <h2>
-        <router-link v-if="parent.slug" :to="{ name: 'category', params: { parent: parent.slug } }">
-          {{ parent.name }}
-        </router-link>
-        <span v-else>{{ parent.name }}</span>
-      </h2>
-
-      <router-link v-if="parent.slug" class="books-total" :to="{ name: 'category', params: { parent: parent.slug } }">
-        <div v-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
+      <router-link :to="{ name: 'author', params: { author: item.url } }">
+        
+        <h2>{{ item.name }}</h2>
+        
+        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books with this author." v-tippy="{ placement: 'right' }">
+          {{ item.books.length }}
+        </div>
+      
       </router-link>
-      <div v-else-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
-      
-      <div class="child-categories" v-if="parent.sub">
-        <div v-for="(child, index) in parent.sub" :key="child.name" v-if="child && child.name">
-          <router-link v-if="(parent && parent.slug) && (child && child.slug)" :to="{ name: 'category', params: { parent: parent.slug, child: child.slug } }">
-            {{ child.name }}
-          </router-link>
-          <span v-else></span>
-          <span v-if="child.books" class="number-of-books">({{ child.books.length }})</span>
-        </div>
-      </div>
-      
-      <div class="sample-covers">
-        <div
-        class="sample-cover"
-        v-if="parent && parent.books"
-        v-for="(book, index) in getRandomBooks(parent.books, 5)"
-        :key="book.asin"
-        >
-          <router-link :to="{ 
-            name: 'category', 
-            params: { 
-              parent: book.categories[0] ? slugify(book.categories[0].name) : null, 
-              child:  book.categories[1] ? slugify(book.categories[1].name) : null 
-            }, 
-            query: { book: book.asin } 
-          }">
-            <img :src="makeCoverUrl(book.cover)" alt="" />
-          </router-link>
-        </div>
-      </div>
-      
-    </div> <!-- .single-box -->
+    </lazy>
     
   </div>
 </template>
 
 <script>
+
+import lazy from "@output-snippets/lazy.vue";
+import aleSearch from "./aleGallery/aleSearch";
 import slugify from "@output-mixins/slugify";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
 
 export default {
   name: "aleAuthors",
-  mixins: [slugify, makeCoverUrl],
-  
+  components: {
+    aleSearch,
+    lazy,
+  },
+  mixins: [slugify],
   data: function() {
     return {
-      categories: null,
+      collectionSource: 'pageCollection',
+      listReady: false,
+      pageTitle: 'Authors',
+      pageSubTitle: null,
     };
   },
   
@@ -78,78 +53,137 @@ export default {
   },
   
   created: function() {
-
+    
     const vue = this;
-    let categories = {};
-    // Make category arrays
-    categories.parent = [];
-    _.each( this.$store.state.library.books, function(book, index) {
+    let authorsCollection = [];
+    let addedCounter = 1;
+    
+    // Processed in reverse order so that the "added" order is based on the first book added to the library of each author.
+    _.eachRight(this.$store.state.library.books, function(book) {
       
-      if (book.categories) {
-        // Parent categories...
-        const parentCategory = book.categories[0].name;
-        // If parent category object doesn't exist, make it
-        let parentObj = _.find(categories.parent, ["name", parentCategory]);
-        if (!parentObj) {
-          parentObj = categories.parent.push({
-            name: parentCategory,
-            slug: vue.slugify(parentCategory),
-            books: []
-          });
-        }
-        parentObj = _.find(categories.parent, ["name", parentCategory]);
-        // Push books to array
-        parentObj.books.push(book);
-
-        // Child categories...
-        if (book.categories[1]) {
-          if (!parentObj.sub) parentObj.sub = [];
-          const childCategory = book.categories[1].name;
-          // If child category object doesn't exist, make it
-          let childObj = _.find(parentObj.sub, ["name", childCategory]);
-          if (!childObj) {
-            childObj = parentObj.sub.push({
-              name: childCategory,
-              slug: vue.slugify(childCategory),
-              books: []
-            });
+      if ( book.authors ) {
+        
+        _.each(book.authors, function(author) {
+          
+          let authorsAdded = _.find(authorsCollection, { url: author.url });
+          
+          // Author not in the collection so add it with the book...
+          if ( !authorsAdded ) {
+            const newSeries = {
+              name: author.name,
+              url: author.url,
+              added: addedCounter,
+              books: [ book.title || book.shortTitle ],
+            };
+            
+            authorsCollection.push( newSeries );
+            ++addedCounter;
+            
           }
-          childObj = _.find(parentObj.sub, ["name", childCategory]);
-          // Push books to array
-          childObj.books.push(book);
-        }
+          // Series already exists in the collection so just add the book...
+          else {
+            authorsAdded.books.push( book.title || book.shortTitle );
+            return false;
+          }
+          
+        });
       }
-    });
-
-    // Sort all category arrays
-    categories.parent = _.orderBy(categories.parent, "name", "asc");
-    _.each(categories.parent, function(category, index) {
-      category.sub = _.orderBy(category.sub, "name", "asc");
+      
     });
     
-    this.categories = categories.parent;
-    this.$store.commit("prop", { key: "pageCollection", value: [] });
-    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
+    _.reverse( authorsCollection );
+    
+    this.$store.commit("prop", { key: "pageCollection", value: authorsCollection });
+    this.updateListRenderingOptions();
+    
+    this.listReady = true;
     
   },
   
   methods: {
-    
-    getRandomBooks: function(books, number) {
-      let booksWithCategories = _.filter(books, function( book ) { return (book.categories && book.categories.length > 1) && book.cover });
-      return _.sampleSize(booksWithCategories, number);
-    },
-    
-  }
+    updateListRenderingOptions: function() {
+      let vue = this;
+      const list = {
+        scope: [
+          { active: true,  key: 'name', tippy: 'Search authors by name' },
+          { active: true,  key: 'books', tippy: 'Search authors by book titles' },
+        ],
+        filter: [
+          
+          { active: true, type: 'filterExtras', label: 'Number of books', key: 'books', range: [1, (function() {
+            let authors = _.get(vue.$store.state, vue.collectionSource);
+            let max = _.maxBy( authors, function( author ){ 
+              if (author.books) return author.books.length;
+            });
+            return max ? max.books.length : 1; 
+          }())], rangeMinDist: 0, rangeSuffix: '', 
+          rangeMin: function() { 
+            return 1; 
+          }, 
+          rangeMax: function() { 
+            let authors = _.get(vue.$store.state, vue.collectionSource);
+            let max = _.maxBy( authors, function( author ){ 
+              if (author.books) return author.books.length;
+            });
+            return max ? max.books.length : 1; 
+          }, 
+          condition: function( author ) { 
+            if ( author.books ) {
+              let min = this.range[0];
+              let max = this.range[1];
+              return author.books.length >= min && author.books.length <= max; 
+            } 
+          } },
+        ],
+        sort: [
+          { active: false,                 key: 'randomize', label: 'Randomize',       type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
+          { type: 'divider', key: 'divider1' },
+          // active: true = arrow down / descending
+          { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
+          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort', tippy: "Sort by author's name" },
+          { active: false,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
+        ],
+      };
+       
+      this.$setListRenderingOpts( list );
+      
+    }
+  },
 };
 </script>
 
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
 @import "~@/box-layout.scss";
-
-.box-layout-wrapper .single-box .sample-covers img { 
-  width: 100%; 
+.single-box {
+  min-height: 35px !important;
+  display: flex !important;
+  align-content: center !important;
+  align-items: center !important;
+  padding: 0px !important;
+  margin-top: 5px !important; 
+  > a {
+    padding: 7px 14px !important;
+    display: inline-block !important; 
+    width: 100%;
+    box-sizing: border-box;
+  }
+  h2 { 
+    display: inline-block;
+    width: 100%;
+    margin-bottom: 0 !important; 
+    font-size: 1.20em !important;
+    line-height: 1.30em !important;
+  }
+  .books-total {
+    width: 23px !important;
+    height: 23px !important;
+    line-height: 23px !important;
+    font-size: .9em !important;
+    top: unset !important;
+    border-width: 2px !important;
+    top: 4px !important;
+    right: 4px !important;
+  }
 }
-
 </style>
