@@ -35,16 +35,15 @@
         <div
         :data-series-name="series.name" class="numbers-list-item" :class="numbersClass(seriesBook)"
         v-for="(seriesBook, index) in series.books" :key="seriesBook.asin"
-        @click.prevent="goToBookInSeries( series, seriesBook )"
         >
+          <open-in-app :size="14" :book="seriesBook" :muted="true" />
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
-          
-          <a href="#">
+          <div class="clickety-click" @click.prevent="goToBookInSeries( series, seriesBook )">
             <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
-          </a>
+          </div>
         </div>
         
       </div>
@@ -54,9 +53,14 @@
 </template>
 
 <script>
+import openInApp from "@output-comps/snippets/openInApp";
+
 export default {
   name: "booksInSeries",
   props: ["book"],
+  components: {
+    openInApp,
+  },
   data: function() {
     return {
       inSeries: false,
@@ -215,23 +219,42 @@ export default {
 
 .my-books-in-series {
   .numbers-list-item {
-    cursor: pointer;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
-    display: block;
+    display: flex;
+    flex-direction: row;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     @include themify($themes) {
       border-bottom: 1px dotted rgba(themed(frontColor), 0.2);
     }
+    
+    .clickety-click {
+        cursor: pointer;
+        display: flex;
+        flex-direction: row;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      .numbers {
+        padding-right: 4px;
+      }
+      .title {
+        display: inline !important;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+    }
 
     .icon {
-      margin-right: 4px;
+      outline: none;
+      padding-right: 8px;
     }
 
     &.finished {
@@ -350,7 +373,7 @@ div.hidden-section {
 
 @media ( max-width: 630px ) {
   .my-books-in-series .numbers-list-item {
-    padding: 4px 0;
+    padding: 5px 0;
   }
 }
 

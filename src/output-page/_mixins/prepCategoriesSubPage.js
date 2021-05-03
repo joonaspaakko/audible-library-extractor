@@ -26,7 +26,7 @@ export default {
           const parentCategoryName = categoryBooks[0].categories[0] ? categoryBooks[0].categories[0].name : null;
           const childCategoryName = categoryBooks[0].categories[1] ? categoryBooks[0].categories[1].name : null;
           if ( parentCategoryName ) this.pageTitle = parentCategoryName;
-          if ( parentCategoryName ) this.pageSubTitle = childCategoryName;
+          if ( childCategoryName && category.child ) this.pageSubTitle = childCategoryName;
         }
         
         // Init arrays

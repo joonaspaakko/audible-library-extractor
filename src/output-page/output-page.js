@@ -85,13 +85,13 @@ import aleLibraryView from "./_components/aleLibraryView";
 
 const routes = [
   { path: "/", redirect: "/library" },
-  { name: "gallery", path: "/library", component: aleGallery, meta: { title: 'Library' } },
+  { name: "gallery", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library' } },
   {
     path: "/categories",
     component: aleLibraryView,
     children: [
       { name: "categories", path: "", component: aleCategories, meta: { subPage: true, title: 'Categories' } },
-      { name: "category", path: ":parent/:child?", component: aleGallery, meta: { subPage: true, title: 'Categories' } }
+      { name: "category", path: ":parent/:child?", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Categories' } }
     ],
   },
   {
@@ -99,7 +99,7 @@ const routes = [
     component: aleLibraryView,
     children: [
       { name: "all-series", path: "", component: aleSeries, meta: { subPage: true, title: 'Series' } },
-      { name: "series", path: ":series", component: aleGallery, meta: { subPage: true, title: 'Series' } }
+      { name: "series", path: ":series", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Series' } }
     ],
   },
   {
@@ -107,7 +107,7 @@ const routes = [
     component: aleLibraryView,
     children: [
       { name: "authors", path: "", component: aleAuthors, meta: { subPage: true, title: 'Authors' } },
-      { name: "author", path: ":author", component: aleGallery, meta: { subPage: true, title: 'Authors' } }
+      { name: "author", path: ":author", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Authors' } }
     ],
   },
   {
@@ -115,7 +115,7 @@ const routes = [
     component: aleLibraryView,
     children: [
       { name: "narrators", path: "", component: aleNarrators, meta: { subPage: true, title: 'Narrators' } },
-      { name: "narrator", path: ":narrator", component: aleGallery, meta: { subPage: true, title: 'Narrators' } }
+      { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
     ],
   },
   {
@@ -123,14 +123,14 @@ const routes = [
     component: aleLibraryView,
     children: [
       { name: "collections", path: "", component: aleCollections, meta: { title: 'Collections' } },
-      { name: "collection", path: ":collection", component: aleGallery, meta: { title: 'Collections' } }
+      { name: "collection", path: ":collection", component: aleGallery, meta: { gallery: true, title: 'Collections' } }
     ]
   },
   {
     path: "/wishlist",
     component: aleLibraryView,
     children: [
-      { name: "wishlist", path: "", component: aleGallery, meta: { title: 'Wishlist' } },
+      { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
     ]
   },
 ];

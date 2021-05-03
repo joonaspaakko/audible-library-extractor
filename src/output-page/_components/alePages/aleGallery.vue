@@ -222,7 +222,7 @@ export default {
         this.$store.commit('chunkCollectionAdd');
       }
       
-    }, 600, { leading: true, trailing: true }),
+    }, 500, { leading: false, trailing: true }),
     
   },
   

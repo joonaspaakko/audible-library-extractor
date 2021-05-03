@@ -9,23 +9,24 @@ export default {
     makeUrl: function(type, input) {
       const base = this.$store.state.urlOrigin;
       let newUrl = "";
-
+      
       switch (type) {
         case "store":
         case "book":
-          newUrl = base + "/pd/" + input;
+          newUrl = base + "/pd/" + encodeURIComponent(input);
           break;
         case "author":
           if (input.url) newUrl = base + "/author/" + input.url;
           break;
         case "narrator":
-          if (input.name) newUrl = base + "/search?searchNarrator=" + decodeURIComponent(input.name);
+          if (input.name) newUrl = base + "/search?searchNarrator=" + encodeURIComponent(input.name);
           break;
         case "series":
+          console.log( type, input )
           if (input.asin) newUrl = base + "/series/" + input.asin;
           break;
         case "publisher":
-          if (input.name) newUrl = base + "/search?searchProvider=" + decodeURIComponent(input.name);
+          if (input.name) newUrl = base + "/search?searchProvider=" + encodeURIComponent(input.name);
           break;
         case "categories":
           if (input.name) newUrl = base + "/cat/" + input.url;

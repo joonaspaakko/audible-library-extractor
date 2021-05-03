@@ -34,6 +34,7 @@ export default {
       
       const newViewMode = this.viewModes[ viewModeIndex ];
       this.$store.commit('stickyProp', { key: 'viewMode', value: newViewMode });
+      this.$updateQuery({ query: 'y', value: null });
       this.$updateQuery({ query: 'view', value: newViewMode });
       
     },

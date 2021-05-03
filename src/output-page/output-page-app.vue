@@ -70,10 +70,13 @@ export default {
 
   methods: {
     
-    refreshPage: function() {
+    refreshPage: function( callback ) {
       this.$store.commit('prop', { key: 'viewRefresh', value: 'refresh' });
       this.$nextTick(function() {
         this.$store.commit('prop', { key: 'viewRefresh', value: '' });
+        this.$nextTick(function() {
+          callback( this );
+        });
       });
     },
     
@@ -244,11 +247,13 @@ body {
 //   }
 // }
 
+.tippy-popper .tippy-content { padding: 7px; }
+
 .theme-dark .tippy-popper {
   .tippy-tooltip {
-    background: lighten($darkBackColor, 10);
-    border: 1px solid lighten($darkBackColor, 20);
-    box-shadow: 0 3px 15px rgba(#000, 0.95) !important;
+    background: lighten($darkBackColor, 15);
+    border: 1px solid lighten($darkBackColor, 34);
+    box-shadow: 2px 2px 10px rgba(#000, 0.95) !important;
     .tippy-content {
       color: $darkFrontColor;
       a {
@@ -259,23 +264,27 @@ body {
   }
 
   &[x-placement^="top"] .tippy-arrow {
-    border-top-color: lighten($darkBackColor, 10);
+    border-top-color: lighten($darkBackColor, 34);
+    bottom: -8px;
   }
   &[x-placement^="right"] .tippy-arrow {
-    border-right-color: lighten($darkBackColor, 10);
+    border-right-color: lighten($darkBackColor, 34);
+    left: -8px;
   }
   &[x-placement^="bottom"] .tippy-arrow {
-    border-bottom-color: lighten($darkBackColor, 10);
+    border-bottom-color: lighten($darkBackColor, 34);
+    top: -8px;
   }
   &[x-placement^="left"] .tippy-arrow {
-    border-left-color: lighten($darkBackColor, 10);
+    border-left-color: lighten($darkBackColor, 34);
+    right: -8px;
   }
 }
 .theme-light .tippy-popper {
   .tippy-tooltip {
     background: #fff;
     border: 1px solid darken($lightBackColor, 10);
-    box-shadow: 0 3px 10px rgba(#000, 0.35) !important;
+    box-shadow: 2px 2px 10px rgba(#000, 0.35) !important;
     .tippy-content {
       color: $lightFrontColor;
       a {

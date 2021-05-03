@@ -7,7 +7,7 @@
     <sampleButton    :size="size" :book="book" />
     <!-- <sampleButton    :size="size" :book="book" :index="rowIndex" /> -->
     <good-reads-link :size="size" :book="book" :icon="true" />
-    <open-in-app     :size="size" :book="book" :icon="true" />
+    <open-in-app     :size="size" :book="book" />
     <open-web-player :size="size" :book="book" :icon="true" />
   </div>
 </template>

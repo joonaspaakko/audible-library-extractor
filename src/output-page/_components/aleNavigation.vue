@@ -313,9 +313,11 @@ export default {
     },
     
     startSearching: function() {
-      
-      this.$root.$emit("ios-auto-zoom-disable");
-      this.$root.$emit('search-focus');
+      this.$updateQuery({ query: 'y', value: null });
+      this.$root.$emit('refresh-page', function( vue ) {
+        vue.$root.$emit("ios-auto-zoom-disable");
+        vue.$root.$emit('search-focus');
+      });
     },
     
   }

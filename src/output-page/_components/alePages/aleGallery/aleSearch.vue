@@ -30,7 +30,7 @@
         ></search-options>
       </div> <!-- #ale-search -->
       
-      <view-mode-switcher v-if="$route.name !== 'all-series' && $store.state.windowWidth >= 450" />
+      <view-mode-switcher v-if="$route.meta.gallery && $store.state.windowWidth >= 450" />
       
     </div> <!-- #ale-search-wrap -->
     
@@ -248,6 +248,7 @@ export default {
       scroll({ top: 0 });
       this.highlightSearch = true;
       setTimeout(function() { vue.highlightSearch = false; }, 1200);
+      console.log( this.$refs.searchInput )
       this.$refs.searchInput.focus();
       
     },
