@@ -136,76 +136,7 @@
         
         <view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted && mobileThreshold" />
         
-        <div class="text-button" v-if="$store.state.searchMounted" v-tippy="{ interactive: true, allowHTML: true, delay: 700 }" style="outline: none;" content="
-          <strong>Click to start searching.</strong>
-          <br><br>
-          
-          <h4>Advanced search operators</h4>
-          
-          
-          <p>White space acts as an <strong>AND</strong> operator, while a single pipe <code>|</code> character acts as an <strong>OR</strong> operator. To escape white space, use double quote ex. <code>=“scheme language”</code> for exact match.</p>          
-          <style>
-            #advanced-search-table {
-              text-align: left; 
-              padding: 0px 30px;
-            }
-            #advanced-search-table td {
-              padding: 2px 7px 3px;
-              border-bottom: 1px solid rgba(127,127,127, .2);
-            }
-          </style>
-          <table id='advanced-search-table'>
-          <thead>
-          <tr>
-          <th>Token</th>
-          <th>Match type</th>
-          <th>Description</th>
-          </tr>
-          </thead>
-          <tbody>
-          <tr>
-          <td><code>jscript</code></td>
-          <td>fuzzy-match</td>
-          <td>Items that fuzzy match jscript</td>
-          </tr>
-          <tr>
-          <td><code>=scheme</code></td>
-          <td>exact-match</td>
-          <td>Items that are scheme</td>
-          </tr>
-          <tr>
-          <td><code>&#39;python</code></td>
-          <td>include-match</td>
-          <td>Items that include python</td>
-          </tr>
-          <tr>
-          <td><code>!ruby</code></td>
-          <td>inverse-exact-match</td>
-          <td>Items that do not include ruby</td>
-          </tr>
-          <tr>
-          <td><code>^java</code></td>
-          <td>prefix-exact-match</td>
-          <td>Items that start with java</td>
-          </tr>
-          <tr>
-          <td><code>!^earlang</code></td>
-          <td>inverse-prefix-exact-match</td>
-          <td>Items that do not start with earlang</td>
-          </tr>
-          <tr>
-          <td><code>.js$</code></td>
-          <td>suffix-exact-match</td>
-          <td>Items that end with .js</td>
-          </tr>
-          <tr>
-          <td><code>!.go$</code></td>
-          <td>inverse-suffix-exact-match</td>
-          <td>Items that do not end with .go</td>
-          </tr>
-          </tbody>
-          </table>
-        ">
+        <div class="text-button" v-if="$store.state.searchMounted" v-tippy="{ interactive: true, allowHTML: true }" style="outline: none;" content='Click to scroll up and search. <br>Read about advanced search operators <a target="_blank" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/advanced-search">here</a>.'>
           <div class="icon" @click="startSearching">
             <font-awesome :icon="['fas', 'search']" />
           </div>

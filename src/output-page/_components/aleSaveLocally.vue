@@ -3,7 +3,7 @@
     id="ale-save-locally"
     class="icon"
     @click="saveButtonClicked"
-    content="<strong>Save the gallery locally,</strong> so you can share it with others. <br>Free Github hosting: <a target='_blank' href='https://github.com/joonaspaakko/audible-library-extractor#save-gallery-locally'>instructions</a>"
+    content="<strong>Save a stand-alone gallery</strong>, so you can share it with others. <br>Free Github hosting <a target='_blank' href='https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github'>instructions</a>."
     v-tippy="{ interactive: true, allowHTML: true }"
     :disabled="bundling"
   >

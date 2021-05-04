@@ -106,11 +106,11 @@ export default {
           var numberRow = !titleRow;
           if (titleRow) {
             
-            const url = object.href.split("?")[0].replace(window.location.origin, "");
+            let url = new Url( object.href );
             series.push({
               name: string,
               // url: url, // Url formed using the asin instead to minimize data size
-              asin: reverse ? url.substring(url.lastIndexOf("asin=") + 1) : url.substring(url.lastIndexOf("/") + 1),
+              asin: reverse ? url.query.asin : url.path.substring(url.path.lastIndexOf("/") + 1),
             });
             
           } else if (numberRow) {
