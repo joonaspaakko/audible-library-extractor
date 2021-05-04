@@ -5,6 +5,9 @@
       <div class="search-opts-arrow" :style="css.arrow"></div>
       
       <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="css.filter">
+        <li class="reset-filters" @click="resetFilters">
+          <font-awesome fas icon="redo-alt" />
+        </li>
         <li class="total">{{ $store.getters.collection.length }} / {{ total }}</li>
         <li class="search-option" 
         v-for="(item, index) in optionsList" :key="item.key"
@@ -91,6 +94,16 @@ export default {
   },
 
   methods: {
+    
+    resetFilters: function() {
+      
+      this.$updateQuery({ query: 'filter', value: null });
+      this.$updateQuery({ query: 'filterExtras', value: null });
+      this.$store.commit("resetFilters");
+      this.$root.$emit("start-filter");
+      
+    },
+    
     outsideClick: function(e) {
       const vue = this;
       if (vue.listName) {
@@ -103,7 +116,15 @@ export default {
     },
     
     repositionSearchOptions: _.debounce( function( value ) {
+      
       this.$nextTick(function() {
+        
+        if ( this.listName === 'filter' ) {
+          let topNav = document.querySelector('#ale-navigation.regular');
+          this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
+          console.log( this.css.filter.top )
+        }
+        
         const searchOpts = {};
         searchOpts.el = this.$refs.options;
         searchOpts.width = searchOpts.el.offsetWidth;
@@ -133,7 +154,7 @@ export default {
         this.css.options.right = searchOpts.position + fitToWindow + "px";
         this.css.arrow.left = searchOpts.width / 2 - 10 + fitToWindow + "px";
       });
-    }, 300, { leading: true, trailing: false }),
+    }, 150, { leading: true, trailing: false }),
   }
 };
 </script>
@@ -234,6 +255,20 @@ export default {
       background: lighten(themed(backColor), 12);
       border: 1px solid rgba(themed(frontColor), 0.12);
       
+    }
+  }
+  
+  .reset-filters {
+    cursor: pointer;
+    position: absolute;
+    z-index: 25;
+    top: 10px;
+    right: 10px;
+    padding: 4px;
+    font-size: 13px;
+    display: inline-block;
+    @include themify($themes) {
+      color: rgba( lighten(themed(frontColor), 10), .5);
     }
   }
 

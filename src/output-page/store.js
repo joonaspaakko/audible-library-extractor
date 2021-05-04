@@ -1,3 +1,4 @@
+import { _ } from "core-js";
 import Vue from "vue";
 import Vuex from "vuex";
 Vue.use(Vuex);
@@ -110,6 +111,15 @@ export default new Vuex.Store({
         currentSorter.current = false;
         currentItem.current = true;
       }
+            
+    },
+    
+    
+    resetFilters: function(state, o) {
+      
+      _.each( state.listRenderingOpts.filter, function( filter ) {
+        filter.active = (filter.type === 'filter');
+      });
             
     },
     

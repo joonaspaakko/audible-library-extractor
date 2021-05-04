@@ -68,7 +68,7 @@
         :min-range="item.rangeMinDist || 0" 
         :enable-cross="false" 
         @change="rangeChanged" 
-        :tooltip-formatter="'{value}'+item.rangeSuffix" 
+        :tooltip-formatter="tooltipFormatter" 
         tooltip-placement="top" 
         tooltip="focus"
         ></vue-slider>
@@ -202,6 +202,31 @@ export default {
   },
   
   methods: {
+    
+    tooltipFormatter: function( val ) {
+      if ( this.item.key === 'myrating' ) {
+        switch ( val ) {
+          case 1:
+            return val+' - Not for me';
+            break;
+          case 2:
+            return val+' - It’s okay';
+            break;
+          case 3:
+            return val+' - Pretty good';
+            break;
+          case 4:
+            return val+' - It’s great';
+            break;
+          case 5:
+            return val+' - I love it';
+            break;
+        }
+      }
+      else {
+        return val+this.item.rangeSuffix;
+      }
+    },
     
     rangeChanged: function( value ) { 
       

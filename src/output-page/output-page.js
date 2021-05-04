@@ -208,6 +208,7 @@ import {
   faUnlockAlt,
   faUsers,
   faUserFriends,
+  faRedoAlt,
 } from "@fortawesome/free-solid-svg-icons";
 
 library.add(
@@ -258,6 +259,7 @@ library.add(
   faUnlockAlt,
   faUsers,
   faUserFriends,
+  faRedoAlt,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
