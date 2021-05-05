@@ -122,7 +122,6 @@ export default {
         if ( this.listName === 'filter' ) {
           let topNav = document.querySelector('#ale-navigation.regular');
           this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
-          console.log( this.css.filter.top )
         }
         
         const searchOpts = {};

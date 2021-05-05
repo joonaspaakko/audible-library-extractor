@@ -77,85 +77,131 @@ import {
 // VUE ROUTER
 import VueRouter from "vue-router";
 Vue.use(VueRouter);
-
-const aleGallery = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
-const aleCategories = () => import( /* webpackChunkName: "categories" */ "./_components/alePages/aleCategories");
-const aleAuthors = () => import( /* webpackChunkName: "authors" */ "./_components/alePages/aleAuthors");
-const aleNarrators = () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/aleNarrators");
-const aleCollections = () => import( /* webpackChunkName: "collections" */ "./_components/alePages/aleCollections");
-const aleSeries = () => import( /* webpackChunkName: "series" */ "./_components/alePages/aleSeries");
 import aleLibraryView from "./_components/aleLibraryView";
-
-const routes = [
-  { path: "/", redirect: "/library" },
-  { name: "gallery", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library' } },
-  {
-    path: "/categories",
-    component: aleLibraryView,
-    children: [
-      { name: "categories", path: "", component: aleCategories, meta: { subPage: true, title: 'Categories' } },
-      { name: "category", path: ":parent/:child?", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Categories' } }
-    ],
-  },
-  {
-    path: "/series",
-    component: aleLibraryView,
-    children: [
-      { name: "all-series", path: "", component: aleSeries, meta: { subPage: true, title: 'Series' } },
-      { name: "series", path: ":series", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Series' } }
-    ],
-  },
-  {
-    path: "/authors",
-    component: aleLibraryView,
-    children: [
-      { name: "authors", path: "", component: aleAuthors, meta: { subPage: true, title: 'Authors' } },
-      { name: "author", path: ":author", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Authors' } }
-    ],
-  },
-  {
-    path: "/narrators",
-    component: aleLibraryView,
-    children: [
-      { name: "narrators", path: "", component: aleNarrators, meta: { subPage: true, title: 'Narrators' } },
-      { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
-    ],
-  },
-  {
-    path: "/collections",
-    component: aleLibraryView,
-    children: [
-      { name: "collections", path: "", component: aleCollections, meta: { title: 'Collections' } },
-      { name: "collection", path: ":collection", component: aleGallery, meta: { gallery: true, title: 'Collections' } }
-    ]
-  },
-  {
-    path: "/wishlist",
-    component: aleLibraryView,
-    children: [
-      { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
-    ]
-  },
-];
-
-const router = new VueRouter({
-  routes,
-  scrollBehavior(to, from, savedPosition) {
-    if (savedPosition ) {
-      return savedPosition;
-    } else {
-      if (from && to.name === from.name && _.isEqual(to.params, from.params)) {
-        return;
-      } else {
-        return { x: 0, y: 0 };
-      }
-    }
-  }
-});
-
 import VueRouterBackButton from "vue-router-back-button";
-Vue.use(VueRouterBackButton, { router });
 
+var routesPrep = function( libraryData ) {
+  if ( libraryData ) {
+    
+    function inArray(array, value) { return array.indexOf( value  ) > -1; }
+  
+    let routes = [];
+    
+    // Home page redirect
+    if ( libraryData.books ) {
+      routes.push({ path: "/", redirect: "/library" },);
+    }
+    else if ( libraryData.wishlist ) {
+      routes.push({ path: "/", redirect: "/wishlist" },);
+    }
+    
+    const aleGallery = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
+    
+    // LIBRARY
+    if ( libraryData.books ) {
+      routes.push({ name: "gallery", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library' } });
+    }
+    
+    // SUB PAGES
+    var subPages = {
+      categories: {
+        path: "/categories",
+        component: aleLibraryView,
+        children: [
+          { name: "categories", path: "", component: () => import( /* webpackChunkName: "categories" */ "./_components/alePages/aleCategories"), meta: { subPage: true, title: 'Categories' } },
+          { name: "category", path: ":parent/:child?", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Categories' } }
+        ],
+      },
+      series: {
+        path: "/series",
+        component: aleLibraryView,
+        children: [
+          { name: "all-series", path: "", component: () => import( /* webpackChunkName: "series" */ "./_components/alePages/aleSeries"), meta: { subPage: true, title: 'Series' } },
+          { name: "series", path: ":series", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Series' } }
+        ],
+      },
+      authors: {
+        path: "/authors",
+        component: aleLibraryView,
+        children: [
+          { name: "authors", path: "", component: () => import( /* webpackChunkName: "authors" */ "./_components/alePages/aleAuthors"), meta: { subPage: true, title: 'Authors' } },
+          { name: "author", path: ":author", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Authors' } }
+        ],
+      },
+      narrators: {
+        path: "/narrators",
+        component: aleLibraryView,
+        children: [
+          { name: "narrators", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/aleNarrators"), meta: { subPage: true, title: 'Narrators' } },
+          { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
+        ],
+      },
+    };
+    
+    // Standalone-gallery SUBPAGES
+    let subPageStates = _.get( libraryData, 'extras.subPageStates' );
+    if ( subPageStates ) {
+      _.each(subPageStates, function( item ) {
+        if ( item.enabled ) routes.push( subPages[ item.key ] );
+      });
+    }
+    // Extension-gallery SUBPAGES
+    else {
+      _.each(subPages, function( subPage ) {
+        routes.push( subPage );
+      });
+    }
+    
+    // COLLECTIONS
+    if ( libraryData.collections ) {
+      routes.push({
+        path: "/collections",
+        component: aleLibraryView,
+        children: [
+          { name: "collections", path: "", component: () => import( /* webpackChunkName: "collections" */ "./_components/alePages/aleCollections"), meta: { title: 'Collections' } },
+          { name: "collection", path: ":collection", component: aleGallery, meta: { gallery: true, title: 'Collections' } }
+        ]
+      });
+    }
+    
+    // WISHLIST
+    if ( libraryData.wishlist ) {
+      routes.push({
+        path: "/wishlist",
+        component: aleLibraryView,
+        children: [
+          { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
+        ]
+      });
+    }
+    
+    routes.push({
+      path: '*',
+      name:'404', 
+      component: aleLibraryView
+    });
+
+    const router = new VueRouter({
+      routes,
+      scrollBehavior(to, from, savedPosition) {
+        if (savedPosition ) {
+          return savedPosition;
+        } else {
+          if (from && to.name === from.name && _.isEqual(to.params, from.params)) {
+            return;
+          } else {
+            return { x: 0, y: 0 };
+          }
+        }
+      }
+    });
+    
+    Vue.use(VueRouterBackButton, { router });
+    
+    return router;
+  
+  }
+};
 
 
 // FONT AWESOME
@@ -209,7 +255,12 @@ import {
   faUsers,
   faUserFriends,
   faRedoAlt,
+  faTimes,
+  faDownload,
 } from "@fortawesome/free-solid-svg-icons";
+import {
+  faGithub,
+} from "@fortawesome/free-brands-svg-icons";
 
 library.add(
   faShoppingBag,
@@ -260,6 +311,9 @@ library.add(
   faUsers,
   faUserFriends,
   faRedoAlt,
+  faTimes,
+  faDownload,
+  faGithub,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
@@ -271,6 +325,7 @@ Vue.use(VueTippy, {
   arrow: true,
   theme: "dark",
   maxWidth: 650,
+  delay: 230,
   onShow: options => {
     return !!options.props.content;
   },
@@ -457,6 +512,7 @@ function vuexPrep( libraryData ) {
 function startVue( libraryData ) {
   
   vuexPrep( libraryData );
+  const router = routesPrep( libraryData );
   
   new Vue({
     router,

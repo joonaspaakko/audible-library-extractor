@@ -75,7 +75,7 @@ export default {
       this.$nextTick(function() {
         this.$store.commit('prop', { key: 'viewRefresh', value: '' });
         this.$nextTick(function() {
-          callback( this );
+          if ( typeof callback === 'function' ) callback( this );
         });
       });
     },

@@ -14,6 +14,8 @@ export default new Vuex.Store({
       viewMode: 'grid',
       chunkLocation: 0,
       booksInSeriesToggle: false,
+      exportSettingsGallery: null,
+      exportSettingsCSV: null,
     },
     // States that don't persist
     searchMounted: false,

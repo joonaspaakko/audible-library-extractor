@@ -2,200 +2,284 @@
   <div
     id="ale-save-locally"
     class="icon"
-    @click="saveButtonClicked"
-    content="<strong>Save a stand-alone gallery</strong>, so you can share it with others. <br>Free Github hosting <a target='_blank' href='https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github'>instructions</a>."
-    v-tippy="{ interactive: true, allowHTML: true }"
-    :disabled="bundling"
+    style="cursor: default;"
   >
-    <font-awesome v-if="bundling" icon="spinner" spin />
-    <font-awesome v-else fas icon="save" />
+    <font-awesome @click="modalOpen = true" fas icon="save" style="cursor: pointer;" />
+    
+    <div id="save-locally-overlay" v-if="modalOpen">
+      <div class="outer-wrap">
+        <div class="inner-wrap">
+          
+          <save-gallery></save-gallery>
+          
+          <div class="close-btn" @click="modalOpen = false" v-shortkey.once="['esc']" @shortkey="modalOpen = false">
+            <font-awesome fas icon="times" />
+          </div>
+          
+        </div>
+      </div>
+    </div>
+    
   </div>
 </template>
 
 <script>
-// import jsZip from 'jszip';
-// import { saveAs } from 'file-saver';
-// import JSZipUtils from 'jszip-utils';
-
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import saveGallery from "@output-snippets/save-gallery.vue";
 
 export default {
   name: "aleSaveLocally",
-  mixins: [makeCoverUrl],
-  
+  components: {
+    saveGallery
+  },
   data: function() {
     return {
-      zip: null,
-      cacheBuster: null,
-      bundling: false,
+      modalOpen: false,
     };
   },
-  beforeDestroy: function() {
-    this.zip = null;
-    this.cacheBuster = null;
-  },
-
-  methods: {
-    saveButtonClicked: function() {
-      if ( !this.bundling ) {
-        
-        const vue = this;
-        vue.bundling = true;
-        vue.cacheBuster = this.runCachebuster();
   
-        const libraryData = JSON.stringify(this.$store.state.library);
-        vue.zip = new JSZip();
-        const zip = vue.zip;
-  
-        const indexHTML =
-          "<!DOCTYPE html>" +
-          '<html lang="en" class="theme-light standalone-gallery">' +
-          "<head>" +
-            '<meta charset="UTF-8">' +
-            // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-            '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-            '<meta http-equiv="X-UA-Compatible" content="ie=edge">' +
-            '<meta name="apple-mobile-web-app-capable" content="yes">' +
-            '<meta name="mobile-web-app-capable" content="yes">' +
-            '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +
-            '<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">' +
-            '<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">' +
-            '<link rel="manifest" href="favicons/app.webmanifest">' +
-            '<link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">' +
-            '<link rel="shortcut icon" href="favicons/favicon.ico">' +
-            '<meta name="msapplication-TileColor" content="#222222">' +
-            '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
-            '<meta name="theme-color" content="#f29a33">' +
-            "<title>My Audible Library</title>" +
-            '<script id="library-data" type="application/json">' + libraryData + "<\/script>" +
-            '<link id="ale-css" rel="stylesheet" href="output-page.' + vue.cacheBuster + '.css">' +
-          "</head>" +
-          "<body>" +
-          
-            '<div id="audible-library-extractor"></div>' +
-            '<script id="ale-js" src="output-page.' + vue.cacheBuster +'.js"><\/script>' +
-            "<noscript>This library requires javascript to work!</noscript>" +
-            
-          "</body>" +
-          "</html>";
-        
-        zip.file("index.html", indexHTML);
-        
-        
-        // If I can't fetch these files locally, then what's the point...
-        
-        // const asins = _.map( this.$store.state.library.books, function( o ) {
-        //   if ( o.asin ) return o.asin;
-        // });
-        // zip.file("data/library/asins.json", JSON.stringify(asins));
-        // _.each( this.$store.state.library.books, function( book ) {
-        //   zip.file("data/library/book."+ book.asin +".json", JSON.stringify( book ));
-        // });
-        
-        // zip.file("data/collections.json", JSON.stringify(this.$store.state.library.collections));
-        // zip.file("data/series.json",      JSON.stringify(this.$store.state.library.series));
-        // zip.file("data/wishlist.json",    JSON.stringify(this.$store.state.library.wishlist));
-        // zip.file("data/extras.json",      JSON.stringify(this.$store.state.library.extras));
-        
-        let files = [
-          "output-page.js",
-          "output-page.css",
-          
-          "chunks/18.css",
-          "chunks/18.js",
-          "chunks/128.js",
-          "chunks/128.js.LICENSE.txt",
-          "chunks/833.js",
-          "chunks/audio-player.css",
-          "chunks/audio-player.js",
-          "chunks/book-Details.css",
-          "chunks/book-Details.js",
-          "chunks/book.css",
-          "chunks/book.js",
-          "chunks/categories.css",
-          "chunks/categories.js",
-          "chunks/collections.css",
-          "chunks/collections.js",
-          "chunks/gallery.css",
-          "chunks/gallery.js",
-          "chunks/grid-view.css",
-          "chunks/grid-view.js",
-          "chunks/series.css",
-          "chunks/series.js",
-          "chunks/sort-values.css",
-          "chunks/sort-values.js",
-          "chunks/splide.js",
-          "chunks/splide.js.LICENSE.txt",
-          "chunks/spreadsheet-view.css",
-          "chunks/spreadsheet-view.js",
-          "chunks/view-mode-switcher.css",
-          "chunks/view-mode-switcher.js",
-          
-          "favicons/android-chrome-192x192.png",
-          "favicons/android-chrome-512x512.png",
-          "favicons/apple-touch-icon.png",
-          "favicons/browserconfig.xml",
-          "favicons/favicon-16x16.png",
-          "favicons/favicon-32x32.png",
-          "favicons/favicon.ico",
-          "favicons/mstile-150x150.png",
-          "favicons/safari-pinned-tab.svg",
-          "favicons/app.webmanifest"
-        ];
-        
-        // Just thinking out loud...
-        // let books = this.$store.state.library.wishlist.concat( this.$store.state.library.books );
-        // books = _.map( books, function( o ) {
-        //   if ( o.cover ) return vue.makeCoverUrl( o.cover );
-        // });
-        // books = _.union( books );
-        // files = files.concat( books );
-        
-        let count = 0;
-        _.each(files, function(url) {
-          JSZipUtils.getBinaryContent(url, function(err, data) {
-            if (err) throw err;
-  
-            if (url === "output-page.js") {
-              url = url.replace(".js", "." + vue.cacheBuster + ".js");
-            } else if (url === "output-page.css") {
-              url = url.replace(".css", "." + vue.cacheBuster + ".css");
-            }
-  
-            zip.file(url, data, { binary: true });
-  
-            count++;
-            if (count == files.length) {
-              zip.generateAsync({ type: "blob" }).then(function(content) {
-                setTimeout(function() {
-                  vue.bundling = false;
-                }, 1000);
-                saveAs(content, "ALE-gallery.zip");
-              });
-            }
-          });
-        });
-        
-      }
-    },
-
-    runCachebuster: function() {
-      return new Date().getTime();
-    }
-  }
 };
 </script>
 
 <style lang="scss">
 @import "~@/_variables.scss";
 
-.tippy-popper {
-  a {
-    color: #fff;
-    text-decoration: underline;
+#bg {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-image: url("https://assets.codepen.io/154942/ale-gallery-overlay-bg.png");
+  background-position: center top;
+  background-repeat: no-repeat;
+  filter: blur(3px);
+}
+
+#save-locally-overlay {
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  padding: 70px 25px;
+  box-sizing: border-box;
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background: rgba(#888, 0.6);
+  overflow: auto;
+
+  .outer-wrap {
+    display: flex;
+    flex-direction: column;
+    justify-items: center;
+    align-items: center;
+    justify-content: center;
+    align-content: center;
   }
-  a:visited {
-    color: darken(#fff, 30);
+
+  .inner-wrap {
+    height: unset;
+    display: inline-block;
+    font-size: 14px;
+    line-height: 17px;
+    font-weight: 300;
+    max-width: 600px;
+    background: #454545;
+    border-radius: 4px;
+    box-shadow: 2px 15px 35px 5px rgba(#000, 0.4);
+    border: 1px solid rgba(#000, 0.2);
+    color: #f1f1f1;
+    position: relative;
+    z-index: 0;
+    text-align: left;
+
+    .close-btn {
+      cursor: pointer;
+      position: absolute;
+      top: 0px;
+      right: 10px;
+      z-index: 5;
+      padding: 5px 10px;
+      border: 1px solid #222;
+      border-top: none;
+      display: inline-block;
+      border-radius: 0 0 4px 4px;
+      background: #505050;
+    }
+
+    .export-group {
+      padding: 55px 60px;
+      padding-bottom: 50px;
+      border-top: 1px solid rgba(#fff, 0.07);
+      border-bottom: 1px solid rgba(#000, 0.25);
+      &:first-child {
+        border-top: none;
+      }
+    }
+
+    h2 {
+      font-size: 1.4em;
+      font-weight: 200;
+      margin: 0 0 10px 0;
+      display: inline-block;
+      width: 100%;
+    }
+    h3 {
+      font-size: 1.2em;
+      font-weight: 200;
+      margin: 20px 0 0 0;
+      display: inline-block;
+      width: 100%;
+    }
+
+    .description {
+      font-size: 0.85em;
+      color: rgba(#fff, 0.45);
+    }
+
+    .options {
+      margin-top: 15px;
+      label {
+        -webkit-touch-callout: none; 
+        -webkit-user-select: none; 
+        -khtml-user-select: none; 
+        -moz-user-select: none; 
+        -ms-user-select: none; 
+        user-select: none; 
+        outline: none;
+        cursor: pointer;
+        display: inline-block;
+        margin-left: 20px;
+        &:first-child { margin-left: 0; }
+      }
+      .opt-group {
+        padding-top: 10px;
+        &:first-child {  padding-top: 0; }
+      }
+      // &.label-100 label { width: 100px; }
+      &.opt-groups {
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        label { 
+          margin-left: 0; 
+          padding-top: 5px;
+          &:first-child {  padding-top: 0; } 
+        }
+        .opt-group {
+          padding-top: 0px;
+          margin-left: 20px;
+          &:first-child { margin-left: 0; }
+          display: flex;
+          flex-direction: column;
+        }
+      }
+    }
+
+    .buttons-footer {
+      display: block;
+      width: 100%;
+      margin-top: 30px;
+      // text-align: left;
+      text-align: center;
+      position: relative;
+      right: -10px;
+    }
+
+    .btn-wrapper {
+      // display: inline-block;
+      display: inline-flex;
+      flex-direction: column;
+      align-items: stretch;
+      align-content: stretch;
+      font-size: 14px;
+      .github-btn,
+      .save-btn {
+        cursor: pointer;
+        flex: 1;
+        display: inline-block;
+        @include themify($themes) {
+          background: themed(audibleOrange);
+        }
+        color: #fff;
+        border: none;
+        border-radius: 3px;
+        padding: 9px 25px;
+        text-decoration: none;
+        span {
+          padding-right: 7px;
+        }
+        box-sizing: border-box;
+      }
+      
+      button { outline: none; }
+      button[disabled="disabled"] {
+        cursor: not-allowed;
+        background: #606060 !important;
+        @include themify($themes) {
+          border: 2px dashed themed(audibleOrange);
+        }
+      }
+      .save-btn.saving {
+        background: #606060 !important;
+        -webkit-animation: vibrate-1 0.3s linear infinite both;
+        animation: vibrate-1 0.3s linear infinite both;
+        @include themify($themes) {
+          border: 2px dashed themed(audibleOrange);
+        }
+      }
+      /* ----------------------------------------------
+      * Generated by Animista on 2021-5-5 23:7:36
+      * Licensed under FreeBSD License.
+      * See http://animista.net/license for more info. 
+      * w: http://animista.net, t: @cssanimista
+      * ---------------------------------------------- */
+
+      @-webkit-keyframes vibrate-1{0%{-webkit-transform:translate(0);transform:translate(0)}20%{-webkit-transform:translate(-2px,2px);transform:translate(-2px,2px)}40%{-webkit-transform:translate(-2px,-2px);transform:translate(-2px,-2px)}60%{-webkit-transform:translate(2px,2px);transform:translate(2px,2px)}80%{-webkit-transform:translate(2px,-2px);transform:translate(2px,-2px)}100%{-webkit-transform:translate(0);transform:translate(0)}}@keyframes vibrate-1{0%{-webkit-transform:translate(0);transform:translate(0)}20%{-webkit-transform:translate(-2px,2px);transform:translate(-2px,2px)}40%{-webkit-transform:translate(-2px,-2px);transform:translate(-2px,-2px)}60%{-webkit-transform:translate(2px,2px);transform:translate(2px,2px)}80%{-webkit-transform:translate(2px,-2px);transform:translate(2px,-2px)}100%{-webkit-transform:translate(0);transform:translate(0)}}
+      
+      .github-btn {
+        // border: 2px solid #666; 
+        margin-top: 7px;
+        margin-left: 2px; &:first-child { margin-left: 0; }
+        // background: #9818b7;
+        // background: linear-gradient(to bottom, #9818b7 0%,#642c95 100%);
+        // background: #f1f1f1; 
+        // border: 2px solid #9818b7; 
+        // border: 2px solid #666; 
+        // color: #444;
+        background: transparent;
+        // border: 2px solid #606060; 
+        background: #606060 !important;
+        color: #e1e1e1 !important;
+        
+      }
+      
+      &.btn-row {
+        display: flex;
+        width: 100%;
+        flex-direction: row;
+        align-items: stretch;
+        align-content: stretch;
+        justify-content: stretch;
+        justify-items: stretch;
+        .save-btn { 
+          flex: 1; 
+          white-space: nowrap; 
+          margin-top: 0; 
+          margin-left: 5px; 
+          &:first-child { margin-left: 0; } 
+        }
+      }
+      
+      .file-desc,
+      .file-desc a {
+        margin-top: 6px;
+        text-align: center;
+        font-size: 12px;
+        color: rgba(#fff, 0.25);
+      }
+    }
   }
 }
 </style>

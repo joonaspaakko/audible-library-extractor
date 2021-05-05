@@ -4,7 +4,7 @@
       
       <div class="inner-wrap-wrapper">
         
-        <div class="text-button gallery-page" v-if="$store.state.library.books">
+        <div class="text-button gallery-page" v-if="$store.state.library.books && routeExists('gallery')">
           <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
               <font-awesome fas icon="book" />
@@ -21,7 +21,7 @@
             <span>Sub pages</span>
             <div class="sub-menu">
               
-              <div class="text-button" v-if="$store.state.library.books">
+              <div class="text-button" v-if="routeExists('categories')">
                 <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
                   <div class="icon">
                     <font-awesome fas icon="indent" />
@@ -30,7 +30,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="$store.state.library.books">
+              <div class="text-button" v-if="routeExists('series')">
                 <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
                   <div class="icon">
                     <font-awesome fas icon="list-ol" />
@@ -39,7 +39,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="$store.state.library.books">
+              <div class="text-button" v-if="routeExists('authors')">
                 <router-link :to="{ name: 'authors' }" @click.native="linkClicked('authors')">
                   <div class="icon">
                     <font-awesome fas icon="users" />
@@ -48,7 +48,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="$store.state.library.books">
+              <div class="text-button" v-if="routeExists('narrators')">
                 <router-link :to="{ name: 'narrators' }" @click.native="linkClicked('narrators')">
                   <div class="icon">
                     <font-awesome fas icon="user-friends" />
@@ -79,7 +79,7 @@
           </router-link>
         </div> -->
         
-        <div class="text-button collections-page" v-if="$store.state.library.collections">
+        <div class="text-button collections-page" v-if="$store.state.library.collections && routeExists('collections')">
           <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
           <div class="icon">
             <font-awesome fas icon="folder-open" />
@@ -88,7 +88,7 @@
           </router-link>
         </div>
         
-        <div class="text-button wishlist-page" v-if="$store.state.library.wishlist">
+        <div class="text-button wishlist-page" v-if="$store.state.library.wishlist && routeExists('wishlist')">
           <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">
           <div class="icon">
             <font-awesome fas icon="bookmark" />
@@ -249,6 +249,13 @@ export default {
         vue.$root.$emit("ios-auto-zoom-disable");
         vue.$root.$emit('search-focus');
       });
+    },
+    
+    routeExists: function( name ) {
+      
+      let test = this.$router.resolve({ name: name });
+      return test.resolved.matched.length > 0;
+      
     },
     
   }
