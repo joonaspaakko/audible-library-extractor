@@ -43,7 +43,7 @@ export default {
   },
   data: function() {
     return {
-      bookUrl: "",
+      // bookUrl: "",
       coverUrl: "",
       coverUrl27: "",
       bookTitle: "",
@@ -55,7 +55,7 @@ export default {
 
   created: function() {
     
-    this.bookUrl = this.makeFullUrl(this.book.url);
+    // this.bookUrl = this.makeFullUrl(this.book.url);
     this.coverUrl = this.makeCoverUrl(this.book.cover);
     if (this.coverUrl) this.coverUrl27 = this.coverUrl.replace("_SL500_", "_SL27_");
     this.bookTitle = this.book.title || this.book.titleShort;
@@ -87,7 +87,6 @@ export default {
           case "authors":
           case "narrators":
           case "categories":
-          case "series":
           case "publishers":
             col.text = vue.stringifyArray(
               vue.book[ key ],
@@ -96,6 +95,15 @@ export default {
             );
             break;
 
+          case "series":
+            var series = vue.book.series;
+            if ( series ) series = _.map(series, function( series ) {
+              let numbers = series.bookNumbers ? (' (book '+ series.bookNumbers.join(", ") +')') : '';
+              return series.name + numbers;
+            }).join(", ");
+            col.text = series || '';
+            break;
+            
           case "title":
             col.text = vue.book[ key ] || vue.book.titleShort;
             col.class += " sticky-col";

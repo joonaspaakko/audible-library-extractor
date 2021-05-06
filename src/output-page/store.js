@@ -15,7 +15,8 @@ export default new Vuex.Store({
       chunkLocation: 0,
       booksInSeriesToggle: false,
       exportSettingsGallery: null,
-      exportSettingsCSV: null,
+      exportSettingsCSVdataSources: null,
+      exportSettingsCSVcompatibility: null,
     },
     // States that don't persist
     searchMounted: false,
@@ -37,6 +38,7 @@ export default new Vuex.Store({
     chunkCollection: [],
     chunkDistance: 40,
     viewRefresh: '',
+    pageTitle: null,
   },
 
   mutations: {

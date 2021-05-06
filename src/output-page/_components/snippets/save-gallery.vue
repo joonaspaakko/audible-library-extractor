@@ -4,7 +4,7 @@
     <h2><font-awesome fas icon="th" /></i> Stand-alone gallery</h2>
 
     <div class="description">
-      This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by opening the index.html file in a web browser.
+      This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web browser.
     </div>
     
     <h3>Pages:</h3>
@@ -241,7 +241,6 @@ export default {
       let checkedSources = _.filter( this.dataSources, { checked: true, disabled: false });
       this.saveBtnEnabled = !!checkedSources.length;
       
-      console.log( this.dataSources )
       this.$store.commit('stickyProp', { key: 'exportSettingsGallery', value: this.dataSources });
       
     },

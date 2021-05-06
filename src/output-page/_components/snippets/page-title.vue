@@ -21,7 +21,14 @@ export default {
       document.title = 'ALE • ' + (( this.$route.meta.title === this.pageTitle ) ? this.pageTitle : (this.$route.meta.title + ': ' + this.pageTitle));
     }
     
+    if ( this.pageTitle ) this.$store.commit('prop', { key: 'pageTitle', value: this.pageTitle });
+    
   },
+  
+  beforeDestroy: function() {
+    this.$store.commit('prop', { key: 'pageTitle', value: null });
+  },
+  
 };
 </script>
 

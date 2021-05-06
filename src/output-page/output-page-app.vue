@@ -247,7 +247,15 @@ body {
 //   }
 // }
 
-.tippy-popper .tippy-content { padding: 7px; }
+.tippy-popper .tippy-content { 
+  padding: 4px !important; 
+  font-size: 13px !important;
+  line-height: 19px !important;
+  text-align: left;
+  ul {
+    padding-left: 22px;
+  }
+}
 
 .theme-dark .tippy-popper {
   .tippy-tooltip {

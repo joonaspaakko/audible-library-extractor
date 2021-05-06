@@ -50,6 +50,7 @@ import aleHeader from "./aleListView/aleHeader";
 import aleListRow from "./aleListView/aleRow";
 import lazy from "@output-snippets/lazy.vue";
 import stringifyArray from "@output-mixins/stringifyArray";
+import prepareKeys from "@output-mixins/prepareKeys.js";
 
 export default {
   name: "aleBooks",
@@ -59,7 +60,7 @@ export default {
     aleListRow,
     bookDetails: () => import( /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
   },
-  mixins: [stringifyArray],
+  mixins: [stringifyArray, prepareKeys],
   data: function() {
     return {
       spreadsheetTop: 170,
@@ -122,85 +123,6 @@ export default {
       }
     },
     
-    prepareKeys: function() {
-      const vue = this;
-      let collection = _.get(this.$store.state, this.$store.state.collectionSource);
-      // Flattens all available keys into an array: ['title', 'sample'] ...etc
-      let keys = _.union(_.flatten(_.map(collection, e => _.keys(e))));
-
-      keys = keys.concat([
-        'isbn10', 
-        'isbn13'
-      ]);
-
-      // Here I make sure these keys get prioritized to the front of the table...
-      let priorityKeys = [
-        "added",
-        "title",
-        "series",
-        "bookNumbers",
-        "authors",
-        "narrators",
-        "categories",
-        "length",
-        "progress",
-        "releaseDate",
-        "publishers",
-        "myRating",
-        "rating",
-        "ratings",
-        "fromPlusCatalog",
-        "unavailable",
-      ];
-      let leftoverKeys = _.remove(keys, function(key) {
-        return !_.includes(priorityKeys, key);
-      });
-
-      keys = priorityKeys.concat(leftoverKeys);
-      priorityKeys = null;
-      leftoverKeys = null;
-
-      // All the keys we don't want to show in the table
-      let removeKeys = [
-        "titleShort",
-        "sample",
-        "blurb",
-        "url",
-        "summary",
-        "moreLikeThis",
-        "peopleAlsoBought",
-        "asin",
-        "cover",
-        "sample", // Slipped into titleShort in prepareData() method so they can be in a fixed column together
-        "sample", // Slipped into titleShort in prepareData() method so they can be in a fixed column together
-        "cover", // Same...
-        "isbns",
-        // "added",
-        // "series",
-        // "authors",
-        // "narrators",
-        // "categories",
-        // "summary",
-        // "length",
-        // "progress",
-        // "releaseDate",
-        // "publishers",
-        // "myRating",
-        // "rating",
-        // "ratings",
-        // "downloaded",
-        // "format",
-        // "language",
-        // "favorite",
-        // "storePageMissing",
-        // "storePageChanged",
-      ];
-      keys = _.remove(keys, function(key) {
-        return !_.includes(removeKeys, key);
-      });
-
-      return keys;
-    }
   }
 };
 </script>

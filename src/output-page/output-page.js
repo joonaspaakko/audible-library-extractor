@@ -146,7 +146,7 @@ var routesPrep = function( libraryData ) {
       });
     }
     // Extension-gallery SUBPAGES
-    else {
+    else if ( libraryData.books ) {
       _.each(subPages, function( subPage ) {
         routes.push( subPage );
       });
@@ -227,7 +227,7 @@ import {
   // faCheckCircle, faExclamationTriangle, faExclamationCircle,
   // faDotCircle,
   // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
-  faFileCsv,
+  // faFileCsv,
   faFilter,
   faHeart,
   faHome,
@@ -257,9 +257,13 @@ import {
   faRedoAlt,
   faTimes,
   faDownload,
+  faFileCsv,
+  faShareSquare,
+  
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
+  faGoodreads,
 } from "@fortawesome/free-brands-svg-icons";
 
 library.add(
@@ -283,7 +287,7 @@ library.add(
   // faCheckCircle, faExclamationTriangle, faExclamationCircle,
   // faDotCircle,
   // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
-  faFileCsv,
+  // faFileCsv,
   faFilter,
   faHeart,
   faHome,
@@ -314,6 +318,9 @@ library.add(
   faTimes,
   faDownload,
   faGithub,
+  faFileCsv,
+  faShareSquare,
+  faGoodreads
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
@@ -461,10 +468,9 @@ const standalone = document.querySelector("html.standalone-gallery");
 // APP prep
 // For testing purposes: offloading JSON
 var offLoadJSON = false;
+// var offLoadJSON = require('./anesone-data.json');
 if ( offLoadJSON ) {
-  // startVue( 
-  //   require('./data.json') 
-  // );
+  startVue( offLoadJSON );
 }
 // In the extension environment...
 else if (!standalone) {

@@ -11,6 +11,7 @@
         <div class="inner-wrap">
           
           <save-gallery></save-gallery>
+          <save-csv></save-csv>
           
           <div class="close-btn" @click="modalOpen = false" v-shortkey.once="['esc']" @shortkey="modalOpen = false">
             <font-awesome fas icon="times" />
@@ -25,11 +26,13 @@
 
 <script>
 import saveGallery from "@output-snippets/save-gallery.vue";
+import saveCsv from "@output-snippets/save-csv.vue";
 
 export default {
   name: "aleSaveLocally",
   components: {
-    saveGallery
+    saveGallery,
+    saveCsv,
   },
   data: function() {
     return {
@@ -80,7 +83,7 @@ export default {
 
   .inner-wrap {
     height: unset;
-    display: inline-block;
+    display: inline-block !important;
     font-size: 14px;
     line-height: 17px;
     font-weight: 300;
@@ -116,6 +119,10 @@ export default {
       &:first-child {
         border-top: none;
       }
+      
+      h2 svg {
+        padding-right: 5px;
+      }
     }
 
     h2 {
@@ -127,15 +134,16 @@ export default {
     }
     h3 {
       font-size: 1.2em;
-      font-weight: 200;
+      font-weight: 400;
       margin: 20px 0 0 0;
       display: inline-block;
       width: 100%;
     }
 
     .description {
-      font-size: 0.85em;
-      color: rgba(#fff, 0.45);
+      font-size: 0.9em;
+      color: rgba(#fff, 0.55);
+      font-weight: 400;
     }
 
     .options {

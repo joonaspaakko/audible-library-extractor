@@ -15,7 +15,7 @@
           </router-link>
         </div>
         
-        <div class="text-button parent-item" v-if="$store.state.library.books">
+        <div class="text-button parent-item" v-if="$store.state.library.books && routeExists('anySubPage')">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
             <span>Sub pages</span>
@@ -30,7 +30,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="routeExists('series')">
+              <div class="text-button" v-if="routeExists('all-series')">
                 <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
                   <div class="icon">
                     <font-awesome fas icon="list-ol" />
@@ -252,9 +252,20 @@ export default {
     },
     
     routeExists: function( name ) {
-      
-      let test = this.$router.resolve({ name: name });
-      return test.resolved.matched.length > 0;
+      if ( name === 'anySubPage' ) {
+        let  subPageStates = _.get( this.$store.state, 'library.extras.subPageStates' );
+        if ( !subPageStates ) { return true; } 
+        else {
+          let foundEnabled = _.find( subPageStates, { enabled: true });
+          if ( foundEnabled ) {
+            return true;
+          }
+        }
+      }
+      else {
+        let test = this.$router.resolve({ name: name });
+        return test.resolved.matched.length > 0;
+      }
       
     },
     

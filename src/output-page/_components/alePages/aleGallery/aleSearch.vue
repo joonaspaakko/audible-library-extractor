@@ -1,7 +1,7 @@
 <template>
   <div>
     
-    <page-title :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
+    <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
     
     <div
     id="ale-search-wrap"
