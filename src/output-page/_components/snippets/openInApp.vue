@@ -4,7 +4,7 @@
   :href="url"
   target="_blank"
   class="audible-app-link"
-  :class="{ 'muted': muted }"
+  :class="{ 'muted': muted, 'placeholder': !book.asin }"
   :tabindex="muted ? 0 : -1"
   >
     <div
@@ -31,7 +31,7 @@ export default {
     };
   },
   created: function() {
-    if (this.book) {
+    if ( this.muted || (this.book && this.book.asin) ) {
       this.url = 'https://smart.link/o3waqx4wg1gdn?asin=' + this.book.asin;
     }
   }
@@ -107,6 +107,8 @@ export default {
       background: darken( themed(audibleOrange), 5) !important;
     }
   }
+  
+  &.muted.placeholder { visibility: hidden; }
   
 }
 

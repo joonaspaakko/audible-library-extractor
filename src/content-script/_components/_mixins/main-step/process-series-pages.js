@@ -19,6 +19,7 @@ export default {
                 url: vue.seriesUrl + "/" + series.asin,
                 asin: series.asin,
                 books: [],
+                allBooks: [],
                 length: 0
               });
             });
@@ -41,8 +42,8 @@ export default {
 
                 request.pageNumbers = prep.pageNumbers;
                 request.pageSize = prep.pageSize;
-
                 getBooks(vue, hotpotato, request, stepCallback);
+                
               });
             },
             function(err, responses) {
@@ -51,11 +52,14 @@ export default {
               // This merges the books arrays and cleans up the returning object a little
               _.each(_.flatten(responses), function(series) {
                 const targetSeries = _.find(requests, { asin: series.asin });
-                if (targetSeries) targetSeries.books = targetSeries.books.concat(series.books);
-                targetSeries.length += series.length;
-                delete targetSeries.pageNumbers;
-                delete targetSeries.pageSize;
-                delete targetSeries.url;
+                if (targetSeries) {
+                  targetSeries.books = targetSeries.books.concat(series.books);
+                  targetSeries.allBooks = targetSeries.allBooks.concat(series.allBooks);
+                  targetSeries.length += series.length;
+                  delete targetSeries.pageNumbers;
+                  delete targetSeries.pageSize;
+                  delete targetSeries.url;
+                }
               });
               
               if ( hotpotato.config.partialScan ) {
@@ -71,6 +75,7 @@ export default {
                   seriesFetched(null, hotpotato);
                 });
               } else console.log(err);
+              
             }
           );
         } else {
@@ -112,16 +117,19 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
       let series = {
         asin: request.asin,
         books: [],
+        allBooks: [],
         length: bookRows.length
       };
-
+      
+      
       $(bookRows).each(function() {
-                
+        
+        let inLibrary;
         const asinEl = this.querySelector("div[data-asin]");
+        let title = DOMPurify.sanitize(this.getAttribute('aria-label'));
         if ( asinEl ) {
           const asin = asinEl.getAttribute("data-asin");
-          const inLibrary = this.querySelector(".adblBuyBoxInLibraryButton");
-          if ( inLibrary ) {
+          if ( this.querySelector(".adblBuyBoxInLibraryButton") ) {
             series.books.push( DOMPurify.sanitize(asin) );
           }
           
@@ -133,18 +141,31 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
         // The book in question: https://www.audible.com/pd/Alien-Out-of-the-Shadows-Audiobook/B01CYVJUBC
         else {
           
-          const title = DOMPurify.sanitize(this.getAttribute('aria-label'));
-          const inLibrary = _.find( hotpotato.books, { 'titleShort': title });
+          inLibrary = _.find( hotpotato.books, { 'titleShort': title });
           if ( inLibrary ) series.books.push( inLibrary.asin );
           
         }
+        
+        let aBook = {
+          title: '',
+          bookNumbers: '',
+          asin: '',
+        };
+        
+        if ( title ) aBook.title = title;
+        let numbers = this.querySelector(':scope > div:nth-child(1) > div > h2');
+        if ( numbers ) aBook.bookNumbers = DOMPurify.sanitize( numbers.textContent.trimAll().replace(/[^\d]*/, '') );
+        if ( asinEl ) aBook.asin = DOMPurify.sanitize( asinEl.getAttribute("data-asin") );
+        else if ( inLibrary ) aBook.asin = inLibrary.asin;
+        
+        series.allBooks.push( aBook );
         
       });
 
       vue.$root.$emit("update-progress", {
         text: "Fetching series order for books in series..."
       });
-
+      
       stepCallback(series);
       
     },

@@ -91,6 +91,10 @@ export default {
   
   computed: {
     
+    googleSheets: function() {
+      return this.settings.compatibilityChecked === 'Google Sheets';
+    },
+    
     filename: function() {
       
       let suffix = '';
@@ -209,7 +213,7 @@ export default {
                 break;
                 
               case "series":
-                var series = book.series;
+                let series = book.series;
                 if ( series ) series = _.map(series, function( series ) {
                   let numbers = series.bookNumbers ? (' (book '+ series.bookNumbers.join(", ") +')') : '';
                   return series.name + numbers;
@@ -225,7 +229,9 @@ export default {
                 else if (_.isArray(allNumbers)) {
                   allNumbers = allNumbers.join(", ");
                 }
-                return book.series ? (allNumbers || '∞') : '';
+                allNumbers = (allNumbers || '∞');
+                if ( vue.googleSheets ) allNumbers = "'" + allNumbers;
+                return book.series ? allNumbers : '';
                 break;
             
               case "isbn10":
@@ -254,7 +260,7 @@ export default {
                 
               case "cover":
                 let cover = vue.makeCoverUrl(book.cover) || '';
-                if ( cover && book.asin && vue.settings.compatibilityChecked === 'Google Sheets' ) {
+                if ( cover && book.asin && vue.googleSheets ) {
                   cover = vue.googleSheetsLinkifyImage( vue.makeUrl('book', book.asin), vue.makeCoverUrl(book.cover, 75) );
                 }
                 return cover;
@@ -262,7 +268,7 @@ export default {
                 
               case "title":
                 let title = book[key] || book.titleShort || '';
-                if ( title && book.asin && vue.settings.compatibilityChecked === 'Google Sheets' ) {
+                if ( title && book.asin && vue.googleSheets ) {
                   title = vue.googleSheetsLinkify( title, vue.makeUrl('book', book.asin) );
                 }
                 return title;
@@ -270,7 +276,7 @@ export default {
                 
               case "sample":
                 let sample = book[key] || '';
-                if ( sample && vue.settings.compatibilityChecked === 'Google Sheets' ) {
+                if ( sample && vue.googleSheets ) {
                   sample = vue.googleSheetsLinkifyImage( sample, 'https://i.imgur.com/R2N6OTy.png' ); 
                 }
                 return sample;
@@ -278,13 +284,13 @@ export default {
                 
               case "searchInGoodreads":
                 let goodreadsSearch = ( book.authors && book.titleShort && book.title ) ? vue.makeGoodReadsUrl( book ) : '';
-                if ( goodreadsSearch && vue.settings.compatibilityChecked === 'Google Sheets' ) goodreadsSearch = vue.googleSheetsLinkifyImage( goodreadsSearch, 'https://i.imgur.com/RPJRqNX.png' );
+                if ( goodreadsSearch && vue.googleSheets ) goodreadsSearch = vue.googleSheetsLinkifyImage( goodreadsSearch, 'https://i.imgur.com/RPJRqNX.png' );
                 return goodreadsSearch || '';
                 break;
                 
               case "webPlayer":
                 let webPlayerURL = book.asin ? ('https://www.audible.com/webplayer?asin=' + book.asin) : '';
-                if ( webPlayerURL && vue.settings.compatibilityChecked === 'Google Sheets' ) webPlayerURL = vue.googleSheetsLinkifyImage( webPlayerURL, 'https://i.imgur.com/PdFLCdl.png' );
+                if ( webPlayerURL && vue.googleSheets ) webPlayerURL = vue.googleSheetsLinkifyImage( webPlayerURL, 'https://i.imgur.com/PdFLCdl.png' );
                 return webPlayerURL || '';
                 break;
                 

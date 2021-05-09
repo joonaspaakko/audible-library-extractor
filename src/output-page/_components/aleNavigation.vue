@@ -15,7 +15,7 @@
           </router-link>
         </div>
         
-        <div class="text-button parent-item" v-if="$store.state.library.books && routeExists('anySubPage')">
+        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="$store.state.library.books && routeExists('anySubPage')" @click="subMenuClicked">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
             <span>Sub pages</span>
@@ -42,7 +42,7 @@
               <div class="text-button" v-if="routeExists('authors')">
                 <router-link :to="{ name: 'authors' }" @click.native="linkClicked('authors')">
                   <div class="icon">
-                    <font-awesome fas icon="users" />
+                    <font-awesome fas icon="user-friends" />
                     <span>Authors</span>
                   </div>
                 </router-link>
@@ -51,7 +51,7 @@
               <div class="text-button" v-if="routeExists('narrators')">
                 <router-link :to="{ name: 'narrators' }" @click.native="linkClicked('narrators')">
                   <div class="icon">
-                    <font-awesome fas icon="user-friends" />
+                    <font-awesome fas icon="users" />
                     <span>Narrators</span>
                   </div>
                 </router-link>
@@ -187,6 +187,7 @@ export default {
       showAudioPlayer: false,
       sampleData: null,
       mobileWidth: 630,
+      subMenuActive: false,
     };
   },
   
@@ -205,6 +206,12 @@ export default {
   },
   
   methods: {
+    
+    subMenuClicked: function() {
+      
+      this.subMenuActive = !this.subMenuActive;
+      
+    },
     
     linkClicked: function( linkName ) {
       
@@ -456,7 +463,7 @@ export default {
   }
   
   .text-button {
-    &.parent-item > .icon { cursor: default; }
+    &.parent-item > .icon { cursor: pointer; }
     position: relative;
     z-index: 0;
     .sub-menu {
@@ -481,7 +488,8 @@ export default {
         padding: 6px 0px;
       }
     }
-    &:hover .sub-menu {
+    &.sub-menu-active .sub-menu {
+    // &:hover .sub-menu {
       display: inline-block;
     }
     &.parent-item .router-link-active > [data-icon] {

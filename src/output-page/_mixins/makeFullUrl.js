@@ -22,7 +22,6 @@ export default {
           if (input.name) newUrl = base + "/search?searchNarrator=" + encodeURIComponent(input.name);
           break;
         case "series":
-          console.log( type, input )
           if (input.asin) newUrl = base + "/series/" + input.asin;
           break;
         case "publisher":

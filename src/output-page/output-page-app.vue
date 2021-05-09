@@ -248,7 +248,7 @@ body {
 // }
 
 .tippy-popper .tippy-content { 
-  padding: 4px !important; 
+  padding: 3px !important; 
   font-size: 13px !important;
   line-height: 19px !important;
   text-align: left;

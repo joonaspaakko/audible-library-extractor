@@ -11,9 +11,7 @@ export default {
         retries: 3,
         retryDelay: 1000,
         retryCondition: function(error) {
-          return (
-            error.response.status == "500"
-          );
+          return error.response && error.response.status == "500";
         }
       });
       const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 15 });

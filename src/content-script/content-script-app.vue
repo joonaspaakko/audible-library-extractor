@@ -38,7 +38,7 @@ axiosRetry(axios, {
   retryCondition: function(error) {
     return (
       axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-      error.response.status == "429"
+      (error.response && error.response.status == "429")
     );
   }
 });

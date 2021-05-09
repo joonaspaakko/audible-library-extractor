@@ -17,6 +17,7 @@ export default new Vuex.Store({
       exportSettingsGallery: null,
       exportSettingsCSVdataSources: null,
       exportSettingsCSVcompatibility: null,
+      booksInSeriesAll: false,
     },
     // States that don't persist
     searchMounted: false,

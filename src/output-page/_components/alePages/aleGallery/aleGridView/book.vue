@@ -13,7 +13,7 @@
         @click="$root.$emit('book-clicked', { book })"
       >
         
-        <div class="blurb-tooltip" v-if="book.blurb" v-tippy="{ placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
+        <div class="blurb-tooltip" v-if="book.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
       
         <div class="info-icons-wrapper">
           <!-- FAVORITE -->

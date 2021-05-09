@@ -248,7 +248,6 @@ export default {
       scroll({ top: 0 });
       this.highlightSearch = true;
       setTimeout(function() { vue.highlightSearch = false; }, 1200);
-      console.log( this.$refs.searchInput )
       this.$refs.searchInput.focus();
       
     },

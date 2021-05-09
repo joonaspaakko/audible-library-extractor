@@ -4,6 +4,7 @@
     v-if="item"
     :class="item.key"
     v-tippy="{ 
+      delay: 150,
       maxWidth: 350, 
       placement: (tippyTop ? 'top' : 'left'), 
       flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']) 

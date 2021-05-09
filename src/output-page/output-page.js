@@ -259,7 +259,7 @@ import {
   faDownload,
   faFileCsv,
   faShareSquare,
-  
+  faBan,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -320,7 +320,8 @@ library.add(
   faGithub,
   faFileCsv,
   faShareSquare,
-  faGoodreads
+  faGoodreads,
+  faBan,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
@@ -332,7 +333,7 @@ Vue.use(VueTippy, {
   arrow: true,
   theme: "dark",
   maxWidth: 650,
-  delay: 230,
+  delay: [500,0],
   onShow: options => {
     return !!options.props.content;
   },

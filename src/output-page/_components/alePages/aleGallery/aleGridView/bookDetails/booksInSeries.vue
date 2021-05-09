@@ -10,8 +10,14 @@
       <span class="count">{{ series.count }}</span>
       <font-awesome fas :icon="$store.state.sticky.booksInSeriesToggle ? 'chevron-up' : 'chevron-down'" />
     </div>
-
     <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
+      
+      <div class="show-all-toggle">
+        <div @click="toggleAll" :content="$store.state.sticky.booksInSeriesAll ? 'Hide books in the series that are not in your library' : 'Show all books in the series'" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }">
+          <span>{{ $store.state.sticky.booksInSeriesAll ? 'Hide' : 'Show' }}</span> <font-awesome :icon="['fas', 'ban']" />
+        </div>
+      </div>
+      
       <div
       class="series-section"
       v-for="(series, seriesIndex) in series.collection"
@@ -40,8 +46,16 @@
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
-          <div class="clickety-click" @click.prevent="goToBookInSeries( series, seriesBook )">
-            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
+          <a v-if="seriesBook.notInLibrary && !!seriesBook.asin" class="clickety-click" target="_blank" :href="seriesNotInLibraryLink( seriesBook, series.asin )">
+            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || '∞' }}</span>
+            <span class="title">{{ seriesBook.title }}</span>
+          </a>
+          <div v-else-if="seriesBook.notInLibrary" class="clickety-click" style="cursor: default;" content="Not available..." v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }">
+            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || '∞' }}</span>
+            <span class="title">{{ seriesBook.title }}</span>
+          </div>
+          <div v-else class="clickety-click" @click.prevent="goToBookInSeries( series, seriesBook )">
+            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) || '∞' }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </div>
         </div>
@@ -54,10 +68,12 @@
 
 <script>
 import openInApp from "@output-comps/snippets/openInApp";
+import makeUrl from "@output-mixins/makeFullUrl";
 
 export default {
   name: "booksInSeries",
   props: ["book"],
+  mixins: [makeUrl],
   components: {
     openInApp,
   },
@@ -98,6 +114,20 @@ export default {
   },
 
   methods: {
+    
+    toggleAll: function() {
+      this.$store.commit('stickyProp', { key: 'booksInSeriesAll', value: !this.$store.state.sticky.booksInSeriesAll });
+      this.series.collection = this.getBooksInSeries();
+    },
+    
+    seriesNotInLibraryLink: function( book, seriesAsin ) {
+      if ( book.asin ) {
+        return this.makeUrl('book', book.asin);
+      }
+      else if ( seriesAsin ) { 
+        return this.makeUrl('series', { asin: seriesAsin });
+      }
+    },
     
     goToBookInSeries: function( series, book ) {
       
@@ -144,17 +174,29 @@ export default {
             asin: currentSeries.asin
           });
           if (allBooksInSeries) {
+            
+            let booksSource = vue.$store.state.sticky.booksInSeriesAll ? allBooksInSeries.allBooks : allBooksInSeries.books;
+            
             series.push({
               asin: currentSeries.asin,
               name: currentSeries.name,
               length: allBooksInSeries.length,
-              books: _.map(allBooksInSeries.books, function(asin) {
-                return _.find(vue.$store.state.library.books, { asin: asin });
+              books: _.map( booksSource , function( book ) {
+                let asin = vue.$store.state.sticky.booksInSeriesAll ? book.asin : book;
+                let inLibrary = _.includes( allBooksInSeries.books, asin );
+                if ( inLibrary ) {
+                  return _.find(vue.$store.state.library.books, { asin: asin });
+                }
+                else {
+                  book.notInLibrary = true;
+                  return book;
+                }
               })
             });
           }
         });
       }
+      
       return series.length > 0 ? series : null;
     },
 
@@ -181,34 +223,45 @@ export default {
         finished: progress && progress.toLowerCase().match("finished") ? true : false,
         reading: progress && !progress.toLowerCase().match("finished") ? true : false,
         unfinished: !book.progress,
-        current: this.book.asin === book.asin
+        current: this.book.asin === book.asin,
+        'not-in-library': book.notInLibrary,
       };
     },
 
     iconTippyContent: function(book) {
-      const classes = this.numbersClass(book);
-      var tippyContent = "";
-      if (classes.finished) {
-        tippyContent = "Finished!";
-      } else if (classes.unfinished) {
-        tippyContent = "Not started...";
-      } else if (classes.reading) {
-        tippyContent = "Started...";
+      if ( book.notInLibrary ) {
+        return 'Not in library...';
       }
-      return tippyContent;
+      else {
+        const classes = this.numbersClass(book);
+        var tippyContent = "";
+        if (classes.finished) {
+          tippyContent = "Finished!";
+        } else if (classes.unfinished) {
+          tippyContent = "Not started...";
+        } else if (classes.reading) {
+          tippyContent = "Started...";
+        }
+        return tippyContent;
+      }
     },
 
     booksInSeriesIcon: function(book) {
-      const classes = this.numbersClass(book);
-      var iconClass = "";
-      if (classes.finished) {
-        iconClass = "archive";
-      } else if (classes.unfinished) {
-        iconClass = "book";
-      } else if (classes.reading) {
-        iconClass = "book-reader";
+      if ( book.notInLibrary ) {
+        return 'ban';
       }
-      return iconClass;
+      else {
+        const classes = this.numbersClass(book);
+        var iconClass = "";
+        if (classes.finished) {
+          iconClass = "archive";
+        } else if (classes.unfinished) {
+          iconClass = "book";
+        } else if (classes.reading) {
+          iconClass = "book-reader";
+        }
+        return iconClass;
+      }
     }
   }
 };
@@ -241,6 +294,7 @@ export default {
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
+        flex: 1;
       .numbers {
         padding-right: 4px;
       }
@@ -256,7 +310,8 @@ export default {
       outline: none;
       padding-right: 8px;
     }
-
+    
+    &.not-in-library,
     &.finished {
       .title {
         overflow: hidden;
@@ -281,6 +336,13 @@ export default {
         opacity: 0.5;
       }
     }
+    &.not-in-library .icon {
+      color: #e75551;
+      // color: rgba( #e75551, .5);
+    }
+    &.not-in-library .title { text-decoration: none; }
+    &.not-in-library .numbers { opacity: 0.5; }
+    
     &.reading {
       font-style: italic;
     }
@@ -305,6 +367,33 @@ export default {
       }
     }
     
+  }
+  
+  .show-all-toggle {
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
+    position: relative;
+    z-index: 1;
+    height: 10px;
+    > div {
+      outline: none;
+      position: absolute;
+      top: -6px;
+      left: 0px;
+      border-radius: 9999px;
+      display: inline-block;
+      padding: 0px 8px;
+      font-size: 12px;
+      cursor: pointer;
+      @include themify($themes) {
+        color: rgba( themed(frontColor), .4);
+        border: 1px solid rgba( themed(frontColor), .4);
+      }
+    }
   }
 }
 
