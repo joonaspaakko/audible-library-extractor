@@ -1,5 +1,5 @@
 import rateLimit from "axios-rate-limit";
-// import Fuse from 'fuse.js';
+import Fuse from 'fuse.js';
 
 export default {
   methods: {
@@ -85,12 +85,14 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
             response.data &&
             response.data.totalItems
           ) {
-            // const fuse = new Fuse(response.data.items, {
-            //   keys: [ 'volumeInfo.title' ]
-            // });
-            // const fuseresult = fuse.search( book.titleShort );
-
-            const api_book = _.find(response.data.items, function(item) {
+            
+            let fuse = new Fuse(response.data.items, {
+              keys: [ 'volumeInfo.title' ],
+              // shouldSort: false,
+            });
+            const fuseresult = _.map( fuse.search( book.titleShort ), 'item' );
+            
+            const api_book = _.find(fuseresult, function(item) {
               let foundIsbn = false;
               _.each(item.volumeInfo.industryIdentifiers, function(identifier) {
                 if ( identifier.type === "ISBN_10" || identifier.type === "ISBN_13" ) foundIsbn = true;

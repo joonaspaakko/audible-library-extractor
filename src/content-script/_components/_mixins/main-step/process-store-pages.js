@@ -126,7 +126,7 @@ function getStorePageData(vue, response, book, isTest) {
     book.sample = isTest ? null : DOMPurify.sanitize(audible.querySelector("#sample-player-" + book.asin + " > button").getAttribute("data-mp3"));
     book.language = bookData.inLanguage ? DOMPurify.sanitize(_.startCase(bookData.inLanguage)) : DOMPurify.sanitize(audible.querySelector(".languageLabel").textContent.trimToColon());
     book.format = DOMPurify.sanitize(audible.querySelector(".format").textContent.trimAll());
-    if (!book.series) book.series = vue.getSeries(audible.querySelector(".seriesLabel"));
+    /*if (!book.series)*/ book.series = vue.getSeries(audible.querySelector(".seriesLabel"));
 
     // Around July 2020 audible has removed any mention of the added date.
     // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.

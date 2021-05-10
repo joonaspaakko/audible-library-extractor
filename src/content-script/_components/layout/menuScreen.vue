@@ -333,9 +333,7 @@ export default {
                 });
               }
               browser.storage.local.clear().then(() => {
-                browser.storage.local.set(data).then(() => {
-                  
-                });
+                browser.storage.local.set(data);
               });
               
             });

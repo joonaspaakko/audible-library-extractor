@@ -4,7 +4,6 @@
     <arrayToHTML v-if="book.narrators" label="Narrator" :array="book.narrators" ></arrayToHTML>
     <arrayToHTML v-if="book.series" label="Series" :array="book.series" ></arrayToHTML>
     <arrayToHTML v-if="book.publishers" label="Publisher" :array="book.publishers" ></arrayToHTML>
-    
     <div v-if="book.length">
       <strong class="strong-label">Length:</strong>
       {{ book.length }}
@@ -17,7 +16,7 @@
         <star-rating :size="12" :rating="book.rating" number="true" :ratings="book.ratings"></star-rating>
       </div>
       <div class="own-rating" v-if="book.myRating">
-        <strong class="strong-label">My rating: </strong>
+        <strong class="strong-label" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'left', 'bottom'], allowHTML: true }" content="<ul><li>1 = Not for me</li><li>2 = It’s okay</li><li>3 = Pretty good</li><li>4 = It’s great</li><li>5 = I love it</li></ul>" >My rating: </strong>
         <star-rating :size="12" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom']  }" :content="myRatingLabel( book.myRating )" :rating="book.myRating" number="true"></star-rating>
       </div>
     </div>

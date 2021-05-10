@@ -250,10 +250,6 @@ export default {
                 else { return ''; }
                 break;
                 
-              case "asin":
-                return book.asin || '';
-                break;
-                
               case "summary":
                 return book.summary ? book.summary.replace(/(\n|\r)/g) : '';
                 break;
@@ -261,7 +257,7 @@ export default {
               case "cover":
                 let cover = vue.makeCoverUrl(book.cover) || '';
                 if ( cover && book.asin && vue.googleSheets ) {
-                  cover = vue.googleSheetsLinkifyImage( vue.makeUrl('book', book.asin), vue.makeCoverUrl(book.cover, 75) );
+                  cover = vue.googleSheetsLinkifyImage( vue.makeUrl('book', book.asin), vue.makeCoverUrl(book.cover, 75), 0 );
                 }
                 return cover;
                 break;
@@ -274,23 +270,31 @@ export default {
                 return title;
                 break;
                 
+              case "titleShort":
+                let titleShort = book[key] || book.title || '';
+                if ( titleShort && book.asin && vue.googleSheets ) {
+                  titleShort = vue.googleSheetsLinkify( titleShort, vue.makeUrl('book', book.asin) );
+                }
+                return titleShort;
+                break;
+                
               case "sample":
                 let sample = book[key] || '';
                 if ( sample && vue.googleSheets ) {
-                  sample = vue.googleSheetsLinkifyImage( sample, 'https://i.imgur.com/R2N6OTy.png' ); 
+                  sample = vue.googleSheetsLinkifyImage( sample, 'https://i.imgur.com/R2N6OTy.png', 20 ); 
                 }
                 return sample;
                 break;
                 
               case "searchInGoodreads":
                 let goodreadsSearch = ( book.authors && book.titleShort && book.title ) ? vue.makeGoodReadsUrl( book ) : '';
-                if ( goodreadsSearch && vue.googleSheets ) goodreadsSearch = vue.googleSheetsLinkifyImage( goodreadsSearch, 'https://i.imgur.com/RPJRqNX.png' );
+                if ( goodreadsSearch && vue.googleSheets ) goodreadsSearch = vue.googleSheetsLinkifyImage( goodreadsSearch, 'https://i.imgur.com/RPJRqNX.png', 20 );
                 return goodreadsSearch || '';
                 break;
                 
               case "webPlayer":
                 let webPlayerURL = book.asin ? ('https://www.audible.com/webplayer?asin=' + book.asin) : '';
-                if ( webPlayerURL && vue.googleSheets ) webPlayerURL = vue.googleSheetsLinkifyImage( webPlayerURL, 'https://i.imgur.com/PdFLCdl.png' );
+                if ( webPlayerURL && vue.googleSheets ) webPlayerURL = vue.googleSheetsLinkifyImage( webPlayerURL, 'https://i.imgur.com/PdFLCdl.png', 20 );
                 return webPlayerURL || '';
                 break;
                 
@@ -306,6 +310,18 @@ export default {
                 return book.asin ? vue.makeUrl('book', book.asin) : '';
                 break;
               
+              case "asin":
+              case "length":
+              case "progress":
+              case "myRating":
+              case "rating":
+              case "ratings":
+              case "isbn":
+              case "isbn10":
+              case "isbn13":
+                return "'" + (book.[key] || '');
+                break;
+                
               default:
                 return book[key] || '';
                 break;
@@ -320,11 +336,15 @@ export default {
     googleSheetsLinkify: function( string, url ) {
       return '=HYPERLINK("'+ url +'";"'+ string.replace(/\"/g,'""') +'")';
     },
-    googleSheetsLinkifyImage: function( url, image ) {
-      return '=HYPERLINK("'+ url +'"; IMAGE("'+ image +'"))';
+    googleSheetsLinkifyImage: function( url, image, size ) {
+      size = size || 0;
+      let sizeString = size ? '; 4; '+size+'; '+size+'' : '';
+      return '=HYPERLINK("'+ url +'"; IMAGE("'+ image +'"'+ sizeString +'))';
     },
-    googleSheetsImagefy: function( url ) {
-      return '=IMAGE("'+ url +'")';
+    googleSheetsImagefy: function( url, size ) {
+      size = size || 0;
+      let sizeString = size ? '; 4; '+size+'; '+size+'' : '';
+      return '=IMAGE("'+ url +'"'+ sizeString +')';
     },
     
     processDataGoodreads: function( keys, dataSource ) {
@@ -381,8 +401,9 @@ export default {
                            started ? 'currently-reading' :
                            finished ? 'read' : 'to-read';
               shelves.push( status );
-              shelves.push('audible')
-              shelves.push('audiobook')
+              shelves.push('audible');
+              shelves.push('audiobook');
+              if ( book.fromPlusCatalog )shelves.push('audible-plus');
               let parentCategory = book.categories && book.categories[0] ? book.categories[0].name : null;
               if ( parentCategory ) shelves.push( vue.slugify(parentCategory));
               let childCategory = book.categories && book.categories[1] ? book.categories[1].name : null;

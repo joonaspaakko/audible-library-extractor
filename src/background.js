@@ -2,9 +2,32 @@ global.browser = require("webextension-polyfill");
 
 browser.runtime.onMessage.addListener(function(msg, sender) {
   if ( msg.pageAction == true && !browser.runtime.lastError ) {
-    browser.pageAction.show( sender.tab.id );
+    browser.pageAction.setIcon({
+      tabId: sender.tab.id,
+      path: 'assets/icons/16.png'
+    }).then(function() {
+      browser.pageAction.show( sender.tab.id );
+    });
   }
 });
+
+// https://developer.chrome.com/extensions/tabs
+// https://developer.chrome.com/extensions/tabs#event-onUpdated
+// browser.tabs.onUpdated.addListener(tabId => {
+//   // Error silencing: sometimes when you close a tab right after its created,
+//   // the pageAction.show() will throw an error because the tab doesn't exist anymore
+//   browser.tabs.get(tabId).then(data => {
+//     if (!browser.runtime.lastError) {
+//       browser.pageAction.setIcon({
+//         tabId: tabId,
+//         path: 'assets/icons-gray/16.png'
+//       }).then(function() {
+//         browser.pageAction.show(tabId);
+//       });
+//     }
+//   });
+// });
+
 
 // Extension icon click action....
 // https://developer.chrome.com/extensions/pageAction
@@ -14,7 +37,6 @@ browser.pageAction.onClicked.addListener(tabId => {
   // https://developer.chrome.com/extensions/tabs#method-query
   browser.tabs.query({ active: true, currentWindow: true }).then(tabs => {
     var tab = tabs[0];
-
     // Sends message to the content script...
     // https://developer.chrome.com/apps/messaging#simple
     // https://developer.chrome.com/extensions/tabs#method-sendMessage
@@ -45,7 +67,16 @@ browser.runtime.onMessage.addListener((message, sender) => {
 
 // CONTEXT MENU
 var domainExtension;
-browser.tabs.onActivated.addListener(() => {
+browser.tabs.onActivated.addListener((activeInfo) => {
+  
+  if ( !browser.runtime.lastError ) {
+    browser.pageAction.setIcon({
+      tabId: activeInfo.tabId,
+      path: 'assets/icons-gray/16.png'
+    }).then(function() {
+      browser.pageAction.show(tabId);
+    });
+  }
   
   // https://developer.chrome.com/apps/storage
   // Permission: "storage"
@@ -55,14 +86,18 @@ browser.tabs.onActivated.addListener(() => {
     // Permissions: contextMenus
     browser.contextMenus.removeAll();
     
-    var dataExists = typeof data === 'object' && data !== null && !!data.chunks && data.chunks.length === 0;
+    var dataExists = typeof data === 'object' && data !== null;
+    if ( dataExists && !!data.chunks && data.chunks.length === 0 ) storageHasData = false;
+                    
+    if ( data && data.extras ) domainExtension = data.extras['domain-extension'];
+    else { domainExtension = null; }
     
     data = null;
     
     if ( dataExists ) {
       browser.contextMenus.create({
         id: 'ale-to-gallery',
-        title: "Open gallery",
+        title: "Open extension gallery",
         contexts: ["browser_action", "page_action"]
       });
     }

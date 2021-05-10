@@ -26,6 +26,7 @@ export default {
           function(callback) {
             let url = new Url( DOMPurify.sanitize(baseUrl) );
             url.query.ale = true;
+            url.query.bp_ua = 'yes';
 
             axiosLimited.get(url.toString()).then(function(response) {
               const audible = $($.parseHTML(response.data)).find("div.adbl-main");

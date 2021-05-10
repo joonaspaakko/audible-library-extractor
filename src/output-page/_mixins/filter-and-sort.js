@@ -101,6 +101,7 @@ export default {
           case "authors.name":
           case "narrators.name":
           case "publishers.name":
+          case "categories":
             books = this.sortStringNameProp(sortOptions);
             break;
           case "narratorsNumber":
@@ -109,7 +110,6 @@ export default {
           case "title":
           case "series":
           case "format":
-          case "categories":
           case "isNew":
           case "language":
           case "fromPlusCatalog":

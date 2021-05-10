@@ -247,8 +247,9 @@ export default {
           // { storePageRequestUrl: 'https://www.audible.com/pd/The-Martian-Audiobook/B082BHJMFF', },
           // { storePageRequestUrl: 'https://www.audible.com/pd/The-Dire-King-Audiobook/B0751GMDXN', },
           // { storePageRequestUrl: 'https://www.audible.com/pd/Aliens-of-Extraordinary-Ability-Audiobook/B07TXLC1NF', },
-          { storePageRequestUrl: "https://www.audible.com/pd/B017J3ZQDG"},
-          { storePageRequestUrl: "https://www.audible.com/pd/B01F7M9KZG"},
+          // { storePageRequestUrl: "https://www.audible.com/pd/B017J3ZQDG"},
+          // { storePageRequestUrl: "https://www.audible.com/pd/B01F7M9KZG"},
+          { storePageRequestUrl: "https://www.audible.com/pd/B002V8MTGM"},
         ]
       };
 

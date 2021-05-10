@@ -146,17 +146,6 @@
           <ale-save-locally></ale-save-locally>
         </div>
         
-        <div
-        class="save-csv"
-        v-tippy
-        content="<strong>Download the spreadsheet as a CSV file.</strong> <br>Cells print out in plain text form, which means that none of the hyperlinks are included in the export."
-        v-if="this.$store.state.route && this.$store.state.route.name === 'ale-spreadsheet'"
-        @click="csvExportStarted"
-        >
-          <div class="icon">
-            <font-awesome fas icon="file-csv" />
-          </div>
-        </div>
       </div>
       
     </div>
@@ -228,12 +217,6 @@ export default {
         this.$store.state.displayMode &&
         (this.$routerHistory.hasPrevious() || this.$routerHistory.hasForward())
       );
-    },
-    
-    csvExportStarted: function() {
-      // Eventbus.$emit("csvExportStarted", {
-      //   from: "aleMenuActions"
-      // });
     },
     
     toggleMobileMenu: function() {

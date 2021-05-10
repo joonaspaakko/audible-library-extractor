@@ -5,7 +5,7 @@
       <div class="search-opts-arrow" :style="css.arrow"></div>
       
       <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="css.filter">
-        <li class="reset-filters" @click="resetFilters">
+        <li class="reset-filters" @click="resetFilters" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
           <font-awesome fas icon="redo-alt" />
         </li>
         <li class="total">{{ $store.getters.collection.length }} / {{ total }}</li>
@@ -258,6 +258,7 @@ export default {
   }
   
   .reset-filters {
+    outline: none;
     cursor: pointer;
     position: absolute;
     z-index: 25;

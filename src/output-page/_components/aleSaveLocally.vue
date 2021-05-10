@@ -25,14 +25,11 @@
 </template>
 
 <script>
-import saveGallery from "@output-snippets/save-gallery.vue";
-import saveCsv from "@output-snippets/save-csv.vue";
-
 export default {
   name: "aleSaveLocally",
   components: {
-    saveGallery,
-    saveCsv,
+    saveGallery: () => import( /* webpackChunkName: "grid-view" */ "@output-snippets/save-gallery.vue"),
+    saveCsv: () => import( /* webpackChunkName: "grid-view" */ "@output-snippets/save-csv.vue"),
   },
   data: function() {
     return {
