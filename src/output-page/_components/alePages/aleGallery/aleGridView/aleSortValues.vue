@@ -34,7 +34,12 @@ export default {
       switch( sortKey ) {
         
         case "bookNumbers":
-          if (this.book.series) {
+          
+          if ( this.$route.params.series && this.book.series ) {
+            let activeSeries = _.find( this.book.series, { asin: this.$route.params.series });
+            return activeSeries && _.isArray(activeSeries.bookNumbers) ? activeSeries.bookNumbers.join(", ") : '';
+          }
+          else if (this.book.series) {
             
             let allNumbers = _.filter( this.book.series, 'bookNumbers')
             allNumbers = _.map( allNumbers, "bookNumbers");

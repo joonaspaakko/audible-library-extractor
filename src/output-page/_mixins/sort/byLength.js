@@ -7,14 +7,7 @@ export default {
         params.books, 
         function( book ) {
           
-          switch (params.sortKey) {
-            case 'narratorsNumber':
-              if ( book.narrators ) return book.narrators.length;
-              break;
-          
-            default:
-              break;
-          }
+          return params.sortKey === 'narratorsNumber' && book.narrators ? book.narrators.length : 0;
           
         },
         params.direction

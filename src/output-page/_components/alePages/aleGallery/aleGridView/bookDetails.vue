@@ -340,7 +340,7 @@ export default {
           );
         }
       } else {
-        return "<div>Length: " + book.length + "</div>";
+        return "<div>Length: " + (book.length || 'unkown') + "</div>";
       }
     },
     

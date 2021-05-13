@@ -99,7 +99,12 @@ export default new Vuex.Store({
     updateListRenderingOpts: function(state, o) {
       
       let currentList = state.listRenderingOpts[o.listName];
-      let currentItem = currentList[o.index];
+      let currentItem = currentList[ (o.index === 0 || o.index) ? o.index : _.findIndex( currentList, { key: o.key })];
+      
+      if ( o.sortValues !== undefined ) {
+        let sortValues = _.find( state.listRenderingOpts.sort, { key: 'sortValues' });
+        if ( sortValues ) sortValues.active = o.sortValues;
+      }
       
       // if ( o.group ) {
       //   let groupies = _.filter( currentList, { group: currentItem.group });
@@ -107,6 +112,7 @@ export default new Vuex.Store({
       //     groupie.active = false;
       //   });
       // }
+      
       currentItem.active = o.active;
       if ( o.range ) currentItem.range = o.range;
       

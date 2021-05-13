@@ -86,10 +86,9 @@ browser.tabs.onActivated.addListener((activeInfo) => {
     // Permissions: contextMenus
     browser.contextMenus.removeAll();
     
-    var dataExists = typeof data === 'object' && data !== null;
-    if ( dataExists && !!data.chunks && data.chunks.length === 0 ) storageHasData = false;
+    var dataExists = typeof data === 'object' && data.chunks && data.chunks.length > 0;
                     
-    if ( data && data.extras ) domainExtension = data.extras['domain-extension'];
+    if ( data && data.extras ) domainExtension = !!data.extras['domain-extension'];
     else { domainExtension = null; }
     
     data = null;

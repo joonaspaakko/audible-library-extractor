@@ -20,7 +20,6 @@ export default {
               // return titleLowercase.toLowerCase();
               return o.title || o.titleShort;
             } else {
-              console.log( sortValue )
               if ( vue.$store.state.sticky.viewMode === 'grid' && _.isArray( sortValue ) && (_.find( sortValue, 'name') ? true : false) ) { 
                 return _.map(sortValue, 'name').join(', ');
               }

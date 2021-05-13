@@ -12,7 +12,7 @@
     </div>
     <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
       
-      <div class="show-all-toggle">
+      <div class="show-all-toggle" v-if="showAllToggle">
         <div @click="toggleAll" :content="$store.state.sticky.booksInSeriesAll ? 'Hide books in the series that are not in your library' : 'Show all books in the series'" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }">
           <span>{{ $store.state.sticky.booksInSeriesAll ? 'Hide' : 'Show' }}</span> <font-awesome :icon="['fas', 'ban']" />
         </div>
@@ -80,6 +80,7 @@ export default {
   data: function() {
     return {
       inSeries: false,
+      showAllToggle: false,
       series: {
         collection: null,
         toggle: false
@@ -88,6 +89,7 @@ export default {
   },
 
   created: function() {
+    
     
     this.series.collection = this.getBooksInSeries();
     this.series.count = this.getSeriesCount();
@@ -175,14 +177,19 @@ export default {
           });
           if (allBooksInSeries) {
             
-            let booksSource = vue.$store.state.sticky.booksInSeriesAll ? allBooksInSeries.allBooks : allBooksInSeries.books;
+            let booksSource = allBooksInSeries.books;
+            
+            if ( !!allBooksInSeries.allBooks ) {
+              if ( vue.$store.state.sticky.booksInSeriesAll ) booksSource = allBooksInSeries.allBooks;
+              vue.showAllToggle = true;
+            }
             
             series.push({
               asin: currentSeries.asin,
               name: currentSeries.name,
               length: allBooksInSeries.length,
               books: _.map( booksSource , function( book ) {
-                let asin = vue.$store.state.sticky.booksInSeriesAll ? book.asin : book;
+                let asin = book.asin || book;
                 let inLibrary = _.includes( allBooksInSeries.books, asin );
                 if ( inLibrary ) {
                   return _.find(vue.$store.state.library.books, { asin: asin });

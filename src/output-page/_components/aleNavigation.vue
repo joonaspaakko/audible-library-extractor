@@ -18,7 +18,8 @@
         <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="$store.state.library.books && routeExists('anySubPage')" @click="subMenuClicked">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
-            <span>Sub pages</span>
+            <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">{{ $route.meta.title }}</span>
+            <span v-else>Sub pages</span>
             <div class="sub-menu">
               
               <div class="text-button" v-if="routeExists('categories')">

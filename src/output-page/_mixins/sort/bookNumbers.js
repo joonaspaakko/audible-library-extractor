@@ -14,27 +14,38 @@ export default {
     },
     
     sortBookNumbersOriginal: function(params) {
+      
+      const seriesAsin = this.$route.params.series;
+      
       return _.orderBy(
         params.books, 
           function(o) {
             
-            let anyNumbers = _.find(o.series, "bookNumbers");
-            if (anyNumbers) {
-              
-              let allNumbers = _.filter( o.series, 'bookNumbers')
-              allNumbers = _.map( allNumbers, 'bookNumbers')
-              allNumbers = _.flatten( allNumbers );
-              if (_.isEmpty( allNumbers ) ) allNumbers = null;
-              
-              const numbers = _.isArray(allNumbers) ? allNumbers[0] : allNumbers;
-              const dashSplit = typeof numbers == "string" ? numbers.split("-") : [numbers];
-              return parseFloat(dashSplit[0]);
-            } 
+            if ( seriesAsin && o.series ) {
+              let activeSeries = _.find( o.series, { asin: seriesAsin });
+              return _.isArray(activeSeries.bookNumbers) ? activeSeries.bookNumbers[0] : undefined;
+            }
             else {
+                
+              let anyNumbers = _.find(o.series, "bookNumbers");
+              if (anyNumbers) {
+                
+                let allNumbers = _.filter( o.series, 'bookNumbers')
+                allNumbers = _.map( allNumbers, 'bookNumbers')
+                allNumbers = _.flatten( allNumbers );
+                if (_.isEmpty( allNumbers ) ) allNumbers = null;
+                
+                const numbers = _.isArray(allNumbers) ? allNumbers[0] : allNumbers;
+                const dashSplit = typeof numbers == "string" ? numbers.split("-") : [numbers];
+                return parseFloat(dashSplit[0]);
+              } 
+              else {
+                
+                let inSeries = _.find(o.series);
+                if ( inSeries ) return -1; // In series: no number
+                else return -2; // Not in series
+              }
               
-              let inSeries = _.find(o.series);
-              if ( inSeries ) return -1; // In series: no number
-              else return -2; // Not in series
             }
           },
         // ],

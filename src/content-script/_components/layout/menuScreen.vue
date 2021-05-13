@@ -663,7 +663,6 @@ export default {
   }
 
   .other-btns {
-    max-width: 300px;
     margin: 6px auto 0;
     button {
       width: 100%;
