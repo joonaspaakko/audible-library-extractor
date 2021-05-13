@@ -57,6 +57,15 @@
                 </router-link>
               </div>
               
+              <div class="text-button" v-if="routeExists('publishers')">
+                <router-link :to="{ name: 'publishers' }" @click.native="linkClicked('publishers')">
+                  <div class="icon">
+                    <font-awesome fas icon="book" />
+                    <span>Publishers</span>
+                  </div>
+                </router-link>
+              </div>
+              
             </div>
           </div>
         </div>
@@ -188,13 +197,25 @@ export default {
   
   created: function() {
     this.$root.$on("play-audio", this.playSample);
+    document.addEventListener("mousedown", this.outsideClick);
   },
 
   beforeDestroy: function() {
     this.$root.$off("play-audio", this.playSample);
+    document.addEventListener("mousedown", this.outsideClick);
   },
   
   methods: {
+    
+    outsideClick: function(e) {
+      if (this.subMenuActive) {
+        var subMenu = e.target.closest(".sub-menu");
+        var subMenuActive = e.target.closest(".sub-menu-active");
+        if (!subMenu && !subMenuActive) {
+          this.subMenuActive = false;
+        }
+      }
+    },
     
     subMenuClicked: function() {
       

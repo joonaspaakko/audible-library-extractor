@@ -29,6 +29,7 @@ import prepCollectionsSubPage from "@output-mixins/prepCollectionsSubPage.js";
 import prepSeriesSubPage from "@output-mixins/prepSeriesSubPage.js";
 import prepNarratorsSubPage from "@output-mixins/prepNarratorsSubPage.js";
 import prepAuthorsSubPage from "@output-mixins/prepAuthorsSubPage.js";
+import prepPublishersSubPage from "@output-mixins/prepPublishersSubPage.js";
 import prepWishlist from "@output-mixins/prepWishlist.js";
 
 import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
@@ -54,6 +55,7 @@ export default {
     prepSeriesSubPage,
     prepNarratorsSubPage,
     prepAuthorsSubPage,
+    prepPublishersSubPage,
     prepWishlist,
     timeStringToSeconds,
     galleryListRenderingOpts,
@@ -89,6 +91,7 @@ export default {
     this.prepSeriesSubPage();
     this.prepNarratorsSubPage();
     this.prepAuthorsSubPage();
+    this.prepPublishersSubPage();
     this.prepWishlist();
     
     this.prepsCompleted = true;

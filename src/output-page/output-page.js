@@ -136,6 +136,14 @@ var routesPrep = function( libraryData ) {
           { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
         ],
       },
+      publishers: {
+        path: "/publishers",
+        component: aleLibraryView,
+        children: [
+          { name: "publishers", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/alePublishers"), meta: { subPage: true, title: 'Publishers' } },
+          { name: "publisher", path: ":publisher", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Publishers' } }
+        ],
+      },
     };
     
     // Standalone-gallery SUBPAGES

@@ -47,10 +47,15 @@
 <script>
 export default {
   name: "saveGallery",
-  mounted: function() {
+  beforeMount: function() {
     
     if ( this.$store.state.sticky.exportSettingsGallery ) {
-      this.dataSources = this.$store.state.sticky.exportSettingsGallery;
+      let vue = this;
+      _.each(this.$store.state.sticky.exportSettingsGallery, function( stickySource ) {
+        var source = _.find(vue.dataSources, { key: stickySource.key });
+        source.checked = stickySource.checked;
+        source.disabled = stickySource.disabled;
+      });
     }
     
   },
@@ -107,6 +112,7 @@ export default {
         { checked: true, disabled: false, key: 'Series', parent: 'Library', subPage: true },
         { checked: true, disabled: false, key: 'Authors', parent: 'Library', subPage: true },
         { checked: true, disabled: false, key: 'Narrators', parent: 'Library', subPage: true },
+        { checked: true, disabled: false, key: 'Publishers', parent: 'Library', subPage: true },
         { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
         { checked: true, disabled: false, key: 'Wishlist' },
       ],
