@@ -1,11 +1,14 @@
 global.browser = require("webextension-polyfill");
 
+var activeIcons = [];
+
 browser.runtime.onMessage.addListener(function(msg, sender) {
   if ( msg.pageAction == true && !browser.runtime.lastError ) {
     browser.pageAction.setIcon({
       tabId: sender.tab.id,
       path: 'assets/icons/16.png'
     }).then(function() {
+      activeIcons.push( sender.tab.id );
       browser.pageAction.show( sender.tab.id );
     });
   }
@@ -70,12 +73,18 @@ var domainExtension;
 browser.tabs.onActivated.addListener((activeInfo) => {
   
   if ( !browser.runtime.lastError ) {
-    browser.pageAction.setIcon({
-      tabId: activeInfo.tabId,
-      path: 'assets/icons-gray/16.png'
-    }).then(function() {
-      browser.pageAction.show(tabId);
-    });
+    if ( activeIcons.indexOf(activeInfo.tabId) >-1 ) {
+      // browser.pageAction.show(tabId);
+    }
+    else {
+      browser.pageAction.setIcon({
+        tabId: activeInfo.tabId,
+        path: 'assets/icons-gray/16.png'
+      }).then(function() {
+        browser.pageAction.show(activeInfo.tabId);
+      });
+    }
+    
   }
   
   // https://developer.chrome.com/apps/storage
@@ -88,7 +97,7 @@ browser.tabs.onActivated.addListener((activeInfo) => {
     
     var dataExists = typeof data === 'object' && data.chunks && data.chunks.length > 0;
                     
-    if ( data && data.extras ) domainExtension = !!data.extras['domain-extension'];
+    if ( data && data.extras ) domainExtension = data.extras['domain-extension'];
     else { domainExtension = null; }
     
     data = null;
@@ -108,6 +117,12 @@ browser.tabs.onActivated.addListener((activeInfo) => {
         contexts: ["browser_action", "page_action"]
       });
     }
+    
+    browser.contextMenus.create({
+      id: 'ale-to-docs',
+      title: "Open documentation",
+      contexts: ["browser_action", "page_action"]
+    });
     
     browser.contextMenus.create({
       id: 'ale-to-github',
@@ -141,7 +156,11 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
     newTab.url = "https://audible"+ domainExtension +"/library/titles";
     browser.tabs.create(newTab);
   }
-  if ( info.menuItemId === 'ale-to-github' ) {
+  else if ( info.menuItemId === 'ale-to-docs' ) {
+    newTab.url = "https://joonaspaakko.gitbook.io/audible-library-extractor/";
+    browser.tabs.create(newTab);
+  }
+  else if ( info.menuItemId === 'ale-to-github' ) {
     newTab.url = "https://github.com/joonaspaakko/audible-library-extractor";
     browser.tabs.create(newTab);
   }

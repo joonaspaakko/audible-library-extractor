@@ -47,26 +47,14 @@
 <script>
 export default {
   name: "saveGallery",
-  beforeMount: function() {
-    
-    if ( this.$store.state.sticky.exportSettingsGallery ) {
-      let vue = this;
-      _.each(this.$store.state.sticky.exportSettingsGallery, function( stickySource ) {
-        var source = _.find(vue.dataSources, { key: stickySource.key });
-        source.checked = stickySource.checked;
-        source.disabled = stickySource.disabled;
-      });
-    }
-    
-  },
   data: function() {
     return {
       files: [
         "output-page.js",
         "output-page.css",
         
-        "chunks/723.css",
-        "chunks/723.js",
+        "chunks/428.css",
+        "chunks/428.js",
         "chunks/772.js",
         "chunks/772.js.LICENSE.txt",
         "chunks/audio-player.css",
@@ -111,12 +99,12 @@ export default {
       ],
       dataSources: [
         { checked: true, disabled: false, key: 'Library' },
-        { checked: true, disabled: false, key: 'Categories', parent: 'Library', subPage: true },
-        { checked: true, disabled: false, key: 'Series', parent: 'Library', subPage: true },
-        { checked: true, disabled: false, key: 'Authors', parent: 'Library', subPage: true },
-        { checked: true, disabled: false, key: 'Narrators', parent: 'Library', subPage: true },
-        { checked: true, disabled: false, key: 'Publishers', parent: 'Library', subPage: true },
         { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
+        { checked: true, disabled: false, key: 'Categories', parent: ['Library', 'Wishlist'], subPage: true },
+        { checked: true, disabled: false, key: 'Series', parent: ['Library', 'Wishlist'], subPage: true },
+        { checked: true, disabled: false, key: 'Authors', parent: ['Library', 'Wishlist'], subPage: true },
+        { checked: true, disabled: false, key: 'Narrators', parent: ['Library', 'Wishlist'], subPage: true },
+        { checked: true, disabled: false, key: 'Publishers', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Wishlist' },
       ],
       zip: null,
@@ -124,6 +112,24 @@ export default {
       bundling: false,
       saveBtnEnabled: true,
     };
+  },
+  
+  beforeMount: function() {
+    
+    if ( this.$store.state.sticky.exportSettingsGallery ) {
+      let vue = this;
+      _.each(this.$store.state.sticky.exportSettingsGallery, function( stickySource ) {
+        var source = _.find(vue.dataSources, { key: stickySource.key });
+        source.checked = stickySource.checked;
+        source.disabled = stickySource.disabled;
+      });
+    }
+    
+    let librarySource = _.find( this.dataSources, { key: 'Library' });
+    librarySource.disabled =  !this.$store.state.library.books;
+    let wishlistSource = _.find( this.dataSources, { key: 'Wishlist' });
+    wishlistSource.disabled =  !this.$store.state.library.wishlist;
+    
   },
   
   beforeDestroy: function() {
@@ -240,10 +246,31 @@ export default {
     
     sourceChecked: function( e, item ) {
       
+      let vue = this; 
+      
       // Toggle children with parent
-      let children = _.filter( this.dataSources, { parent: item.key });
-      _.each( children, function( item ) {
-        item.disabled = !e.target.checked;
+      let children = _.filter( this.dataSources, function( source ) {
+        return _.isArray(source.parent) ? _.includes(source.parent, item.key) : source.parent === item.key;
+      });
+      _.each( children, function( child ) {
+        
+        if ( _.isArray(child.parent) ) {
+          
+          let parents = _.map( child.parent, function( parent ) {
+            return _.find( vue.dataSources, { key: parent });
+          });
+          let parentsEnabled = _.filter( parents, function( parent) {
+            return parent.checked && !parent.disabled;
+          }).length > 0;
+          
+          child.disabled = (!e.target.checked && !parentsEnabled);
+          
+        }
+        else {
+          child.disabled = !e.target.checked;
+        }
+        
+        
       });
       
       // Disable download button if the chosen data sources aren't going to work...

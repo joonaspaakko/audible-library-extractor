@@ -8,9 +8,11 @@ export default {
       // if ( isbn13 ) isbn13 = isbn13.identifier
       book = book || this.book;
       const author = book.authors ? (book.authors[0].name + " - ") : '';
-      const authorBook = author + ( book.titleShort || book.title );
+      const title = author + ( book.titleShort || book.title );
+      if ( author && title || title ) {
+        return "https://www.goodreads.com/search?q=" + encodeURIComponent(author && title);
+      }
       
-      return "https://www.goodreads.com/search?q=" + encodeURIComponent(authorBook);
       // return "https://www.goodreads.com/search?q=" + (isbn10 || isbn13 || encodeURIComponent(authorBook) );
       
     }

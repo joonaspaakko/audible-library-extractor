@@ -477,7 +477,7 @@ const standalone = document.querySelector("html.standalone-gallery");
 // APP prep
 // For testing purposes: offloading JSON
 var offLoadJSON = false;
-var offLoadJSON = require('./anesone-data.json');
+// var offLoadJSON = require('./test-data.json');
 if ( offLoadJSON ) {
   startVue( offLoadJSON );
 }

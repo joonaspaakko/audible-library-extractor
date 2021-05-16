@@ -3,6 +3,8 @@
     
     <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
     
+    <library-wishlist-switcher v-if="$route.meta.subPage" :aboveSearch="true" />
+    
     <div
     id="ale-search-wrap"
     ref="searchWrap"
@@ -44,7 +46,7 @@ import searchIcons from "./aleSearch/searchIcons";
 import searchOptions from "./aleSearch/searchOptions";
 import filterAndSort from "@output-mixins/filter-and-sort.js";
 import pageTitle from "@output-snippets/page-title.vue";
-
+import libraryWishlistSwitcher from "@output-snippets/library-wishlist-switcher.vue";
 
 export default {
   name: "aleBookdetails",
@@ -53,6 +55,7 @@ export default {
     searchOptions,
     viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
     pageTitle,
+    libraryWishlistSwitcher,
   },
   mixins: [filterAndSort],
   props: ['collectionSource', 'pageTitle', 'pageSubTitle'],

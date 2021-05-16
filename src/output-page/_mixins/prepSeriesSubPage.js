@@ -9,7 +9,7 @@ export default {
         
         const seriesASIN = this.$route.params.series;
         const series = _.find( this.$store.state.library.series, { asin: seriesASIN });
-        const seriesHasBooks = series.books.length > 0;
+        const seriesHasBooks = series && series.books && series.books.length > 0;
         
         if ( seriesHasBooks ) {
           // Add book number sorting + activate sort values
@@ -31,7 +31,7 @@ export default {
         }
         
         // Build series sub page array 
-        let books = _.filter( this.$store.state.library.books, function( book ) {
+        let books = _.filter( this.findSubPageSource(), function( book ) {
           if ( seriesHasBooks ) {
             return _.includes( series.books, book.asin );
           }

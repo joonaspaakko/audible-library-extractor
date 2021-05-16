@@ -15,10 +15,22 @@
           </router-link>
         </div>
         
+        <div class="text-button collections-page" v-if="$store.state.library.collections && routeExists('collections')">
+          <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
+          <div class="icon">
+            <font-awesome fas icon="folder-open" />
+            <span>Collections</span>
+          </div>
+          </router-link>
+        </div>
+        
         <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="$store.state.library.books && routeExists('anySubPage')" @click="subMenuClicked">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
-            <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">{{ $route.meta.title }}</span>
+            <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">
+              {{ $store.state.sticky.subPageSource === 'books' ? 'Library: ' : 'Wishlist: ' }}
+              {{ $route.meta.title }}
+            </span>
             <span v-else>Sub pages</span>
             <div class="sub-menu">
               
@@ -88,15 +100,6 @@
             </div>
           </router-link>
         </div> -->
-        
-        <div class="text-button collections-page" v-if="$store.state.library.collections && routeExists('collections')">
-          <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
-          <div class="icon">
-            <font-awesome fas icon="folder-open" />
-            <span>Collections</span>
-          </div>
-          </router-link>
-        </div>
         
         <div class="text-button wishlist-page" v-if="$store.state.library.wishlist && routeExists('wishlist')">
           <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">

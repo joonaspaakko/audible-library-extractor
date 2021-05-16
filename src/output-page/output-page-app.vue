@@ -3,8 +3,11 @@
         
     <ale-background v-if="$store.state.showBackground"></ale-background>
     <ale-navigation></ale-navigation>
-    <router-view :key="$route.name+$store.state.viewRefresh"></router-view>
-    <!-- <router-view :key="$route.name+($route.query.refresh ? '-refresh' : '')"></router-view> -->
+    
+    <router-view v-if="$route.name !== '404'" :key="$route.name+$store.state.viewRefresh"></router-view>
+    <div v-else id="nothing-here-404">
+      <h3>404: There's nothing here</h3>
+    </div>
     
   </div>
 </template>
@@ -312,6 +315,15 @@ body {
   }
   &[x-placement^="left"] .tippy-arrow {
     border-left-color: $lightBackColor;
+  }
+}
+
+#nothing-here-404 {
+  text-align: center;
+  font-size: 2em;
+  line-height: 2em;
+  @include themify($themes) {
+    color: themed(frontColor);
   }
 }
 </style>

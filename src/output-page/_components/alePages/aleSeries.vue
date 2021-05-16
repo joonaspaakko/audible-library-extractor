@@ -8,10 +8,10 @@
     v-if="item.asin"
     :key="'series:'+item.asin"
     >
-      <router-link :to="{ name: 'series', params: { series: item.asin } }">
+      <router-link :to="{ name: 'series', params: { series: item.asin }, query: { subPageSource: $store.state.sticky.subPageSource } }">
         
         <h2>{{ item.name }}</h2>
-
+        
         <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
           {{ item.books.length }}
         </div>
@@ -26,6 +26,7 @@
 
 import lazy from "@output-snippets/lazy.vue";
 import aleSearch from "./aleGallery/aleSearch";
+import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
   name: "aleSeries",
@@ -33,6 +34,7 @@ export default {
     aleSearch,
     lazy,
   },
+  mixins: [findSubPageSource],
   data: function() {
     return {
       collectionSource: 'pageCollection',
@@ -50,58 +52,76 @@ export default {
   },
   
   created: function() {
-    
-    const vue = this;
-    let seriesCollection = [];
-    let addedCounter = 1;
-    
-    let librarySeries = this.$store.state.library.series;
-    
-    // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
-    _.eachRight(this.$store.state.library.books, function(book) {
-      
-      if (book.series) {
-        
-        _.each(book.series, function(series) {
-          
-          const seriesAdded = _.find(seriesCollection, { asin: series.asin });
-          
-          // Series not in the collection so add it with the book...
-          if ( !seriesAdded ) {
-            const newSeries = {
-              name: series.name,
-              asin: series.asin,
-              added: addedCounter,
-              books: [ book.title || book.shortTitle ],
-            };
-            
-            // Only add if it's in the library series array as well...
-            if ( _.find( librarySeries, { asin: series.asin }) ) {
-              ++addedCounter;
-              seriesCollection.push( newSeries );
-            }
-          }
-          // Series already exists in the collection so just add the book...
-          else {
-            seriesAdded.books.push( book.title || book.shortTitle );
-            return false;
-          }
-          
-        });
-      }
-      
-    });
-    
-    _.reverse( seriesCollection );
-    
-    this.$store.commit("prop", { key: "pageCollection", value: seriesCollection });
-    this.updateListRenderingOptions();
-    
-    this.listReady = true;
-    
+    this.makeCollection();
+  },
+  
+  watch: {
+    '$store.state.sticky.subPageSource': function( source ) {
+      this.listReady = false;
+      this.$nextTick(function() {
+        this.makeCollection();
+      });
+    }
   },
   
   methods: {
+      
+    makeCollection: function() {
+      
+      const vue = this;
+      let seriesCollection = [];
+      let addedCounter = 1;
+      
+      let librarySeries = this.$store.state.library.series;
+      
+      // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
+      _.eachRight(this.findSubPageSource(), function(book) {
+        
+        if (book.series) {
+          
+          _.each(book.series, function(series) {
+            
+            const seriesAdded = _.find(seriesCollection, { asin: series.asin });
+            
+            // Series not in the collection so add it with the book...
+            if ( !seriesAdded ) {
+              const newSeries = {
+                name: series.name,
+                asin: series.asin,
+                added: addedCounter,
+                books: [ book.title || book.shortTitle ],
+              };
+              
+              // Only add if it's in the library series array as well...
+              if ( vue.$store.state.sticky.subPageSource === 'books' && !!librarySeries && _.find( librarySeries, { asin: series.asin }) ) {
+                ++addedCounter;
+                seriesCollection.push( newSeries );
+              }
+              else if ( vue.$store.state.sticky.subPageSource === 'wishlist' ) {
+                ++addedCounter;
+                seriesCollection.push( newSeries ); 
+              }
+            }
+            // Series already exists in the collection so just add the book...
+            else {
+              seriesAdded.books.push( book.title || book.shortTitle );
+              return false;
+            }
+            
+          });
+        }
+        
+      });
+      
+      _.reverse( seriesCollection );
+      
+      this.$store.commit("prop", { key: "pageCollection", value: seriesCollection });
+      this.updateListRenderingOptions();
+      
+      this.listReady = true;
+      
+    },
+    
     updateListRenderingOptions: function() {
       let vue = this;
       const list = {

@@ -152,7 +152,13 @@ export default {
           
         case "narratorsNumber":
           if ( this.book.narrators ) {
-            return this.book.narrators.length;
+            let hasFullCast = _.find( this.book.narrators, function( narrator ) { return narrator.name.match('full cast') });
+            if ( hasFullCast && this.book.narrators.length === 1 ) {
+              return '​∞ full cast';
+            }
+            else {
+              return (this.book.narrators.length -(hasFullCast ? 1 : 0)) + (hasFullCast ? ' full cast' : '');
+            }
           }
           else { return this.notAvailable; }
           break;

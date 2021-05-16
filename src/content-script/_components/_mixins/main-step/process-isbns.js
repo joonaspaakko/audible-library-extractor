@@ -67,7 +67,7 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
     }
   });
   const isbn = rateLimit(letMeAxiosAQuestion, {
-    maxRequests: 10,
+    maxRequests: 6,
     perMilliseconds: 1100
   });
 

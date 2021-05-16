@@ -4,7 +4,7 @@
     <h2><font-awesome :icon="['fas', 'file-csv']" /> CSV (Spreadsheet)</h2>
 
     <div class="description">
-      CSV is a generic file format for tabular data that is supported by any proper spreadsheet application. That said Excels CSV import is not the greatest. My recommendation would be Google Sheets, but if you want to have it in a desktop application, my recommendation would be Libre Office.
+      CSV is a generic file format for tabular data that is supported by any proper spreadsheet application. 
     </div>
 
     <h3>Data source:</h3>
@@ -255,8 +255,8 @@ export default {
                 break;
                 
               case "cover":
-                let cover = vue.makeCoverUrl(book.cover) || '';
-                if ( cover && book.asin && vue.googleSheets ) {
+                let cover = !book.cover ? '' : vue.makeCoverUrl(book.cover);
+                if ( book.cover && cover && book.asin && vue.googleSheets ) {
                   cover = vue.googleSheetsLinkifyImage( vue.makeUrl('book', book.asin), vue.makeCoverUrl(book.cover, 75), 0 );
                 }
                 return cover;
@@ -287,7 +287,7 @@ export default {
                 break;
                 
               case "searchInGoodreads":
-                let goodreadsSearch = ( book.authors && book.titleShort && book.title ) ? vue.makeGoodReadsUrl( book ) : '';
+                let goodreadsSearch = vue.makeGoodReadsUrl( book );
                 if ( goodreadsSearch && vue.googleSheets ) goodreadsSearch = vue.googleSheetsLinkifyImage( goodreadsSearch, 'https://i.imgur.com/RPJRqNX.png', 20 );
                 return goodreadsSearch || '';
                 break;

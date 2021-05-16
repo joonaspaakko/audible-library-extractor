@@ -15,13 +15,4 @@ export default {
 
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
-
-#nothing-here-404 {
-  text-align: center;
-  font-size: 2em;
-  line-height: 2em;
-  @include themify($themes) {
-    color: themed(frontColor);
-  }
-}
 </style>

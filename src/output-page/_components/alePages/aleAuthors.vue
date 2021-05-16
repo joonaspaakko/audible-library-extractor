@@ -9,7 +9,7 @@
     v-if="item.name"
     :key="'authors:'+item.url"
     >
-      <router-link :to="{ name: 'author', params: { author: item.url } }">
+      <router-link :to="{ name: 'author', params: { author: item.url }, query: { subPageSource: $store.state.sticky.subPageSource } }">
         
         <h2>{{ item.name }}</h2>
         
@@ -28,6 +28,7 @@
 import lazy from "@output-snippets/lazy.vue";
 import aleSearch from "./aleGallery/aleSearch";
 import slugify from "@output-mixins/slugify";
+import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
   name: "aleAuthors",
@@ -35,7 +36,7 @@ export default {
     aleSearch,
     lazy,
   },
-  mixins: [slugify],
+  mixins: [slugify, findSubPageSource],
   data: function() {
     return {
       collectionSource: 'pageCollection',
@@ -53,54 +54,68 @@ export default {
   },
   
   created: function() {
-    
-    const vue = this;
-    let authorsCollection = [];
-    let addedCounter = 1;
-    
-    // Processed in reverse order so that the "added" order is based on the first book added to the library of each author.
-    _.eachRight(this.$store.state.library.books, function(book) {
-      
-      if ( book.authors ) {
-        
-        _.each(book.authors, function(author) {
-          
-          let authorsAdded = _.find(authorsCollection, { url: author.url });
-          
-          // Author not in the collection so add it with the book...
-          if ( !authorsAdded ) {
-            const newSeries = {
-              name: author.name,
-              url: author.url,
-              added: addedCounter,
-              books: [ book.title || book.shortTitle ],
-            };
-            
-            authorsCollection.push( newSeries );
-            ++addedCounter;
-            
-          }
-          // Series already exists in the collection so just add the book...
-          else {
-            authorsAdded.books.push( book.title || book.shortTitle );
-            return false;
-          }
-          
-        });
-      }
-      
-    });
-    
-    _.reverse( authorsCollection );
-    
-    this.$store.commit("prop", { key: "pageCollection", value: authorsCollection });
-    this.updateListRenderingOptions();
-    
-    this.listReady = true;
-    
+    this.makeCollection();
+  },
+  
+  watch: {
+    '$store.state.sticky.subPageSource': function( source ) {
+      this.listReady = false;
+      this.$nextTick(function() {
+        this.makeCollection();
+      });
+    }
   },
   
   methods: {
+    
+    makeCollection: function() {
+      
+      const vue = this;
+      let authorsCollection = [];
+      let addedCounter = 1;
+      
+      // Processed in reverse order so that the "added" order is based on the first book added to the library of each author.
+      _.eachRight(this.findSubPageSource(), function(book) {
+        
+        if ( book.authors ) {
+          
+          _.each(book.authors, function(author) {
+            
+            let authorsAdded = _.find(authorsCollection, { url: author.url });
+            
+            // Author not in the collection so add it with the book...
+            if ( !authorsAdded ) {
+              const newSeries = {
+                name: author.name,
+                url: author.url,
+                added: addedCounter,
+                books: [ book.title || book.shortTitle ],
+              };
+              
+              authorsCollection.push( newSeries );
+              ++addedCounter;
+              
+            }
+            // Series already exists in the collection so just add the book...
+            else {
+              authorsAdded.books.push( book.title || book.shortTitle );
+              return false;
+            }
+            
+          });
+        }
+        
+      });
+      
+      _.reverse( authorsCollection );
+      
+      this.$store.commit("prop", { key: "pageCollection", value: authorsCollection });
+      this.updateListRenderingOptions();
+      
+      this.listReady = true;
+      
+    },
+    
     updateListRenderingOptions: function() {
       let vue = this;
       const list = {

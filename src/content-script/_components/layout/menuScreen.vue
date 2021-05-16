@@ -45,7 +45,7 @@
         </div>
 
         <b-message class="description">
-          The extraction process will always retain any previously extracted data, so it will just add or overwrite data from the selected options. For example: if you extracted the library previously, you don't have to extract it again if you just want to for example add the wishlist.
+          If you extracted something previously, you don't have to extract it again if you just want to for example add the wishlist.
           <!-- You can fetch <b-tag type="is-warning">collections</b-tag> and <b-tag type="is-warning">wishlist</b-tag> now and discard them later when saving the gallery as a stand-alone website. <b-tag type="is-warning">ISBNs</b-tag> are merged with the library books and can't be removed later, not that there should be any need to do that. -->
         </b-message>
       </div>
@@ -75,6 +75,15 @@
           Partial extraction
         </b-button> -->
         <b-button
+        tag="a"
+        href="https://joonaspaakko.gitbook.io/audible-library-extractor/"
+        target="_blank"
+        class="control" size="is-small"
+        icon-pack="fas" icon-right="share-square"
+        >
+          Documentation
+        </b-button>
+        <b-button
         :disabled="outputPageDisabled"
         @click="takeNextStep('output')"
         class="control" size="is-small"
@@ -96,32 +105,13 @@
       trigger: 'click',
       interactive: true,
     }"
-    content="
-    <div style='text-align: left; max-height: 350px; overflow: scroll; padding: 20px;'>
-      <strong>v.0.2.5</strong>
-      <ul>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/28' target='_blank'>Fixed #28</a>: Series/sub page fails to show the right content</li>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/27' target='_blank'>Fixed #27</a>: The Great Courses (books) omitted</li>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/24' target='_blank'>Fixed #24</a>: Search overrides sorting URL parameter on page load</li>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/23' target='_blank'>Fixed #23</a>: Wishlist scraping errored out due to fetching second lvl domain names like “.co.uk” wrong</li>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/22' target='_blank'>Fixed #22</a>: Categories page empty (sometimes)</li>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/21' target='_blank'>Fixed #21</a>: View mode button showing up on pages it shouldn’t</li>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/20' target='_blank'>Fixed #20</a>: Filter and sorter menu disappearing behing the bottom mobile nav</li>
-        <li><a href='https://github.com/joonaspaakko/audible-library-extractor/issues/19' target='_blank'>Fixed #19</a>: Partial library scan breaking series</li>
-      <ul>
-      <br>
-      <strong>v.0.2.4</strong>
-        <ul>
-          <li>First public beta version</li>
-        </ul>
-    </div>
-    "
+    :content="getChangelog()"
     >
       Changelog
     </b-button>
 
     <div id="footer" class="is-small has-text-grey-light">
-      Find more information in the <a href="https://github.com/joonaspaakko/audible-library-extractor">Github repository</a> page. <br />
+      Project source files in <a href="https://github.com/joonaspaakko/audible-library-extractor">Github</a>. <br />
       Post issues, questions, and suggestion at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>.
     </div>
   </div>
@@ -170,9 +160,11 @@ Vue.use(Buefy, {
   defaultIconPack: "fas"
 });
 
+import changelog from "@output-mixins/changelog.js";
 export default {
   name: "menuScreen",
   props: ["storageHasData", "storageConfig"],
+  mixins: [ changelog ],
   data() {
     return {
       inStorage: {
@@ -239,7 +231,7 @@ export default {
           trash: this.storageHasData.wishlist
         }
       ],
-      loading: true
+      loading: true,
     };
   },
 
@@ -504,6 +496,38 @@ export default {
       
     },
     
+    getChangelog: function() {
+      
+      
+      let changelogInnerHTML = '';
+      
+      _.each( this.changeLog, function( versionBlock ) {
+        
+        changelogInnerHTML += '<strong style="display: inline-block; width: 100%; font-size: 16px;">'+ versionBlock.version +'</strong>';
+        changelogInnerHTML += versionBlock.highlights ? '<div style="padding: 6px; margin: 6px 0 7px; color: rgb(128 93 54); background: rgb(246, 153, 50, .06); border: 1px solid rgb(246, 153, 50, .2);">'+ versionBlock.highlights +'</div>' : '';
+        changelogInnerHTML += '<ul class="changelog-list" style="display: inline-block; width: 100%; box-sizing: border-box;">';
+        _.each( versionBlock.changes, function( change ) {
+          if ( change.divider ) {
+            changelogInnerHTML += '<li style="height: 0px; border: 1px dashed #f1f1f1; margin: 5px 0; width: 100%;"></li>';
+          }
+          else {
+            let linkText;
+            if ( change.link ) linkText = change.highlight ? ('<strong>' + change.link.text + '</strong>') : change.link.text;
+            changelogInnerHTML += '<li class="'+ (change.class || '') +'">'+
+              (change.link ? '<a target="_blank" href="'+ change.link.href +'">'+ linkText +'</a>: ' : '') + 
+              (change.description || '')
+            +'</li>';
+          }
+        });
+        changelogInnerHTML += '</ul>';
+        changelogInnerHTML += '<br><br>';
+      });
+      
+      let changelogHTML = '<div style="text-align: left; max-height: 350px; overflow: scroll; padding: 20px;">'+ changelogInnerHTML +'</div>';
+      return changelogHTML;
+      
+    },
+    
   }
 };
 </script>
@@ -664,6 +688,7 @@ export default {
 
   .other-btns {
     margin: 6px auto 0;
+    a,
     button {
       width: 100%;
       box-sizing: border-box;
@@ -729,5 +754,24 @@ export default {
     border: 1px solid darken( #f1f1f1, 5);
     background: rgba( #f1f1f1, .7);
   }
+}
+
+.changelog-list {
+  li { position: relative; z-index: 1; }
+  li:before {
+    content: '';
+    position: absolute;
+    z-index: 4;
+    top: 5px;
+    height: 6px;
+    width: 6px;
+    left: -12px;
+    display: none;
+    border-radius: 9999999px;
+    background: red;
+  }
+  li.fixed:before    { background: #f25954; display: block; }
+  li.improved:before { background: #ba23ca; display: block; }
+  li.added:before    { background: #10c064; display: block; }
 }
 </style>

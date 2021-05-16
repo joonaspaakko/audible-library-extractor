@@ -17,6 +17,9 @@
       <ale-grid-view @hook:mounted="gridViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-if="$store.state.sticky.viewMode === 'grid'" />
       <ale-list-view @hook:mounted="listViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
     </div>
+    <div v-else id="nothing-here-404">
+      <h3>404: There's nothing here</h3>
+    </div>
     
   </div>
 </template>
@@ -36,6 +39,7 @@ import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
 import filterAndSort from "@output-mixins/filter-and-sort.js";
 import galleryListRenderingOpts from "@output-mixins/gallery-list-rendering-opts.js";
 import smoothscroll from "smoothscroll-polyfill";
+import findSubPageSource from "@output-mixins/findSubPageSource.js";
 smoothscroll.polyfill();
 
 // import aleBreadcrumbs from '../aleBreadcrumbs'
@@ -59,6 +63,7 @@ export default {
     prepWishlist,
     timeStringToSeconds,
     galleryListRenderingOpts,
+    findSubPageSource,
   ],
   
   data: function() {

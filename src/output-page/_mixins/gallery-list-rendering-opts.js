@@ -1,3 +1,4 @@
+import { _ } from "core-js";
 
 export default {
   methods: {
@@ -35,9 +36,12 @@ export default {
           { active: false, type: 'filterExtras', label: 'Favorites',    key: 'favorites', excludeFromWishlist: true, group: 'filterExtras', condition: function( book ) { return book.favorite;        } },
           { active: false, type: 'filterExtras', label: 'No rating', excludeFromWishlist: true, key: 'no-rating', group: 'filterExtras', condition: function( book ) { return !book.myRating; }, tippy: "Books you haven't rated yet." },
           { active: false, type: 'filterExtras', label: 'New books', excludeFromWishlist: true, key: 'new-books', group: 'filterExtras', condition: function( book ) { return book.isNew; }, tippy: "Most recent additions." },
-          { active: false, type: 'filterExtras', label: 'Giftable books', excludeFromWishlist: true, key: 'giftable', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog && !book.unavailable && !book.storePageChanged && !book.storePageMissing; }, tippy: 'Excludes all books that are from the plug catalog and books with removed or changed store pages, since those cannot be gifted using the "Send this book" feature.' },
+          { active: false, type: 'filterExtras', label: 'Giftable books', excludeFromWishlist: true, key: 'giftable', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog && !book.unavailable && !book.storePageChanged && !book.storePageMissing; }, tippy: 'Excludes all books that are from the plug catalog and books with removed or changed store pages.' },
           
           { type: 'divider', key: 'divider2.0' },
+          { active: false, type: 'filterExtras', label: 'Exclude full cast', excludeFromWishlist: true, key: 'exclude-full-cast', group: 'filterExtras', condition: function( book ) { return !_.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
+          { active: false, type: 'filterExtras', label: 'Include full cast', excludeFromWishlist: true, key: 'include-full-cast', group: 'filterExtras', condition: function( book ) { return _.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
+          { type: 'divider', key: 'divider2.2' },
 
           { active: false, type: 'filterExtras', label: 'Length', key: 'length', group: 'filterExtras', range: true, rangeMinDist: 1, rangeSuffix: 'h', 
           rangeMin: function() { 
@@ -72,15 +76,29 @@ export default {
           }, 
           rangeMax: function() { 
             let books = _.get(vue.$store.state, vue.collectionSource);
-            let most = _.maxBy( books, function( book ){ return (book.narrators) ? book.narrators.length : 0; }); 
+            let most = _.maxBy( books, function( book ){ 
+              let narrators = _.filter( book.narrators, function( narrator ) { 
+                return narrator.name && !narrator.name.match('full cast'); 
+              });
+              if ( !narrators.length && book.narrators && book.narrators.length ) narrators = book.narrators; // If there's one narrator and it's "full cast", consider that as one...
+              return (book.narrators) ? book.narrators.length : 0; 
+            }); 
+            console.log( most.narrators.length, most )
             return most ? most.narrators.length : 0; 
           }, 
           condition: function( book ) { 
             if (book.narrators ) {
+              let hasFullCast = _.find( book.narrators, function( narrator ) { return narrator.name.match('full cast') });
               let min = this.range[0];
               let max = this.range[1];
               let length = book.narrators.length;
-              return length >= min && length <= max; 
+              if ( hasFullCast && length === 1 ) {
+                length = max;
+                return length >= min && length <= max;
+              }
+              else {
+                return length >= min && length <= max; 
+              }
             } 
           } },
           

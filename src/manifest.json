@@ -12,8 +12,7 @@
       "16": "assets/icons/16.png",
       "48": "assets/icons/48.png",
       "128": "assets/icons/128.png"
-    },
-    "default_title": "You need to be in the library page to start extracting."
+    }
   },
   "permissions": [
     "storage",

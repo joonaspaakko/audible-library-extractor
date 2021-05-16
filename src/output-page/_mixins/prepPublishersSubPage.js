@@ -11,7 +11,7 @@ export default {
         const publisherSlug = this.$route.params.publisher;
         
         // Build publishers sub page array 
-        let books = _.filter( this.$store.state.library.books, function( book ) {
+        let books = _.filter( this.findSubPageSource(), function( book ) {
           if ( book.publishers ) return _.find(book.publishers, function( publisher ) { return vue.slugify(publisher.name) === publisherSlug;  });
         });
         

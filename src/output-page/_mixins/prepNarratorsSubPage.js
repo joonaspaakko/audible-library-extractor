@@ -11,7 +11,7 @@ export default {
         const narratorSlug = this.$route.params.narrator;
         
         // Build narrators sub page array 
-        let books = _.filter( this.$store.state.library.books, function( book ) {
+        let books = _.filter( this.findSubPageSource(), function( book ) {
           if ( book.narrators ) return _.find(book.narrators, function( narrator ) { return vue.slugify(narrator.name) === narratorSlug;  });
         });
         

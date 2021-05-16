@@ -1,7 +1,9 @@
 <template>
-  <div id="ale-categories" class="box-layout-wrapper" v-if="categories">
+  <div id="ale-categories" class="box-layout-wrapper" v-if="listReady">
     
     <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
+    
+    <library-wishlist-switcher />
     
     <div
     class="single-box"
@@ -12,20 +14,20 @@
     >
     
       <h2>
-        <router-link v-if="parent.slug" :to="{ name: 'category', params: { parent: parent.slug } }">
+        <router-link v-if="parent.slug" :to="{ name: 'category', params: { parent: parent.slug }, query: { subPageSource: $store.state.sticky.subPageSource } }">
           {{ parent.name }}
         </router-link>
         <span v-else>{{ parent.name }}</span>
       </h2>
 
-      <router-link v-if="parent.slug" class="books-total" :to="{ name: 'category', params: { parent: parent.slug } }">
+      <router-link v-if="parent.slug" class="books-total" :to="{ name: 'category', params: { parent: parent.slug }, query: { subPageSource: $store.state.sticky.subPageSource } }">
         <div v-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       </router-link>
       <div v-else-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       
       <div class="child-categories" v-if="parent.sub">
         <div v-for="(child, index) in parent.sub" :key="child.name" v-if="child && child.name">
-          <router-link v-if="(parent && parent.slug) && (child && child.slug)" :to="{ name: 'category', params: { parent: parent.slug, child: child.slug } }">
+          <router-link v-if="(parent && parent.slug) && (child && child.slug)" :to="{ name: 'category', params: { parent: parent.slug, child: child.slug }, query: { subPageSource: $store.state.sticky.subPageSource } }">
             {{ child.name }}
           </router-link>
           <span v-else></span>
@@ -46,7 +48,7 @@
               parent: book.categories[0] ? slugify(book.categories[0].name) : null, 
               child:  book.categories[1] ? slugify(book.categories[1].name) : null 
             }, 
-            query: { book: book.asin } 
+            query: { book: book.asin, subPageSource: $store.state.sticky.subPageSource }
           }">
             <img :src="makeCoverUrl(book.cover)" alt="" />
           </router-link>
@@ -62,17 +64,21 @@
 import slugify from "@output-mixins/slugify";
 import makeCoverUrl from "@output-mixins/makeCoverUrl";
 import pageTitle from "@output-snippets/page-title.vue";
+import libraryWishlistSwitcher from "@output-snippets/library-wishlist-switcher.vue";
+import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
   name: "aleCategories",
-  mixins: [slugify, makeCoverUrl],
+  mixins: [slugify, makeCoverUrl, findSubPageSource],
   components: { 
     pageTitle,
+    libraryWishlistSwitcher,
   },
   
   data: function() {
     return {
       categories: null,
+      listReady: false,
       pageTitle: 'Categories',
       pageSubTitle: null,
     };
@@ -86,59 +92,13 @@ export default {
   },
   
   created: function() {
-
-    const vue = this;
-    let categories = {};
-    // Make category arrays
-    categories.parent = [];
-    _.each( this.$store.state.library.books, function(book, index) {
-      
-      if (book.categories) {
-        // Parent categories...
-        const parentCategory = book.categories[0].name;
-        // If parent category object doesn't exist, make it
-        let parentObj = _.find(categories.parent, ["name", parentCategory]);
-        if (!parentObj) {
-          parentObj = categories.parent.push({
-            name: parentCategory,
-            slug: vue.slugify(parentCategory),
-            books: []
-          });
-        }
-        parentObj = _.find(categories.parent, ["name", parentCategory]);
-        // Push books to array
-        parentObj.books.push(book);
-
-        // Child categories...
-        if (book.categories[1]) {
-          if (!parentObj.sub) parentObj.sub = [];
-          const childCategory = book.categories[1].name;
-          // If child category object doesn't exist, make it
-          let childObj = _.find(parentObj.sub, ["name", childCategory]);
-          if (!childObj) {
-            childObj = parentObj.sub.push({
-              name: childCategory,
-              slug: vue.slugify(childCategory),
-              books: []
-            });
-          }
-          childObj = _.find(parentObj.sub, ["name", childCategory]);
-          // Push books to array
-          childObj.books.push(book);
-        }
-      }
-    });
-
-    // Sort all category arrays
-    categories.parent = _.orderBy(categories.parent, "name", "asc");
-    _.each(categories.parent, function(category, index) {
-      category.sub = _.orderBy(category.sub, "name", "asc");
-    });
-    
-    this.categories = categories.parent;
-    this.$store.commit("prop", { key: "pageCollection", value: [] });
-    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
-    
+    this.makeCollection();
+  },
+  
+  watch: {
+    '$store.state.sticky.subPageSource': function( source ) {
+      this.makeCollection();
+    }
   },
   
   methods: {
@@ -146,6 +106,64 @@ export default {
     getRandomBooks: function(books, number) {
       let booksWithCategories = _.filter(books, function( book ) { return (book.categories && book.categories.length > 1) && book.cover });
       return _.sampleSize(booksWithCategories, number);
+    },
+    
+    makeCollection: function() {
+      
+      const vue = this;
+      let categories = {};
+      // Make category arrays
+      categories.parent = [];
+      _.each( this.findSubPageSource(), function(book, index) {
+        
+        if (book.categories) {
+          // Parent categories...
+          const parentCategory = book.categories[0].name;
+          // If parent category object doesn't exist, make it
+          let parentObj = _.find(categories.parent, ["name", parentCategory]);
+          if (!parentObj) {
+            parentObj = categories.parent.push({
+              name: parentCategory,
+              slug: vue.slugify(parentCategory),
+              books: []
+            });
+          }
+          parentObj = _.find(categories.parent, ["name", parentCategory]);
+          // Push books to array
+          parentObj.books.push(book);
+
+          // Child categories...
+          if (book.categories[1]) {
+            if (!parentObj.sub) parentObj.sub = [];
+            const childCategory = book.categories[1].name;
+            // If child category object doesn't exist, make it
+            let childObj = _.find(parentObj.sub, ["name", childCategory]);
+            if (!childObj) {
+              childObj = parentObj.sub.push({
+                name: childCategory,
+                slug: vue.slugify(childCategory),
+                books: []
+              });
+            }
+            childObj = _.find(parentObj.sub, ["name", childCategory]);
+            // Push books to array
+            childObj.books.push(book);
+          }
+        }
+      });
+
+      // Sort all category arrays
+      categories.parent = _.orderBy(categories.parent, "name", "asc");
+      _.each(categories.parent, function(category, index) {
+        category.sub = _.orderBy(category.sub, "name", "asc");
+      });
+      
+      this.categories = categories.parent;
+      this.$store.commit("prop", { key: "pageCollection", value: [] });
+      this.$store.commit("prop", { key: "mutatingCollection", value: [] });
+      
+      this.listReady = true;
+      
     },
     
   }

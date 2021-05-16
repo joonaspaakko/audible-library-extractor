@@ -9,7 +9,7 @@
     v-if="item.name"
     :key="'publishers:'+item.name"
     >
-      <router-link :to="{ name: 'publisher', params: { publisher: item.url } }">
+      <router-link :to="{ name: 'publisher', params: { publisher: item.url }, query: { subPageSource: $store.state.sticky.subPageSource } }">
         
         <h2>{{ item.name }}</h2>
         
@@ -28,6 +28,7 @@
 import lazy from "@output-snippets/lazy.vue";
 import aleSearch from "./aleGallery/aleSearch";
 import slugify from "@output-mixins/slugify";
+import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
   name: "alePublishers",
@@ -35,7 +36,7 @@ export default {
     aleSearch,
     lazy,
   },
-  mixins: [slugify],
+  mixins: [slugify, findSubPageSource],
   data: function() {
     return {
       collectionSource: 'pageCollection',
@@ -53,54 +54,68 @@ export default {
   },
   
   created: function() {
-    
-    const vue = this;
-    let publishersCollection = [];
-    let addedCounter = 1;
-    
-    // Processed in reverse order so that the "added" order is based on the first book added to the library of each publisher.
-    _.eachRight(this.$store.state.library.books, function(book) {
-      
-      if (book.publishers) {
-        
-        _.each(book.publishers, function(publisher) {
-          
-          let publishersAdded = _.find(publishersCollection, { name: publisher.name });
-          
-          // Publisher not in the collection so add it with the book...
-          if ( !publishersAdded ) {
-            const newSeries = {
-              name: publisher.name,
-              url: vue.slugify(publisher.name),
-              added: addedCounter,
-              books: [ book.title || book.shortTitle ],
-            };
-            
-            publishersCollection.push( newSeries );
-            ++addedCounter;
-            
-          }
-          // Series already exists in the collection so just add the book...
-          else {
-            publishersAdded.books.push( book.title || book.shortTitle );
-            return false;
-          }
-          
-        });
-      }
-      
-    });
-    
-    _.reverse( publishersCollection );
-    
-    this.$store.commit("prop", { key: "pageCollection", value: publishersCollection });
-    this.updateListRenderingOptions();
-    
-    this.listReady = true;
-    
+    this.makeCollection();
+  },
+  
+  watch: {
+    '$store.state.sticky.subPageSource': function( source ) {
+      this.listReady = false;
+      this.$nextTick(function() {
+        this.makeCollection();
+      });
+    }
   },
   
   methods: {
+    
+    makeCollection: function() {
+      
+      const vue = this;
+      let publishersCollection = [];
+      let addedCounter = 1;
+      
+      // Processed in reverse order so that the "added" order is based on the first book added to the library of each publisher.
+      _.eachRight(this.findSubPageSource(), function(book) {
+        
+        if (book.publishers) {
+          
+          _.each(book.publishers, function(publisher) {
+            
+            let publishersAdded = _.find(publishersCollection, { name: publisher.name });
+            
+            // Publisher not in the collection so add it with the book...
+            if ( !publishersAdded ) {
+              const newSeries = {
+                name: publisher.name,
+                url: vue.slugify(publisher.name),
+                added: addedCounter,
+                books: [ book.title || book.shortTitle ],
+              };
+              
+              publishersCollection.push( newSeries );
+              ++addedCounter;
+              
+            }
+            // Series already exists in the collection so just add the book...
+            else {
+              publishersAdded.books.push( book.title || book.shortTitle );
+              return false;
+            }
+            
+          });
+        }
+        
+      });
+      
+      _.reverse( publishersCollection );
+      
+      this.$store.commit("prop", { key: "pageCollection", value: publishersCollection });
+      this.updateListRenderingOptions();
+      
+      this.listReady = true;
+      
+    },
+    
     updateListRenderingOptions: function() {
       let vue = this;
       const list = {
