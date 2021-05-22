@@ -134,16 +134,18 @@ export default {
     goToBookInSeries: function( series, book ) {
       
       if ( book ) {
+        
         if ( this.$route.name !== 'series' ) {
           this.$router.push({ 
             name: 'series', 
             params: { series: series.asin }, 
-            query: { book: book.asin }, 
+            query: { book: book.asin, subPageSource: 'books' }, 
           });
         }
         else {
           this.$root.$emit('book-clicked', { book: book });
         }
+        
       }
       else if ( series ) {
         
@@ -151,6 +153,7 @@ export default {
           this.$router.push({ 
             name: 'series', 
             params: { series: series.asin }, 
+            query: { subPageSource: 'books' },
           });
         }
         else {
