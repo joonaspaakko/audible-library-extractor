@@ -169,8 +169,6 @@ export default {
           columns: null, //or array of strings
         });
         
-        // console.log('%c' + ' csv ' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', csv);
-        
         saveAs(new File([csv], {type: "text/csv;charset=utf-8"}), this.filename);
         
         setTimeout(function() {

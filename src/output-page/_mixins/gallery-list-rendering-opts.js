@@ -39,8 +39,8 @@ export default {
           { active: false, type: 'filterExtras', label: 'Giftable books', excludeFromWishlist: true, key: 'giftable', group: 'filterExtras', condition: function( book ) { return !book.fromPlusCatalog && !book.unavailable && !book.storePageChanged && !book.storePageMissing; }, tippy: 'Excludes all books that are from the plug catalog and books with removed or changed store pages.' },
           
           { type: 'divider', key: 'divider2.0' },
-          { active: false, type: 'filterExtras', label: 'Exclude full cast', excludeFromWishlist: true, key: 'exclude-full-cast', group: 'filterExtras', condition: function( book ) { return !_.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
-          { active: false, type: 'filterExtras', label: 'Include full cast', excludeFromWishlist: true, key: 'include-full-cast', group: 'filterExtras', condition: function( book ) { return _.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
+          { active: false, type: 'filterExtras', label: 'Exclude full cast', key: 'exclude-full-cast', group: 'filterExtras', condition: function( book ) { return !_.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
+          { active: false, type: 'filterExtras', label: 'Include full cast', key: 'include-full-cast', group: 'filterExtras', condition: function( book ) { return _.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
           { type: 'divider', key: 'divider2.2' },
 
           { active: false, type: 'filterExtras', label: 'Length', key: 'length', group: 'filterExtras', range: true, rangeMinDist: 1, rangeSuffix: 'h', 
@@ -83,7 +83,6 @@ export default {
               if ( !narrators.length && book.narrators && book.narrators.length ) narrators = book.narrators; // If there's one narrator and it's "full cast", consider that as one...
               return (book.narrators) ? book.narrators.length : 0; 
             }); 
-            console.log( most.narrators.length, most )
             return most ? most.narrators.length : 0; 
           }, 
           condition: function( book ) { 

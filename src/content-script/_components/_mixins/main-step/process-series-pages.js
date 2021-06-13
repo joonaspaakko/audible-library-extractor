@@ -146,17 +146,15 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
           
         }
         
-        let aBook = {
-          title: '',
-          bookNumbers: '',
-          asin: '',
-        };
+        let aBook = {};
         
         if ( title ) aBook.title = title;
         let numbers = this.querySelector(':scope > div:nth-child(1) > div > h2');
         if ( numbers ) aBook.bookNumbers = DOMPurify.sanitize( numbers.textContent.trimAll().replace(/[^\d]*/, '') );
         if ( asinEl ) aBook.asin = DOMPurify.sanitize( asinEl.getAttribute("data-asin") );
         else if ( inLibrary ) aBook.asin = inLibrary.asin;
+        
+        if ( this.querySelector('[name="discovery-add-to-library-form"]') ) aBook.plus = true;
         
         series.allBooks.push( aBook );
         

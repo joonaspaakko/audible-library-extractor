@@ -439,13 +439,15 @@ globalMethods.install = function (Vue) {
         let targetKey = splitColon[0];
         let targetItem = _.find(list.filter, { type: 'filterExtras', key: targetKey });
         
-        targetItem.active = true;
-        
-        if ( splitColon.length > 1 ) {
-          let splitDash = splitColon[1].split('-');
-          let min = splitDash[0];
-          let max = splitDash[1];
-          targetItem.range = [min, max];
+        if ( targetItem ) {
+          targetItem.active = true;
+          
+          if ( splitColon.length > 1 ) {
+            let splitDash = splitColon[1].split('-');
+            let min = splitDash[0];
+            let max = splitDash[1];
+            targetItem.range = [min, max];
+          }
         }
         
       });

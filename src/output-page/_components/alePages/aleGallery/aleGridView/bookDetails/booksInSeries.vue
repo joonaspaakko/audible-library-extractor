@@ -14,7 +14,7 @@
       
       <div class="show-all-toggle" v-if="showAllToggle">
         <div @click="toggleAll" :content="$store.state.sticky.booksInSeriesAll ? 'Hide books in the series that are not in your library' : 'Show all books in the series'" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }">
-          <span>{{ $store.state.sticky.booksInSeriesAll ? 'Hide' : 'Show' }}</span> <font-awesome :icon="['fas', 'ban']" />
+          <span>{{ $store.state.sticky.booksInSeriesAll ? 'Hide' : 'Show' }}</span> <span>books I don't have</span> <font-awesome :icon="['fas', 'ban']" />
         </div>
       </div>
       
@@ -239,7 +239,10 @@ export default {
     },
 
     iconTippyContent: function(book) {
-      if ( book.notInLibrary ) {
+      if ( book.plus && book.notInLibrary ) {
+        return 'In the plus catalog...';
+      }
+      else if ( book.notInLibrary ) {
         return 'Not in library...';
       }
       else {
@@ -257,7 +260,10 @@ export default {
     },
 
     booksInSeriesIcon: function(book) {
-      if ( book.notInLibrary ) {
+      if ( book.plus && book.notInLibrary ) {
+        return 'plus-circle';
+      }
+      else if ( book.notInLibrary ) {
         return 'ban';
       }
       else {
@@ -389,9 +395,10 @@ export default {
     position: relative;
     z-index: 1;
     height: 10px;
+    text-align: center;
     > div {
       outline: none;
-      position: absolute;
+      position: relative;
       top: -6px;
       left: 0px;
       border-radius: 9999px;
@@ -402,6 +409,9 @@ export default {
       @include themify($themes) {
         color: rgba( themed(frontColor), .4);
         border: 1px solid rgba( themed(frontColor), .4);
+      }
+      svg {
+        margin-left: 2px;
       }
     }
   }
@@ -473,6 +483,15 @@ div.hidden-section {
 @media ( max-width: 630px ) {
   .my-books-in-series .numbers-list-item {
     padding: 5px 0;
+  }
+}
+
+.theme-light .my-books-in-series .numbers-list-item {
+  &.not-in-library,
+  &.finishe {
+    .icon, .title {
+      opacity: .65 !important;
+    }
   }
 }
 

@@ -1,6 +1,6 @@
 <template>
   <div class="icons">
-    <div class="icon-wrap" v-tippy content="Visible books">
+    <div class="icon-wrap" v-tippy :content="'Items in current selection. ' + (total ? totalTitle + ' total: ' + total : '')">
       <div class="book-in-selection">
         <div class="inner-wrap">
           {{ $store.getters.collection.length }}
@@ -21,7 +21,7 @@
         v-if="item.name !== 'scope' && $store.state.listRenderingOpts[ item.name ].length > 0 || item.name === 'scope' && $store.state.listRenderingOpts[ item.name ].length > 1"
         class="search-opt-btn"
         :data-option="item.name"
-        :class="{ active: listName === item.name }"
+        :class="{ active: listName === item.name, 'active-filters': item.name === 'filter' && filtersActive }"
       >
         <font-awesome fas :icon="item.icon" />
       </div>
@@ -60,7 +60,20 @@ export default {
       ]
     };
   },
-
+  
+  computed: {
+    total: function() {
+      return this.$store.getters.searchIsActive ? 
+                (this.$store.state.searchCollection ? this.$store.state.searchCollection.length : null) : 
+                (this.$store.getters.collectionSource ? this.$store.getters.collectionSource.length : null);
+    },
+    totalTitle: function() {
+      return (( this.$route.meta.title === this.$store.state.pageTitle ) ? this.$store.state.pageTitle : (this.$store.state.pageTitle ? (this.$route.meta.title + ' - ' + this.$store.state.pageTitle) : this.$route.meta.title));
+    },
+    filtersActive : function() {
+      return this.$store.getters.filterExtrasKeys || (this.$store.getters.filterKeys !== 'notStarted,started,finished' );
+    },
+  },
   methods: {
     openSearchOptions: function(clickedOption, e) {
       const listBeforeClick = this.listName;

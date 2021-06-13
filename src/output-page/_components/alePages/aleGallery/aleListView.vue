@@ -170,7 +170,8 @@ export default {
     border-spacing: 0;
     vertical-align: baseline;
   }
-
+  
+  thead,
   .list-view-header {
     position: -webkit-sticky;
     position: sticky;

@@ -457,6 +457,25 @@ export default {
         color: themed(audibleOrange);
       }
     }
+    .active-filters {
+      display: inline-flex;
+      justify-items: center;
+      justify-content: center;
+      align-items: center;
+      align-content: center;
+    }
+    .active-filters:before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      top: 7px;
+      border-radius: 99999999999px;
+      width: 6px;
+      height: 6px;
+      @include themify($themes) {
+        background: themed(audibleOrange);
+      }
+    }
   }
   
 }

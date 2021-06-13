@@ -112,4 +112,12 @@ export default {
   
 }
 
+
+.theme-light .audible-app-link.muted > div {
+  background: rgba( $lightFrontColor, .40) !important;
+  color: $lightBackColor !important;
+  img { opacity: 1 !important; }
+  box-shadow: unset !important;
+}
+
 </style>
