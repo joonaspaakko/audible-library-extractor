@@ -31,7 +31,7 @@ export default {
                 max: 0,
                 bar: true
               });
-
+              
               vue.amapxios({
                 requests: _.map(prep.pageNumbers, function(page) {
                   prep.urlObj.query.page = page;
@@ -58,31 +58,29 @@ export default {
                       collection.pageNumbers = prep.pageNumbers;
                       collection.pageSize = prep.pageSize;
                       collection.url = prep.urlObj.toString();
-
                       getBooks(vue, collection, stepCallback);
                     }
                   );
                 },
                 function(err, responses) {
                   if (!err) {
-                    callback(null, responses, collections);
+                    callback(null, _.flatten(responses), collections);
                   } else console.log(err);
                 }
               );
             }
           ],
           function(err, responses, collections) {
+            
             // Pushes books back to the original array of collections without any duplicate ids
-            _.each(_.flatten(responses), function(collection) {
-              const targetCollection = _.find(collections, {
-                id: collection.id
-              });
-              if (targetCollection) targetCollection.books = targetCollection.books.concat( collection.books );
+            _.each(responses, function(collection) {
+              const targetCollection = _.find(collections, { id: collection.id });
+              if ( targetCollection ) targetCollection.books = targetCollection.books.concat( collection.books );
               delete targetCollection.pageNumbers;
               delete targetCollection.pageSize;
               delete targetCollection.url;
             });
-
+            
             hotpotato.collections = collections;
 
             vue.$nextTick(function() {
@@ -126,9 +124,16 @@ function getInitialCollectionDataFromPage(vue, response, completeStep) {
 function getBooks(vue, request, parentStepCallback) {
   let requestUrls = [];
   _.each(request.pageNumbers, function(page) {
-    const requestDolly = _.cloneDeep(request);
-    const pageSize = request.pageSize ? "&pageSize=" + request.pageSize : "";
-    requestDolly.url += "/?page=" + page + pageSize;
+    let requestDolly = _.cloneDeep(request);
+    
+    let url = new Url( requestDolly.url );
+    
+    if ( request.pageSize ) url.query.pageSize = request.pageSize;
+    else delete url.query.pageSize;
+    
+    url.query.page = page;
+    
+    requestDolly.url = url.toString();
     requestUrls.push(requestDolly);
   });
 
