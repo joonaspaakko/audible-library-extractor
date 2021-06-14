@@ -272,12 +272,11 @@ export default {
         
         const seriesExists = _.find(potatoSeries, { asin: series.asin });
         if ( seriesExists ) {
-          _.merge( seriesExists,  )
+          _.merge( seriesExists, series );
         }
         else {
           potatoSeries.push( series );
         }
-        
         
       });
       
