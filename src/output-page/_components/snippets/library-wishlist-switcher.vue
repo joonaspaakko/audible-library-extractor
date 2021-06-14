@@ -1,9 +1,9 @@
 <template>
   <div id="library-wishlist-switcher" :class="{ 'above-search': aboveSearch }" v-if="($route.meta.subPage && !$route.meta.gallery) && $store.state.library.books && $store.state.library.wishlist">
-    <button @click="switcher('books')" :class="{ active: $store.state.sticky.subPageSource === 'books' }">
+    <button @click="switcher('books')" :class="{ active: ($route.query.subPageSource || $store.state.sticky.subPageSource ) === 'books' }">
       Library
     </button>
-    <button @click="switcher('wishlist')" :class="{ active: $store.state.sticky.subPageSource === 'wishlist' }">
+    <button @click="switcher('wishlist')" :class="{ active: ($route.query.subPageSource || $store.state.sticky.subPageSource ) === 'wishlist' }">
       Wishlist
     </button>
   </div>
@@ -16,15 +16,16 @@ export default {
   props: ['aboveSearch'],
   created: function() {
     
-    if ( this.$route.query.subPageSource !== this.$store.state.sticky.subPageSource ) {
-      if ( this.$store.state.library[ this.$route.query.subPageSource ] ) {
-        this.$store.commit('stickyProp', { key: 'subPageSource', value: this.$route.query.subPageSource });
-      }
-    }
+    // if ( this.$route.query.subPageSource !== this.$store.state.sticky.subPageSource ) {
+    //   if ( this.$store.state.library[ this.$route.query.subPageSource ] ) {
+    //     this.$store.commit('stickyProp', { key: 'subPageSource', value: this.$route.query.subPageSource });
+    //   }
+    // }
     
   },
   methods: {
     switcher: function( key ) {
+      
       this.$updateQuery({ query: 'subPageSource', value: key });
       this.$store.commit('stickyProp', { key: 'subPageSource', value: key });
       

@@ -239,7 +239,10 @@ export default {
     },
 
     iconTippyContent: function(book) {
-      if ( book.plus && book.notInLibrary ) {
+      if ( book.free && book.notInLibrary ) {
+        return 'This book is free...';
+      }
+      else if ( book.plus && book.notInLibrary ) {
         return 'In the plus catalog...';
       }
       else if ( book.notInLibrary ) {
@@ -260,7 +263,10 @@ export default {
     },
 
     booksInSeriesIcon: function(book) {
-      if ( book.plus && book.notInLibrary ) {
+      if ( book.free && book.notInLibrary ) {
+        return 'minus-circle';
+      }
+      else if ( book.plus && book.notInLibrary ) {
         return 'plus-circle';
       }
       else if ( book.notInLibrary ) {

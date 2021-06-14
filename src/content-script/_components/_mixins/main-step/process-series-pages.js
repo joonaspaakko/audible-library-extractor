@@ -155,6 +155,13 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
         else if ( inLibrary ) aBook.asin = inLibrary.asin;
         
         if ( this.querySelector('[name="discovery-add-to-library-form"]') ) aBook.plus = true;
+        // if ( title.match(/^FREE:/) ) aBook.free = true;
+        if ( this.querySelector('.buybox-regular-price') ) {
+          let price = this.querySelector('.buybox-regular-price').textContent.match(/\d/g);
+          let priceArray = _.map( price, function( v ) { return parseFloat(v) });
+          let sumOfPriceArray = priceArray.reduce((a, b) => a + b, 0);
+          if ( sumOfPriceArray === 0 ) aBook.free = true;
+        }
         
         series.allBooks.push( aBook );
         
