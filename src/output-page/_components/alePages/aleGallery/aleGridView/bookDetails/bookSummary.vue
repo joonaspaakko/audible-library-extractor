@@ -28,13 +28,18 @@
             <span>{{ book.releaseDate }}</span>
           </div>
           
-          <div class="store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why some data is unavailable.">
+          <div class="info-tag store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why some data is unavailable.">
             <font-awesome :icon="['fas', 'shopping-bag']" />
             changed
           </div>
-          <div class="store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was possibly removed or it became unavailable in your region since it was added. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
+          <div class="info-tag store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was possibly removed or it became unavailable in your region since it was added. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
             <font-awesome :icon="['fas', 'shopping-bag']" />
             missing
+          </div>
+          
+          <div class="info-tag whispersync" :class="{ owned: book.whisperSync === 'owned' }" v-if="book.whisperSync" v-tippy="{ maxWidth: 300 }" :content="book.whisperSync === 'owned' ? 'You own the Kindle version' : 'Kindle book available for purchase...'">
+            <font-awesome :icon="['fas', 'headphones-alt']" />
+            whispersync
           </div>
           
         </div>
@@ -194,23 +199,52 @@ export default {
     }
   }
   
-  .store-page-missing,
-  .store-page-changed,
-  .store-page-info {
+  .info-tag {
+    outline: none;
+    cursor: default;
     border-radius: 999999px;
+    margin-left: 5px;
     padding: 2px 7px;
     background: #990017;
     color: #fff;
-    svg { padding-right: 2px; }
-  }
-  
-  .store-page-changed {
-    background: #bd3f00;
-  }
-  
-  .store-page-info {
-    padding: 2px;
-    background: #252525;
+    svg { display: inline-block; padding-right: 4px; }
+    display: inline-flex !important; 
+    flex-direction: row;
+    justify-items: center;
+    justify-content: center;
+    align-items: center;
+    align-content: center;
+    
+    &.store-page-changed {
+      background: #bd3f00;
+    }
+    
+    &.store-page-info {
+      padding: 2px;
+      background: #252525;
+    }
+    
+    &.whispersync {
+      background: #106be6;
+      // .owned {
+      //   margin-left: 4px;
+      //   display: inline-block;
+      //   border-radius: 9999px;
+      //   width: 7px;
+      //   height: 7px;
+      //   background: #61bd34;
+      //   // background: #106be6;
+      //   // background: #fff;
+      //   border: 1px solid #fff;
+      // }
+      
+      // &.owned svg {
+      //   color: #f79a33;
+      // }
+      &.owned {
+        background: #61bd34;
+      }
+    }
   }
   
 }

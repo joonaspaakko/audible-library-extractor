@@ -269,6 +269,7 @@ import {
   faShareSquare,
   faBan,
   faMinusCircle,
+  faHeadphonesAlt,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -332,6 +333,7 @@ library.add(
   faGoodreads,
   faBan,
   faMinusCircle,
+  faHeadphonesAlt,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);

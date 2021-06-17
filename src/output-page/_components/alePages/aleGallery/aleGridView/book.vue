@@ -34,6 +34,17 @@
             <span v-else><font-awesome fas icon="plus-circle" /></span>
             <span>catalog</span>
           </div>
+          
+          <!-- IN KINDLE -->
+          <div class="kindle-marker" v-if="book.whisperSync === 'owned'">
+            
+            <span><font-awesome :icon="['fas', 'headphones-alt']" /></span>
+            <span>In your kindle</span>
+            <!-- <span v-if="book.whisperSync !== 'owned'"><font-awesome fas icon="lock" /></span>
+            <span v-else><font-awesome :icon="['fab', 'amazon']" /></span>
+            <span v-if="book.whisperSync !== 'owned'">Available in kindle</span>
+            <span v-else>In your kindle</span> -->
+          </div>
         </div>
       
         <div class="ale-info-indicator">
@@ -142,6 +153,10 @@ export default {
     }
     .plus-catalog-marker {
       background: $audibleOrange;
+    }
+    .kindle-marker {
+      background: #106be6;
+      // svg { font-size: 16px; }
     }
   }
   &:hover .info-icons-wrapper {

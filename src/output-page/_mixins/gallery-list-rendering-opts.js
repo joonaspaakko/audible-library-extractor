@@ -41,6 +41,10 @@ export default {
           { type: 'divider', key: 'divider2.0' },
           { active: false, type: 'filterExtras', label: 'Exclude full cast', key: 'exclude-full-cast', group: 'filterExtras', condition: function( book ) { return !_.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
           { active: false, type: 'filterExtras', label: 'Include full cast', key: 'include-full-cast', group: 'filterExtras', condition: function( book ) { return _.find( book.narrators, function( narrator ) { return narrator.name.match('full cast'); }); } },
+          { type: 'divider', key: 'divider1.9' },
+          { active: false, type: 'filterExtras', label: 'Whisperync: owned', key: 'whispersync-owned', group: 'filterExtras', condition: function( book ) { return book.whisperSync === 'owned'; } },
+          { active: false, type: 'filterExtras', label: 'Whispersync: available', key: 'whispersync-available', group: 'filterExtras', condition: function( book ) { return book.whisperSync && book.whisperSync !== 'owned'; } },
+          { active: false, type: 'filterExtras', label: 'Whispersync: unavailable', key: 'whispersync-false', group: 'filterExtras', condition: function( book ) { return !book.whisperSync; } },
           { type: 'divider', key: 'divider2.2' },
 
           { active: false, type: 'filterExtras', label: 'Length', key: 'length', group: 'filterExtras', range: true, rangeMinDist: 1, rangeSuffix: 'h', 

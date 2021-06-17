@@ -115,7 +115,7 @@ function getStorePageData(vue, response, book, isTest) {
     
     book.titleShort = DOMPurify.sanitize(bookData.name);
     const ratingsLink = audible.querySelector(".ratingsLabel > a");
-    if (ratingsLink) book.ratings = parseFloat( DOMPurify.sanitize(ratingsLink.textContent.match(/\d/g).join("")) );
+    if ( ratingsLink ) book.ratings = parseFloat( DOMPurify.sanitize(ratingsLink.textContent.match(/\d/g).join("")) );
     const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
     if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
     book.summary = DOMPurify.sanitize(bookData.description) || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span" ) );
@@ -127,6 +127,13 @@ function getStorePageData(vue, response, book, isTest) {
     book.language = bookData.inLanguage ? DOMPurify.sanitize(_.startCase(bookData.inLanguage)) : DOMPurify.sanitize(audible.querySelector(".languageLabel").textContent.trimToColon());
     book.format = DOMPurify.sanitize(audible.querySelector(".format").textContent.trimAll());
     /*if (!book.series)*/ book.series = vue.getSeries(audible.querySelector(".seriesLabel"));
+    const whisperSyncLink = audible.querySelector(".ws4vLabel > a");
+    if ( whisperSyncLink ) {
+      const whisperSyncIcon = whisperSyncLink.querySelector("img");
+      const whisperSyncText = whisperSyncIcon.getAttribute('alt');
+      if ( whisperSyncText.match(/Voice-enabled/) ) book.whisperSync = 'owned';
+      else if ( whisperSyncText.match(/Voice-ready/) ) book.whisperSync = true;
+    }
 
     // Around July 2020 audible has removed any mention of the added date.
     // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.
