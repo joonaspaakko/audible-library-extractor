@@ -12,6 +12,7 @@ import sortFavorites from "@output-mixins/sort/favorites.js";
 import sortBookNumbers from "@output-mixins/sort/bookNumbers.js";
 import sortReleaseDate from "@output-mixins/sort/releaseDate.js";
 import sortStringNameProp from "@output-mixins/sort/stringNameProp.js";
+import sortMissing from "@output-mixins/sort/missing.js";
 
 export default {
   mixins: [
@@ -27,41 +28,42 @@ export default {
     sortFavorites,
     sortBookNumbers,
     sortReleaseDate,
-    sortStringNameProp
+    sortStringNameProp,
+    sortMissing
   ],
   methods: {
-    
+
     filterBooks: function(books) {
-      
+
       const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: true });
       const regularFilters = _.find( this.$store.state.listRenderingOpts.filter, { type: 'filter' });
-      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
-      
+      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true });
+
       if ( filterRules || filterExtraRules ) {
-        
+
         let vue = this;
-        
+
         let conditionCheck = function( book ) {
-          
+
           let filterConditions = _.map( filterRules, function( filter ) {
             return !!filter.condition( book );
           });
           let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
             return !!filter.condition( book );
           });
-          
+
           return ( regularFilters ? _.includes( filterConditions, true ) : true ) && !_.includes( filterExtrasConditions, false );
-          
+
         };
-        
+
         return _.filter(books, function(book) {
           return conditionCheck( book );
         });
-        
+
       } else {
         return books;
       }
-      
+
     },
 
     sortBooks: function(books) {
@@ -69,15 +71,15 @@ export default {
         if ( o.key === 'randomize' && o.active ) return true;
         else if ( o.current ) return true;
       });
-      
+
       if ( sortByItem ) {
-        
+
         const sortOptions = {
           books: books,
           direction: sortByItem.active ? "desc" : "asc",
           sortKey: sortByItem.key
         };
-        
+
         switch (sortOptions.sortKey) {
           case "randomize":
             books = _.shuffle(books);
@@ -144,9 +146,13 @@ export default {
           case "isbn13":
             books = this.sortIsbns(sortOptions);
             break;
+          case "missing":
+            console.log('sort by missing', sortOptions);
+            books = this.sortMissing(sortOptions);
+            break;
         }
       }
-      
+
       return books;
     }
   }
