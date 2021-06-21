@@ -47,15 +47,15 @@
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
           <a v-if="seriesBook.notInLibrary && !!seriesBook.asin" class="clickety-click" target="_blank" :href="seriesNotInLibraryLink( seriesBook, series.asin )">
-            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || '∞' }}</span>
+            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || checkNumberless( series, index, seriesBook ) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </a>
           <div v-else-if="seriesBook.notInLibrary" class="clickety-click" style="cursor: default;" content="Not available..." v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }">
-            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || '∞' }}</span>
+            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || checkNumberless( series, index, seriesBook ) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </div>
           <div v-else class="clickety-click" @click.prevent="goToBookInSeries( series, seriesBook )">
-            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) || '∞' }}</span>
+            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) || checkNumberless( series, index, seriesBook ) }}</span>
             <span class="title">{{ seriesBook.title }}</span>
           </div>
         </div>
@@ -208,6 +208,21 @@ export default {
       }
       
       return series.length > 0 ? series : null;
+    },
+    
+     checkNumberless: function( series, index, book ) {
+      
+      let prevBook = series.books[ index-1 ];
+      let previousTitle = prevBook.titleShort || prevBook.title;
+      var prevBookSeries = _.find( prevBook.series, { asin: series.asin });
+      if ( prevBookSeries&& previousTitle && book.title && previousTitle === book.title ) {
+        if ( prevBookSeries && prevBookSeries.bookNumbers )
+        return prevBookSeries.bookNumbers.join(",");
+      }
+      else {
+        return '∞';
+      }
+      
     },
 
     getSeriesCount: function() {

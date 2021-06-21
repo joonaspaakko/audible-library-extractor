@@ -451,7 +451,7 @@ export default {
             "blurb",
             "authors",
             "narrators",
-            "tags"
+            "tags",
             "categories",
             "parentCategory",
             "childCategory",
