@@ -36,13 +36,13 @@
           </div>
           
           <!-- IN KINDLE -->
-          <div class="kindle-marker" v-if="book.whisperSync === 'owned'">
+          <div class="kindle-marker" v-if="book.whispersync === 'owned'">
             
             <span><font-awesome :icon="['fas', 'headphones-alt']" /></span>
-            <span>In your kindle</span>
-            <!-- <span v-if="book.whisperSync !== 'owned'"><font-awesome fas icon="lock" /></span>
+            <span>In my kindle</span>
+            <!-- <span v-if="book.whispersync !== 'owned'"><font-awesome fas icon="lock" /></span>
             <span v-else><font-awesome :icon="['fab', 'amazon']" /></span>
-            <span v-if="book.whisperSync !== 'owned'">Available in kindle</span>
+            <span v-if="book.whispersync !== 'owned'">Available in kindle</span>
             <span v-else>In your kindle</span> -->
           </div>
         </div>

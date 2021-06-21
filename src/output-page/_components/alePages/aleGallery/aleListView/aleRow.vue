@@ -88,6 +88,7 @@ export default {
           case "narrators":
           case "categories":
           case "publishers":
+          case "tags":
             col.text = vue.stringifyArray(
               vue.book[ key ],
               "name",
@@ -128,7 +129,7 @@ export default {
             const isbn13 = _.find( vue.book.isbns, { type: "ISBN_13" });
             if ( isbn13 ) col.text = isbn13.identifier;
             break;
-
+            
           default:
             col.text = vue.book[ key ];
             col.name = "";

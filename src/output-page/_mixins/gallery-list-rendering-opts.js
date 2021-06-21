@@ -244,7 +244,7 @@ export default {
             key: 'whispersync-owned',
             group: 'filterExtras',
             condition: function(book) {
-              return book.whisperSync === 'owned';
+              return book.whispersync === 'owned';
             }
           },
           {
@@ -254,7 +254,7 @@ export default {
             key: 'whispersync-available',
             group: 'filterExtras',
             condition: function(book) {
-              return book.whisperSync && book.whisperSync !== 'owned';
+              return book.whispersync === 'available';
             }
           },
           {
@@ -265,7 +265,7 @@ export default {
             group: 'filterExtras',
             tippy: 'Either unavailable or unkown...',
             condition: function(book) {
-              return !book.whisperSync;
+              return !book.whispersync;
             }
           },
           {
@@ -1024,6 +1024,13 @@ export default {
             type: 'sort'
           },
           {
+            active: true,
+            current: false,
+            key: 'tags',
+            label: 'Tags',
+            type: 'sort'
+          },
+          {
             active: false,
             current: false,
             key: 'isNew',
@@ -1116,6 +1123,13 @@ export default {
             label: 'Book Numbers',
             type: 'sort',
             tippy: '<strong>This is only a simple number sort.</strong> <br> If you want the correct series order, as listed in Audible, check the series page in the top menu or the "my books in the series" button in book details. <br><br>Click any book cover (or row) to reveal book details. <br><br> The infinite symbol (∞) means the book is in a series but does not have a number.'
+          },
+          {
+            active: false,
+            current: false,
+            key: 'whispersync',
+            label: 'Whispersync',
+            type: 'sort',
           },
         ],
       };

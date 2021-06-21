@@ -131,8 +131,8 @@ function getStorePageData(vue, response, book, isTest) {
     if ( whisperSyncLink ) {
       const whisperSyncIcon = whisperSyncLink.querySelector("img");
       const whisperSyncText = whisperSyncIcon.getAttribute('alt');
-      if ( whisperSyncText.match(/Voice-enabled/) ) book.whisperSync = 'owned';
-      else if ( whisperSyncText.match(/Voice-ready/) ) book.whisperSync = true;
+      if ( whisperSyncText.match(/Voice-enabled/) ) book.whispersync = 'owned';
+      else if ( whisperSyncText.match(/Voice-ready/) ) book.whispersync = 'available';
     }
     
     var tagWrapper = audible.querySelector('.product-topic-tags');

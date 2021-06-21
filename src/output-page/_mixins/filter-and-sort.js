@@ -9,6 +9,7 @@ import sortByLength from "@output-mixins/sort/byLength.js";
 import sortProgress from "@output-mixins/sort/progress.js";
 import sortDateAdded from "@output-mixins/sort/dateAdded.js";
 import sortFavorites from "@output-mixins/sort/favorites.js";
+import sortWhispersync from "@output-mixins/sort/whispersync.js";
 import sortBookNumbers from "@output-mixins/sort/bookNumbers.js";
 import sortReleaseDate from "@output-mixins/sort/releaseDate.js";
 import sortStringNameProp from "@output-mixins/sort/stringNameProp.js";
@@ -25,6 +26,7 @@ export default {
     sortByLength,
     sortDateAdded,
     sortFavorites,
+    sortWhispersync,
     sortBookNumbers,
     sortReleaseDate,
     sortStringNameProp
@@ -118,7 +120,11 @@ export default {
           case "downloaded":
           case "storePageMissing":
           case "storePageChanged":
+          case "tags":
             books = this.sortTitle(sortOptions);
+            break;
+          case "whispersync":
+            books = this.sortWhispersync(sortOptions);
             break;
           case "length":
             books = this.sortLength(sortOptions);

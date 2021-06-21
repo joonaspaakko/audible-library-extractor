@@ -39,7 +39,7 @@
             missing
           </div>
           
-          <div class="info-tag whispersync" :class="{ owned: book.whisperSync === 'owned' }" v-if="book.whisperSync" v-tippy="{ maxWidth: 300 }" :content="book.whisperSync === 'owned' ? 'You own the Kindle version' : 'Kindle book available for purchase...'">
+          <div class="info-tag whispersync" :class="{ owned: book.whispersync === 'owned' }" v-if="book.whispersync" v-tippy="{ maxWidth: 300 }" :content="book.whispersync === 'owned' ? 'You own the Kindle version' : 'Kindle book available for purchase...'">
             <font-awesome :icon="['fas', 'headphones-alt']" />
             whispersync
           </div>

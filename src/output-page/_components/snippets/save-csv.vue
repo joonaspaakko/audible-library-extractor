@@ -27,7 +27,7 @@
       <div class="btn-wrapper">
         <button class="save-btn" style="background-color: #0e9d59; border-color: #0e9d59 !important;" @click="saveButtonClicked"  :class="{ saving: bundling }" :disabled="bundling || !saveBtnEnabled">
           <span>{{ filename}}</span>
-          <i class="fas fa-download"></i>
+          <font-awesome :icon="['fas', 'download']" />
         </button>
         
         <div>
@@ -206,6 +206,7 @@ export default {
               case "narrators":
               case "categories":
               case "publishers":
+              case "tags":
                 // console.log( vue.stringifyArray( book[ key ], "name", key === "categories" ? " > " : null ) )
                 return vue.stringifyArray( book[ key ], "name", key === "categories" ? " > " : null ) || '';
                 break;
@@ -450,6 +451,7 @@ export default {
             "blurb",
             "authors",
             "narrators",
+            "tags"
             "categories",
             "parentCategory",
             "childCategory",
