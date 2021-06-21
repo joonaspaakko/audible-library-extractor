@@ -11,7 +11,7 @@
     }" 
     :content="item.tippy ? item.tippy : false"
     >
-      <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false) }">
+      <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts /*!!dropdownOptions && dropdownOptions.length > 0*/ }">
         
         <!-- LABEL in the front -->
         <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
@@ -75,25 +75,43 @@
         ></vue-slider>
         <span style="cursor: e-resize;" @click="adjustRange('right')">{{ rangeVal[1] }}{{ item.rangeSuffix }}</span>
       </div>
-        
+      
+      <div v-if="!!item.dropdownOpts">
+        <Multiselect
+        :searchable="true" 
+        :value="item.value" 
+        :clearOnSelect="false"
+        placeholder="Search..."
+        @change="dropdownChanged" 
+        @click.native="dropdownOpened"
+        :options="dropdownOptions" 
+        mode="tags" 
+        />
+      </div>
+
     </span>
   </span>
 </template>
 
 <script>
 
-import VueSlider from 'vue-slider-component'
-import 'vue-slider-component/theme/default.css'
+import VueSlider from 'vue-slider-component';
+import 'vue-slider-component/theme/default.css';
+import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
+import slugify from "@output-mixins/slugify";
 
 export default {
   name: "sorter",
   props: [ "label", "currentList", "listName", "item", "index", "tippyTop" ],
+  mixins: [slugify],
   components: {
-    VueSlider
+    VueSlider,
+    Multiselect,
   },
   data: function() {
     return {
       range: null,
+      dropdownOptions: null,
     };
   },
   
@@ -123,11 +141,15 @@ export default {
       
     }
     
+    // Compiles dropdown data (options) on create it it's active
+    // Otherwise the data is compiled when the dropdown is first opened on click in the "dropdownOpened" method
+    if ( this.$store.getters.filterExtrasKeys.match( this.item.key ) ) {
+      if ( !this.dropdownOptions && !!this.item.dropdownOpts ) this.dropdownOptions = this.item.dropdownOpts();
+    }
+    
   },
 
   computed: {
-    
-    
     
     filterAmounts: function( ) {
       
@@ -229,6 +251,30 @@ export default {
       }
     },
     
+    dropdownChanged: function( value ) {
+      
+      let changes = {
+        listName: this.listName,
+        index: this.index,
+        active: value.length > 0,
+        value: value,
+      };
+      
+      if ( this.item.group ) changes.group = true;
+      this.$store.commit("updateListRenderingOpts", changes);
+      this.doTheThings( value, true );
+      
+    },
+    
+    dropdownOpened: function( e ) {
+      
+      if ( !this.dropdownOptions && !!this.item.dropdownOpts ) this.dropdownOptions = this.item.dropdownOpts();
+      
+      let searchInput = e.currentTarget.querySelector('.multiselect-search input');
+      searchInput.focus();
+      
+    },
+    
     rangeChanged: function( value ) { 
       
       let changes = {
@@ -265,9 +311,9 @@ export default {
       this.doTheThings( changes.range, true);
     },
     
-    doTheThings: function( value, range ) {
+    doTheThings: function( value, specialBoy ) {
       
-      this.saveOptions( value, range);
+      this.saveOptions( value, specialBoy);
       
       if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
     
@@ -281,12 +327,14 @@ export default {
         this.$store.commit("prop", { 'key': 'searchSort', value: false });
         this.$root.$emit("start-sort");
       } else if ( this.listName === "filter" ) {
-        this.$root.$emit("start-filter", range ? value : null);
+        this.$root.$emit("start-filter");
       } 
         
     },
     
-    saveOptions: function( value, range ) {
+    saveOptions: function( value, specialBoy ) {
+      
+      let vue = this;
       
       if ( this.item.key === "sortValues" ) {
         this.$updateQuery({ query: this.item.key, value: value });
@@ -301,16 +349,17 @@ export default {
         }
         if ( this.item.type === 'filterExtras' ) {
           let vue = this;
-          if ( vue.$store.getters.filterExtrasKeys || !value && !range ) {
-            const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
-              const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
-              if ( keyItem && keyItem.range ) {
-                return key + ':' + keyItem.range[0] +'-'+ keyItem.range[1];
-              }
-              else { return key; }
-            });
-            this.$updateQuery({ query: this.item.type, value: encodeURIComponent(rangedKeys) });
-          }
+          const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
+            const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
+            if ( keyItem && keyItem.range ) {
+              return encodeURIComponent( key + ':' + keyItem.range[0] +'-'+ keyItem.range[1] );
+            }
+            else if ( keyItem && keyItem.value && keyItem.value.length > 0 ) {
+              return encodeURIComponent(key + ':') + _.map( keyItem.value, function( val ) { return encodeURIComponent(val); }).join('|');
+            }
+            else { if ( key ) return encodeURIComponent(key); }
+          });
+          this.$updateQuery({ query: this.item.type, value: (rangedKeys.length === 1 && rangedKeys[0] === undefined) ? false : rangedKeys.join(',') });
         }
       }
       else if ( this.listName === "scope" ) {
@@ -325,6 +374,75 @@ export default {
   },
 };
 </script>
+
+<style src="@vueform/multiselect/themes/default.css"></style>
+<style lang="scss">
+  @import "~@/_variables.scss";
+  .multiselect {
+    max-width: 300px;
+  }
+  .multiselect-tag, .multiselect > * {
+    font-size: 12px;
+    line-height: 15px;
+  }
+  .multiselect-tags {
+    padding-right: 20px;
+    padding-left: 5px;
+    > *, 
+    > * > * {
+      box-sizing: border-box;
+    }
+  }
+  .multiselect-tag, 
+  .multiselect-option {
+    line-height: 12px;
+    padding: 5px;
+    padding-right: 0;
+  }
+  .multiselect-tag {
+    padding-top: 3px;
+    padding-bottom: 3px;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 14px;
+    white-space: normal;
+    @include themify($themes) {
+      background: themed(audibleOrange);
+      // background: rgba( themed(frontColor), .3);
+    }
+    // background: #3e3e3e !important;
+  }
+  .multiselect-option {
+    width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    padding-top: 0;
+    padding-bottom: 0;
+    min-height: 25px;
+    line-height: 25px;
+  }
+  .multiselect-clear {
+    width: 20px;
+    height: 20px;
+    background: transparent;
+    &:after, 
+    &:before {
+      top: 5px;
+      left: 10px;
+    }
+  }
+  .multiselect-tag i:before {
+    color: #fff;
+  }
+  .multiselect-search input { font-size: 12px !important; display: inline-block !important; background: transparent !important; }
+  .theme-dark {
+    .multiselect-input {
+      border-color: rgba( $darkFrontColor, .3);
+    }
+    .multiselect-search input { color: $darkFrontColor !important; }
+  }
+</style>
 
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
@@ -466,6 +584,8 @@ export default {
     text-decoration: line-through;
     opacity: 0.35;
   }
+  
+  &.faux-disabled.is-dropdown .input-label { text-decoration: none; }
   
   .books-in-filter {
     vertical-align: middle;

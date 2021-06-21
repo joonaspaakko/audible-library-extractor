@@ -22,6 +22,8 @@
           <arrayToHTML v-if="book.categories" label="Categories" :array="book.categories" delim=" > " ></arrayToHTML>
         </div>
         
+        <book-tags v-if="book.tags" :book="book"></book-tags>
+        
         <div class="inline-children smoll-text">
           <div class="release-date" v-if="book.releaseDate">
             <span class="strong-label">Released:</span>
@@ -65,12 +67,16 @@
 <script>
 import makeUrl from "@output-mixins/makeFullUrl";
 import arrayToHTML from "@output-comps/snippets/arrayToHTML";
+import bookTags from "./bookTags";
 
 export default {
   name: "bookSummary",
   props: ["book", "detailsEl"],
   mixins: [makeUrl],
-  components: { arrayToHTML },
+  components: { 
+    arrayToHTML, 
+    bookTags, 
+  },
   data: function() {
     return {
       summary: {

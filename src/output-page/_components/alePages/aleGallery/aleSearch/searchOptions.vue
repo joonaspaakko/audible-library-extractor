@@ -8,7 +8,7 @@
         <li class="reset-filters" @click="resetFilters" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
           <font-awesome fas icon="redo-alt" />
         </li>
-        <li class="total">{{ $store.getters.collection.length }} / {{ total }}</li>
+        <li class="total"><span :class="{ difference: $store.getters.collection.length !== this.$store.getters.collectionTotal }">{{ $store.getters.collection.length }}</span> / {{ this.$store.getters.collectionTotal }}</li>
         <li class="search-option" 
         v-for="(item, index) in optionsList" :key="item.key"
         v-if="$route.name === 'wishlist' ? item.type === 'filter' && !item.excludeFromWishlist : item.type === 'filter'"
@@ -53,7 +53,6 @@ export default {
         options: { right: "0px" },
         filter: { top: '40px' },
       },
-      total: null,
     };
   },
 
@@ -63,10 +62,6 @@ export default {
     if ( this.listName === 'filter' ) {
       let topNav = document.querySelector('#ale-navigation.regular');
       this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
-      
-      this.total = this.$store.getters.searchIsActive ? 
-                      this.$store.state.searchCollection.length : 
-                      this.$store.getters.collectionSource.length;
     }
     
   },
@@ -243,7 +238,8 @@ export default {
     padding: 2px 7px;
     border-radius: 999999px;
     display: inline-block;
-    font-size: .75em;
+    font-size: .80em;
+    font-weight: 500;
     @include themify($themes) {
       // color: themed(backColor);
       background: rgba( lighten(themed(frontColor), 10), .6);
@@ -254,6 +250,12 @@ export default {
       background: lighten(themed(backColor), 12);
       border: 1px solid rgba(themed(frontColor), 0.12);
       
+    }
+    .difference {
+      @include themify($themes) {
+        color: themed(audibleOrange);
+        
+      }
     }
   }
   

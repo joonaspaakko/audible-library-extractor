@@ -115,7 +115,10 @@ export default new Vuex.Store({
       // }
       
       currentItem.active = o.active;
-      if ( o.range ) currentItem.range = o.range;
+      if ( currentItem.type === 'filterExtras' ) {
+        if ( o.range ) currentItem.range = o.range;
+        if ( o.value ) currentItem.value = o.value;
+      }
       
       // Changes the currently active sorter (in sort: active state controls the direction)
       if ( o.listName === "sort" && currentItem.type === 'sort' ) {
@@ -197,7 +200,10 @@ export default new Vuex.Store({
       return state.searchQuery.trim() !== "";
     },
     collectionSource: function( state ) {
-      return _.get(state, state.collectionSource);
+      return state.searchQuery.trim() !== "" ? state.searchCollection : _.get(state, state.collectionSource);
+    },
+    collectionTotal: function( state ) {
+      return state.collectionSource ? _.get(state, state.collectionSource).length : 0;
     },
     collection: function( state ) {
       const searchIsActive = state.searchQuery.trim() !== "";

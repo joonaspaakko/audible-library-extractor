@@ -1,6 +1,6 @@
 <template>
   <div class="icons">
-    <div class="icon-wrap" v-tippy :content="'Items in current selection. ' + (total ? totalTitle + ' total: ' + total : '')">
+    <div class="icon-wrap" v-tippy :content="'Items in current selection. ' + ($store.getters.collectionTotal ? totalTitle + ' total: ' + $store.getters.collectionTotal : '')">
       <div class="book-in-selection">
         <div class="inner-wrap">
           {{ $store.getters.collection.length }}
@@ -62,11 +62,6 @@ export default {
   },
   
   computed: {
-    total: function() {
-      return this.$store.getters.searchIsActive ? 
-                (this.$store.state.searchCollection ? this.$store.state.searchCollection.length : null) : 
-                (this.$store.getters.collectionSource ? this.$store.getters.collectionSource.length : null);
-    },
     totalTitle: function() {
       return (( this.$route.meta.title === this.$store.state.pageTitle ) ? this.$store.state.pageTitle : (this.$store.state.pageTitle ? (this.$route.meta.title + ' - ' + this.$store.state.pageTitle) : this.$route.meta.title));
     },

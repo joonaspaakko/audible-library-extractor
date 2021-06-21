@@ -134,6 +134,35 @@ function getStorePageData(vue, response, book, isTest) {
       if ( whisperSyncText.match(/Voice-enabled/) ) book.whisperSync = 'owned';
       else if ( whisperSyncText.match(/Voice-ready/) ) book.whisperSync = true;
     }
+    
+    var tagWrapper = audible.querySelector('.product-topic-tags');
+    if ( tagWrapper ) {
+      
+      var tagsArray = [];
+      var tags = audible.querySelectorAll('.bc-chip-text');
+      tags.forEach( function( tag ) {
+        
+        var tagObj = {};
+        
+        var catUrl = tag.closest('a').getAttribute('href');
+        if ( catUrl ) {
+          catUrl = DOMPurify.sanitize( catUrl );
+          catUrl = new Url( catUrl ).path;
+          catUrl = catUrl.split('/').pop();
+          tagObj.url = DOMPurify.sanitize( catUrl )
+        }
+        
+        var tagName = tag.getAttribute('data-text');
+        if ( tagName ) {
+          tagObj.name = DOMPurify.sanitize( tagName );
+          tagsArray.push( tagObj );
+        }
+        
+      });
+      
+      if ( tagsArray.length > 0 ) book.tags = tagsArray;
+      
+    }
 
     // Around July 2020 audible has removed any mention of the added date.
     // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.

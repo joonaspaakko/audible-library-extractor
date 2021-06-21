@@ -251,6 +251,7 @@ export default {
           // { storePageRequestUrl: "https://www.audible.com/pd/B01F7M9KZG"},
           // { storePageRequestUrl: "https://www.audible.com/pd/B002V8MTGM"},
           { storePageRequestUrl: "https://www.audible.com/pd/B07XTNWRFF"},
+          { storePageRequestUrl: "https://www.audible.com/pd/B08W5DP8VM"},
         ]
       };
 

@@ -28,7 +28,8 @@ export default {
           if (input.name) newUrl = base + "/search?searchProvider=" + encodeURIComponent(input.name);
           break;
         case "categories":
-          if (input.name) newUrl = base + "/cat/" + input.url;
+        case "tags":
+          if (input.url) newUrl = base + "/cat/" + input.url;
           break;
       }
 

@@ -26,6 +26,8 @@ import 'es6-promise/auto';
 
 // VUE 
 import Vue from "vue";
+import VueCompositionAPI from '@vue/composition-api';
+Vue.use(VueCompositionAPI);
 import App from "./output-page-app";
 
 Vue.config.devtools = false;
@@ -434,8 +436,8 @@ globalMethods.install = function (Vue) {
     
     if ( this.$route.query.filterExtras ) {
       
-      let paramFilterExtras = decodeURIComponent(this.$route.query.filterExtras);
-      paramFilterExtras = paramFilterExtras.split(',');
+      let paramFilterExtras = this.$route.query.filterExtras.split(',');
+      paramFilterExtras = _.map( paramFilterExtras, function( param ) { return decodeURIComponent(param); });
       
       _.each( paramFilterExtras, function( key ) {
         
@@ -445,12 +447,17 @@ globalMethods.install = function (Vue) {
         
         if ( targetItem ) {
           targetItem.active = true;
-          
           if ( splitColon.length > 1 ) {
-            let splitDash = splitColon[1].split('-');
-            let min = splitDash[0];
-            let max = splitDash[1];
-            targetItem.range = [min, max];
+            
+            if ( targetItem.dropdownOpts ) {
+              targetItem.value = splitColon[1].split('|');
+            }
+            else if ( targetItem.range ) {
+              let splitDash = splitColon[1].split('-');
+              let min = splitDash[0];
+              let max = splitDash[1];
+              targetItem.range = [min, max];
+            }
           }
         }
         
