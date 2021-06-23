@@ -2,6 +2,16 @@ global.browser = require("webextension-polyfill");
 
 var activeIcons = [];
 
+
+console.log( browser.runtime )
+
+const get = (obj, path, defValue) => {
+  if (!path) return undefined
+  const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g)
+  const result = pathArray.reduce((prevObj, key) => prevObj && prevObj[key], obj)
+  return result === undefined ? defValue : result
+}
+
 browser.runtime.onMessage.addListener(function(msg, sender) {
   if ( msg.pageAction == true && !browser.runtime.lastError ) {
     browser.pageAction.setIcon({
@@ -65,6 +75,8 @@ browser.runtime.onMessage.addListener((message, sender) => {
       openerTabId: sender.tab.id
     });
     
+    makeContextMenu();
+    
   }
 });
 
@@ -87,6 +99,12 @@ browser.tabs.onActivated.addListener((activeInfo) => {
     
   }
   
+});
+
+makeContextMenu();
+
+function makeContextMenu() {
+  
   // https://developer.chrome.com/apps/storage
   // Permission: "storage"
   browser.storage.local.get(null).then(data => {
@@ -96,49 +114,47 @@ browser.tabs.onActivated.addListener((activeInfo) => {
     browser.contextMenus.removeAll();
     
     var dataExists = typeof data === 'object' && data.chunks && data.chunks.length > 0;
-                    
-    if ( data && data.extras ) domainExtension = data.extras['domain-extension'];
-    else { domainExtension = null; }
-    
+    domainExtension = get( data, 'extras.domain-extension' );
     data = null;
     
     if ( dataExists ) {
       browser.contextMenus.create({
         id: 'ale-to-gallery',
-        title: "Open extension gallery",
-        contexts: ["browser_action", "page_action"]
+        title: "1. Extension gallery",
+        contexts: ["page", "browser_action", "page_action"]
       });
     }
     
     if ( domainExtension ) {
       browser.contextMenus.create({
         id: 'ale-to-audible',
-        title: "Open Audible library",
-        contexts: ["browser_action", "page_action"]
+        title: "2. Audible"+ domainExtension +"/library",
+        contexts: ["page", "browser_action", "page_action"]
       });
     }
     
     browser.contextMenus.create({
       id: 'ale-to-docs',
-      title: "Open documentation",
-      contexts: ["browser_action", "page_action"]
+      title: "3. Documentation",
+      contexts: ["page", "browser_action", "page_action"]
     });
     
     browser.contextMenus.create({
       id: 'ale-to-github',
-      title: "Github: project page",
-      contexts: ["browser_action", "page_action"]
+      title: "4. Github project page",
+      contexts: ["page", "browser_action", "page_action"]
     });
     
     browser.contextMenus.create({
       id: 'ale-to-github-issues',
-      title: "Github: issues",
-      contexts: ["browser_action", "page_action"]
+      title: "5. Github issues",
+      contexts: ["page", "browser_action", "page_action"]
     });
     
   });
   
-});
+}
+
 
 browser.contextMenus.onClicked.addListener((info, tab) => {
       

@@ -160,7 +160,7 @@ export default {
           {
             active: false,
             type: 'filterExtras',
-            label: 'Favorites',
+            label: 'Favorites: include',
             key: 'favorites',
             excludeFromWishlist: true,
             group: 'filterExtras',
@@ -171,14 +171,47 @@ export default {
           {
             active: false,
             type: 'filterExtras',
-            label: 'No rating',
+            label: 'Favorites: exclude',
+            key: 'favorites-not',
             excludeFromWishlist: true,
-            key: 'no-rating',
+            group: 'filterExtras',
+            condition: function(book) {
+              return !book.favorite;
+            }
+          },
+          
+          {
+            type: 'divider',
+            key: 'divider1.4.1',
+            excludeFromWishlist: true
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'My rating: include',
+            excludeFromWishlist: true,
+            key: 'my-rating',
+            group: 'filterExtras',
+            condition: function(book) {
+              return book.myRating;
+            },
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'My rating: exclude',
+            excludeFromWishlist: true,
+            key: 'my-rating-no',
             group: 'filterExtras',
             condition: function(book) {
               return !book.myRating;
             },
-            tippy: "Books you haven't rated yet."
+          },
+          
+          {
+            type: 'divider',
+            key: 'divider1.4.1',
+            excludeFromWishlist: true
           },
           {
             active: false,
@@ -192,34 +225,10 @@ export default {
             },
             tippy: "Most recent additions."
           },
-          {
-            active: false,
-            type: 'filterExtras',
-            label: 'Giftable books',
-            excludeFromWishlist: true,
-            key: 'giftable',
-            group: 'filterExtras',
-            condition: function(book) {
-              return !book.fromPlusCatalog && !book.unavailable && !book.storePageChanged && !book.storePageMissing;
-            },
-            tippy: 'Excludes all books that are from the plug catalog and books with removed or changed store pages.'
-          },
 
           {
             type: 'divider',
             key: 'divider2.0'
-          },
-          {
-            active: false,
-            type: 'filterExtras',
-            label: 'Full cast: exclude',
-            key: 'full-cast-exclude',
-            group: 'filterExtras',
-            condition: function(book) {
-              return !_.find(book.narrators, function(narrator) {
-                return narrator.name.match('full cast');
-              });
-            }
           },
           {
             active: false,
@@ -229,6 +238,18 @@ export default {
             group: 'filterExtras',
             condition: function(book) {
               return _.find(book.narrators, function(narrator) {
+                return narrator.name.match('full cast');
+              });
+            }
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Full cast: exclude',
+            key: 'full-cast-exclude',
+            group: 'filterExtras',
+            condition: function(book) {
+              return !_.find(book.narrators, function(narrator) {
                 return narrator.name.match('full cast');
               });
             }
@@ -364,12 +385,13 @@ export default {
             active: false,
             type: 'filterExtras',
             excludeFromWishlist: true,
-            label: 'Books in series',
+            label: 'books in series',
             key: 'booksinseries',
             group: 'filterExtras',
             range: true,
             rangeMinDist: 0,
             rangeSuffix: '',
+            tippy: 'Number of owned books in series',
             rangeMin: function() {
               return 1;
             },

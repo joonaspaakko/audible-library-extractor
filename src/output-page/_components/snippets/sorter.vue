@@ -617,6 +617,7 @@ export default {
     opacity: .5;
   }
   
+  &.is-dropdown,
   &.ranged {
     display: inline-block !important;
     width: auto !important;

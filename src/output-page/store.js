@@ -41,6 +41,7 @@ export default new Vuex.Store({
     chunkDistance: 40,
     viewRefresh: '',
     pageTitle: null,
+    version: null,
   },
 
   mutations: {

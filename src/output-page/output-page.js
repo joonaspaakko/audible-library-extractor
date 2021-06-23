@@ -534,6 +534,9 @@ function vuexPrep( libraryData ) {
   store.commit("prop", { key: "standalone", value: standalone });
   store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });
   store.commit("prop", { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] });
+  
+  const { version } = require('../../package.json');
+  store.commit("prop", { key: "version", value: version });
 
 }
 
@@ -549,8 +552,7 @@ function startVue( libraryData ) {
     render: h => {
       return h(App, {
         // props: {
-        //   isStandalone: standalone,
-        //   library: libraryData,
+        //   version: version
         // }
       });
     }

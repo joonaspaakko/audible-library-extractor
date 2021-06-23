@@ -1,5 +1,5 @@
 <template>
-  <div id="audible-library-extractor">
+  <div id="audible-library-extractor" :data-version="$store.state.version">
         
     <ale-background v-if="$store.state.showBackground"></ale-background>
     <ale-navigation></ale-navigation>
@@ -24,7 +24,6 @@ export default {
     aleNavigation,
     // aleBreadcrumbs
   },
-  
   data: function() {
     return {
       general: {
@@ -258,6 +257,10 @@ body {
   ul {
     padding-left: 22px;
   }
+}
+
+.tippy-tooltip {
+  border-radius: 11px;
 }
 
 .theme-dark .tippy-popper {

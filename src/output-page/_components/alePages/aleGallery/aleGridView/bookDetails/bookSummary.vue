@@ -39,10 +39,16 @@
             missing
           </div>
           
+          <div class="info-tag plus-catalog" :class="{ 'plus-catalog-unavailable': book.unavailable }" v-if="book.fromPlusCatalog" v-tippy="{ maxWidth: 300 }" :content="book.unavailable ? 'Used to be in the plus catalog but you no longer have access to it' : 'In the plus catalog'">
+            <font-awesome fas :icon="['fas', 'plus-circle']" />
+            Plus catalog
+          </div>
+          
           <div class="info-tag whispersync" :class="{ owned: book.whispersync === 'owned' }" v-if="book.whispersync" v-tippy="{ maxWidth: 300 }" :content="book.whispersync === 'owned' ? 'You own the Kindle version' : 'Kindle book available for purchase...'">
             <font-awesome :icon="['fas', 'headphones-alt']" />
             whispersync
           </div>
+          
           
         </div>
         
@@ -228,6 +234,13 @@ export default {
     &.store-page-info {
       padding: 2px;
       background: #252525;
+    }
+    
+    &.plus-catalog {
+        @include themify($themes) { background: themed(audibleOrange); }
+      &.plus-catalog-unavailable {
+        background: #bd3f00;
+      }
     }
     
     &.whispersync {

@@ -1,6 +1,6 @@
 <template>
   <div class="icons">
-    <div class="icon-wrap" v-tippy :content="'Items in current selection. ' + ($store.getters.collectionTotal ? totalTitle + ' total: ' + $store.getters.collectionTotal : '')">
+    <div class="icon-wrap" v-tippy :content="'Items in current selection: <strong>'+ $store.getters.collection.length +'</strong> / <strong>' + $store.getters.collectionTotal +'</strong>'">
       <div class="book-in-selection">
         <div class="inner-wrap">
           {{ $store.getters.collection.length }}
@@ -62,9 +62,9 @@ export default {
   },
   
   computed: {
-    totalTitle: function() {
-      return (( this.$route.meta.title === this.$store.state.pageTitle ) ? this.$store.state.pageTitle : (this.$store.state.pageTitle ? (this.$route.meta.title + ' - ' + this.$store.state.pageTitle) : this.$route.meta.title));
-    },
+    // totalTitle: function() {
+    //   return (( this.$route.meta.title === this.$store.state.pageTitle ) ? this.$store.state.pageTitle : (this.$store.state.pageTitle ? (this.$route.meta.title + ' - ' + this.$store.state.pageTitle) : this.$route.meta.title));
+    // },
     filtersActive : function() {
       return this.$store.getters.filterExtrasKeys || (this.$store.getters.filterKeys !== 'notStarted,started,finished' );
     },

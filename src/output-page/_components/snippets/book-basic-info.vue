@@ -10,6 +10,14 @@
     </div>
 
     <div class="line-it-up">
+      <div class="language" v-if="book.language">
+        <strong class="strong-label">Language:</strong>
+        <span>{{ book.language }}</span>
+      </div>
+      <div class="format" v-if="book.format">
+        <strong class="strong-label">Format:</strong>
+        <span>{{ book.format }}</span>
+      </div>
       <div class="rating" v-if="book.rating">
         <strong class="strong-label">Rating:</strong>
         <!-- <span>{{ book.rating }} ({{ book.ratings }} ratings)</span> -->

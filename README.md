@@ -1,6 +1,6 @@
 # Audible Library Extractor browser extension ((metadata only)) <!-- omit in toc -->
 [![](https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20version)](https://github.com/joonaspaakko/audible-library-extractor/releases/latest)
-[![](https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20release)](https://github.com/joonaspaakko/audible-library-extractor/releases/latest)
+[![](https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20version)](https://github.com/joonaspaakko/audible-library-extractor/releases/latest)
 [![](https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug)](https://github.com/joonaspaakko/audible-library-extractor/labels/bug)
 
 > Supported browsers: Chrome, Firefox, [Edge (technically)](https://www.howtogeek.com/411830/how-to-install-google-chrome-extensions-in-microsoft-edge/)
@@ -9,7 +9,7 @@
 You can check my Audible library [here](https://joonaspaakko.github.io/my-audible-library/).
 
 ## Install
-- Firefox - [https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/)
+- Firefox - [https://addons.mozilla.org/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/firefox/addon/audible-library-extractor/)
 - Chrome - [https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall](https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall)
     - This version can also be installed in the [Chromium based Edge](https://www.howtogeek.com/411830/how-to-install-google-chrome-extensions-in-microsoft-edge/)
 

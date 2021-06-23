@@ -462,6 +462,8 @@ export default {
     flex-direction: row;
     padding: 0 5px;
     border-radius: 9999px;
+    margin-top: 5px;
+    margin-bottom: 5px;
     @include themify($themes) {
       border: 1px solid rgba( themed(frontColor), .1);
     }

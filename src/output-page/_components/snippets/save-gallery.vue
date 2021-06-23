@@ -181,7 +181,7 @@ export default {
           "</head>" +
           "<body>" +
           
-            '<div id="audible-library-extractor"></div>' +
+            '<div id="audible-library-extractor" :data-version="'+ this.$store.state.version +'"></div>' +
             '<script id="ale-js" src="output-page.' + vue.cacheBuster +'.js"><\/script>' +
             "<noscript>This library requires javascript to work!</noscript>" +
             

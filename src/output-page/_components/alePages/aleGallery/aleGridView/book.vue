@@ -373,8 +373,8 @@ export default {
   display: none;
   position: absolute;
   z-index: 999;
-  bottom: 12px;
-  right: 12px;
+  bottom: 0px;
+  right: 0px;
   padding: 6px;
   border-radius: 999999px;
   cursor: default;
@@ -438,8 +438,6 @@ body.is-ios .ale-click-wrap {
 @media (max-width: 640px) {
   
   .ale-play-sample {
-    bottom: 5px !important;
-    right: 5px !important;
     > div {
       width: 15px;
       height: 15px;

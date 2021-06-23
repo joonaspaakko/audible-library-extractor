@@ -110,9 +110,24 @@
       Changelog
     </b-button>
 
+
     <div id="footer" class="is-small has-text-grey-light">
       Project source files in <a href="https://github.com/joonaspaakko/audible-library-extractor">Github</a>. <br />
-      Post issues, questions, and suggestion at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>.
+      Post issues, questions, and suggestion at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>. <br>
+      <br>
+      
+      <a target="_blank" :href="releaseURL">
+        <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20version" alt="">
+      </a>
+      <a target="_blank" :href="releaseURL">
+        <img src="https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20version" alt="">
+      </a>
+      <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/labels/bug">
+        <img src="https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug" alt="">
+      </a>
+      
+      <br><br>
+      You're currently using version {{ extensionVersion }}
     </div>
   </div>
 </template>
@@ -232,6 +247,9 @@ export default {
         }
       ],
       loading: true,
+      isFirefox: false,
+      isChrome: false,
+      releaseURL: '',
     };
   },
 
@@ -244,6 +262,10 @@ export default {
   },
   
   created: function() {
+    
+    this.checkBrowser();
+    this.makeReleaseURLs();
+    this.getCurrentVersion();
     
     if ( !(this.storageHasData.books || this.storageHasData.wishlist) ) {
       this.outputPageDisabled = true;
@@ -280,6 +302,19 @@ export default {
   },
 
   methods: {
+    
+    getCurrentVersion: function() {
+      this.extensionVersion = browser.runtime.getManifest().version;
+    },
+    
+    makeReleaseURLs: function() {
+      this.releaseURL = this.isFirefox ? 'https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall' : 'https://addons.mozilla.org/firefox/addon/audible-library-extractor/';
+    },
+    
+    checkBrowser: function() {
+      this.isFirefox = browser.runtime.getURL('').startsWith('moz-extension://');
+      this.isChrome = browser.runtime.getURL('').startsWith('chrome-extension://');
+    },
     
     partialExtraction: function( setting ) {
       
