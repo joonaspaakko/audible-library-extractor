@@ -95,12 +95,6 @@ export default {
     this.makeCollection();
   },
   
-  watch: {
-    '$store.state.sticky.subPageSource': function( source ) {
-      this.makeCollection();
-    }
-  },
-  
   methods: {
     
     getRandomBooks: function(books, number) {

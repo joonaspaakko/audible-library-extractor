@@ -44,10 +44,10 @@
             
           </div> <!-- .information -->
 
-          <book-summary :detailsEl="$el" :book="book"></book-summary>
+          <book-summary :detailsEl="$el" :book="book" v-if="book.summary || bookSummaryJSON" :bookSummary="bookSummaryJSON"></book-summary>
         </div>
 
-        <carousel v-if="!loading && book.peopleAlsoBought" :books="book.peopleAlsoBought" :key="this.maxWidth">
+        <carousel v-if="!loading && peopleAlsoBought" :books="peopleAlsoBought" :key="this.maxWidth">
           <!-- People who bought this also bought: -->
           Listeners also enjoyed
         </carousel>
@@ -106,10 +106,15 @@ export default {
       scrollTop: 0,
       loading: true,
       clickedBook: null,
+      peopleAlsoBoughtJSON: null,
+      bookSummaryJSON: null,
     };
   },
 
   created: function() {
+    
+    this.loadJSON( 'bookSummaryJSON', 'summary' );
+    
     this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
     this.resetScroll();
     this.scrollTop = window.pageYOffset;
@@ -122,14 +127,22 @@ export default {
     // this.changeUrl();
     this.$updateQuery({ query: 'book', value: this.book.asin });
     this.loading = false;
+    this.$nextTick(function() {
+      this.loadJSON( 'peopleAlsoBoughtJSON', 'people-also-bought' );
+    });
     
   },
 
   beforeDestroy: function() {
     this.$root.$off("afterWindowResize", this.onWindowResize);
+    this.peopleAlsoBoughtJSON = null;
+    this.bookSummaryJSON = null;
   },
 
   computed: {
+    peopleAlsoBought: function () {
+      return this.book.peopleAlsoBought || this.peopleAlsoBoughtJSON;
+    },
     getMaxWidth: function() {
       if ( this.$store.state.sticky.viewMode === 'spreadsheet' ) {
         return this.maxWidth;
@@ -141,6 +154,35 @@ export default {
     
   },
   methods: {
+    
+    loadJSON: function( key, folder, afterError )  {
+      
+      if ( this.$store.state.standalone ) {
+        
+        let vue = this;
+        let scrpt = document.createElement("script");
+        scrpt.src = "data/"+ folder +"/"+ vue.book.asin +"."+ this.$store.state.library.extras.cacheID +".js";
+        scrpt.type="text/javascript";
+        scrpt.onload = function() {
+          
+          vue[ key ] = window[ key ];
+          window[ key ] = true;
+          scrpt.remove();
+          
+        };
+        // Tries again if there's an error loading the files, but only once...
+        scrpt.onerror = function() {
+          scrpt.remove();
+          setTimeout(function() {
+            if ( !afterError ) vue.loadJSON( key, folder, 'afterError'); // Try twice...
+          }, 1000);
+        };
+        document.head.appendChild(scrpt);
+        
+      }
+
+    },
+    
     onWindowResize: function( msg ) {
       this.maxWidth = this.repositionBookDetails() + "px";
       if ( msg.widthChanged ) { this.resetScroll(); }

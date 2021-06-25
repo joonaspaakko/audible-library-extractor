@@ -77,7 +77,7 @@ import bookTags from "./bookTags";
 
 export default {
   name: "bookSummary",
-  props: ["book", "detailsEl"],
+  props: ["book", "detailsEl", "bookSummary"],
   mixins: [makeUrl],
   components: { 
     arrayToHTML, 
@@ -98,7 +98,7 @@ export default {
 
   computed: {
     summaryHTML: function() {
-      return this.book.summary || this.book.blurb;
+      return this.book.summary || this.bookSummary || this.book.blurb;
     }
   },
 

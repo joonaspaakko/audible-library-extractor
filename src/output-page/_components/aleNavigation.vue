@@ -4,7 +4,7 @@
       
       <div class="inner-wrap-wrapper">
         
-        <div class="text-button gallery-page" v-if="$store.state.library.books && routeExists('gallery')">
+        <div class="text-button gallery-page" v-if="($store.state.library.extras.pages.books || $store.state.library.books) && routeExists('gallery')">
           <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
               <font-awesome fas icon="book" />
@@ -15,7 +15,7 @@
           </router-link>
         </div>
         
-        <div class="text-button collections-page" v-if="$store.state.library.collections && routeExists('collections')">
+        <div class="text-button collections-page" v-if="($store.state.library.extras.pages.collections || $store.state.library.collections) && routeExists('collections')">
           <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
           <div class="icon">
             <font-awesome fas icon="folder-open" />
@@ -24,11 +24,11 @@
           </router-link>
         </div>
         
-        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="$store.state.library.books && routeExists('anySubPage')" @click="subMenuClicked">
+        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="($store.state.library.extras.pages.books || $store.state.library.books) && routeExists('anySubPage')" @click="subMenuClicked">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
             <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">
-              {{ $store.state.sticky.subPageSource === 'books' ? 'Library: ' : 'Wishlist: ' }}
+              {{ ($route.query.subPageSource || $store.state.sticky.subPageSource) === 'books' ? 'Library: ' : 'Wishlist: ' }}
               {{ $route.meta.title }}
             </span>
             <span v-else>Sub pages</span>
@@ -101,7 +101,7 @@
           </router-link>
         </div> -->
         
-        <div class="text-button wishlist-page" v-if="$store.state.library.wishlist && routeExists('wishlist')">
+        <div class="text-button wishlist-page" v-if="($store.state.library.extras.pages.books || $store.state.library.wishlist) && routeExists('wishlist')">
           <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">
           <div class="icon">
             <font-awesome fas icon="bookmark" />
@@ -171,13 +171,12 @@
 </template>
 
 <script>
-import aleSaveLocally from "./aleSaveLocally";
 import lightSwitch from "@output-snippets/lightSwitch";
 
 export default {
   name: "aleMenuActions",
   components: {
-    aleSaveLocally,
+    aleSaveLocally: () => import( /* webpackChunkName: "save-locally" */ "./aleSaveLocally"),
     lightSwitch,
     viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
     audioPlayer: () => import( /* webpackChunkName: "audio-player" */ "@output-snippets/audio-player"),

@@ -1,3 +1,5 @@
+const standalone = document.querySelector("html.standalone-gallery");
+
 // INTERSECTION OBSERVER POLYFILL
 require('intersection-observer');
 IntersectionObserver.prototype.POLL_INTERVAL = 180;
@@ -82,11 +84,9 @@ Vue.use(VueRouter);
 import aleLibraryView from "./_components/aleLibraryView";
 import VueRouterBackButton from "vue-router-back-button";
 
-var routesPrep = function( libraryData ) {
+let routesPrep = function( libraryData ) {
   if ( libraryData ) {
     
-    function inArray(array, value) { return array.indexOf( value  ) > -1; }
-  
     let routes = [];
     
     // Home page redirect
@@ -207,6 +207,112 @@ var routesPrep = function( libraryData ) {
     });
     
     Vue.use(VueRouterBackButton, { router });
+    
+    // Tries to load relevant JSON data from a file before each route change on the standalone site
+    if ( standalone ) {
+      
+      router.beforeEach((to, from, next) => {
+        if ( 
+          from.name !== to.name || 
+          _.get(from, 'query.book') !== _.get(to, 'query.book') || 
+          from.query.subPageSource !== to.query.subPageSource 
+        ) {
+          
+          let getJSON = function( files, afterError ) {
+            
+            // Exclude JSON that's already been loaded
+            files = _.filter( files, function( file ){ return window[file.name+'JSON'] !== true; });
+            
+            let counter = files.length;
+            const nothingToLoad = (counter === 0);
+            if ( nothingToLoad ) {
+              next();
+            }
+            // Start loading JSON files...
+            else {
+              _.each( files, function( file ) {
+                
+                let scrpt = document.createElement("script");
+                scrpt.src = "data/"+ file.name +"."+ libraryData.extras.cacheID +".js";
+                scrpt.type="text/javascript";
+                scrpt.onload = function() {
+                  --counter;
+                  const allRequestsLoaded = (counter === 0);
+                  if ( allRequestsLoaded ) {
+                    
+                    let storageArray = _.map( files, function( file ) { 
+                      return {
+                        key: (file.keyOverride || file.name),
+                        value: window[file.name+'JSON'],
+                      }; 
+                    });
+                    store.commit("buildStandaloneData", storageArray);
+                    _.each( files, function( file ) { window[file.name+'JSON'] = true; });
+                    next();
+                    
+                  }
+                  scrpt.remove();
+                  
+                };
+                // Tries again if there's an error loading the files, but only once...
+                scrpt.onerror = function() {
+                  scrpt.remove();
+                  setTimeout(function() {
+                    if ( !afterError ) getJSON(files, 'afterError');
+                    else next();
+                  }, 1000);
+                };
+                document.head.appendChild(scrpt);
+                
+              });
+            }
+            
+          };
+          
+          if ( to.meta.subPage ) {
+            if ( to.query.subPageSource === 'wishlist' || !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist' ) {
+              getJSON([
+                {name: 'wishlist'},
+                {name: 'series'}
+              ]);
+            }
+            else {
+              getJSON([
+                {name: 'library', keyOverride: 'books'}, 
+                {name: 'series'}
+              ]);
+            }
+          }
+          else {
+            switch( to.name ) {
+              case 'gallery':
+                getJSON([
+                  {name: 'library', keyOverride: 'books'}, 
+                  {name: 'series'}
+                ]);
+                break;
+              case 'collections':
+              case 'collection':
+                getJSON([
+                  {name: 'library', keyOverride: 'books'}, 
+                  {name: 'collections'}
+                ]);  
+                break;
+              case 'wishlist':
+                getJSON([
+                  {name: 'wishlist'}
+                ]);
+                break;
+              default:
+                next();
+            }
+          }
+        
+        }
+        else { next(); }
+      });
+      
+    }
     
     return router;
   
@@ -361,6 +467,7 @@ import helpers from "@contscript-mixins/misc/helpers.js";
 
 // VUEX store
 import store from "./store.js";
+import { _ } from 'core-js';
 
 // UPDATING VUEX QUERIES
 const updateVuexQuery = {};
@@ -484,9 +591,6 @@ globalMethods.install = function (Vue) {
 }
 Vue.use( globalMethods );
 
-
-const standalone = document.querySelector("html.standalone-gallery");
-
 // APP prep
 // For testing purposes: offloading JSON
 var offLoadJSON = false;
@@ -514,7 +618,10 @@ else if (!standalone) {
 } 
 // As a standalone website...
 else {
-  startVue( JSON.parse(document.querySelector("#library-data").textContent) );
+  
+  startVue( JSON.parse( document.querySelector("#library-data").textContent ) );
+  // startVue( JSON.parse(document.querySelector("#library-data").textContent) );
+  
 }
 
 function vuexPrep( libraryData ) {
@@ -529,8 +636,8 @@ function vuexPrep( libraryData ) {
       localStorage.setItem("aleSettings", JSON.stringify( state.sticky ));
     }
   });
-  
-  store.commit("prop", { key: "library", value: libraryData, freeze: true });
+    
+  store.commit("prop", { key: "library", value: libraryData, freeze: standalone ? false : true });
   store.commit("prop", { key: "standalone", value: standalone });
   store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });
   store.commit("prop", { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] });
@@ -542,8 +649,18 @@ function vuexPrep( libraryData ) {
 
 function startVue( libraryData ) {
   
+  let standaloneRouteData;
+  libraryData.extras.pages = libraryData.extras.pages || {};
+  if ( standalone ) {
+    standaloneRouteData = JSON.parse(JSON.stringify(libraryData));
+    if ( libraryData.books       === true ) { delete libraryData.books; libraryData.extras.pages.books = true; }
+    if ( libraryData.series      === true ) { delete libraryData.series; libraryData.extras.pages.series = true; }
+    if ( libraryData.collections === true ) { delete libraryData.collections; libraryData.extras.pages.collections = true; }
+    if ( libraryData.wishlist    === true ) { delete libraryData.wishlist; libraryData.extras.pages.wishlist = true; }
+  }
+  
   vuexPrep( libraryData );
-  const router = routesPrep( libraryData );
+  let router = routesPrep( standaloneRouteData || libraryData );
   
   new Vue({
     router,

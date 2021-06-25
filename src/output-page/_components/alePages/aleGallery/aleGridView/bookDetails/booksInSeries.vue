@@ -13,7 +13,7 @@
     <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
       
       <div class="show-all-toggle" v-if="showAllToggle">
-        <div @click="toggleAll" :content="$store.state.sticky.booksInSeriesAll ? 'Hide books in the series that are not in your library' : 'Show all books in the series'" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }">
+        <div @click="toggleAll">
           <span>{{ $store.state.sticky.booksInSeriesAll ? 'Hide' : 'Show' }}</span> <span>books I don't have</span> <font-awesome :icon="['fas', 'ban']" />
         </div>
       </div>

@@ -57,15 +57,6 @@ export default {
     this.makeCollection();
   },
   
-  watch: {
-    '$store.state.sticky.subPageSource': function( source ) {
-      this.listReady = false;
-      this.$nextTick(function() {
-        this.makeCollection();
-      });
-    }
-  },
-  
   methods: {
       
     makeCollection: function() {

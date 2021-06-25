@@ -1,7 +1,7 @@
 <template>
   <div class="export-group">
 
-    <h2><font-awesome fas icon="th" /></i> Stand-alone gallery</h2>
+    <h2><font-awesome fas icon="th" /> Stand-alone gallery</h2>
 
     <div class="description">
       This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web browser.
@@ -53,10 +53,11 @@ export default {
         "output-page.js",
         "output-page.css",
         
-        "chunks/428.css",
-        "chunks/428.js",
-        "chunks/772.js",
-        "chunks/772.js.LICENSE.txt",
+        "chunks/487.css",
+        "chunks/487.js",
+        "chunks/487.js.LICENSE.txt",
+        "chunks/564.js",
+        "chunks/564.js.LICENSE.txt",
         "chunks/audio-player.css",
         "chunks/audio-player.js",
         "chunks/authors.css",
@@ -75,6 +76,8 @@ export default {
         "chunks/grid-view.js",
         "chunks/narrators.css",
         "chunks/narrators.js",
+        "chunks/save-csv.js",
+        "chunks/save-gallery.js",
         "chunks/series.css",
         "chunks/series.js",
         "chunks/sort-values.css",
@@ -144,6 +147,22 @@ export default {
   },
   
   methods: {
+    
+    // Book ASIN is used to identify the correct file later
+    divideLargerDatapoints: function( zip, books ) {
+      let vue = this;
+      _.each( books, function( book ) {
+        if ( book.peopleAlsoBought && book.asin ) {
+          zip.file("data/people-also-bought/"+ book.asin +"."+ vue.cacheBuster +".js", "window.peopleAlsoBoughtJSON = " + JSON.stringify(book.peopleAlsoBought) + ";");
+          delete book.peopleAlsoBought;
+        }
+        if ( book.summary && book.asin ) {
+          zip.file("data/summary/"+ book.asin +"."+ vue.cacheBuster +".js", "window.bookSummaryJSON = " + JSON.stringify(book.summary) + ";");
+          delete book.summary;
+        }
+      });
+    },
+    
     saveButtonClicked: function() {
       if ( !this.bundling ) {
         
@@ -151,11 +170,21 @@ export default {
         vue.bundling = true;
         vue.cacheBuster = this.runCachebuster();
   
-        const libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.library)) );
+        let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.library)) );
         
         vue.zip = new JSZip();
         const zip = vue.zip;
-  
+        
+        libraryData.extras.cacheID = vue.cacheBuster;
+        
+        let tempData = {
+          books: !!libraryData.books,
+          series: !!libraryData.series,
+          collections: !!libraryData.collections,
+          wishlist: !!libraryData.wishlist,
+          extras: libraryData.extras,
+        };
+        
         const indexHTML =
           "<!DOCTYPE html>" +
           '<html lang="en" class="theme-light standalone-gallery">' +
@@ -176,7 +205,7 @@ export default {
             '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
             '<meta name="theme-color" content="#f29a33">' +
             "<title>My Audible Library</title>" +
-            '<script id="library-data" type="application/json">' + libraryData + "<\/script>" +
+            '<script id="library-data" type="application/json">' + JSON.stringify( tempData ) + "<\/script>" +
             '<link id="ale-css" rel="stylesheet" href="output-page.' + vue.cacheBuster + '.css">' +
           "</head>" +
           "<body>" +
@@ -190,31 +219,18 @@ export default {
         
         zip.file("index.html", indexHTML);
         
+        // Split "peopleAlsoBought" into separate files and exclude from book data because 
+        // it's a good amount of data that isn't necessarily needed immediately...
+        if ( libraryData.wishlist ) this.divideLargerDatapoints(zip,libraryData.wishlist);
+        if ( libraryData.books    ) this.divideLargerDatapoints(zip,libraryData.books);
         
-        // If I can't fetch these files locally, then what's the point...
-        
-        // const asins = _.map( this.$store.state.library.books, function( o ) {
-        //   if ( o.asin ) return o.asin;
-        // });
-        // zip.file("data/library/asins.json", JSON.stringify(asins));
-        // _.each( this.$store.state.library.books, function( book ) {
-        //   zip.file("data/library/book."+ book.asin +".json", JSON.stringify( book ));
-        // });
-        
-        // zip.file("data/collections.json", JSON.stringify(this.$store.state.library.collections));
-        // zip.file("data/series.json",      JSON.stringify(this.$store.state.library.series));
-        // zip.file("data/wishlist.json",    JSON.stringify(this.$store.state.library.wishlist));
-        // zip.file("data/extras.json",      JSON.stringify(this.$store.state.library.extras));
+        // Split page data into separate files...
+        if ( libraryData.books       ) zip.file("data/library."+     vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.books) + ";");
+        if ( libraryData.collections ) zip.file("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
+        if ( libraryData.series      ) zip.file("data/series."+      vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");
+        if ( libraryData.wishlist    ) zip.file("data/wishlist."+    vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
         
         let files = this.files;
-        
-        // Just thinking out loud...
-        // let books = this.$store.state.library.wishlist.concat( this.$store.state.library.books );
-        // books = _.map( books, function( o ) {
-        //   if ( o.cover ) return vue.makeCoverUrl( o.cover );
-        // });
-        // books = _.union( books );
-        // files = files.concat( books );
         
         let count = 0;
         _.each(files, function(url) {
@@ -325,7 +341,7 @@ export default {
         
       });
       
-      return JSON.stringify( data );
+      return data;
       
     },
 

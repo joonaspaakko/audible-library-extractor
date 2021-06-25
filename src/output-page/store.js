@@ -62,6 +62,13 @@ export default new Vuex.Store({
       }
     },
 
+    buildStandaloneData: function(state, inputArray) {
+      state.library = state.library || {};
+      _.each(inputArray, function( item ) { 
+        state.library.[item.key] = Object.freeze( item.value ); 
+      });
+    },
+    
     stickyProp: function(state, o) {
       state.sticky[o.key] = o.value;
     },

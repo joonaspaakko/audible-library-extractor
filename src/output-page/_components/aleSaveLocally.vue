@@ -28,8 +28,8 @@
 export default {
   name: "aleSaveLocally",
   components: {
-    saveGallery: () => import( /* webpackChunkName: "grid-view" */ "@output-snippets/save-gallery.vue"),
-    saveCsv: () => import( /* webpackChunkName: "grid-view" */ "@output-snippets/save-csv.vue"),
+    saveGallery: () => import( /* webpackChunkName: "save-gallery" */ "@output-snippets/save-gallery.vue"),
+    saveCsv: () => import( /* webpackChunkName: "save-csv" */ "@output-snippets/save-csv.vue"),
   },
   data: function() {
     return {
