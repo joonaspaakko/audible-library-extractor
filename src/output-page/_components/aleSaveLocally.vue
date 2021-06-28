@@ -199,14 +199,23 @@ export default {
       align-items: stretch;
       align-content: stretch;
       font-size: 14px;
-      .github-btn,
-      .save-btn {
-        cursor: pointer;
-        flex: 1;
-        display: inline-block;
+      .save-gallery {
         @include themify($themes) {
           background: themed(audibleOrange);
         }
+      }
+      .save-csv {
+        background-color: #0e9d59; 
+        border-color: #0e9d59;
+      }
+      .github-btn,
+      .save-btn {
+        overflow: hidden;
+        position: relative;
+        z-index: 0;
+        cursor: pointer;
+        flex: 1;
+        display: inline-block;
         color: #fff;
         border: none;
         border-radius: 3px;
@@ -220,18 +229,24 @@ export default {
       
       button { outline: none; }
       button[disabled="disabled"] {
-        cursor: not-allowed;
-        background: #606060 !important;
-        @include themify($themes) {
-          border: 2px dashed themed(audibleOrange);
-        }
+        cursor: not-allowed !important;
+        // background: #606060;
+        // @include themify($themes) {
+        //   border: 2px dashed themed(audibleOrange);
+        // }
       }
       .save-btn.saving {
-        background: #606060 !important;
         -webkit-animation: vibrate-1 0.3s linear infinite both;
         animation: vibrate-1 0.3s linear infinite both;
-        @include themify($themes) {
-          border: 2px dashed themed(audibleOrange);
+        .progress {
+          position: absolute;
+          z-index: 1;
+          bottom: 0;
+          right: 0;
+          left: 0;
+          width: 0%;
+          height: 3px;
+          background: rgba(#fff, .7);
         }
       }
       /* ----------------------------------------------
@@ -241,7 +256,7 @@ export default {
       * w: http://animista.net, t: @cssanimista
       * ---------------------------------------------- */
 
-      @-webkit-keyframes vibrate-1{0%{-webkit-transform:translate(0);transform:translate(0)}20%{-webkit-transform:translate(-2px,2px);transform:translate(-2px,2px)}40%{-webkit-transform:translate(-2px,-2px);transform:translate(-2px,-2px)}60%{-webkit-transform:translate(2px,2px);transform:translate(2px,2px)}80%{-webkit-transform:translate(2px,-2px);transform:translate(2px,-2px)}100%{-webkit-transform:translate(0);transform:translate(0)}}@keyframes vibrate-1{0%{-webkit-transform:translate(0);transform:translate(0)}20%{-webkit-transform:translate(-2px,2px);transform:translate(-2px,2px)}40%{-webkit-transform:translate(-2px,-2px);transform:translate(-2px,-2px)}60%{-webkit-transform:translate(2px,2px);transform:translate(2px,2px)}80%{-webkit-transform:translate(2px,-2px);transform:translate(2px,-2px)}100%{-webkit-transform:translate(0);transform:translate(0)}}
+      @-webkit-keyframes vibrate-1{0%{-webkit-transform:translate(0);transform:translate(0)}20%{-webkit-transform:translate(-1px,1px);transform:translate(-1px,1px)}40%{-webkit-transform:translate(-1px,-1px);transform:translate(-1px,-1px)}60%{-webkit-transform:translate(1px,1px);transform:translate(1px,1px)}80%{-webkit-transform:translate(1px,-1px);transform:translate(1px,-1px)}100%{-webkit-transform:translate(0);transform:translate(0)}}@keyframes vibrate-1{0%{-webkit-transform:translate(0);transform:translate(0)}20%{-webkit-transform:translate(-1px,1px);transform:translate(-1px,1px)}40%{-webkit-transform:translate(-1px,-1px);transform:translate(-1px,-1px)}60%{-webkit-transform:translate(1px,1px);transform:translate(1px,1px)}80%{-webkit-transform:translate(1px,-1px);transform:translate(1px,-1px)}100%{-webkit-transform:translate(0);transform:translate(0)}}
       
       .github-btn {
         // border: 2px solid #666; 
@@ -255,8 +270,8 @@ export default {
         // color: #444;
         background: transparent;
         // border: 2px solid #606060; 
-        background: #606060 !important;
-        color: #e1e1e1 !important;
+        background: #606060;
+        color: #e1e1e1;
         
       }
       

@@ -76,6 +76,7 @@ import {
   shuffle,
   minBy,
   range,
+  unionBy,
 } from "lodash";
 
 // VUE ROUTER
@@ -619,8 +620,9 @@ else if (!standalone) {
 // As a standalone website...
 else {
   
+  
+  
   startVue( JSON.parse( document.querySelector("#library-data").textContent ) );
-  // startVue( JSON.parse(document.querySelector("#library-data").textContent) );
   
 }
 

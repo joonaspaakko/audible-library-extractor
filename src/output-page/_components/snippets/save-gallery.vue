@@ -19,10 +19,11 @@
 
     <div class="buttons-footer">
       <div class="btn-wrapper">
-        <button class="save-btn" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="bundling || !saveBtnEnabled">
-          <span>ALE-gallery.zip</span>
+        <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="bundling || !saveBtnEnabled">
+          <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
             <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
             <font-awesome v-else :icon="['fas', 'download']" />
+            <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
         </button>
         <div>
           <a class="github-btn" target="_blank" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github"> 
@@ -78,6 +79,8 @@ export default {
         "chunks/narrators.js",
         "chunks/save-csv.js",
         "chunks/save-gallery.js",
+        "chunks/save-locally.css",
+        "chunks/save-locally.js",
         "chunks/series.css",
         "chunks/series.js",
         "chunks/sort-values.css",
@@ -114,6 +117,7 @@ export default {
       cacheBuster: null,
       bundling: false,
       saveBtnEnabled: true,
+      progressWidth: null,
     };
   },
   
@@ -152,14 +156,16 @@ export default {
     divideLargerDatapoints: function( zip, books ) {
       let vue = this;
       _.each( books, function( book ) {
+        let fileData = '';
         if ( book.peopleAlsoBought && book.asin ) {
-          zip.file("data/people-also-bought/"+ book.asin +"."+ vue.cacheBuster +".js", "window.peopleAlsoBoughtJSON = " + JSON.stringify(book.peopleAlsoBought) + ";");
+          fileData += "window.peopleAlsoBoughtJSON = " + JSON.stringify(book.peopleAlsoBought) + "; \n";
           delete book.peopleAlsoBought;
         }
         if ( book.summary && book.asin ) {
-          zip.file("data/summary/"+ book.asin +"."+ vue.cacheBuster +".js", "window.bookSummaryJSON = " + JSON.stringify(book.summary) + ";");
+          fileData += "window.bookSummaryJSON = " + JSON.stringify(book.summary) + "; \n";
           delete book.summary;
         }
+        if ( fileData !== '' ) zip.file("data/split-book-data/"+ book.asin +"."+ vue.cacheBuster +".js", fileData);
       });
     },
     
@@ -169,11 +175,10 @@ export default {
         const vue = this;
         vue.bundling = true;
         vue.cacheBuster = this.runCachebuster();
-  
-        let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.library)) );
-        
         vue.zip = new JSZip();
         const zip = vue.zip;
+        
+        let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.library)) );
         
         libraryData.extras.cacheID = vue.cacheBuster;
         
@@ -205,7 +210,6 @@ export default {
             '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
             '<meta name="theme-color" content="#f29a33">' +
             "<title>My Audible Library</title>" +
-            '<script id="library-data" type="application/json">' + JSON.stringify( tempData ) + "<\/script>" +
             '<link id="ale-css" rel="stylesheet" href="output-page.' + vue.cacheBuster + '.css">' +
           "</head>" +
           "<body>" +
@@ -220,17 +224,37 @@ export default {
         zip.file("index.html", indexHTML);
         
         // Split "peopleAlsoBought" into separate files and exclude from book data because 
-        // it's a good amount of data that isn't necessarily needed immediately...
-        if ( libraryData.wishlist ) this.divideLargerDatapoints(zip,libraryData.wishlist);
-        if ( libraryData.books    ) this.divideLargerDatapoints(zip,libraryData.books);
+        // it's a good amount of data that isn't necessarily needed immediately or all at once
+        
+        if ( libraryData.wishlist && libraryData.books ) {
+          // Just to make sure no data file is created twice...
+          // Books are excluded during wishlist extraction if they exist in the library already, 
+          // but there are certain cases where that can change later....
+          this.divideLargerDatapoints(zip, _.unionBy(libraryData.books, libraryData.wishlist, 'asin'));
+        }
+        else {
+          if ( libraryData.wishlist ) this.divideLargerDatapoints(zip,libraryData.wishlist);
+          if ( libraryData.books    ) this.divideLargerDatapoints(zip,libraryData.books);
+        }
         
         // Split page data into separate files...
+        zip.file("data/library."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
         if ( libraryData.books       ) zip.file("data/library."+     vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.books) + ";");
         if ( libraryData.collections ) zip.file("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
         if ( libraryData.series      ) zip.file("data/series."+      vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");
         if ( libraryData.wishlist    ) zip.file("data/wishlist."+    vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
         
         let files = this.files;
+        
+        // Make sure unnecessary files are excluded
+        _.remove( this.files, function( file ) {
+          return _.includes([
+            "chunks/save-csv.js",
+            "chunks/save-gallery.js",
+            "chunks/save-locally.css",
+            "chunks/save-locally.js",
+          ], file);
+        });
         
         let count = 0;
         _.each(files, function(url) {
@@ -244,14 +268,14 @@ export default {
             }
   
             zip.file(url, data, { binary: true });
-  
+            
             count++;
             if (count == files.length) {
-              zip.generateAsync({ type: "blob" }).then(function(content) {
-                setTimeout(function() {
-                  vue.bundling = false;
-                }, 1000);
+              zip.generateAsync({ type: "blob", streamFiles: true }, function updateCallback(metadata) {
+                vue.progressWidth = metadata.percent + '%';
+              }).then(function(content) {
                 saveAs(content, "ALE-gallery.zip");
+                setTimeout(function() { vue.bundling = false; vue.progressWidth = 0; }, 1000);
               });
             }
           });

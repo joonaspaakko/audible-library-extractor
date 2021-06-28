@@ -113,7 +113,7 @@ export default {
 
   created: function() {
     
-    this.loadJSON( 'bookSummaryJSON', 'summary' );
+    this.loadJSON();
     
     this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
     this.resetScroll();
@@ -127,9 +127,6 @@ export default {
     // this.changeUrl();
     this.$updateQuery({ query: 'book', value: this.book.asin });
     this.loading = false;
-    this.$nextTick(function() {
-      this.loadJSON( 'peopleAlsoBoughtJSON', 'people-also-bought' );
-    });
     
   },
 
@@ -155,18 +152,22 @@ export default {
   },
   methods: {
     
-    loadJSON: function( key, folder, afterError )  {
+    loadJSON: function( afterError )  {
       
       if ( this.$store.state.standalone ) {
         
         let vue = this;
         let scrpt = document.createElement("script");
-        scrpt.src = "data/"+ folder +"/"+ vue.book.asin +"."+ this.$store.state.library.extras.cacheID +".js";
+        scrpt.src = "data/split-book-data/"+ vue.book.asin +"."+ this.$store.state.library.extras.cacheID +".js";
         scrpt.type="text/javascript";
         scrpt.onload = function() {
           
-          vue[ key ] = window[ key ];
-          window[ key ] = true;
+          vue.bookSummaryJSON = window.bookSummaryJSON;
+          window.bookSummaryJSON = true;
+          
+          vue.peopleAlsoBoughtJSON = window.peopleAlsoBoughtJSON;
+          window.peopleAlsoBoughtJSON = true;
+          
           scrpt.remove();
           
         };
@@ -174,7 +175,7 @@ export default {
         scrpt.onerror = function() {
           scrpt.remove();
           setTimeout(function() {
-            if ( !afterError ) vue.loadJSON( key, folder, 'afterError'); // Try twice...
+            if ( !afterError ) vue.loadJSON( 'afterError'); // Try twice...
           }, 1000);
         };
         document.head.appendChild(scrpt);

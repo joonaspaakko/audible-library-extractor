@@ -19,15 +19,16 @@
 
     <div class="options">
       <label v-for="item in settings.compatibility" :key="item.key" v-tippy="{ allowHTML: true, maxWidth: 500 }" :content="item.tippy">
-        <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> {{ item.key }}
+        <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> {{ item.label || item.key }}
       </label>
     </div>
 
     <div class="buttons-footer">
       <div class="btn-wrapper">
-        <button class="save-btn" style="background-color: #0e9d59; border-color: #0e9d59 !important;" @click="saveButtonClicked"  :class="{ saving: bundling }" :disabled="bundling || !saveBtnEnabled">
+        <button class="save-btn save-csv" @click="saveButtonClicked"  :class="{ saving: bundling }" :disabled="bundling || !saveBtnEnabled">
           <span>{{ filename}}</span>
-          <font-awesome :icon="['fas', 'download']" />
+          <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
+          <font-awesome v-else :icon="['fas', 'download']" />
         </button>
         
         <div>
@@ -80,8 +81,8 @@ export default {
         ],
         compatibilityChecked: 'Google Sheets',
         compatibility: [
+          { key: 'Raw data', label: 'Generic data', tippy: "Basically the same as the Google Sheets output but without the formulas. If you don't like formulas, this would also work just as well in Google Sheets." },
           { key: 'Google Sheets', tippy: "<strong>Google Sheets compatible formulas:</strong> <ul><li>Cover image + link to the store page in Audible</li><li>Sample audio icon + link</li><li>Web player icon + link</li><li>Goodreads search icon + link</li><li>Title has a link to store page in Audible</li></ul>" },
-          { key: 'Raw data', tippy: "Basically the same as the Google Sheets output but without the formulas. If you don't like formulas, this would also work just as well in Google Sheets." },
           { key: 'Goodreads', tippy: "Removes any books that don't have ISBNs because Goodreads won't import without it. Each book is imported in bookshelves as per their status: not started (to-read), started(currently-reading), finished (read). The categories are divided into shelves as well." },
         ] 
       },
@@ -169,7 +170,7 @@ export default {
           columns: null, //or array of strings
         });
         
-        saveAs(new File([csv], {type: "text/csv;charset=utf-8"}), this.filename);
+        saveAs(new Blob([csv], {type: "text/csv;charset=utf-8"}), this.filename);
         
         setTimeout(function() {
           vue.bundling = false;
