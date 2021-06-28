@@ -4,7 +4,7 @@
       
       <div class="inner-wrap-wrapper">
         
-        <div class="text-button gallery-page" v-if="($store.state.library.extras.pages.books || $store.state.library.books) && routeExists('gallery')">
+        <div class="text-button gallery-page" v-if="routeExists('gallery')">
           <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
               <font-awesome fas icon="book" />
@@ -15,7 +15,7 @@
           </router-link>
         </div>
         
-        <div class="text-button collections-page" v-if="($store.state.library.extras.pages.collections || $store.state.library.collections) && routeExists('collections')">
+        <div class="text-button collections-page" v-if="routeExists('collections')">
           <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
           <div class="icon">
             <font-awesome fas icon="folder-open" />
@@ -24,7 +24,7 @@
           </router-link>
         </div>
         
-        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="($store.state.library.extras.pages.books || $store.state.library.books) && routeExists('anySubPage')" @click="subMenuClicked">
+        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="!$store.state.standalone || routeExists('anySubPage')" @click="subMenuClicked">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
             <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">
@@ -101,7 +101,7 @@
           </router-link>
         </div> -->
         
-        <div class="text-button wishlist-page" v-if="($store.state.library.extras.pages.books || $store.state.library.wishlist) && routeExists('wishlist')">
+        <div class="text-button wishlist-page" v-if="routeExists('wishlist')">
           <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">
           <div class="icon">
             <font-awesome fas icon="bookmark" />
@@ -403,8 +403,13 @@ export default {
   }
   
   @media ( max-width: 720px ) {
-    .inner-wrap-wrapper > div > a > div {
-      padding: 0 2px !important;
+    .inner-wrap-wrapper > div > a > .icon,
+    .inner-wrap-wrapper > .parent-item > .icon {
+      padding: 0px !important;
+    }
+    .inner-wrap-wrapper > div {
+      padding: 0 4px !important;
+      &:first-child { padding-left: 0 !important; }
     }
   }
   

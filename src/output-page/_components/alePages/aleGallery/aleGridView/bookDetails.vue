@@ -44,10 +44,10 @@
             
           </div> <!-- .information -->
 
-          <book-summary :detailsEl="$el" :book="book" v-if="book.summary || bookSummaryJSON" :bookSummary="bookSummaryJSON"></book-summary>
+          <book-summary :detailsEl="$el" :book="book" v-if="book.summary || (bookSummaryJSON && bookSummaryJSON !== true)" :bookSummary="bookSummaryJSON"></book-summary>
         </div>
 
-        <carousel v-if="!loading && peopleAlsoBought" :books="peopleAlsoBought" :key="this.maxWidth">
+        <carousel v-if="!loading && (peopleAlsoBought && peopleAlsoBought !== true)" :books="peopleAlsoBought" :key="this.maxWidth">
           <!-- People who bought this also bought: -->
           Listeners also enjoyed
         </carousel>
@@ -119,6 +119,7 @@ export default {
     this.resetScroll();
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
+    
   },
   
   mounted: function() {
@@ -186,7 +187,9 @@ export default {
     
     onWindowResize: function( msg ) {
       this.maxWidth = this.repositionBookDetails() + "px";
-      if ( msg.widthChanged ) { this.resetScroll(); }
+      if ( msg.widthChanged ) { 
+        this.resetScroll(); 
+      }
     },
 
     changeUrl: function() {

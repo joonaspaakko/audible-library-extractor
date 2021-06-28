@@ -33,8 +33,8 @@ export default {
         tippyTheme: "dark"
       },
       window: {
-        width: null,
-        height: null
+        width: window.innerWidth,
+        height: window.innerHeight
       }
     };
   },
@@ -53,6 +53,7 @@ export default {
   },
 
   mounted: function() {
+    
     const vue = this;
     window.addEventListener("resize", 
       _.debounce( function() { 
@@ -108,8 +109,9 @@ export default {
       
       const currentWidth = window.innerWidth;
       const currentHeight = window.innerHeight;
-      const widthChanged = vue.window.width !== currentWidth;
-      const heightChanged = vue.window.height !== currentHeight;
+      const widthChanged = (vue.window.width !== currentWidth);
+      const heightChanged = (vue.window.height !== currentHeight);
+      
       if (widthChanged || heightChanged) {
         
         vue.window.width = currentWidth;

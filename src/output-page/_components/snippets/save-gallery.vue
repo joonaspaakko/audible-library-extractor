@@ -214,7 +214,7 @@ export default {
           "</head>" +
           "<body>" +
           
-            '<div id="audible-library-extractor" :data-version="'+ this.$store.state.version +'"></div>' +
+            '<div id="audible-library-extractor" data-version="'+ this.$store.state.version +'" data-cache-id="'+ vue.cacheBuster +'"></div>' +
             '<script id="ale-js" src="output-page.' + vue.cacheBuster +'.js"><\/script>' +
             "<noscript>This library requires javascript to work!</noscript>" +
             
@@ -238,7 +238,7 @@ export default {
         }
         
         // Split page data into separate files...
-        zip.file("data/library."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
+        zip.file("data/temp-data."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
         if ( libraryData.books       ) zip.file("data/library."+     vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.books) + ";");
         if ( libraryData.collections ) zip.file("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
         if ( libraryData.series      ) zip.file("data/series."+      vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");

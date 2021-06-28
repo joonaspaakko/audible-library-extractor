@@ -212,73 +212,75 @@ let routesPrep = function( libraryData ) {
     // Tries to load relevant JSON data from a file before each route change on the standalone site
     if ( standalone ) {
       
+      function loadScript(file) {
+        return new Promise(function(resolve, reject) {
+          let script = document.createElement('script');
+          script.src = (file.prefix || "data/") + file.name +"."+ libraryData.extras.cacheID +".js";
+          script.type = "text/javascript";
+          script.async = false;
+          script.onload = function() {
+            resolve(file);
+            script.remove();
+          };
+          script.onerror = function() {
+            reject(file);
+            script.remove();
+          };
+          document.body.appendChild(script);
+        });
+      }
+      
+      let getJSON = function( next, files, afterError ) {
+        
+        // Exclude JSON that's already been loaded
+        files = _.filter( files, function( file ){ return window[file.name+'JSON'] !== true; });
+        
+        // save all Promises as array
+        let promises = [];
+        files.forEach(function(file) {
+          promises.push(loadScript(file));
+        });
+        
+        Promise.all(promises).catch(function() {
+          if ( !afterError ) {
+            setTimeout(function() {
+              getJSON( next, files, 'afterError' );
+            }, 1000);
+          }
+        }).finally(function() {
+          
+          let storageArray = _.map( files, function( file ) { 
+            return {
+              key: (file.keyOverride || file.name),
+              value: window[file.name+'JSON'],
+            }; 
+          });
+          store.commit("buildStandaloneData", storageArray);
+          _.each( files, function( file ) { window[file.name+'JSON'] = true; });
+          next();
+          
+        });
+        
+      };
+      
+      
       router.beforeEach((to, from, next) => {
+        
         if ( 
           from.name !== to.name || 
           _.get(from, 'query.book') !== _.get(to, 'query.book') || 
           from.query.subPageSource !== to.query.subPageSource 
         ) {
-          
-          let getJSON = function( files, afterError ) {
-            
-            // Exclude JSON that's already been loaded
-            files = _.filter( files, function( file ){ return window[file.name+'JSON'] !== true; });
-            
-            let counter = files.length;
-            const nothingToLoad = (counter === 0);
-            if ( nothingToLoad ) {
-              next();
-            }
-            // Start loading JSON files...
-            else {
-              _.each( files, function( file ) {
-                
-                let scrpt = document.createElement("script");
-                scrpt.src = "data/"+ file.name +"."+ libraryData.extras.cacheID +".js";
-                scrpt.type="text/javascript";
-                scrpt.onload = function() {
-                  --counter;
-                  const allRequestsLoaded = (counter === 0);
-                  if ( allRequestsLoaded ) {
                     
-                    let storageArray = _.map( files, function( file ) { 
-                      return {
-                        key: (file.keyOverride || file.name),
-                        value: window[file.name+'JSON'],
-                      }; 
-                    });
-                    store.commit("buildStandaloneData", storageArray);
-                    _.each( files, function( file ) { window[file.name+'JSON'] = true; });
-                    next();
-                    
-                  }
-                  scrpt.remove();
-                  
-                };
-                // Tries again if there's an error loading the files, but only once...
-                scrpt.onerror = function() {
-                  scrpt.remove();
-                  setTimeout(function() {
-                    if ( !afterError ) getJSON(files, 'afterError');
-                    else next();
-                  }, 1000);
-                };
-                document.head.appendChild(scrpt);
-                
-              });
-            }
-            
-          };
-          
           if ( to.meta.subPage ) {
             if ( to.query.subPageSource === 'wishlist' || !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist' ) {
-              getJSON([
+              getJSON( next, [
                 {name: 'wishlist'},
                 {name: 'series'}
               ]);
             }
             else {
-              getJSON([
+              getJSON( next, [
                 {name: 'library', keyOverride: 'books'}, 
                 {name: 'series'}
               ]);
@@ -287,20 +289,20 @@ let routesPrep = function( libraryData ) {
           else {
             switch( to.name ) {
               case 'gallery':
-                getJSON([
+                getJSON( next, [
                   {name: 'library', keyOverride: 'books'}, 
                   {name: 'series'}
                 ]);
                 break;
               case 'collections':
               case 'collection':
-                getJSON([
+                getJSON( next, [
                   {name: 'library', keyOverride: 'books'}, 
                   {name: 'collections'}
                 ]);  
                 break;
               case 'wishlist':
-                getJSON([
+                getJSON( next, [
                   {name: 'wishlist'}
                 ]);
                 break;
@@ -620,9 +622,32 @@ else if (!standalone) {
 // As a standalone website...
 else {
   
-  
-  
-  startVue( JSON.parse( document.querySelector("#library-data").textContent ) );
+  let vue = this;
+  loadJSON();
+  function loadJSON( afterError ) {
+    let scrpt = document.createElement("script");
+    let cacheID = document.querySelector('#audible-library-extractor').getAttribute('data-cache-id');
+    scrpt.src = "data/temp-data."+ cacheID +".js";
+    scrpt.type="text/javascript";
+    scrpt.async = false;
+    scrpt.onload = function() {
+      
+      let tempData = window.tempDataJSON;
+      window.bookSummaryJSON = true;
+      
+      scrpt.remove();
+      startVue( tempData );
+      
+    };
+    // Tries again if there's an error loading the files, but only once...
+    scrpt.onerror = function() {
+      scrpt.remove();
+      setTimeout(function() {
+        if ( !afterError ) loadJSON('afterError'); // Try twice...
+      }, 1000);
+    };
+    document.head.appendChild(scrpt);
+  }
   
 }
 
@@ -638,11 +663,14 @@ function vuexPrep( libraryData ) {
       localStorage.setItem("aleSettings", JSON.stringify( state.sticky ));
     }
   });
-    
+  
   store.commit("prop", { key: "library", value: libraryData, freeze: standalone ? false : true });
   store.commit("prop", { key: "standalone", value: standalone });
   store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });
   store.commit("prop", { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] });
+  
+  if      ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'books'    });
+  else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
   
   const { version } = require('../../package.json');
   store.commit("prop", { key: "version", value: version });

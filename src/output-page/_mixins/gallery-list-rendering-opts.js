@@ -210,7 +210,7 @@ export default {
           
           {
             type: 'divider',
-            key: 'divider1.4.1',
+            key: 'divider1.4.2',
             excludeFromWishlist: true
           },
           {
@@ -898,6 +898,52 @@ export default {
                   });
                   return found;
                 }
+              }
+            }
+          },
+          
+          {
+            type: 'divider',
+            key: 'divider9.7'
+          },
+
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Collections',
+            key: 'collections',
+            group: 'filterExtras',
+            excludeFromWishlist: true,
+            dropdownOpts: function(type) {
+              if ( vue.$store.state.library.collections ) {
+                let allTags = _.map( vue.$store.state.library.collections, function( collection ) {
+                  return collection.title;
+                });
+                _.each(vue.$store.state.library.collections, function(book) {
+                  if (book.publishers) allTags.push(_.map(book.publishers, 'name'));
+                });
+                return allTags.sort();
+              }
+              else { return []; }
+            },
+            value: [],
+            condition: function(book) {
+              
+              let selectedTags = this.value;
+              if ( selectedTags.length && vue.$store.state.library.collections ) {
+                
+                let foundCollection = false;
+                _.each(vue.$store.state.library.collections, function( collection ) {
+                  if ( _.includes(collection.books, book.asin) ) {
+                    foundCollection = collection.title;
+                    return false;
+                  }
+                });
+                
+                if ( foundCollection ) {
+                  return _.includes(selectedTags, foundCollection);
+                }
+                
               }
             }
           },

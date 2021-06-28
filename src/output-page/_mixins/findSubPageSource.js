@@ -8,7 +8,9 @@ export default {
   watch: {
     '$route.query.subPageSource': function( source ) {
       this.listReady = false;
-      this.makeCollection();
+      this.$nextTick(function() {
+        this.makeCollection();
+      });
     }
   },
 };
