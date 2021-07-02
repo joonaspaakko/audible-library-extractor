@@ -276,13 +276,15 @@ let routesPrep = function( libraryData ) {
             if ( to.query.subPageSource === 'wishlist' || !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist' ) {
               getJSON( next, [
                 {name: 'wishlist'},
-                {name: 'series'}
+                {name: 'series'},
+                {name: 'collections'},
               ]);
             }
             else {
               getJSON( next, [
                 {name: 'library', keyOverride: 'books'}, 
-                {name: 'series'}
+                {name: 'series'},
+                {name: 'collections'},
               ]);
             }
           }
@@ -291,19 +293,23 @@ let routesPrep = function( libraryData ) {
               case 'gallery':
                 getJSON( next, [
                   {name: 'library', keyOverride: 'books'}, 
-                  {name: 'series'}
+                  {name: 'series'},
+                  {name: 'collections'},
                 ]);
                 break;
               case 'collections':
               case 'collection':
                 getJSON( next, [
                   {name: 'library', keyOverride: 'books'}, 
-                  {name: 'collections'}
+                  {name: 'series'},
+                  {name: 'collections'},
                 ]);  
                 break;
               case 'wishlist':
                 getJSON( next, [
-                  {name: 'wishlist'}
+                  {name: 'wishlist'},
+                  {name: 'series'},
+                  {name: 'collections'},
                 ]);
                 break;
               default:
