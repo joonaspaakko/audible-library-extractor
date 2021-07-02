@@ -29,9 +29,15 @@
         content="<div style='text-align: left;'>The total number of books is based on every single listing in the series page, including different versions or bundles with books you may already have.</div>"
         >
           <div class="series-name">
-            <a href="#" @click.prevent="goToBookInSeries( series )">
+            <router-link 
+            :event="$route.params.series === series.asin ? '' : 'click'"
+            :to="{ 
+              name: 'series', 
+              params: { series: series.asin }, 
+              query: { subPageSource: 'books' },
+            }">
               {{ series.name }}
-            </a>
+            </router-link>
           </div>
           <div class="series-length">
             {{ series.books.length }} / {{ series.length }}
@@ -46,18 +52,9 @@
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
-          <a v-if="seriesBook.notInLibrary && !!seriesBook.asin" class="clickety-click" target="_blank" :href="seriesNotInLibraryLink( seriesBook, series.asin )">
-            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || checkNumberless( series, index, seriesBook ) }}</span>
-            <span class="title">{{ seriesBook.title }}</span>
-          </a>
-          <div v-else-if="seriesBook.notInLibrary" class="clickety-click" style="cursor: default;" content="Not available..." v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }">
-            <span class="numbers">{{ (seriesBook.notInLibrary ? seriesBook.bookNumbers : getBookNumber(seriesBook, series.asin)) || checkNumberless( series, index, seriesBook ) }}</span>
-            <span class="title">{{ seriesBook.title }}</span>
-          </div>
-          <div v-else class="clickety-click" @click.prevent="goToBookInSeries( series, seriesBook )">
-            <span class="numbers">{{ getBookNumber(seriesBook, series.asin) || checkNumberless( series, index, seriesBook ) }}</span>
-            <span class="title">{{ seriesBook.title }}</span>
-          </div>
+          
+          <books-in-series-link :series="series" :book="seriesBook" :index="index" />
+          
         </div>
         
       </div>
@@ -68,6 +65,7 @@
 
 <script>
 import openInApp from "@output-comps/snippets/openInApp";
+import booksInSeriesLink from "./booksInSeriesLink.vue";
 import makeUrl from "@output-mixins/makeFullUrl";
 
 export default {
@@ -76,6 +74,7 @@ export default {
   mixins: [makeUrl],
   components: {
     openInApp,
+    booksInSeriesLink,
   },
   data: function() {
     return {
@@ -84,12 +83,17 @@ export default {
       series: {
         collection: null,
         toggle: false
-      }
+      },
+      // seriesPage: false,
     };
   },
-
+  
   created: function() {
     
+    // Because these links lead to the series page, they are disabled
+    // when on that page and instead a different book is opened...
+    // Except when the link leads to another series...
+    this.seriesPage = this.$route.name === 'series';
     
     this.series.collection = this.getBooksInSeries();
     this.series.count = this.getSeriesCount();
@@ -121,54 +125,6 @@ export default {
       this.$store.commit('stickyProp', { key: 'booksInSeriesAll', value: !this.$store.state.sticky.booksInSeriesAll });
       this.series.collection = this.getBooksInSeries();
     },
-    
-    seriesNotInLibraryLink: function( book, seriesAsin ) {
-      if ( book.asin ) {
-        return this.makeUrl('book', book.asin);
-      }
-      else if ( seriesAsin ) { 
-        return this.makeUrl('series', { asin: seriesAsin });
-      }
-    },
-    
-    goToBookInSeries: function( series, book ) {
-      
-      if ( book ) {
-        
-        if ( this.$route.name !== 'series' ) {
-          this.$router.push({ 
-            name: 'series', 
-            params: { series: series.asin }, 
-            query: { book: book.asin, subPageSource: 'books' }, 
-          });
-        }
-        else {
-          this.$root.$emit('book-clicked', { book: book });
-        }
-        
-      }
-      else if ( series ) {
-        
-        if ( this.$route.name !== 'series' ) {
-          this.$router.push({ 
-            name: 'series', 
-            params: { series: series.asin }, 
-            query: { subPageSource: 'books' },
-          });
-        }
-        else {
-          this.$root.$emit('book-clicked', { book: null });
-          scroll({ top: 0 });
-        }
-        
-      }
-      
-    },
-    
-    getBookNumber: function(book, seriesAsin) {
-      const numbers = _.find(book.series, { asin: seriesAsin }).bookNumbers;
-      return numbers ? numbers.join(",") : "";
-    },
 
     getBooksInSeries: function() {
       const vue = this;
@@ -187,6 +143,8 @@ export default {
               vue.showAllToggle = true;
             }
             
+            let prevBook = {};
+            
             series.push({
               asin: currentSeries.asin,
               name: currentSeries.name,
@@ -194,11 +152,32 @@ export default {
               books: _.map( booksSource , function( book ) {
                 let asin = book.asin || book;
                 let inLibrary = _.includes( allBooksInSeries.books, asin );
+                
                 if ( inLibrary ) {
-                  return _.find(vue.$store.state.library.books, { asin: asin });
+                  let libBook = _.find(vue.$store.state.library.books, { asin: asin });
+                  var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
+                  let inLibBookNumbers = book.bookNumbers || _.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(',') : libSeries.bookNumbers;
+                  let newLibBook = {
+                    asin: book.asin || libBook.asin,
+                    bookNumbers: inLibBookNumbers,
+                    title: book.title || libBook.titleShort,
+                    obj: libBook,
+                  };
+                  if ( libBook.title ) newLibBook.titleLong = libBook.title;
+                  if ( inLibBookNumbers ) prevBook = newLibBook;
+                  // else if ( prevBook.title === newLibBook.title ) {
+                  //   newLibBook.bookNumbers = prevBook.bookNumbers;
+                  // }
+                  else { newLibBook.bookNumbers = '∞'; }
+                  return newLibBook;
                 }
                 else {
                   book.notInLibrary = true;
+                  if ( book.bookNumbers ) prevBook = book;
+                  // else if ( prevBook.title === book.title ) {
+                  //   book.bookNumbers = prevBook.bookNumbers;
+                  // }
+                  else { book.bookNumbers = '∞'; }
                   return book;
                 }
               })
@@ -208,21 +187,6 @@ export default {
       }
       
       return series.length > 0 ? series : null;
-    },
-    
-     checkNumberless: function( series, index, book ) {
-      
-      let prevBook = series.books[ index-1 ];
-      let previousTitle = prevBook.titleShort || prevBook.title;
-      var prevBookSeries = _.find( prevBook.series, { asin: series.asin });
-      if ( prevBookSeries&& previousTitle && book.title && previousTitle === book.title ) {
-        if ( prevBookSeries && prevBookSeries.bookNumbers )
-        return prevBookSeries.bookNumbers.join(",");
-      }
-      else {
-        return '∞';
-      }
-      
     },
 
     getSeriesCount: function() {
@@ -304,7 +268,7 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "~@/_variables.scss";
 
 .my-books-in-series {
@@ -509,7 +473,7 @@ div.hidden-section {
 
 .theme-light .my-books-in-series .numbers-list-item {
   &.not-in-library,
-  &.finishe {
+  &.finished {
     .icon, .title {
       opacity: .65 !important;
     }

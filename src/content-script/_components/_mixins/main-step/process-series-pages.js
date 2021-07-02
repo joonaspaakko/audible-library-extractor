@@ -150,7 +150,7 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
         
         if ( title ) aBook.title = title;
         let numbers = this.querySelector(':scope > div:nth-child(1) > div > h2');
-        if ( numbers ) aBook.bookNumbers = DOMPurify.sanitize( numbers.textContent.trimAll().replace(/[^\d]*/, '') );
+        if ( numbers ) aBook.bookNumbers = DOMPurify.sanitize( numbers.textContent.trimAll().replace(/[^\d]*/, '').split(',')[0] );
         if ( asinEl ) aBook.asin = DOMPurify.sanitize( asinEl.getAttribute("data-asin") );
         else if ( inLibrary ) aBook.asin = inLibrary.asin;
         

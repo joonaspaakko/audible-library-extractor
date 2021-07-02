@@ -17,8 +17,9 @@
       <ale-grid-view @hook:mounted="gridViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-if="$store.state.sticky.viewMode === 'grid'" />
       <ale-list-view @hook:mounted="listViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
     </div>
-    <div v-else id="nothing-here-404">
-      <h3>404: There's nothing here</h3>
+    <div v-else-if="errorMessage" id="nothing-here-404">
+      <h3 v-if="$store.getters.searchIsActive && !$store.state.searchCollection.length">Search: no results</h3>
+      <h3 v-else>404: There's nothing here</h3>
     </div>
     
   </div>
@@ -75,6 +76,7 @@ export default {
       collapseView: null,
       realLength: 0,
       prepsCompleted: false,
+      errorMessage: false,
     };
   },
   
@@ -191,6 +193,8 @@ export default {
             });
           }
         }
+        
+        this.errorMessage = true;
         
       });
     },

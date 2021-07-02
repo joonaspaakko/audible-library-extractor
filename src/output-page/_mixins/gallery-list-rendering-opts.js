@@ -30,6 +30,10 @@ export default {
           },
           {
             active: false,
+            key: 'tags.name'
+          },
+          {
+            active: false,
             key: 'publishers.name'
           },
           {
