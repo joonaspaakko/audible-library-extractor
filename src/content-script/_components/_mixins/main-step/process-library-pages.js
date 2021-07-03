@@ -61,7 +61,7 @@ export default {
         
       }
       
-    }
+    }  
   }
 };
 
@@ -209,6 +209,15 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
         // console.log("%c" + "book" + "","background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",book.title,book);
         book.isNew = true;
         book.isNewThisRound = true;
+      }
+      else if ( !hotpotato.config.partialScan ) {
+        if ( bookInMemory ) {
+          if ( bookInMemory.isNew ) book.isNew = true;
+        }
+        else {
+          book.isNew = true;
+          book.isNewThisRound = true;
+        }
       }
       if (fullScan_ALL_partialScan_NEW) {
         vue.$root.$emit("update-progress-max");

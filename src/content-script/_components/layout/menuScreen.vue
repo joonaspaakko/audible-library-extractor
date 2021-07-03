@@ -41,7 +41,7 @@
           <span class="divider">•</span>
           <span><a href="#" @click.prevent="selectAll">select all</a> </span>
           <span class="divider">•</span>
-          <span><a href="#" v-tippy="{ maxWidth: 400 }" content='When you update the library, newly added books get marked "New books" and you can filter and sort based on that status in the gallery. With this you can unmark all of those books. <br><br> <strong>Cannot be undone!!</strong>' @click.prevent="resetNewTitles"><strong>reset new titles</strong></a> </span>
+          <span><a href="#" v-tippy="{ maxWidth: 400 }" content='During library extraction newly added books get marked marked and you can filter and sort based on that status in the gallery. With this you can unmark all of those books. <br><br>Deleting previously extracted library data clears all new books too, but with this you can clear those without having to extract books again.<br><br> <strong>Cannot be undone!!</strong>' @click.prevent="resetNewTitles"><strong>reset "new" books</strong></a> </span>
         </div>
 
         <b-message class="description">
