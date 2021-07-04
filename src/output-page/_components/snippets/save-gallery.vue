@@ -123,8 +123,9 @@ export default {
   
   beforeMount: function() {
     
+    let vue = this;
+    
     if ( this.$store.state.sticky.exportSettingsGallery ) {
-      let vue = this;
       _.each(this.$store.state.sticky.exportSettingsGallery, function( stickySource ) {
         var source = _.find(vue.dataSources, { key: stickySource.key });
         source.checked = stickySource.checked;
@@ -136,6 +137,24 @@ export default {
     librarySource.disabled =  !this.$store.state.library.books;
     let wishlistSource = _.find( this.dataSources, { key: 'Wishlist' });
     wishlistSource.disabled =  !this.$store.state.library.wishlist;
+    
+  },
+  
+  mounted: function() {
+    
+    let vue = this;
+    if ( vue.$store.getters.saveStandaloneAfter ) {
+      
+      try {
+        let newConfig = JSON.parse(JSON.stringify( vue.$store.state.extractSettings ));
+        let saveStandaloneAfter = _.find( newConfig.extraSettings, { name: 'saveStandaloneAfter' });
+        saveStandaloneAfter.deactivated = true;
+        browser.storage.local.set({config: newConfig }).then(function() {
+          vue.saveButtonClicked();
+        });
+      } catch (e) {}
+      
+    }
     
   },
   
@@ -169,7 +188,7 @@ export default {
       });
     },
     
-    saveButtonClicked: function() {
+    saveButtonClicked: function( callback ) {
       if ( !this.bundling ) {
         
         const vue = this;
@@ -275,7 +294,11 @@ export default {
                 vue.progressWidth = metadata.percent + '%';
               }).then(function(content) {
                 saveAs(content, "ALE-gallery.zip");
-                setTimeout(function() { vue.bundling = false; vue.progressWidth = 0; }, 1000);
+                setTimeout(function() { 
+                  vue.bundling = false; 
+                  vue.progressWidth = 0; 
+                  if ( callback ) callback();
+                }, 1000);
               });
             }
           });

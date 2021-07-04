@@ -36,6 +36,11 @@ export default {
       modalOpen: false,
     };
   },
+  created: function() {
+    
+    if ( this.$store.getters.saveStandaloneAfter ) this.modalOpen = true;
+    
+  },
   
 };
 </script>

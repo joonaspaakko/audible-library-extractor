@@ -41,6 +41,10 @@
             
           </span>
         </b-field>
+          
+        <b-checkbox v-model="saveStandaloneAfter.value" size="is-small" type="is-dark">
+          {{ saveStandaloneAfter.label }}
+        </b-checkbox>
         
         <b-message class="description">
           <!-- You can fetch <b-tag type="is-warning">collections</b-tag> and <b-tag type="is-warning">wishlist</b-tag> now and discard them later when saving the gallery as a stand-alone website. <b-tag type="is-warning">ISBNs</b-tag> are merged with the library books and can't be removed later, not that there should be any need to do that. -->
@@ -217,6 +221,10 @@ export default {
   },
 
   computed: {
+    
+    saveStandaloneAfter: function() {
+      return _.find( this.extractSettings, { name: 'saveStandaloneAfter' });
+    },
     mainSteps: function() {
       return _.filter(this.extractSettings, function(o) {
         return !o.extra;
@@ -238,22 +246,29 @@ export default {
 
   mounted: function() {
     
-    const vue = this;
-    
-    // Updates default values from browser storage
-    if ( this.hasConfig.steps) {
-      _.each(this.extractSettings, function(step) {
-        step.value = false; // Reset steps
-      });
-      _.each(this.hasConfig.steps, function(step) {
-        let foundOriginalDolly = _.find(vue.extractSettings, { name: step.name });
-        if ( foundOriginalDolly ) foundOriginalDolly.value = step.value;
-      });
-    }
-    
+    const vue = this;    
     // Just to make sure that accidental clicks don't do anything when the overlay is opened
     // - If the button that opens the overlay was perfectly aligned with any of the buttons in this component, a double click would start doing things prematurely
     this.$nextTick(function() {
+      
+      // Updates default values from browser storage
+      if ( this.hasConfig.steps) {
+        _.each(this.extractSettings, function(step) {
+          step.value = false; // Reset steps
+        });
+        _.each(this.hasConfig.steps, function(step) {
+          let foundOriginalDolly = _.find(vue.extractSettings, { name: step.name });
+          if ( foundOriginalDolly ) foundOriginalDolly.value = step.value;
+        });
+        
+      }
+      if ( this.hasConfig.extraSettings ) {
+        _.each( this.hasConfig.extraSettings, function( setting ) {
+          let original = _.find( vue.extractSettings, { name: setting.name });
+          if ( original ) original.value = setting.value;
+        });
+      }
+      
       setTimeout(function() {
         vue.loading = false;
       }, 500);
@@ -328,6 +343,12 @@ export default {
             tippy: "<div style='text-align: left;'>You only need these if you want to try importing to Goodreads.<br><br> Books with previously extracted ISBNs are ignored. <br><br><strong>Very slow process when it needs to process more than 200 books.</strong></div>",
             trash: this.hasData.isbn
           },
+          {
+            extra: true,
+            name: "saveStandaloneAfter",
+            label: "Start saving the standalone gallery immediately after gallery opens",
+            value: false,
+          }
         ];
       });
     },
@@ -386,7 +407,7 @@ export default {
       
       this.takeNextStep('update', {
         steps: _.map( library, function(o) {
-          return { name: o.name, value: o.value, extra: o.extra };
+          return { name: o.name, value: o.value };
         })
       });
       
@@ -730,21 +751,23 @@ export default {
     
     takeNextStep: function(step, config) {
       
-      let activeSettings = _.filter( this.extractSettings, 'value');
-      if ( activeSettings.length > 0 ) {
-        
-        config = config || {
-          steps: _.map( activeSettings, function(o) {
-            return { name: o.name, value: o.value, extra: o.extra };
+      if ( !config ) {
+        config = {
+          steps: _.map( _.filter( this.extractSettings, function( o ) { return o.value && !o.extra }), function(o) {
+            return { name: o.name, value: o.value };
           })
-        };
-        
-        this.$root.$emit("do-next-step", {
-          step: step,
-          config: config
-        });
-        
+        };  
       }
+      
+      config.extraSettings = _.map( _.filter( this.extractSettings, 'extra'), function(o) {
+        return { name: o.name, value: o.value, deactivated: false };
+      });
+      
+      
+      this.$root.$emit("do-next-step", {
+        step: step,
+        config: config
+      });
     },
 
     settingChanged: function(inputValue, inputName) {

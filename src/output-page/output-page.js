@@ -615,9 +615,6 @@ else if (!standalone) {
     browser.storage.local.get(null).then(data => {
       if (!_.isEmpty(data) && data.chunks) {
         helpers.methods.glueFriesBackTogether(data);
-        // This "data.config" is used in the content script, but unnecessary here.
-        // It's getting deleted to avoid passing it on to the locally saved gallery.
-        delete data.config;
         startVue(data);
       } else {
         alert("No existing data found: scan your library again.");
@@ -674,6 +671,7 @@ function vuexPrep( libraryData ) {
   store.commit("prop", { key: "standalone", value: standalone });
   store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });
   store.commit("prop", { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] });
+  store.commit("prop", { key: "extractSettings", value: libraryData.config });
   
   if      ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'books'    });
   else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });

@@ -42,6 +42,7 @@ export default new Vuex.Store({
     viewRefresh: '',
     pageTitle: null,
     version: null,
+    extractSettings: null,
   },
 
   mutations: {
@@ -221,6 +222,15 @@ export default new Vuex.Store({
       else {
         return state.mutatingCollection;
       }
+    },
+    saveStandaloneAfter: function( state ) {
+      
+      let extraSettings = _.get( state, 'extractSettings.extraSettings' );
+      if ( extraSettings ) {
+        let saveStandaloneAfter = _.find( extraSettings, { name: 'saveStandaloneAfter', value: true, deactivated: false });
+        if ( saveStandaloneAfter ) return true;
+      }
+      
     },
   }
   

@@ -2,9 +2,6 @@ global.browser = require("webextension-polyfill");
 
 var activeIcons = [];
 
-
-console.log( browser.runtime )
-
 const get = (obj, path, defValue) => {
   if (!path) return undefined
   const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g)

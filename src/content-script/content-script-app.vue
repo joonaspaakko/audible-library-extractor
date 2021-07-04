@@ -165,7 +165,7 @@ export default {
           
           vue.$root.$emit("update-big-step", {
             max: config.steps ? _.filter(config.steps, function(o) {
-                return o.value && !o.extra;
+                return o.value;
               }).length
               : waterfallArray.length - 1 // First function is just a kind of a failsafe and doesn't count
           });
@@ -202,8 +202,12 @@ export default {
       this.init_step_extract(config);
     },
 
-    init_step_output: function() {
-      this.goToOutputPage({ useStorageData: true });
+    init_step_output: function( config ) {
+      
+      browser.storage.local.set({config: config}).then(() => {
+        this.goToOutputPage({ useStorageData: true });
+      });
+      
     },
 
     goToOutputPage: function(hotpotato) {
