@@ -157,10 +157,10 @@ export default {
             // vue.getDataFromLibraryPagesFin, // Requires library page data
             vue.getDataFromStorePages,      // Requires library page data
             vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
-            vue.getDataFromCollections,     // Can be scraped alone
-            vue.getISBNsFromGoogleBooks,    // Requires library page data
+            vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
             vue.getDataFromWishlist,        // Can be scraped alone
             vue.getDataFromStorePages,      // Requires wishlist data
+            vue.getISBNsFromGoogleBooks,    // Requires library page data
           ];
           
           vue.$root.$emit("update-big-step", {
@@ -215,7 +215,7 @@ export default {
         });
       }
       
-      if (hotpotato.useStorageData) {
+      if ( hotpotato.useStorageData ) {
         browser.runtime.sendMessage({ action: "openOutput" });
       } else {
         hotpotato.config = { steps: hotpotato.config.steps };

@@ -192,9 +192,9 @@ export default {
           {
             active: false,
             type: 'filterExtras',
-            label: 'My rating: include',
+            label: 'Rated by me',
             excludeFromWishlist: true,
-            key: 'my-rating',
+            key: 'rated-by-me',
             group: 'filterExtras',
             condition: function(book) {
               return book.myRating;
@@ -203,9 +203,9 @@ export default {
           {
             active: false,
             type: 'filterExtras',
-            label: 'My rating: exclude',
+            label: 'Not rated by me',
             excludeFromWishlist: true,
-            key: 'my-rating-no',
+            key: 'not-rated-by-me',
             group: 'filterExtras',
             condition: function(book) {
               return !book.myRating;

@@ -72,7 +72,7 @@ html.ale-overlay-open body {
   .inner-wrap {
     margin: auto;
     text-align: center;
-    padding: 60px 0px;
+    padding: 60px 0 0 0;
   }
 
   #the-adbl-logo {

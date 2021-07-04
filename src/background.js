@@ -65,7 +65,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === "openOutput") {
     
     // Close the tab where extraction started
-    browser.tabs.remove(sender.tab.id);
+    chrome.tabs.reload( sender.tab.id );
     
     // Open the output page
     browser.tabs.create({

@@ -1,10 +1,16 @@
 <template>
-  <div id="ale-menu-screen" v-visible="!loading">
+<div>
+  <div id="ale-menu-screen" v-if="!loading && extractSettings">
     <b-collapse animation="slide" class="panel" :open="settingsOpen">
       <div class="extract-settings">
-        <div class="settings-heading fade-in">
+        <div class="settings-heading">
           <span class="title is-4">Extraction Settings</span>
         </div>
+        
+        <div style="font-size: 12px; line-height: 13px; margin: 6px 0 0 0; color: #888;">
+          Previously extracted data is retained as long as you don't overwrite it with new data.
+        </div>
+        
         <b-field grouped group-multiline class="setting-checkboxes">
           <span v-for="( setting, index) in mainSteps" :key="setting.name">
             
@@ -27,8 +33,8 @@
                 </b-button>  
               </p>
               <p class="control" v-if="setting.trash" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
-                <b-button size="is-default" @click="deleteData( setting )">
-                  <b-icon pack="fas" icon="trash-alt" size="is-small"></b-icon>
+                <b-button size="is-default" @click="deleteData( setting )" class="remove-individual-sections-icon">
+                  <b-icon pack="far" icon="trash-alt" size="is-small"></b-icon>
                 </b-button>  
               </p>
             </b-field>
@@ -36,23 +42,29 @@
           </span>
         </b-field>
         
-        <div class="linky-links">
-          <span><a href="#" @click.prevent="unselectAll">unselect all</a> </span>
-          <span class="divider">•</span>
-          <span><a href="#" @click.prevent="selectAll">select all</a> </span>
-          <span class="divider">•</span>
-          <span><a href="#" v-tippy="{ maxWidth: 400 }" content='During library extraction newly added books get marked marked and you can filter and sort based on that status in the gallery. With this you can unmark all of those books. <br><br>Deleting previously extracted library data clears all new books too, but with this you can clear those without having to extract books again.<br><br> <strong>Cannot be undone!!</strong>' @click.prevent="resetNewTitles"><strong>reset "new" books</strong></a> </span>
-        </div>
-
         <b-message class="description">
-          If you extracted something previously, you don't have to extract it again if you just want to for example add the wishlist.
           <!-- You can fetch <b-tag type="is-warning">collections</b-tag> and <b-tag type="is-warning">wishlist</b-tag> now and discard them later when saving the gallery as a stand-alone website. <b-tag type="is-warning">ISBNs</b-tag> are merged with the library books and can't be removed later, not that there should be any need to do that. -->
+          
+          <div class="linky-links">
+            <b-button size="is-small" @click="unselectAll">unselect all</b-button>
+            <b-button size="is-small" @click="selectAll">select all</b-button>
+            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='During library extraction newly added books get marked and you can filter and sort based on that status in the gallery. With this you can unmark all of those books. <br><br>Deleting previously extracted library data clears all new books too, but with this you can clear those without having to extract books again.<br><br> <strong>Cannot be undone!!</strong>'>reset new books</b-button>
+            <b-button size="is-small" @click="exportRawData">Export raw data</b-button>
+            <b-button size="is-small">
+              <label>
+                Import raw data
+                <input accept=".json" type="file" @change="importRawData" style="display:none">
+              </label>
+            </b-button>
+            <b-button size="is-small" @click="clearStoredData">Remove all extracted data</b-button>
+          </div>
+
         </b-message>
       </div>
     </b-collapse>
 
     <div class="extract-wrapper">
-      <b-field class="extract-btn">
+      <b-field class="extract-btn" v-show="!extractionButtonDisabled" >
         <b-button @click="takeNextStep('extract')" type="is-info" class="extract control" expanded size="is-large" >
           Extract selected items
         </b-button>
@@ -130,6 +142,15 @@
       You're currently using version {{ extensionVersion }}
     </div>
   </div>
+  <div v-else class="extraction-loading">
+    <b-icon
+      pack="fas"
+      icon="sync-alt"
+      custom-class="fa-spin">
+    </b-icon>
+  </div>
+  
+</div>
 </template>
 
 <script>
@@ -142,10 +163,9 @@ import {
   faSyncAlt,
   faTimes,
   faCog,
-  faTrashAlt,
   faCode,
 } from "@fortawesome/free-solid-svg-icons";
-import { faArrowAltCircleDown } from "@fortawesome/free-regular-svg-icons";
+import { faArrowAltCircleDown, faTrashAlt } from "@fortawesome/free-regular-svg-icons";
 library.add(faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, faCog, faTrashAlt, faCode);
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
@@ -175,77 +195,20 @@ Vue.use(Buefy, {
   defaultIconPack: "fas"
 });
 
+import helpers from "@contscript-mixins/misc/helpers.js";
 import changelog from "@output-mixins/changelog.js";
 export default {
   name: "menuScreen",
   props: ["storageHasData", "storageConfig"],
-  mixins: [ changelog ],
+  mixins: [ changelog, helpers ],
   data() {
     return {
-      inStorage: {
-        books: this.storageHasBooks
-      },
+      hasData: null,
+      hasConfig: null,
+      extractionButtonDisabled: false,
       outputPageDisabled: false,
       settingsOpen: true,
-      extractSettings: [
-        {
-          name: "library",
-          value: true,
-          disabled: this.storageHasData.books,
-          label: "Library",
-          type: "is-success",
-          tippy: "<div style='text-align: left;'>If this option is checked and disabled, it's because there's no library data in memory and <br>some selected options require it to function: collections, isbn</div>",
-          trash: this.storageHasData.books,
-          trashTippy: 'This will also remove ISBN data, because that data is attached to the library.',
-          update: true,
-          updateTippy: `
-          <div style="text-align: left;" class="udpate-tooltip">
-            <strong>Update library data.</strong> Usable after one full extraction.<br><br>
-            This is a faster partial extraction that: 
-            <ol>
-              <li>Adds new books just like it would on a full extract</li>
-              <li>Clears books that were removed from the library</li>
-              <li>
-                Updates information on old books that is likely to change:
-                <br>
-                <ul>
-                <li><code style="padding: 1px 3px;">unavailable(plus catalog), downloaded, favorite, progress(status), length, myRating</code></li>
-                </ul>
-              </li>
-              <li>Updates series data by removing books that are no longer in the library and by adding new ones</li>
-              <li>Clears removed library books from collections. <br>Doesn't add new collection entries though, that requires a separate full scan.</li>
-            </ol>
-          </div>
-          `,
-        },
-        {
-          name: "collections",
-          value: true,
-          label: "Collections",
-          type: "is-success",
-          disabled: false,
-          tippy: "<div style='text-align: left;'><strong>Always a full extract.</strong> Fairly quick extraction process.</div>",
-          trash: this.storageHasData.collections
-        },
-        {
-          name: "isbn",
-          value: false,
-          label: "ISBN",
-          type: "is-danger",
-          disabled: false,
-          tippy: "<div style='text-align: left;'>Attempts to fetch ISBNs for every book in your library, but if you have extracted ISBNs before, <br>it will only try to fetch them for books without ISBNs. <br><br><strong>Very slow process when it needs to process more than 200 books.</strong> <br><br>You should only need ISBNs if you plan to import the books to Goodreads.</div>",
-          trash: this.storageHasData.isbn
-        },
-        {
-          name: "wishlist",
-          value: false,
-          label: "Wishlist",
-          type: "is-danger",
-          disabled: false,
-          tippy: "<div style='text-align: left;'><strong>Slow process...</strong> + <strong>Always a full extract.</strong> <br><br>This has potential to increase the gallery's file size by a lot if your wishlist is huge. Though that only really matters if you're uploading the gallery online, if that is something you care about. A book in wishlist takes about the same amount of space as one book in the library.</div>",
-          trash: this.storageHasData.wishlist
-        }
-      ],
+      extractSettings: null,
       loading: true,
       isFirefox: false,
       isChrome: false,
@@ -263,16 +226,13 @@ export default {
   
   created: function() {
     
+    this.hasData = this.storageHasData;
+    this.hasConfig = this.storageConfig;
+    this.updateSettings();
+  
     this.checkBrowser();
     this.makeReleaseURLs();
     this.getCurrentVersion();
-    
-    if ( !(this.storageHasData.books || this.storageHasData.wishlist) ) {
-      this.outputPageDisabled = true;
-    }
-    else {
-      _.find(this.extractSettings, { name: 'library' }).disabled = false;
-    }
     
   },
 
@@ -281,11 +241,11 @@ export default {
     const vue = this;
     
     // Updates default values from browser storage
-    if (this.storageConfig && this.storageConfig.steps) {
+    if ( this.hasConfig.steps) {
       _.each(this.extractSettings, function(step) {
         step.value = false; // Reset steps
       });
-      _.each(this.storageConfig.steps, function(step) {
+      _.each(this.hasConfig.steps, function(step) {
         let foundOriginalDolly = _.find(vue.extractSettings, { name: step.name });
         if ( foundOriginalDolly ) foundOriginalDolly.value = step.value;
       });
@@ -296,12 +256,116 @@ export default {
     this.$nextTick(function() {
       setTimeout(function() {
         vue.loading = false;
-      }, 1000);
+      }, 500);
     });
 
   },
 
   methods: {
+    
+    updateSettings: function() {
+      
+      this.outputPageDisabled = !(this.hasData.books || this.hasData.wishlist);
+      
+      this.extractSettings = null;
+      this.$nextTick(function() {
+        
+        this.extractSettings = [
+          {
+            name: "library",
+            value: true,
+            disabled: !this.hasData.books,
+            label: "Library",
+            type: "is-success",
+            tippy: "<div style='text-align: left;'>Required for collections and isbn</div>",
+            trash: this.hasData.books,
+            trashTippy: 'This will also remove ISBN data.',
+            update: true,
+            updateTippy: `
+            <div style="text-align: left;" class="udpate-tooltip">
+              <strong>Update library data.</strong> Usable after one full extraction.<br><br>
+              This is a faster partial extraction that: 
+              <ol>
+                <li>Adds new books just like it would on a full extract</li>
+                <li>Clears books that were removed from the library</li>
+                <li>
+                  Updates information on old books that is likely to change:
+                  <br>
+                  <ul>
+                  <li><code style="padding: 1px 3px;">unavailable(plus catalog), downloaded, favorite, progress(status), length, myRating</code></li>
+                  </ul>
+                </li>
+                <li>Updates series data by removing books that are no longer in the library and by adding new ones</li>
+                <li>Clears removed library books from collections. <br>Doesn't add new collection entries though, that requires a separate full scan.</li>
+              </ol>
+            </div>
+            `,
+          },
+          {
+            name: "collections",
+            value: true,
+            label: "Collections",
+            type: "is-success",
+            disabled: false,
+            tippy: "<div style='text-align: left;'><strong>Always a full extract.</strong> Fairly quick extraction process.</div>",
+            trash: this.hasData.collections
+          },
+          {
+            name: "wishlist",
+            value: false,
+            label: "Wishlist",
+            type: "is-danger",
+            disabled: false,
+            tippy: "<div style='text-align: left;'><strong>Slow process...</strong> + <strong>Always a full extract.</strong> <br><br>Books that also exist in your library are dropped off as long as you also extract library data.</div>",
+            trash: this.hasData.wishlist
+          },
+          {
+            name: "isbn",
+            value: false,
+            label: "ISBN",
+            type: "is-danger",
+            disabled: false,
+            tippy: "<div style='text-align: left;'>You only need these if you want to try importing to Goodreads.<br><br> Books with previously extracted ISBNs are ignored. <br><br><strong>Very slow process when it needs to process more than 200 books.</strong></div>",
+            trash: this.hasData.isbn
+          },
+        ];
+      });
+    },
+    
+    checkISBNs: function( data ) {
+      
+      let foundISBNs = false;
+      _.each( _.range( 0, data['books-chunk-length'] ), function( index ) {
+        
+        const booksChunk = data['books-chunk-'+index];
+        const isbns = _.find( booksChunk, 'isbns' );
+        if ( isbns ) {
+          foundISBNs = true;
+          return false;
+        }
+        
+      });
+      
+      return foundISBNs;
+      
+    },
+    
+    updateViewData: function( data ) {
+      
+      let storageHasData = !$.isEmptyObject(data);
+      if ( storageHasData && !!data.chunks && data.chunks.length === 0 ) storageHasData = false;
+      
+      this.hasData = storageHasData ? ({ 
+        books: data.chunks.indexOf('books') > -1, 
+        isbn: data.chunks.indexOf('books') > -1 ? this.checkISBNs( data ) : false,
+        wishlist: data.chunks.indexOf('wishlist') > -1,
+        collections: data.chunks.indexOf('collections') > -1,
+      }) : {};
+      
+      this.hasConfig = data.config || {};
+      this.updateSettings();
+      
+    },
     
     getCurrentVersion: function() {
       this.extensionVersion = browser.runtime.getManifest().version;
@@ -332,23 +396,147 @@ export default {
       _.each( this.extractSettings, function( setting ) {
         setting.value = false;
       });
+      this.extractionButtonDisabled = true;
     },
     selectAll: function() {
       _.each( this.extractSettings, function( setting ) {
         setting.value = true;
       });
+      this.extractionButtonDisabled = false;
+    },
+    
+    clearStoredData: function() {
+      let vue = this;
+      let confirmation = window.confirm('Are you sure you want to remove all extracted data?');
+      if ( confirmation ) {
+        browser.storage.local.clear().then(function() {
+          
+          browser.storage.local.get(null).then(data => {
+            vue.updateViewData(data);
+        
+            vue.$buefy.notification.open({
+              message: 'Data removed succesfully',
+              type: 'is-success',
+              position: 'is-top',
+              closable: false,
+            });
+            
+          }).catch(function( err ) {
+            
+            vue.$buefy.notification.open({
+              message: 'Data clear failed',
+              type: 'is-danger',
+              position: 'is-top',
+              closable: false,
+            });
+            
+          });
+          
+        }).catch(function( err ) {
+            
+            vue.$buefy.notification.open({
+              message: 'Data clear failed',
+              type: 'is-danger',
+              position: 'is-top',
+              closable: false,
+            });
+            
+          });
+      };
+    },
+    
+    exportRawData: function() {
+      let vue = this;
+      browser.storage.local.get(null).then(data => {
+        
+        if ( data.chunks ) vue.glueFriesBackTogether( data );
+        saveAs(new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"}), 'Audible Library Extractor Data.json');
+        
+      });
+    },
+    
+    importRawData: function( e ) {
+      
+      let vue = this;
+      let file = e.target.files;
+      if ( file ) file = file[0];
+      
+      vue.loading = true;
+      
+      if ( file ) {
+        
+        let read = new FileReader();
+        read.onload = function( e ) {
+          
+          let data = JSON.parse(e.target.result);
+          vue.makeFrenchFries( data );
+          
+          browser.storage.local.clear().then(() => {
+            
+            browser.storage.local.set(data).then(function() {
+              
+              vue.updateViewData( data );
+              
+              if ( vue.hasData.books || vue.hasData.wishlist ) vue.extractionButtonDisabled = false;
+              vue.loading = false; 
+              vue.$buefy.notification.open({
+                message: 'Data imported succesfully',
+                type: 'is-success',
+                position: 'is-top',
+                closable: false,
+              });
+              
+            }).catch(function( err ) {
+              
+              vue.loading = false; 
+              vue.$buefy.notification.open({
+                message: 'Data import failed',
+                type: 'is-danger',
+                position: 'is-top',
+                closable: false,
+              });
+              
+            });
+            
+          }).catch(function( err ) {
+              
+            vue.loading = false; 
+            vue.$buefy.notification.open({
+              message: 'Data import failed',
+              type: 'is-danger',
+              position: 'is-top',
+              closable: false,
+            });
+            
+          });
+          
+        };
+        read.onerror = function( e ) {
+          
+          vue.loading = false; 
+          vue.$buefy.notification.open({
+            message: 'Data import failed',
+            type: 'is-danger',
+            position: 'is-top',
+            closable: false,
+          });
+          
+        };
+        read.readAsText(file);
+      }
+      else {
+        vue.loading = false; 
+      }
     },
     
     deleteData: function( setting ) {
       
-      const vue = this;
-      
+      let vue = this;
       switch( setting.name ) {
         
         case 'library':
           vue.deleteChunkData( { name: 'books'}, function( data ) {
             vue.deleteChunkData( { name: 'series'}, function( data ) {
-              
               
               data.chunks = _.remove( data.chunks, function( value ) {
                 return value !== 'isbn';
@@ -360,7 +548,11 @@ export default {
                 });
               }
               browser.storage.local.clear().then(() => {
-                browser.storage.local.set(data);
+                browser.storage.local.set(data).then(function() {
+                  
+                  vue.updateViewData( data );
+                  
+                });
               });
               
             });
@@ -373,6 +565,7 @@ export default {
           break;
         
         case 'isbn':
+          vue.loading = false; 
           browser.storage.local.get(null).then(data => {
             
             _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
@@ -396,7 +589,46 @@ export default {
                 let isbnSetting = _.find( vue.extractSettings, { name: 'isbn' });
                 if ( isbnSetting ) isbnSetting.trash = false;
                 
+                vue.updateViewData( data );
+                vue.loading = false; 
+                vue.$buefy.notification.open({
+                  message: `Removed ISBNs`,
+                  type: 'is-success',
+                  position: 'is-top',
+                  closable: false,
+                });
+                
+              }).catch(function( err ) {
+                
+                vue.loading = false; 
+                vue.$buefy.notification.open({
+                  message: `Failed to remove ISBNs`,
+                  type: 'is-danger',
+                  position: 'is-top',
+                  closable: false,
+                });
+                
               });
+            }).catch(function( err ) {
+              
+              vue.loading = false; 
+              vue.$buefy.notification.open({
+                message: `Failed to remove ISBNs`,
+                type: 'is-danger',
+                position: 'is-top',
+                closable: false,
+              });
+              
+            });
+            
+          }).catch(function( err ) {
+            
+            vue.loading = false; 
+            vue.$buefy.notification.open({
+              message: `Failed to remove ISBNs`,
+              type: 'is-danger',
+              position: 'is-top',
+              closable: false,
             });
             
           });
@@ -408,7 +640,10 @@ export default {
     
     deleteChunkData: function( setting, callback ) {
       
-      const vue = this;
+      let vue = this;
+      vue.loading = true; 
+      
+      let settingName = setting.name === 'books' ? 'library' : setting.name;
       
       browser.storage.local.get(null).then(data => {
         
@@ -446,8 +681,47 @@ export default {
             if ( data.chunks.indexOf('books') === -1 && data.chunks.indexOf('wishlist') === -1 ) vue.outputPageDisabled = true;
             
             if ( callback ) callback( data );
+          
+            vue.loading = false; 
+            vue.updateViewData( data );
+            vue.$buefy.notification.open({
+              message: `Removed ${settingName} data`,
+              type: 'is-success',
+              position: 'is-top',
+              closable: false,
+            });
+            
+          }).catch(function( err ) {
+            
+            vue.loading = false; 
+            vue.$buefy.notification.open({
+              message: `Failed to remove ${settingName} data`,
+              type: 'is-danger',
+              position: 'is-top',
+              closable: false,
+            });
             
           });
+        }).catch(function( err ) {
+          
+          vue.loading = false; 
+          vue.$buefy.notification.open({
+            message: `Failed to remove ${settingName} data`,
+            type: 'is-danger',
+            position: 'is-top',
+            closable: false,
+          });
+          
+        });
+        
+      }).catch(function( err ) {
+        
+        vue.loading = false; 
+        vue.$buefy.notification.open({
+          message: `Failed to remove ${settingName} data`,
+          type: 'is-danger',
+          position: 'is-top',
+          closable: false,
         });
         
       });
@@ -476,58 +750,82 @@ export default {
     settingChanged: function(inputValue, inputName) {
       
       let currentSetting = _.find(this.extractSettings, { name: inputName });
-      this.forceTrue( inputValue, inputName, currentSetting );
+      let library = _.find(this.extractSettings, { name: 'library' });
+      let collections = _.find(this.extractSettings, { name: 'collections' });
+      let isbn = _.find(this.extractSettings, { name: 'isbn' });
       
-    },
-    
-    forceTrue: function( inputValue, inputName, currentSetting ) {
-    
-      switch ( inputName ) {
-        case 'isbn':
-        case 'collections':
-          // Enable library setting if there is no previously collected book data
-          if ( !this.storageHasBooks ) {
-            
-            let library = _.find(this.extractSettings, { name: 'library' });
-            
-            if ( !(this.storageHasData.books || this.storageHasData.wishlist) ) {
-              if ( inputValue ) {
-                library.value = true;
-                library.disabled = true;
-              }
-              else if ( inputName === 'isbn' ) {
-                let collections = _.find(this.extractSettings, { name: 'collections' });
-                if ( !collections.value ) library.disabled = false;
-              }
-              else if ( inputName === 'collections' ) {
-                let isbn = _.find(this.extractSettings, { name: 'isbn' });
-                if ( !isbn.value ) library.disabled = false;
-              }
-            }
-          }
-          break;
+      let collectionsOrIsbn = inputName === 'collections' || inputName === 'isbn';
+      if ( !this.hasData.books && collectionsOrIsbn ) {
+        if ( inputValue && (!collections.value || !isbn.value) ) {
+          library.value = true;
+          library.disabled = true;
+        }
+        else if (  !inputValue && (!collections.value && !isbn.value) ) {
+          library.disabled = false;
+        }
       }
+      
+      this.extractionButtonDisabled = !_.find(this.extractSettings, { value: true });
       
     },
     
     resetNewTitles: function() {
       
-      browser.storage.local.get(null).then(data => {
-        
-        _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
+      let confirmation = window.confirm('Are you sure you want to clear new book status?');
+      if ( confirmation ) {
+        browser.storage.local.get(null).then(data => {
           
-          let booksChunk = data[ 'books-chunk-'+index ];
-          _.each( booksChunk, function( book ) {
-            if (book.isNew) delete book.isNew;
+          _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
+            
+            let booksChunk = data[ 'books-chunk-'+index ];
+            _.each( booksChunk, function( book ) {
+              if (book.isNew) delete book.isNew;
+            });
+            
+          });
+          
+          browser.storage.local.clear().then(() => {
+            browser.storage.local.set(data).then(() => {
+            
+              vue.$buefy.notification.open({
+                message: 'All "new" books succesfully reset',
+                type: 'is-success',
+                position: 'is-top',
+                closable: false,
+              });
+              
+            }).catch(function( err ) {
+              
+              vue.$buefy.notification.open({
+                message: 'Failed to remove "new" status from books',
+                type: 'is-danger',
+                position: 'is-top',
+                closable: false,
+              });
+              
+            });
+          }).catch(function( err ) {
+            
+            vue.$buefy.notification.open({
+              message: 'Failed to remove "new" status from books',
+              type: 'is-danger',
+              position: 'is-top',
+              closable: false,
+            });
+            
+          });
+          
+        }).catch(function( err ) {
+          
+          vue.$buefy.notification.open({
+            message: 'Failed to remove "new" status from books',
+            type: 'is-danger',
+            position: 'is-top',
+            closable: false,
           });
           
         });
-        
-        browser.storage.local.clear().then(() => {
-          browser.storage.local.set(data).then(() => {});
-        });
-        
-      });
+      }
       
     },
     
@@ -568,9 +866,46 @@ export default {
 </script>
 
 <style lang="scss">
+
+body > .notices {
+  z-index: 9999999999 !important;
+}
+
 #ale-menu-screen {
   max-width: 810px;
   margin: 0 auto;
+  
+  > .panel {
+    box-shadow: none !important;
+  }
+  
+  /* ----------------------------------------------
+  * Generated by Animista on 2020-12-19 21:31:49
+  * Licensed under FreeBSD License.
+  * See http://animista.net/license for more info. 
+  * w: http://animista.net, t: @cssanimista
+  * ---------------------------------------------- */
+  .fade-in {
+    -webkit-animation: fade-in 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) 0.25s
+      both;
+    animation: fade-in 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) 0.25s both;
+  }
+  @-webkit-keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
+  @keyframes fade-in {
+    0% {
+      opacity: 0;
+    }
+    100% {
+      opacity: 1;
+    }
+  }
 
   .has-text-grey-light {
     a {
@@ -627,7 +962,8 @@ export default {
       line-height: 22px;
       margin: 0;
       .message-body {
-        padding: 13px;
+        // padding: 13px;
+        padding: 5px;
         font-size: .9em;
         line-height: 1.2em;
         border: none !important;
@@ -663,36 +999,15 @@ export default {
         background: #fff;
       }
     }
-    /* ----------------------------------------------
-		* Generated by Animista on 2020-12-19 21:31:49
-		* Licensed under FreeBSD License.
-		* See http://animista.net/license for more info. 
-		* w: http://animista.net, t: @cssanimista
-		* ---------------------------------------------- */
-    .fade-in {
-      -webkit-animation: fade-in 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) 0.25s
-        both;
-      animation: fade-in 0.3s cubic-bezier(0.39, 0.575, 0.565, 1) 0.25s both;
-    }
-    @-webkit-keyframes fade-in {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
-    @keyframes fade-in {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
-    }
 
     .setting-checkboxes {
-      margin: 15px 20px;
+      padding: 6px;
+      &, .field {
+        margin: 0 !important;
+      }
+      span > .field {
+        padding: 3px;
+      }
       // margin-right: 46px;
       button {
         padding: 10px 12px 9px;
@@ -737,16 +1052,17 @@ export default {
   #footer {
     font-size: 0.9em;
     line-height: 1.3em;
-    padding: 50px 0 10px;
-    &,
-    & a {
-      transition: color 150ms ease;
+    padding: 50px 0 60px;
+    * {
+      transition: all 200ms ease;
     }
+    img { opacity: .6; }
     &:hover {
       color: #717171 !important;
       a {
         color: darken(#717171, 5) !important;
       }
+      img { opacity: 1; }
     }
   }
 
@@ -764,14 +1080,24 @@ export default {
   }
   
   .linky-links {
-    margin-bottom: 15px;
+    // margin-bottom: 15px;
     font-size: 13px;
     span { 
       margin-left: 6px; &:first-child { margin-left: 0 }
     }
     .divider { color: #444; }
     a { color: #666; }
+    button {
+      label { cursor: pointer; }
+      span { font-size: 11px !important; line-height: 11px !important; }
+      height: auto !important;
+    }
   }
+  
+  .remove-individual-sections-icon {
+    // color: #959595;
+    color: #666;
+  } 
   
 }
 
@@ -808,5 +1134,11 @@ export default {
   li.fixed:before    { background: #f25954; display: block; }
   li.improved:before { background: #ba23ca; display: block; }
   li.added:before    { background: #10c064; display: block; }
+}
+
+.extraction-loading,
+.extraction-loading .icon {
+  font-size: 40px;
+  color: #f79a32;
 }
 </style>

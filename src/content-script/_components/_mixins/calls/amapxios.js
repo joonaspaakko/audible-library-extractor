@@ -8,10 +8,10 @@ export default {
       
       const letMeAxiosAQuestion = axios.create();
       axiosRetry(letMeAxiosAQuestion, {
-        retries: 3,
+        retries: 1,
         retryDelay: 5000,
         retryCondition: function(error) {
-          return error.response && error.response.status == "500";
+          return error.response && ( error.response.status == "500" || error.response.status == "400" );
         }
       });
       const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 6 });
