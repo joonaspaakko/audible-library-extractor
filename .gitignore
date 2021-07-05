@@ -132,4 +132,4 @@ yarn-error.log
 # End of https://www.toptal.com/developers/gitignore/api/vuejs,vue,intellij+all,visualstudiocode
 
 /*.log
-dist-zip/*.zip
+#dist-zip/*.zip
