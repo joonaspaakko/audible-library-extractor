@@ -111,7 +111,7 @@ let routesPrep = function( libraryData ) {
         path: "/categories",
         component: aleLibraryView,
         children: [
-          { name: "categories", path: "", component: () => import( /* webpackChunkName: "categories" */ "./_components/alePages/aleCategories"), meta: { subPage: true, title: 'Categories' } },
+          { name: "categories", path: "", component: () => import( /* webpackChunkName: "categories" */ "./_components/alePages/subPages/aleCategories"), meta: { subPage: true, title: 'Categories' } },
           { name: "category", path: ":parent/:child?", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Categories' } }
         ],
       },
@@ -119,7 +119,7 @@ let routesPrep = function( libraryData ) {
         path: "/series",
         component: aleLibraryView,
         children: [
-          { name: "all-series", path: "", component: () => import( /* webpackChunkName: "series" */ "./_components/alePages/aleSeries"), meta: { subPage: true, title: 'Series' } },
+          { name: "all-series", path: "", component: () => import( /* webpackChunkName: "series" */ "./_components/alePages/subPages/aleSeries"), meta: { subPage: true, title: 'Series' } },
           { name: "series", path: ":series", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Series' } }
         ],
       },
@@ -127,7 +127,7 @@ let routesPrep = function( libraryData ) {
         path: "/authors",
         component: aleLibraryView,
         children: [
-          { name: "authors", path: "", component: () => import( /* webpackChunkName: "authors" */ "./_components/alePages/aleAuthors"), meta: { subPage: true, title: 'Authors' } },
+          { name: "authors", path: "", component: () => import( /* webpackChunkName: "authors" */ "./_components/alePages/subPages/aleAuthors"), meta: { subPage: true, title: 'Authors' } },
           { name: "author", path: ":author", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Authors' } }
         ],
       },
@@ -135,7 +135,7 @@ let routesPrep = function( libraryData ) {
         path: "/narrators",
         component: aleLibraryView,
         children: [
-          { name: "narrators", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/aleNarrators"), meta: { subPage: true, title: 'Narrators' } },
+          { name: "narrators", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/subPages/aleNarrators"), meta: { subPage: true, title: 'Narrators' } },
           { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
         ],
       },
@@ -143,7 +143,7 @@ let routesPrep = function( libraryData ) {
         path: "/publishers",
         component: aleLibraryView,
         children: [
-          { name: "publishers", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/alePublishers"), meta: { subPage: true, title: 'Publishers' } },
+          { name: "publishers", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/subPages/alePublishers"), meta: { subPage: true, title: 'Publishers' } },
           { name: "publisher", path: ":publisher", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Publishers' } }
         ],
       },

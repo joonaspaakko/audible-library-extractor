@@ -9,7 +9,7 @@ export default {
         const authorUrl = this.$route.params.author;
         
         // Build author sub page array 
-        let books = _.filter( this.findSubPageSource(), function( book ) {
+        let books = _.filter( this.subPageSource.collection, function( book ) {
           if ( book.authors ) return _.find(book.authors, function( author ) { return author.url === authorUrl; });
         });
         

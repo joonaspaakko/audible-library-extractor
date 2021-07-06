@@ -230,9 +230,9 @@ export default {
       
       this.mobileMenuOpen = false;
       
-      if ( this.$route.name === linkName ) {
-        this.$root.$emit('refresh-page');
-      }
+      // if ( this.$route.name === linkName ) {
+      //   this.$root.$emit('refresh-page');
+      // }
       
     },
     

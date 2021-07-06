@@ -1,22 +1,21 @@
 <template>
-  <div id="ale-series" class="box-layout-wrapper"
-       v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
+  <div id="ale-series" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
+    
     <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
+    
     <lazy
-        v-for="(item, index) in $store.getters.collection"
-        class="single-box"
-        :data-asin="item.asin"
-        v-if="item.asin"
-        :key="'series:'+item.asin"
+    v-for="(item, index) in $store.getters.collection"
+    class="single-box"
+    :data-asin="item.asin"
+    v-if="item.asin"
+    :key="'series:'+item.asin"
     >
-      <router-link
-          :to="{ name: 'series', params: { series: item.asin }, query: { subPageSource: $store.state.sticky.subPageSource } }">
+      <router-link :to="{ name: 'series', params: { series: item.asin }, query: { subPageSource: subPageSource.name } }">
 
         <h2>{{ item.name }}</h2>
 
-        <div class="books-total" v-if="item.books && item.books.length"
-             content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
-          {{ item.books.length }} of {{ item.allBooks.length }}
+        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
+          <span :class="{ 'my-books': item.allBooks && item.allBooks.length}">{{ item.books.length }}</span><span v-if="item.allBooks && item.allBooks.length">&nbsp;of&nbsp;{{ item.allBooks.length }}</span>
         </div>
 
       </router-link>
@@ -29,7 +28,7 @@
 
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 import lazy from "@output-snippets/lazy.vue";
-import aleSearch from "./aleGallery/aleSearch";
+import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
 
 export default {
   name: "aleSeries",
@@ -46,40 +45,32 @@ export default {
       listReady: false,
     };
   },
-
-  beforeCreate: function () {
-
-    this.$store.commit("prop", {key: "pageCollection", value: []});
-    this.$store.commit("prop", {key: "mutatingCollection", value: []});
-
-  },
-
-  created: function () {
-    this.makeCollection();
-  },
   
   methods: {
 
     makeCollection: function () {
-
+      
       const vue = this;
       let seriesCollection = [];
       let addedCounter = 1;
       let librarySeries = this.$store.state.library.series;
 
       // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
-      _.eachRight(this.findSubPageSource(), function (book) {
+      _.eachRight(vue.subPageSource.collection, function (book) {
 
         if (book.series) {
 
           _.each(book.series, function (series) {
+            
             const seriesAdded = _.find(seriesCollection, {asin: series.asin});
-            const thisSeriesFromLibrary = _.find(librarySeries, {
-              asin: series.asin
-            });
-            const myBooks = thisSeriesFromLibrary.allBooks.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
-            const maxSeriesBookNumber = _.max(thisSeriesFromLibrary.allBooks.map(b => _.toNumber(b.bookNumbers)));
-            const myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
+            const thisSeriesFromLibrary = !!librarySeries ?_.find(librarySeries, { asin: series.asin }) : false;
+            
+            let myBooks, maxSeriesBookNumber, myMaxBookNumber;
+            if ( vue.subPageSource.library ) {
+              myBooks = thisSeriesFromLibrary.allBooks.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
+              maxSeriesBookNumber = _.max(thisSeriesFromLibrary.allBooks.map(b => _.toNumber(b.bookNumbers)));
+              myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
+            }
 
             // Series not in the collection so add it with the book...
             if (!seriesAdded) {
@@ -88,29 +79,36 @@ export default {
                 asin: series.asin,
                 added: addedCounter,
                 books: [book.title || book.shortTitle],
-                allBooks: thisSeriesFromLibrary.allBooks,
-                missingLatest: myMaxBookNumber !== maxSeriesBookNumber,
-                minRating: _.toNumber(book.myRating),
               };
 
               // Only add if it's in the library series array as well...
-              if (vue.$store.state.sticky.subPageSource === 'books' && !!librarySeries && _.find(librarySeries, {asin: series.asin})) {
+              if ( vue.subPageSource.library && !!thisSeriesFromLibrary ) {
+                
                 ++addedCounter;
+                newSeries.minRating = _.toNumber(book.myRating),
+                newSeries.allBooks = thisSeriesFromLibrary.allBooks,
+                newSeries.missingLatest = myMaxBookNumber !== maxSeriesBookNumber,
                 seriesCollection.push(newSeries);
-              } else if (vue.$store.state.sticky.subPageSource === 'wishlist') {
+                
+              } else if ( vue.subPageSource.wishlist ) {
                 ++addedCounter;
                 seriesCollection.push(newSeries);
               }
             }
             // Series already exists in the collection so just add the book...
             else {
+              
               seriesAdded.books.push(book.title || book.shortTitle);
-              seriesAdded.minRating = _.min(
+              
+              if ( vue.subPageSource.library ) {
+                seriesAdded.minRating = _.min(
                   [seriesAdded.minRating, book.myRating]
-                  .map(_.toNumber)
-                  .filter(rating => !_.isNaN(rating)));
-              seriesAdded.allBooks = thisSeriesFromLibrary.allBooks;
-              seriesAdded.missingLatest = myMaxBookNumber !== maxSeriesBookNumber;
+                    .map(_.toNumber)
+                    .filter(rating => !_.isNaN(rating))
+                );
+                seriesAdded.allBooks = thisSeriesFromLibrary.allBooks;
+                seriesAdded.missingLatest = myMaxBookNumber !== maxSeriesBookNumber;
+              }
 
               return false;
             }
@@ -130,13 +128,14 @@ export default {
 
     updateListRenderingOptions: function () {
       let vue = this;
-      const list = {
+      let list = {
         scope: [
           {active: true, key: 'name', tippy: 'Search narrators by name'},
           {active: true, key: 'books', tippy: 'Search narrators by book titles'},
         ],
         filter: [
           {
+            excludeFromWishlist: true,
             active: false,
             type: 'filterExtras',
             label: 'Incomplete',
@@ -147,6 +146,7 @@ export default {
             }
           },
           {
+            excludeFromWishlist: true,
             active: false,
             type: 'filterExtras',
             label: 'Missing latest',
@@ -157,6 +157,7 @@ export default {
             }
           },
           {
+            excludeFromWishlist: true,
             active: true,
             type: 'filterExtras',
             label: 'Rating (min)',
@@ -172,6 +173,7 @@ export default {
             rangeSuffix: ''
           },
           {
+            excludeFromWishlist: true,
             active: true,
             type: 'filterExtras',
             label: 'Books in series',
@@ -232,6 +234,7 @@ export default {
             tippy: 'Sort by the total number of books in the series'
           },
           {
+            excludeFromWishlist: true,
             active: false,
             current: false,
             key: 'missing',
@@ -241,6 +244,11 @@ export default {
           },
         ],
       };
+      
+      if ( this.subPageSource.wishlist ) {
+        list.filter = _.filter( list.filter, function( o ) { return !o.excludeFromWishlist; });
+        list.sort = _.filter( list.sort, function( o ) { return !o.excludeFromWishlist; });
+      }
 
       this.$setListRenderingOpts(list);
 
@@ -277,11 +285,22 @@ export default {
   }
 
   .books-total {
+    border: none !important;
+    background: transparent !important;
+    padding: 0 6px !important;
+    width: auto !important;
     height: 23px !important;
     line-height: 23px !important;
     font-size: .9em !important;
-    top: 4px !important;
+    top: 6px !important;
     right: 4px !important;
   }
+}
+
+.theme-dark .books-total .my-books {
+  color: $audibleOrange !important;
+}
+.theme-light .books-total .my-books {
+  font-weight: bold;
 }
 </style>

@@ -14,20 +14,20 @@
     >
     
       <h2>
-        <router-link v-if="parent.slug" :to="{ name: 'category', params: { parent: parent.slug }, query: { subPageSource: $store.state.sticky.subPageSource } }">
+        <router-link v-if="parent.slug" :to="{ name: 'category', params: { parent: parent.slug }, query: { subPageSource: subPageSource.name } }">
           {{ parent.name }}
         </router-link>
         <span v-else>{{ parent.name }}</span>
       </h2>
 
-      <router-link v-if="parent.slug" class="books-total" :to="{ name: 'category', params: { parent: parent.slug }, query: { subPageSource: $store.state.sticky.subPageSource } }">
+      <router-link v-if="parent.slug" class="books-total" :to="{ name: 'category', params: { parent: parent.slug }, query: { subPageSource: subPageSource.name } }">
         <div v-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       </router-link>
       <div v-else-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       
       <div class="child-categories" v-if="parent.sub">
         <div v-for="(child, index) in parent.sub" :key="child.name" v-if="child && child.name">
-          <router-link v-if="(parent && parent.slug) && (child && child.slug)" :to="{ name: 'category', params: { parent: parent.slug, child: child.slug }, query: { subPageSource: $store.state.sticky.subPageSource } }">
+          <router-link v-if="(parent && parent.slug) && (child && child.slug)" :to="{ name: 'category', params: { parent: parent.slug, child: child.slug }, query: { subPageSource: subPageSource.name } }">
             {{ child.name }}
           </router-link>
           <span v-else></span>
@@ -48,7 +48,7 @@
               parent: book.categories[0] ? slugify(book.categories[0].name) : null, 
               child:  book.categories[1] ? slugify(book.categories[1].name) : null 
             }, 
-            query: { book: book.asin, subPageSource: $store.state.sticky.subPageSource }
+            query: { book: book.asin, subPageSource: subPageSource.name }
           }">
             <img :src="makeCoverUrl(book.cover)" alt="" />
           </router-link>
@@ -84,17 +84,6 @@ export default {
     };
   },
   
-  beforeCreate: function() {
-    
-    this.$store.commit("prop", { key: "pageCollection", value: [] });
-    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
-    
-  },
-  
-  created: function() {
-    this.makeCollection();
-  },
-  
   methods: {
     
     getRandomBooks: function(books, number) {
@@ -108,7 +97,7 @@ export default {
       let categories = {};
       // Make category arrays
       categories.parent = [];
-      _.each( this.findSubPageSource(), function(book, index) {
+      _.each( vue.subPageSource.collection, function(book, index) {
         
         if (book.categories) {
           // Parent categories...

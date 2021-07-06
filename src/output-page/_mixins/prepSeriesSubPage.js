@@ -31,7 +31,7 @@ export default {
         }
         
         // Build series sub page array 
-        let books = _.filter( this.findSubPageSource(), function( book ) {
+        let books = _.filter( this.subPageSource.collection, function( book ) {
           if ( seriesHasBooks ) {
             return _.includes( series.books, book.asin );
           }

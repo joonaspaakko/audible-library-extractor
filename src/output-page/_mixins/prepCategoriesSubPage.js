@@ -12,7 +12,7 @@ export default {
           book: this.$route.params.query
         };
         
-        let categoryBooks = _.filter( this.findSubPageSource(), function( book ) {
+        let categoryBooks = _.filter( this.subPageSource.collection, function( book ) {
           if ( book.categories ) {
             const cat = book.categories[0] ? vue.slugify( book.categories[0].name ) : false;
             const kitten = book.categories[1] ? vue.slugify( book.categories[1].name ) : false;

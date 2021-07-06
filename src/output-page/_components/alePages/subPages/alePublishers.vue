@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-authors" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
+  <div id="ale-publishers" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
     <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     
     <lazy
@@ -7,13 +7,13 @@
     class="single-box"
     :data-name="item.name"
     v-if="item.name"
-    :key="'authors:'+item.url"
+    :key="'publishers:'+item.name"
     >
-      <router-link :to="{ name: 'author', params: { author: item.url }, query: { subPageSource: $store.state.sticky.subPageSource } }">
+      <router-link :to="{ name: 'publisher', params: { publisher: item.url }, query: { subPageSource: subPageSource.name } }">
         
         <h2>{{ item.name }}</h2>
         
-        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books with this author." v-tippy="{ placement: 'right' }">
+        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books from this publisher." v-tippy="{ placement: 'right' }">
           {{ item.books.length }}
         </div>
       
@@ -26,12 +26,12 @@
 <script>
 
 import lazy from "@output-snippets/lazy.vue";
-import aleSearch from "./aleGallery/aleSearch";
+import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
 import slugify from "@output-mixins/slugify";
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
-  name: "aleAuthors",
+  name: "alePublishers",
   components: {
     aleSearch,
     lazy,
@@ -41,20 +41,9 @@ export default {
     return {
       collectionSource: 'pageCollection',
       listReady: false,
-      pageTitle: 'Authors',
+      pageTitle: 'Publishers',
       pageSubTitle: null,
     };
-  },
-  
-  beforeCreate: function() {
-    
-    this.$store.commit("prop", { key: "pageCollection", value: [] });
-    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
-    
-  },
-  
-  created: function() {
-    this.makeCollection();
   },
   
   methods: {
@@ -62,34 +51,34 @@ export default {
     makeCollection: function() {
       
       const vue = this;
-      let authorsCollection = [];
+      let publishersCollection = [];
       let addedCounter = 1;
       
-      // Processed in reverse order so that the "added" order is based on the first book added to the library of each author.
-      _.eachRight(this.findSubPageSource(), function(book) {
+      // Processed in reverse order so that the "added" order is based on the first book added to the library of each publisher.
+      _.eachRight(vue.subPageSource.collection, function(book) {
         
-        if ( book.authors ) {
+        if (book.publishers) {
           
-          _.each(book.authors, function(author) {
+          _.each(book.publishers, function(publisher) {
             
-            let authorsAdded = _.find(authorsCollection, { url: author.url });
+            let publishersAdded = _.find(publishersCollection, { name: publisher.name });
             
-            // Author not in the collection so add it with the book...
-            if ( !authorsAdded ) {
+            // Publisher not in the collection so add it with the book...
+            if ( !publishersAdded ) {
               const newSeries = {
-                name: author.name,
-                url: author.url,
+                name: publisher.name,
+                url: vue.slugify(publisher.name),
                 added: addedCounter,
                 books: [ book.title || book.shortTitle ],
               };
               
-              authorsCollection.push( newSeries );
+              publishersCollection.push( newSeries );
               ++addedCounter;
               
             }
             // Series already exists in the collection so just add the book...
             else {
-              authorsAdded.books.push( book.title || book.shortTitle );
+              publishersAdded.books.push( book.title || book.shortTitle );
               return false;
             }
             
@@ -98,9 +87,9 @@ export default {
         
       });
       
-      _.reverse( authorsCollection );
+      _.reverse( publishersCollection );
       
-      this.$store.commit("prop", { key: "pageCollection", value: authorsCollection });
+      this.$store.commit("prop", { key: "pageCollection", value: publishersCollection });
       this.updateListRenderingOptions();
       
       this.listReady = true;
@@ -111,15 +100,15 @@ export default {
       let vue = this;
       const list = {
         scope: [
-          { active: true,  key: 'name', tippy: 'Search authors by name' },
-          { active: true,  key: 'books', tippy: 'Search authors by book titles' },
+          { active: true,  key: 'name', tippy: 'Search publishers by name' },
+          { active: true,  key: 'books', tippy: 'Search publishers by book titles' },
         ],
         filter: [
           
           { active: true, type: 'filterExtras', label: 'Number of books', key: 'books', range: [1, (function() {
-            let authors = _.get(vue.$store.state, vue.collectionSource);
-            let max = _.maxBy( authors, function( author ){ 
-              if (author.books) return author.books.length;
+            let publishers = _.get(vue.$store.state, vue.collectionSource);
+            let max = _.maxBy( publishers, function( publisher ){ 
+              if (publisher.books) return publisher.books.length;
             });
             return max ? max.books.length : 1; 
           }())], rangeMinDist: 0, rangeSuffix: '', 
@@ -127,17 +116,17 @@ export default {
             return 1; 
           }, 
           rangeMax: function() { 
-            let authors = _.get(vue.$store.state, vue.collectionSource);
-            let max = _.maxBy( authors, function( author ){ 
-              if (author.books) return author.books.length;
+            let publishers = _.get(vue.$store.state, vue.collectionSource);
+            let max = _.maxBy( publishers, function( publisher ){ 
+              if (publisher.books) return publisher.books.length;
             });
             return max ? max.books.length : 1; 
           }, 
-          condition: function( author ) { 
-            if ( author.books ) {
+          condition: function( publisher ) { 
+            if ( publisher.books ) {
               let min = this.range[0];
               let max = this.range[1];
-              return author.books.length >= min && author.books.length <= max; 
+              return publisher.books.length >= min && publisher.books.length <= max; 
             } 
           } },
         ],
@@ -146,7 +135,7 @@ export default {
           { type: 'divider', key: 'divider1' },
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
-          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort', tippy: "Sort by author's name" },
+          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort', tippy: "Sort by publisher's name" },
           { active: false,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
         ],
       };

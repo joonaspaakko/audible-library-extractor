@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-narrators" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
+  <div id="ale-authors" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady">
     <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     
     <lazy
@@ -7,13 +7,13 @@
     class="single-box"
     :data-name="item.name"
     v-if="item.name"
-    :key="'narrators:'+item.name"
+    :key="'authors:'+item.url"
     >
-      <router-link :to="{ name: 'narrator', params: { narrator: item.url }, query: { subPageSource: $store.state.sticky.subPageSource } }">
+      <router-link :to="{ name: 'author', params: { author: item.url }, query: { subPageSource: subPageSource.name } }">
         
         <h2>{{ item.name }}</h2>
         
-        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books with this narrator." v-tippy="{ placement: 'right' }">
+        <div class="books-total" v-if="item.books && item.books.length" content="Total number of books with this author." v-tippy="{ placement: 'right' }">
           {{ item.books.length }}
         </div>
       
@@ -26,12 +26,12 @@
 <script>
 
 import lazy from "@output-snippets/lazy.vue";
-import aleSearch from "./aleGallery/aleSearch";
+import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
 import slugify from "@output-mixins/slugify";
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
-  name: "aleNarrators",
+  name: "aleAuthors",
   components: {
     aleSearch,
     lazy,
@@ -41,55 +41,44 @@ export default {
     return {
       collectionSource: 'pageCollection',
       listReady: false,
-      pageTitle: 'Narrators',
+      pageTitle: 'Authors',
       pageSubTitle: null,
     };
   },
   
-  beforeCreate: function() {
-    
-    this.$store.commit("prop", { key: "pageCollection", value: [] });
-    this.$store.commit("prop", { key: "mutatingCollection", value: [] });
-    
-  },
-  
-  created: function() {
-    this.makeCollection();
-  },
-  
   methods: {
-      
+    
     makeCollection: function() {
       
       const vue = this;
-      let narratorsCollection = [];
+      let authorsCollection = [];
       let addedCounter = 1;
       
-      // Processed in reverse order so that the "added" order is based on the first book added to the library of each narrator.
-      _.eachRight(this.findSubPageSource(), function(book) {
+      // Processed in reverse order so that the "added" order is based on the first book added to the library of each author.
+      _.eachRight(vue.subPageSource.collection, function(book) {
         
-        if (book.narrators) {
+        if ( book.authors ) {
           
-          _.each(book.narrators, function(narrator) {
+          _.each(book.authors, function(author) {
             
-            let narratorsAdded = _.find(narratorsCollection, { name: narrator.name });
+            let authorsAdded = _.find(authorsCollection, { url: author.url });
             
-            // Narrator not in the collection so add it with the book...
-            if ( !narratorsAdded ) {
+            // Author not in the collection so add it with the book...
+            if ( !authorsAdded ) {
               const newSeries = {
-                name: narrator.name,
-                url: vue.slugify(narrator.name),
+                name: author.name,
+                url: author.url,
                 added: addedCounter,
                 books: [ book.title || book.shortTitle ],
               };
               
-              narratorsCollection.push( newSeries );
+              authorsCollection.push( newSeries );
               ++addedCounter;
               
             }
             // Series already exists in the collection so just add the book...
             else {
-              narratorsAdded.books.push( book.title || book.shortTitle );
+              authorsAdded.books.push( book.title || book.shortTitle );
               return false;
             }
             
@@ -98,9 +87,9 @@ export default {
         
       });
       
-      _.reverse( narratorsCollection );
+      _.reverse( authorsCollection );
       
-      this.$store.commit("prop", { key: "pageCollection", value: narratorsCollection });
+      this.$store.commit("prop", { key: "pageCollection", value: authorsCollection });
       this.updateListRenderingOptions();
       
       this.listReady = true;
@@ -111,15 +100,15 @@ export default {
       let vue = this;
       const list = {
         scope: [
-          { active: true,  key: 'name', tippy: 'Search narrators by name' },
-          { active: true,  key: 'books', tippy: 'Search narrators by book titles' },
+          { active: true,  key: 'name', tippy: 'Search authors by name' },
+          { active: true,  key: 'books', tippy: 'Search authors by book titles' },
         ],
         filter: [
           
           { active: true, type: 'filterExtras', label: 'Number of books', key: 'books', range: [1, (function() {
-            let narrators = _.get(vue.$store.state, vue.collectionSource);
-            let max = _.maxBy( narrators, function( narrator ){ 
-              if (narrator.books) return narrator.books.length;
+            let authors = _.get(vue.$store.state, vue.collectionSource);
+            let max = _.maxBy( authors, function( author ){ 
+              if (author.books) return author.books.length;
             });
             return max ? max.books.length : 1; 
           }())], rangeMinDist: 0, rangeSuffix: '', 
@@ -127,17 +116,17 @@ export default {
             return 1; 
           }, 
           rangeMax: function() { 
-            let narrators = _.get(vue.$store.state, vue.collectionSource);
-            let max = _.maxBy( narrators, function( narrator ){ 
-              if (narrator.books) return narrator.books.length;
+            let authors = _.get(vue.$store.state, vue.collectionSource);
+            let max = _.maxBy( authors, function( author ){ 
+              if (author.books) return author.books.length;
             });
             return max ? max.books.length : 1; 
           }, 
-          condition: function( narrator ) { 
-            if ( narrator.books ) {
+          condition: function( author ) { 
+            if ( author.books ) {
               let min = this.range[0];
               let max = this.range[1];
-              return narrator.books.length >= min && narrator.books.length <= max; 
+              return author.books.length >= min && author.books.length <= max; 
             } 
           } },
         ],
@@ -146,7 +135,7 @@ export default {
           { type: 'divider', key: 'divider1' },
           // active: true = arrow down / descending
           { active: true,  current: true,  key: 'added',     label: 'Added',   			   type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
-          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort', tippy: "Sort by narrator's name" },
+          { active: true,  current: false, key: 'name',      label: 'Name',        		 type: 'sort', tippy: "Sort by author's name" },
           { active: false,  current: false, key: 'amount',    label: 'Number of books', type: 'sort' },
         ],
       };
