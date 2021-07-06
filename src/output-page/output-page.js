@@ -687,10 +687,10 @@ function startVue( libraryData ) {
   libraryData.extras.pages = libraryData.extras.pages || {};
   if ( standalone ) {
     standaloneRouteData = JSON.parse(JSON.stringify(libraryData));
-    if ( libraryData.books       === true ) { delete libraryData.books; libraryData.extras.pages.books = true; }
-    if ( libraryData.series      === true ) { delete libraryData.series; libraryData.extras.pages.series = true; }
+    if ( libraryData.books       === true ) { delete libraryData.books;       libraryData.extras.pages.books = true;       }
+    if ( libraryData.series      === true ) { delete libraryData.series;      libraryData.extras.pages.series = true;      }
     if ( libraryData.collections === true ) { delete libraryData.collections; libraryData.extras.pages.collections = true; }
-    if ( libraryData.wishlist    === true ) { delete libraryData.wishlist; libraryData.extras.pages.wishlist = true; }
+    if ( libraryData.wishlist    === true ) { delete libraryData.wishlist;    libraryData.extras.pages.wishlist = true;    }
   }
   
   vuexPrep( libraryData );

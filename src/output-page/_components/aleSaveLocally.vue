@@ -13,7 +13,7 @@
           <save-gallery></save-gallery>
           <save-csv></save-csv>
           
-          <div class="close-btn" @click="modalOpen = false" v-shortkey.once="['esc']" @shortkey="modalOpen = false">
+          <div class="close-btn" @click="close" v-shortkey.once="['esc']" @shortkey="modalOpen = false">
             <font-awesome fas icon="times" />
           </div>
           
@@ -40,6 +40,13 @@ export default {
     
     if ( this.$store.getters.saveStandaloneAfter ) this.modalOpen = true;
     
+  },
+  
+  methods: {
+    close: function() {
+      this.modalOpen = false; 
+      window.location.reload();
+    }
   },
   
 };

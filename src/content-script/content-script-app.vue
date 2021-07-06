@@ -135,7 +135,7 @@ export default {
   },
   
   methods: {
-    init_step_extract: function(config) {
+    init_step_extract: function( config ) {
       
       const vue = this;
       browser.storage.local.get(null).then(hotpotato => {
@@ -148,8 +148,6 @@ export default {
           hotpotato = hotpotato || {};
           if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
           hotpotato.config = config;
-          
-          // _.find( config.steps, { name: "storePage" }).value = true;
         
           const waterfallArray = [
             function(callback) { callback(null, hotpotato); },
@@ -195,7 +193,7 @@ export default {
       
     },
 
-    init_step_update: function(config) {
+    init_step_update: function( config ) {
       config.partialScan = true;
       // Make sure library is the only step when doing a partial extraction...
       config.steps = [{ name: 'library', value: true }];
@@ -204,7 +202,8 @@ export default {
 
     init_step_output: function( config ) {
       
-      browser.storage.local.set({config: config}).then(() => {
+      let newData = {config: config, extras: { 'domain-extension': this.domainExtension }};
+      browser.storage.local.set( newData ).then(() => {
         this.goToOutputPage({ useStorageData: true });
       });
       

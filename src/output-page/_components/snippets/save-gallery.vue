@@ -143,17 +143,20 @@ export default {
   mounted: function() {
     
     let vue = this;
+    
     if ( vue.$store.getters.saveStandaloneAfter ) {
-      
       try {
+        
         let newConfig = JSON.parse(JSON.stringify( vue.$store.state.extractSettings ));
         let saveStandaloneAfter = _.find( newConfig.extraSettings, { name: 'saveStandaloneAfter' });
         saveStandaloneAfter.deactivated = true;
+        
+        this.$store.commit('prop', { key: 'extractSettings', value: newConfig });
         browser.storage.local.set({config: newConfig }).then(function() {
           vue.saveButtonClicked();
         });
-      } catch (e) {}
-      
+        
+      } catch (e) {} 
     }
     
   },

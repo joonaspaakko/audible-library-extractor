@@ -62,7 +62,9 @@ browser.runtime.onMessage.addListener((message, sender) => {
   if (message.action === "openOutput") {
     
     // Close the tab where extraction started
-    chrome.tabs.reload( sender.tab.id );
+    setTimeout(function() {
+      chrome.tabs.reload( sender.tab.id );
+    }, 2000);
     
     // Open the output page
     browser.tabs.create({
