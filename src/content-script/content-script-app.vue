@@ -148,7 +148,7 @@ export default {
           hotpotato = hotpotato || {};
           if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
           hotpotato.config = config;
-        
+          
           const waterfallArray = [
             function(callback) { callback(null, hotpotato); },
             vue.getDataFromLibraryPages,    // Can be scraped alone
@@ -221,7 +221,16 @@ export default {
       if ( hotpotato.useStorageData ) {
         browser.runtime.sendMessage({ action: "openOutput" });
       } else {
-        hotpotato.config = { steps: hotpotato.config.steps };
+        
+        if ( hotpotato.config ) {
+          if ( hotpotato.config.steps || hotpotato.config.extraSettings ) {
+            let steps = hotpotato.config.steps;
+            let extraSettings = hotpotato.config.extraSettings;
+            hotpotato.config = {};
+            if ( steps ) hotpotato.config.steps = steps;
+            if ( extraSettings ) hotpotato.config.extraSettings = extraSettings; 
+          }
+        }
 
         if (!hotpotato.chunks) {
           if ( hotpotato.books    ) this.addedOrder(hotpotato.books);

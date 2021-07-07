@@ -90,6 +90,15 @@ export default {
   
   created: function() {
     
+    if ( this.$route.name === 'gallery' ) {
+      this.pageTitle = 'Library';
+      this.pageSubTitle = null;
+    }
+    else if ( this.$route.name === 'wishlist' ) {
+      this.pageTitle = 'Wishlist';
+      this.pageSubTitle = null;
+    }
+    
     this.updateListRenderingOptions();
     
     // Setup for other pages that use the gallery page to show titles

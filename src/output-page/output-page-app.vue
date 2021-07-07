@@ -1,5 +1,5 @@
 <template>
-  <div id="audible-library-extractor" :data-version="$store.state.version">
+  <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': this.$store.state.windowWidth < 630 }">
         
     <ale-background v-if="$store.state.showBackground"></ale-background>
     <ale-navigation></ale-navigation>
@@ -196,7 +196,8 @@ body {
 
 #audible-library-extractor {
   padding-top: 80px;
-
+  &.mobile-threshold { padding-top: 45px; };
+  
   a {
     text-decoration: none;
     @include themify($themes) {

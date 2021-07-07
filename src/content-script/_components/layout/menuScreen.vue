@@ -401,18 +401,6 @@ export default {
       this.isChrome = browser.runtime.getURL('').startsWith('chrome-extension://');
     },
     
-    partialExtraction: function( setting ) {
-      
-      const library = _.filter( this.extractSettings, { name: 'library' });
-      
-      this.takeNextStep('update', {
-        steps: _.map( library, function(o) {
-          return { name: o.name, value: o.value };
-        })
-      });
-      
-    },
-    
     unselectAll: function() {
       _.each( this.extractSettings, function( setting ) {
         setting.value = false;
@@ -749,6 +737,18 @@ export default {
       
     },
     
+    partialExtraction: function( setting ) {
+      
+      const library = _.filter( this.extractSettings, { name: 'library' });
+      
+      this.takeNextStep('update', {
+        steps: _.map( library, function(o) {
+          return { name: o.name, value: o.value };
+        })
+      });
+      
+    },
+    
     takeNextStep: function(step, config) {
       
       if ( !config ) {
@@ -762,7 +762,6 @@ export default {
       config.extraSettings = _.map( _.filter( this.extractSettings, 'extra'), function(o) {
         return { name: o.name, value: o.value, deactivated: false };
       });
-      
       
       this.$root.$emit("do-next-step", {
         step: step,

@@ -36,8 +36,12 @@ export default {
   },
 
   created: function() {
+    
     this.startPlaying();
     this.$nextTick(function() {
+      
+      var mobileMenuFloaters = document.querySelector('#mobile-menu-floaters');
+      if ( mobileMenuFloaters ) mobileMenuFloaters.style.bottom = this.$el.clientHeight + 'px';
       
       const iconsWrapper = this.$refs.audioPlayer.$el.querySelector('.operate');
       
@@ -62,7 +66,12 @@ export default {
   },
   
   beforeDestroy: function() {
+    
+    var mobileMenuFloaters = document.querySelector('#mobile-menu-floaters');
+    if ( mobileMenuFloaters ) mobileMenuFloaters.style.bottom = null;
+    
     this.$store.commit('prop', { key: 'audioPlayerVisible', value: false });
+    
   },
 
   methods: {

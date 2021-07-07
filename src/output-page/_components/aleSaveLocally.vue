@@ -45,7 +45,6 @@ export default {
   methods: {
     close: function() {
       this.modalOpen = false; 
-      window.location.reload();
     }
   },
   

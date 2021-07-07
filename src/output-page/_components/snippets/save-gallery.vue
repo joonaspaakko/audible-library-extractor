@@ -24,6 +24,7 @@
             <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
             <font-awesome v-else :icon="['fas', 'download']" />
             <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
+            <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
         </button>
         <div>
           <a class="github-btn" target="_blank" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github"> 
@@ -77,6 +78,8 @@ export default {
         "chunks/grid-view.js",
         "chunks/narrators.css",
         "chunks/narrators.js",
+        "chunks/publishers.css",
+        "chunks/publishers.js",
         "chunks/save-csv.js",
         "chunks/save-gallery.js",
         "chunks/save-locally.css",
@@ -145,18 +148,20 @@ export default {
     let vue = this;
     
     if ( vue.$store.getters.saveStandaloneAfter ) {
-      try {
-        
-        let newConfig = JSON.parse(JSON.stringify( vue.$store.state.extractSettings ));
-        let saveStandaloneAfter = _.find( newConfig.extraSettings, { name: 'saveStandaloneAfter' });
-        saveStandaloneAfter.deactivated = true;
-        
-        this.$store.commit('prop', { key: 'extractSettings', value: newConfig });
-        browser.storage.local.set({config: newConfig }).then(function() {
-          vue.saveButtonClicked();
-        });
-        
-      } catch (e) {} 
+      this.$nextTick(function() {
+        try {
+          
+          let newConfig = JSON.parse(JSON.stringify( vue.$store.state.extractSettings ));
+          let saveStandaloneAfter = _.find( newConfig.extraSettings, { name: 'saveStandaloneAfter' });
+          saveStandaloneAfter.deactivated = true;
+          
+          this.$store.commit('prop', { key: 'extractSettings', value: newConfig });
+          browser.storage.local.set({config: newConfig }).then(function() {
+            vue.saveButtonClicked();
+          });
+          
+        } catch (e) {} 
+      });
     }
     
   },
@@ -173,6 +178,11 @@ export default {
   },
   
   methods: {
+    
+    cancelZipping: function() {
+      this.bundling = false;
+      window.location.reload();
+    },
     
     // Book ASIN is used to identify the correct file later
     divideLargerDatapoints: function( zip, books ) {
@@ -402,3 +412,15 @@ export default {
   
 };
 </script>
+
+<style lang="scss" scoped>
+.cancel-packaging {
+  cursor: pointer;
+  border: 1px dashed rgba(#fff, .4);
+  background: transparent;
+  color: #fff;
+  float: right;
+  padding: 1px 6px;
+  border-radius: 3px;
+}
+</style>

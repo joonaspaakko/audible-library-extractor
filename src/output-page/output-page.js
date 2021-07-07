@@ -143,7 +143,7 @@ let routesPrep = function( libraryData ) {
         path: "/publishers",
         component: aleLibraryView,
         children: [
-          { name: "publishers", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/subPages/alePublishers"), meta: { subPage: true, title: 'Publishers' } },
+          { name: "publishers", path: "", component: () => import( /* webpackChunkName: "publishers" */ "./_components/alePages/subPages/alePublishers"), meta: { subPage: true, title: 'Publishers' } },
           { name: "publisher", path: ":publisher", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Publishers' } }
         ],
       },
@@ -207,7 +207,10 @@ let routesPrep = function( libraryData ) {
       }
     });
     
-    Vue.use(VueRouterBackButton, { router });
+    Vue.use(VueRouterBackButton, { 
+      router,
+      ignoreRoutesWithSameName: true,
+    });
     
     // Tries to load relevant JSON data from a file before each route change on the standalone site
     if ( standalone ) {

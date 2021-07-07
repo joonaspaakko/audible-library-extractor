@@ -1,6 +1,8 @@
 <template>
   <div id="ale-collections" class="box-layout-wrapper" v-if="collections">
     
+    <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
+    
     <div
     class="single-box"
     v-for="(collection, index) in collections"
@@ -42,18 +44,25 @@
 <script>
 import slugify from "@output-mixins/slugify";
 import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import pageTitle from "@output-snippets/page-title.vue";
 
 export default {
   name: "aleCategories",
-  mixins: [slugify, makeCoverUrl],
-  
+  mixins: [slugify, makeCoverUrl],components: { 
+    pageTitle,
+  },
   data: function() {
     return {
       collections: null,
+      pageTitle: null,
+      pageSubTitle: null,
     };
   },
   
   created: function() {
+    
+    this.pageTitle = 'Collections';
+    this.pageSubTitle = null;
     
     const vue = this;
     let collections = [];

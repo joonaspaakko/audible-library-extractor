@@ -1,4 +1,5 @@
 <template>
+<div id="nav-outer-wrapper">
   <div id="ale-navigation" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
     <div class="inner-wrap">
       
@@ -82,24 +83,6 @@
             </div>
           </div>
         </div>
-
-        <!-- <div class="text-button categories-page" v-if="$store.state.library.books">
-          <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-            <div class="icon">
-              <font-awesome fas icon="indent" />
-              <span>Categories</span>
-            </div>
-          </router-link>
-        </div>
-
-        <div class="text-button series-page" v-if="$store.state.library.books">
-          <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
-            <div class="icon">
-              <font-awesome fas icon="list-ol" />
-              <span>Series</span>
-            </div>
-          </router-link>
-        </div> -->
         
         <div class="text-button wishlist-page" v-if="routeExists('wishlist')">
           <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">
@@ -110,40 +93,28 @@
           </router-link>
         </div>
         
-        <div class="text-button close-mobile-menu" v-if="mobileMenuOpen" @click="mobileMenuOpen = false">
-          <div class="icon">
-            <font-awesome :icon="['fas', 'times-circle']" />
-            <span>Close</span>
+        <div class="close-mobile-menu" v-if="mobileMenuOpen" @click="mobileMenuOpen = false">
+          <!-- <div class="icon"> -->
+            <font-awesome :icon="['fas', 'times']" />
+            <!-- <span>Close</span> -->
+          <!-- </div> -->
+        </div>
+        
+        <div class="mobile-menu-extras" v-show="mobileMenuOpen">
+          
+          <light-switch></light-switch>
+          
+          <view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted" />
+          
+          <div class="text-button" v-if="!$store.state.standalone">
+            <ale-save-locally></ale-save-locally>
           </div>
+          
         </div>
         
       </div>
       
-      <div v-if="mobileThreshold" class="burger-menu">
-        <font-awesome 
-        class="brgr-btn" 
-        :icon="['fas', 'bars']" 
-        @click="toggleMobileMenu()"
-        />
-      </div>
-      
-      <div id="mobile-back-btn" v-if="mobileBrowserNavigation()">
-        
-        <router-link
-        v-if="$routerHistory.hasPrevious()"
-        :to="{ path: $routerHistory.previous().path }">
-          <font-awesome fas icon="chevron-left" /> 
-        </router-link>
-        
-        <router-link
-        v-if="$routerHistory.hasForward()"
-        :to="{ path: $routerHistory.next().path }">
-          <font-awesome fas icon="chevron-right" /> 
-        </router-link>
-        
-      </div>
-      
-      <div class="special-icons-wrapper">
+      <div class="special-icons-wrapper" v-if="!mobileThreshold">
         
         <light-switch></light-switch>
         
@@ -168,6 +139,44 @@
       
     </div>
   </div>
+  
+  <!-- 
+    This v-show on the parent and v-if on the child element is to retain 
+    inline styles when the user opens and closes the sample audio player 
+  -->
+  <div id="mobile-menu-floaters" v-show="mobileThreshold">
+    
+    <div v-if="mobileThreshold" class="second-row">
+      
+      <div class="search-btn" @click="startSearching">
+        <font-awesome :icon="['fas', 'search']" />
+      </div>
+      
+      <div class="mobile-back-btns-wrapper">
+        <div class="mobile-back-btns" v-if="mobileBrowserNavigation('hasPrevious')">
+          <router-link :to="{ path: $routerHistory.previous().path }">
+            <font-awesome fas icon="chevron-left" /> 
+          </router-link>
+        </div>
+        
+        <div class="mobile-back-btns" v-if="mobileBrowserNavigation('hasForward')">
+          <router-link :to="{ path: $routerHistory.next().path }">
+            <font-awesome fas icon="chevron-right" /> 
+          </router-link>
+        </div>
+      </div>
+      
+      <div class="burger-menu" @click="toggleMobileMenu()">
+        <font-awesome 
+        class="brgr-btn" 
+        :icon="['fas', 'bars']" 
+        />
+      </div>
+      
+    </div>
+    
+  </div>
+</div>
 </template>
 
 <script>
@@ -230,17 +239,17 @@ export default {
       
       this.mobileMenuOpen = false;
       
-      // if ( this.$route.name === linkName ) {
-      //   this.$root.$emit('refresh-page');
-      // }
+      if ( this.$route.name === linkName ) {
+        this.$root.$emit('refresh-page');
+      }
       
     },
     
-    mobileBrowserNavigation: function() {
-      return (
-        this.$store.state.displayMode &&
-        (this.$routerHistory.hasPrevious() || this.$routerHistory.hasForward())
-      );
+    mobileBrowserNavigation: function( direction ) {
+      if ( this.$store.state.displayMode && direction ) {
+        return this.$routerHistory[ direction ]();
+      }
+
     },
     
     toggleMobileMenu: function() {
@@ -289,6 +298,10 @@ export default {
 
 <style lang="scss">
 @import "~@/_variables.scss";
+
+#nav-outer-wrapper {
+  display: inline-block;
+}
 
 #ale-navigation {
   text-align: center;
@@ -348,16 +361,6 @@ export default {
     align-content: center;
     justify-content: center;
   }
-  
-  &.mobile-nav {
-    .inner-wrap-wrapper > div,
-    .inner-wrap > div {
-      margin-left: 25px !important;
-      &:first-child {
-        margin-left: 0px !important;
-      }
-    }
-  }
 
   .icon {
     cursor: pointer;
@@ -373,6 +376,10 @@ export default {
     justify-content: center;
     // width: 30px;
     // height: 30px;
+  }
+  
+  svg {
+    border-radius: none;
   }
 
   .text-button {
@@ -402,17 +409,6 @@ export default {
     }
   }
   
-  @media ( max-width: 720px ) {
-    .inner-wrap-wrapper > div > a > .icon,
-    .inner-wrap-wrapper > .parent-item > .icon {
-      padding: 0px !important;
-    }
-    .inner-wrap-wrapper > div {
-      padding: 0 4px !important;
-      &:first-child { padding-left: 0 !important; }
-    }
-  }
-  
   &.mobile-nav .inner-wrap-wrapper {
     display: none;
   }
@@ -432,14 +428,19 @@ export default {
     background: rgba(#000, .88);
     > *,
     > .parent-item .sub-menu > * {
-      padding: 3.2% 0px !important;
       font-size: 1.1em !important;
       line-height: 1.0em !important;
     }
-    > .parent-item { 
-      margin: 0 !important;
-      padding: 0 !important; 
-      > .icon { padding: 0 !important; }
+    .text-button {
+      margin: 0;
+      padding: 0;
+    }
+    .parent-item {
+      padding: 0;
+    }
+    a {
+      margin-top: 3px !important;
+      padding: 9px 0px !important;
     }
     padding-bottom: 20px;
     &, a {
@@ -447,33 +448,23 @@ export default {
     }
   }
   
-  .burger-menu {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-items: center;
-    align-content: center;
-    justify-content: center;
-  }
-  
   .close-mobile-menu,
   .brgr-btn {
     cursor: pointer;
   }
   
-  #mobile-back-btn {
-    display: flex;
-    flex-direction: row;
-    padding: 0 5px;
-    border-radius: 9999px;
-    margin-top: 5px;
-    margin-bottom: 5px;
-    @include themify($themes) {
-      border: 1px solid rgba( themed(frontColor), .1);
+  div.close-mobile-menu {
+    position: absolute;
+    z-index: 10;
+    left: 0px;
+    bottom: 0px;
+    padding: 15px !important;
+    margin: 0 !important;
+    svg {
+      font-size:   38px !important;
+      line-height: 38px !important;
     }
-    > a {
-      padding: 7px 10px;
-    }
+    color: rgba( #fff, .6);
   }
   
   .text-button {
@@ -527,6 +518,18 @@ export default {
     }
   }
   
+  
+  @media ( max-width: 720px ) {
+    .inner-wrap-wrapper > div > a > .icon,
+    .inner-wrap-wrapper > .parent-item > .icon {
+      padding: 0px;
+    }
+    .inner-wrap-wrapper > div {
+      padding: 0 4px;
+      &:first-child { padding-left: 0; }
+    }
+  }
+  
 }
 
 .theme-light #ale-navigation,
@@ -539,4 +542,114 @@ export default {
   background: lighten( #121517, 4);
 }
 
+#ale-navigation div.mobile-menu-extras {
+  margin: 0 !important;
+  padding: 0 !important;
+  display: flex;
+  flex-direction: column;
+  position: absolute;
+  z-index: 5;
+  right: 5px;
+  bottom: 5px; 
+  > div {
+    margin: 6px !important;
+    position: relative;
+    &:before {
+      content: '';
+      position: absolute;
+      border-radius: 50%;
+      width: 100%;
+      height: auto;
+      padding-top: 100%;
+      border-radius: 9999999px;
+      // border: 2px solid rgba(#fff, .2);
+      background: rgba(#fff, .1);
+      // box-shadow: 0px 0px 6px rgba(#fff, .15);
+    }
+  }
+  > div > * {
+    padding: 11px !important;
+    z-index: 0;
+  }
+}
+
+.center-contents {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+#mobile-menu-floaters {
+  transition: bottom 200ms ease-in-out;
+  position: fixed;
+  z-index: 200;
+  bottom: 10px;
+  right: 10px;
+  
+  @extend .center-contents;
+  align-items: flex-end;
+  align-content: flex-end;
+  flex-direction: column;
+  &, a {
+    color: #fff !important;
+  }
+  
+  .search-btn {
+    position: absolute;
+    top: -46px;
+    cursor: pointer;
+    @extend .center-contents;
+    border-radius: 999999px;
+    width:  32px;
+    height: 32px;
+    // @include themify($themes) {
+    //   background: rgba( themed(backColor), .25);
+    // }
+    background: rgba( #292929, .90);
+    border: 1px solid rgba( #fff, 1);
+  }
+  
+  .burger-menu {
+    cursor: pointer;
+    position: relative;
+    z-index: 5;
+    @extend .center-contents;
+    width: 60px;
+    height: 60px;
+    @include themify($themes) {
+      background: themed(audibleOrange);
+      border: 2px solid rgba( themed(backColor), .8);
+    }
+    border-radius: 999999px;
+    color: #fff;
+    box-shadow: 0 2px 15px rgba(#000, .5);
+    
+  }
+  .second-row {
+    @extend .center-contents;
+  }
+  
+  .mobile-back-btns-wrapper {
+    @extend .center-contents;
+    position: absolute;
+    z-index: 1;
+    right: 65px;
+    white-space: nowrap;
+  }
+  .mobile-back-btns {
+    @extend .search-btn;
+    position: relative;
+    top: 0;
+    margin: 7px;
+    &, a {
+      @extend .center-contents;
+      width:  32px;
+      height: 32px;
+    }
+  }
+  
+}
 </style>
