@@ -345,7 +345,7 @@ export default {
     &.not-in-library .numbers { opacity: 0.5; }
     
     &.reading {
-      font-style: italic;
+      font-style: normal;
     }
     &.unfinished {
     }

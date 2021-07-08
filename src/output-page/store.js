@@ -43,6 +43,7 @@ export default new Vuex.Store({
     pageTitle: null,
     version: null,
     extractSettings: null,
+    siteOnline: true,
   },
 
   mutations: {

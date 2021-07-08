@@ -58,7 +58,7 @@
           </div>
         </div>
         <div v-else class="cover-img-wrapper">
-          <img class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
+          <img crossorigin="anonymous" class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
         </div>
       </div>
     </div>

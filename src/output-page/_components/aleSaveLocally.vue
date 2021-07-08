@@ -94,7 +94,7 @@ export default {
     display: inline-block !important;
     font-size: 14px;
     line-height: 17px;
-    font-weight: 300;
+    font-weight: 400;
     max-width: 600px;
     background: #454545;
     border-radius: 4px;
@@ -135,7 +135,7 @@ export default {
 
     h2 {
       font-size: 1.4em;
-      font-weight: 200;
+      font-weight: 400;
       margin: 0 0 10px 0;
       display: inline-block;
       width: 100%;

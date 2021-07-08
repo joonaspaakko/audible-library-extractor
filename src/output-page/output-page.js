@@ -671,7 +671,7 @@ function vuexPrep( libraryData ) {
   });
   
   store.commit("prop", { key: "library", value: libraryData, freeze: standalone ? false : true });
-  store.commit("prop", { key: "standalone", value: standalone });
+  store.commit("prop", { key: "standalone", value: !!standalone });
   store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });
   store.commit("prop", { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] });
   store.commit("prop", { key: "extractSettings", value: libraryData.config });

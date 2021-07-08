@@ -14,7 +14,7 @@
           <span class="info-icon"><font-awesome fas icon="chevron-down" class="pointer"/></span>
           <sampleButton :book="book" :index="rowIndex" :size="16"></sampleButton>
           <div class="thumbnail-wrapper">
-            <img v-if="!imageLoading" :src="coverUrl27" alt="">
+            <img crossorigin="anonymous" v-if="!imageLoading" :src="coverUrl27" alt="">
           </div>
         </span>
 

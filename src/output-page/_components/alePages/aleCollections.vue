@@ -21,7 +21,7 @@
           params: { collection: collection.id },
           query: { book: book.asin }
           }">
-            <img :src="makeCoverUrl(book.cover)" alt="" />
+            <img crossorigin="anonymous" :src="makeCoverUrl(book.cover)" alt="" />
           </router-link>
         </div>
       </div>

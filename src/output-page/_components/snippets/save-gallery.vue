@@ -47,12 +47,15 @@
 </template>
 
 <script>
+// import makeCoverUrl from "@output-mixins/makeCoverUrl";
 export default {
   name: "saveGallery",
+  // mixins: [makeCoverUrl],
   data: function() {
     return {
       files: [
         "output-page.js",
+        "output-page.js.LICENSE.txt",
         "output-page.css",
         
         "chunks/487.css",
@@ -104,7 +107,7 @@ export default {
         "favicons/favicon.ico",
         "favicons/mstile-150x150.png",
         "favicons/safari-pinned-tab.svg",
-        "favicons/app.webmanifest"
+        "manifest.json"
       ],
       dataSources: [
         { checked: true, disabled: false, key: 'Library' },
@@ -197,11 +200,13 @@ export default {
           fileData += "window.bookSummaryJSON = " + JSON.stringify(book.summary) + "; \n";
           delete book.summary;
         }
-        if ( fileData !== '' ) zip.file("data/split-book-data/"+ book.asin +"."+ vue.cacheBuster +".js", fileData);
+        if ( fileData !== '' ) {
+          zip.file("data/split-book-data/"+ book.asin +"."+ vue.cacheBuster +".js", fileData);
+        }
       });
     },
     
-    saveButtonClicked: function( callback ) {
+    saveButtonClicked: function() {
       if ( !this.bundling ) {
         
         const vue = this;
@@ -222,6 +227,18 @@ export default {
           extras: libraryData.extras,
         };
         
+        const loadServiceWorker = `
+          if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('service-worker.${vue.cacheBuster}.js')
+            .then(function(registration) {
+              console.log('Registration successful, scope is:', registration.scope);
+            })
+            .catch(function(error) {
+              console.log('Service worker registration failed, error:', error);
+            });
+          }
+        `;
+        
         const indexHTML =
           "<!DOCTYPE html>" +
           '<html lang="en" class="theme-light standalone-gallery">' +
@@ -235,13 +252,14 @@ export default {
             '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +
             '<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">' +
             '<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">' +
-            '<link rel="manifest" href="favicons/app.webmanifest">' +
+            '<link rel="manifest" href="manifest.json">' +
             '<link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">' +
             '<link rel="shortcut icon" href="favicons/favicon.ico">' +
             '<meta name="msapplication-TileColor" content="#222222">' +
             '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
             '<meta name="theme-color" content="#f29a33">' +
             "<title>My Audible Library</title>" +
+            '<script>'+ loadServiceWorker +'<\/script>'+
             '<link id="ale-css" rel="stylesheet" href="output-page.' + vue.cacheBuster + '.css">' +
           "</head>" +
           "<body>" +
@@ -271,15 +289,22 @@ export default {
         
         // Split page data into separate files...
         zip.file("data/temp-data."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
-        if ( libraryData.books       ) zip.file("data/library."+     vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.books) + ";");
-        if ( libraryData.collections ) zip.file("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
-        if ( libraryData.series      ) zip.file("data/series."+      vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");
-        if ( libraryData.wishlist    ) zip.file("data/wishlist."+    vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
         
-        let files = this.files;
+        if ( libraryData.books       ) {
+          zip.file("data/library."+ vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.books) + ";");
+        }
+        if ( libraryData.collections ) {
+          zip.file("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
+        }
+        if ( libraryData.series      ) {
+          zip.file("data/series."+ vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");
+        }
+        if ( libraryData.wishlist    ) {
+          zip.file("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
+        }
         
         // Make sure unnecessary files are excluded
-        _.remove( this.files, function( file ) {
+        _.remove( vue.files, function( file ) {
           return _.includes([
             "chunks/save-csv.js",
             "chunks/save-gallery.js",
@@ -288,8 +313,11 @@ export default {
           ], file);
         });
         
+        // Service worker file
+        zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
+        
         let count = 0;
-        _.each(files, function(url) {
+        _.each(vue.files, function(url) {
           JSZipUtils.getBinaryContent(url, function(err, data) {
             if (err) throw err;
   
@@ -302,7 +330,7 @@ export default {
             zip.file(url, data, { binary: true });
             
             count++;
-            if (count == files.length) {
+            if (count == vue.files.length) {
               zip.generateAsync({ type: "blob", streamFiles: true }, function updateCallback(metadata) {
                 vue.progressWidth = metadata.percent + '%';
               }).then(function(content) {
@@ -310,7 +338,6 @@ export default {
                 setTimeout(function() { 
                   vue.bundling = false; 
                   vue.progressWidth = 0; 
-                  if ( callback ) callback();
                 }, 1000);
               });
             }
@@ -403,6 +430,114 @@ export default {
       
       return data;
       
+    },
+    
+    serviceWorker: function() {
+      
+      let vue = this;
+      
+      return `
+      importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.1.5/workbox-sw.js');
+      
+      workbox.setConfig({
+        debug: false,
+      });
+      
+      const {registerRoute} = workbox.routing;
+      const {
+        NetworkFirst,
+        StaleWhileRevalidate,
+        CacheFirst
+      } = workbox.strategies;
+      const CacheableResponsePlugin = workbox.cacheableResponse.CacheableResponsePlugin;
+      const ExpirationPlugin = workbox.expiration.ExpirationPlugin;
+
+      // Cache page navigations (html) with a Network First strategy
+      registerRoute(
+        // Check to see if the request is a navigation to a new page
+        ({ request }) => request.mode === 'navigate',
+        // Use a Network First caching strategy
+        new NetworkFirst({
+          // Put all cached files in a cache named 'pages'
+          cacheName: 'pages',
+          plugins: [
+            // Ensure that only requests that result in a 200 status are cached
+            new CacheableResponsePlugin({
+              statuses: [200],
+            }),
+          ],
+        }),
+      );
+
+      // Cache CSS, JS, and Web Worker requests with a Stale While Revalidate strategy
+      registerRoute(
+        // Check to see if the request's destination is style for stylesheets, script for JavaScript, or worker for web worker
+        ({ request }) =>
+          request.destination === 'style' ||
+          request.destination === 'script' ||
+          request.destination === 'worker',
+        // Use a Stale While Revalidate caching strategy
+        new StaleWhileRevalidate({
+          // Put all cached files in a cache named 'assets'
+          cacheName: 'assets',
+          plugins: [
+            // Ensure that only requests that result in a 200 status are cached
+            new CacheableResponsePlugin({
+              statuses: [200],
+            }),
+          ],
+        }),
+      );
+
+      // Cache images with a Cache First strategy
+      registerRoute(
+        // Check to see if the request's destination is style for an image
+        ({ url, request }) => 
+          (request.destination === 'image' && url.origin !== 'https://m.media-amazon.com') || 
+          (request.destination === 'image' && url.origin === 'https://m.media-amazon.com' && !url.href.match(/_SL200_/) && !url.href.match(/_SL150_/)),
+        // Use a Cache First caching strategy
+        new CacheFirst({
+          // Put all cached files in a cache named 'images'
+          cacheName: 'images',
+          plugins: [
+            // Ensure that only requests that result in a 200 status are cached
+            new CacheableResponsePlugin({
+              statuses: [200],
+            }),
+            // Don't cache more than 50 items, and expire them after 30 days
+            new ExpirationPlugin({
+              maxEntries: 50,
+              maxAgeSeconds: 60 * 60 * 24 * 30, // 30 Days
+            }),
+          ],
+        }),
+      );
+      
+      // Cache the Google Fonts stylesheets with a stale-while-revalidate strategy.
+      registerRoute(
+        ({url}) => url.origin === 'https://fonts.googleapis.com',
+        new StaleWhileRevalidate({
+          cacheName: 'google-fonts-stylesheets',
+        })
+      );
+
+      // Cache the underlying font files with a cache-first strategy for 1 year.
+      registerRoute(
+        ({url}) => url.origin === 'https://fonts.gstatic.com',
+        new CacheFirst({
+          cacheName: 'google-fonts-webfonts',
+          plugins: [
+            new CacheableResponsePlugin({
+              statuses: [0, 200],
+            }),
+            new ExpirationPlugin({
+              maxAgeSeconds: 60 * 60 * 24 * 365,
+              maxEntries: 30,
+            }),
+          ],
+        })
+      );
+      `;
     },
 
     runCachebuster: function() {

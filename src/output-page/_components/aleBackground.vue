@@ -7,6 +7,7 @@
     :class="{ 'flip-out': book.flipOut }"
     >
       <img
+      crossorigin="anonymous"
       :src="makeCoverUrl(book.cover, 200)"
       alt=""
     />

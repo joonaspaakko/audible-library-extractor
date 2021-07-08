@@ -27,6 +27,7 @@
                   </div>
                 </div>
                 <img 
+                  crossorigin="anonymous"
                   class="cover"
                   v-if="book.cover && $store.state.windowWidth > 688"
                   :src="makeCoverUrl(book.cover)"
@@ -47,14 +48,16 @@
           <book-summary :detailsEl="$el" :book="book" v-if="book.summary || (bookSummaryJSON && bookSummaryJSON !== true)" :bookSummary="bookSummaryJSON"></book-summary>
         </div>
 
-        <carousel v-if="!loading && (peopleAlsoBought && peopleAlsoBought !== true)" :books="peopleAlsoBought" :key="this.maxWidth">
+        <carousel v-if="!loading && (peopleAlsoBought && peopleAlsoBought !== true) && !($store.state.standalone && !$store.state.siteOnline)" :books="peopleAlsoBought" :key="this.maxWidth">
           <!-- People who bought this also bought: -->
+          <!-- Name changed: -->
           Listeners also enjoyed
         </carousel>
-
-        <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis" :key="this.maxWidth">
+        
+        <!-- Twas removed by Audible at some point... -->
+        <!-- <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis" :key="this.maxWidth">
           More listens like this
-        </carousel>
+        </carousel> -->
       </div>
       <!-- .inner-wrap -->
     </div>

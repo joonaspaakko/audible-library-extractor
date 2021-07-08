@@ -50,7 +50,7 @@
             }, 
             query: { book: book.asin, subPageSource: subPageSource.name }
           }">
-            <img :src="makeCoverUrl(book.cover)" alt="" />
+            <img crossorigin="anonymous" :src="makeCoverUrl(book.cover)" alt="" />
           </router-link>
         </div>
       </div>

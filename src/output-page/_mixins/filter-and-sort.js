@@ -153,7 +153,6 @@ export default {
             books = this.sortIsbns(sortOptions);
             break;
           case "missing":
-            console.log('sort by missing', sortOptions);
             books = this.sortMissing(sortOptions);
             break;
         }

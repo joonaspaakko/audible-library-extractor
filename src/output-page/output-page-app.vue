@@ -1,7 +1,7 @@
 <template>
   <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': this.$store.state.windowWidth < 630 }">
-        
-    <ale-background v-if="$store.state.showBackground"></ale-background>
+    
+    <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
     <ale-navigation></ale-navigation>
     
     <router-view v-if="$route.name !== '404'" :key="$route.params+$route.name+$store.state.viewRefresh"></router-view>
@@ -42,6 +42,8 @@ export default {
   
   created: function() {
     
+    let vue = this;
+    
     // var isbn = _.filter(this.$store.state.library.books, 'isbns');
     // console.log( 'books with ISBN:', isbn.length, isbn );
     // console.log( _.filter( this.$store.state.library.books, ['asin', 'B08BX58B3N'] ) )
@@ -50,6 +52,16 @@ export default {
     }
     
     this.$root.$on('refresh-page', this.refreshPage);
+    
+    
+    
+    this.$store.commit('prop', { key: 'siteOnline', value: navigator.onLine });
+    window.addEventListener('offline', function() {
+      vue.$store.commit('prop', { key: 'siteOnline', value: false });
+    });
+    window.addEventListener('online', function() {
+      vue.$store.commit('prop', { key: 'siteOnline', value: true });
+    });
     
   },
 
@@ -172,7 +184,7 @@ html.theme-light {
   background-color: $lightBackColor;
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400;1,500;1,600;1,700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,500;0,700&display=swap");
 
 .is-ios .tippy-popper { display: none !important; }
 
