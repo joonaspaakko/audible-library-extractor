@@ -21,9 +21,9 @@
       </h2>
 
       <router-link v-if="parent.slug" class="books-total" :to="{ name: 'category', params: { parent: parent.slug }, query: { subPageSource: subPageSource.name } }">
-        <div v-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
+        <div v-if="parent.books" v-html="parent.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       </router-link>
-      <div v-else-if="parent.books" v-html="parent.books.length"v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
+      <div v-else-if="parent.books" v-html="parent.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       
       <div class="child-categories" v-if="parent.sub">
         <div v-for="(child, index) in parent.sub" :key="child.name" v-if="child && child.name">
