@@ -240,7 +240,7 @@ export default {
         `;
         
         const useServiceWorker = false;
-        let loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker +'<\/script>' : '';
+        loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker +'<\/script>' : '';
         
         const indexHTML =
           "<!DOCTYPE html>" +

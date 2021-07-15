@@ -43,11 +43,11 @@
             {{ series.books.length }} / {{ series.length }}
           </div>
         </div>
-
+        
         <div
         :data-series-name="series.name" class="numbers-list-item" :class="numbersClass(seriesBook)"
         v-for="(seriesBook, index) in series.books" :key="seriesBook.asin"
-        >
+        > 
           <open-in-app :size="14" :book="seriesBook" :muted="true" />
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
@@ -207,24 +207,24 @@ export default {
     },
 
     numbersClass: function(book) {
-      var progress = book.progress;
+      var progress = book.obj.progress;
       return {
         finished: progress && progress.toLowerCase().match("finished") ? true : false,
         reading: progress && !progress.toLowerCase().match("finished") ? true : false,
-        unfinished: !book.progress,
-        current: this.book.asin === book.asin,
-        'not-in-library': book.notInLibrary,
+        unfinished: !progress,
+        current: this.book.asin === book.obj.asin,
+        'not-in-library': book.obj.notInLibrary,
       };
     },
 
     iconTippyContent: function(book) {
-      if ( book.free && book.notInLibrary ) {
+      if ( book.obj.free && book.obj.notInLibrary ) {
         return 'This book is free...';
       }
-      else if ( book.plus && book.notInLibrary ) {
+      else if ( book.obj.plus && book.obj.notInLibrary ) {
         return 'In the plus catalog...';
       }
-      else if ( book.notInLibrary ) {
+      else if ( book.obj.notInLibrary ) {
         return 'Not in library...';
       }
       else {
@@ -242,13 +242,13 @@ export default {
     },
 
     booksInSeriesIcon: function(book) {
-      if ( book.free && book.notInLibrary ) {
+      if ( book.obj.free && book.obj.notInLibrary ) {
         return 'minus-circle';
       }
-      else if ( book.plus && book.notInLibrary ) {
+      else if ( book.obj.plus && book.obj.notInLibrary ) {
         return 'plus-circle';
       }
-      else if ( book.notInLibrary ) {
+      else if ( book.obj.notInLibrary ) {
         return 'ban';
       }
       else {

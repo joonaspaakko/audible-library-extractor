@@ -227,7 +227,7 @@ export default {
         cursor: pointer;
         flex: 1;
         display: inline-block;
-        color: #fff;
+        color: #fff !important;
         border: none;
         border-radius: 3px;
         padding: 9px 25px;
