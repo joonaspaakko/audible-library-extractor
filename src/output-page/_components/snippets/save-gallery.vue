@@ -227,7 +227,7 @@ export default {
           extras: libraryData.extras,
         };
         
-        const loadServiceWorker = `
+        let loadServiceWorker = `
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.${vue.cacheBuster}.js')
             .then(function(registration) {
@@ -238,6 +238,9 @@ export default {
             });
           }
         `;
+        
+        const useServiceWorker = false;
+        let loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker +'<\/script>' : '';
         
         const indexHTML =
           "<!DOCTYPE html>" +
@@ -259,7 +262,7 @@ export default {
             '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
             '<meta name="theme-color" content="#f29a33">' +
             "<title>My Audible Library</title>" +
-            '<script>'+ loadServiceWorker +'<\/script>'+
+            loadServiceWorker +
             '<link id="ale-css" rel="stylesheet" href="output-page.' + vue.cacheBuster + '.css">' +
           "</head>" +
           "<body>" +
@@ -314,7 +317,9 @@ export default {
         });
         
         // Service worker file
-        zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
+        if ( useServiceWorker ) {
+          zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
+        }
         
         let count = 0;
         _.each(vue.files, function(url) {
