@@ -564,7 +564,26 @@ export default {
                 let rating = parseFloat(book.myRating);
                 return rating >= min && rating <= max;
               }
-            }
+            },
+            tooltipFormatter: function( val ) {
+              switch ( val ) {
+                case 1:
+                  return val+' (Not for me)';
+                  break;
+                case 2:
+                  return val+' (It’s okay)';
+                  break;
+                case 3:
+                  return val+' (Pretty good)';
+                  break;
+                case 4:
+                  return val+' (It’s great)';
+                  break;
+                case 5:
+                  return val+' (I love it)';
+                  break;
+              }
+            },
           },
 
           {

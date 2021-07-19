@@ -105,7 +105,7 @@ export default {
         ],
         filter: [
           
-          { active: true, type: 'filterExtras', label: 'Number of books', key: 'books', range: [1, (function() {
+          { active: false, type: 'filterExtras', label: 'Number of books', key: 'books', range: [1, (function() {
             let publishers = _.get(vue.$store.state, vue.collectionSource);
             let max = _.maxBy( publishers, function( publisher ){ 
               if (publisher.books) return publisher.books.length;

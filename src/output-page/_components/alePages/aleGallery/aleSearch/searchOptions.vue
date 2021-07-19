@@ -71,7 +71,8 @@ export default {
     // Reposition options list
     this.repositionSearchOptions();
     // Start listening for an outside click...
-    if (this.listName) document.addEventListener("mousedown", this.outsideClick);
+    if (this.listName) document.addEventListener("click", this.outsideClick);
+    if (this.listName) document.addEventListener("touchend", this.outsideClick);
     this.$root.$on("repositionSearchOpts", this.repositionSearchOptions);
     this.$root.$on("afterWindowResize", this.repositionSearchOptions);
 
@@ -80,7 +81,8 @@ export default {
   beforeDestroy: function() {
     
     // Start listening for an outside click...
-    if (this.listName) document.addEventListener("mousedown", this.outsideClick);
+    document.removeEventListener("click", this.outsideClick);
+    document.removeEventListener("touchend", this.outsideClick);
     this.$root.$off("repositionSearchOpts", this.repositionSearchOptions);
     this.$root.$off("afterWindowResize", this.repositionSearchOptions);
     
@@ -101,10 +103,10 @@ export default {
     
     outsideClick: function(e) {
       const vue = this;
-      if (vue.listName) {
+      if ( vue.listName && !this.$store.state.searchOptCloseGuard ) {
         var options = e.target.closest(".search-options-inner-wrap");
         var optionsBtn = e.target.closest(".search-opt-btn");
-        if (!options && !optionsBtn) {
+        if (!(options || optionsBtn) ) {
           vue.$emit("update:listName", false);
         }
       }
@@ -239,7 +241,7 @@ export default {
     border-radius: 999999px;
     display: inline-block;
     font-size: .80em;
-    font-weight: 500;
+    font-weight: 700;
     @include themify($themes) {
       // color: themed(backColor);
       background: rgba( lighten(themed(frontColor), 10), .6);
@@ -284,9 +286,6 @@ export default {
           color: themed(audibleOrange);
         }
       }
-    }
-    input {
-      display: none;
     }
     .checkbox,
     .sortbox {
@@ -381,7 +380,7 @@ export default {
     padding: 14px;
     position: sticky;
     top: 40px;
-    z-index: 10;
+    z-index: 150;
     margin-bottom: 10px;
   }
   .vue-slider-dot-handle:after {

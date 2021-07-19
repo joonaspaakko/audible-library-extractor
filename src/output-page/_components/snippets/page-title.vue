@@ -51,7 +51,7 @@ export default {
 .gallery-title {
   font-size: 23px;
   line-height: 24px;
-  font-weight: bold;
+  font-weight: 700;
   margin: 0px;
   @include themify($themes) {
     color: themed(frontColor);

@@ -455,7 +455,7 @@ div.hidden-section {
 
 .series-heading {
   display: block;
-  font-weight: bold;
+  font-weight: 700;
   display: flex;
   flex-direction: row;
   justify-content: space-between;

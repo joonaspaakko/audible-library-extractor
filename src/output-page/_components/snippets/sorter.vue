@@ -7,7 +7,8 @@
       delay: 150,
       maxWidth: 350, 
       placement: (tippyTop ? 'top' : 'left'), 
-      flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']) 
+      flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']),
+      distance: listName ? 20 : 10,
     }" 
     :content="item.tippy ? item.tippy : false"
     >
@@ -69,23 +70,31 @@
         :min-range="item.rangeMinDist || 0" 
         :enable-cross="false" 
         @change="rangeChanged" 
-        :tooltip-formatter="tooltipFormatter" 
+        :tooltip-formatter="item.tooltipFormatter || tooltipFormatter" 
         tooltip-placement="top" 
-        tooltip="focus"
+        tooltip="active"
+        :use-keyboard="false"
+        @drag-start="$store.commit('prop', { key: 'searchOptCloseGuard', value: true })"
+        @drag-end="$store.commit('prop', { key: 'searchOptCloseGuard', value: false })"
         ></vue-slider>
         <span style="cursor: e-resize;" @click="adjustRange('right')">{{ rangeVal[1] }}{{ item.rangeSuffix }}</span>
       </div>
       
       <div v-if="!!item.dropdownOpts">
         <Multiselect
-        :searchable="true" 
+        ref="multiselect"
         :value="item.value" 
-        :clearOnSelect="false"
         placeholder="Search..."
         @change="dropdownChanged" 
-        @click.native="dropdownOpened"
+        @open="dropdownOpened"
         :options="dropdownOptions" 
         mode="tags" 
+        :hideSelected="true"
+        :clearOnSelect="false"
+        :closeOnSelect="false"
+        :multiple="true"
+        :taggable="true"
+        :searchable="true" 
         />
       </div>
 
@@ -227,28 +236,7 @@ export default {
   methods: {
     
     tooltipFormatter: function( val ) {
-      if ( this.item.key === 'myrating' ) {
-        switch ( val ) {
-          case 1:
-            return val+' - Not for me';
-            break;
-          case 2:
-            return val+' - It’s okay';
-            break;
-          case 3:
-            return val+' - Pretty good';
-            break;
-          case 4:
-            return val+' - It’s great';
-            break;
-          case 5:
-            return val+' - I love it';
-            break;
-        }
-      }
-      else {
-        return val+this.item.rangeSuffix;
-      }
+      return val+this.item.rangeSuffix;
     },
     
     dropdownChanged: function( value ) {
@@ -268,10 +256,8 @@ export default {
     
     dropdownOpened: function( e ) {
       
-      if ( !this.dropdownOptions && !!this.item.dropdownOpts ) this.dropdownOptions = this.item.dropdownOpts();
-      
-      let searchInput = e.currentTarget.querySelector('.multiselect-search input');
-      searchInput.focus();
+      const createDropdownDataOnFirstOpen = !this.dropdownOptions && !!this.item.dropdownOpts;
+      if ( createDropdownDataOnFirstOpen ) this.dropdownOptions = this.item.dropdownOpts();
       
     },
     
@@ -380,13 +366,19 @@ export default {
   @import "~@/_variables.scss";
   .multiselect {
     max-width: 300px;
+    outline: none !important;
+    box-shadow: none !important;
+    min-height: 32px !important;
   }
-  .multiselect-tag, .multiselect > * {
+  .multiselect-tag, .multiselect > *,
+  .multiselect-option {
     font-size: 12px;
     line-height: 15px;
   }
   .multiselect-tags {
-    padding-right: 20px;
+    overflow: hidden;
+    // margin-top: 0 !important;
+    padding-right: 5px;
     padding-left: 5px;
     > *, 
     > * > * {
@@ -400,17 +392,20 @@ export default {
     padding-right: 0;
   }
   .multiselect-tag {
-    padding-top: 3px;
-    padding-bottom: 3px;
-    font-size: 12px;
-    font-weight: 500;
-    line-height: 14px;
+    padding-top: 1px;
+    padding-bottom: 1px;
+    font-weight: 700;
+    line-height: 15px;
     white-space: normal;
     @include themify($themes) {
       background: themed(audibleOrange);
       // background: rgba( themed(frontColor), .3);
     }
     // background: #3e3e3e !important;
+  }
+  .multiselect-tag-remove-icon {
+    width: 11px;
+    height: 11px;
   }
   .multiselect-option {
     width: 100%;
@@ -419,28 +414,50 @@ export default {
     display: inline-block;
     padding-top: 0;
     padding-bottom: 0;
+    padding-left: 5px !important;
     min-height: 25px;
     line-height: 25px;
+    color: #252525;
   }
   .multiselect-clear {
-    width: 20px;
-    height: 20px;
     background: transparent;
-    &:after, 
-    &:before {
-      top: 5px;
-      left: 10px;
+    padding-right: 0;
+    margin-right: 7px;
+    &, & > span {
+      width: 12px;
+      height: 12px;
     }
   }
   .multiselect-tag i:before {
     color: #fff;
   }
-  .multiselect-search input { font-size: 12px !important; display: inline-block !important; background: transparent !important; }
+  .multiselect.is-open .multiselect-tags-search {
+    // display: inline-block !important;
+  }
+  .multiselect-tags-search {
+    font-size: 12px !important; 
+    background: transparent !important; 
+    margin-bottom: 4px !important;
+    align-self: stretch;
+    border: none !important;
+    padding: 2px !important;
+  }
+  .multiselect-placeholder {
+    padding-left: 13px;
+  }
+  
   .theme-dark {
-    .multiselect-input {
-      border-color: rgba( $darkFrontColor, .3);
+    .multiselect {
+      background: rgba( $darkBackColor, .15) !important;
+      border-color: rgba( $darkFrontColor, .15);
     }
-    .multiselect-search input { color: $darkFrontColor !important; }
+    .multiselect-tags-search { color: $darkFrontColor !important; }
+    .multiselect-caret {
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z'/%3E%3C/svg%3E");
+    }
+    .multiselect-clear-icon {
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'/%3E%3C/svg%3E");
+    }
   }
 </style>
 
@@ -491,7 +508,8 @@ export default {
       }
     }
   }
-  input {
+  input[type="checkbox"],
+  input[type="radio"] {
     display: none;
   }
   .radiobutton,

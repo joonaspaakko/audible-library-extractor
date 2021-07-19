@@ -6,8 +6,8 @@
   >
     <font-awesome @click="modalOpen = true" fas icon="save" style="cursor: pointer;" />
     
-    <div id="save-locally-overlay" v-if="modalOpen">
-      <div class="outer-wrap">
+    <div id="save-locally-overlay" v-if="modalOpen" ref="modalGrandpa" @click="closeOverlay">
+      <div class="outer-wrap" ref="modalPapa">
         <div class="inner-wrap">
           
           <save-gallery></save-gallery>
@@ -45,6 +45,11 @@ export default {
   methods: {
     close: function() {
       this.modalOpen = false; 
+    },
+    closeOverlay: function( e ) {
+      if ( e.target === this.$refs.modalGrandpa || e.target === this.$refs.modalPapa ) {
+        this.modalOpen = false; 
+      }
     }
   },
   

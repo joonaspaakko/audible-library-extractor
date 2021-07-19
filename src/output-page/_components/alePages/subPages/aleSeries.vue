@@ -138,45 +138,7 @@ export default {
             excludeFromWishlist: true,
             active: false,
             type: 'filterExtras',
-            label: 'Incomplete',
-            key: 'series-incomplete',
-            tippy: `Series where you don't have all the books`,
-            condition: function (series) {
-              return series.allBooks.length > series.books.length;
-            }
-          },
-          {
-            excludeFromWishlist: true,
-            active: false,
-            type: 'filterExtras',
-            label: 'Missing latest',
-            key: 'missing-latest',
-            tippy: `Series where you are missing the latest book`,
-            condition: function (series) {
-              return series.missingLatest && series.allBooks.length > series.books.length;
-            }
-          },
-          {
-            excludeFromWishlist: true,
-            active: true,
-            type: 'filterExtras',
-            label: 'Rating (min)',
-            tippy: 'Based on the book you rated lowest in the series',
-            key: 'min-rating',
-            condition: function (series) {
-              return (series.minRating || 0) >= this.range[0];
-            },
-            range: [0, 5],
-            rangeMin: () => 1,
-            rangeMax: () => 5,
-            rangeMinDist: 0,
-            rangeSuffix: ''
-          },
-          {
-            excludeFromWishlist: true,
-            active: true,
-            type: 'filterExtras',
-            label: 'Books in series',
+            label: 'Number of books',
             key: 'inSeries',
             range: [1, (function () {
               let series = _.get(vue.$store.state, vue.collectionSource);
@@ -203,6 +165,75 @@ export default {
                 let max = this.range[1];
                 return series.books.length >= min && series.books.length <= max;
               }
+            }
+          },
+          {
+            type: 'divider',
+            key: 'divider1.0'
+          },
+          {
+            excludeFromWishlist: true,
+            active: false,
+            type: 'filterExtras',
+            label: 'Rating (min)',
+            tippy: 'Based on the book you rated lowest in the series',
+            key: 'min-rating',
+            condition: function (series) {
+              return (series.minRating || 0) >= this.range[0];
+            },
+            range: true,
+            rangeMin: () => 1,
+            rangeMax: () => 5,
+            rangeMinDist: 0,
+            rangeSuffix: '',
+            tooltipFormatter: function( val ) {
+              switch ( val ) {
+                case 1:
+                  return val+' (Not for me)';
+                  break;
+                case 2:
+                  return val+' (It’s okay)';
+                  break;
+                case 3:
+                  return val+' (Pretty good)';
+                  break;
+                case 4:
+                  return val+' (It’s great)';
+                  break;
+                case 5:
+                  return val+' (I love it)';
+                  break;
+              }
+            },
+          },
+          {
+            type: 'divider',
+            key: 'divider1.1'
+          },
+          {
+            excludeFromWishlist: true,
+            active: false,
+            type: 'filterExtras',
+            label: 'Incomplete',
+            key: 'series-incomplete',
+            tippy: `Series where you don't have all the books`,
+            condition: function (series) {
+              return series.allBooks.length > series.books.length;
+            }
+          },
+          {
+            type: 'divider',
+            key: 'divider1.2'
+          },
+          {
+            excludeFromWishlist: true,
+            active: false,
+            type: 'filterExtras',
+            label: 'Missing latest',
+            key: 'missing-latest',
+            tippy: `Series where you are missing the latest book`,
+            condition: function (series) {
+              return series.missingLatest && series.allBooks.length > series.books.length;
             }
           },
         ],

@@ -280,7 +280,7 @@ export default {
     
     .title {
       margin-top: auto;
-      font-weight: bold;
+      font-weight: 700;
       opacity: .7;
       text-overflow: ellipsis;
       max-height: 70%;

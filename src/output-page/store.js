@@ -44,6 +44,7 @@ export default new Vuex.Store({
     version: null,
     extractSettings: null,
     siteOnline: true,
+    searchOptCloseGuard: false,
   },
 
   mutations: {
