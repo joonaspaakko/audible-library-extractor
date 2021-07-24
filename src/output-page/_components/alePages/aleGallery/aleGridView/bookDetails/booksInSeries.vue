@@ -143,8 +143,6 @@ export default {
               vue.showAllToggle = true;
             }
             
-            let prevBook = {};
-            
             series.push({
               asin: currentSeries.asin,
               name: currentSeries.name,
@@ -156,28 +154,19 @@ export default {
                 if ( inLibrary ) {
                   let libBook = _.find(vue.$store.state.library.books, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
-                  let inLibBookNumbers = book.bookNumbers || _.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(',') : libSeries.bookNumbers;
+                  let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(',') : libSeries.bookNumbers) : book.bookNumbers;
                   let newLibBook = {
-                    asin: book.asin || libBook.asin,
+                    asin: book.asin || libBook.asin,
                     bookNumbers: inLibBookNumbers,
-                    title: book.title || libBook.titleShort,
+                    title: book.title || libBook.title,
+                    titleShort: book.titleShort || libBook.titleShort,
                     obj: libBook,
                   };
-                  if ( libBook.title ) newLibBook.titleLong = libBook.title;
-                  if ( inLibBookNumbers ) prevBook = newLibBook;
-                  // else if ( prevBook.title === newLibBook.title ) {
-                  //   newLibBook.bookNumbers = prevBook.bookNumbers;
-                  // }
-                  else { newLibBook.bookNumbers = '∞'; }
                   return newLibBook;
                 }
                 else {
                   book.notInLibrary = true;
-                  if ( book.bookNumbers ) prevBook = book;
-                  // else if ( prevBook.title === book.title ) {
-                  //   book.bookNumbers = prevBook.bookNumbers;
-                  // }
-                  else { book.bookNumbers = '∞'; }
+                  book.obj = {};
                   return book;
                 }
               })
@@ -207,24 +196,24 @@ export default {
     },
 
     numbersClass: function(book) {
-      var progress = book.obj.progress;
+      var progress = _.get(book, 'obj.progress');
       return {
         finished: progress && progress.toLowerCase().match("finished") ? true : false,
         reading: progress && !progress.toLowerCase().match("finished") ? true : false,
         unfinished: !progress,
-        current: this.book.asin === book.obj.asin,
-        'not-in-library': book.obj.notInLibrary,
+        current: this.book.asin === _.get(book, 'obj.asin'),
+        'not-in-library': book.notInLibrary,
       };
     },
 
     iconTippyContent: function(book) {
-      if ( book.obj.free && book.obj.notInLibrary ) {
+      if ( book.free && book.notInLibrary ) {
         return 'This book is free...';
       }
-      else if ( book.obj.plus && book.obj.notInLibrary ) {
+      else if ( book.plus && book.notInLibrary ) {
         return 'In the plus catalog...';
       }
-      else if ( book.obj.notInLibrary ) {
+      else if ( book.notInLibrary ) {
         return 'Not in library...';
       }
       else {
@@ -242,13 +231,13 @@ export default {
     },
 
     booksInSeriesIcon: function(book) {
-      if ( book.obj.free && book.obj.notInLibrary ) {
+      if ( book.free && book.notInLibrary ) {
         return 'minus-circle';
       }
-      else if ( book.obj.plus && book.obj.notInLibrary ) {
+      else if ( book.plus && book.notInLibrary ) {
         return 'plus-circle';
       }
-      else if ( book.obj.notInLibrary ) {
+      else if ( book.notInLibrary ) {
         return 'ban';
       }
       else {

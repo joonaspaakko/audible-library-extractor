@@ -146,7 +146,9 @@ export default {
             books = this.sortName(sortOptions);
             break;
           case "amount":
+          case "amountTotal":
             books = this.sortAmount(sortOptions);
+            break;
             break;
           case "isbn10":
           case "isbn13":

@@ -1,10 +1,12 @@
+import { _ } from "core-js";
+
 export default {
   methods: {
     getDataFromSeriesPages: function(hotpotato, seriesFetched) {
       
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "library" }) || hotpotato.config.seriesTest ) {
         
         let booksInSeries = hotpotato.config.partialScan ? _.filter(hotpotato.books, 'isNewThisRound') : hotpotato.books;
 
@@ -12,7 +14,7 @@ export default {
           
           booksInSeries = _.filter(booksInSeries, "series");
           let requests = [];
-
+          
           _.each(booksInSeries, function(book) {
             _.each(book.series, function(series) {
               requests.push({
@@ -26,7 +28,7 @@ export default {
           });
 
           requests = _.uniqBy(requests, "asin");
-
+          
           this.$root.$emit("update-progress", {
             text: "Preparing books in series...",
             step: 0,
@@ -92,8 +94,56 @@ export default {
         seriesFetched(null, hotpotato);
         
       }
-    }
-  }
+    },
+    
+    fetchMissingNumbers: function( missingNumbers, series, parentStepCallback ) {
+      
+      let vue = this;
+      vue.amapxios({
+        requests: _.map( missingNumbers, function( book ) { 
+          return { 
+            requestUrl: window.location.origin +'/pd/'+ book.asin, 
+            seriesAsin: series.asin,
+            bookAsin: book.asin,
+          };
+        }),
+        step: function(response, stepCallback, request) {
+          
+          let seriesBook = {};
+          
+          if (response.status < 400) {
+            let html = $($.parseHTML(response.data));
+            let audible = html.find("div.adbl-main")[0];
+            html = null;
+            let bookSeries = vue.getSeries(audible.querySelector(".seriesLabel"));
+            bookSeries = _.find(bookSeries, { asin: request.seriesAsin });
+            if ( bookSeries && bookSeries.bookNumbers ) {
+              seriesBook = {    
+                asin: request.bookAsin, 
+                bookNumbers: bookSeries.bookNumbers.join(',') 
+              };
+            }
+          }
+          
+          stepCallback(seriesBook);
+          
+        },
+        flatten: true,
+        done: function( newBooks ) {
+          
+          _.each( newBooks, function( newBook ) {
+            let targetBook = _.find( series.allBooks, { asin: newBook.asin });
+            if ( targetBook ) {
+              targetBook.bookNumbers = newBook.bookNumbers;
+            }
+          });
+          
+          parentStepCallback(series);
+        }
+      });
+      
+    },
+  },
 };
 
 function getBooks(vue, hotpotato, request, parentStepCallback) {
@@ -121,12 +171,30 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
         length: bookRows.length
       };
       
+      let prevBook = {};
       
       $(bookRows).each(function() {
         
         let inLibrary;
         const asinEl = this.querySelector("div[data-asin]");
-        let title = DOMPurify.sanitize(this.getAttribute('aria-label'));
+        let titleShort = DOMPurify.sanitize(this.getAttribute('aria-label'));
+        
+        let title;
+        let subtitle = this.querySelector('.subtitle');
+        if ( subtitle ) {
+          subtitle = DOMPurify.sanitize( subtitle.textContent.trimAll() );
+          title = titleShort + ': ' + subtitle;
+        }
+        // If book has no subtitle, the only existing title must be the long title...
+        else {
+          title = titleShort;
+          titleShort = false;
+        }
+        
+        if ( title === titleShort ) {
+          titleShort = false;
+        }
+        
         if ( asinEl ) {
           const asin = asinEl.getAttribute("data-asin");
           if ( this.querySelector(".adblBuyBoxInLibraryButton") ) {
@@ -134,14 +202,22 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
           }
           
         }
-        // Sometimes books may leave the store or be blocked for whatever reason and when a book 
-        // is not available, you can't tell if it's in your library by lookin at the series page (like I'm doing above). 
-        // What I ended up doing was checking the title against the short title in hotpotato.books array.
-        // There doesn't seem to be another way, since the asin is no longer there and the cover art id does not match
-        // The book in question: https://www.audible.com/pd/Alien-Out-of-the-Shadows-Audiobook/B01CYVJUBC
+        // Sometimes books may leave the store or it is blocked in your region or something. 
+        // This makes it so the book you have doesn't match a book in the series page.
+        // So what I'm doing is matching the title to a title in the library so it is then 
+        // possible to push the book asin in the series collection at the right location.
         else {
           
-          inLibrary = _.find( hotpotato.books, { 'titleShort': title });
+          if ( title ) {
+            inLibrary = _.find( hotpotato.books, { 'title': title });
+          }
+          
+          // TitleShort Fallback...
+          // Title short is not as accurate for matching purposes, but it's better than nothing...
+          if ( !inLibrary ) {
+            inLibrary = _.find( hotpotato.books, { 'titleShort': titleShort });
+          }
+          
           if ( inLibrary ) series.books.push( inLibrary.asin );
           
         }
@@ -149,10 +225,25 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
         let aBook = {};
         
         if ( title ) aBook.title = title;
+        if ( titleShort ) aBook.titleShort = titleShort;
         let numbers = this.querySelector(':scope > div:nth-child(1) > div > h2');
         if ( numbers ) aBook.bookNumbers = DOMPurify.sanitize( numbers.textContent.trimAll().replace(/[^\d]*/, '').split(',')[0] );
         if ( asinEl ) aBook.asin = DOMPurify.sanitize( asinEl.getAttribute("data-asin") );
         else if ( inLibrary ) aBook.asin = inLibrary.asin;
+        
+        if ( !inLibrary && !this.querySelector('.adblBuyBoxInLibraryButton') ) {
+          aBook.notInLibrary = true;
+        }
+        
+        // Try to get book number from the title if that fails, 
+        // mark it as numberless with the infinity symbol...
+        if ( !aBook.bookNumbers ) {
+          let findBookNumber = aBook.title.match(/(?:, Book.)(.+)/);
+          if ( aBook.title && findBookNumber ) {
+            aBook.bookNumbers = findBookNumber[1];
+          }
+          else { aBook.bookNumbers = '∞'; }
+        }
         
         if ( this.querySelector('[name="discovery-add-to-library-form"]') ) aBook.plus = true;
         // if ( title.match(/^FREE:/) ) aBook.free = true;
@@ -171,7 +262,15 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
         text: "Fetching series order for books in series..."
       });
       
-      stepCallback(series);
+      
+      // Final attempt at finding missing numbers by checking series pages:
+      let missingNumbers = _.filter( series.allBooks, { bookNumbers: '∞' });
+      if ( missingNumbers ) {
+        vue.fetchMissingNumbers( missingNumbers, series, stepCallback );
+      }
+      else {
+        stepCallback(series);
+      }
       
     },
     flatten: true,
@@ -181,3 +280,4 @@ function getBooks(vue, hotpotato, request, parentStepCallback) {
     }
   });
 }
+

@@ -131,6 +131,7 @@ export default {
     });
 
     // vue.init_storePageTest();
+    vue.init_seriesPageTest();
     
   },
   
@@ -274,7 +275,27 @@ export default {
           result
         );
       });
-    }
+    },
+    
+    init_seriesPageTest: function() {
+      const vue = this;
+      
+      const hotpotato = {
+        config: { seriesTest: true },
+        books: [
+          { series: [{asin: 'B005NB2IG0'}] },
+          { series: [{asin: 'B077XNSN35'}] },
+        ]
+      };
+      
+      vue.getDataFromSeriesPages(hotpotato, function(nullBoy, result) {
+        console.log(
+          "%c" + "Series page test" + "",
+          "background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;",
+          result.series
+        );
+      });
+    },
   }
 };
 </script>

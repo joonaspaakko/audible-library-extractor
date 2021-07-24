@@ -4,10 +4,16 @@ export default {
       return _.orderBy(
         params.books,
         function(o) {
-          if ( o.books ) return o.books.length;
+          // console.log( params.sortKey )
+          if ( params.sortKey === 'amountTotal' ) {
+            if ( o.allBooks ) return o.allBooks.length;
+          }
+          else {
+            if ( o.books ) return o.books.length
+          }
         },
         params.direction
       );
-    }
+    },
   }
 };

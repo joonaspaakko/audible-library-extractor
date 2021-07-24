@@ -54,26 +54,28 @@ export default {
       let seriesCollection = [];
       let addedCounter = 1;
       let librarySeries = this.$store.state.library.series;
-
+      
       // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
-      _.eachRight(vue.subPageSource.collection, function (book) {
-
+      _.eachRight( vue.subPageSource.collection, function (book) {
         if (book.series) {
-
           _.each(book.series, function (series) {
             
             const seriesAdded = _.find(seriesCollection, {asin: series.asin});
             const thisSeriesFromLibrary = !!librarySeries ?_.find(librarySeries, { asin: series.asin }) : false;
             
             let myBooks, maxSeriesBookNumber, myMaxBookNumber;
-            if ( vue.subPageSource.library ) {
-              myBooks = thisSeriesFromLibrary.allBooks.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
-              maxSeriesBookNumber = _.max(thisSeriesFromLibrary.allBooks.map(b => _.toNumber(b.bookNumbers)));
-              myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
-            }
-
+            
             // Series not in the collection so add it with the book...
             if (!seriesAdded) {
+              
+              thisSeriesFromLibrary.allBooks = vue.removeDuplicates( thisSeriesFromLibrary.allBooks );
+              
+              if ( vue.subPageSource.library ) {
+                myBooks = thisSeriesFromLibrary.allBooks.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
+                maxSeriesBookNumber = _.max(thisSeriesFromLibrary.allBooks.map(b => _.toNumber(b.bookNumbers)));
+                myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
+              }
+              
               const newSeries = {
                 name: series.name,
                 asin: series.asin,
@@ -86,7 +88,7 @@ export default {
                 
                 ++addedCounter;
                 newSeries.minRating = _.toNumber(book.myRating),
-                newSeries.allBooks = thisSeriesFromLibrary.allBooks,
+                newSeries.allBooks = thisSeriesFromLibrary.allBooks;
                 newSeries.missingLatest = myMaxBookNumber !== maxSeriesBookNumber,
                 seriesCollection.push(newSeries);
                 
@@ -109,16 +111,15 @@ export default {
                 seriesAdded.allBooks = thisSeriesFromLibrary.allBooks;
                 seriesAdded.missingLatest = myMaxBookNumber !== maxSeriesBookNumber;
               }
-
-              return false;
-            }
+              // return false;
+            } 
+            
           });
         }
-
       });
 
       _.reverse(seriesCollection);
-
+      
       this.$store.commit("prop", {key: "pageCollection", value: seriesCollection});
       this.updateListRenderingOptions();
 
@@ -260,9 +261,15 @@ export default {
             active: false,
             current: false,
             key: 'amount',
-            label: 'Number of books',
+            label: 'Number of owned books',
             type: 'sort',
-            tippy: 'Sort by the total number of books in the series'
+          },
+          {
+            active: false,
+            current: false,
+            key: 'amountTotal',
+            label: 'Total number of books in the series',
+            type: 'sort',
           },
           {
             excludeFromWishlist: true,
@@ -283,8 +290,80 @@ export default {
 
       this.$setListRenderingOpts(list);
 
-    }
+    },
+    
+    // Basically drops out all other versions of books you already own (tries to anyways)
+    removeDuplicates: function( books ) {
+      
+      let dollybooks = _.clone(books);
+      // const inLibrary = _.filter( dollybooks, function( book ) { return !book.notInLibrary;  });
+      // const notInLibrary = _.filter( dollybooks, function( book ) { return book.notInLibrary;  });
+      
+      var n = 0;
+      _.each( dollybooks, function( book ) { book.order = ++n; });
+      
+      dollybooks = _.groupBy(dollybooks, 'bookNumbers');
+
+      _.each( dollybooks, function( chunk, i ) {
+
+        if ( chunk.length === 1 ) {
+          dollybooks[i] = [chunk[0]];
+        }
+        else {
+          var inLibrary = _.filter( chunk, function( o ) { return !o.notInLibrary });
+          if ( inLibrary.length > 0 ) {
+            dollybooks[i] = inLibrary;
+          }
+          else {
+            dollybooks[i] = [chunk[0]];
+          }
+        }
+
+      });
+
+      dollybooks = _.map( dollybooks, function( o ) { return o; });
+      dollybooks = _.flatten(dollybooks);
+      dollybooks = _.orderBy(dollybooks, 'order', 'asc');
+      
+      return dollybooks;
+      
+    },
+    
+    // sliceNumbers: function( book ) {
+      
+    //   let numbers = book.bookNumbers.split(',');
+    //   return _.map( numbers, function( number ) {
+        
+    //     const isRange = number.match('-');
+    //     if (isRange) {
+    //       const range = number.split('-');
+    //       return _.range(range[0], ++range[1]);
+    //     }
+    //     else {
+    //       return number;
+    //     }
+
+    //   });
+      
+    // },
+    
+    // individualNumbersMatch: function( book, dBook ) {
+      
+    //   let numbersSplit = this.sliceNumbers( book );
+    //   let dNumbersSplit = this.sliceNumbers( dBook );
+      
+    //   let ping = false;
+    //   _.each( numbersSplit, function( number ) {
+    //     if ( _.includes( dNumbersSplit, number ) ) {
+    //       ping = true; 
+    //       return false;
+    //     }
+    //   });
+    //   return ping;
+      
+    // },
   },
+  
 };
 </script>
 
