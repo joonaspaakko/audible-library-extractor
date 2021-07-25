@@ -58,9 +58,9 @@ export default {
         "output-page.js.LICENSE.txt",
         "output-page.css",
         
-        "chunks/487.css",
-        "chunks/487.js",
-        "chunks/487.js.LICENSE.txt",
+        "chunks/429.css",
+        "chunks/429.js",
+        "chunks/429.js.LICENSE.txt",
         "chunks/564.js",
         "chunks/564.js.LICENSE.txt",
         "chunks/audio-player.css",
@@ -84,6 +84,7 @@ export default {
         "chunks/publishers.css",
         "chunks/publishers.js",
         "chunks/save-csv.js",
+        "chunks/save-gallery.css",
         "chunks/save-gallery.js",
         "chunks/save-locally.css",
         "chunks/save-locally.js",
@@ -183,7 +184,6 @@ export default {
   methods: {
     
     cancelZipping: function() {
-      this.bundling = false;
       window.location.reload();
     },
     
@@ -211,6 +211,8 @@ export default {
         
         const vue = this;
         vue.bundling = true;
+        vue.$store.commit("prop", { key: 'bundlingGallery', value: true });
+        
         vue.cacheBuster = this.runCachebuster();
         vue.zip = new JSZip();
         const zip = vue.zip;
@@ -311,6 +313,7 @@ export default {
           return _.includes([
             "chunks/save-csv.js",
             "chunks/save-gallery.js",
+            "chunks/save-gallery.css",
             "chunks/save-locally.css",
             "chunks/save-locally.js",
           ], file);

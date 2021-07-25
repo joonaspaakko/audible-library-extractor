@@ -5,6 +5,9 @@
       
       <div class="inner-wrap-wrapper">
         
+        <!-- Makes the empty area above mobile menu clickable and it closes the menu -->
+        <div class="close-area" style="flex: 1; margin-bottom: 30px;" v-if="mobileMenuOpen" @click="mobileMenuOpen = false"></div>
+        
         <div class="text-button gallery-page" v-if="routeExists('gallery')">
           <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
@@ -144,7 +147,7 @@
     This v-show on the parent and v-if on the child element is to retain 
     inline styles when the user opens and closes the sample audio player 
   -->
-  <div id="mobile-menu-floaters" v-show="mobileThreshold">
+  <div id="mobile-menu-floaters" v-show="mobileThreshold && !mobileMenuOpen">
     
     <div v-if="mobileThreshold" class="second-row">
       
@@ -426,6 +429,7 @@ export default {
     left: 0;
     z-index: 9999999999999;
     background: rgba(#000, .88);
+    padding-bottom: 55px;
     > *,
     > .parent-item .sub-menu > * {
       font-size: 1.1em !important;
@@ -442,7 +446,6 @@ export default {
       margin-top: 3px !important;
       padding: 9px 0px !important;
     }
-    padding-bottom: 20px;
     &, a {
       color: rgba(#fff, 0.85) !important;
     }
@@ -518,18 +521,6 @@ export default {
     }
   }
   
-  
-  @media ( max-width: 720px ) {
-    .inner-wrap-wrapper > div > a > .icon,
-    .inner-wrap-wrapper > .parent-item > .icon {
-      padding: 0px;
-    }
-    .inner-wrap-wrapper > div {
-      padding: 0 4px;
-      &:first-child { padding-left: 0; }
-    }
-  }
-  
 }
 
 .theme-light #ale-navigation,
@@ -557,6 +548,7 @@ export default {
     &:before {
       content: '';
       position: absolute;
+      z-index: -1;
       border-radius: 50%;
       width: 100%;
       height: auto;
@@ -564,6 +556,19 @@ export default {
       border-radius: 9999999px;
       // border: 2px solid rgba(#fff, .2);
       background: rgba(#fff, .1);
+      // box-shadow: 0px 0px 6px rgba(#fff, .15);
+    }
+    &:after {
+      content: '';
+      position: absolute;
+      z-index: -2;
+      border-radius: 50%;
+      width: 100%;
+      height: auto;
+      padding-top: 100%;
+      border-radius: 9999999px;
+      // border: 2px solid rgba(#fff, .2);
+      background: rgba(#000, 1);
       // box-shadow: 0px 0px 6px rgba(#fff, .15);
     }
   }

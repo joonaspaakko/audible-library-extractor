@@ -44,11 +44,13 @@ export default {
   
   methods: {
     close: function() {
-      this.modalOpen = false; 
+      if ( this.$store.state.bundlingGallery ) window.location.reload();
+      else this.modalOpen = false; 
     },
     closeOverlay: function( e ) {
+      let vue = this;
       if ( e.target === this.$refs.modalGrandpa || e.target === this.$refs.modalPapa ) {
-        this.modalOpen = false; 
+        vue.close();
       }
     }
   },

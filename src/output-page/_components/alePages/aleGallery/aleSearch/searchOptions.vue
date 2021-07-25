@@ -185,6 +185,7 @@ export default {
     // max-height: 200px;
     // overflow-x: hidden;
     // overflow-y: auto;
+    max-width: 65vw;
     
     @include themify($themes) {
       color: themed(frontColor);
@@ -281,6 +282,9 @@ export default {
     label {
       outline: none;
       display: block;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
       &:hover {
         @include themify($themes) {
           color: themed(audibleOrange);

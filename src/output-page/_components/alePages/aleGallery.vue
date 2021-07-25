@@ -216,6 +216,7 @@ export default {
     gridViewMounted: function() {
       
       this.scrollContainer = window;
+      this.scrollContainer.removeEventListener('scroll', this.addDomItems);
       this.scrollContainer.addEventListener('scroll', this.addDomItems);
       
       this.childrenMounted();
@@ -224,6 +225,7 @@ export default {
     listViewMounted: function() {
       
       this.scrollContainer = document.querySelector('.list-view-inner-wrap');
+      this.scrollContainer.removeEventListener('scroll', this.addDomItems);
       this.scrollContainer.addEventListener('scroll', this.addDomItems);
       
       this.childrenMounted();
@@ -238,12 +240,18 @@ export default {
       let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
       let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
       let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
-      this.$updateQuery({ query: 'y', value: container.scrollTop });
+      
+      this.updateScrollDistance( container.scrollTop );
+      
       if ( atTheBottom ) {
         this.$store.commit('chunkCollectionAdd');
       }
       
     }, 500, { leading: false, trailing: true }),
+    
+    updateScrollDistance: _.debounce( function( scrollTop ) {
+      this.$updateQuery({ query: 'y', value: scrollTop });
+    }, 600, { leading: false, trailing: true }),
     
   },
   

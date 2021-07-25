@@ -68,6 +68,18 @@ export default {
             // Series not in the collection so add it with the book...
             if (!seriesAdded) {
               
+              // The assumption is that in most situations you won't be buying multiple versions of a book, so duplicates are removed, 
+              // because multiple versions of books make it so that some series will always be considered incomplete...
+              // I was thinking this could be cool in the "My books in the series list" too, but it's too unreliable for that purpose.
+              
+              // Logic - Remove duplicate books from series: 
+              // - Compare book numbers and remove duplicates prioritizing books in the library
+              // - Needs to be an exact match: "0.3, 0.5, 1" !== "1" 
+              // - Any kind of bundles will be ignored, even if you have separate book copies from the bundle.
+              // - Of course identical bundle numbers are considered duplicates
+              // Simply put: 
+              // 1. Book in library: always keep
+              // 2. Not in Library: remove if it exists in the library and if there are multiple books (not in library) make sure only one is kept
               thisSeriesFromLibrary.allBooksMinusDupes = vue.removeDuplicates( thisSeriesFromLibrary.allBooks );
               
               if ( vue.subPageSource.library ) {

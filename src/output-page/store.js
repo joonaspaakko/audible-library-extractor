@@ -46,6 +46,7 @@ export default new Vuex.Store({
     extractSettings: null,
     siteOnline: true,
     searchOptCloseGuard: false,
+    bundlingGallery: false,
   },
 
   mutations: {
