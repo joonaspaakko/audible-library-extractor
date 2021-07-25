@@ -198,6 +198,9 @@ export default new Vuex.Store({
         return o.key;
       }).join(',');
     },
+    filterKeysLength: function( state ) {
+      return _.filter( state.listRenderingOpts.filter, { type: 'filter' }).length;
+    },
     filterExtrasKeys: function( state ) {
       return _.map(_.filter( state.listRenderingOpts.filter, { type: 'filterExtras', active: true }), function( o ) {
         return o.key;
