@@ -12,9 +12,17 @@
     </div>
     <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
       
-      <div class="show-all-toggle" v-if="showAllToggle">
-        <div @click="toggleAll">
-          <span>{{ $store.state.sticky.booksInSeriesAll ? 'Hide' : 'Show' }}</span> <span>books I don't have</span> <font-awesome :icon="['fas', 'ban']" />
+      <div class="list-filter-wrapper">
+        <div class="show-all-toggle" :class="{ active: $store.state.sticky.booksInSeriesAll}" v-if="showAllToggle">
+          <div @click="listFilter('booksInSeriesAll')">
+            <span>Not in library</span> <font-awesome :icon="['fas', 'ban']" />
+          </div>
+        </div>
+        
+        <div class="show-finished" :class="{ active: $store.state.sticky.booksInSeriesFinished}" v-if="showFinishedToggle">
+          <div @click="listFilter('booksInSeriesFinished')">
+            <span>Finished</span> <font-awesome :icon="['fas', 'archive']" />
+          </div>
         </div>
       </div>
       
@@ -40,14 +48,16 @@
             </router-link>
           </div>
           <div class="series-length">
-            {{ series.books.length }} / {{ series.length }}
+            {{ inLibraryLength( series ) }} / {{ series.length }}
           </div>
         </div>
         
         <div
         :data-series-name="series.name" class="numbers-list-item" :class="numbersClass(seriesBook)"
         v-for="(seriesBook, index) in series.books" :key="seriesBook.asin"
+        v-if="checkFilter( seriesBook )"
         > 
+        
           <open-in-app :size="14" :book="seriesBook" :muted="true" />
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
@@ -80,6 +90,7 @@ export default {
     return {
       inSeries: false,
       showAllToggle: false,
+      showFinishedToggle: true,
       series: {
         collection: null,
         toggle: false
@@ -121,9 +132,29 @@ export default {
 
   methods: {
     
-    toggleAll: function() {
-      this.$store.commit('stickyProp', { key: 'booksInSeriesAll', value: !this.$store.state.sticky.booksInSeriesAll });
-      this.series.collection = this.getBooksInSeries();
+    inLibraryLength: function( series ) {
+      return _.filter( series.books, function( o ) { return !o.notInLibrary; }).length;
+    },
+    
+    checkFilter: function( book ) {
+      if ( book.notInLibrary ) {
+        return this.$store.state.sticky.booksInSeriesAll;
+      }
+      else {
+        if ( this.$store.state.sticky.booksInSeriesFinished ) {
+          return true;
+        }
+        else {
+          let progress = _.get(book, 'obj.progress');
+          return progress ? !progress.match(/finished/i) : true;
+        }
+      }
+
+    },
+    
+    listFilter: function( key ) {
+      this.$store.commit('stickyProp', { key: key, value: !this.$store.state.sticky[ key ] });
+      // this.series.collection = this.getBooksInSeries();
     },
 
     getBooksInSeries: function() {
@@ -139,7 +170,7 @@ export default {
             let booksSource = allBooksInSeries.books;
             
             if ( !!allBooksInSeries.allBooks ) {
-              if ( vue.$store.state.sticky.booksInSeriesAll ) booksSource = allBooksInSeries.allBooks;
+              booksSource = allBooksInSeries.allBooks;
               vue.showAllToggle = true;
             }
             
@@ -294,6 +325,12 @@ export default {
         overflow: hidden;
         text-overflow: ellipsis;
       }
+      &.cursor-alias {
+        cursor: alias;
+      }
+      &.link-disabled {
+        cursor: default;
+      }
     }
 
     .icon {
@@ -359,36 +396,47 @@ export default {
     
   }
   
-  .show-all-toggle {
-    -webkit-touch-callout: none; 
-    -webkit-user-select: none; 
-    -khtml-user-select: none; 
-    -moz-user-select: none; 
-    -ms-user-select: none; 
-    user-select: none; 
-    position: relative;
-    z-index: 1;
-    height: 10px;
-    text-align: center;
+  .list-filter-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-around;
     > div {
-      outline: none;
-      position: relative;
-      top: -6px;
-      left: 0px;
-      border-radius: 9999px;
-      display: inline-block;
-      padding: 0px 8px;
-      font-size: 12px;
-      cursor: pointer;
-      @include themify($themes) {
-        color: rgba( themed(frontColor), .4);
-        border: 1px solid rgba( themed(frontColor), .4);
+      -webkit-touch-callout: none; 
+      -webkit-user-select: none; 
+      -khtml-user-select: none; 
+      -moz-user-select: none; 
+      -ms-user-select: none; 
+      user-select: none; 
+      // position: relative;
+      // z-index: 1;
+      // height: 10px;
+      text-align: center;
+      > div {
+        outline: none;
+        // position: relative;
+        // top: -6px;
+        // left: 0px;
+        border-radius: 9999px;
+        display: inline-block;
+        padding: 0px 8px;
+        font-size: 12px;
+        cursor: pointer;
+        @include themify($themes) {
+          color: rgba( themed(frontColor), .4);
+          border: 1px solid rgba( themed(frontColor), .4);
+        }
+        svg {
+          margin-left: 2px;
+        }
       }
-      svg {
-        margin-left: 2px;
+      &.active svg {
+        @include themify($themes) {
+          color: rgba( themed(audibleOrange), .5);
+        }
       }
     }
   }
+  
 }
 
 div.hidden-section-label {
@@ -461,11 +509,25 @@ div.hidden-section {
 }
 
 .theme-light .my-books-in-series .numbers-list-item {
-  &.not-in-library,
-  &.finished {
+  &.not-in-library {
     .icon, .title {
       opacity: .65 !important;
     }
+  }
+  
+  &.finished {
+    .icon, .title {
+      opacity: .50 !important;
+    }
+  }
+}
+
+.theme-light .my-books-in-series .list-filter-wrapper > div {
+  > div {
+    color: rgba( $lightFrontColor, .9) !important;
+  }
+  &.active svg {
+    color: rgba( $audibleOrange, 1) !important;
   }
 }
 

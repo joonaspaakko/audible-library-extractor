@@ -1,16 +1,16 @@
 <template>
   <div class="linky">
-    <a v-if="book.notInLibrary && book.asin" class="clickety-click" target="_blank" :href="makeUrl('book', book.asin)"
+    <a v-if="book.notInLibrary && book.asin" class="clickety-click cursor-alias" target="_blank" :href="makeUrl('book', book.asin)"
     :content="book.title !== book.titleShort ? book.title : false" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
     >
       <span class="numbers">{{ book.bookNumbers }}</span>
       <span class="title">{{ book.titleShort || book.title  }}</span>
     </a>
     <router-link v-else 
-    class="clickety-click"
+    class="clickety-click" :class="{ 'link-disabled': linkDisabled }"
     :event="linkDisabled ? '' : 'click'" 
-    @click.native="linkDisabled && openBook($event)"
-    :to="routerLink"
+    @click.native="linkDisabled && openBook($event)" 
+    :to="linkDisabled ? '' : routerLink"
     :content="(book.notInLibrary ? '<strong>Not available:</strong> ' : '') + ( book.title !== book.titleShort ? book.title : '')" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
     >
       <span class="numbers">{{ book.bookNumbers }}</span>
@@ -51,7 +51,7 @@ export default {
       query: { book: this.book.asin, subPageSource: 'books' }, 
     };
     
-    this.linkDisabled = this.seriesPage && this.$route.params.series === this.series.asin;
+    this.linkDisabled = this.book.notInLibrary || this.seriesPage && this.$route.params.series === this.series.asin;
     
   },
 

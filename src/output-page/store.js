@@ -18,6 +18,7 @@ export default new Vuex.Store({
       exportSettingsCSVdataSources: null,
       exportSettingsCSVcompatibility: null,
       booksInSeriesAll: false,
+      booksInSeriesFinished: true,
       subPageSource: 'books',
     },
     // States that don't persist

@@ -15,7 +15,7 @@
         <h2>{{ item.name }}</h2>
 
         <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
-          <span :class="{ 'my-books': item.allBooks && item.allBooks.length}">{{ item.books.length }}</span><span v-if="item.allBooks && item.allBooks.length">&nbsp;of&nbsp;{{ item.allBooks.length }}</span>
+          <span :class="{ 'my-books': item.allBooksMinusDupes && item.allBooksMinusDupes.length}">{{ item.books.length }}</span><span v-if="item.allBooksMinusDupes && item.allBooksMinusDupes.length">&nbsp;of&nbsp;{{ item.allBooksMinusDupes.length }}</span>
         </div>
 
       </router-link>
@@ -61,18 +61,18 @@ export default {
           _.each(book.series, function (series) {
             
             const seriesAdded = _.find(seriesCollection, {asin: series.asin});
-            const thisSeriesFromLibrary = !!librarySeries ?_.find(librarySeries, { asin: series.asin }) : false;
+            let thisSeriesFromLibrary = !!librarySeries ? _.find(librarySeries, { asin: series.asin }) : false;
             
             let myBooks, maxSeriesBookNumber, myMaxBookNumber;
             
             // Series not in the collection so add it with the book...
             if (!seriesAdded) {
               
-              thisSeriesFromLibrary.allBooks = vue.removeDuplicates( thisSeriesFromLibrary.allBooks );
+              thisSeriesFromLibrary.allBooksMinusDupes = vue.removeDuplicates( thisSeriesFromLibrary.allBooks );
               
               if ( vue.subPageSource.library ) {
-                myBooks = thisSeriesFromLibrary.allBooks.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
-                maxSeriesBookNumber = _.max(thisSeriesFromLibrary.allBooks.map(b => _.toNumber(b.bookNumbers)));
+                myBooks = thisSeriesFromLibrary.allBooksMinusDupes.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
+                maxSeriesBookNumber = _.max(thisSeriesFromLibrary.allBooksMinusDupes.map(b => _.toNumber(b.bookNumbers)));
                 myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
               }
               
@@ -88,7 +88,7 @@ export default {
                 
                 ++addedCounter;
                 newSeries.minRating = _.toNumber(book.myRating),
-                newSeries.allBooks = thisSeriesFromLibrary.allBooks;
+                newSeries.allBooksMinusDupes = thisSeriesFromLibrary.allBooksMinusDupes;
                 newSeries.missingLatest = myMaxBookNumber !== maxSeriesBookNumber,
                 seriesCollection.push(newSeries);
                 
@@ -108,7 +108,7 @@ export default {
                     .map(_.toNumber)
                     .filter(rating => !_.isNaN(rating))
                 );
-                seriesAdded.allBooks = thisSeriesFromLibrary.allBooks;
+                seriesAdded.allBooksMinusDupes = thisSeriesFromLibrary.allBooksMinusDupes;
                 seriesAdded.missingLatest = myMaxBookNumber !== maxSeriesBookNumber;
               }
               // return false;
@@ -219,7 +219,7 @@ export default {
             key: 'series-incomplete',
             tippy: `Series where you don't have all the books`,
             condition: function (series) {
-              return series.allBooks.length > series.books.length;
+              return series.allBooksMinusDupes.length > series.books.length;
             }
           },
           {
@@ -234,7 +234,7 @@ export default {
             key: 'missing-latest',
             tippy: `Series where you are missing the latest book`,
             condition: function (series) {
-              return series.missingLatest && series.allBooks.length > series.books.length;
+              return series.missingLatest && series.allBooksMinusDupes.length > series.books.length;
             }
           },
         ],
