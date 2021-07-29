@@ -13,10 +13,10 @@
         v-for="(item, index) in optionsList" :key="item.key"
         v-if="$route.name === 'wishlist' ? item.type === 'filter' && !item.excludeFromWishlist : item.type === 'filter'"
         >
-          <listItem 
+          <sorter 
           :label="item.label" :item="item" :index="index" 
           :currentList="optionsList" :listName="listName"
-          ></listItem>
+          ></sorter>
         </li>
       </ul>
       
@@ -26,10 +26,10 @@
         v-for="(item, index) in optionsList" :key="item.key"
         v-if="$route.name === 'wishlist' ? !item.excludeFromWishlist && !($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter' : !($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter'"
         >
-          <listItem v-if="item.type !== 'divider'" 
+          <sorter v-if="item.type !== 'divider'" 
           :label="item.label" :item="item" :index="index" 
           :currentList="optionsList" :listName="listName"
-          ></listItem>
+          ></sorter>
         </li>
       </ul>
       
@@ -38,13 +38,14 @@
 </template>
 
 <script>
-import listItem from "../../../snippets/sorter";
+
+import sorter from "@output-snippets/sorter.vue";
 
 export default {
   name: "searchOptions",
   props: ["listName"],
   components: {
-    listItem
+    sorter,
   },
   data: function() {
     return {

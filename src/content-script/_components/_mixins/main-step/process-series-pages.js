@@ -1,5 +1,3 @@
-import { _ } from "core-js";
-
 export default {
   methods: {
     getDataFromSeriesPages: function(hotpotato, seriesFetched) {

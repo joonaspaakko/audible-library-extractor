@@ -58,7 +58,7 @@ export default {
     lazy,
     aleHeader,
     aleListRow,
-    bookDetails: () => import( /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
+    bookDetails: () => import( /* webpackPrefetch: true */ /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
   },
   mixins: [stringifyArray, prepareKeys],
   data: function() {

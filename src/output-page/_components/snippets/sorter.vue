@@ -12,7 +12,7 @@
     }" 
     :content="item.tippy ? item.tippy : false"
     >
-      <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts /*!!dropdownOptions && dropdownOptions.length > 0*/ }">
+      <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts }">
         
         <!-- LABEL in the front -->
         <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
@@ -104,9 +104,7 @@
 
 <script>
 
-import VueSlider from 'vue-slider-component';
 import 'vue-slider-component/theme/default.css';
-import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
 import slugify from "@output-mixins/slugify";
 
 export default {
@@ -114,8 +112,8 @@ export default {
   props: [ "label", "currentList", "listName", "item", "index", "tippyTop" ],
   mixins: [slugify],
   components: {
-    VueSlider,
-    Multiselect,
+    VueSlider: () => import( /* webpackChunkName: "rangeslider-and-multiselect" */ "vue-slider-component"),
+    Multiselect: () => import( /* webpackChunkName: "rangeslider-and-multiselect" */ "@vueform/multiselect/dist/multiselect.vue2.js"),
   },
   data: function() {
     return {

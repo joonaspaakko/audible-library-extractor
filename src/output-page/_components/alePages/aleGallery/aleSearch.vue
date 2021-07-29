@@ -40,8 +40,8 @@
 </template>
 
 <script>
-import Fuse from "fuse.js";
 
+import Fuse from "fuse.js";
 import searchIcons from "./aleSearch/searchIcons";
 import searchOptions from "./aleSearch/searchOptions";
 import filterAndSort from "@output-mixins/filter-and-sort.js";

@@ -1,4 +1,3 @@
-import { _ } from "core-js";
 import slugify from "@output-mixins/slugify";
 
 export default {

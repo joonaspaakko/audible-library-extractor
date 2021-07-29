@@ -58,11 +58,9 @@ export default {
         "output-page.js.LICENSE.txt",
         "output-page.css",
         
-        "chunks/429.css",
-        "chunks/429.js",
-        "chunks/429.js.LICENSE.txt",
-        "chunks/564.js",
-        "chunks/564.js.LICENSE.txt",
+        "chunks/612.js",
+        "chunks/946.css",
+        "chunks/946.js",
         "chunks/audio-player.css",
         "chunks/audio-player.js",
         "chunks/authors.css",
@@ -83,9 +81,8 @@ export default {
         "chunks/narrators.js",
         "chunks/publishers.css",
         "chunks/publishers.js",
-        "chunks/save-csv.js",
-        "chunks/save-gallery.css",
-        "chunks/save-gallery.js",
+        "chunks/rangeslider-and-multiselect.js",
+        "chunks/rangeslider-and-multiselect.js.LICENSE.txt",
         "chunks/save-locally.css",
         "chunks/save-locally.js",
         "chunks/series.css",
@@ -217,6 +214,9 @@ export default {
         vue.zip = new JSZip();
         const zip = vue.zip;
         
+        // I've had a few build errors so might as well make sure it's not because of this...
+        zip.file(".nojekyll", '');
+        
         let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.library)) );
         
         libraryData.extras.cacheID = vue.cacheBuster;
@@ -252,6 +252,8 @@ export default {
             // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
             '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
             '<meta http-equiv="X-UA-Compatible" content="ie=edge">' +
+            '<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">' +
+            '<meta http-equiv="Pragma" content="no-cache">' +
             '<meta name="apple-mobile-web-app-capable" content="yes">' +
             '<meta name="mobile-web-app-capable" content="yes">' +
             '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +

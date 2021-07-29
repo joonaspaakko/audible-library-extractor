@@ -30,14 +30,14 @@
 
 <script>
 import colResizer from "./colResizer";
-import sorter from "../../../snippets/sorter";
+import sorter from "@output-snippets/sorter.vue";
 
 export default {
   name: "aleHeader",
   props: ["keys"],
   components: {
     colResizer,
-    sorter
+    sorter,
   },
   data: function() {
     return {

@@ -31,7 +31,7 @@ import lazy from "@output-snippets/lazy.vue";
 export default {
   name: "aleBooks",
   components: {
-    bookDetails: () => import( /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
+    bookDetails: () => import( /* webpackPrefetch: true */ /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
     book: () => import( /* webpackChunkName: "book" */ "./aleGridView/book"),
     lazy,
   },
