@@ -1,7 +1,7 @@
 <template>
   <div class="left" id="editor-canvas-left" ref="left" v-dragscroll="store.canvasPanning">
     <div class="show-blank-canvas" v-show="store.saving"></div>
-    <gb-toast class="floating-alert" :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually or hold down space bar to move the canvas by dragging</gb-toast>
+    <gb-toast class="floating-alert" :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> press space bar while dragging to move the canvas</gb-toast>
     <div class="grid" ref="grid">
       <div
       class="editor-canvas"
@@ -16,8 +16,28 @@
           v-show="store.slidingAround === 'canvas.padding'"
           v-if="!store.saving"
         ></div>
-
-        <div style="overflow: hidden; height: 100%; width: 100%">
+      
+        <Moveable 
+        editable="true"
+        v-if="store.textElements.length"
+        v-for="text in store.textElements" :key="text.id"
+        class="text-element"
+        :class="{ 'no-panning': !store.canvasPanning }"
+        @mouseover="coverHover" 
+        @mouseleave="coverHover"
+        @drag="moveableDrag"
+        @rotate="moveableRotate"
+        @scale="moveableScale"
+        v-bind="moveableOpts" 
+        :style="{
+          fontSize: text.fontSize + 'px',
+          lineHeight: text.lineHeight + 'px',
+          fontWeight: text.bold ? 'bold' : 'normal',
+        }">
+          {{ text.text }}
+        </Moveable>
+        
+        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%">
           <div class="grid-inner-wrap" :class="{ 'no-panning': !store.canvasPanning }">
             
             <draggable v-model="usedCovers" :disabled="!store.draggable" group="covers" @start="$store.commit('update', { key: 'canvasPanning', value: false })" @end="draggingEnded">
@@ -25,10 +45,15 @@
               class="cover"
               @mouseover="coverHover" 
               @mouseleave="coverHover"  
-               v-for="cover in store.usedCovers" :key="cover"
+              v-for="book in store.usedCovers" :key="book.asin"
+              :style="coverPadding"
               >
                 <div v-if="!store.saving" class="cover-padding-preview"></div>
-                <img :src="cover" alt="" :style="coverStyle" draggable="false" />
+                <div v-if="store.showAuthorAndTitle" :style="{ width: store.coverSize + 'px' }">
+                  <div class="author"><strong>{{ book.authors ? book.authors[0].name : '' }}</strong></div>
+                  <div class="title">{{ book.titleShort || book.title }}</div>
+                </div>
+                <img :src="makeCoverUrl(book.cover)" alt="" :style="coverStyle" draggable="false" />
               </div>
             </draggable>
 
@@ -44,14 +69,28 @@ import draggable from 'vuedraggable';
 import centerCanvas from "@editor-mixins/centerCanvas.js";
 import zoomToFit from "@editor-mixins/zoomToFit.js";
 
+import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import Moveable from 'vue-moveable';
+
 export default {
   name: "editorCanvas",
-  mixins: [centerCanvas, zoomToFit],
-  components: { draggable },
+  mixins: [centerCanvas, zoomToFit, makeCoverUrl],
+  components: { draggable, Moveable },
   data: function () {
     return {
       store: this.$store.state,
       panningAlert: false,
+      moveableOpts: {
+        draggable: true,
+        throttleDrag: 5,
+        padding: { left: 10, top: 10, right: 10, bottom: 10 },
+        rotatable: true,
+        throttleRotate: 90,
+        scalable: true,
+        keepRatio: true,
+        pinchable: true, // ["draggable", "resizable", "scalable", "rotatable"]
+        origin: false,
+      }
     };
   },
   
@@ -110,6 +149,10 @@ export default {
       else {
         style.height = 0 + "px";
       }
+      return style;
+    },
+    coverPadding: function () {
+      var style = {};
       if (this.store.paddingSize > -1) {
         style.padding = this.store.paddingSize + "px";
       }
@@ -121,6 +164,22 @@ export default {
   },
   
   methods: {
+    
+    moveableScale({ target, transform, scale }) {
+      console.log('onScale scale', scale);
+      target.style.transform = transform;
+    },
+    
+    moveableRotate({ target, dist, transform }) {
+      console.log('onRotate', dist, transform);
+      target.style.transform = transform;
+    },
+    
+    moveableDrag({ target, transform }) {
+      if ( this.store.canvasPanning ) this.$store.commit('update', { key: 'canvasPanning', value: false });
+      target.style.transform = transform;
+      
+    },
     
     // Since only the visible covers are sorted, this mutates the source array "covers" to include the same sorting
     draggingEnded: function( e ) {
@@ -166,7 +225,7 @@ export default {
 
 .show-blank-canvas {
   position: fixed;
-  z-index: 999999;
+  z-index: 100000000;
   top: 0;
   right: 0;
   bottom: 0;
@@ -208,7 +267,7 @@ export default {
   .editor-canvas { 
     box-shadow: 2px 2px 25px rgba(#000, .4);
     box-sizing: border-box;
-    overflow: hidden;
+    // overflow: hidden;
     transform-origin: center center;
     position: relative; 
     margin: 1000px;
@@ -242,6 +301,12 @@ export default {
     }
     &.saving:before,
     &.saving:after {  display: none; }
+    
+    &.saving {
+      position: fixed;
+      z-index: 99999999;
+      margin: 0px;
+    }
   }
   .grid-inner-wrap {
     display: inline-block;
@@ -253,15 +318,25 @@ export default {
   .cover {
     position: relative;
     display: inline-block;
+    font-size: 13px;
+    line-height: 17px;
   }
 
   .cover img {
     position: relative;
     z-index: 5;
     display: block;
-    padding: 5px;
-    width: 160px;
-    height: 160px;
+    width: 0px;
+    height: 0px;
+  }
+  
+  
+  .text-element {
+    display: inline-block !important;
+    position: absolute;
+    z-index: 999999;
+    
+    &.no-panning { cursor: move !important; }
   }
 }
 
@@ -293,6 +368,9 @@ export default {
 </style>
 
 <style lang="scss">
+.moveable-line {
+  //  display: none !important;
+}
 
 .floating-alert {
   position: fixed;

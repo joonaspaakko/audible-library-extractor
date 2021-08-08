@@ -10,11 +10,11 @@ export default {
 
   watch: {
     "$store.state.coverAmount": function () {
-      if (this.$store.getters.widthOrHeight_Unset) {
-        this.$nextTick(function () {
-          this.centerCanvas();
-        });
-      }
+      // if (this.$store.getters.widthOrHeight_Unset) {
+      //   this.$nextTick(function () {
+      //     this.centerCanvas();
+      //   });
+      // }
     },
     "$store.state.canvas.width": function () {
       this.$nextTick(function () {
@@ -27,25 +27,25 @@ export default {
       });
     },
     "$store.state.coverSize": function () {
-      if (this.$store.getters.widthOrHeight_Unset) {
-        this.$nextTick(function () {
-          this.centerCanvas();
-        });
-      }
+      // if (this.$store.getters.widthOrHeight_Unset) {
+      //   this.$nextTick(function () {
+      //     this.centerCanvas();
+      //   });
+      // }
     },
     "$store.state.paddingSize": function () {
-      if (this.$store.getters.widthOrHeight_Unset) {
-        this.$nextTick(function () {
-          this.centerCanvas();
-        });
-      }
+      // if (this.$store.getters.widthOrHeight_Unset) {
+      //   this.$nextTick(function () {
+      //     this.centerCanvas();
+      //   });
+      // }
     },
     "$store.state.canvas.padding": function () {
-      if (this.$store.getters.widthOrHeight_Unset) {
-        this.$nextTick(function () {
-          this.centerCanvas();
-        });
-      }
+      // if (this.$store.getters.widthOrHeight_Unset) {
+      //   this.$nextTick(function () {
+      //     this.centerCanvas();
+      //   });
+      // }
     },
     "$store.state.canvas.zoom": function () {
       this.$nextTick(function () {

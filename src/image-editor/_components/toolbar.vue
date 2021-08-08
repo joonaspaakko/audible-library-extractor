@@ -36,7 +36,7 @@
         {{ zoomPercentage }}%
       </gb-heading>
       
-      <div class="zoom-to-fit" @click="zoomToFit" v-tippy content="Fit canvas inside the viewport">
+      <div class="zoom-to-fit" @click="zoomToFit('and-center')" v-tippy content="Fit canvas inside the viewport">
         <gb-icon size="16px" name="zoom_out_map"></gb-icon>
       </div>
       
@@ -45,11 +45,96 @@
 
     <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
       <div v-show="!store.saving">
+        
+        <div v-if="false">
+          
+          <gb-heading tag="h6" :uppercase="true">
+            <span style="padding-right: 10px;">Text elements</span>
+            
+            <gb-button
+              class="save-btn"
+              :circular="true"
+              @click="makeTextElement"
+              color="blue"
+              size="mini"
+              left-icon="add_circle"
+              v-tippy content="Add new text element"
+            >
+            </gb-button>
+            
+          </gb-heading>
+          
+          <div class="text-elements" v-for="(text, index) in store.textElements">
+            
+            <spacer v-if="index > 0 && store.textElements.length" size="normal" :line="true" />
+            <spacer v-if="index === 0" size="normal" :line="false" />
+            
+            <div class="text-elements-inner-wrap">
+              
+              <gb-icon class="remove-text" size="16px" name="close" @click="$store.commit('removeText', text)"></gb-icon>
+              
+              <div class="label-row">
+                <span>Text:</span>
+                <gb-input
+                  type="text"
+                  :full-width="true"
+                  :value="text.text"
+                  @input="changeTextElement( $event, index, text, 'text' )"
+                  size="mini"
+                ></gb-input>
+              </div>
+              
+              <spacer size="small" :line="false" />
+              
+              <div class="label-row">
+                <span>Font size:</span>
+                <gb-input
+                  type="number"
+                  :min="1"
+                  :full-width="true"
+                  v-model="text.fontSize"
+                  size="mini"
+                ></gb-input>
+              </div>
+              
+              <spacer size="small" :line="false" />
+              
+              <div class="label-row">
+                <span>Line height:</span>
+                <gb-input
+                  type="number"
+                  :min="1"
+                  :full-width="true"
+                  v-model="text.lineHeight"
+                  size="mini"
+                ></gb-input>
+              </div>
+              
+              <spacer size="small" :line="false" />
+              
+              <div class="label-row">
+                <span>Line height:</span>
+                <gb-toggle
+                size="small"
+                v-model="text.bold"
+                label="Bold"
+                ></gb-toggle>
+              </div>
+            </div>
+            
+          </div>
+          
+          <spacer size="large" :line="true" />
+          
+        </div>
+        
+        
+        
         <div>
           <gb-heading tag="h6" :uppercase="true">
-            Number of cover images
+            Limit cover images
           </gb-heading>
-          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
           <gb-input
             type="number"
             :min="1"
@@ -57,19 +142,19 @@
             @input="inputChanged('coverAmount', $event)"
             size="mini"
             name="coverNumberTippy"
+            :warning="store.coverAmount < store.covers.length ? 'Using ' + store.coverAmount +'/'+ store.covers.length : null"
           ></gb-input>
           <tippy to="coverNumberTippy">
-            You can limit the amount of cover images you want to use. Excess
-            covers are removed from the tail end.
+            Excess covers are removed from the tail end.
             <br />
             <span class="highlight">
-              {{ store.coverAmount }} out of a possible
-              {{ store.covers.length }}.
+              <strong>{{ store.coverAmount }}</strong> out of a possible
+              <strong>{{ store.covers.length }}</strong>.
             </span>
           </tippy>
         </div>
         
-        <spacer size="default" :line="false" />
+        <spacer size="small" :line="false" />
         
         <gb-button
         :full-width="true"
@@ -80,7 +165,15 @@
         v-tippy content="Adds or removes enough covers to fit inside the canvas. <br>Covers are added and removed from the tail end."
         >Fit cover amount to canvas</gb-button>
         
-        <spacer size="largest" :line="true" />
+        <spacer size="large" :line="true" />
+        
+        <gb-toggle
+        size="small"
+        v-model="store.showAuthorAndTitle"
+        label="Show author and title"
+        ></gb-toggle>
+      
+        <spacer size="large" :line="true" />
 
         <div>
           <gb-heading tag="h6" :uppercase="true">
@@ -94,11 +187,21 @@
           </gb-heading>
         </div>
 
-        <spacer size="largest" :line="true" />
-
+        <spacer size="mini" :line="false" />
+        
         <div>
           <gb-heading tag="h6" :uppercase="true">Canvas size</gb-heading>
-          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
+          
+          <!-- <gb-select
+          v-model="selectedCanvasPreset" 
+          size="mini" 
+          placeholder="Size presets" 
+          :full-width="true" 
+          :options="canvasPresets"
+          @change="canvasPresetSelected"
+          ></gb-select> -->
+          
           <div class="label-row" style="padding-left: 58px">
             <input
               v-tippy content="The sliders have a maximum value, but the text inputs do not."
@@ -119,7 +222,7 @@
               size="mini"
             ></gb-input>
           </div>
-          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
           <div class="label-row" style="padding-left: 58px">
             <input
               v-tippy content="The sliders have a maximum value, but the text inputs do not."
@@ -134,6 +237,7 @@
             <span style="width: 50px">Height:</span>
             <gb-input
               type="number"
+              :min="0"
               :value="parseFloat(store.canvas.height)"
               @input="inputChanged('canvas.height', $event)"
               size="mini"
@@ -141,7 +245,7 @@
           </div>
         </div>
         
-        <spacer size="default" :line="false" />
+        <spacer size="small" :line="false" />
         
         <gb-button
         :full-width="true"
@@ -152,11 +256,11 @@
         v-tippy content="Resizes canvas to fit covers perfectly."
         >Fit canvas to covers</gb-button>
 
-        <spacer size="largest" :line="true" />
+        <spacer size="small" :line="false" />
 
         <div>
           <gb-heading tag="h6" :uppercase="true">Canvas padding</gb-heading>
-          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
           <input
             type="range"
             min="0"
@@ -167,17 +271,18 @@
           />
           <gb-input
             type="number"
+            :min="0"
             :value="parseFloat(store.canvas.padding)"
             @input="inputChanged('canvas.padding', $event)"
             size="mini"
           ></gb-input>
         </div>
 
-        <spacer size="largest" :line="true" />
-
+        <spacer size="large" :line="true" />
+        
         <div>
           <gb-heading tag="h6" :uppercase="true">Cover size</gb-heading>
-          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
           <input type="range" min="1" max="500" v-model="coverSize" step="1" 
           v-tippy content="The native cover size is 500px. You can make it larger using
             the input field below, but it's not recommended since upsizing 
@@ -194,11 +299,11 @@
           ></gb-input>
         </div>
 
-        <spacer size="largest" :line="true" />
-
+        <spacer size="small" :line="false" />
+        
         <div>
           <gb-heading tag="h6" :uppercase="true">Cover padding</gb-heading>
-          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
           <input
             type="range"
             min="0"
@@ -209,13 +314,14 @@
           />
           <gb-input
             type="number"
+            :min="0"
             :value="parseFloat(store.paddingSize)"
             @input="inputChanged('paddingSize', $event)"
             size="mini"
           ></gb-input>
         </div>
 
-        <spacer size="largest" :line="true" />
+        <spacer size="large" :line="true" />
 
         <div>
           <gb-toggle
@@ -226,7 +332,7 @@
           :warning="outputWidthZoomSize"
           ></gb-toggle>
         </div>
-        <spacer size="small" :line="false" />
+        <spacer size="mini" :line="false" />
 
       </div>
     </div>
@@ -236,20 +342,24 @@
 <script>
 import spacer from "./spacer.vue";
 import zoomToFit from "@editor-mixins/zoomToFit.js";
+import centerCanvas from "@editor-mixins/centerCanvas.js";
 
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
-
 import _ from "lodash";
 
 export default {
   name: "toolbar",
   components: { spacer },
-  mixins: [zoomToFit],
+  mixins: [zoomToFit, centerCanvas],
   data: function () {
     return {
       store: this.$store.state,
       slidingTimer: null,
+      selectedCanvasPreset: '',
+      canvasPresets: [
+        { label: 'Wallpaper (1920x1080)', value: 'wallpaper-1920', size: '1920x1080' },
+      ],
     };
   },
   computed: {
@@ -352,6 +462,48 @@ export default {
   },
   methods: {
     
+    // canvasPresetSelected: function() {
+      
+    //   if ( this.selectedCanvasPreset ) {
+        
+    //     let vue = this;
+    //     console.log( vue.selectedCanvasPreset )
+    //     let preset = this.canvasPresets.filter(function( o ) {
+    //       return vue.selectedCanvasPreset === o.value;
+    //     });
+        
+    //     console.log( preset[0] )
+    //     let size = preset[0].size.split('x');
+        
+    //     this.$store.commit('update', [
+    //       { key: 'canvas.width', value: size[0] },
+    //       { key: 'canvas.height', value: size[1] },
+    //     ]);
+        
+    //     this.selectedCanvasPreset = ''; 
+        
+    //   }
+      
+    // },
+    
+    changeTextElement: function( value, index, textElement, key ) {
+      this.$store.commit('changeText', { index: index, key: key, value: value, textElement: textElement, });
+    },
+    
+    makeTextElement: function() {
+      
+      this.$store.commit('addText', { 
+        text: 'Lorem ipsum dolor sit amet',
+        rotation: 0,
+        floater: false,
+        fullWidth: true,
+        fontSize: 30,
+        lineHeight: 35,
+        bold: false,
+      });
+      
+    },
+    
     fitCanvasToContent: function() {
       
       let update = [];
@@ -416,6 +568,7 @@ export default {
           key: 'usedCovers', 
           value: this.store.covers.slice(0, this.store.coverAmount)
         });
+        this.zoomToFit('and-center');
       }
     },
 
@@ -436,6 +589,9 @@ export default {
               saveAs(blob, "ale image.png");
               setTimeout(function () {
                 vue.$store.commit("update", { key: "saving", value: false });
+                vue.$nextTick(function() {
+                  vue.centerCanvas();
+                });
               }, 500);
             });
           });
@@ -702,13 +858,30 @@ $toolbar-text: #8eabc5;
   }
 }
 
+.text-elements-inner-wrap {
+  position: relative;
+  z-index: 0;
+  border: 1px solid #323d4f;
+  border-radius: 10px;
+  padding: 20px;
+  
+  .remove-text {
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    top: -9px;
+    right: 10px;
+    background: $toolbar-bg;
+  }
+}
+
 </style>
 
 
 <style lang="scss">
 /*.hide-hints */.spacer {
-  .line { display: none !important; }
-  padding-bottom: 0 !important;
+  // .line { display: none !important; }
+  // padding-bottom: 0 !important;
 }
 
 // .gb-base-button__left-icon {

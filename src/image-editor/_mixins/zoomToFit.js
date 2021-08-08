@@ -6,7 +6,7 @@ export default {
   },
   methods: {
     
-    zoomToFit: function() {
+    zoomToFit: function( alsoCenter ) {
       
       let vue = this;
       let workingArea = document.querySelector("#editor-canvas-left");
@@ -34,7 +34,9 @@ export default {
       size = vue.calculateNewSize( size.from, size.to );
       const newScale = Math.round(size.percentage.fit) / 100;
       this.$store.commit('update', { key: 'canvas.zoom', value: newScale });
-            
+      
+      if ( alsoCenter ) this.centerCanvas();
+      
     },
     
     calculateNewSize: function( inputSize, targetSize ) {

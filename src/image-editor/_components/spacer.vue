@@ -14,6 +14,7 @@ export default {
   computed: {
     spacerStyle: function () {
       let padding = 5;
+      if (this.size == "mini") padding = 2;
       if (this.size == "small") padding = 5;
       else if (this.size == "default") padding = 10;
       else if (this.size == "normal") padding = 10;

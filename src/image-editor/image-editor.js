@@ -35,17 +35,17 @@ import "tippy.js/themes/light-border.css";
 const store = new Vuex.Store({
   state: {
     covers: null,
-    coverAmount: null,
+    coverAmount: 30,
     coverSize: 160,
     paddingSize: 5,
     canvas: {
-      width: 690,
+      width: 914,
       height: 0,
-      background: "#222222",
+      background: "#fff",
       zoom: 1,
       zoomOutputs: false,
       fit: false,
-      padding: null,
+      padding: 32,
       transformOrigin: "center center",
       scaled: {
         width: 0,
@@ -58,8 +58,12 @@ const store = new Vuex.Store({
     canvasPanning: true,
     usedCovers: null,
     draggable: true,
+    showAuthorAndTitle: false,
+    textElementCounter: 0,
+    textElements: [],
   },
   mutations: {
+    
     update(state, config) {
       let setValues = function (config) {
         config = config || {};
@@ -76,7 +80,31 @@ const store = new Vuex.Store({
       } else {
         setValues(config);
       }
-    }
+    },
+    
+    addText( state, textElement ) {
+      
+      ++state.textElementCounter;
+      if ( !textElement.id ) textElement.id = state.textElementCounter;
+      if ( !textElement.textElement ) textElement.textElement = true,
+      
+      state.textElements.push( textElement );
+      
+    },
+    
+    removeText( state, index ) {
+      
+      state.textElements.splice(index, 1);
+      
+    },
+    
+    changeText( state, config ) {
+      
+      let textObj = state.textElements[ config.index ];
+      textObj[ config.key ] = config.value;
+      
+    },
+    
   },
   getters: {
     widthOrHeight_Unset: function (state) {

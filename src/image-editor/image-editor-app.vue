@@ -25,7 +25,6 @@ export default {
   },
   created: function () {
     this.$store.commit("update", [
-      { key: "canvas.padding", value: this.$store.state.paddingSize },
       { key: "usedCovers", value: this.$store.state.covers.slice( 0, this.$store.state.coverAmount ) },
     ]);
 
@@ -70,7 +69,7 @@ export default {
 <style lang="scss">
 @import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap");
 
-html {
+html, .editor-canvas, .toolbar {
   font-family: "Open Sans", sans-serif;
 }
 [class^="gb-"]:not(.gb-base-icon) {
