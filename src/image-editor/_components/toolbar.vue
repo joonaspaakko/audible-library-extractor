@@ -234,13 +234,14 @@
             />
           </div>
           <div class="label-row" v-tippy content="Set the height to 0 when you don't need to limit it to a certain height.">
-            <span style="width: 50px">Height:</span>
+            <span style="width: 50px; position: relative; top: -11px;">Height:</span>
             <gb-input
               type="number"
               :min="0"
               :value="parseFloat(store.canvas.height)"
               @input="inputChanged('canvas.height', $event)"
               size="mini"
+              :info="store.canvas.height > 0 ? null : '0 = automatic height'"
             ></gb-input>
           </div>
         </div>
@@ -509,39 +510,53 @@ export default {
       let update = [];
       let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
       let canvasPadding = parseFloat(this.store.canvas.padding)*2;
-      let canvasWidth = parseFloat(this.store.canvas.width) + canvasPadding;
+      let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
+      let canvas = {
+        width:  innerWrap.offsetWidth,
+        height: innerWrap.offsetHeight,
+      };
       let coverAmount = parseFloat(this.store.coverAmount);
+      let maxRows = canvas.height > coverSize ? Math.floor( canvas.height / coverSize ) : 1;
+      let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
+      if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
       
-      let coversPerWidth = canvasWidth > coverSize ? Math.floor( canvasWidth / coverSize ) : 1;
       update.push({ key: 'canvas.width', value: (coverSize * coversPerWidth) + canvasPadding });
-      let maxRows = Math.ceil(coverAmount / coversPerWidth);
-      update.push({ key: 'canvas.height', value: (coverSize * maxRows) + canvasPadding });
       
-      console.log( coverSize * coversPerWidth, coverSize, coversPerWidth )
-      
+      if ( this.store.canvas.height > 0 ) {
+        if ( Math.round(canvas.height) === Math.round(coverSize*maxRows) ) {
+          update.push({ key: 'canvas.height', value: 0 });
+        }
+        else {
+          update.push({ key: 'canvas.height', value: (coverSize * maxRows) + canvasPadding });
+        }
+      }
       this.$store.commit('update', update);
       
     },
     
     fillCanvasWithCovers: function() {
       
-      if ( this.store.canvas.height > 0 ) {
-        var paddingSize = parseFloat(this.store.paddingSize) * 2;
-        var coverSize = parseFloat(this.store.coverSize) + paddingSize;
-        var canvasPadding = parseFloat(this.store.canvas.padding) * 2;
-        var horizontalFit = Math.floor(
-          (parseFloat(this.store.canvas.width) - canvasPadding) / coverSize
-        );
-        var verticalFit = Math.floor(
-          (parseFloat(this.store.canvas.height) - canvasPadding) / coverSize
-        );
-        if (verticalFit < 1) verticalFit = 1;
-        let newAmount = horizontalFit * verticalFit;
-        this.$store.commit('update', [
-          { key: 'usedCovers', value: this.store.covers.slice(0, newAmount) },
-          { key: 'coverAmount', value: newAmount },
-        ]);
-      }
+      let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
+      let canvasPadding = parseFloat(this.store.canvas.padding)*2;
+      let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
+      let canvas = {
+        width:  innerWrap.offsetWidth,
+        height: innerWrap.parentNode.offsetHeight,
+      };
+      let coverAmount = parseFloat(this.store.coverAmount);
+      let maxRows = canvas.height > coverSize ? Math.floor( canvas.height / coverSize ) : 1;
+      let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
+      if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
+        
+      let horizontalFit = coversPerWidth;
+      let verticalFit = maxRows;
+      
+      let newAmount = horizontalFit * verticalFit;
+      
+      this.$store.commit('update', [
+        { key: 'usedCovers', value: this.store.covers.slice(0, newAmount) },
+        { key: 'coverAmount', value: newAmount },
+      ]);
       
     },
     
@@ -558,7 +573,6 @@ export default {
         this.slidingAround( key, value);
         let vue = this;
         vue.slidingTimer = setTimeout(function () {
-          console.log('clear')
           vue.$store.commit("update", { key: "slidingAround", value: null });
         }, 1000);
       }

@@ -28,9 +28,9 @@ export default {
     },
     "$store.state.coverSize": function () {
       // if (this.$store.getters.widthOrHeight_Unset) {
-      //   this.$nextTick(function () {
-      //     this.centerCanvas();
-      //   });
+        this.$nextTick(function () {
+          this.centerCanvas();
+        });
       // }
     },
     "$store.state.paddingSize": function () {

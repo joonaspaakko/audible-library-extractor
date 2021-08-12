@@ -252,7 +252,6 @@ export default {
 
 .no-panning .cover { cursor: move !important; }
 
-
 .grid {
   position: relative;
   -webkit-touch-callout: none;
@@ -267,7 +266,7 @@ export default {
   .editor-canvas { 
     box-shadow: 2px 2px 25px rgba(#000, .4);
     box-sizing: border-box;
-    // overflow: hidden;
+    overflow: hidden;
     transform-origin: center center;
     position: relative; 
     margin: 1000px;
