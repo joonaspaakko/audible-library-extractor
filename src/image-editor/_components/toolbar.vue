@@ -138,6 +138,7 @@
           <gb-input
             type="number"
             :min="1"
+            :max="store.covers.length"
             :value="parseFloat(store.coverAmount)"
             @input="inputChanged('coverAmount', $event)"
             size="mini"
@@ -157,6 +158,7 @@
         <spacer size="small" :line="false" />
         
         <gb-button
+        :disabled="store.showAuthorAndTitle"
         :full-width="true"
         color="black"
         size="small"
@@ -521,15 +523,8 @@ export default {
       if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
       
       update.push({ key: 'canvas.width', value: (coverSize * coversPerWidth) + canvasPadding });
+      if ( this.store.canvas.height > 0 ) update.push({ key: 'canvas.height', value: 0 });
       
-      if ( this.store.canvas.height > 0 ) {
-        if ( Math.round(canvas.height) === Math.round(coverSize*maxRows) ) {
-          update.push({ key: 'canvas.height', value: 0 });
-        }
-        else {
-          update.push({ key: 'canvas.height', value: (coverSize * maxRows) + canvasPadding });
-        }
-      }
       this.$store.commit('update', update);
       
     },
@@ -539,15 +534,16 @@ export default {
       let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
       let canvasPadding = parseFloat(this.store.canvas.padding)*2;
       let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
+      
       let canvas = {
         width:  innerWrap.offsetWidth,
         height: innerWrap.parentNode.offsetHeight,
       };
       let coverAmount = parseFloat(this.store.coverAmount);
-      let maxRows = canvas.height > coverSize ? Math.floor( canvas.height / coverSize ) : 1;
-      let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
+      let maxRows = canvas.height > coverSize ? Math.ceil( canvas.height / coverSize ) : 1;
+      let coversPerWidth = canvas.width > coverSize ? Math.ceil( canvas.width / coverSize ) : 1;
       if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
-        
+      
       let horizontalFit = coversPerWidth;
       let verticalFit = maxRows;
       
@@ -582,7 +578,9 @@ export default {
           key: 'usedCovers', 
           value: this.store.covers.slice(0, this.store.coverAmount)
         });
-        this.zoomToFit('and-center');
+        this.$nextTick(function() {
+          this.zoomToFit('and-center');
+        });
       }
     },
 
@@ -717,6 +715,15 @@ $toolbar-text: #8eabc5;
   }
   input[type="range"]:focus {
     outline: none;
+  }
+  input[type="range"]:focus::-webkit-slider-thumb {
+    border-color: #1c93ee !important;
+  }
+  input[type="range"]:focus::-moz-range-thumb {
+    border-color: #1c93ee !important;
+  }
+  input[type="range"]:focus::-ms-thumb {
+    border-color: #1c93ee !important;
   }
   input[type="range"]::-webkit-slider-runnable-track {
     width: 100%;

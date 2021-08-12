@@ -49,7 +49,7 @@
               :style="coverPadding"
               >
                 <div v-if="!store.saving" class="cover-padding-preview"></div>
-                <div v-if="store.showAuthorAndTitle" :style="{ width: store.coverSize + 'px' }">
+                <div v-if="store.showAuthorAndTitle" class="author-and-title" :style="{ width: store.coverSize + 'px' }">
                   <div class="author"><strong>{{ book.authors ? book.authors[0].name : '' }}</strong></div>
                   <div class="title">{{ book.titleShort || book.title }}</div>
                 </div>
@@ -338,6 +338,8 @@ export default {
     &.no-panning { cursor: move !important; }
   }
 }
+
+.grid-inner-wrap.hide-author-and-title .author-and-title { display: none !important; }
 
 .canvas-padding-preview {
   position: absolute;

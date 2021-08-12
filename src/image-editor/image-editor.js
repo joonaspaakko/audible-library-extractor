@@ -18,6 +18,7 @@ Vue.use(Vuex);
 // VUE TIPPY
 import VueTippy, { TippyComponent } from "vue-tippy";
 Vue.use(VueTippy, {
+  a11y: false,
   placement: "left",
   arrow: true,
   theme: "light-border",
