@@ -52,7 +52,7 @@
             <span style="padding-right: 10px;">Text elements</span>
             
             <gb-button
-              class="save-btn"
+              class="make-text-element"
               :circular="true"
               @click="makeTextElement"
               color="blue"
@@ -129,6 +129,35 @@
         </div>
         
         
+        
+        <div>
+          
+          <gb-heading tag="h6" :uppercase="true">
+            Reduce file size
+          </gb-heading>
+          <spacer size="mini" :line="false" />
+          <gb-toggle
+          size="small"
+          v-model="store.compressImage"
+          label="Compress image"
+          ></gb-toggle>
+          <spacer size="mini" :line="false" />
+          
+          <div class="label-row" v-if="store.compressImage">
+            <span class="compress-quality-text">Quality ({{ qualityPercentage }}%):</span>
+            <input
+              class="zoom-zoom"
+              type="range"
+              step=".01"
+              min="0.50"
+              max="0.99"
+              v-model="store.compressQuality"
+            />
+          </div>
+          <p v-if="qualityPercentage < 75" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the output quality when setting the quality below 75%.</span></p>
+        </div>
+        
+        <spacer size="large" :line="true" />
         
         <div>
           <gb-heading tag="h6" :uppercase="true">
@@ -462,6 +491,10 @@ export default {
       var zoom = this.store.canvas.zoom == 0 ? 1 : this.store.canvas.zoom;
       return Math.floor(zoom * 100);
     },
+    qualityPercentage: function () {
+      let quality = parseFloat(this.store.compressQuality);
+      return Math.floor(quality * 100);
+    },
   },
   methods: {
     
@@ -540,13 +573,12 @@ export default {
         height: innerWrap.parentNode.offsetHeight,
       };
       let coverAmount = parseFloat(this.store.coverAmount);
-      let maxRows = canvas.height > coverSize ? Math.ceil( canvas.height / coverSize ) : 1;
-      let coversPerWidth = canvas.width > coverSize ? Math.ceil( canvas.width / coverSize ) : 1;
+      let maxRows = canvas.height > coverSize ? Math.floor( canvas.height / coverSize ) : 1;
+      let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
       if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
       
       let horizontalFit = coversPerWidth;
       let verticalFit = maxRows;
-      
       let newAmount = horizontalFit * verticalFit;
       
       this.$store.commit('update', [
@@ -591,6 +623,11 @@ export default {
         vue.$store.commit("update", { key: "saving", value: true });
 
         vue.$nextTick(function () {
+          
+          let quality = vue.store.compressImage ? parseFloat(vue.store.compressQuality) : null;
+          let mimetype = vue.store.compressImage ? 'image/jpeg' : 'image/png';
+          let extension = vue.store.compressImage ? '.jpg' : '.png';
+          
           html2canvas(document.querySelector(".editor-canvas"), {
             backgroundColor: vue.store.canvas.background || "transparent",
             logging: false,
@@ -598,14 +635,17 @@ export default {
           }).then(function (canvas) {
             // If I ever need base64 version of the image: canvas.toDataURL("image/png")
             canvas.toBlob(function (blob) {
-              saveAs(blob, "ale image.png");
+              
+              saveAs( blob, "ale image"+extension );
               setTimeout(function () {
                 vue.$store.commit("update", { key: "saving", value: false });
                 vue.$nextTick(function() {
                   vue.centerCanvas();
                 });
               }, 500);
-            });
+              
+            }, mimetype, quality);
+            
           });
         });
       }
@@ -894,6 +934,19 @@ $toolbar-text: #8eabc5;
     right: 10px;
     background: $toolbar-bg;
   }
+}
+
+.compress-quality-text {
+  display: inline-block;
+  cursor: pointer; 
+  white-space: nowrap; 
+  margin-right: 4px;
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
 }
 
 </style>

@@ -81,6 +81,7 @@ export default {
     },
 
     centerCanvas: function () {
+      
       let workingArea = document.querySelector("#editor-canvas-left");
       let content = workingArea.querySelector("#editor-canvas-content");
 
