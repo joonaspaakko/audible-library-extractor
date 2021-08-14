@@ -56,7 +56,7 @@ const store = new Vuex.Store({
     saving: false,
     slidingAround: null,
     showHints: true,
-    canvasPanning: true,
+    canvasPanning: false,
     usedCovers: null,
     draggable: true,
     showAuthorAndTitle: false,

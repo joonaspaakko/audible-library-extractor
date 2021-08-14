@@ -54,14 +54,13 @@ export default {
       let keyDown = this.panningToggle;
       if ( keyDown ) {
         this.$store.commit('update', { key: 'canvasPanning', value: true });
-        this.$store.commit('update', { key: 'draggable', value: false });
       }
       else {
         this.$store.commit('update', { key: 'canvasPanning', value: false });
-        this.$store.commit('update', { key: 'draggable', value: true });
       }
       
     },
+    
   },
 };
 </script>
