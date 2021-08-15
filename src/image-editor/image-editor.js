@@ -89,14 +89,19 @@ const store = new Vuex.Store({
       
       ++state.textElementCounter;
       if ( !textElement.id ) textElement.id = state.textElementCounter;
-      if ( !textElement.textElement ) textElement.textElement = true,
+      if ( !textElement.textElement ) textElement.textElement = true;
+      
+      let activeEl = _.find( state.textElements, { active: true });
+      if ( activeEl ) activeEl.active = false;
       
       state.textElements.push( textElement );
+      
+      
       
     },
     
     removeText( state, index ) {
-      
+      console.log( index )
       state.textElements.splice(index, 1);
       
     },
@@ -105,6 +110,14 @@ const store = new Vuex.Store({
       
       let textObj = state.textElements[ config.index ];
       textObj[ config.key ] = config.value;
+      
+    },
+    
+    activateText( state, activateIndex ) {
+      
+      _.each( state.textElements, function( el, index ) {
+        el.active = (index === activateIndex);
+      });
       
     },
     

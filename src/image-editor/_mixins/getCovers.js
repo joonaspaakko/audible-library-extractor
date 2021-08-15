@@ -29,22 +29,31 @@ export default {
           //   }
           // });
           
-          // let coversArray = require('./getCovers.json');
-          let coversArray = _.flatten( data.imageEditorChunks );
-          
-          let changes = [
-            { key: "covers", value: coversArray },
-          ];
-          
-          if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
-            changes.push({ key: "coverAmount", value: coversArray.length });
+          if ( data.imageEditorChunksLength ) {
+            
+            // let coversArray = require('./getCovers.json');
+            let coversArray = _.flatten( data.imageEditorChunks );
+            
+            let changes = [
+              { key: "covers", value: coversArray },
+            ];
+            
+            if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
+              changes.push({ key: "coverAmount", value: coversArray.length });
+            }
+            
+            changes.push({ key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) });
+            
+            vue.$store.commit("update", changes);
+            
+            vue.dataReady = true;
+            
+          }
+          else {
+            
+            
           }
           
-          changes.push({ key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) });
-          
-          vue.$store.commit("update", changes);
-          
-          vue.dataReady = true;
           
         });
         

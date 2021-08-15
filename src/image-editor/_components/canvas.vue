@@ -1,5 +1,8 @@
 <template>
-  <div class="left" :class="{ 'force-panning': store.canvasPanning }" id="editor-canvas-left" ref="left" v-dragscroll:nochilddrag>
+  <div class="left" :class="{ 'force-panning': store.canvasPanning }" id="editor-canvas-left" ref="left" 
+  v-dragscroll:nochilddrag
+  v-shortkey="['backspace']" @shortkey="removeTextElement()"
+  >
     <div class="show-blank-canvas" v-show="store.saving"></div>
     <gb-toast class="floating-alert" :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
     <div class="grid" ref="grid">
@@ -18,22 +21,22 @@
           v-if="!store.saving"
         ></div>
         
-        <Moveable 
-        editable="true"
-        v-if="store.textElements.length"
-        v-for="text in store.textElements" :key="text.id"
-        class="text-element"
-        @drag="moveableDrag"
-        @rotate="moveableRotate"
-        @scale="moveableScale"
-        v-bind="moveableOpts" 
-        :style="{
-          fontSize: text.fontSize + 'px',
-          lineHeight: text.lineHeight + 'px',
-          fontWeight: text.bold ? 'bold' : 'normal',
-        }">
-          {{ text.text }}
-        </Moveable>
+        <div class="text-elements">
+          <Moveable 
+          v-if="store.textElements.length"
+          v-for="text in store.textElements" :key="text.id"
+          class="text-element"
+          @drag="moveableDrag"
+          @rotate="moveableRotate"
+          @scale="moveableScale"
+          v-bind="moveableOpts" 
+          :style="{
+            fontWeight: text.bold ? 'bold' : 'normal',
+            textTransform: text.allCaps ? 'uppercase' : 'none',
+          }">
+            {{ text.text }}
+          </Moveable>
+        </div>
         
         <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%">
           <div class="grid-inner-wrap">
@@ -86,20 +89,26 @@ export default {
         throttleRotate: 90,
         scalable: true,
         keepRatio: true,
-        pinchable: true, // ["draggable", "resizable", "scalable", "rotatable"]
         origin: false,
+        renderDirections: ["nw", "ne", "sw", "se"],
+        
       }
     };
   },
   
   mounted: function() {
     
+    document.querySelector('#editor-canvas-left').addEventListener("mousedown", this.movebleToggle);
     this.zoomToFit();
     
   },
 
-  computed: {
+  beforeDestroy: function () {
+    document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.movebleToggle);
+  },
 
+  computed: {
+    
     usedCovers: {
       get() {
         return this.store.usedCovers;
@@ -164,6 +173,48 @@ export default {
   },
   
   methods: {
+    
+    removeTextElement: function() {
+      
+      var activeIndex = _.findIndex( this.store.textElements, 'active');
+      if ( activeIndex > -1 ) this.$store.commit('removeText', activeIndex);
+      
+    },
+    
+    movebleToggle: function( e ) {
+      
+      let textElement = e.target.classList.contains('text-element');
+      if ( textElement ) {
+        
+        let targetIndex = [...e.target.parentElement.children].indexOf(e.target);
+        this.$store.commit("activateText", targetIndex);
+        
+        let transformBoxes = document.querySelectorAll('.moveable-control-box');
+        if ( transformBoxes.length ) {
+          transformBoxes.forEach(function( controlEl, controlIndex ) {
+            if ( targetIndex === controlIndex ) {
+              controlEl.style.display = 'block';
+            }
+            else {
+              controlEl.style.display = 'none';
+            }
+          });
+        }
+        
+      }
+      else {
+        
+        this.$store.commit("activateText", -1);
+        
+        let transformBoxes = document.querySelectorAll('.moveable-control-box');
+        if ( transformBoxes.length ) {
+          transformBoxes.forEach(function( controlEl, controlIndex ) {
+            controlEl.style.display = 'none';
+          });
+        }
+      }
+      
+    },
     
     moveableScale({ target, transform, scale }) {
       console.log('onScale scale', scale);
@@ -330,7 +381,13 @@ export default {
   }
   
   
+  @import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;600&display=swap');
   .text-element {
+    white-space: nowrap;
+    font-size: 30px;
+    line-height: 35px;
+    font-family: 'Work Sans', sans-serif;
+    font-weight: 300;
     display: inline-block !important;
     position: absolute;
     z-index: 999999;
@@ -368,8 +425,9 @@ export default {
 </style>
 
 <style lang="scss">
-.moveable-line {
-  //  display: none !important;
+
+.moveable-control-box {
+  display: none;
 }
 
 .floating-alert {

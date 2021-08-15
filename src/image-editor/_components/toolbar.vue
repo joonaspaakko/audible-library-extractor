@@ -46,7 +46,7 @@
     <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
       <div v-show="!store.saving">
         
-        <div v-if="false">
+        <div>
           
           <gb-heading tag="h6" :uppercase="true">
             <span style="padding-right: 10px;">Text elements</span>
@@ -64,14 +64,15 @@
             
           </gb-heading>
           
-          <div class="text-elements" v-for="(text, index) in store.textElements">
+          <p v-if="store.textElements.length" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">You can make room for text by adjusting canvas padding.</span></p>
+          
+          <div class="text-elements" v-for="(text, index) in store.textElements" :key="text.id" :class="{ active: text.active }">
             
-            <spacer v-if="index > 0 && store.textElements.length" size="normal" :line="true" />
-            <spacer v-if="index === 0" size="normal" :line="false" />
+            <spacer size="small" :line="false" />
             
             <div class="text-elements-inner-wrap">
               
-              <gb-icon class="remove-text" size="16px" name="close" @click="$store.commit('removeText', text)"></gb-icon>
+              <gb-icon class="remove-text" size="16px" name="close" @click="$store.commit('removeText', index)"></gb-icon>
               
               <div class="label-row">
                 <span>Text:</span>
@@ -86,40 +87,22 @@
               
               <spacer size="small" :line="false" />
               
-              <div class="label-row">
-                <span>Font size:</span>
-                <gb-input
-                  type="number"
-                  :min="1"
-                  :full-width="true"
-                  v-model="text.fontSize"
-                  size="mini"
-                ></gb-input>
-              </div>
-              
-              <spacer size="small" :line="false" />
-              
-              <div class="label-row">
-                <span>Line height:</span>
-                <gb-input
-                  type="number"
-                  :min="1"
-                  :full-width="true"
-                  v-model="text.lineHeight"
-                  size="mini"
-                ></gb-input>
-              </div>
-              
-              <spacer size="small" :line="false" />
-              
-              <div class="label-row">
-                <span>Line height:</span>
-                <gb-toggle
-                size="small"
+              <div class="label-row" style="padding-left: 52px;">
+                <gb-checkbox
+                style="padding-left: 0px;"
+                size="mini"
                 v-model="text.bold"
                 label="Bold"
-                ></gb-toggle>
+                ></gb-checkbox>
+                
+                <gb-checkbox
+                style="padding-left: 0px;"
+                size="mini"
+                v-model="text.allCaps"
+                label="All caps"
+                ></gb-checkbox>
               </div>
+              
             </div>
             
           </div>
@@ -291,7 +274,7 @@
 
         <spacer size="small" :line="false" />
 
-        <div>
+        <div class="canvas-padding">
           <gb-heading tag="h6" :uppercase="true">Canvas padding</gb-heading>
           <spacer size="mini" :line="false" />
           <input
@@ -302,13 +285,45 @@
             step="1"
             @input="slidingAround('canvas.padding', $event)"
           />
+          <div class="label-row">
+            
+          <gb-input
+            style="padding-left: 0px;"
+            type="number"
+            :min="0"
+            :value="parseFloat(store.canvas.padding)"
+            @input="inputChanged('canvas.padding', $event)"
+            size="mini"
+            description="left"
+          ></gb-input>
+          
           <gb-input
             type="number"
             :min="0"
             :value="parseFloat(store.canvas.padding)"
             @input="inputChanged('canvas.padding', $event)"
             size="mini"
+            description="top"
           ></gb-input>
+          
+          <gb-input
+            type="number"
+            :min="0"
+            :value="parseFloat(store.canvas.padding)"
+            @input="inputChanged('canvas.padding', $event)"
+            size="mini"
+            description="right"
+          ></gb-input>
+          
+          <gb-input
+            type="number"
+            :min="0"
+            :value="parseFloat(store.canvas.padding)"
+            @input="inputChanged('canvas.padding', $event)"
+            size="mini"
+            description="bottom"
+          ></gb-input>
+          </div>
         </div>
 
         <spacer size="large" :line="true" />
@@ -537,6 +552,8 @@ export default {
         fontSize: 30,
         lineHeight: 35,
         bold: false,
+        allCaps: false,
+        active: true,
       });
       
     },
@@ -943,6 +960,10 @@ $toolbar-text: #8eabc5;
   }
 }
 
+.text-elements.active .text-elements-inner-wrap {
+  border-color: #fbc03d;
+}
+
 .compress-quality-text {
   display: inline-block;
   cursor: pointer; 
@@ -980,6 +1001,11 @@ $toolbar-text: #8eabc5;
 //   border-radius: 999999px !important;
 //   border-width: 2px !important;
 // }
+
+.canvas-padding .gb-field-message {
+  display: block;
+  text-align: center;
+}
 
 [class^="gb-base-heading"] {
   -webkit-touch-callout: none;

@@ -41,8 +41,9 @@ export default {
   mounted: function () {
     this.mounted = true;
   },
-
+  
   methods: {
+    
     stopSlidingAround: function () {
       let vue = this;
       setTimeout(function () {
