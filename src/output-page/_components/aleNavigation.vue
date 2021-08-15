@@ -109,10 +109,6 @@
           
           <view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted" />
           
-          <div class="text-button" v-if="!$store.state.standalone">
-            <ale-save-locally></ale-save-locally>
-          </div>
-          
         </div>
         
       </div>
@@ -131,6 +127,12 @@
         
         <div class="text-button" v-if="!$store.state.standalone">
           <ale-save-locally></ale-save-locally>
+        </div>
+        
+        <div class="text-button" v-if="!$store.state.standalone && $route.meta.gallery && $store.getters.collection && $store.getters.collection.length">
+          <div class="icon" @click="openImageGallery">
+            <font-awesome :icon="['fas', 'images']" />
+          </div>
         </div>
         
       </div>
@@ -221,6 +223,27 @@ export default {
   },
   
   methods: {
+    
+    openImageGallery: function() {
+      
+      try {
+        
+        let data = JSON.parse(JSON.stringify(this.$store.getters.collection));
+        data = _.chunk(data, 50);
+        
+        let storageObj = {
+          imageEditorChunks: data,
+          imageEditorChunksLength: data.length
+        };
+        
+        browser.storage.local.set(storageObj).then(() => {
+          browser.runtime.sendMessage({ action: "openImageEditor" });
+        });
+        
+        
+      } catch (e) {}
+      
+    },
     
     outsideClick: function(e) {
       if (this.subMenuActive) {

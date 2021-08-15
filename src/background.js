@@ -71,10 +71,19 @@ browser.runtime.onMessage.addListener((message, sender) => {
       url: "./output-page/index.html",
       active: true,
       index: sender.tab.index + 1,
-      openerTabId: sender.tab.id
     });
     
     makeContextMenu();
+    
+  }
+  else if (message.action === "openImageEditor") {
+    
+    // Open the output page
+    browser.tabs.create({
+      url: "./image-editor/index.html",
+      active: true,
+      index: sender.tab.index + 1,
+    });
     
   }
 });

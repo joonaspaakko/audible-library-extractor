@@ -52,6 +52,7 @@ import {
   minBy,
   range,
   unionBy,
+  chunk,
 } from "lodash";
 
 // VUE ROUTER
@@ -365,6 +366,7 @@ import {
   faBan,
   faMinusCircle,
   faHeadphonesAlt,
+  faImages,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -429,6 +431,7 @@ library.add(
   faBan,
   faMinusCircle,
   faHeadphonesAlt,
+  faImages,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);

@@ -10,7 +10,7 @@
         color="blue"
         size="large"
         left-icon="camera_alt"
-        v-tippy content="Save as a .png"
+        v-tippy :content="'Save as a ' + (store.compressImage ? '.jpg' : '.png')"
       >
       </gb-button>
     </div>
@@ -154,7 +154,8 @@
               v-model="store.compressQuality"
             />
           </div>
-          <p v-if="qualityPercentage < 75" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the output quality when setting the quality below 75%.</span></p>
+          <p v-if="qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
+          <p v-if="store.compressImage" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">Compressed image is saved as a jpeg, which doesn't support transparency.</span></p>
         </div>
         
         <spacer size="large" :line="true" />
@@ -265,7 +266,7 @@
             />
           </div>
           <div class="label-row" v-tippy content="Set the height to 0 when you don't need to limit it to a certain height.">
-            <span style="width: 50px; position: relative; top: -11px;">Height:</span>
+            <span :class="{ 'offset-height-text': store.canvas.height == 0 }">Height:</span>
             <gb-input
               type="number"
               :min="0"
@@ -629,7 +630,7 @@ export default {
           let extension = vue.store.compressImage ? '.jpg' : '.png';
           
           html2canvas(document.querySelector(".editor-canvas"), {
-            backgroundColor: vue.store.canvas.background || "transparent",
+            backgroundColor: vue.store.canvas.background || "rgba(255,255,255,0)",
             logging: false,
             useCORS: true,
           }).then(function (canvas) {
@@ -715,6 +716,12 @@ $toolbar-text: #8eabc5;
     padding-left: 10px;
     flex: 1;
   }
+}
+
+.offset-height-text {
+  width: 50px; 
+  position: relative; 
+  top: -11px;
 }
 
 .hint-text {

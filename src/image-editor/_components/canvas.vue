@@ -1,7 +1,7 @@
 <template>
   <div class="left" :class="{ 'force-panning': store.canvasPanning }" id="editor-canvas-left" ref="left" v-dragscroll:nochilddrag>
     <div class="show-blank-canvas" v-show="store.saving"></div>
-    <gb-toast class="floating-alert" :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> press space bar while dragging to move the canvas</gb-toast>
+    <gb-toast class="floating-alert" :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
     <div class="grid" ref="grid">
       <div
       class="editor-canvas"
@@ -374,7 +374,7 @@ export default {
 
 .floating-alert {
   position: fixed;
-  top: 10px;
+  bottom: 10px;
   left: 10px;
   z-index: 9999999999;
 }

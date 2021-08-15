@@ -62,7 +62,7 @@ const store = new Vuex.Store({
     showAuthorAndTitle: false,
     textElementCounter: 0,
     textElements: [],
-    compressImage: true,
+    compressImage: false,
     compressQuality: .95,
   },
   mutations: {

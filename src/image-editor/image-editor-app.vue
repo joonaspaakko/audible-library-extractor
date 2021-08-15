@@ -1,5 +1,5 @@
 <template>
-  <div id="app" v-if="mounted" v-shortkey.push="['space']" @shortkey="forcePanning">
+  <div id="app" v-if="dataReady" v-show="mounted" v-shortkey.push="['space']" @shortkey="forcePanning">
     <editor-canvas />
     <toolbar />
   </div>
@@ -19,16 +19,19 @@ export default {
   mixins: [getCovers],
   data: function () {
     return {
+      dataReady: false,
       mounted: false,
       panningToggle: false,
     };
   },
   created: function () {
-    this.$store.commit("update", [
-      { key: "usedCovers", value: this.$store.state.covers.slice( 0, this.$store.state.coverAmount ) },
-    ]);
-
     window.addEventListener("mouseup", this.stopSlidingAround);
+    window.addEventListener('beforeunload', function (e) {
+      
+      e.preventDefault();
+      e.returnValue = '';
+      
+    });
   },
 
   beforeDestroy: function () {

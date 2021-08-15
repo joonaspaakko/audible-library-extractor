@@ -238,7 +238,6 @@ export default new Vuex.Store({
         return state.searchCollection;
       }
       else {
-        console.log( JSON.stringify(state.mutatingCollection) );
         return state.mutatingCollection;
       }
     },
