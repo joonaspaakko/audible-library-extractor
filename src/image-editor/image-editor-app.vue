@@ -1,5 +1,8 @@
 <template>
-  <div id="app" v-if="dataReady" v-show="mounted" v-shortkey.push="['space']" @shortkey="forcePanning">
+  <div id="app" v-if="dataReady" v-show="mounted" 
+  v-shortkey.push="store.events.canvasPanning ? ['space'] : null" 
+  @shortkey="store.events.canvasPanning ? forcePanning($event) : null"
+  >
     <editor-canvas />
     <toolbar />
   </div>
@@ -19,6 +22,7 @@ export default {
   mixins: [getCovers],
   data: function () {
     return {
+      store: this.$store.state,
       dataReady: false,
       mounted: false,
       panningToggle: false,
@@ -26,12 +30,10 @@ export default {
   },
   created: function () {
     window.addEventListener("mouseup", this.stopSlidingAround);
-    window.addEventListener('beforeunload', function (e) {
-      
-      e.preventDefault();
-      e.returnValue = '';
-      
-    });
+    // window.addEventListener('beforeunload', function (e) {
+    //   e.preventDefault();
+    //   e.returnValue = '';
+    // });
   },
 
   beforeDestroy: function () {

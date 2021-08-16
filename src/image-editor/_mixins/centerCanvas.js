@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export default {
   data: function() {
     return {
@@ -40,11 +42,32 @@ export default {
       //   });
       // }
     },
-    "$store.state.canvas.padding": function () {
+    "$store.state.canvas.padding.left": function () {
       // if (this.$store.getters.widthOrHeight_Unset) {
-      //   this.$nextTick(function () {
-      //     this.centerCanvas();
-      //   });
+        this.$nextTick(function () {
+          this.centerCanvas();
+        });
+      // }
+    },
+    "$store.state.canvas.padding.top": function () {
+      // if (this.$store.getters.widthOrHeight_Unset) {
+        this.$nextTick(function () {
+          this.centerCanvas();
+        });
+      // }
+    },
+    "$store.state.canvas.padding.right": function () {
+      // if (this.$store.getters.widthOrHeight_Unset) {
+        this.$nextTick(function () {
+          this.centerCanvas();
+        });
+      // }
+    },
+    "$store.state.canvas.padding.bottom": function () {
+      // if (this.$store.getters.widthOrHeight_Unset) {
+        this.$nextTick(function () {
+          this.centerCanvas();
+        });
       // }
     },
     "$store.state.canvas.zoom": function () {
@@ -80,7 +103,7 @@ export default {
       }
     },
 
-    centerCanvas: function () {
+    centerCanvas: _.debounce( function() {
       
       let workingArea = document.querySelector("#editor-canvas-left");
       let content = workingArea.querySelector("#editor-canvas-content");
@@ -127,7 +150,8 @@ export default {
       } else {
         workingArea.scrollLeft = ((canvasWidth + padding) - workingArea.clientWidth) / 2; // Center
       }
-      
-    }
+    
+    }, 250, { leading: false, trailing: true }),
+    
   }
 };

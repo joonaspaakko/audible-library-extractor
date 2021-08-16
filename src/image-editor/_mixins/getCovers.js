@@ -12,7 +12,7 @@ export default {
       try {
         
         browser.storage.local.get(['imageEditorChunks', 'imageEditorChunksLength']).then(data => {
-          browser.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
+          // browser.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
           
           // browser.storage.local.get(['collections-chunk-length']).then(collectionsChunkLength => {
           //   if ( collectionsChunkLength ) {

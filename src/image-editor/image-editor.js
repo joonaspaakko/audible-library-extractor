@@ -15,6 +15,9 @@ Vue.use(require('vue-shortkey'))
 import Vuex from "vuex";
 Vue.use(Vuex);
 
+import contenteditable from 'vue-contenteditable';
+Vue.use(contenteditable)
+
 // VUE TIPPY
 import VueTippy, { TippyComponent } from "vue-tippy";
 Vue.use(VueTippy, {
@@ -46,7 +49,12 @@ const store = new Vuex.Store({
       zoom: 1,
       zoomOutputs: false,
       fit: false,
-      padding: 32,
+      padding: {
+        left: 32,
+        top: 32,
+        right: 32,
+        bottom: 32,
+      },
       transformOrigin: "center center",
       scaled: {
         width: 0,
@@ -64,6 +72,11 @@ const store = new Vuex.Store({
     textElements: [],
     compressImage: false,
     compressQuality: .95,
+    events: {
+      textNudge: true,
+      textRemove: true,
+      canvasPanning: true,
+    },
   },
   mutations: {
     
@@ -71,13 +84,15 @@ const store = new Vuex.Store({
       let setValues = function (config) {
         config = config || {};
         if (config.key) {
-          updateMutationIntercept( state, config );
           _.set(state, config.key, config.value);
+          if ( config.key.match('events.') ) {
+            console.log(config.key, config.value, state.events.textNudge )
+          }
         }
       };
 
       if (_.isArray(config)) {
-        _.each(config, function (conf) {
+        _.each(config, function(conf) {
           setValues(conf);
         });
       } else {
@@ -129,15 +144,6 @@ const store = new Vuex.Store({
   }
 });
 
-function updateMutationIntercept( state, config ) {
-  
-  // if ( config.key === 'usedCovers' ) {
-  //   let oldCovers = state.usedCovers;
-  //   let newCovers = config.value;
-    
-  // }
-  
-}
 
 import vueDragscroll from "vue-dragscroll";
 Vue.use(vueDragscroll);

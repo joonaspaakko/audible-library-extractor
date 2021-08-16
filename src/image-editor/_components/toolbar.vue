@@ -24,6 +24,8 @@
         v-model="store.canvas.zoom"
         step=".01"
         @dblclick="$store.commit('update', { key: 'canvas.zoom', value: 1 })"
+        @focus="inputFocused"
+        @blur="inputBlurred"
       />
       <gb-heading
         v-tippy content="Click to reset to 100% zoom"
@@ -75,21 +77,48 @@
               <gb-icon class="remove-text" size="16px" name="close" @click="$store.commit('removeText', index)"></gb-icon>
               
               <div class="label-row">
-                <span>Text:</span>
+                <span style="width: 30px;">Text:</span>
                 <gb-input
                   type="text"
                   :full-width="true"
                   :value="text.text"
                   @input="changeTextElement( $event, index, text, 'text' )"
+                  @focus="inputFocused"
+                  @blur="inputBlurred"
                   size="mini"
                 ></gb-input>
+              </div>
+              <spacer size="mini" :line="false" />
+              <div class="label-row">
+                <span style="width: 30px;">Size:</span>
+                <input
+                  style="margin-left: 10px"
+                  :full-width="true"
+                  :value="parseFloat(text.fontSize)"
+                  type="range"
+                  min="10"
+                  max="100"
+                  step="1"
+                  @input="changeTextElement( $event, index, text, 'fontSize', $event )"
+                  @focus="inputFocused"
+                  @blur="inputBlurred"
+                  size="mini"
+                />
+                <span style="display: inline-block; padding-left: 5px;">{{ text.fontSize }}</span>
               </div>
               
               <spacer size="small" :line="false" />
               
-              <div class="label-row" style="padding-left: 52px;">
+              <div class="label-row">
+                
+                <div class="align-text" style="padding-left: 0px;">
+                  <gb-icon :class="{ active: text.alignment === 'left' }" size="16px" name="format_align_left" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'left', });"></gb-icon>
+                  <gb-icon :class="{ active: text.alignment === 'center' }" size="16px" name="format_align_center" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'center', });"></gb-icon>
+                  <gb-icon :class="{ active: text.alignment === 'right' }" size="16px" name="format_align_right" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'right', });"></gb-icon>
+                </div>
+                
                 <gb-checkbox
-                style="padding-left: 0px;"
+                style="padding-left: 10px;"
                 size="mini"
                 v-model="text.bold"
                 label="Bold"
@@ -135,6 +164,8 @@
               min="0.50"
               max="0.99"
               v-model="store.compressQuality"
+              @focus="inputFocused"
+              @blur="inputBlurred"
             />
           </div>
           <p v-if="qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
@@ -154,6 +185,8 @@
             :max="store.covers.length"
             :value="parseFloat(store.coverAmount)"
             @input="inputChanged('coverAmount', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
             size="mini"
             name="coverNumberTippy"
             :warning="store.coverAmount < store.covers.length ? 'Using ' + store.coverAmount +'/'+ store.covers.length : null"
@@ -225,6 +258,8 @@
               max="1920"
               v-model="store.canvas.width"
               step="1"
+              @focus="inputFocused"
+              @blur="inputBlurred"
             />
           </div>
           <div class="label-row" v-tippy content="Width is always required">
@@ -234,6 +269,8 @@
               :min="1"
               :value="parseFloat(store.canvas.width)"
               @input="inputChanged('canvas.width', $event)"
+              @focus="inputFocused"
+              @blur="inputBlurred"
               size="mini"
             ></gb-input>
           </div>
@@ -245,6 +282,8 @@
               min="0"
               max="1080"
               v-model="store.canvas.height"
+              @focus="inputFocused"
+              @blur="inputBlurred"
               step="1"
             />
           </div>
@@ -255,6 +294,8 @@
               :min="0"
               :value="parseFloat(store.canvas.height)"
               @input="inputChanged('canvas.height', $event)"
+              @focus="inputFocused"
+              @blur="inputBlurred"
               size="mini"
               :info="store.canvas.height > 0 ? null : '0 = automatic height'"
             ></gb-input>
@@ -283,7 +324,9 @@
             max="500"
             v-model="canvasPadding"
             step="1"
-            @input="slidingAround('canvas.padding', $event)"
+            @input="slidingAround('canvas.padding.', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
           />
           <div class="label-row">
             
@@ -291,8 +334,10 @@
             style="padding-left: 0px;"
             type="number"
             :min="0"
-            :value="parseFloat(store.canvas.padding)"
-            @input="inputChanged('canvas.padding', $event)"
+            :value="parseFloat(store.canvas.padding.left)"
+            @input="inputChanged('canvas.padding.left', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
             size="mini"
             description="left"
           ></gb-input>
@@ -300,8 +345,10 @@
           <gb-input
             type="number"
             :min="0"
-            :value="parseFloat(store.canvas.padding)"
-            @input="inputChanged('canvas.padding', $event)"
+            :value="parseFloat(store.canvas.padding.top)"
+            @input="inputChanged('canvas.padding.top', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
             size="mini"
             description="top"
           ></gb-input>
@@ -309,8 +356,10 @@
           <gb-input
             type="number"
             :min="0"
-            :value="parseFloat(store.canvas.padding)"
-            @input="inputChanged('canvas.padding', $event)"
+            :value="parseFloat(store.canvas.padding.right)"
+            @input="inputChanged('canvas.padding.right', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
             size="mini"
             description="right"
           ></gb-input>
@@ -318,8 +367,10 @@
           <gb-input
             type="number"
             :min="0"
-            :value="parseFloat(store.canvas.padding)"
-            @input="inputChanged('canvas.padding', $event)"
+            :value="parseFloat(store.canvas.padding.bottom)"
+            @input="inputChanged('canvas.padding.bottom', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
             size="mini"
             description="bottom"
           ></gb-input>
@@ -332,6 +383,8 @@
           <gb-heading tag="h6" :uppercase="true">Cover size</gb-heading>
           <spacer size="mini" :line="false" />
           <input type="range" min="1" max="500" v-model="coverSize" step="1" 
+          @focus="inputFocused"
+          @blur="inputBlurred"
           v-tippy content="The native cover size is 500px. You can make it larger using
             the input field below, but it's not recommended since upsizing 
             degrades the quality."
@@ -343,6 +396,8 @@
             :min="1"
             :value="parseFloat(store.coverSize)"
             @input="inputChanged('coverSize', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
             size="mini"
           ></gb-input>
         </div>
@@ -359,12 +414,16 @@
             v-model="coverPadding"
             step="1"
             @input="slidingAround('paddingSize', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
           />
           <gb-input
             type="number"
             :min="0"
             :value="parseFloat(store.paddingSize)"
             @input="inputChanged('paddingSize', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
             size="mini"
           ></gb-input>
         </div>
@@ -433,60 +492,56 @@ export default {
       get: function () {
         return this.store.canvas.width;
       },
-      set: _.throttle(
-        function (size) {
-          this.$store.commit("update", {
-            key: "canvas.width",
-            value: size,
-          });
-        },
-        200,
-        { leading: false, trailing: true }
-      ),
+      set: _.throttle( function (size) {
+        this.$store.commit("update", {
+          key: "canvas.width",
+          value: size,
+        });
+      }, 200, { leading: false, trailing: true }),
     },
     canvasWidth: {
       get: function () {
         return this.store.canvas.height;
       },
-      set: _.throttle(
-        function (size) {
-          this.$store.commit("update", {
-            key: "canvas.height",
-            value: size,
-          });
-        },
-        200,
-        { leading: false, trailing: true }
-      ),
+      set: _.throttle( function (size) {
+        this.$store.commit("update", {
+          key: "canvas.height",
+          value: size,
+        });
+      }, 200, { leading: false, trailing: true }),
     },
     coverSize: {
       get: function () {
         return this.store.coverSize;
       },
-      set: _.throttle(
-        function (size) {
-          this.$store.commit("update", {
-            key: "coverSize",
-            value: size,
-          });
-        },
-        200,
-        { leading: false, trailing: true }
-      ),
+      set: _.throttle( function (size) {
+        this.$store.commit("update", {
+          key: "coverSize",
+          value: size,
+        });
+      }, 200, { leading: false, trailing: true }),
     },
     canvasPadding: {
       get: function () {
-        return this.store.canvas.padding;
+        
+        var values = [
+          parseFloat(this.store.canvas.padding.left),
+          parseFloat(this.store.canvas.padding.top),
+          parseFloat(this.store.canvas.padding.right),
+          parseFloat(this.store.canvas.padding.bottom),
+        ];
+        
+        return _.maxBy( values );
       },
       set: _.throttle(
         function (padding) {
-          this.$store.commit("update", {
-            key: "canvas.padding",
-            value: padding,
-          });
-        },
-        200,
-        { leading: false, trailing: true }
+          this.$store.commit("update", [
+            { key: 'canvas.padding.left', value: padding },
+            { key: 'canvas.padding.top', value: padding },
+            { key: 'canvas.padding.right', value: padding },
+            { key: 'canvas.padding.bottom', value: padding },
+          ]);
+        }, 200, { leading: false, trailing: true }
       ),
     },
 
@@ -538,8 +593,32 @@ export default {
       
     // },
     
-    changeTextElement: function( value, index, textElement, key ) {
-      this.$store.commit('changeText', { index: index, key: key, value: value, textElement: textElement, });
+    inputFocused: function() {
+      this.$store.commit('update', [
+        { key: 'events.textNudge', value: false },
+        { key: 'events.textRemove', value: false },
+        { key: 'events.canvasPanning', value: false },
+      ]);
+      // this.$nextTick(function() {
+        
+      // });
+    },
+    
+    inputBlurred: function() {
+      this.$store.commit('update', [
+        { key: 'events.textNudge', value: true },
+        { key: 'events.textRemove', value: true },
+        { key: 'events.canvasPanning', value: true },
+      ]);
+      // this.$nextTick(function() {
+        
+      // });
+    },
+    
+    changeTextElement: function( value, index, textElement, key, e ) {
+      let val = value;
+      if ( e ) val = parseFloat(e.target.value);
+      this.$store.commit('changeText', { index: index, key: key, value: val, });
     },
     
     makeTextElement: function() {
@@ -550,10 +629,10 @@ export default {
         floater: false,
         fullWidth: true,
         fontSize: 30,
-        lineHeight: 35,
         bold: false,
         allCaps: false,
         active: true,
+        alignment: 'center',
       });
       
     },
@@ -562,7 +641,8 @@ export default {
       
       let update = [];
       let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
-      let canvasPadding = parseFloat(this.store.canvas.padding)*2;
+      let canvasPaddingX = parseFloat(this.store.canvas.padding.left) + parseFloat(this.store.canvas.padding.right);
+      // let canvasPaddingY = parseFloat(this.store.canvas.padding.top) + parseFloat(this.store.canvas.padding.bottom);
       let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
       let canvas = {
         width:  innerWrap.offsetWidth,
@@ -573,7 +653,7 @@ export default {
       let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
       if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
       
-      update.push({ key: 'canvas.width', value: (coverSize * coversPerWidth) + canvasPadding });
+      update.push({ key: 'canvas.width', value: (coverSize * coversPerWidth) + canvasPaddingX });
       if ( this.store.canvas.height > 0 ) update.push({ key: 'canvas.height', value: 0 });
       
       this.$store.commit('update', update);
@@ -583,7 +663,9 @@ export default {
     fillCanvasWithCovers: function() {
       
       let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
-      let canvasPadding = parseFloat(this.store.canvas.padding)*2;
+      // let canvasPadding = parseFloat(this.store.canvas.padding)*2;
+      // let canvasPaddingX = parseFloat(this.store.canvas.padding.left) + parseFloat(this.store.canvas.padding.right);
+      // let canvasPaddingY = parseFloat(this.store.canvas.padding.top) + parseFloat(this.store.canvas.padding.bottom);
       let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
       
       let canvas = {
@@ -615,7 +697,7 @@ export default {
     inputChanged: function (key, value) {
       clearTimeout(this.slidingTimer);
 
-      if ( key === 'canvas.padding' || key === 'paddingSize' ) {
+      if ( key.match('canvas.padding.') || key === 'paddingSize' ) {
         this.slidingAround( key, value);
         let vue = this;
         vue.slidingTimer = setTimeout(function () {
@@ -701,6 +783,7 @@ $toolbar-text: #8eabc5;
   box-sizing: border-box;
   color: $toolbar-text;
   max-width: 380px;
+  z-index: 3001;
   ::-moz-selection { background: #0093ee !important; color: lighten( #0093ee, 30 ); }
   ::selection { background: #0093ee !important; color: lighten( #0093ee, 45 ); }
 }
@@ -957,6 +1040,20 @@ $toolbar-text: #8eabc5;
     top: -9px;
     right: 10px;
     background: $toolbar-bg;
+  }
+  .align-text {
+    i {
+      cursor: pointer;
+      -webkit-touch-callout: none; 
+      -webkit-user-select: none; 
+      -khtml-user-select: none; 
+      -moz-user-select: none; 
+      -ms-user-select: none; 
+      user-select: none; 
+    }
+    .active {
+      color: #fbc03d;
+    }
   }
 }
 
