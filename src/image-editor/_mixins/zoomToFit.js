@@ -18,7 +18,8 @@ export default {
       var canvasWidth = cWidth || content.clientWidth;
       var canvasHeight = cHeight || content.clientHeight;
       
-      let padding = 20;
+      // Whitespace around the canvas when fitted
+      let padding = 35;
       
       let size = {
         from: [

@@ -42,6 +42,7 @@ const store = new Vuex.Store({
     coverAmount: 30,
     coverSize: 160,
     paddingSize: 5,
+    coverPlaceholders: 0,
     canvas: {
       width: 914,
       height: 0,
@@ -60,6 +61,7 @@ const store = new Vuex.Store({
         width: 0,
         height: 0,
       },
+      alignment: 'center',
     },
     saving: false,
     slidingAround: null,
@@ -85,9 +87,6 @@ const store = new Vuex.Store({
         config = config || {};
         if (config.key) {
           _.set(state, config.key, config.value);
-          if ( config.key.match('events.') ) {
-            console.log(config.key, config.value, state.events.textNudge )
-          }
         }
       };
 
@@ -111,14 +110,10 @@ const store = new Vuex.Store({
       
       state.textElements.push( textElement );
       
-      
-      
     },
     
     removeText( state, index ) {
-      console.log( index )
       state.textElements.splice(index, 1);
-      
     },
     
     changeText( state, config ) {
@@ -136,11 +131,53 @@ const store = new Vuex.Store({
       
     },
     
+    updateCoverPlaceholders: function( state, value) {
+      
+      let usedPlaceholders = _.filter( state.usedCovers, 'placeholderCover' );
+      let difference = Math.abs(usedPlaceholders.length - value);
+      console.log('difference', difference)
+      let diffArray = _.range(0, difference);
+      if ( usedPlaceholders.length < value ) {
+        _.each(diffArray, function( index ) {
+          state.usedCovers.unshift( newItem() );
+        });
+      }
+      else {
+        
+        _.each(_.dropRight(usedPlaceholders, difference), function( cover ) {
+          
+          let removeIndex = _.findIndex(state.usedCovers, { asin: cover.asin });
+          if ( removeIndex ) {
+            console.log( 'removeIndex', removeIndex )
+            state.usedCovers.splice(removeIndex, 1);
+          }
+          
+        });
+        console.log( usedPlaceholders )
+        
+      }
+      
+      function newItem() {
+        return {
+          asin: new Date().getTime(),
+          placeholderCover: true,
+        };
+      };
+        
+        
+    },
+    
   },
   getters: {
+    
     widthOrHeight_Unset: function (state) {
       return state.canvas.width < 1 || state.canvas.height < 1;
-    }
+    },
+    
+    textElementActive: function( state ) {
+      return !!_.find( state.textElements, 'active');
+    },
+    
   }
 });
 

@@ -44,9 +44,36 @@
       
     </div>
     
-
     <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
       <div v-show="!store.saving">
+        
+        
+        <!-- On ice for now... -->
+        <!-- 
+          The idea was that if you really wanted to, you could add text in place of 
+          covers by replacing certain covers with blank placeholders.... 
+          It's just that the sorting is kinda terrible...
+         -->
+        <div v-if="false">
+          
+          <gb-heading tag="h6" :uppercase="true">
+            Placeholders
+          </gb-heading>
+          <gb-input
+            type="number"
+            :full-width="true"
+            :min="0"
+            :max="100"
+            :value="parseFloat(store.coverPlaceholders)"
+            @input="coverPlaceholders"
+            @focus="inputFocused"
+            @blur="inputBlurred"
+            size="mini"
+          ></gb-input>
+          
+          <spacer size="large" :line="true" />
+
+        </div>
         
         <div>
           
@@ -68,11 +95,12 @@
           
           <p v-if="store.textElements.length" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">You can make room for text by adjusting canvas padding.</span></p>
           
-          <div class="text-elements" v-for="(text, index) in store.textElements" :key="text.id" :class="{ active: text.active }">
+          <div class="text-elements" v-for="(text, index) in store.textElements" :key="text.id" :class="{ active: text.active }"
+          @mousedown="textElementClicked(index, text)">
             
             <spacer size="small" :line="false" />
             
-            <div class="text-elements-inner-wrap">
+            <div class="text-elements-inner-wrap" :style="{ zIndex: store.textElements.length - index }">
               
               <gb-icon class="remove-text" size="16px" name="close" @click="$store.commit('removeText', index)"></gb-icon>
               
@@ -82,7 +110,7 @@
                   type="text"
                   :full-width="true"
                   :value="text.text"
-                  @input="changeTextElement( $event, index, text, 'text' )"
+                  @input="changeTextElementThrottle( $event, index, text, 'text' )"
                   @focus="inputFocused"
                   @blur="inputBlurred"
                   size="mini"
@@ -99,7 +127,7 @@
                   min="10"
                   max="100"
                   step="1"
-                  @input="changeTextElement( $event, index, text, 'fontSize', $event )"
+                  @input="changeTextElementThrottle( $event, index, text, 'fontSize', $event )"
                   @focus="inputFocused"
                   @blur="inputBlurred"
                   size="mini"
@@ -111,23 +139,35 @@
               
               <div class="label-row">
                 
-                <div class="align-text" style="padding-left: 0px;">
+                <div class="align-text" style="padding-left: 0px;"
+                v-tippy content="Text is aligned inside its own bounding box.">
                   <gb-icon :class="{ active: text.alignment === 'left' }" size="16px" name="format_align_left" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'left', });"></gb-icon>
                   <gb-icon :class="{ active: text.alignment === 'center' }" size="16px" name="format_align_center" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'center', });"></gb-icon>
                   <gb-icon :class="{ active: text.alignment === 'right' }" size="16px" name="format_align_right" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'right', });"></gb-icon>
                 </div>
                 
+                <div style="display: flex; justify-content: center; align-items: center; flex: 0;">
+                  <color-picker
+                  class="text-color-picker-placeholder"
+                  :value="text.color"
+                  @input="textColorChanged( $event, index )"
+                  :position="{ left: '-85px', top: '26px' }">
+                  </color-picker>
+                </div>
+                
                 <gb-checkbox
-                style="padding-left: 10px;"
+                style="padding-left: 15px;"
                 size="mini"
-                v-model="text.bold"
+                :checked="text.bold"
+                @change="changeTextElement( $event, index, text, 'bold' )"
                 label="Bold"
                 ></gb-checkbox>
                 
                 <gb-checkbox
-                style="padding-left: 0px;"
+                style="padding-left: 4px; white-space: nowrap;"
                 size="mini"
-                v-model="text.allCaps"
+                :checked="text.allCaps"
+                @change="changeTextElement( $event, index, text, 'allCaps' )"
                 label="All caps"
                 ></gb-checkbox>
               </div>
@@ -328,55 +368,111 @@
             @focus="inputFocused"
             @blur="inputBlurred"
           />
-          <div class="label-row">
+          <div>
             
-          <gb-input
-            style="padding-left: 0px;"
-            type="number"
-            :min="0"
-            :value="parseFloat(store.canvas.padding.left)"
-            @input="inputChanged('canvas.padding.left', $event)"
-            @focus="inputFocused"
-            @blur="inputBlurred"
-            size="mini"
-            description="left"
-          ></gb-input>
-          
-          <gb-input
-            type="number"
-            :min="0"
-            :value="parseFloat(store.canvas.padding.top)"
-            @input="inputChanged('canvas.padding.top', $event)"
-            @focus="inputFocused"
-            @blur="inputBlurred"
-            size="mini"
-            description="top"
-          ></gb-input>
-          
-          <gb-input
-            type="number"
-            :min="0"
-            :value="parseFloat(store.canvas.padding.right)"
-            @input="inputChanged('canvas.padding.right', $event)"
-            @focus="inputFocused"
-            @blur="inputBlurred"
-            size="mini"
-            description="right"
-          ></gb-input>
-          
-          <gb-input
-            type="number"
-            :min="0"
-            :value="parseFloat(store.canvas.padding.bottom)"
-            @input="inputChanged('canvas.padding.bottom', $event)"
-            @focus="inputFocused"
-            @blur="inputBlurred"
-            size="mini"
-            description="bottom"
-          ></gb-input>
+            <div class="label-row">
+              <span class="gb-field-message__message" style="display: inline-block; width: 55px;">left</span>
+              <gb-input
+                style="padding-left: 0px; width: 48px; flex: none;"
+                type="number"
+                :min="0"
+                :value="parseFloat(store.canvas.padding.left)"
+                @input="inputChanged('canvas.padding.left', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+                size="mini"
+              ></gb-input>
+              <input
+                style="flex: 1;"
+                type="range"
+                min="0"
+                max="500"
+                v-model="store.canvas.padding.left"
+                step="1"
+                @input="slidingAround('canvas.padding.left', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+              />
+            </div>
+            
+            <div class="label-row">
+              <span class="gb-field-message__message" style="display: inline-block; width: 55px;">top</span>
+              <gb-input
+                style="padding-left: 0px; width: 48px; flex: none;"
+                type="number"
+                :min="0"
+                :value="parseFloat(store.canvas.padding.top)"
+                @input="inputChanged('canvas.padding.top', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+                size="mini"
+              ></gb-input>
+              <input
+                style="flex: 1;"
+                type="range"
+                min="0"
+                max="500"
+                v-model="store.canvas.padding.top"
+                step="1"
+                @input="slidingAround('canvas.padding.top', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+              />
+            </div>
+            
+            <div class="label-row">
+              <span class="gb-field-message__message" style="display: inline-block; width: 55px;">right</span>
+              <gb-input
+                style="padding-left: 0px; width: 48px; flex: none;"
+                type="number"
+                :min="0"
+                :value="parseFloat(store.canvas.padding.right)"
+                @input="inputChanged('canvas.padding.right', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+                size="mini"
+              ></gb-input>
+              <input
+                style="flex: 1;"
+                type="range"
+                min="0"
+                max="500"
+                v-model="store.canvas.padding.right"
+                step="1"
+                @input="slidingAround('canvas.padding.right', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+              />
+            </div>
+            
+            <div class="label-row">
+              <span class="gb-field-message__message" style="display: inline-block; width: 55px;">bottom</span>
+              <gb-input
+                style="padding-left: 0px; width: 48px; flex: none;"
+                type="number"
+                :min="0"
+                :value="parseFloat(store.canvas.padding.bottom)"
+                @input="inputChanged('canvas.padding.bottom', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+                size="mini"
+              ></gb-input>
+              <input
+                style="flex: 1;"
+                type="range"
+                min="0"
+                max="500"
+                v-model="store.canvas.padding.bottom"
+                step="1"
+                @input="slidingAround('canvas.padding.bottom', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+              />
+            </div>
+            
           </div>
         </div>
-
+        
         <spacer size="large" :line="true" />
         
         <div>
@@ -427,7 +523,20 @@
             size="mini"
           ></gb-input>
         </div>
-
+        
+        <spacer size="small" :line="false" />
+        
+        <div>
+          <gb-heading tag="h6" :uppercase="true">Cover alignment</gb-heading>
+          <spacer size="mini" :line="false" />
+          <div class="align-canvas" style="padding-left: 0px; width: 145px;"
+          v-tippy content="Align last row if it's not full...">
+            <gb-icon :class="{ active: store.canvas.alignment === 'left' }" size="22px" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });"></gb-icon>
+            <gb-icon :class="{ active: store.canvas.alignment === 'center' }" size="22px" name="format_align_center" @click="$store.commit('update', { key: 'canvas.alignment', value: 'center', });"></gb-icon>
+            <gb-icon :class="{ active: store.canvas.alignment === 'right' }" size="22px" name="format_align_right" @click="$store.commit('update', { key: 'canvas.alignment', value: 'right', });"></gb-icon>
+          </div>
+        </div>
+        
         <spacer size="large" :line="true" />
 
         <div>
@@ -593,6 +702,10 @@ export default {
       
     // },
     
+    textColorChanged: _.debounce(function(color, index) {
+      this.$store.commit('changeText', { index: index, key: 'color', value: color, });
+    }, 250, { leading: false, trailing: true }),
+    
     inputFocused: function() {
       this.$store.commit('update', [
         { key: 'events.textNudge', value: false },
@@ -615,13 +728,46 @@ export default {
       // });
     },
     
-    changeTextElement: function( value, index, textElement, key, e ) {
+    changeTextElement: _.debounce( function(value, index, textElement, key, e) {
       let val = value;
       if ( e ) val = parseFloat(e.target.value);
       this.$store.commit('changeText', { index: index, key: key, value: val, });
+      this.$nextTick(function() {
+        this.$root.$emit('update-moveable-handles');
+      });
+    }, 250, { leading: false, trailing: true }),
+    
+    changeTextElementThrottle: _.throttle( function(value, index, textElement, key, e) {
+      let val = value;
+      if ( e ) val = parseFloat(e.target.value);
+      this.$store.commit('changeText', { index: index, key: key, value: val, });
+      this.$nextTick(function() {
+        this.$root.$emit('update-moveable-handles');
+      });
+    }, 20, { leading: true, trailing: true }),
+    
+    textElementClicked: function( index, textObj ) {
+      
+      let targetIndex = index;
+      this.$store.commit("activateText", targetIndex);
+      
+      let transformBoxes = document.querySelectorAll('.moveable-control-box');
+      if ( transformBoxes.length ) {
+        transformBoxes.forEach(function( controlEl, controlIndex ) {
+          controlEl.style.display = (targetIndex === controlIndex) ? 'block' : 'none';
+        });
+      }
+      
     },
     
     makeTextElement: function() {
+      
+      let transformBoxes = document.querySelectorAll('.moveable-control-box');
+      if ( transformBoxes.length ) {
+        transformBoxes.forEach(function( controlEl, controlIndex ) {
+          controlEl.style.display = 'none';
+        });
+      }
       
       this.$store.commit('addText', { 
         text: 'Lorem ipsum dolor sit amet',
@@ -632,6 +778,7 @@ export default {
         bold: false,
         allCaps: false,
         active: true,
+        color: '#3a3a3a',
         alignment: 'center',
       });
       
@@ -688,11 +835,9 @@ export default {
       
     },
     
-    slidingAround: _.throttle(
-      function (key, value) {
-        this.$store.commit("update", { key: "slidingAround", value: key });
-      }, 250, { leading: true, trailing: true }
-    ),
+    slidingAround: _.throttle( function (key, value) {
+      this.$store.commit("update", { key: "slidingAround", value: key });
+    }, 250, { leading: true, trailing: true }),
 
     inputChanged: function (key, value) {
       clearTimeout(this.slidingTimer);
@@ -704,7 +849,9 @@ export default {
           vue.$store.commit("update", { key: "slidingAround", value: null });
         }, 1000);
       }
-      this.$store.commit("update", { key: key, value: value });      
+      
+      this.$store.commit("update", { key: key, value: value }); 
+           
       if ( key === 'coverAmount' ) {
         this.$store.commit('update', { 
           key: 'usedCovers', 
@@ -714,6 +861,12 @@ export default {
           this.zoomToFit('and-center');
         });
       }
+    },
+    
+    coverPlaceholders: function( value ) {
+      
+      this.$store.commit("updateCoverPlaceholders", value ); 
+      
     },
 
     makeImage: function () {
@@ -783,7 +936,7 @@ $toolbar-text: #8eabc5;
   box-sizing: border-box;
   color: $toolbar-text;
   max-width: 380px;
-  z-index: 3001;
+  z-index: 3001 !important;
   ::-moz-selection { background: #0093ee !important; color: lighten( #0093ee, 30 ); }
   ::selection { background: #0093ee !important; color: lighten( #0093ee, 45 ); }
 }
@@ -1028,7 +1181,7 @@ $toolbar-text: #8eabc5;
 
 .text-elements-inner-wrap {
   position: relative;
-  z-index: 0;
+  z-index: 2;
   border: 1px solid #323d4f;
   border-radius: 10px;
   padding: 20px;
@@ -1041,19 +1194,25 @@ $toolbar-text: #8eabc5;
     right: 10px;
     background: $toolbar-bg;
   }
-  .align-text {
-    i {
-      cursor: pointer;
-      -webkit-touch-callout: none; 
-      -webkit-user-select: none; 
-      -khtml-user-select: none; 
-      -moz-user-select: none; 
-      -ms-user-select: none; 
-      user-select: none; 
-    }
-    .active {
-      color: #fbc03d;
-    }
+}
+
+.align-canvas,
+.align-text {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+  i {
+    cursor: pointer;
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
+  }
+  .active {
+    color: #fbc03d;
   }
 }
 
@@ -1124,5 +1283,24 @@ $toolbar-text: #8eabc5;
   border: 1px solid #323d4f;
   width: 27px;
   height: 27px;
+}
+
+.text-color-picker-placeholder  {
+  flex: 0 !important;
+  padding-left: 0 !important;
+}
+.text-color-picker-placeholder .color-block {
+  position: relative;
+  top: -2px;
+  margin: 0px;
+  width: 13px;
+  height: 13px;
+}
+.text-color-picker-placeholder .color-block > div {
+  border-radius: 999999999999px;
+  overflow: hidden;
+  border: 1px solid #323d4f;
+  width: 13px;
+  height: 13px;
 }
 </style>

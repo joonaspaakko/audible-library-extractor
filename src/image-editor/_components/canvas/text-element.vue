@@ -1,8 +1,5 @@
 <template>
-  <div class="text-element" 
-  v-shortkey="store.events.textNudge ? {upShift: ['shift','arrowup'], up: ['arrowup'], rightShift: ['shift','arrowright'], right: ['arrowright'], downShift: ['shift','arrowdown'], down: ['arrowdown'], leftShift: ['shift','arrowleft'], left: ['arrowleft']} : null" 
-  @shortkey="store.events.textNudge ? arrowNudge($event) : null"
-  >
+  <div class="text-element">
     <Moveable 
     ref="moveable"
     class="text-element"
@@ -12,7 +9,7 @@
     @resizeStart="moveableResizeStart"
     @rotate="moveableRotate"
     @dblclick.native="doubleClick"
-    @click.native="activateControls"
+    @mousedown.native="activateControls"
     :style="{
       fontSize: textObj.fontSize + 'px',
       lineHeight: textObj.fontSiz + 'px',
@@ -20,6 +17,7 @@
       textTransform: textObj.allCaps ? 'uppercase' : 'none',
       justifyContent: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
       justifyItems: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
+      color: textObj.color,
     }"
     >
       <contenteditable tag="span" :contenteditable="contenteditable" 
@@ -81,9 +79,9 @@ export default {
       get () {
         return this.textObj.text;
       },
-      set(value) {
+      set: _.debounce( function(value) {
         this.$store.commit('changeText', { index: this.textIndex, key: 'text', value: value,  });
-      }
+      }, 250, { leading: false, trailing: true }),
     },
   },
   
@@ -104,34 +102,61 @@ export default {
     
     // console.log("getRect: ", this.$refs.moveable.getRect());
     // console.log("isMoveableElement: ", this.$refs.moveable.isMoveableElement(document.body));
-    this.$root.$on('deactivate-moveable-controls', this.deactivateControls);
     this.$root.$on('update-moveable-handles', this.updateHandles);
+    this.$root.$on('nudge-up', this.nudgeUp);
+    this.$root.$on('nudge-right', this.nudgeRight);
+    this.$root.$on('nudge-down', this.nudgeDown);
+    this.$root.$on('nudge-left', this.nudgeLeft);
   },
 
   beforeDestroy: function () {
-    this.$root.$off('deactivate-moveable-controls', this.deactivateControls);
     this.$root.$off('update-moveable-handles', this.updateHandles);
+    this.$root.$off('nudge-up', this.nudgeUp);
+    this.$root.$off('nudge-right', this.nudgeRight);
+    this.$root.$off('nudge-down', this.nudgeDown);
+    this.$root.$off('nudge-left', this.nudgeLeft);
   },
 
   methods: {
     
-    deactivateControls: function( senderIndex ) {
-      // if ( this.textIndex !== senderIndex ) {
-      //   this.moveableOpts.target = null;
-      // }
+    nudgeUp: function( distance ) {
+      if ( this.textObj.active ) {
+        this.$refs.moveable.request("draggable", { deltaY: -Math.abs(distance), isInstant: true }); 
+      }
+    },
+    nudgeRight: function( distance ) {
+      if ( this.textObj.active ) {
+        this.$refs.moveable.request("draggable", { deltaX: distance, isInstant: true }); 
+      }
+    },
+    nudgeDown: function( distance ) {
+      if ( this.textObj.active ) {
+        this.$refs.moveable.request("draggable", { deltaY: distance, isInstant: true }); 
+      }
+    },
+    nudgeLeft: function( distance ) {
+      if ( this.textObj.active ) {
+        this.$refs.moveable.request("draggable", { deltaX: -Math.abs(distance), isInstant: true }); 
+      }
     },
     
     activateControls: function() {
       
-      // this.$root.$emit('deactivate-moveable-controls', this.textIndex);
-      // if ( !this.moveableOpts.target ) this.moveableOpts.target = this.$refs.moveable;
+      let targetIndex = this.textIndex;
+      this.$store.commit("activateText", targetIndex);
+      
+      let transformBoxes = document.querySelectorAll('.moveable-control-box');
+      if ( transformBoxes.length ) {
+        transformBoxes.forEach(function( controlEl, controlIndex ) {
+          controlEl.style.display = (targetIndex === controlIndex) ? 'block' : 'none';
+        });
+      }
       
     },
     
     updateHandles: function() {
       this.$refs.moveable.updateRect();
       // this.$refs.moveable.updateTarget();
-      console.log('HANDLES UPDATED!??')
     },
     
     setElementGuidelines: function() {
@@ -166,31 +191,33 @@ export default {
     },
     
     arrowNudge: function( e ) {
-      console.log('e!!!!!', e);
-
-      let shiftModifier = e.srcKey.match('Shift');
-      let distance = (shiftModifier ? 10 : 1);
-      switch (e.srcKey) {
-        case 'up':
-          case 'upShift':
-          console.log('up');
-          this.$refs.moveable.request("draggable", { deltaY: -Math.abs(distance), isInstant: true }); 
-          break
-        case 'right':
-        case 'rightShift':
-          console.log('right');
-          this.$refs.moveable.request("draggable", { deltaX: distance, isInstant: true }); 
-          break
-        case 'down':
-        case 'downShift':
-          console.log('down');
-          this.$refs.moveable.request("draggable", { deltaY: distance, isInstant: true }); 
-          break
-        case 'left':
-        case 'leftShift':
-          console.log('left');
-          this.$refs.moveable.request("draggable", { deltaX: -Math.abs(distance), isInstant: true }); 
-          break
+      
+      console.log( this.textObj.text, this.textObj.active )
+      if ( this.textObj.active ) {
+        let shiftModifier = e.srcKey.match('Shift');
+        let distance = (shiftModifier ? 10 : 1);
+        switch (e.srcKey) {
+          case 'up':
+            case 'upShift':
+            // console.log('up');
+            this.$refs.moveable.request("draggable", { deltaY: -Math.abs(distance), isInstant: true }); 
+            break
+          case 'right':
+          case 'rightShift':
+            // console.log('right');
+            this.$refs.moveable.request("draggable", { deltaX: distance, isInstant: true }); 
+            break
+          case 'down':
+          case 'downShift':
+            // console.log('down');
+            this.$refs.moveable.request("draggable", { deltaY: distance, isInstant: true }); 
+            break
+          case 'left':
+          case 'leftShift':
+            // console.log('left');
+            this.$refs.moveable.request("draggable", { deltaX: -Math.abs(distance), isInstant: true }); 
+            break
+        }
       }
     },
     

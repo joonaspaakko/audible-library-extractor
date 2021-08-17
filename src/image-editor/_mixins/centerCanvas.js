@@ -82,12 +82,14 @@ export default {
       if (this.store.canvas.fit) {
         var paddingSize = parseFloat(this.store.paddingSize) * 2;
         var coverSize = parseFloat(this.store.coverSize) + paddingSize;
-        var canvasPadding = parseFloat(this.store.canvas.padding) * 2;
+        let canvasPaddingX = parseFloat(this.store.canvas.padding.left) + parseFloat(this.store.canvas.padding.right);
+        let canvasPaddingY = parseFloat(this.store.canvas.padding.top) + parseFloat(this.store.canvas.padding.bottom);
+        
         var horizontalFit = Math.floor(
-          (parseFloat(this.store.canvas.width) - canvasPadding) / coverSize
+          (parseFloat(this.store.canvas.width) - canvasPaddingX) / coverSize
         );
         var verticalFit = Math.floor(
-          (parseFloat(this.store.canvas.height) - canvasPadding) / coverSize
+          (parseFloat(this.store.canvas.height) - canvasPaddingY) / coverSize
         );
         if (verticalFit < 1) verticalFit = 1;
         let newAmount = horizontalFit * verticalFit;
@@ -103,7 +105,7 @@ export default {
       }
     },
 
-    centerCanvas: _.debounce( function() {
+    centerCanvas: _.throttle( function() {
       
       let workingArea = document.querySelector("#editor-canvas-left");
       let content = workingArea.querySelector("#editor-canvas-content");
@@ -151,7 +153,7 @@ export default {
         workingArea.scrollLeft = ((canvasWidth + padding) - workingArea.clientWidth) / 2; // Center
       }
     
-    }, 250, { leading: false, trailing: true }),
+    }, 20, { leading: true, trailing: true }),
     
   }
 };

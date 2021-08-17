@@ -4,8 +4,14 @@
   v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
   >
     <div class="show-blank-canvas" v-show="store.saving"></div>
-    <gb-toast class="floating-alert" :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
-    <div class="grid" ref="grid">
+    <div class="floating-alerts">
+      <gb-toast :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
+      <gb-toast :closable="false" color="blue" width="200" v-show="$store.getters.textElementActive">You can also move text using arrow keys. Shift modifier increases the step to 10px.</gb-toast>
+    </div>
+    <div class="grid" ref="grid"  
+    v-shortkey="store.events.textNudge ? {upShift: ['shift','arrowup'], up: ['arrowup'], rightShift: ['shift','arrowright'], right: ['arrowright'], downShift: ['shift','arrowdown'], down: ['arrowdown'], leftShift: ['shift','arrowleft'], left: ['arrowleft']} : null" 
+    @shortkey="store.events.textNudge ? arrowNudge($event) : null"
+    >
       <div
       class="editor-canvas"
       :class="{ 'show-cover-padding-preview': store.slidingAround === 'paddingSize', saving: store.saving }"
@@ -34,7 +40,7 @@
         <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%">
           <div class="grid-inner-wrap">
             
-            <draggable v-model="usedCovers" group="covers" @end="draggingEnded">
+            <draggable v-model="usedCovers" group="covers" @end="draggingEnded" :style="canvasAlignment">
               <div 
               class="cover"
               v-for="book in store.usedCovers" :key="book.asin"
@@ -42,12 +48,17 @@
               @mouseover="coverHover"
               @mouseleave="coverHover"
               >
+              
                 <div v-if="!store.saving" class="cover-padding-preview"></div>
-                <div v-if="store.showAuthorAndTitle" class="author-and-title" :style="{ width: store.coverSize + 'px' }">
+                
+                <div v-if="store.showAuthorAndTitle && !book.placeholderCover" class="author-and-title" :style="{ width: store.coverSize + 'px' }">
                   <div class="author"><strong>{{ book.authors ? book.authors[0].name : '' }}</strong></div>
                   <div class="title">{{ book.titleShort || book.title }}</div>
                 </div>
-                <img ref="coverImages" :src="makeCoverUrl(book.cover)" alt="" :style="coverStyle" draggable="false" />
+                
+                <div v-if="book.placeholderCover" ref="coverImages" class="placeholder" :style="coverStyle"></div>
+                <img v-else ref="coverImages" :src="makeCoverUrl(book.cover)" alt="" :style="coverStyle" draggable="false" />
+                
               </div>
             </draggable>
 
@@ -78,14 +89,14 @@ export default {
   
   mounted: function() {
     
-    document.querySelector('#editor-canvas-left').addEventListener("mousedown", this.moveableToggle);
+    document.querySelector('#editor-canvas-left').addEventListener("mousedown", this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').addEventListener("scroll", this.panningCanvas);
     this.zoomToFit();
     
   },
 
   beforeDestroy: function () {
-    document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.moveableToggle);
+    document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
   },
 
@@ -152,12 +163,42 @@ export default {
       } 
       return style;
     },
+    canvasAlignment: function () {
+      return { textAlign: this.store.canvas.alignment };
+    },
   },
   
   methods: {
     
+    arrowNudge: function( e ) {
+    
+      let shiftModifier = e.srcKey.match('Shift');
+      let distance = (shiftModifier ? 10 : 1);
+      switch (e.srcKey) {
+        case 'up':
+        case 'upShift':
+          // console.log('up');
+          this.$root.$emit('nudge-up', distance);
+          break
+        case 'right':
+        case 'rightShift':
+          // console.log('right');
+          this.$root.$emit('nudge-right', distance);
+          break
+        case 'down':
+        case 'downShift':
+          // console.log('down');
+          this.$root.$emit('nudge-down', distance);
+          break
+        case 'left':
+        case 'leftShift':
+          // console.log('left');
+          this.$root.$emit('nudge-left', distance);
+          break
+      }
+    },
+    
     panningCanvas: function() {
-      console.log( 'test' );
       this.$root.$emit('update-moveable-handles');
     },
     
@@ -168,29 +209,10 @@ export default {
       
     },
     
-    moveableToggle: function( e ) {
+    moveableControlsHide: function( e ) {
       
       let textElement = e.target.classList.contains('text-element') || e.target.classList.contains('text-element-child');
-      if ( textElement ) {
-        
-        let targetIndex = [...e.target.parentElement.children].indexOf(e.target);
-        this.$store.commit("activateText", targetIndex);
-        
-        let transformBoxes = document.querySelectorAll('.moveable-control-box');
-        if ( transformBoxes.length ) {
-          transformBoxes.forEach(function( controlEl, controlIndex ) {
-            console.log( targetIndex, controlIndex, targetIndex === controlIndex )
-            if ( targetIndex === controlIndex ) {
-              controlEl.style.display = 'block';
-            }
-            else {
-              controlEl.style.display = 'none';
-            }
-          });
-        }
-        
-      }
-      else {
+      if ( !textElement ) {
         
         this.$store.commit("activateText", -1);
         
@@ -346,6 +368,9 @@ export default {
     text-align: center;
     position: relative;
     z-index: 5;
+    > div {
+      cursor: default;
+    }
   }
 
   .cover {
@@ -355,6 +380,7 @@ export default {
     line-height: 17px;
   }
 
+  .cover .placeholder,
   .cover img {
     position: relative;
     z-index: 5;
@@ -392,6 +418,12 @@ export default {
 }
 .show-cover-padding-preview .cover-padding-preview { display: block; }
 
+.text-elements {
+  position: absolute; 
+  left: 0;
+  top: 0;
+}
+
 </style>
 
 <style lang="scss">
@@ -400,13 +432,14 @@ export default {
 //   display: none;
 // }
 
-.floating-alert {
+.floating-alerts {
   position: fixed;
   bottom: 10px;
   left: 10px;
   z-index: 9999999999;
 }
 .gb-base-toast {
+  margin-top: 5px;
   padding: 3px 6px !important;
   .gb-base-toast__slot {
     font-size: 13px !important;
