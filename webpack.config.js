@@ -18,6 +18,7 @@ const config = {
     'content-script/audible-library-extractor-content-script': './content-script/content-script.js',
     'output-page/output-page': './output-page/output-page.js',
     'image-editor/image-editor': './image-editor/image-editor.js',
+    'image-editor/animated-wallpaper/animated-wallpaper': './image-editor/animated-wallpaper/animated-wallpaper.js',
   },
   output: {
     publicPath: '',
@@ -44,6 +45,8 @@ const config = {
       '@contscript-mixins': path.join(__dirname, '/src/content-script/_components/_mixins'),
       '@editor-comps': path.join(__dirname, '/src/image-editor/_components'),
       '@editor-mixins': path.join(__dirname, '/src/image-editor/_mixins'),
+      '@wallpaper-comps': path.join(__dirname, '/src/image-editor/animated-wallpaper/_components'),
+      '@wallpaper-mixins': path.join(__dirname, '/src/image-editor/animated-wallpaper/_mixins'),
     },
   },
   module: {
@@ -110,6 +113,7 @@ var copyPluginArray = { patterns: [
   // { from: 'output-page/images/', to: 'output-page/images/' },
   { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
   { from: 'image-editor/image-editor.html', to: 'image-editor/index.html', transform: transformHtml },
+  { from: 'image-editor/animated-wallpaper/animated-wallpaper.html', to: 'image-editor/animated-wallpaper/index.html', transform: transformHtml },
   {
     from: 'manifest.json',
     to: 'manifest.json',
