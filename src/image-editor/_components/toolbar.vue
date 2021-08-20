@@ -20,7 +20,7 @@
         class="zoom-zoom"
         type="range"
         min="0.01"
-        max="3"
+        max="6"
         v-model="store.canvas.zoom"
         step=".01"
         @dblclick="$store.commit('update', { key: 'canvas.zoom', value: 1 })"
@@ -50,8 +50,7 @@
         
         <!-- On ice for now... -->
         <!-- 
-          The idea was that if you really wanted to, you could add text in place of 
-          covers by replacing certain covers with blank placeholders.... 
+          The idea was that if you really wanted to, you could add empty "covers" to make room for text.
           It's just that the sorting is kinda terrible...
          -->
         <div v-if="false">
@@ -75,7 +74,19 @@
 
         </div>
         
-        <div>
+        <div class="mode-switcher">
+          <gb-toggle
+          size="default"
+          v-model="store.animatedWallpaperMode"
+          label="Animated wallpaper mode"
+          status="error"
+          ></gb-toggle>
+          
+        </div>
+        
+        <spacer size="large" :line="false" />
+        
+        <div v-if="!store.animatedWallpaperMode">
           
           <gb-heading tag="h6" :uppercase="true">
             <span style="padding-right: 10px;">Text elements</span>
@@ -93,9 +104,11 @@
             
           </gb-heading>
           
+          <spacer v-if="store.textElements.length" size="mini" :line="false" />
+          
           <p v-if="store.textElements.length" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">You can make room for text by adjusting canvas padding.</span></p>
           
-          <div class="text-elements" v-for="(text, index) in store.textElements" :key="text.id" :class="{ active: text.active }"
+          <div v-if="store.textElements.length" class="text-elements" v-for="(text, index) in store.textElements" :key="text.id" :class="{ active: text.active }"
           @mousedown="textElementClicked(index, text)">
             
             <spacer size="small" :line="false" />
@@ -135,7 +148,7 @@
                 <span style="display: inline-block; padding-left: 5px;">{{ text.fontSize }}</span>
               </div>
               
-              <spacer size="small" :line="false" />
+              <spacer size="default" :line="false" />
               
               <div class="label-row">
                 
@@ -176,18 +189,17 @@
             
           </div>
           
-          <spacer size="large" :line="true" />
+          <spacer size="medium" :line="false" />
           
         </div>
         
-        
-        
-        <div>
+        <div v-if="!store.animatedWallpaperMode">
           
           <gb-heading tag="h6" :uppercase="true">
             Reduce file size
           </gb-heading>
-          <spacer size="mini" :line="false" />
+          <spacer size="default" :line="false" />
+          
           <gb-toggle
           size="small"
           v-model="store.compressImage"
@@ -210,15 +222,18 @@
           </div>
           <p v-if="qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
           <p v-if="store.compressImage" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">Compressed image is saved as a jpeg, which doesn't support transparency.</span></p>
+          
+          <spacer size="medium" :line="false" />
+          
         </div>
         
-        <spacer size="large" :line="true" />
         
-        <div>
+        <div  v-if="!store.animatedWallpaperMode">
           <gb-heading tag="h6" :uppercase="true">
             Limit cover images
           </gb-heading>
-          <spacer size="mini" :line="false" />
+          <spacer size="default" :line="false" />
+          
           <gb-input
             type="number"
             :min="1"
@@ -239,33 +254,42 @@
               <strong>{{ store.covers.length }}</strong>.
             </span>
           </tippy>
+        
+          <spacer size="default" :line="false" />
+        
+          <div style="text-align: center;">
+            <gb-button
+            :disabled="store.showAuthorAndTitle"
+            :full-width="false"
+            color="blue"
+            size="mini"
+            @click="fillCanvasWithCovers"
+            :rounded="true"
+            v-tippy content="Adds or removes enough covers to fit inside the canvas. <br>Covers are added and removed from the tail end."
+            left-icon="border_all"
+            >Fit cover amount to canvas</gb-button>
+          </div>
+          
+          <spacer size="medium" :line="false" />
         </div>
         
-        <spacer size="small" :line="false" />
-        
-        <gb-button
-        :disabled="store.showAuthorAndTitle"
-        :full-width="true"
-        color="black"
-        size="small"
-        @click="fillCanvasWithCovers"
-        :rounded="true"
-        v-tippy content="Adds or removes enough covers to fit inside the canvas. <br>Covers are added and removed from the tail end."
-        >Fit cover amount to canvas</gb-button>
-        
-        <spacer size="large" :line="true" />
-        
-        <gb-toggle
-        size="small"
-        v-model="store.showAuthorAndTitle"
-        label="Show author and title"
-        ></gb-toggle>
-      
-        <spacer size="large" :line="true" />
+        <div v-if="!store.animatedWallpaperMode">
+          
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Show author and title</span>
+            <gb-toggle
+            size="small"
+            v-model="store.showAuthorAndTitle"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+          
+        </div>
 
         <div>
           <gb-heading tag="h6" :uppercase="true">
-            Background color
+            <span>Background color</span>
             <color-picker
               class="color-picker-placeholder"
               v-model="store.canvas.background"
@@ -273,13 +297,14 @@
             >
             </color-picker>
           </gb-heading>
+          
+          <spacer size="default" :line="false" />
         </div>
-
-        <spacer size="mini" :line="false" />
         
         <div>
           <gb-heading tag="h6" :uppercase="true">Canvas size</gb-heading>
           <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
           
           <!-- <gb-select
           v-model="selectedCanvasPreset" 
@@ -340,24 +365,32 @@
               :info="store.canvas.height > 0 ? null : '0 = automatic height'"
             ></gb-input>
           </div>
-        </div>
+          
+          <spacer size="default" :line="false" />
         
-        <spacer size="small" :line="false" />
-        
-        <gb-button
-        :full-width="true"
-        color="black"
-        size="small"
-        @click="fitCanvasToContent"
-        :rounded="true"
-        v-tippy content="Resizes canvas to fit covers perfectly."
-        >Fit canvas to covers</gb-button>
+          
+          <div style="text-align: center;">
+            <gb-button
+            :full-width="false"
+            color="blue"
+            size="mini"
+            @click="fitCanvasToContent"
+            :rounded="true"
+            v-tippy content="Resizes canvas to fit covers perfectly."
+            left-icon="crop"
+            >Fit canvas to covers</gb-button>
+          </div>
 
-        <spacer size="small" :line="false" />
+          <spacer size="medium" :line="false" />
+          
+        </div>
 
         <div class="canvas-padding">
+          
           <gb-heading tag="h6" :uppercase="true">Canvas padding</gb-heading>
           <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
+          
           <input
             type="range"
             min="0"
@@ -373,7 +406,7 @@
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">left</span>
               <gb-input
-                style="padding-left: 0px; width: 48px; flex: none;"
+                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
                 type="number"
                 :min="0"
                 :value="parseFloat(store.canvas.padding.left)"
@@ -398,7 +431,7 @@
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">top</span>
               <gb-input
-                style="padding-left: 0px; width: 48px; flex: none;"
+                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
                 type="number"
                 :min="0"
                 :value="parseFloat(store.canvas.padding.top)"
@@ -423,7 +456,7 @@
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">right</span>
               <gb-input
-                style="padding-left: 0px; width: 48px; flex: none;"
+                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
                 type="number"
                 :min="0"
                 :value="parseFloat(store.canvas.padding.right)"
@@ -448,7 +481,7 @@
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">bottom</span>
               <gb-input
-                style="padding-left: 0px; width: 48px; flex: none;"
+                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
                 type="number"
                 :min="0"
                 :value="parseFloat(store.canvas.padding.bottom)"
@@ -471,13 +504,16 @@
             </div>
             
           </div>
+          <spacer size="medium" :line="false" />
+          
         </div>
         
-        <spacer size="large" :line="true" />
         
         <div>
           <gb-heading tag="h6" :uppercase="true">Cover size</gb-heading>
           <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
+          
           <input type="range" min="1" max="500" v-model="coverSize" step="1" 
           @focus="inputFocused"
           @blur="inputBlurred"
@@ -496,13 +532,16 @@
             @blur="inputBlurred"
             size="mini"
           ></gb-input>
+          <spacer size="medium" :line="false" />
+          
         </div>
 
-        <spacer size="small" :line="false" />
         
         <div>
           <gb-heading tag="h6" :uppercase="true">Cover padding</gb-heading>
           <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
+          
           <input
             type="range"
             min="0"
@@ -522,24 +561,35 @@
             @blur="inputBlurred"
             size="mini"
           ></gb-input>
+          
+          <spacer size="medium" :line="false" />
+        
         </div>
         
-        <spacer size="small" :line="false" />
         
-        <div>
+        <div v-if="!store.animatedWallpaperMode">
+          
           <gb-heading tag="h6" :uppercase="true">Cover alignment</gb-heading>
           <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
+          
           <div class="align-canvas" style="padding-left: 0px; width: 145px;"
           v-tippy content="Align last row if it's not full...">
             <gb-icon :class="{ active: store.canvas.alignment === 'left' }" size="22px" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });"></gb-icon>
             <gb-icon :class="{ active: store.canvas.alignment === 'center' }" size="22px" name="format_align_center" @click="$store.commit('update', { key: 'canvas.alignment', value: 'center', });"></gb-icon>
             <gb-icon :class="{ active: store.canvas.alignment === 'right' }" size="22px" name="format_align_right" @click="$store.commit('update', { key: 'canvas.alignment', value: 'right', });"></gb-icon>
           </div>
+          
+          <spacer size="medium" :line="false" />
+        
         </div>
         
-        <spacer size="large" :line="true" />
 
-        <div>
+        <div v-if="!store.animatedWallpaperMode">
+          
+          <gb-heading tag="h6" :uppercase="true">Scaled output</gb-heading>
+          <spacer size="default" :line="false" />
+          
           <gb-toggle
           v-tippy content="The image will be saved with the zoomed size if enabled."
           size="small"
@@ -547,8 +597,10 @@
           label="Output with zoom"
           :warning="outputWidthZoomSize"
           ></gb-toggle>
+          
+          <spacer size="medium" :line="false" />
+          
         </div>
-        <spacer size="mini" :line="false" />
 
       </div>
     </div>
@@ -950,6 +1002,7 @@ $toolbar-text: #8eabc5;
   min-height: 0;
   width: 100%;
   padding-bottom: 300px;
+  box-sizing: border-box;
   
   &.saving {
     background-repeat: no-repeat;
@@ -1182,7 +1235,7 @@ $toolbar-text: #8eabc5;
 .text-elements-inner-wrap {
   position: relative;
   z-index: 2;
-  border: 1px solid #323d4f;
+  border: 1px solid #b9bfca;
   border-radius: 10px;
   padding: 20px;
   
@@ -1233,6 +1286,55 @@ $toolbar-text: #8eabc5;
   user-select: none; 
 }
 
+.toolbar-inner {
+  h6.gb-base-heading {
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 400;
+    color: #fff !important;
+    padding: 7px 0px;  
+    position: relative;
+    margin-left: -5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 33px;
+  }
+  h6.gb-base-heading:before {
+    content: '';
+    position: absolute;
+    top: 0px;
+    right: -50%;
+    left: -23px;
+    border-radius: 999px 0 0 999px;
+    bottom: 0px;
+    background: #212935;
+    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
+    z-index: -1;
+  }
+}
+
+.mode-switcher {
+  border-radius: 4px;
+  padding: 10px 15px;
+  position: absolute;
+  z-index: 4;
+  top: 0px;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0px;
+    right: -50%;
+    left: -65px;
+    bottom: 0px;
+    border-bottom: 1px solid #323d4f;
+    background: #212935;
+    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
+    z-index: -1;
+  }
+}
+
 </style>
 
 
@@ -1274,13 +1376,16 @@ $toolbar-text: #8eabc5;
 
 .color-picker-placeholder .color-block {
   position: relative;
-  top: -2px;
+  top: 0;
   margin-left: 15px;
 }
 .color-picker-placeholder .color-block > div {
   border-radius: 999999999999px;
   overflow: hidden;
   border: 1px solid #323d4f;
+}
+.color-picker-placeholder .color-block,
+.color-picker-placeholder .color-block > div {
   width: 27px;
   height: 27px;
 }
@@ -1291,7 +1396,7 @@ $toolbar-text: #8eabc5;
 }
 .text-color-picker-placeholder .color-block {
   position: relative;
-  top: -2px;
+  top: 0;
   margin: 0px;
   width: 13px;
   height: 13px;

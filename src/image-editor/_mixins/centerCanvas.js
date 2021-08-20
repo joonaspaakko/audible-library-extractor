@@ -110,7 +110,7 @@ export default {
       let workingArea = document.querySelector("#editor-canvas-left");
       let content = workingArea.querySelector("#editor-canvas-content");
 
-      var padding = 1000 * 2;
+      var padding = 500 * 2;
       var cWidth = parseFloat(this.$store.state.canvas.width);
       var cHeight = parseFloat(this.$store.state.canvas.height);
 

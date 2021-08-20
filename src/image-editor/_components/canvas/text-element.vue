@@ -1,34 +1,32 @@
 <template>
-  <div class="text-element">
-    <Moveable 
-    ref="moveable"
-    class="text-element"
-    v-bind="moveableOpts" 
-    @drag="moveableDrag"
-    @resize="moveableResize"
-    @resizeStart="moveableResizeStart"
-    @rotate="moveableRotate"
-    @dblclick.native="doubleClick"
-    @mousedown.native="activateControls"
-    :style="{
-      fontSize: textObj.fontSize + 'px',
-      lineHeight: textObj.fontSiz + 'px',
-      fontWeight: textObj.bold ? 'bold' : 'normal',
-      textTransform: textObj.allCaps ? 'uppercase' : 'none',
-      justifyContent: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
-      justifyItems: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
-      color: textObj.color,
-    }"
-    >
-      <contenteditable tag="span" :contenteditable="contenteditable" 
-      v-model="text" :noNL="true" :noHTML="true" 
-      @returned="moveableBlur" 
-      @blur.native="moveableBlur"
-      ref="contenteditable"
-      class="text-element-child"
-      />
-    </Moveable>
-  </div>
+  <Moveable 
+  ref="moveable"
+  class="text-element"
+  v-bind="moveableOpts" 
+  @drag="moveableDrag"
+  @resize="moveableResize"
+  @resizeStart="moveableResizeStart"
+  @rotate="moveableRotate"
+  @dblclick.native="doubleClick"
+  @mousedown.native="activateControls"
+  :style="{
+    fontSize: textObj.fontSize + 'px',
+    lineHeight: textObj.fontSiz + 'px',
+    fontWeight: textObj.bold ? 'bold' : 'normal',
+    textTransform: textObj.allCaps ? 'uppercase' : 'none',
+    justifyContent: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
+    justifyItems: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
+    color: textObj.color,
+  }"
+  >
+    <contenteditable tag="span" :contenteditable="contenteditable" 
+    v-model="text" :noNL="true" :noHTML="true" 
+    @returned="moveableBlur" 
+    @blur.native="moveableBlur"
+    ref="contenteditable"
+    class="text-element-child"
+    />
+  </Moveable>
 </template>
 
 <script>
@@ -279,6 +277,7 @@ export default {
   position: absolute;
   z-index: 999999;
   cursor: move !important; 
+  width: 100%;
   display: inline-flex !important;
   justify-content: center;
   justify-items: center;

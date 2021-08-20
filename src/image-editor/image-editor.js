@@ -79,6 +79,11 @@ const store = new Vuex.Store({
       textRemove: true,
       canvasPanning: true,
     },
+    animatedWallpaperMode: false,
+    canvasDimensionsTemp: {
+      width: null,
+      height: null,
+    },
   },
   mutations: {
     

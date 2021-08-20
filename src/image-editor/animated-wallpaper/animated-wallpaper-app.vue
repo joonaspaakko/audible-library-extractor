@@ -26,6 +26,7 @@ export default {
     getAnimations,
     pickCoversToAnimate,
   ],
+  props: ['editorCovers'],
   data: function () {
     return {
       loadPreset: 'piano-swipe-fade',
@@ -89,8 +90,8 @@ export default {
   created: function() {
     
     this.animation = _.find( this.presets, { name: this.loadPreset });
-    
     this.getCovers();
+    
     this.covers.all = _.shuffle( this.covers.all );
     
     let vue = this;

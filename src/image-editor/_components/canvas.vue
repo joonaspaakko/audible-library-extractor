@@ -4,7 +4,7 @@
   v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
   >
     <div class="show-blank-canvas" v-show="store.saving"></div>
-    <div class="floating-alerts">
+    <div class="floating-alerts" v-if="!store.animatedWallpaperMode">
       <gb-toast :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
       <gb-toast :closable="false" color="blue" width="200" v-show="$store.getters.textElementActive">You can also move text using arrow keys. Shift modifier increases the step to 10px.</gb-toast>
     </div>
@@ -21,7 +21,7 @@
       data-dragscroll
       >
         <div class="canvas-bounds"></div>
-      
+        
         <div
           class="canvas-padding-preview"
           :style="{ 
@@ -33,14 +33,18 @@
           v-show="store.slidingAround && store.slidingAround.match('canvas.padding.')"
           v-if="!store.saving"
         ></div>
-        <div class="text-elements" v-if="store.textElements.length">
+        <div class="text-elements" v-if="store.textElements.length && !store.animatedWallpaperMode">
           <text-element v-for="(text, index) in store.textElements" :key="text.id" :textObj="text" :textIndex="index" />
         </div>
         
         <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%">
           <div class="grid-inner-wrap">
             
-            <draggable v-model="usedCovers" group="covers" @end="draggingEnded" :style="canvasAlignment">
+            <animatedWallpaper v-if="store.animatedWallpaperMode" 
+            :editorCovers="store.covers"
+            />
+            
+            <draggable v-else v-model="usedCovers" group="covers" @end="draggingEnded" :style="canvasAlignment">
               <div 
               class="cover"
               v-for="book in store.usedCovers" :key="book.asin"
@@ -76,10 +80,12 @@ import zoomToFit from "@editor-mixins/zoomToFit.js";
 import makeCoverUrl from "@output-mixins/makeCoverUrl";
 import textElement from "@editor-comps/canvas/text-element.vue";
 
+import animatedWallpaper from "../animated-wallpaper/animated-wallpaper-app.vue";
+
 export default {
   name: "editorCanvas",
   mixins: [centerCanvas, zoomToFit, makeCoverUrl],
-  components: { draggable, textElement },
+  components: { draggable, textElement, animatedWallpaper },
   data: function () {
     return {
       store: this.$store.state,
@@ -316,7 +322,7 @@ export default {
     // overflow: hidden;
     transform-origin: center center;
     position: relative; 
-    margin: 1000px;
+    margin: 500px;
     display: inline-block;
     > div {
       display: flex;
@@ -422,6 +428,12 @@ export default {
   position: absolute; 
   left: 0;
   top: 0;
+  right: 0;
+  justify-content: stretch !important;
+  justify-items: stretch !important;
+  align-content: flex-start !important;
+  align-items: flex-start !important;
+  width: 100%;
 }
 
 </style>
