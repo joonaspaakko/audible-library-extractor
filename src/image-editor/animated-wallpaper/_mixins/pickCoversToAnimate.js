@@ -11,6 +11,7 @@ export default {
         percentage: function( total, percentage ) { return (percentage / 100) * total; },
       }) : this.animation.covers;
       
+      
       let randomCoversAmount = this.animation.randomCovers ? this.random(1, animationCovers) : animationCovers;
       
       let picked;

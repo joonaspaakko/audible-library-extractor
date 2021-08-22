@@ -1,8 +1,9 @@
 <template>
 <div id="awp" :style="!editorCovers ? canvasStyle : null">
   <!-- <style>body { background: #151515; }</style> -->
-  <div class="cover" v-show="mounted" :class="{ 'fade-in': !afterMounted }" v-for="(cover, index) in covers.visible" :key="index">
-    <img :src="cover" alt="" draggable="false">
+  <div class="cover" ref="cover" v-show="afterMounted" :class="{ 'fade-in': !afterMounted }" v-for="(cover, index) in covers.visible" :key="index">
+    <img :src="cover" alt="" draggable="false" class="cover-one">
+    <img :src="cover" alt="" draggable="false" class="cover-two hide">
   </div>
   <component is="style">
     #awp .cover {
@@ -37,7 +38,7 @@ export default {
   ],
   data: function () {
     return {
-      loadPreset: 'piano-swipe-fade',
+      loadPreset: 'random-simple-flips',
       animation: null,
       canvas: {
         style: null,
@@ -53,11 +54,12 @@ export default {
       covers: {
         style: null,
         all: [],
+        allOriginal: [],
         total: 0,
         perRow: 10,
         rows: null,
-        size: null,
-        sizeOriginal: 0,
+        size: 160,
+        sizeOriginal: 160,
         padding: 0,
         paddingStyle: null,
         visible: null,
@@ -132,95 +134,77 @@ export default {
     
   },
   
-  watch: {
-    "editorCoversPerRow": function( coversPewRow ) {
-      this.covers.perRow = coversPewRow;
-      this.fitCoversToViewport();
-    },
-  },
-  
   created: function() {
     
     this.prepareData();
     
-    this.covers.all = _.shuffle( this.covers.all );
-    
     let vue = this;
     
-    this.fitCoversToViewport();
     window.addEventListener('resize', _.debounce( function() {
       
-      vue.mounted = false;
-      vue.covers.visible = null;
-      
-      vue.$nextTick(function() {
-        
-        vue.fitCoversToViewport();
-        
-        vue.$nextTick(function() {
-          vue.mounted = true;
-          vue.startAutoPlay();
-        });
-        
-      });
+      vue.startAutoPlay();
       
     }, 400, { leading: false, trailing: true }) );
     
   },
   
   mounted: function() {
+    
     let vue = this;
-    vue.mounted = true;
-    this.$nextTick(function() {
-      vue.afterMounted = true;
-      vue.startAutoPlay();
-    });
+    vue.afterMounted = true;
+    vue.startAutoPlay();
+    
   },
   
   methods: {
     
     startAutoPlay: function() {
       
-      this.animation.sequentialCounter = 0;
-      clearInterval( this.cycleInterval );
+      this.fitCoversToViewport();
       
-      let vue = this;
-      let visibleCoverElements = document.querySelectorAll('.cover');
-      
-      let cycleDelay = (typeof vue.animation.cycleDelay === 'function') ? vue.toMS(vue.animation.cycleDelay({ 
-        perRow: this.covers.perRow, 
-        rows: this.covers.rows, 
-        total: this.covers.total, 
-        animationZone: this.animation.animationZone, 
-        animationCovers: this.animation.covers,
-        percentage: function( total, percentage ) { return (percentage / 100) * total; },
-      })) : vue.toMS( vue.animation.cycleDelay );
-      
-      let animationZone = (vue.animation.animationZone / 100) * cycleDelay;
-      
-      
-      var playOnce = function() {
+      this.$nextTick(function() {
         
-        var pickedCoverElements = vue.pickCoversToAnimate( visibleCoverElements, cycleDelay );
-        let animationDelay;
-         
-        let sequentialDelays = vue.splitUnevenly(animationZone, pickedCoverElements.length, 0 );
-        var spreadCounter = 0;
-        var animateWithDelay = function() {
-          setTimeout(function() {
-            
-            animationDelay = vue.animation.randomDelay ? sequentialDelays[spreadCounter] : (animationZone/pickedCoverElements.length);
-            vue.animateCover( pickedCoverElements[spreadCounter] );
-            ++spreadCounter;
-            if ( spreadCounter < pickedCoverElements.length ) animateWithDelay();
-            
-          }, animationDelay );
+        this.animation.sequentialCounter = 0;
+        clearInterval( this.cycleInterval );
+        
+        let vue = this;
+        let visibleCoverElements = vue.$refs.cover;
+        
+        let cycleDelay = (typeof vue.animation.cycleDelay === 'function') ? vue.toMS(vue.animation.cycleDelay({ 
+          perRow: this.covers.perRow, 
+          rows: this.covers.rows, 
+          total: this.covers.total, 
+          animationZone: this.animation.animationZone, 
+          animationCovers: this.animation.covers,
+          percentage: function( total, percentage ) { return (percentage / 100) * total; },
+        })) : vue.toMS( vue.animation.cycleDelay );
+        
+        let animationZone = (vue.animation.animationZone / 100) * cycleDelay;
+        
+        var playOnce = function() {
+          
+          var pickedCoverElements = vue.pickCoversToAnimate( visibleCoverElements, cycleDelay );
+          let animationDelay;
+           
+          let sequentialDelays = vue.splitUnevenly(animationZone, pickedCoverElements.length, 0 );
+          var spreadCounter = 0;
+          var animateWithDelay = function() {
+            setTimeout(function() {
+              
+              animationDelay = vue.animation.randomDelay ? sequentialDelays[spreadCounter] : (animationZone/pickedCoverElements.length);
+              vue.animateCover( pickedCoverElements[spreadCounter] );
+              ++spreadCounter;
+              if ( spreadCounter < pickedCoverElements.length ) animateWithDelay();
+              
+            }, animationDelay );
+          };
+          animateWithDelay();
+          
         };
-        animateWithDelay();
+        if ( vue.animation.onLoad ) playOnce();
+        this.cycleInterval = setInterval(function() { playOnce(); }, cycleDelay );
         
-      };
-      if ( vue.animation.onLoad ) playOnce();
-      this.cycleInterval = setInterval(function() { playOnce(); }, cycleDelay );
+      });
       
     },
     
@@ -231,8 +215,9 @@ export default {
       let vue = this;
       let coverWrapper = currentTarget;
       
-      let image = coverWrapper.querySelectorAll('img');
-      if ( image.length <= 1 ) {
+      let imageOne = coverWrapper.querySelector('img.cover-one');
+      let imageTwo = coverWrapper.querySelector('img.cover-two');
+      if ( imageOne && imageTwo ) {
         
         let newImageFromArray = this.covers.all[0];
         
@@ -240,28 +225,37 @@ export default {
         var top = this.covers.all.splice(0,1);
         this.covers.all.push( top[0] );
         
-        this.loadImage( newImageFromArray, function( imageIn ) {
+        this.loadImage( newImageFromArray, function( loadedImage ) {
           
-          let imageOut = image[0];
+          let imageOut = imageOne;
+          let imageIn  = imageTwo;
+          
+          imageIn.classList.remove( 'hide' );
+          
+          imageIn.src = loadedImage.src;
+          
           let animations = vue.getAnimations();
           
-          imageIn.style.width  = vue.covers.size + 'px';
-          imageIn.style.height = vue.covers.size + 'px';
+          // imageIn.style.width  = vue.covers.size + 'px';
+          // imageIn.style.height = vue.covers.size + 'px';
           
           coverWrapper.style.zIndex = vue.animationCounter;  
 
           if ( animations.out && animations.out.swap ) {
             imageOut.classList.add( 'out' );
             imageIn.classList.add( 'in' );
-            imageIn.setAttribute('draggable', false);
+            // imageIn.setAttribute('draggable', false);
             coverWrapper.classList.add( animations.out.class );
-            coverWrapper.appendChild( imageIn );
+            // coverWrapper.appendChild( imageIn );
             
             // reset
             setTimeout(function() {
               imageIn.classList.remove('in');
-              imageOut.remove();
+              imageOut.classList.remove( 'out' );
+              imageIn.classList.add('hide');
+              // imageOut.remove();
               coverWrapper.className = 'cover';
+              imageOut.src = imageIn.src;
               coverWrapper.style.zIndex = null;
             }, animations.out.duration );
             
@@ -271,15 +265,17 @@ export default {
             coverWrapper.setAttribute('data-animation-class', animations.in.class);
             imageOut.classList.add( 'out' );
             imageIn.classList.add( 'in', animations.in.class );
-            imageIn.setAttribute('draggable', false);
-            coverWrapper.appendChild( imageIn );
+            // coverWrapper.appendChild( imageIn );
 
             // reset
             setTimeout(function() {
               coverWrapper.removeAttribute('data-animation-class');
               imageIn.classList.remove('in');
               imageIn.classList.remove( animations.in.class );
-              imageOut.remove();
+              imageIn.classList.add('hide');
+              // imageOut.remove();
+              imageOut.classList.remove('out');
+              imageOut.src = imageIn.src;
               coverWrapper.style.zIndex = null;
             }, animations.in.duration );
             

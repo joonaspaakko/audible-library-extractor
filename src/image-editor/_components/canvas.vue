@@ -1,6 +1,6 @@
 <template>
   <div class="left" :class="{ 'force-panning': store.canvasPanning }" id="editor-canvas-left" ref="left" 
-  v-dragscroll:nochilddrag
+  v-dragscroll
   v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
   >
     <div class="show-blank-canvas" v-show="store.saving"></div>
@@ -18,7 +18,6 @@
       ref="canvas"
       id="editor-canvas-content"
       :style="canvasStyle"
-      data-dragscroll
       >
         <div class="canvas-bounds"></div>
         
@@ -37,10 +36,10 @@
           <text-element v-for="(text, index) in store.textElements" :key="text.id" :textObj="text" :textIndex="index" />
         </div>
         
-        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%">
+        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }">
           <div class="grid-inner-wrap" :style="{ height: store.canvas.height > 0 ? store.canvas.height-(store.paddingSize*2) + 'px' : null }" >
             
-            <animatedWallpaper v-if="store.animatedWallpaperMode" 
+            <animatedWallpaper v-if="store.animatedWallpaperMode" style="cursor: grab;"
             :editorCovers="store.covers"
             :editorCoverPadding="store.paddingSize"
             :editorCoverSize="store.coverSize"
@@ -63,13 +62,13 @@
               
                 <div v-if="!store.saving" class="cover-padding-preview"></div>
                 
-                <div v-if="store.showAuthorAndTitle && !book.placeholderCover" class="author-and-title" :style="{ width: store.coverSize + 'px' }">
-                  <div class="author"><strong>{{ book.authors ? book.authors[0].name : '' }}</strong></div>
-                  <div class="title">{{ book.titleShort || book.title }}</div>
+                <div v-if="store.showAuthorAndTitle && !book.placeholderCover && (book.author || book.title)" class="author-and-title" :style="{ width: store.coverSize + 'px', color: store.authorAndTitleColor }">
+                  <div class="author"><strong>{{ book.author }}</strong></div>
+                  <div class="title">{{ book.title }}</div>
                 </div>
                 
                 <div v-if="book.placeholderCover" ref="coverImages" class="placeholder"></div>
-                <img v-else ref="coverImages" class="cover-img" :src="makeCoverUrl(book.cover)" alt="" draggable="false" />
+                <img v-else ref="coverImages" class="cover-img" :src="book.cover" alt="" draggable="false" data-no-dragscroll />
                 
               </div>
               
@@ -96,14 +95,13 @@
 import draggable from 'vuedraggable';
 import centerCanvas from "@editor-mixins/centerCanvas.js";
 import zoomToFit from "@editor-mixins/zoomToFit.js";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
 import textElement from "@editor-comps/canvas/text-element.vue";
 
 import animatedWallpaper from "../animated-wallpaper/animated-wallpaper-app.vue";
 
 export default {
   name: "editorCanvas",
-  mixins: [centerCanvas, zoomToFit, makeCoverUrl],
+  mixins: [centerCanvas, zoomToFit],
   components: { draggable, textElement, animatedWallpaper },
   data: function () {
     return {
@@ -189,7 +187,10 @@ export default {
     //   return style;
     // },
     canvasAlignment: function () {
-      return { textAlign: this.store.canvas.alignment };
+      let style = {};
+      style.height = this.store.canvas.height > 0 ? this.store.canvas.height-(this.store.paddingSize*2) + 'px' : null;
+      style.textAlign = this.store.canvas.alignment;
+      return style;
     },
   },
   
@@ -322,8 +323,6 @@ export default {
   }
 }
 
-.cover { cursor: move !important; }
-
 .grid {
   position: relative;
   -webkit-touch-callout: none;
@@ -393,11 +392,16 @@ export default {
     text-align: center;
     position: relative;
     z-index: 5;
+    display: flex;
+    justify-content: center;
+    justify-items: center;
+    align-content: center;
+    align-items: center;
     > div {
       cursor: default;
     }
   }
-
+  
   .cover {
     position: relative;
     display: inline-block;
@@ -412,6 +416,7 @@ export default {
     display: block;
     width: 0px;
     height: 0px;
+    cursor: move !important;
   }
   
 }
@@ -453,6 +458,13 @@ export default {
   align-content: flex-start !important;
   align-items: flex-start !important;
   width: 100%;
+}
+
+.awp-float,
+.awp-float .grid-inner-wrap {
+  display: flex !important;
+  align-content: flex-start !important;
+  align-items: flex-start !important;
 }
 
 </style>

@@ -3,7 +3,7 @@ import _ from "lodash";
 export default {
   methods: {
     fitCoversToViewport: function() {
-      
+    
       let canvas = {};
       if ( !this.editorCovers ) {
         canvas.width  = window.innerWidth - this.canvas.padding.left - this.canvas.padding.right;
@@ -18,28 +18,37 @@ export default {
       // The covers per row is adjusted to the nearest integer.
       // This makes it so the size of each cover stays pretty close  
       // to the original no matter what the screen size is.
-      // this.covers.perRow = Math.round( canvas.width / (this.covers.sizeOriginal + this.covers.padding*2) );
-      this.covers.size = (canvas.width / this.covers.perRow) - this.covers.padding*2;
-      // console.log( 'COVER SIZE: ', this.covers.size )
+      if ( !this.editorCovers ) {
+        this.covers.perRow = Math.round( canvas.width / (this.covers.sizeOriginal + this.covers.padding*2) );
+        this.covers.size = canvas.width / this.covers.perRow;
+      }
+      else {
+        this.covers.size = (canvas.width / this.covers.perRow) - this.covers.padding*2;
+      }
       
       this.covers.rows = Math.ceil( canvas.height / this.covers.size ); 
       this.covers.total = this.covers.rows * this.covers.perRow;
-      if ( !this.editorCovers && this.covers.all.length < this.covers.total ) this.addMoreCovers();
-      // console.log( this.covers.total )
+      if ( this.editorCovers ) this.$store.commit('update', { key: 'visibleAnimatedCovers', value: this.covers.total }); // Messaging the image editor...
+      this.addMoreCovers();
       this.covers.visible = this.getRandomCovers( this.covers.all, this.covers.total );
-      
+    
     },   
     
+    // Makes sure you always have enough covers and also clears any prior additions them when fitCoversToViewport() runs...
     addMoreCovers: function() {
+      
       
       let vue = this;
       this.covers.total
-      const loopLength = Math.ceil( this.covers.total / this.covers.all.length );
+      const loopLength = Math.ceil( this.covers.total / vue.covers.allOriginal.length );
       const loopRange = _.range( 0, loopLength );
       let covers = [];
       _.each( loopRange, function() {
-        covers = covers.concat( vue.covers.all );
+        covers = covers.concat( vue.covers.allOriginal );
       });
+      
+      let difference = Math.abs( this.covers.total - covers.length );
+      if ( difference ) covers = _.dropRight(covers, difference);
       
       this.covers.all = _.shuffle( covers );
       

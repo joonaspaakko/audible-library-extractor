@@ -38,6 +38,7 @@ import "tippy.js/themes/light-border.css";
 
 const store = new Vuex.Store({
   state: {
+    visibleAnimatedCovers: null,
     covers: null,
     coverAmount: 30,
     coverSize: 160,
@@ -45,7 +46,7 @@ const store = new Vuex.Store({
     coverPlaceholders: 0,
     coversPerRow: 5,
     canvas: {
-      width: 914,
+      width: 1200,
       height: 0,
       heightActual: 0,
       background: "#fff",
@@ -72,6 +73,7 @@ const store = new Vuex.Store({
     usedCovers: null,
     draggable: true,
     showAuthorAndTitle: false,
+    authorAndTitleColor: '#333',
     textElementCounter: 0,
     textElements: [],
     compressImage: false,
@@ -82,6 +84,8 @@ const store = new Vuex.Store({
       canvasPanning: true,
     },
     animatedWallpaperMode: false,
+    excludeArchived: false,
+    archived: [],
   },
   mutations: {
     
@@ -138,7 +142,6 @@ const store = new Vuex.Store({
       
       let usedPlaceholders = _.filter( state.usedCovers, 'placeholderCover' );
       let difference = Math.abs(usedPlaceholders.length - value);
-      console.log('difference', difference)
       let diffArray = _.range(0, difference);
       if ( usedPlaceholders.length < value ) {
         _.each(diffArray, function( index ) {
@@ -151,12 +154,10 @@ const store = new Vuex.Store({
           
           let removeIndex = _.findIndex(state.usedCovers, { asin: cover.asin });
           if ( removeIndex ) {
-            console.log( 'removeIndex', removeIndex )
             state.usedCovers.splice(removeIndex, 1);
           }
           
         });
-        console.log( usedPlaceholders )
         
       }
       

@@ -58,7 +58,27 @@
     <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
       <div v-show="!store.saving">
         
+        <div v-if="store.animatedWallpaperMode" style="text-align: center;">
+          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
+          <gb-button size="mini" :rounded="true" left-icon="library_books" color="white" href="#">Animated wallpaper docs</gb-button>
+          <spacer size="default" :line="false" />          
+        </div>
+        <spacer v-else size="large" :line="false" />
+        
+        
+        <!-- <div v-if="store.animatedWallpaperMode">
+          <spacer size="small" :line="false" />
+          <p class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i>
+            <span class="gb-field-message__message">
+              Animated wallpapers use all the available covers in order to get the most out of it. 
+              You should have at least the amount of covers to cover the entire canvas and hopefully a few or few dozen more than that.
+            </span>
+          </p>
           <spacer size="default" :line="false" />
+        </div>
+        <spacer v-else size="large" :line="false" /> -->
+        
         
         <!-- On ice for now... -->
         <!-- 
@@ -285,8 +305,35 @@
           
           <spacer size="default" :line="false" />
           
+          <div v-if="store.showAuthorAndTitle">
+            <gb-heading tag="h6" :uppercase="true">
+              <span>Author and title color</span>
+              <color-picker
+                class="color-picker-placeholder"
+                v-model="store.authorAndTitleColor"
+                :position="{ left: '-180px', top: '40px' }"
+              >
+              </color-picker>
+            </gb-heading>
+            
+            <spacer size="default" :line="false" />
+          </div>
+          
         </div>
-
+        
+        <div v-if="store.archived">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Exclude archived ({{ store.archived }})</span>
+            <gb-toggle
+            size="small"
+            :value="store.excludeArchived"
+            @change="excludeArchivedChanged"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+        </div>
+        
         <div>
           <gb-heading tag="h6" :uppercase="true">
             <span>Background color</span>
@@ -366,7 +413,7 @@
             ></gb-input>
           </div>
           
-          <div style="text-align: center;" v-if="store.canvas.height > 0">
+          <div style="text-align: center;" v-if="!store.animatedWallpaperMode && store.canvas.height > 0">
             <spacer size="default" :line="false" />
           
             <gb-button
@@ -375,11 +422,16 @@
             size="mini"
             @click="fitCanvasToContent"
             :rounded="true"
-            v-tippy content="Resizes canvas to fit covers perfectly."
             left-icon="crop"
-            >Fit canvas to covers</gb-button>
+            >Fit canvas height to covers</gb-button>
           </div>
-
+          
+          <p v-if="store.animatedWallpaperMode" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i>
+            <span class="gb-field-message__message">
+              The animated wallaper fits itself to any screen size, canvas size is for preview purposes only.
+            </span>
+          </p>
+          
           <spacer size="medium" :line="false" />
           
         </div>
@@ -503,6 +555,7 @@
             </div>
             
           </div>
+          
           <spacer size="medium" :line="false" />
           
         </div>
@@ -523,6 +576,19 @@
           @blur="inputBlurred"
           size="mini"
           ></gb-input>
+          
+          <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
+            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. Try lowering canvas width or increasing covers per row.
+          </span></p>
+          
+          <div v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length">
+            <spacer size="default" :line="false" />
+            <div class="warning-message">
+              <strong>{{ this.store.visibleAnimatedCovers - this.store.covers.length }}/{{ this.store.visibleAnimatedCovers }}</strong> visible covers have been duplicated in order for the animated wallpaper to function.
+              <br><br>
+              <span style="color: #fff;">If you don't like what you see, try lowering the "Covers per row" setting or consider using another source for the cover images if possible.</span>
+            </div>
+          </div>
           
           <spacer size="medium" :line="false" />
           
@@ -631,6 +697,7 @@
 import spacer from "./spacer.vue";
 import zoomToFit from "@editor-mixins/zoomToFit.js";
 import centerCanvas from "@editor-mixins/centerCanvas.js";
+import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
 
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
@@ -639,7 +706,7 @@ import _ from "lodash";
 export default {
   name: "toolbar",
   components: { spacer },
-  mixins: [zoomToFit, centerCanvas],
+  mixins: [zoomToFit, centerCanvas, calculateCoverSize],
   data: function () {
     return {
       store: this.$store.state,
@@ -650,6 +717,7 @@ export default {
       ],
     };
   },
+  
   computed: {
     
     outputWidthZoomSize: function() {
@@ -803,15 +871,17 @@ export default {
       
     // },
     
-    calculateCoverSize: function( params ) {
+    excludeArchivedChanged: function( value ) {
       
-      params = params || {};
+      this.$store.commit('update', { key: 'excludeArchived',  value: value });
       
-      let canvasWidth = parseFloat(params.canvasWidth || this.store.canvas.width) - 
-                        parseFloat(params.paddingLeft || this.store.canvas.padding.left) - 
-                        parseFloat(params.paddingRight || this.store.canvas.padding.right);
-      let coverSize = (canvasWidth / (params.coversPerRow || this.store.coversPerRow)) - (parseFloat(params.paddingSize || this.store.paddingSize)*2);
-      return coverSize;
+      let covers = value ? _.filter(this.store.covers, function(o) { return !o.inArchive; }) : this.store.covers;
+      covers = covers.slice(0, this.store.coverAmount);
+      
+      this.$store.commit('update', [
+        { key: 'usedCovers', value: covers },
+        { key: 'coverAmount', value: covers.length },
+      ]);
       
     },
     
@@ -828,9 +898,31 @@ export default {
           { key: 'canvas.width',  value: 1920 },
           { key: 'canvas.height', value: 1080 },
           { key: 'coversPerRow',  value: 12   },
+          { key: 'canvas.padding.left',  value: 0 },
+          { key: 'canvas.padding.top',  value: 0 },
+          { key: 'canvas.padding.right',  value: 0 },
+          { key: 'canvas.padding.bottom',  value: 0 },
+          { key: 'paddingSize',  value: 0 },
         ]);
-        this.zoomToFit();
       }
+      else {
+        
+        this.$store.commit('update', [
+          { key: 'canvas.width',  value: 1200 },
+          { key: 'canvas.height', value: 0 },
+          { key: 'coversPerRow',  value: 5 },
+          { key: 'canvas.padding.left',  value: 32 },
+          { key: 'canvas.padding.top',  value: 32 },
+          { key: 'canvas.padding.right',  value: 32 },
+          { key: 'canvas.padding.bottom',  value: 32 },
+          { key: 'paddingSize',  value: 5 },
+        ]);
+        
+      }
+      
+      this.$nextTick(function() {
+        this.zoomToFit();
+      });
       
       this.$store.commit('update', { key: 'animatedWallpaperMode', value: value });
       
@@ -1371,8 +1463,8 @@ $toolbar-text: #8eabc5;
 
 .toolbar-inner {
   h6.gb-base-heading {
-    font-size: 15px;
-    line-height: 20px;
+    font-size: 14px;
+    line-height: 19px;
     font-weight: 400;
     color: #fff !important;
     padding: 7px 0px;  
@@ -1421,6 +1513,18 @@ $toolbar-text: #8eabc5;
   }
 }
 
+.warning-message {
+  color: #ffc02a;
+  font-size: 12px;
+  line-height: 17px;
+  border: 1px solid #ffc02a;
+  padding: 5px 7px;
+  border-radius: 4px;
+  strong {
+    color: adjust-hue( lighten( #ffc02a, 5 ), -40);
+  }
+}
+
 </style>
 
 
@@ -1445,6 +1549,10 @@ $toolbar-text: #8eabc5;
 //   border-radius: 999999px !important;
 //   border-width: 2px !important;
 // }
+
+a.gb-base-button {
+  text-decoration: none;
+}
 
 .canvas-padding .gb-field-message {
   display: block;

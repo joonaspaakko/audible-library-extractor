@@ -12,6 +12,7 @@
 import editorCanvas from "@editor-comps/canvas.vue";
 import toolbar from "@editor-comps/toolbar.vue";
 import getCovers from "@editor-mixins/getCovers.js";
+import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
 
 export default {
   name: "App",
@@ -19,7 +20,7 @@ export default {
     editorCanvas,
     toolbar,
   },
-  mixins: [getCovers],
+  mixins: [getCovers, calculateCoverSize],
   data: function () {
     return {
       store: this.$store.state,
@@ -30,6 +31,10 @@ export default {
   },
   created: function () {
     window.addEventListener("mouseup", this.stopSlidingAround);
+    
+    let coverSize = this.calculateCoverSize({ coversPerRow: this.store.coversPerRow });
+    this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    
     // window.addEventListener('beforeunload', function (e) {
     //   e.preventDefault();
     //   e.returnValue = '';

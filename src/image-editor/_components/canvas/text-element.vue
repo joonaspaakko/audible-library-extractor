@@ -233,11 +233,11 @@ export default {
       this.$nextTick(function() {
         let vue = this;
         setTimeout(function() {
-          console.log( vue.store.events.textNudge )
+          
           vue.$refs.contenteditable.$el.focus();
           document.execCommand('selectAll',false,null);
           
-        },500);
+        }, 100);
       });
 
     },
