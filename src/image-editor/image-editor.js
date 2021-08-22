@@ -43,9 +43,11 @@ const store = new Vuex.Store({
     coverSize: 160,
     paddingSize: 5,
     coverPlaceholders: 0,
+    coversPerRow: 5,
     canvas: {
       width: 914,
       height: 0,
+      heightActual: 0,
       background: "#fff",
       zoom: 1,
       zoomOutputs: false,
@@ -80,10 +82,6 @@ const store = new Vuex.Store({
       canvasPanning: true,
     },
     animatedWallpaperMode: false,
-    canvasDimensionsTemp: {
-      width: null,
-      height: null,
-    },
   },
   mutations: {
     

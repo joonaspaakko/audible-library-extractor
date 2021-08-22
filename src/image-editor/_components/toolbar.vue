@@ -43,10 +43,22 @@
       </div>
       
     </div>
+
+    <div class="mode-switcher">
+      <gb-toggle
+      size="default"
+      :value="store.animatedWallpaperMode"
+      @change="editorModeChanged"
+      label="Animated wallpaper mode"
+      status="error"
+      ></gb-toggle>
+      
+    </div>
     
     <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
       <div v-show="!store.saving">
         
+          <spacer size="default" :line="false" />
         
         <!-- On ice for now... -->
         <!-- 
@@ -73,18 +85,6 @@
           <spacer size="large" :line="true" />
 
         </div>
-        
-        <div class="mode-switcher">
-          <gb-toggle
-          size="default"
-          v-model="store.animatedWallpaperMode"
-          label="Animated wallpaper mode"
-          status="error"
-          ></gb-toggle>
-          
-        </div>
-        
-        <spacer size="large" :line="false" />
         
         <div v-if="!store.animatedWallpaperMode">
           
@@ -366,10 +366,9 @@
             ></gb-input>
           </div>
           
-          <spacer size="default" :line="false" />
-        
+          <div style="text-align: center;" v-if="store.canvas.height > 0">
+            <spacer size="default" :line="false" />
           
-          <div style="text-align: center;">
             <gb-button
             :full-width="false"
             color="blue"
@@ -510,6 +509,27 @@
         
         
         <div>
+          <gb-heading tag="h6" :uppercase="true">Covers per row (columns)</gb-heading>
+          <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
+          
+          <input type="range" min="1" max="20" v-model="coversPerRow" step="1" @focus="inputFocused" @blur="inputBlurred" />
+          <gb-input
+          type="number"
+          :min="1"
+          :value="parseFloat(store.coversPerRow)"
+          @input="inputChanged('coversPerRow', $event)"
+          @focus="inputFocused"
+          @blur="inputBlurred"
+          size="mini"
+          ></gb-input>
+          
+          <spacer size="medium" :line="false" />
+          
+        </div>
+        
+<!--         
+        <div>
           <gb-heading tag="h6" :uppercase="true">Cover size</gb-heading>
           <spacer size="mini" :line="false" />
           <spacer size="small" :line="false" />
@@ -535,7 +555,7 @@
           <spacer size="medium" :line="false" />
           
         </div>
-
+ -->
         
         <div>
           <gb-heading tag="h6" :uppercase="true">Cover padding</gb-heading>
@@ -676,10 +696,15 @@ export default {
         return this.store.coverSize;
       },
       set: _.throttle( function (size) {
-        this.$store.commit("update", {
-          key: "coverSize",
-          value: size,
-        });
+        this.$store.commit("update", { key: "coverSize", value: size,});
+      }, 200, { leading: false, trailing: true }),
+    },
+    coversPerRow: {
+      get: function () {
+        return this.store.coversPerRow;
+      },
+      set: _.throttle( function (size) {
+        this.$store.commit("update", { key: "coversPerRow", value: size,});
       }, 200, { leading: false, trailing: true }),
     },
     canvasPadding: {
@@ -728,6 +753,30 @@ export default {
       return Math.floor(quality * 100);
     },
   },
+  
+  watch: {
+    "store.coversPerRow": function( value ) {
+      let coverSize = this.calculateCoverSize({ coversPerRow: value });
+      this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    },
+    "store.canvas.width": function( value ) {
+      let coverSize = this.calculateCoverSize({ canvasWidth: value });
+      this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    },
+    "store.canvas.padding.left": function( value ) {
+      let coverSize = this.calculateCoverSize({ paddingLeft: value });
+      this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    },
+    "store.canvas.padding.right": function( value ) {
+      let coverSize = this.calculateCoverSize({ paddingRight: value });
+      this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    },
+    "store.paddingSize": function( value ) {
+      let coverSize = this.calculateCoverSize({ paddingSize: value });
+      this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    },
+  },
+  
   methods: {
     
     // canvasPresetSelected: function() {
@@ -753,6 +802,39 @@ export default {
     //   }
       
     // },
+    
+    calculateCoverSize: function( params ) {
+      
+      params = params || {};
+      
+      let canvasWidth = parseFloat(params.canvasWidth || this.store.canvas.width) - 
+                        parseFloat(params.paddingLeft || this.store.canvas.padding.left) - 
+                        parseFloat(params.paddingRight || this.store.canvas.padding.right);
+      let coverSize = (canvasWidth / (params.coversPerRow || this.store.coversPerRow)) - (parseFloat(params.paddingSize || this.store.paddingSize)*2);
+      return coverSize;
+      
+    },
+    
+    editorModeChanged: function( value ) {
+      
+      if ( value  ) {
+        // Here the idea was to just make sure there was a set height in the wallpaper mode...
+        // let content = document.querySelector("#editor-canvas-content");
+        // var cHeight = parseFloat(this.$store.state.canvas.height);
+        // var canvasHeight = cHeight || content.clientHeight;
+        // if ( !cHeight ) this.$store.commit('update', { key: 'canvas.heightActual', value: canvasHeight });
+        
+        this.$store.commit('update', [
+          { key: 'canvas.width',  value: 1920 },
+          { key: 'canvas.height', value: 1080 },
+          { key: 'coversPerRow',  value: 12   },
+        ]);
+        this.zoomToFit();
+      }
+      
+      this.$store.commit('update', { key: 'animatedWallpaperMode', value: value });
+      
+    },
     
     textColorChanged: _.debounce(function(color, index) {
       this.$store.commit('changeText', { index: index, key: 'color', value: color, });
@@ -987,6 +1069,7 @@ $toolbar-text: #8eabc5;
   background: $toolbar-bg;
   box-sizing: border-box;
   color: $toolbar-text;
+  min-width: 380px;
   max-width: 380px;
   z-index: 3001 !important;
   ::-moz-selection { background: #0093ee !important; color: lighten( #0093ee, 30 ); }
@@ -1304,7 +1387,7 @@ $toolbar-text: #8eabc5;
     content: '';
     position: absolute;
     top: 0px;
-    right: -50%;
+    right: -63px;
     left: -23px;
     border-radius: 999px 0 0 999px;
     bottom: 0px;
@@ -1319,15 +1402,18 @@ $toolbar-text: #8eabc5;
   padding: 10px 15px;
   position: absolute;
   z-index: 4;
-  top: 0px;
+  top: 0;
+  right: 0;
+  left: 0;
+  text-align: center;
   
   &:before {
     content: '';
     position: absolute;
-    top: 0px;
-    right: -50%;
-    left: -65px;
-    bottom: 0px;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
     border-bottom: 1px solid #323d4f;
     background: #212935;
     box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);

@@ -38,17 +38,25 @@
         </div>
         
         <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%">
-          <div class="grid-inner-wrap">
+          <div class="grid-inner-wrap" :style="{ height: store.canvas.height > 0 ? store.canvas.height-(store.paddingSize*2) + 'px' : null }" >
             
             <animatedWallpaper v-if="store.animatedWallpaperMode" 
             :editorCovers="store.covers"
+            :editorCoverPadding="store.paddingSize"
+            :editorCoverSize="store.coverSize"
+            :editorCoversPerRow="store.coversPerRow"
+            :editorCanvasWidth="store.canvas.width"
+            :editorCanvasHeight="store.canvas.height"
+            :editorCanvasPaddingLeft="store.canvas.padding.left"
+            :editorCanvasPaddingTop="store.canvas.padding.top"
+            :editorCanvasPaddingRight="store.canvas.padding.right"
+            :editorCanvasPaddingBottom="store.canvas.padding.bottom"
             />
             
             <draggable v-else v-model="usedCovers" group="covers" @end="draggingEnded" :style="canvasAlignment">
               <div 
               class="cover"
               v-for="book in store.usedCovers" :key="book.asin"
-              :style="coverPadding"
               @mouseover="coverHover"
               @mouseleave="coverHover"
               >
@@ -60,11 +68,22 @@
                   <div class="title">{{ book.titleShort || book.title }}</div>
                 </div>
                 
-                <div v-if="book.placeholderCover" ref="coverImages" class="placeholder" :style="coverStyle"></div>
-                <img v-else ref="coverImages" :src="makeCoverUrl(book.cover)" alt="" :style="coverStyle" draggable="false" />
+                <div v-if="book.placeholderCover" ref="coverImages" class="placeholder"></div>
+                <img v-else ref="coverImages" class="cover-img" :src="makeCoverUrl(book.cover)" alt="" draggable="false" />
                 
               </div>
+              
             </draggable>
+            <component v-if="!store.animatedWallpaperMode" is="style">
+              .grid-inner-wrap .cover {
+                padding: {{ (this.store.paddingSize > -1 ? this.store.paddingSize : 0) }}px !important;
+              }
+              .grid-inner-wrap .cover .placeholder,
+              .grid-inner-wrap .cover .cover-img {
+                width: {{ this.store.coverSize > 0 ? this.store.coverSize : 0 }}px !important;
+                height: {{ this.store.coverSize > 0 ? this.store.coverSize : 0 }}px !important;
+              }
+            </component>
 
           </div>
         </div>
@@ -143,32 +162,32 @@ export default {
         
       return style;
     },
-    coverStyle: function () {
-      var style = {};
-      if (this.store.coverSize > -1) {
-        style.width = this.store.coverSize + "px";
-      }
-      else {
-        style.width = 0 + "px";
-      }
-      if (this.store.coverSize > -1) {
-        style.height = this.store.coverSize + "px";
-      }
-      else {
-        style.height = 0 + "px";
-      }
-      return style;
-    },
-    coverPadding: function () {
-      var style = {};
-      if (this.store.paddingSize > -1) {
-        style.padding = this.store.paddingSize + "px";
-      }
-      else {
-        style.padding = 0 + "px";
-      } 
-      return style;
-    },
+    // coverStyle: function () {
+    //   var style = {};
+    //   if (this.store.coverSize > -1) {
+    //     style.width = this.store.coverSize + "px";
+    //   }
+    //   else {
+    //     style.width = 0 + "px";
+    //   }
+    //   if (this.store.coverSize > -1) {
+    //     style.height = this.store.coverSize + "px";
+    //   }
+    //   else {
+    //     style.height = 0 + "px";
+    //   }
+    //   return style;
+    // },
+    // coverPadding: function () {
+    //   var style = {};
+    //   if (this.store.paddingSize > -1) {
+    //     style.padding = this.store.paddingSize + "px";
+    //   }
+    //   else {
+    //     style.padding = 0 + "px";
+    //   } 
+    //   return style;
+    // },
     canvasAlignment: function () {
       return { textAlign: this.store.canvas.alignment };
     },

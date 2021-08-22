@@ -1,37 +1,55 @@
 <template>
-<div id="awp">
+<div id="awp" :style="!editorCovers ? canvasStyle : null">
   <!-- <style>body { background: #151515; }</style> -->
   <div class="cover" v-show="mounted" :class="{ 'fade-in': !afterMounted }" v-for="(cover, index) in covers.visible" :key="index">
-    <img :style="covers.style" :src="cover" alt="" draggable="false">
+    <img :src="cover" alt="" draggable="false">
   </div>
+  <component is="style">
+    #awp .cover {
+      margin: {{ (this.covers.padding > -1 ? this.covers.padding : 0) }}px;
+    }
+    #awp .cover img {
+      width: {{ this.covers.size }}px;
+      height: {{ this.covers.size }}px;
+    }
+  </component>
 </div>
 </template>
 
 <script>
 
-import getCovers from '@wallpaper-mixins/getCovers.js';
 import utilities from '@wallpaper-mixins/utilities.js';
 import presets from '@wallpaper-mixins/presets.js';
 import fitCoversToViewport from '@wallpaper-mixins/fitCoversToViewport.js';
 import getAnimations from '@wallpaper-mixins/getAnimations.js';
 import pickCoversToAnimate from '@wallpaper-mixins/pickCoversToAnimate.js';
+import prepareData from '@wallpaper-mixins/prepareData.js';
 
 export default {
   name: "awp",
   mixins: [
-    getCovers, 
     utilities,
     presets,
     fitCoversToViewport,
     getAnimations,
     pickCoversToAnimate,
+    prepareData,
   ],
-  props: ['editorCovers'],
   data: function () {
     return {
       loadPreset: 'piano-swipe-fade',
       animation: null,
-      canvasPadding: 0,
+      canvas: {
+        style: null,
+        padding: {
+          left: 0,
+          top: 0,
+          right: 0,
+          bottom: 0,
+        },
+        width: 0,
+        height: 0,
+      },
       covers: {
         style: null,
         all: [],
@@ -39,8 +57,9 @@ export default {
         perRow: 10,
         rows: null,
         size: null,
-        sizeOriginal: 160,
+        sizeOriginal: 0,
         padding: 0,
+        paddingStyle: null,
         visible: null,
       },
       animationCounter: 0,
@@ -87,14 +106,47 @@ export default {
     };
   },
   
+  computed: {
+    
+    canvasStyle: function () {
+      var style = {};
+      style.paddingLeft   = this.canvas.padding.left   > -1 ? this.canvas.padding.left   + "px" : 0 + "px";
+      style.paddingTop    = this.canvas.padding.top    > -1 ? this.canvas.padding.top    + "px" : 0 + "px";
+      style.paddingRight  = this.canvas.padding.right  > -1 ? this.canvas.padding.right  + "px" : 0 + "px";
+      style.paddingBottom = this.canvas.padding.bottom > -1 ? this.canvas.padding.bottom + "px" : 0 + "px";
+      return style;
+    },
+
+    // coverPadding: function () {
+    //   var style = {};
+    //   style.margin = (this.covers.padding > -1 ? this.covers.padding : 0) + "px";
+    //   return style;
+    // },
+    
+    // coverStyle: function() {
+    //   let style = {};
+    //   style.width  = this.covers.size + 'px';
+    //   style.height = this.covers.size + 'px';
+    //   this.covers.style = style;
+    // },
+    
+  },
+  
+  watch: {
+    "editorCoversPerRow": function( coversPewRow ) {
+      this.covers.perRow = coversPewRow;
+      this.fitCoversToViewport();
+    },
+  },
+  
   created: function() {
     
-    this.animation = _.find( this.presets, { name: this.loadPreset });
-    this.getCovers();
+    this.prepareData();
     
     this.covers.all = _.shuffle( this.covers.all );
     
     let vue = this;
+    
     this.fitCoversToViewport();
     window.addEventListener('resize', _.debounce( function() {
       
