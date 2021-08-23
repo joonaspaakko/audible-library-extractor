@@ -105,10 +105,10 @@ export default {
           //use: ['flip-horizontal-bottom', 'flip-horizontal-top', 'flip-vertical-right', 'flip-vertical-left', 'flip-diagonal-2-tl', 'flip-diagonal-2-br', 'flip-diagonal-1-bl', 'flip-diagonal-1-tr' ], // Falsy value = all animations.
           use: [ "flip-2-hor-top-2", "flip-2-hor-top-1", "flip-2-ver-right-2", "flip-2-ver-right-1", "flip-2-hor-bottom-2", "flip-2-hor-bottom-1", "flip-2-ver-left-2", "flip-2-ver-left-1" ],
           cycleDelay: 5, // Seconds. Length of one animation cycle.
-          covers: 6, // How many covers to animate in one cycle
-          randomCovers: true, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
-          animationZone: 50, // Cover animation delay is divided equally within this animation zone.
-          randomDelay: false, // Animations are triggered randomly within the "animationZone" 
+          covers: 4, // How many covers to animate in one cycle
+          randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
+          animationZone: 60, // Cover animation delay is divided equally within this animation zone.
+          randomDelay: true, // Animations are triggered randomly within the "animationZone" 
           sequential: false, // Covers are animated: left to right / top down
         },
         {

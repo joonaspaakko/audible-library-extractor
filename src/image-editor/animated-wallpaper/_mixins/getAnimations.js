@@ -7,8 +7,9 @@ export default {
       let vue = this;
       this.animations = _.shuffle( this.animations );
       
-      if ( this.animation.use ) this.animations = this.animations.filter(function( filterAnimation ) {
+      let animations = !this.animation.use ? this.animations : this.animations.filter(function( filterAnimation ) {
         let ping = false;
+        // console.log( filterAnimation.class )
         vue.animation.use.forEach(function( usedAnimation ) {
           if ( usedAnimation === filterAnimation.class ) {
             ping = true;
@@ -16,13 +17,14 @@ export default {
           }
         });
         return ping;
-      })
+      });
       
-      let animations = {
-        in: this.animations.filter(function( animation ) {
+      
+      animations = {
+        in: animations.filter(function( animation ) {
           return animation.in;
         }),
-        out: this.animations.filter(function( animation ) {
+        out: animations.filter(function( animation ) {
           return animation.out;
         }),
       };

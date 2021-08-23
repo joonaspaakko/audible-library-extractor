@@ -1,6 +1,6 @@
 
 .cover {
-  display: inline-block;
+  display: none;
   position: relative;
   > img {
     width: 0;
@@ -11,6 +11,11 @@
   img.hide { display: none; }
   
 }
+
+.reveal-covers .cover {
+  display: inline-block;
+}
+
 
 .cover {
   .in { 
@@ -39,6 +44,7 @@
     }
   }
 }
+
 
 
 /* ----------------------------------------------

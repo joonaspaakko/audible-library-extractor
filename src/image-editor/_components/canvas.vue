@@ -1,6 +1,6 @@
 <template>
   <div class="left" :class="{ 'force-panning': store.canvasPanning }" id="editor-canvas-left" ref="left" 
-  v-dragscroll
+  v-dragscroll="dragscrollEnabled"
   v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
   >
     <div class="show-blank-canvas" v-show="store.saving"></div>
@@ -19,6 +19,8 @@
       id="editor-canvas-content"
       :style="canvasStyle"
       >
+        
+        <div id="awp-overlay" v-if="store.awpOverlayColorEnabled && store.animatedWallpaperMode" :style="{ backgroundColor: store.awpOverlayColor }"></div>
         <div class="canvas-bounds"></div>
         
         <div
@@ -33,10 +35,10 @@
           v-if="!store.saving"
         ></div>
         <div class="text-elements" v-if="store.textElements.length && !store.animatedWallpaperMode">
-          <text-element v-for="(text, index) in store.textElements" :key="text.id" :textObj="text" :textIndex="index" />
+          <text-element data-no-dragscroll v-for="(text, index) in store.textElements" :key="text.id" :textObj="text" :textIndex="index" />
         </div>
         
-        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }">
+        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }" :style="{ filter: (this.store.awpGrayscale && this.store.animatedWallpaperMode) ? 'grayscale(1)' : null }">
           <div class="grid-inner-wrap" :style="{ height: store.canvas.height > 0 ? store.canvas.height-(store.paddingSize*2) + 'px' : null }" >
             
             <animatedWallpaper v-if="store.animatedWallpaperMode" style="cursor: grab;"
@@ -107,19 +109,28 @@ export default {
     return {
       store: this.$store.state,
       panningAlert: false,
+      dragscrollEnabled: false,
     };
   },
   
   mounted: function() {
     
     document.querySelector('#editor-canvas-left').addEventListener("mousedown", this.moveableControlsHide);
+    this.$root.$on('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').addEventListener("scroll", this.panningCanvas);
-    this.zoomToFit();
+    this.$nextTick(function() {
+      this.zoomToFit();
+      let vue = this;
+      setTimeout(function() {
+        vue.dragscrollEnabled = true;
+      }, 10);
+    });
     
   },
 
   beforeDestroy: function () {
     document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.moveableControlsHide);
+    this.$root.$off('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
   },
 
@@ -157,7 +168,7 @@ export default {
         style.transform = "scale(" + this.store.canvas.zoom + ")";
       }
       if (this.store.canvas.transformOrigin) style.transformOrigin = this.store.canvas.transformOrigin;
-        
+      
       return style;
     },
     // coverStyle: function () {
@@ -237,7 +248,7 @@ export default {
     
     moveableControlsHide: function( e ) {
       
-      let textElement = e.target.classList.contains('text-element') || e.target.classList.contains('text-element-child');
+      let textElement = !e ? false : e.target.classList.contains('text-element') || e.target.classList.contains('text-element-child');
       if ( !textElement ) {
         
         this.$store.commit("activateText", -1);
@@ -397,6 +408,8 @@ export default {
     justify-items: center;
     align-content: center;
     align-items: center;
+    width: 100%;
+    height: 100%;
     > div {
       cursor: default;
     }
@@ -465,6 +478,15 @@ export default {
   display: flex !important;
   align-content: flex-start !important;
   align-items: flex-start !important;
+}
+
+#awp-overlay {
+  position: absolute;
+  z-index: 666666;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
 }
 
 </style>

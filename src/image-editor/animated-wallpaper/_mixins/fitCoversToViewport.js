@@ -29,7 +29,10 @@ export default {
       this.covers.rows = Math.ceil( canvas.height / this.covers.size ); 
       this.covers.total = this.covers.rows * this.covers.perRow;
       if ( this.editorCovers ) this.$store.commit('update', { key: 'visibleAnimatedCovers', value: this.covers.total }); // Messaging the image editor...
-      this.addMoreCovers();
+      
+      if ( this.covers.total > this.covers.allOriginal ) this.addMoreCovers();
+      this.covers.all = _.shuffle( this.covers.all );
+      
       this.covers.visible = this.getRandomCovers( this.covers.all, this.covers.total );
     
     },   
@@ -50,7 +53,7 @@ export default {
       let difference = Math.abs( this.covers.total - covers.length );
       if ( difference ) covers = _.dropRight(covers, difference);
       
-      this.covers.all = _.shuffle( covers );
+      this.covers.all = covers;
       
     },
     

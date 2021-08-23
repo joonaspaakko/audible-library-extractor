@@ -61,11 +61,45 @@
         <div v-if="store.animatedWallpaperMode" style="text-align: center;">
           <spacer size="small" :line="false" />
           <spacer size="mini" :line="false" />
-          <gb-button size="mini" :rounded="true" left-icon="library_books" color="white" href="#">Animated wallpaper docs</gb-button>
+          <gb-button size="mini" :rounded="true" left-icon="library_books" color="white" target="_blank" href="https://joonaspaakko.gitbook.io/audible-library-extractor/image-editor/general-info">Animated wallpaper docs</gb-button>
           <spacer size="default" :line="false" />          
         </div>
         <spacer v-else size="large" :line="false" />
         
+        <div v-if="store.animatedWallpaperMode && store.animationPresets" style="position: relative; z-index: 10;">
+          <gb-heading tag="h6" :uppercase="true">
+            Animation presets:
+          </gb-heading>
+          <spacer size="small" :line="false" />
+          <spacer size="mini" :line="false" />
+          <gb-select style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" />
+          
+          <spacer size="small" :line="false" />
+          <div class="label-row">
+            <gb-progress-bar class="time-until-next-cycle" :progress="store.timeUntilNextCycle"></gb-progress-bar>
+            <gb-icon style="padding-left: 10px;" name="info" size="16px" v-tippy="{ placement: 'top', allowHTML: true }" content="
+              <strong>Animation cycle indicator.</strong> Covers can animate anytime up to the white dot. Depending one the preset, animations may trigger immediately, sequentially, or even randomly within this area.
+            "></gb-icon>
+            
+            <component v-if="store.awpAnimationZone" is="style">
+              .time-until-next-cycle .gb-base-progress-bar__bar:after {
+                margin-left: -4.5px;
+                content: '';
+                position: absolute;
+                z-index: 1;
+                top: -3px;
+                left: {{ store.awpAnimationZone }}%;
+                width: 6px;
+                height: 6px;
+                background: #fff;
+                border: 3px solid #171e29;
+                border-radius: 999999px;
+              }
+            </component>
+            
+          </div>
+          <spacer size="default" :line="false" />
+        </div>
         
         <!-- <div v-if="store.animatedWallpaperMode">
           <spacer size="small" :line="false" />
@@ -109,113 +143,6 @@
         <div v-if="!store.animatedWallpaperMode">
           
           <gb-heading tag="h6" :uppercase="true">
-            <span style="padding-right: 10px;">Text elements</span>
-            
-            <gb-button
-              class="make-text-element"
-              :circular="true"
-              @click="makeTextElement"
-              color="blue"
-              size="mini"
-              left-icon="add_circle"
-              v-tippy content="Add new text element"
-            >
-            </gb-button>
-            
-          </gb-heading>
-          
-          <spacer v-if="store.textElements.length" size="mini" :line="false" />
-          
-          <p v-if="store.textElements.length" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">You can make room for text by adjusting canvas padding.</span></p>
-          
-          <div v-if="store.textElements.length" class="text-elements" v-for="(text, index) in store.textElements" :key="text.id" :class="{ active: text.active }"
-          @mousedown="textElementClicked(index, text)">
-            
-            <spacer size="small" :line="false" />
-            
-            <div class="text-elements-inner-wrap" :style="{ zIndex: store.textElements.length - index }">
-              
-              <gb-icon class="remove-text" size="16px" name="close" @click="$store.commit('removeText', index)"></gb-icon>
-              
-              <div class="label-row">
-                <span style="width: 30px;">Text:</span>
-                <gb-input
-                  type="text"
-                  :full-width="true"
-                  :value="text.text"
-                  @input="changeTextElementThrottle( $event, index, text, 'text' )"
-                  @focus="inputFocused"
-                  @blur="inputBlurred"
-                  size="mini"
-                ></gb-input>
-              </div>
-              <spacer size="mini" :line="false" />
-              <div class="label-row">
-                <span style="width: 30px;">Size:</span>
-                <input
-                  style="margin-left: 10px"
-                  :full-width="true"
-                  :value="parseFloat(text.fontSize)"
-                  type="range"
-                  min="10"
-                  max="100"
-                  step="1"
-                  @input="changeTextElementThrottle( $event, index, text, 'fontSize', $event )"
-                  @focus="inputFocused"
-                  @blur="inputBlurred"
-                  size="mini"
-                />
-                <span style="display: inline-block; padding-left: 5px;">{{ text.fontSize }}</span>
-              </div>
-              
-              <spacer size="default" :line="false" />
-              
-              <div class="label-row">
-                
-                <div class="align-text" style="padding-left: 0px;"
-                v-tippy content="Text is aligned inside its own bounding box.">
-                  <gb-icon :class="{ active: text.alignment === 'left' }" size="16px" name="format_align_left" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'left', });"></gb-icon>
-                  <gb-icon :class="{ active: text.alignment === 'center' }" size="16px" name="format_align_center" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'center', });"></gb-icon>
-                  <gb-icon :class="{ active: text.alignment === 'right' }" size="16px" name="format_align_right" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'right', });"></gb-icon>
-                </div>
-                
-                <div style="display: flex; justify-content: center; align-items: center; flex: 0;">
-                  <color-picker
-                  class="text-color-picker-placeholder"
-                  :value="text.color"
-                  @input="textColorChanged( $event, index )"
-                  :position="{ left: '-85px', top: '26px' }">
-                  </color-picker>
-                </div>
-                
-                <gb-checkbox
-                style="padding-left: 15px;"
-                size="mini"
-                :checked="text.bold"
-                @change="changeTextElement( $event, index, text, 'bold' )"
-                label="Bold"
-                ></gb-checkbox>
-                
-                <gb-checkbox
-                style="padding-left: 4px; white-space: nowrap;"
-                size="mini"
-                :checked="text.allCaps"
-                @change="changeTextElement( $event, index, text, 'allCaps' )"
-                label="All caps"
-                ></gb-checkbox>
-              </div>
-              
-            </div>
-            
-          </div>
-          
-          <spacer size="medium" :line="false" />
-          
-        </div>
-        
-        <div v-if="!store.animatedWallpaperMode">
-          
-          <gb-heading tag="h6" :uppercase="true">
             Reduce file size
           </gb-heading>
           <spacer size="default" :line="false" />
@@ -240,7 +167,7 @@
               @blur="inputBlurred"
             />
           </div>
-          <p v-if="qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
+          <p v-if="store.compressImage && qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
           <p v-if="store.compressImage" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">Compressed image is saved as a jpeg, which doesn't support transparency.</span></p>
           
           <spacer size="medium" :line="false" />
@@ -343,6 +270,36 @@
               :position="{ left: '-180px', top: '40px' }"
             >
             </color-picker>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+        </div>
+        
+        <div v-if="store.animatedWallpaperMode" v-tippy content="Overlay is recommended, especially if you plan to have icons in the desktop.">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Color overlay</span>
+            <gb-toggle
+            size="mini"
+            v-model="store.awpOverlayColorEnabled"
+            ></gb-toggle>
+            <color-picker
+              class="color-picker-placeholder"
+              v-model="store.awpOverlayColor"
+              :position="{ left: '-180px', top: '40px' }"
+            >
+            </color-picker>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+        </div>
+        
+        <div v-if="store.animatedWallpaperMode">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Grayscale</span>
+            <gb-toggle
+            size="mini"
+            v-model="store.awpGrayscale"
+            ></gb-toggle>
           </gb-heading>
           
           <spacer size="default" :line="false" />
@@ -560,6 +517,7 @@
           
         </div>
         
+        <text-elements v-if="!store.animatedWallpaperMode" @inputFocused="inputFocused" @inputBlurred="inputBlurred"></text-elements>
         
         <div>
           <gb-heading tag="h6" :uppercase="true">Covers per row (columns)</gb-heading>
@@ -694,10 +652,12 @@
 </template>
 
 <script>
-import spacer from "./spacer.vue";
 import zoomToFit from "@editor-mixins/zoomToFit.js";
 import centerCanvas from "@editor-mixins/centerCanvas.js";
 import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
+
+import spacer from "@editor-comps/toolbar/spacer.vue";
+import textElements from "@editor-comps/toolbar/textElements.vue";
 
 import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
@@ -705,7 +665,7 @@ import _ from "lodash";
 
 export default {
   name: "toolbar",
-  components: { spacer },
+  components: { spacer, textElements },
   mixins: [zoomToFit, centerCanvas, calculateCoverSize],
   data: function () {
     return {
@@ -810,6 +770,15 @@ export default {
         200,
         { leading: false, trailing: true }
       ),
+    },
+
+    animationPreset: {
+      get: function () {
+        return this.store.animationPreset;
+      },
+      set: function ( preset ) {
+        this.$store.commit("update", { key: "animationPreset", value:  preset  });
+      },
     },
 
     zoomPercentage: function () {
@@ -928,10 +897,6 @@ export default {
       
     },
     
-    textColorChanged: _.debounce(function(color, index) {
-      this.$store.commit('changeText', { index: index, key: 'color', value: color, });
-    }, 250, { leading: false, trailing: true }),
-    
     inputFocused: function() {
       this.$store.commit('update', [
         { key: 'events.textNudge', value: false },
@@ -952,62 +917,6 @@ export default {
       // this.$nextTick(function() {
         
       // });
-    },
-    
-    changeTextElement: _.debounce( function(value, index, textElement, key, e) {
-      let val = value;
-      if ( e ) val = parseFloat(e.target.value);
-      this.$store.commit('changeText', { index: index, key: key, value: val, });
-      this.$nextTick(function() {
-        this.$root.$emit('update-moveable-handles');
-      });
-    }, 250, { leading: false, trailing: true }),
-    
-    changeTextElementThrottle: _.throttle( function(value, index, textElement, key, e) {
-      let val = value;
-      if ( e ) val = parseFloat(e.target.value);
-      this.$store.commit('changeText', { index: index, key: key, value: val, });
-      this.$nextTick(function() {
-        this.$root.$emit('update-moveable-handles');
-      });
-    }, 20, { leading: true, trailing: true }),
-    
-    textElementClicked: function( index, textObj ) {
-      
-      let targetIndex = index;
-      this.$store.commit("activateText", targetIndex);
-      
-      let transformBoxes = document.querySelectorAll('.moveable-control-box');
-      if ( transformBoxes.length ) {
-        transformBoxes.forEach(function( controlEl, controlIndex ) {
-          controlEl.style.display = (targetIndex === controlIndex) ? 'block' : 'none';
-        });
-      }
-      
-    },
-    
-    makeTextElement: function() {
-      
-      let transformBoxes = document.querySelectorAll('.moveable-control-box');
-      if ( transformBoxes.length ) {
-        transformBoxes.forEach(function( controlEl, controlIndex ) {
-          controlEl.style.display = 'none';
-        });
-      }
-      
-      this.$store.commit('addText', { 
-        text: 'Lorem ipsum dolor sit amet',
-        rotation: 0,
-        floater: false,
-        fullWidth: true,
-        fontSize: 30,
-        bold: false,
-        allCaps: false,
-        active: true,
-        color: '#3a3a3a',
-        alignment: 'center',
-      });
-      
     },
     
     fitCanvasToContent: function() {
@@ -1099,6 +1008,8 @@ export default {
       var vue = this;
 
       if (!vue.store.saving) {
+        
+        vue.$root.$emit('hide-moveable-controls');
         vue.$store.commit("update", { key: "saving", value: true });
 
         vue.$nextTick(function () {
@@ -1235,6 +1146,162 @@ $toolbar-text: #8eabc5;
 
 .hide-hints .hint-text { display: none !important; }
 
+.toolbar .zoom-container,
+.toolbar .button-container {
+  // box-shadow: 0 0 25px darken( rgba($toolbar-bg, .7), 20);
+  // width: 100%;
+  // background: #273142;
+  // padding: 6px;
+  position: absolute;
+  z-index: 5;
+  top: 20px;
+  left: -27px;
+  // right: 0;
+  text-align: center;
+  background: $toolbar-bg;
+  padding: 10px;
+  border-radius: 99999999px;
+  box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20);
+}
+
+.toolbar .zoom-container {
+  z-index: 4;
+  top: 50px;
+  left: -17px;
+  width: 30px;
+  height: 185px;
+  padding-top: 45px;
+  .zoom-text {
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
+    cursor: pointer;
+    position: relative;
+    top: 105px;
+    font-size: 11px !important;
+    &.highlight {
+      color: #ffc02b !important;
+      opacity: 1;
+    }
+  }
+  .zoom-zoom {
+    position: relative;
+    top: 118px;
+    left: 9px;
+    width: 120px;
+    transform: rotate(-90deg);
+    transform-origin: top left;
+  }
+  .zoom-to-fit {
+    cursor: pointer;
+    position: relative;
+    top: 108px;
+  }
+}
+
+.hide-hints-container {
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  cursor: pointer;
+  opacity: .7;
+  &.showing-hints {
+    opacity: .5;
+  }
+}
+
+.compress-quality-text {
+  display: inline-block;
+  cursor: pointer; 
+  white-space: nowrap; 
+  margin-right: 4px;
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
+}
+
+.mode-switcher {
+  border-radius: 4px;
+  padding: 10px 15px;
+  position: absolute;
+  z-index: 4;
+  top: 0;
+  right: 0;
+  left: 0;
+  text-align: center;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    border-bottom: 1px solid #323d4f;
+    background: #212935;
+    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
+    z-index: -1;
+  }
+}
+
+.warning-message {
+  color: #ffc02a;
+  font-size: 12px;
+  line-height: 17px;
+  border: 1px solid #ffc02a;
+  padding: 5px 7px;
+  border-radius: 4px;
+  strong {
+    color: adjust-hue( lighten( #ffc02a, 5 ), -40);
+  }
+}
+
+</style>
+
+
+<style lang="scss">
+
+
+.toolbar-inner {
+  h6.gb-base-heading {
+    font-size: 14px;
+    line-height: 19px;
+    font-weight: 400;
+    color: #fff !important;
+    padding: 7px 0px;  
+    position: relative;
+    margin-left: -5px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 33px;
+  }
+  h6.gb-base-heading:before {
+    content: '';
+    position: absolute;
+    top: 0px;
+    right: -63px;
+    left: -23px;
+    border-radius: 999px 0 0 999px;
+    bottom: 0px;
+    background: #212935;
+    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
+    z-index: -1;
+  }
+}
+
 .toolbar {
   input[type="range"] {
     -webkit-appearance: none;
@@ -1334,201 +1401,26 @@ $toolbar-text: #8eabc5;
   }
 }
 
-.toolbar .zoom-container,
-.toolbar .button-container {
-  // box-shadow: 0 0 25px darken( rgba($toolbar-bg, .7), 20);
-  // width: 100%;
-  // background: #273142;
-  // padding: 6px;
+.time-until-next-cycle {
+  padding-left: 0px !important;
+}
+.time-until-next-cycle .gb-base-progress-bar__progress {
+  transition-duration: 0s !important;
+  animation-duration: 0s !important;
+}
+.time-until-next-cycle .gb-base-progress-bar__bar { position: relative; overflow: visible !important; }
+.time-until-next-cycle .gb-base-progress-bar__bar:before {
+  content: '';
   position: absolute;
-  z-index: 5;
-  top: 20px;
-  left: -27px;
-  // right: 0;
-  text-align: center;
-  background: $toolbar-bg;
-  padding: 10px;
-  border-radius: 99999999px;
-  box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20);
-}
-
-.toolbar .zoom-container {
-  z-index: 4;
-  top: 50px;
-  left: -17px;
-  width: 30px;
-  height: 185px;
-  padding-top: 45px;
-  .zoom-text {
-    -webkit-touch-callout: none; 
-    -webkit-user-select: none; 
-    -khtml-user-select: none; 
-    -moz-user-select: none; 
-    -ms-user-select: none; 
-    user-select: none; 
-    cursor: pointer;
-    position: relative;
-    top: 105px;
-    font-size: 11px !important;
-    &.highlight {
-      color: #ffc02b !important;
-      opacity: 1;
-    }
-  }
-  .zoom-zoom {
-    position: relative;
-    top: 118px;
-    left: 9px;
-    width: 120px;
-    transform: rotate(-90deg);
-    transform-origin: top left;
-  }
-  .zoom-to-fit {
-    cursor: pointer;
-    position: relative;
-    top: 108px;
-  }
-}
-
-.hide-hints-container {
-  -webkit-touch-callout: none; 
-  -webkit-user-select: none; 
-  -khtml-user-select: none; 
-  -moz-user-select: none; 
-  -ms-user-select: none; 
-  user-select: none; 
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  cursor: pointer;
-  opacity: .7;
-  &.showing-hints {
-    opacity: .5;
-  }
-}
-
-.text-elements-inner-wrap {
-  position: relative;
-  z-index: 2;
-  border: 1px solid #b9bfca;
-  border-radius: 10px;
-  padding: 20px;
-  
-  .remove-text {
-    position: absolute;
-    top: 10px;
-    right: 20px;
-    top: -9px;
-    right: 10px;
-    background: $toolbar-bg;
-  }
-}
-
-.align-canvas,
-.align-text {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-between;
-  align-items: center;
-  i {
-    cursor: pointer;
-    -webkit-touch-callout: none; 
-    -webkit-user-select: none; 
-    -khtml-user-select: none; 
-    -moz-user-select: none; 
-    -ms-user-select: none; 
-    user-select: none; 
-  }
-  .active {
-    color: #fbc03d;
-  }
-}
-
-.text-elements.active .text-elements-inner-wrap {
-  border-color: #fbc03d;
-}
-
-.compress-quality-text {
-  display: inline-block;
-  cursor: pointer; 
-  white-space: nowrap; 
-  margin-right: 4px;
-  -webkit-touch-callout: none; 
-  -webkit-user-select: none; 
-  -khtml-user-select: none; 
-  -moz-user-select: none; 
-  -ms-user-select: none; 
-  user-select: none; 
-}
-
-.toolbar-inner {
-  h6.gb-base-heading {
-    font-size: 14px;
-    line-height: 19px;
-    font-weight: 400;
-    color: #fff !important;
-    padding: 7px 0px;  
-    position: relative;
-    margin-left: -5px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    min-height: 33px;
-  }
-  h6.gb-base-heading:before {
-    content: '';
-    position: absolute;
-    top: 0px;
-    right: -63px;
-    left: -23px;
-    border-radius: 999px 0 0 999px;
-    bottom: 0px;
-    background: #212935;
-    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
-    z-index: -1;
-  }
-}
-
-.mode-switcher {
-  border-radius: 4px;
-  padding: 10px 15px;
-  position: absolute;
-  z-index: 4;
   top: 0;
-  right: 0;
   left: 0;
-  text-align: center;
-  
-  &:before {
-    content: '';
-    position: absolute;
-    top: 0;
-    right: 0;
-    left: 0;
-    bottom: 0;
-    border-bottom: 1px solid #323d4f;
-    background: #212935;
-    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
-    z-index: -1;
-  }
+  width: 100%;
+  height: 100%;
+  background: #212935;
+  z-index: -2;
+  border-radius: 99999999px;
 }
 
-.warning-message {
-  color: #ffc02a;
-  font-size: 12px;
-  line-height: 17px;
-  border: 1px solid #ffc02a;
-  padding: 5px 7px;
-  border-radius: 4px;
-  strong {
-    color: adjust-hue( lighten( #ffc02a, 5 ), -40);
-  }
-}
-
-</style>
-
-
-<style lang="scss">
 /*.hide-hints */.spacer {
   // .line { display: none !important; }
   // padding-bottom: 0 !important;

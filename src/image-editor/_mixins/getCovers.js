@@ -23,19 +23,7 @@ export default {
               // let coversArray = require('./getCovers.json');
               let coversArray = _.flatten( data.imageEditorChunks );
               coversArray = _.filter( coversArray, function( book ) { return book.cover; });
-              coversArray = _.map(coversArray, function( book ) {
-                
-                let obj = {};
-                obj.title = book.titleShort || book.title;
-                if ( book.authors ) obj.author = book.authors[0].name;
-                obj.cover = vue.makeCoverUrl(book.cover);
-                if ( archive && _.includes( archive, book.asin ) ) {
-                  obj.inArchive = true;
-                  ++archivedLength;
-                }
-                return obj;
-                
-              });
+              coversArray = vue.mappy( coversArray, archive );
               
               let changes = [
                 { key: "covers", value: coversArray },
@@ -57,8 +45,36 @@ export default {
           
         });
         
-      } catch(e) {}
+      } catch(e) {
+        
+        let coversArray = require('./getCovers.json');
+        coversArray = this.mappy( coversArray );
+        vue.$store.commit("update", [
+          { key: "covers", value: coversArray },
+          { key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) },
+        ]);
+        vue.dataReady = true;
+        
+      }
       
+    },
+    
+    mappy: function( array, archive ) {
+      
+      let vue = this;
+      return _.map(array, function( book ) {
+                
+        let obj = {};
+        obj.title = book.titleShort || book.title;
+        if ( book.authors ) obj.author = book.authors[0].name;
+        obj.cover = vue.makeCoverUrl(book.cover);
+        if ( archive && _.includes( archive, book.asin ) ) {
+          obj.inArchive = true;
+          ++archivedLength;
+        }
+        return obj;
+        
+      });
     },
     
     fetchArchive: function( callback ) {

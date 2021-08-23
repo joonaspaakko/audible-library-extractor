@@ -85,7 +85,14 @@ const store = new Vuex.Store({
     },
     animatedWallpaperMode: false,
     excludeArchived: false,
-    archived: [],
+    archived: 0,
+    animationPreset: 'piano-swipe-fade',
+    animationPresets: null,
+    timeUntilNextCycle: 0,
+    awpAnimationZone: 0,
+    awpOverlayColorEnabled: false,
+    awpOverlayColor: 'rgba(30,30,30, .63)',
+    awpGrayscale: false,
   },
   mutations: {
     

@@ -18,8 +18,9 @@
     justifyItems: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
     color: textObj.color,
   }"
+  data-no-dragscroll
   >
-    <contenteditable tag="span" :contenteditable="contenteditable" 
+    <contenteditable tag="span" :contenteditable="contenteditable" data-no-dragscroll
     v-model="text" :noNL="true" :noHTML="true" 
     @returned="moveableBlur" 
     @blur.native="moveableBlur"
@@ -190,7 +191,6 @@ export default {
     
     arrowNudge: function( e ) {
       
-      console.log( this.textObj.text, this.textObj.active )
       if ( this.textObj.active ) {
         let shiftModifier = e.srcKey.match('Shift');
         let distance = (shiftModifier ? 10 : 1);
@@ -259,20 +259,19 @@ export default {
 
     },
     
-    
   },
   
 };
 </script>
 
 <style scoped lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@300;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;700&display=swap');
 .text-element {
   white-space: nowrap;
   font-size: 30px;
   line-height: 35px;
   font-family: 'Work Sans', sans-serif;
-  font-weight: 300;
+  font-weight: 400;
   // letter-spacing: 1px;
   position: absolute;
   z-index: 999999;

@@ -57,6 +57,10 @@ export default {
       this.covers.all = this.covers.allOriginal;
       this.startAutoPlay();
     },
+    "$store.state.animationPreset": function( value ) {
+      this.loadAnimationPreset( this.$store.state.animationPreset );
+      this.startAutoPlay();
+    },
   },
   
   methods: {
@@ -66,7 +70,10 @@ export default {
       
       let vue = this;
       
+      
       if ( this.editorCovers ) {
+        
+        this.$store.commit('update', { key: 'animationPresets', value: _.map(this.presets, function( p ) { return { label: _.lowerCase(p.name), value: p.name, description: p.description } }) });
         
         if ( this.editorCoverSize > 0 ) this.covers.size = parseFloat(this.editorCoverSize);
         if ( this.editorCoverSize > 0 ) this.covers.sizeOriginal = parseFloat(this.editorCoverSize);
@@ -81,6 +88,9 @@ export default {
         let covers = this.editorCovers;
         if ( this.$store.state.excludeArchived ) covers = _.filter(covers, function(o) { return !o.inArchive; });
         this.covers.all = this.mappy( covers );
+        
+        this.canvas.overlayColor = this.$store.state.awpOverlayColor; 
+        
       }
       else {
         this.covers.all = require('../../_mixins/getCovers.json');
@@ -89,7 +99,7 @@ export default {
       
       this.covers.allOriginal = JSON.parse(JSON.stringify( this.covers.all )); 
       
-      this.loadAnimationPreset( this.loadPreset );
+      this.loadAnimationPreset( this.$store.state.animationPreset );
       
     },
     
