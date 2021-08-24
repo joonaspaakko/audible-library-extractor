@@ -21,7 +21,7 @@
       >
         
         <div id="awp-overlay" v-if="store.awpOverlayColorEnabled && store.animatedWallpaperMode" :style="{ backgroundColor: store.awpOverlayColor }"></div>
-        <div class="canvas-bounds"></div>
+        <div class="canvas-bounds" :class="{ 'prevent-dragging': store.animatedWallpaperMode }"></div>
         
         <div
           class="canvas-padding-preview"
@@ -378,6 +378,9 @@ export default {
       right: 0;
       bottom: 0;
       left: 0;
+      &.prevent-dragging {
+        z-index: 30;
+      }
     }
     &:after {
       content: '';

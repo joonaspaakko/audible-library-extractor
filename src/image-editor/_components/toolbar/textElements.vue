@@ -50,8 +50,8 @@
           :full-width="true"
           :value="parseFloat(text.fontSize)"
           type="range"
-          min="10"
-          max="100"
+          min="1"
+          max="200"
           step="1"
           @input="changeTextElementThrottle( $event, index, text, 'fontSize', $event )"
           @focus="$emit('inputFocused')"
@@ -204,7 +204,6 @@ export default {
   }
 }
 
-.align-canvas,
 .align-text {
   display: flex;
   flex-direction: row;

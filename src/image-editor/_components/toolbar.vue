@@ -72,16 +72,15 @@
           </gb-heading>
           <spacer size="small" :line="false" />
           <spacer size="mini" :line="false" />
-          <gb-select style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" />
+          <gb-select style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" @change="$store.commit('update', [{ key: 'awpAnimationZone', value: null }, { key: 'timeUntilNextCycle', value: null }])" />
           
           <spacer size="small" :line="false" />
-          <div class="label-row">
+          <div class="label-row" v-if="store.timeUntilNextCycle && store.awpAnimationZone >= 0">
             <gb-progress-bar class="time-until-next-cycle" :progress="store.timeUntilNextCycle"></gb-progress-bar>
             <gb-icon style="padding-left: 10px;" name="info" size="16px" v-tippy="{ placement: 'top', allowHTML: true }" content="
-              <strong>Animation cycle indicator.</strong> Covers can animate anytime up to the white dot. Depending one the preset, animations may trigger immediately, sequentially, or even randomly within this area.
+              <strong>Animation cycle indicator.</strong> Covers can animate from the beginning of the cycle up to the white dot. Depending one the preset, animations may trigger immediately, sequentially, or even randomly within this area.
             "></gb-icon>
-            
-            <component v-if="store.awpAnimationZone" is="style">
+            <component v-if="store.awpAnimationZone && store.awpAnimationZone >= 0" is="style">
               .time-until-next-cycle .gb-base-progress-bar__bar:after {
                 margin-left: -4.5px;
                 content: '';
@@ -524,17 +523,21 @@
           <spacer size="mini" :line="false" />
           <spacer size="small" :line="false" />
           
-          <input type="range" min="1" max="20" v-model="coversPerRow" step="1" @focus="inputFocused" @blur="inputBlurred" />
-          <gb-input
-          type="number"
-          :min="1"
-          :value="parseFloat(store.coversPerRow)"
-          @input="inputChanged('coversPerRow', $event)"
-          @focus="inputFocused"
-          @blur="inputBlurred"
-          size="mini"
-          ></gb-input>
-          
+          <div class="label-row no-padding">
+            <gb-input
+            style="max-width: 48px;"
+            type="number"
+            :min="1"
+            :value="parseFloat(store.coversPerRow)"
+            @input="inputChanged('coversPerRow', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
+            size="mini"
+            ></gb-input>
+            <div style="padding-left: 10px;">
+              <input type="range" min="1" max="20" v-model="coversPerRow" step="1" @focus="inputFocused" @blur="inputBlurred" />
+            </div>
+          </div>
           <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
             Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. Try lowering canvas width or increasing covers per row.
           </span></p>
@@ -586,25 +589,30 @@
           <spacer size="mini" :line="false" />
           <spacer size="small" :line="false" />
           
-          <input
-            type="range"
-            min="0"
-            max="200"
-            v-model="coverPadding"
-            step="1"
-            @input="slidingAround('paddingSize', $event)"
-            @focus="inputFocused"
-            @blur="inputBlurred"
-          />
-          <gb-input
-            type="number"
-            :min="0"
-            :value="parseFloat(store.paddingSize)"
-            @input="inputChanged('paddingSize', $event)"
-            @focus="inputFocused"
-            @blur="inputBlurred"
-            size="mini"
-          ></gb-input>
+          <div class="label-row no-padding">
+            <gb-input
+              style="max-width: 48px;"
+              type="number"
+              :min="0"
+              :value="parseFloat(store.paddingSize)"
+              @input="inputChanged('paddingSize', $event)"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+              size="mini"
+            ></gb-input>
+            <div style="padding-left: 10px;">
+              <input
+                type="range"
+                min="0"
+                max="200"
+                v-model="coverPadding"
+                step="1"
+                @input="slidingAround('paddingSize', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+              />
+            </div>
+          </div>
           
           <spacer size="medium" :line="false" />
         
@@ -616,7 +624,7 @@
           <gb-heading tag="h6" :uppercase="true">Cover alignment</gb-heading>
           <spacer size="mini" :line="false" />
           <spacer size="small" :line="false" />
-          
+          {{ store.canvas.alignment }}
           <div class="align-canvas" style="padding-left: 0px; width: 145px;"
           v-tippy content="Align last row if it's not full...">
             <gb-icon :class="{ active: store.canvas.alignment === 'left' }" size="22px" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });"></gb-icon>
@@ -1101,12 +1109,15 @@ $toolbar-text: #8eabc5;
   display: flex;
   flex-direction: row;
   align-items: center;
-  span {
+  > span {
     display: inline-block;
   }
-  div {
+  > div {
     padding-left: 10px;
     flex: 1;
+  }
+  &.no-padding > div {
+    padding-left: 0px;
   }
 }
 
@@ -1165,13 +1176,26 @@ $toolbar-text: #8eabc5;
 }
 
 .toolbar .zoom-container {
+  transform: rotate(90deg);
+  transform-origin: top left;
   z-index: 4;
-  top: 50px;
-  left: -17px;
-  width: 30px;
-  height: 185px;
-  padding-top: 45px;
+  top: 56px;
+  left: 29px;
+  background: $toolbar-bg;
+  padding: 9px 15px 9px 45px;
+  display: flex;
+  flex-direction: row;
+  justify-items: center;
+  justify-self: center;
+  align-items: center;
+  align-content: center;
+  max-height: 30px;
   .zoom-text {
+    display: inline;
+    width: 30px;
+    height: 30px;  
+    transform: rotate(-90deg);
+    transform-origin: center center;
     -webkit-touch-callout: none; 
     -webkit-user-select: none; 
     -khtml-user-select: none; 
@@ -1180,7 +1204,6 @@ $toolbar-text: #8eabc5;
     user-select: none; 
     cursor: pointer;
     position: relative;
-    top: 105px;
     font-size: 11px !important;
     &.highlight {
       color: #ffc02b !important;
@@ -1189,16 +1212,15 @@ $toolbar-text: #8eabc5;
   }
   .zoom-zoom {
     position: relative;
-    top: 118px;
-    left: 9px;
     width: 120px;
-    transform: rotate(-90deg);
-    transform-origin: top left;
+    transform: rotate(180deg);
+    transform-origin: center center;
   }
   .zoom-to-fit {
+    display: inline;
     cursor: pointer;
     position: relative;
-    top: 108px;
+    i { display: block !important; }
   }
 }
 
@@ -1268,11 +1290,35 @@ $toolbar-text: #8eabc5;
   }
 }
 
+.toolbar {
+  .align-canvas {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    i {
+      cursor: pointer;
+      -webkit-touch-callout: none; 
+      -webkit-user-select: none; 
+      -khtml-user-select: none; 
+      -moz-user-select: none; 
+      -ms-user-select: none; 
+      user-select: none; 
+    }
+    .active {
+      color: #fbc03d;
+    }
+  }
+}
+
 </style>
 
 
 <style lang="scss">
 
+.gb-field-input--mini .gb-field-input__container {
+  height: 27px !important;
+}
 
 .toolbar-inner {
   h6.gb-base-heading {
@@ -1307,6 +1353,7 @@ $toolbar-text: #8eabc5;
     -webkit-appearance: none;
     margin: 10px 0;
     width: 100%;
+    background: #171e29;
   }
   input[type="range"]:focus {
     outline: none;
@@ -1346,7 +1393,7 @@ $toolbar-text: #8eabc5;
   }
   input[type="range"]::-moz-range-track {
     width: 100%;
-    height: 9px;
+    height: 3px;
     cursor: pointer;
     animate: 0.2s;
     box-shadow: 0px 0px 0px #171e29;
@@ -1357,8 +1404,8 @@ $toolbar-text: #8eabc5;
   input[type="range"]::-moz-range-thumb {
     box-shadow: 0px 0px 1px #000000;
     border: 3px solid #313d4f;
-    height: 15px;
-    width: 15px;
+    height: 9px;
+    width: 9px;
     border-radius: 50px;
     background: #171e29;
     cursor: pointer;
@@ -1468,7 +1515,7 @@ a.gb-base-button {
 .color-picker-placeholder .color-block > div {
   border-radius: 999999999999px;
   overflow: hidden;
-  border: 1px solid #323d4f;
+  border: 2px solid #323d4f;
 }
 .color-picker-placeholder .color-block,
 .color-picker-placeholder .color-block > div {
@@ -1494,4 +1541,17 @@ a.gb-base-button {
   width: 13px;
   height: 13px;
 }
+
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type=number] {
+  -moz-appearance: textfield;
+}
+
+
+
 </style>

@@ -174,7 +174,7 @@ export default {
         vue.cycleCounter = 0;
         clearInterval( vue.cycleCounterTimer );
         
-        var updateInterval = cycleDelay / 100;
+        var updateInterval = cycleDelay / 20;
         vue.cycleCounterTimer = setInterval(function(){
           vue.cycleCounter += updateInterval;
           vue.$store.commit('update', { key: 'timeUntilNextCycle', value: Math.floor( (vue.cycleCounter / cycleDelay) * 100 ) });
@@ -213,12 +213,9 @@ export default {
               
               let animationZone = (vue.animation.animationZone / 100) * cycleDelay;
               
-              if ( vue.editorCovers ) {
-                vue.$store.commit('update', { key: 'awpAnimationZone', value: vue.animation.animationZone });
-              }
-              
-              var playOnce = function() {
+              var playOnce = function( onLoad ) {
                 
+                if ( vue.editorCovers ) vue.$store.commit('update', { key: 'awpAnimationZone', value: vue.animation.animationZone });
                 vue.cycleTimer( cycleDelay );
                 
                 var pickedCoverElements = vue.pickCoversToAnimate( visibleCoverElements, cycleDelay );
@@ -244,11 +241,10 @@ export default {
                 
               };
               
-              
               if ( vue.animation.onLoad ) {
-                playOnce();
+                playOnce('onLoad');
               }
-              else {
+              else {                  
                 vue.cycleTimer( cycleDelay );
               }
               
