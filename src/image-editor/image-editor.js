@@ -49,6 +49,7 @@ const store = new Vuex.Store({
       width: 1200,
       height: 0,
       heightActual: 0,
+      autoHeight: 0,
       background: "#fff",
       zoom: 1,
       zoomOutputs: false,
@@ -88,11 +89,17 @@ const store = new Vuex.Store({
     archived: 0,
     animationPreset: 'piano-swipe-fade',
     animationPresets: null,
-    timeUntilNextCycle: null,
+    awpCycleDelay: null,
     awpAnimationZone: null,
+    awpAnimatedCoversLength: null,
     awpOverlayColorEnabled: false,
     awpOverlayColor: 'rgba(30,30,30, .63)',
     awpGrayscale: false,
+    archivedLength: 0,
+    gallery: {
+      pageTitle: null,
+      pageSubTitle: null,
+    }
   },
   mutations: {
     

@@ -12,14 +12,12 @@ export default {
       let vue = this;
       
       try {
-        
-        browser.storage.local.get(['imageEditorChunks', 'imageEditorChunksLength']).then(data => {
+        browser.storage.local.get(['imageEditorChunks', 'imageEditorChunksLength', 'imageEditorPageTitle', 'imageEditorPageSubTitle']).then(data => {
           // browser.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
           
           if ( data.imageEditorChunksLength ) {
             vue.fetchArchive(function( archive ) {  
               
-              let archivedLength = 0;
               // let coversArray = require('./getCovers.json');
               let coversArray = _.flatten( data.imageEditorChunks );
               coversArray = _.filter( coversArray, function( book ) { return book.cover; });
@@ -27,7 +25,7 @@ export default {
               
               let changes = [
                 { key: "covers", value: coversArray },
-                { key: "archived", value: archivedLength },
+                { key: "archived", value: vue.archivedLength },
               ];
               
               if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
@@ -35,6 +33,9 @@ export default {
               }
               
               changes.push({ key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) });
+              
+              if ( data.imageEditorPageTitle    ) changes.push({ key: 'gallery.pageTitle', value: data.imageEditorPageTitle });
+              if ( data.imageEditorPageSubTitle ) changes.push({ key: 'gallery.pageSubTitle', value: data.imageEditorPageSubTitle });
               
               vue.$store.commit("update", changes);
               
@@ -44,7 +45,6 @@ export default {
           }
           
         });
-        
       } catch(e) {
         
         let coversArray = require('./getCovers.json');
@@ -65,12 +65,13 @@ export default {
       return _.map(array, function( book ) {
                 
         let obj = {};
-        obj.title = book.titleShort || book.title;
+        obj.asin = book.asin;
+        if ( book.titleShort || book.title ) obj.title = book.titleShort || book.title;
         if ( book.authors ) obj.author = book.authors[0].name;
         obj.cover = vue.makeCoverUrl(book.cover);
         if ( archive && _.includes( archive, book.asin ) ) {
           obj.inArchive = true;
-          ++archivedLength;
+          ++vue.archivedLength;
         }
         return obj;
         

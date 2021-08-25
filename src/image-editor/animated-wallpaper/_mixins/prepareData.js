@@ -70,8 +70,27 @@ export default {
       
       let vue = this;
       
-      
-      if ( this.editorCovers ) {
+      let standaloneOpts = document.querySelector('#optionsData');
+      if ( standaloneOpts ) {
+        
+        standaloneOpts = JSON.parse(standaloneOpts.textContent);
+        this.covers.size = standaloneOpts.covers.size;
+        this.covers.sizeOriginal = standaloneOpts.covers.size;
+        this.covers.perRow = standaloneOpts.covers.perRow;
+        this.covers.padding = standaloneOpts.covers.padding;
+        this.canvas.width = standaloneOpts.canvas.width;
+        this.canvas.height = standaloneOpts.canvas.width;
+        this.canvas.padding.left = standaloneOpts.canvas.padding.left;
+        this.canvas.padding.top = standaloneOpts.canvas.padding.top;
+        this.canvas.padding.right = standaloneOpts.canvas.padding.right;
+        this.canvas.padding.bottom = standaloneOpts.canvas.padding.bottom;
+        this.covers.all = standaloneOpts.covers.all;
+        this.canvas.overlayColor = standaloneOpts.canvas.overlayColor;
+        this.canvas.grayscale = standaloneOpts.canvas.grayscale;
+        this.loadAnimationPreset( standaloneOpts.animationPreset );
+        
+      }
+      else if ( this.editorCovers ) {
         
         this.$store.commit('update', { key: 'animationPresets', value: _.map(this.presets, function( p ) { return { label: _.lowerCase(p.name), value: p.name, description: p.description } }) });
         
@@ -88,18 +107,17 @@ export default {
         let covers = this.editorCovers;
         if ( this.$store.state.excludeArchived ) covers = _.filter(covers, function(o) { return !o.inArchive; });
         this.covers.all = this.mappy( covers );
-        
         this.canvas.overlayColor = this.$store.state.awpOverlayColor; 
+        this.loadAnimationPreset( this.$store.state.animationPreset );
         
       }
       else {
         this.covers.all = require('../../_mixins/getCovers.json');
         this.covers.all = this.mappy( this.covers.all );
+        this.loadAnimationPreset( 'piano-swipe-fade' );
       }
       
       this.covers.allOriginal = JSON.parse(JSON.stringify( this.covers.all )); 
-      
-      this.loadAnimationPreset( this.$store.state.animationPreset );
       
     },
     

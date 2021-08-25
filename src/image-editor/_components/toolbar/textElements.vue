@@ -38,7 +38,7 @@
           :value="text.text"
           @input="changeTextElementThrottle( $event, index, text, 'text' )"
           @focus="$emit('inputFocused')"
-          @blur="$emit('inputFocused')"
+          @blur="$emit('inputBlurred')"
           size="mini"
         ></gb-input>
       </div>
@@ -55,22 +55,32 @@
           step="1"
           @input="changeTextElementThrottle( $event, index, text, 'fontSize', $event )"
           @focus="$emit('inputFocused')"
-          @blur="$emit('inputFocused')"
+          @blur="$emit('inputBlurred')"
           size="mini"
         />
         <span style="display: inline-block; padding-left: 5px;">{{ text.fontSize }}</span>
       </div>
       
-      <spacer size="default" :line="false" />
+      <spacer size="small" :line="false" />
       
       <div class="label-row">
         
-        <div class="align-text" style="padding-left: 0px;"
-        v-tippy content="Text is aligned inside its own bounding box.">
-          <gb-icon :class="{ active: text.alignment === 'left' }" size="16px" name="format_align_left" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'left', });"></gb-icon>
-          <gb-icon :class="{ active: text.alignment === 'center' }" size="16px" name="format_align_center" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'center', });"></gb-icon>
-          <gb-icon :class="{ active: text.alignment === 'right' }" size="16px" name="format_align_right" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'right', });"></gb-icon>
+        <div style="display: flex; flex-direction: column;">
+          <div class="align-text" style="padding-left: 0px;"
+          v-tippy content="<strong>Horizontal alignment.</strong> Text is aligned inside its own bounding box.">
+            <gb-icon :class="{ active: text.alignment === 'left' }" size="16px" name="format_align_left" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'left', });"></gb-icon>
+            <gb-icon :class="{ active: text.alignment === 'center' }" size="16px" name="format_align_center" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'center', });"></gb-icon>
+            <gb-icon :class="{ active: text.alignment === 'right' }" size="16px" name="format_align_right" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'right', });"></gb-icon>
+          </div>
+          
+          <div class="align-text" style="padding-left: 0px;"
+          v-tippy content="<strong>Vertical alignment.</strong> Text is aligned inside its own bounding box.">
+            <gb-icon :class="{ active: text.verticalAlignment === 'left' }" size="16px" name="vertical_align_top" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'left', });"></gb-icon>
+            <gb-icon :class="{ active: text.verticalAlignment === 'center' }" size="16px" name="vertical_align_center" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'center', });"></gb-icon>
+            <gb-icon :class="{ active: text.verticalAlignment === 'right' }" size="16px" name="vertical_align_bottom" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'right', });"></gb-icon>
+          </div>
         </div>
+        
         
         <div style="display: flex; justify-content: center; align-items: center; flex: 0;">
           <color-picker
@@ -102,7 +112,7 @@
     
   </div>
   
-  <spacer size="medium" :line="false" />
+  <spacer size="default" :line="false" />
   
 </div>
 </template>
@@ -117,6 +127,7 @@ export default {
   data: function () {
     return {
       store: this.$store.state,
+      textTextCounter: 0,
     };
   },
   methods: {
@@ -130,8 +141,17 @@ export default {
         });
       }
       
+      let text = 'Lorem ipsum dolor sit amet';
+      
+      if ( this.textTextCounter === 0 || this.textTextCounter === 1 && this.store.gallery.pageTitle ) {
+        text = this.store.gallery.pageTitle || text;
+      }
+      else if ( this.textTextCounter === 1 ) {
+        text = this.store.gallery.pageSubTitle || text;
+      }
+      
       this.$store.commit('addText', { 
-        text: 'Lorem ipsum dolor sit amet',
+        text: text,
         rotation: 0,
         floater: false,
         fullWidth: true,
@@ -141,7 +161,15 @@ export default {
         active: true,
         color: '#3a3a3a',
         alignment: 'center',
+        verticalAlignment: 'center',
       });
+      
+      if ( this.textTextCounter === 1 ) {
+        this.textTextCounter = 0;
+      }
+      else {
+        ++this.textTextCounter;
+      }
       
     },
     

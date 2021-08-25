@@ -22,6 +22,7 @@ export default {
     }
     
     if ( this.pageTitle ) this.$store.commit('prop', { key: 'pageTitle', value: this.pageTitle });
+    if ( this.pageSubTitle ) this.$store.commit('prop', { key: 'pageSubTitle', value: this.pageSubTitle });
     
   },
   

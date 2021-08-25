@@ -228,13 +228,17 @@ export default {
       
       try {
         
-        let data = JSON.parse(JSON.stringify(this.$store.getters.collection));
-        data = _.chunk(data, 50);
+        let covers = _.filter( this.$store.getters.collection, 'asin' );
+        covers = JSON.parse(JSON.stringify(covers));
+        covers = _.chunk(covers, 50);
         
         let storageObj = {
-          imageEditorChunks: data,
-          imageEditorChunksLength: data.length
+          imageEditorChunks: covers,
+          imageEditorChunksLength: covers.length,
         };
+        
+        if ( this.$store.state.pageTitle    ) storageObj.imageEditorPageTitle = this.$store.state.pageTitle;
+        if ( this.$store.state.pageSubTitle ) storageObj.imageEditorPageSubTitle = this.$store.state.pageSubTitle;
         
         browser.storage.local.set(storageObj).then(() => {
           browser.runtime.sendMessage({ action: "openImageEditor" });

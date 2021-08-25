@@ -53,6 +53,7 @@ export default new Vuex.Store({
     chunkDistance: 40,
     viewRefresh: '',
     pageTitle: null,
+    pageSubTitle: null,
     version: null,
     extractSettings: null,
     siteOnline: true,

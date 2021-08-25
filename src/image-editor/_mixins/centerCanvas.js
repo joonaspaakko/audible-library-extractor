@@ -6,9 +6,6 @@ export default {
       store: this.$store.state
     };
   },
-  mounted: function () {
-    this.centerCanvas();
-  },
 
   watch: {
     "$store.state.coverAmount": function () {
@@ -132,6 +129,7 @@ export default {
       this.$store.commit('update', [
         { key: 'canvas.scaled.width', value: Math.ceil(scale(canvasWidth)) },
         { key: 'canvas.scaled.height', value: Math.ceil(scale(canvasHeight)) },
+        { key: 'canvas.autoHeight', value: content.offsetHeight },
       ]);
 
       let x = canvasOverflowsHorizontally ? "left" : "center";

@@ -30,7 +30,7 @@ export default {
       this.covers.total = this.covers.rows * this.covers.perRow;
       if ( this.editorCovers ) this.$store.commit('update', { key: 'visibleAnimatedCovers', value: this.covers.total }); // Messaging the image editor...
       
-      if ( this.covers.total > this.covers.allOriginal ) this.addMoreCovers();
+      if ( this.covers.total > this.covers.allOriginal.length ) this.addMoreCovers();
       this.covers.all = _.shuffle( this.covers.all );
       
       this.covers.visible = this.getRandomCovers( this.covers.all, this.covers.total );
@@ -39,7 +39,6 @@ export default {
     
     // Makes sure you always have enough covers and also clears any prior additions them when fitCoversToViewport() runs...
     addMoreCovers: function() {
-      
       
       let vue = this;
       this.covers.total

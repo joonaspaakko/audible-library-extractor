@@ -12,7 +12,7 @@
 import editorCanvas from "@editor-comps/canvas.vue";
 import toolbar from "@editor-comps/toolbar.vue";
 import getCovers from "@editor-mixins/getCovers.js";
-import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
+import centerCanvas from "@editor-mixins/centerCanvas.js";
 
 export default {
   name: "App",
@@ -20,7 +20,7 @@ export default {
     editorCanvas,
     toolbar,
   },
-  mixins: [getCovers, calculateCoverSize],
+  mixins: [getCovers, centerCanvas],
   data: function () {
     return {
       store: this.$store.state,
@@ -31,25 +31,36 @@ export default {
   },
   created: function () {
     window.addEventListener("mouseup", this.stopSlidingAround);
-    
-    let coverSize = this.calculateCoverSize({ coversPerRow: this.store.coversPerRow });
-    this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    window.addEventListener('resize', this.windowResized);
     
     // window.addEventListener('beforeunload', function (e) {
     //   e.preventDefault();
     //   e.returnValue = '';
     // });
+    
   },
 
   beforeDestroy: function () {
+    
     window.removeEventListener("mouseup", this.stopSlidingAround);
+    window.addEventListener('resize', this.windowResized);
+    
   },
 
   mounted: function () {
+    
     this.mounted = true;
+    
   },
   
   methods: {
+    
+    windowResized: _.debounce( function() {
+      
+      this.$root.$emit('window-resized')
+      this.centerCanvas();
+      
+    }, 400, { leading: false, trailing: true }),
     
     stopSlidingAround: function () {
       let vue = this;

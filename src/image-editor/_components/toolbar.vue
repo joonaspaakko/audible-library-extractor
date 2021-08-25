@@ -2,7 +2,17 @@
   <div class="right toolbar">
 
     <div class="button-container">
-      <gb-button
+      <gb-button style="width: 48px;" v-if="store.animatedWallpaperMode"
+        class="save-btn"
+        :circular="true"
+        :disabled="store.saving"
+        @click="makeWallpaper"
+        color="blue"
+        size="large"
+        left-icon="ondemand_video"
+        v-tippy="{ allowHTML: true }" content="<strong>Save animated wallpaper as a .zip file.</strong> <br>You need to then unpack the zip and point the animated wallpaper application to the index.html file inside the folder."
+      ></gb-button>
+      <gb-button style="width: 48px;" v-else 
         class="save-btn"
         :circular="true"
         :disabled="store.saving"
@@ -10,9 +20,8 @@
         color="blue"
         size="large"
         left-icon="camera_alt"
-        v-tippy :content="'Save as a ' + (store.compressImage ? '.jpg' : '.png')"
-      >
-      </gb-button>
+        v-tippy :content="'Save image as a' + (store.compressImage ? '.jpg' : '.png' + ' file.')"
+      ></gb-button>
     </div>
 
     <div class="zoom-container" v-show="!store.saving">
@@ -56,7 +65,7 @@
     </div>
     
     <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
-      <div v-show="!store.saving">
+      <div v-if="!store.saving">
         
         <div v-if="store.animatedWallpaperMode" style="text-align: center;">
           <spacer size="small" :line="false" />
@@ -72,27 +81,28 @@
           </gb-heading>
           <spacer size="small" :line="false" />
           <spacer size="mini" :line="false" />
-          <gb-select style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" @change="$store.commit('update', [{ key: 'awpAnimationZone', value: null }, { key: 'timeUntilNextCycle', value: null }])" />
+          <gb-select style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" @change="$store.commit('update', [{ key: 'awpAnimationZone', value: null }, { key: 'awpCycleDelay', value: null }, { key: 'awpAnimatedCoversLength', value: null }])" />
           
           <spacer size="small" :line="false" />
-          <div class="label-row" v-if="store.timeUntilNextCycle && store.awpAnimationZone >= 0">
-            <gb-progress-bar class="time-until-next-cycle" :progress="store.timeUntilNextCycle"></gb-progress-bar>
+          <div class="label-row time-until-next-cycle" v-if="store.awpCycleDelay">
+            <span class="covers-this-cycle" v-tippy content="Covers animated in this cycle...">{{ store.awpAnimatedCoversLength || 0 }}</span> 
+            <div class="progress-bar">
+              <div class="fill" :class="{ animate: store.awpCycleDelay }"></div>
+            </div>
+            <!-- <gb-progress-bar class="time-until-next-cycle" :progress="store.timeUntilNextCycle"></gb-progress-bar> -->
             <gb-icon style="padding-left: 10px;" name="info" size="16px" v-tippy="{ placement: 'top', allowHTML: true }" content="
               <strong>Animation cycle indicator.</strong> Covers can animate from the beginning of the cycle up to the white dot. Depending one the preset, animations may trigger immediately, sequentially, or even randomly within this area.
             "></gb-icon>
-            <component v-if="store.awpAnimationZone && store.awpAnimationZone >= 0" is="style">
-              .time-until-next-cycle .gb-base-progress-bar__bar:after {
-                margin-left: -4.5px;
-                content: '';
-                position: absolute;
-                z-index: 1;
-                top: -3px;
-                left: {{ store.awpAnimationZone }}%;
-                width: 6px;
-                height: 6px;
-                background: #fff;
-                border: 3px solid #171e29;
-                border-radius: 999999px;
+            <component v-if="store.awpAnimationZone" is="style">
+              .time-until-next-cycle .progress-bar:after {
+                display: inline-block !important;
+                left: {{ store.awpAnimationZone }}% !important;
+              }
+            </component>
+            <component v-if="store.awpCycleDelay && store.awpCycleDelay >= 0" is="style">
+              .time-until-next-cycle .progress-bar .fill.animate {
+                -webkit-animation-duration: {{ store.awpCycleDelay }}ms !important;
+                        animation-duration: {{ store.awpCycleDelay }}ms !important;
               }
             </component>
             
@@ -139,41 +149,6 @@
 
         </div>
         
-        <div v-if="!store.animatedWallpaperMode">
-          
-          <gb-heading tag="h6" :uppercase="true">
-            Reduce file size
-          </gb-heading>
-          <spacer size="default" :line="false" />
-          
-          <gb-toggle
-          size="small"
-          v-model="store.compressImage"
-          label="Compress image"
-          ></gb-toggle>
-          <spacer size="mini" :line="false" />
-          
-          <div class="label-row" v-if="store.compressImage">
-            <span class="compress-quality-text">Quality ({{ qualityPercentage }}%):</span>
-            <input
-              class="zoom-zoom"
-              type="range"
-              step=".01"
-              min="0.50"
-              max="0.99"
-              v-model="store.compressQuality"
-              @focus="inputFocused"
-              @blur="inputBlurred"
-            />
-          </div>
-          <p v-if="store.compressImage && qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
-          <p v-if="store.compressImage" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">Compressed image is saved as a jpeg, which doesn't support transparency.</span></p>
-          
-          <spacer size="medium" :line="false" />
-          
-        </div>
-        
-        
         <div  v-if="!store.animatedWallpaperMode">
           <gb-heading tag="h6" :uppercase="true">
             Limit cover images
@@ -200,64 +175,93 @@
               <strong>{{ store.covers.length }}</strong>.
             </span>
           </tippy>
-        
-          <spacer size="default" :line="false" />
-        
-          <div style="text-align: center;">
-            <gb-button
-            :disabled="store.showAuthorAndTitle"
-            :full-width="false"
-            color="blue"
-            size="mini"
-            @click="fillCanvasWithCovers"
-            :rounded="true"
-            v-tippy content="Adds or removes enough covers to fit inside the canvas. <br>Covers are added and removed from the tail end."
-            left-icon="border_all"
-            >Fit cover amount to canvas</gb-button>
-          </div>
           
           <spacer size="medium" :line="false" />
         </div>
         
-        <div v-if="!store.animatedWallpaperMode">
+        <div>
+          <gb-heading tag="h6" :uppercase="true">Covers per row (columns)</gb-heading>
+          <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
           
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Show author and title</span>
-            <gb-toggle
-            size="small"
-            v-model="store.showAuthorAndTitle"
-            ></gb-toggle>
-          </gb-heading>
-          
-          <spacer size="default" :line="false" />
-          
-          <div v-if="store.showAuthorAndTitle">
-            <gb-heading tag="h6" :uppercase="true">
-              <span>Author and title color</span>
-              <color-picker
-                class="color-picker-placeholder"
-                v-model="store.authorAndTitleColor"
-                :position="{ left: '-180px', top: '40px' }"
-              >
-              </color-picker>
-            </gb-heading>
-            
-            <spacer size="default" :line="false" />
+          <div class="label-row no-padding">
+            <gb-input
+            style="max-width: 48px;"
+            type="number"
+            :min="1"
+            :value="parseFloat(store.coversPerRow)"
+            @input="inputChanged('coversPerRow', $event)"
+            @focus="inputFocused"
+            @blur="inputBlurred"
+            size="mini"
+            ></gb-input>
+            <div style="padding-left: 10px;">
+              <input type="range" min="1" max="20" v-model="coversPerRow" step="1" @focus="inputFocused" @blur="inputBlurred" />
+            </div>
           </div>
+          <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
+            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. Try lowering canvas width or increasing covers per row.
+          </span></p>
+          
+          <div v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length">
+            <spacer size="default" :line="false" />
+            <div class="warning-message">
+              <strong>{{ this.store.visibleAnimatedCovers - this.store.covers.length }}/{{ this.store.visibleAnimatedCovers }}</strong> visible covers have been duplicated in order for the animated wallpaper to function.
+              <br><br>
+              <span style="color: #fff;">This basically means that you should already see duplicate dovers on the first load and it's not going to get any better because there aren't any leftover covers. If you don't like what you see, try lowering the "Covers per row" setting or consider using another source for the cover images if possible.</span>
+            </div>
+          </div>
+          
+          <spacer size="medium" :line="false" />
           
         </div>
         
-        <div v-if="store.archived">
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Exclude archived ({{ store.archived }})</span>
-            <gb-toggle
-            size="small"
-            :value="store.excludeArchived"
-            @change="excludeArchivedChanged"
-            ></gb-toggle>
-          </gb-heading>
+        <div>
+          <gb-heading tag="h6" :uppercase="true">Cover padding</gb-heading>
+          <spacer size="mini" :line="false" />
+          <spacer size="small" :line="false" />
           
+          <div class="label-row no-padding">
+            <gb-input
+              style="max-width: 48px;"
+              type="number"
+              :min="0"
+              :value="parseFloat(store.paddingSize)"
+              @input="inputChanged('paddingSize', $event)"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+              size="mini"
+            ></gb-input>
+            <div style="padding-left: 10px;">
+              <input
+                type="range"
+                min="0"
+                max="200"
+                v-model="coverPadding"
+                step="1"
+                @input="slidingAround('paddingSize', $event)"
+                @focus="inputFocused"
+                @blur="inputBlurred"
+              />
+            </div>
+          </div>
+          
+          <spacer size="medium" :line="false" />
+        
+        </div>
+        
+        <div v-if="!store.animatedWallpaperMode">
+          
+          <gb-heading tag="h6" :uppercase="true" v-tippy content="Align last row if it's not full...">
+            <span>Cover alignment</span>
+            <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 145px; flex: unset; width: 96px;">
+              <gb-icon :class="{ active: store.canvas.alignment === 'left' }" size="18px" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });"></gb-icon>
+              <gb-icon :class="{ active: store.canvas.alignment === 'center' }" size="18px" name="format_align_center" @click="$store.commit('update', { key: 'canvas.alignment', value: 'center', });"></gb-icon>
+              <gb-icon :class="{ active: store.canvas.alignment === 'right' }" size="18px" name="format_align_right" @click="$store.commit('update', { key: 'canvas.alignment', value: 'right', });"></gb-icon>
+            </div>
+            </gb-heading>          
           <spacer size="default" :line="false" />
+        
         </div>
         
         <div>
@@ -365,7 +369,7 @@
               @focus="inputFocused"
               @blur="inputBlurred"
               size="mini"
-              :info="store.canvas.height > 0 ? null : '0 = automatic height'"
+              :info="(store.canvas.height > 0) ? null : '0 = automatic height.' + (this.store.canvas.autoHeight > 0 ? '<br>Estimated height: ' + this.store.canvas.autoHeight + 'px' : ' ')"
             ></gb-input>
           </div>
           
@@ -373,7 +377,20 @@
             <spacer size="default" :line="false" />
           
             <gb-button
-            :full-width="false"
+              :disabled="store.showAuthorAndTitle"
+              :full-width="true"
+              color="blue"
+              size="mini"
+              @click="fillCanvasWithCovers"
+              :rounded="true"
+              v-tippy content="Adds or removes enough covers to fit inside the canvas. <br>Covers are added and removed from the tail end."
+              left-icon="border_all"
+            >Fit cover amount to canvas</gb-button>
+            
+            <spacer size="small" :line="false" />
+            
+            <gb-button
+            :full-width="true"
             color="blue"
             size="mini"
             @click="fitCanvasToContent"
@@ -387,6 +404,9 @@
               The animated wallaper fits itself to any screen size, canvas size is for preview purposes only.
             </span>
           </p>
+          <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
+            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. Try lowering canvas width or increasing covers per row.
+          </span></p>
           
           <spacer size="medium" :line="false" />
           
@@ -518,43 +538,6 @@
         
         <text-elements v-if="!store.animatedWallpaperMode" @inputFocused="inputFocused" @inputBlurred="inputBlurred"></text-elements>
         
-        <div>
-          <gb-heading tag="h6" :uppercase="true">Covers per row (columns)</gb-heading>
-          <spacer size="mini" :line="false" />
-          <spacer size="small" :line="false" />
-          
-          <div class="label-row no-padding">
-            <gb-input
-            style="max-width: 48px;"
-            type="number"
-            :min="1"
-            :value="parseFloat(store.coversPerRow)"
-            @input="inputChanged('coversPerRow', $event)"
-            @focus="inputFocused"
-            @blur="inputBlurred"
-            size="mini"
-            ></gb-input>
-            <div style="padding-left: 10px;">
-              <input type="range" min="1" max="20" v-model="coversPerRow" step="1" @focus="inputFocused" @blur="inputBlurred" />
-            </div>
-          </div>
-          <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
-            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. Try lowering canvas width or increasing covers per row.
-          </span></p>
-          
-          <div v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length">
-            <spacer size="default" :line="false" />
-            <div class="warning-message">
-              <strong>{{ this.store.visibleAnimatedCovers - this.store.covers.length }}/{{ this.store.visibleAnimatedCovers }}</strong> visible covers have been duplicated in order for the animated wallpaper to function.
-              <br><br>
-              <span style="color: #fff;">If you don't like what you see, try lowering the "Covers per row" setting or consider using another source for the cover images if possible.</span>
-            </div>
-          </div>
-          
-          <spacer size="medium" :line="false" />
-          
-        </div>
-        
 <!--         
         <div>
           <gb-heading tag="h6" :uppercase="true">Cover size</gb-heading>
@@ -584,58 +567,80 @@
         </div>
  -->
         
-        <div>
-          <gb-heading tag="h6" :uppercase="true">Cover padding</gb-heading>
-          <spacer size="mini" :line="false" />
-          <spacer size="small" :line="false" />
+        <div v-if="!store.animatedWallpaperMode">
           
-          <div class="label-row no-padding">
-            <gb-input
-              style="max-width: 48px;"
-              type="number"
-              :min="0"
-              :value="parseFloat(store.paddingSize)"
-              @input="inputChanged('paddingSize', $event)"
-              @focus="inputFocused"
-              @blur="inputBlurred"
-              size="mini"
-            ></gb-input>
-            <div style="padding-left: 10px;">
-              <input
-                type="range"
-                min="0"
-                max="200"
-                v-model="coverPadding"
-                step="1"
-                @input="slidingAround('paddingSize', $event)"
-                @focus="inputFocused"
-                @blur="inputBlurred"
-              />
-            </div>
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Show author and title</span>
+            <gb-toggle
+            size="small"
+            v-model="store.showAuthorAndTitle"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+          
+          <div v-if="store.showAuthorAndTitle">
+            <gb-heading tag="h6" :uppercase="true">
+              <span>Author and title color</span>
+              <color-picker
+                class="color-picker-placeholder"
+                v-model="store.authorAndTitleColor"
+                :position="{ left: '-180px', top: '40px' }"
+              >
+              </color-picker>
+            </gb-heading>
+            
+            <spacer size="default" :line="false" />
           </div>
           
-          <spacer size="medium" :line="false" />
-        
         </div>
         
+        <div v-if="store.archived">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Exclude archived ({{ store.archived }})</span>
+            <gb-toggle
+            size="small"
+            :value="store.excludeArchived"
+            @change="excludeArchivedChanged"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+        </div>
         
         <div v-if="!store.animatedWallpaperMode">
           
-          <gb-heading tag="h6" :uppercase="true">Cover alignment</gb-heading>
+          <gb-heading tag="h6" :uppercase="true">
+            Reduce file size
+          </gb-heading>
+          <spacer size="default" :line="false" />
+          
+          <gb-toggle
+          size="small"
+          v-model="store.compressImage"
+          label="Compress image"
+          ></gb-toggle>
           <spacer size="mini" :line="false" />
-          <spacer size="small" :line="false" />
-          {{ store.canvas.alignment }}
-          <div class="align-canvas" style="padding-left: 0px; width: 145px;"
-          v-tippy content="Align last row if it's not full...">
-            <gb-icon :class="{ active: store.canvas.alignment === 'left' }" size="22px" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });"></gb-icon>
-            <gb-icon :class="{ active: store.canvas.alignment === 'center' }" size="22px" name="format_align_center" @click="$store.commit('update', { key: 'canvas.alignment', value: 'center', });"></gb-icon>
-            <gb-icon :class="{ active: store.canvas.alignment === 'right' }" size="22px" name="format_align_right" @click="$store.commit('update', { key: 'canvas.alignment', value: 'right', });"></gb-icon>
+          
+          <div class="label-row" v-if="store.compressImage">
+            <span class="compress-quality-text">Quality ({{ qualityPercentage }}%):</span>
+            <input
+              class="zoom-zoom"
+              type="range"
+              step=".01"
+              min="0.50"
+              max="0.99"
+              v-model="store.compressQuality"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+            />
           </div>
+          <p v-if="store.compressImage && qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
+          <p v-if="store.compressImage" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">Compressed image is saved as a jpeg, which doesn't support transparency.</span></p>
           
           <spacer size="medium" :line="false" />
-        
+          
         </div>
-        
 
         <div v-if="!store.animatedWallpaperMode">
           
@@ -647,13 +652,21 @@
           size="small"
           v-model="store.canvas.zoomOutputs"
           label="Output with zoom"
-          :warning="outputWidthZoomSize"
+          :warning="(this.store.canvas.zoom > 0 && this.store.canvas.zoom != 1) ? outputWidthZoomSize : null"
           ></gb-toggle>
           
           <spacer size="medium" :line="false" />
           
         </div>
 
+      </div>
+      <div v-else class="saving-container">
+        
+        <div class="saving-spnr"></div>
+        <div class="saving-progress" v-if="saveProgressWidth > -1">
+          <gb-progress-bar :progress="saveProgressWidth" />
+        </div>
+        
       </div>
     </div>
   </div>
@@ -663,6 +676,7 @@
 import zoomToFit from "@editor-mixins/zoomToFit.js";
 import centerCanvas from "@editor-mixins/centerCanvas.js";
 import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
+import makeWallpaper from "@editor-mixins/makeWallpaper.js";
 
 import spacer from "@editor-comps/toolbar/spacer.vue";
 import textElements from "@editor-comps/toolbar/textElements.vue";
@@ -674,7 +688,7 @@ import _ from "lodash";
 export default {
   name: "toolbar",
   components: { spacer, textElements },
-  mixins: [zoomToFit, centerCanvas, calculateCoverSize],
+  mixins: [zoomToFit, centerCanvas, calculateCoverSize, makeWallpaper],
   data: function () {
     return {
       store: this.$store.state,
@@ -683,16 +697,14 @@ export default {
       canvasPresets: [
         { label: 'Wallpaper (1920x1080)', value: 'wallpaper-1920', size: '1920x1080' },
       ],
+      saveProgressWidth: -1,
     };
   },
   
   computed: {
     
     outputWidthZoomSize: function() {
-      if ( this.store.canvas.zoom > 0 &&
-          this.store.canvas.zoom != 1 &&
-          (this.store.canvas.scaled.width || this.store.canvas.scaled.height)
-      ) {
+      if ( this.store.canvas.scaled.width || this.store.canvas.scaled.height ) {
         if ( this.store.canvas.scaled.width && !this.store.canvas.scaled.height ) {
           return 'Estimated width: ' + this.store.canvas.scaled.width + 'px';
         }
@@ -929,39 +941,46 @@ export default {
     
     fitCanvasToContent: function() {
       
-      let update = [];
-      let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
-      let canvasPaddingX = parseFloat(this.store.canvas.padding.left) + parseFloat(this.store.canvas.padding.right);
-      // let canvasPaddingY = parseFloat(this.store.canvas.padding.top) + parseFloat(this.store.canvas.padding.bottom);
-      let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
-      let canvas = {
-        width:  innerWrap.offsetWidth,
-        height: innerWrap.offsetHeight,
-      };
-      let coverAmount = parseFloat(this.store.coverAmount);
-      let maxRows = canvas.height > coverSize ? Math.floor( canvas.height / coverSize ) : 1;
-      let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
-      if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
+      // let update = [];
+      // let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
+      // let canvasPaddingX = parseFloat(this.store.canvas.padding.left) + parseFloat(this.store.canvas.padding.right);
+      // // let canvasPaddingY = parseFloat(this.store.canvas.padding.top) + parseFloat(this.store.canvas.padding.bottom);
+      // let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
+      // let canvas = {
+      //   width:  innerWrap.offsetWidth,
+      //   height: innerWrap.offsetHeight,
+      // };
+      // let coverAmount = parseFloat(this.store.coverAmount);
+      // let maxRows = canvas.height > coverSize ? Math.floor( canvas.height / coverSize ) : 1;
+      // let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
+      // if ( coverAmount < coversPerWidth ) coversPerWidth = coverAmount;
       
-      update.push({ key: 'canvas.width', value: (coverSize * coversPerWidth) + canvasPaddingX });
-      if ( this.store.canvas.height > 0 ) update.push({ key: 'canvas.height', value: 0 });
+      // update.push({ key: 'canvas.width', value: (coverSize * coversPerWidth) + canvasPaddingX });
+      // if ( this.store.canvas.height > 0 ) update.push({ key: 'canvas.height', value: 0 });
       
-      this.$store.commit('update', update);
+      // this.$store.commit('update', update);
+      this.$store.commit('update', { key: 'canvas.height', value: 0 });
       
     },
     
     fillCanvasWithCovers: function() {
       
       let coverSize = parseFloat(this.store.coverSize)+(parseFloat(this.store.paddingSize)*2);
-      // let canvasPadding = parseFloat(this.store.canvas.padding)*2;
-      // let canvasPaddingX = parseFloat(this.store.canvas.padding.left) + parseFloat(this.store.canvas.padding.right);
-      // let canvasPaddingY = parseFloat(this.store.canvas.padding.top) + parseFloat(this.store.canvas.padding.bottom);
       let innerWrap = document.querySelector('#editor-canvas-left .grid-inner-wrap');
       
+
       let canvas = {
-        width:  innerWrap.offsetWidth,
-        height: innerWrap.parentNode.offsetHeight,
+        padding: {
+          left  : parseFloat(this.store.canvas.padding.left),
+          top   : parseFloat(this.store.canvas.padding.top),
+          right : parseFloat(this.store.canvas.padding.right),
+          bottom: parseFloat(this.store.canvas.padding.bottom),
+        },
       };
+      
+      canvas.width  = parseFloat(this.store.canvas.width) - canvas.padding.left - canvas.padding.right;
+      canvas.height = parseFloat(this.store.canvas.height) - canvas.padding.top - canvas.padding.bottom;
+      
       let coverAmount = parseFloat(this.store.coverAmount);
       let maxRows = canvas.height > coverSize ? Math.floor( canvas.height / coverSize ) : 1;
       let coversPerWidth = canvas.width > coverSize ? Math.floor( canvas.width / coverSize ) : 1;
@@ -1097,11 +1116,34 @@ $toolbar-text: #8eabc5;
   width: 100%;
   padding-bottom: 300px;
   box-sizing: border-box;
-  
-  &.saving {
+}
+
+.toolbar-inner.saving {
+  padding-bottom: 0px;
+}
+.toolbar-inner .saving-container {
+  display: flex; 
+  flex-direction: column;
+  justify-items: center;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  width: 100%;
+  height: 100%;
+  .saving-spnr {
+    width: 64px;
+    height: 64px;
+    display: inline-block;
     background-repeat: no-repeat;
     background-position: center;
     background-image: url("data:image/gif;base64,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");
+  }
+  .saving-progress {
+    height: 7px;
+    width: 100%;
+    background: #313d4f;
+    border-radius: 9999999px;
+    margin-top: 40px;
   }
 }
 
@@ -1124,7 +1166,7 @@ $toolbar-text: #8eabc5;
 .offset-height-text {
   width: 50px; 
   position: relative; 
-  top: -11px;
+  top: -20px;
 }
 
 .hint-text {
@@ -1164,7 +1206,7 @@ $toolbar-text: #8eabc5;
   // background: #273142;
   // padding: 6px;
   position: absolute;
-  z-index: 5;
+  z-index: 100;
   top: 20px;
   left: -27px;
   // right: 0;
@@ -1258,7 +1300,7 @@ $toolbar-text: #8eabc5;
   border-radius: 4px;
   padding: 10px 15px;
   position: absolute;
-  z-index: 4;
+  z-index: 50;
   top: 0;
   right: 0;
   left: 0;
@@ -1343,8 +1385,10 @@ $toolbar-text: #8eabc5;
     border-radius: 999px 0 0 999px;
     bottom: 0px;
     background: #212935;
-    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
+    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .2);
     z-index: -1;
+    border: 1px solid #313d4f;
+    border-right: none;
   }
 }
 
@@ -1451,22 +1495,83 @@ $toolbar-text: #8eabc5;
 .time-until-next-cycle {
   padding-left: 0px !important;
 }
-.time-until-next-cycle .gb-base-progress-bar__progress {
-  transition-duration: 0s !important;
-  animation-duration: 0s !important;
-}
-.time-until-next-cycle .gb-base-progress-bar__bar { position: relative; overflow: visible !important; }
-.time-until-next-cycle .gb-base-progress-bar__bar:before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
+// .time-until-next-cycle .gb-base-progress-bar__progress {
+//   transition-duration: 0s !important;
+//   animation-duration: 0s !important;
+// }
+// .time-until-next-cycle .gb-base-progress-bar__bar { position: relative; overflow: visible !important; }
+// .time-until-next-cycle .gb-base-progress-bar__bar:before {
+//   content: '';
+//   position: absolute;
+//   top: 0;
+//   left: 0;
+//   width: 100%;
+//   height: 100%;
+//   background: #212935;
+//   z-index: -2;
+//   border-radius: 99999999px;
+// }
+
+.covers-this-cycle {
+  border-radius: 999999px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex !important;
+  justify-items: center;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
   background: #212935;
-  z-index: -2;
-  border-radius: 99999999px;
+  border: 1px solid #323d4f;
+  margin-right: 10px;
+  font-size: 10px;
 }
+
+.time-until-next-cycle .progress-bar {
+  position: relative;
+  z-index: 0;
+  width: 100%;
+  height: 6px;
+  border-radius: 999999px;
+  background: #212935;
+  padding: 0 !important;
+  .fill {
+    width: 0%;
+    height: 100%;
+    background: #0093ee;
+    border-radius: 999999px;
+  }
+  .fill.animate {
+    
+    -webkit-animation: progressAnimation 0s linear infinite both;
+            animation: progressAnimation 0s linear infinite both;
+            
+    @-webkit-keyframes progressAnimation {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+    @keyframes progressAnimation {
+      0% { width: 0%; }
+      100% { width: 100%; }
+    }
+  }
+  &:after {
+    display: none;
+    margin-left: -4.5px;
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: -3px;
+    width: 6px;
+    height: 6px;
+    background: #fff;
+    border: 3px solid #171e29;
+    border-radius: 999999px;
+  }
+}
+
+
+
 
 /*.hide-hints */.spacer {
   // .line { display: none !important; }
@@ -1516,6 +1621,7 @@ a.gb-base-button {
   border-radius: 999999999999px;
   overflow: hidden;
   border: 2px solid #323d4f;
+  box-sizing: border-box;
 }
 .color-picker-placeholder .color-block,
 .color-picker-placeholder .color-block > div {
@@ -1540,6 +1646,7 @@ a.gb-base-button {
   border: 1px solid #323d4f;
   width: 13px;
   height: 13px;
+  box-sizing: border-box;
 }
 
 input::-webkit-outer-spin-button,

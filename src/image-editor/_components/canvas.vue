@@ -38,8 +38,8 @@
           <text-element data-no-dragscroll v-for="(text, index) in store.textElements" :key="text.id" :textObj="text" :textIndex="index" />
         </div>
         
-        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }" :style="{ filter: (this.store.awpGrayscale && this.store.animatedWallpaperMode) ? 'grayscale(1)' : null }">
-          <div class="grid-inner-wrap" :style="{ height: store.canvas.height > 0 ? store.canvas.height-(store.paddingSize*2) + 'px' : null }" >
+        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }" :style="{ filter: (this.store.awpGrayscale && this.store.animatedWallpaperMode) ? 'grayscale(1) contrast(0.8)' : null }">
+          <div class="grid-inner-wrap">
             
             <animatedWallpaper v-if="store.animatedWallpaperMode" style="cursor: grab;"
             :editorCovers="store.covers"
@@ -98,12 +98,13 @@ import draggable from 'vuedraggable';
 import centerCanvas from "@editor-mixins/centerCanvas.js";
 import zoomToFit from "@editor-mixins/zoomToFit.js";
 import textElement from "@editor-comps/canvas/text-element.vue";
+import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
 
 import animatedWallpaper from "../animated-wallpaper/animated-wallpaper-app.vue";
 
 export default {
   name: "editorCanvas",
-  mixins: [centerCanvas, zoomToFit],
+  mixins: [centerCanvas, zoomToFit, calculateCoverSize],
   components: { draggable, textElement, animatedWallpaper },
   data: function () {
     return {
@@ -118,6 +119,10 @@ export default {
     document.querySelector('#editor-canvas-left').addEventListener("mousedown", this.moveableControlsHide);
     this.$root.$on('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').addEventListener("scroll", this.panningCanvas);
+    
+    let coverSize = this.calculateCoverSize({ coversPerRow: this.store.coversPerRow });
+    this.$store.commit('update', { key: 'coverSize', value: coverSize });
+    
     this.$nextTick(function() {
       this.zoomToFit();
       let vue = this;
@@ -199,7 +204,6 @@ export default {
     // },
     canvasAlignment: function () {
       let style = {};
-      style.height = this.store.canvas.height > 0 ? this.store.canvas.height-(this.store.paddingSize*2) + 'px' : null;
       style.textAlign = this.store.canvas.alignment;
       return style;
     },
@@ -402,15 +406,13 @@ export default {
     }
   }
   .grid-inner-wrap {
-    display: inline-block;
-    text-align: center;
     position: relative;
     z-index: 5;
     display: flex;
-    justify-content: center;
     justify-items: center;
-    align-content: center;
-    align-items: center;
+    justify-content: center;
+    align-items: flex-start;
+    align-content: flex-start;
     width: 100%;
     height: 100%;
     > div {

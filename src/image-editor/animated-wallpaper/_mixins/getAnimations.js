@@ -9,7 +9,6 @@ export default {
       
       let animations = !this.animation.use ? this.animations : this.animations.filter(function( filterAnimation ) {
         let ping = false;
-        // console.log( filterAnimation.class )
         vue.animation.use.forEach(function( usedAnimation ) {
           if ( usedAnimation === filterAnimation.class ) {
             ping = true;

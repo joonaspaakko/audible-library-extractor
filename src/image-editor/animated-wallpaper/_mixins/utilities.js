@@ -86,12 +86,14 @@ export default {
               img.addEventListener("load", function(){
                   _log.success.push(imgSource);
                   verifier();
-              }, false); 
+                  img = null;
+              }, { passive: true, once: true }); 
               
               img.addEventListener("error", function(){
                   _log.error.push(imgSource);
                   verifier();
-              }, false); 
+                  img = null;
+              }, { passive: true, once: true }); 
             
               img.src = imgSource;
           })(index);

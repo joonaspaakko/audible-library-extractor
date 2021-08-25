@@ -11,11 +11,13 @@
   @mousedown.native="activateControls"
   :style="{
     fontSize: textObj.fontSize + 'px',
-    lineHeight: textObj.fontSiz + 'px',
+    lineHeight: textObj.fontSize + 'px',
     fontWeight: textObj.bold ? 'bold' : 'normal',
     textTransform: textObj.allCaps ? 'uppercase' : 'none',
     justifyContent: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
     justifyItems: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
+    alignContent: textObj.verticalAlignment === 'left' ? 'flex-start' : textObj.verticalAlignment === 'center' ? 'center' : textObj.verticalAlignment === 'right' ? 'flex-end' : null,
+    alignItems: textObj.verticalAlignment === 'left' ? 'flex-start' : textObj.alignmeverticalAlignmentnt === 'center' ? 'center' : textObj.verticalAlignment === 'right' ? 'flex-end' : null,
     color: textObj.color,
   }"
   data-no-dragscroll
@@ -91,16 +93,7 @@ export default {
   },
   
   mounted: function() {
-    
     this.setElementGuidelines();
-    
-    // console.log( parseFloat(this.store.canvas.padding.top) )
-    // this.$nextTick(function() {
-    //   this.$refs.moveable.request("draggable", { deltaY: -(parseFloat(this.store.canvas.padding.top)/2), isInstant: true }); 
-    // });
-    
-    // console.log("getRect: ", this.$refs.moveable.getRect());
-    // console.log("isMoveableElement: ", this.$refs.moveable.isMoveableElement(document.body));
     this.$root.$on('update-moveable-handles', this.updateHandles);
     this.$root.$on('nudge-up', this.nudgeUp);
     this.$root.$on('nudge-right', this.nudgeRight);

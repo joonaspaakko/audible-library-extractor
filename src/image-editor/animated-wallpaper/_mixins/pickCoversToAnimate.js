@@ -13,17 +13,18 @@ export default {
       
       
       let randomCoversAmount = this.animation.randomCovers ? this.random(1, animationCovers) : animationCovers;
+      if ( this.editorCovers ) { this.$store.commit('update', { key: 'awpAnimatedCoversLength', value: randomCoversAmount }); }
       
       let picked;
       if ( this.animation.sequential ) {
         picked = [];
         for ( var i=0; i < randomCoversAmount; i++ ) {
-          picked.push( visibleCovers[ this.animation.sequentialCounter ] );
-          if ( this.animation.sequentialCounter >= this.covers.total-1 ) {
-            this.animation.sequentialCounter = 0;
+          picked.push( visibleCovers[ this.sequentialCounter ] );
+          if ( this.sequentialCounter >= this.covers.total-1 ) {
+            this.sequentialCounter = 0;
           }
           else {
-             ++this.animation.sequentialCounter;
+             ++this.sequentialCounter;
           };
         }
       }
