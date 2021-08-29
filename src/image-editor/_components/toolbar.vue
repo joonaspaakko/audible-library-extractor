@@ -53,7 +53,8 @@
       
     </div>
 
-    <div class="mode-switcher">
+    <div class="mode-switcher" v-if="!store.saving">
+      
       <gb-toggle
       size="default"
       :value="store.animatedWallpaperMode"
@@ -212,6 +213,17 @@
             </div>
           </div>
           
+          <div v-if="store.animatedWallpaperMode">
+            <spacer size="default" :line="false" />
+            
+            <gb-checkbox
+            size="mini"
+            v-model="prioritizeCoversPerRow"
+            label="Prioritize covers per row"
+            :warning="prioritizeCoversPerRow ? null : 'Affects the output: column count may change to to keep the cover size close to the original.'"
+            ></gb-checkbox>
+          </div>
+          
           <spacer size="medium" :line="false" />
           
         </div>
@@ -278,7 +290,7 @@
           <spacer size="default" :line="false" />
         </div>
         
-        <div v-if="store.animatedWallpaperMode" v-tippy content="Overlay is recommended, especially if you plan to have icons in the desktop.">
+        <div v-tippy content="Overlay is recommended, especially if you plan to have icons in the desktop.">
           <gb-heading tag="h6" :uppercase="true">
             <span>Color overlay</span>
             <gb-toggle
@@ -296,7 +308,15 @@
           <spacer size="default" :line="false" />
         </div>
         
-        <div v-if="store.animatedWallpaperMode">
+        <div v-if="store.awpOverlayColorEnabled && store.awpBlendModes && store.animatedWallpaperMode" style="position: relative; z-index: 1;">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Blend modes</span>
+            <gb-select size="mini" style="position: relative; z-index: 2; width: 133px;" v-model="blendMode" :options="store.awpBlendModes" />
+          </gb-heading>
+          <spacer size="default" :line="false" />
+        </div>
+        
+        <div>
           <gb-heading tag="h6" :uppercase="true">
             <span>Grayscale</span>
             <gb-toggle
@@ -800,7 +820,25 @@ export default {
         this.$store.commit("update", { key: "animationPreset", value:  preset  });
       },
     },
-
+    
+    blendMode: {
+      get: function () {
+        return this.store.awpBlendMode;
+      },
+      set: function ( preset ) {
+        this.$store.commit("update", { key: "awpBlendMode", value:  preset  });
+      },
+    },
+    
+    prioritizeCoversPerRow: {
+      get: function () {
+        return this.store.prioritizeCoversPerRow;
+      },
+      set: function ( value ) {
+        this.$store.commit("update", { key: "prioritizeCoversPerRow", value:  value  });
+      },
+    },
+    
     zoomPercentage: function () {
       var zoom = this.store.canvas.zoom == 0 ? 1 : this.store.canvas.zoom;
       return Math.floor(zoom * 100);
@@ -892,6 +930,7 @@ export default {
           { key: 'canvas.padding.right',  value: 0 },
           { key: 'canvas.padding.bottom',  value: 0 },
           { key: 'paddingSize',  value: 0 },
+          { key: 'canvas.background',  value: '#1f1d1d' },
         ]);
       }
       else {
@@ -905,6 +944,7 @@ export default {
           { key: 'canvas.padding.right',  value: 32 },
           { key: 'canvas.padding.bottom',  value: 32 },
           { key: 'paddingSize',  value: 5 },
+          { key: 'canvas.background',  value: '#fff' },
         ]);
         
       }

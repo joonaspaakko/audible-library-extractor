@@ -1,21 +1,27 @@
 <template>
-<div id="awp" :style="!editorCovers ? canvasStyle : null" :class="{ 'loader-bg': !afterMounted, 'reveal-covers': showLoadInClass }">
-  <div v-if="afterMounted" style="width: 100%; height: 100%;">
-    <!-- <style>body { background: #151515; }</style> -->
+<div id="awp"
+:style="!editorCovers ? canvasStyle : null" 
+:class="{ 
+  'loader-bg': !afterMounted, 
+  'reveal-covers': showLoadInClass,
+  'grayscale': grayscale,
+}"
+>
+  <div style="width: 100%; height: 100%; overflow: hidden;" v-if="afterMounted">
+    <component is="style">
+      #awp .cover {
+        margin: {{ (this.covers.padding > -1 ? this.covers.padding : 0) }}px;
+      }
+      #awp .cover img {
+        width: {{ this.covers.size }}px;
+        height: {{ this.covers.size }}px;
+      }
+    </component>
     <div class="cover" ref="cover" v-for="(cover, index) in covers.visible" :key="index">
       <img :src="cover" alt="" draggable="false" class="cover-one">
       <img :src="cover" alt="" draggable="false" class="cover-two hide">
     </div>
   </div>
-  <component is="style">
-    #awp .cover {
-      margin: {{ (this.covers.padding > -1 ? this.covers.padding : 0) }}px;
-    }
-    #awp .cover img {
-      width: {{ this.covers.size }}px;
-      height: {{ this.covers.size }}px;
-    }
-  </component>
 </div>
 </template>
 
@@ -27,6 +33,8 @@ import fitCoversToViewport from '@wallpaper-mixins/fitCoversToViewport.js';
 import getAnimations from '@wallpaper-mixins/getAnimations.js';
 import pickCoversToAnimate from '@wallpaper-mixins/pickCoversToAnimate.js';
 import prepareData from '@wallpaper-mixins/prepareData.js';
+
+let debounceDelay = 400;
 
 export default {
   name: "awp",
@@ -43,6 +51,7 @@ export default {
       loadPreset: 'random-simple-flips',
       animation: null,
       sequentialCounter: 0,
+      grayscale: null,
       canvas: {
         overlayColor: null,
         style: null,
@@ -54,7 +63,6 @@ export default {
         },
         width: 0,
         height: 0,
-        grayscale: null,
       },
       covers: {
         style: null,
@@ -86,6 +94,15 @@ export default {
         { in: true, class: 'fade-in-left'   },
         { in: true, class: 'fade-in-bl'     },
         
+        { in: true, class: 'push-right'     },
+        { in: true, class: 'push-left'      },
+        { in: true, class: 'push-up'        },
+        { in: true, class: 'push-down'      },
+        { in: true, class: 'squish-right'     },
+        { in: true, class: 'squish-left'      },
+        { in: true, class: 'squish-up'        },
+        { in: true, class: 'squish-down'      },
+        
         { in: true, out: true, swap: true, class: 'flip-horizontal-bottom'  },
         { in: true, out: true, swap: true, class: 'flip-horizontal-top'     },
         { in: true, out: true, swap: true, class: 'flip-vertical-right'     },
@@ -106,14 +123,15 @@ export default {
         { in: true, out: true, swap: true, class: 'flip-scale-down-ver'     },
         { in: true, out: true, swap: true, class: 'flip-scale-down-diag-1'  },
         { in: true, out: true, swap: true, class: 'flip-scale-down-diag-2'  },
-        { in: true, out: true, swap: true, class: 'flip-scale-2-hor-bottom' },
-        { in: true, out: true, swap: true, class: 'flip-scale-2-hor-top'    },
-        { in: true, out: true, swap: true, class: 'flip-scale-2-ver-left'   },
-        { in: true, out: true, swap: true, class: 'flip-scale-2-ver-right'  },
+        // { in: true, out: true, swap: true, class: 'flip-scale-2-hor-bottom' },
+        // { in: true, out: true, swap: true, class: 'flip-scale-2-hor-top'    },
+        // { in: true, out: true, swap: true, class: 'flip-scale-2-ver-left'   },
+        // { in: true, out: true, swap: true, class: 'flip-scale-2-ver-right'  },
       ],
       cycleCounter: 0,
       cycleCounterTimer: null,
       shuffleCounter: 0,
+      coverTimer: null,
     };
   },
   
@@ -125,7 +143,6 @@ export default {
       style.paddingTop    = this.canvas.padding.top    > -1 ? this.canvas.padding.top    + "px" : 0 + "px";
       style.paddingRight  = this.canvas.padding.right  > -1 ? this.canvas.padding.right  + "px" : 0 + "px";
       style.paddingBottom = this.canvas.padding.bottom > -1 ? this.canvas.padding.bottom + "px" : 0 + "px";
-      style.filter = this.canvas.grayscale;
       return style;
     },
 
@@ -151,10 +168,13 @@ export default {
     let vue = this;
     window.addEventListener('resize', this.windowResized);
     
+    
   },
   
   mounted: function() {
     
+    
+    debounceDelay = 0;
     this.startAutoPlay();
     
   },
@@ -164,25 +184,29 @@ export default {
     window.removeEventListener('resize', this.windowResized);
     clearInterval( this.cycleInterval );
     clearInterval( this.cycleCounterTimer );
+    clearInterval( this.coverTimer );
     
   },
   
   methods: {
     
-    windowResized: _.debounce( function() {
+    windowResized: function() {
       this.startAutoPlay();
-    }, 400, { leading: false, trailing: true }),
+    },
     
-    startAutoPlay: function() {
+    startAutoPlay: _.debounce( function() {
       
+      debounceDelay = 400;
+      
+      var vue = this;
+      this.showLoadInClass = false;
+      this.afterMounted = false;
       clearInterval( this.cycleInterval );
       clearInterval( this.cycleCounterTimer );
+      clearInterval( this.coverTimer );
       this.sequentialCounter = 0;
       this.cycleCounter = 0;
       this.shuffleCounter = 0;
-      
-      var vue = this;
-      this.afterMounted = false;
       
       this.$nextTick(function() {
         
@@ -210,22 +234,22 @@ export default {
               
               let animationZone = (vue.animation.animationZone / 100) * cycleDelay;
               
-              var playOnce = function( onLoad ) {
+              let playOnce = function( onLoad ) {
                 
                 if ( vue.editorCovers ) vue.$store.commit('update', [
                   { key: 'awpAnimationZone', value: vue.animation.animationZone },
                   { key: 'awpCycleDelay', value: cycleDelay },
                 ]);
                 
-                var pickedCoverElements = vue.pickCoversToAnimate( visibleCoverElements, cycleDelay );
+                let pickedCoverElements = vue.pickCoversToAnimate( visibleCoverElements, cycleDelay );
                 let animationDelay;
                 
                 if ( pickedCoverElements[0] ) {
                   
                   let sequentialDelays = vue.splitUnevenly(animationZone, pickedCoverElements.length, 0 );
-                  var spreadCounter = 0;
-                  var animateWithDelay = function() {
-                    setTimeout(function() {
+                  let spreadCounter = 0;
+                  let animateWithDelay = function() {
+                    vue.coverTimer = setTimeout(function() {
                       
                       animationDelay = vue.animation.randomDelay ? sequentialDelays[spreadCounter] : (animationZone/pickedCoverElements.length);
                       let animatedEl = pickedCoverElements[spreadCounter];
@@ -256,7 +280,7 @@ export default {
         
       });
       
-    },
+    }, debounceDelay, { leading: false, trailing: true }),
     
     animateCover: function( currentTarget ) {
       
@@ -323,7 +347,7 @@ export default {
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scope>
 
 html, body, #awp {
   margin: 0px;
@@ -331,20 +355,22 @@ html, body, #awp {
   height: 100%;
 }
 
-body { 
-  font-size: 0px; 
+#awp {
+  position: relative;
+  z-index: 5;
   overflow: hidden;
+  font-size: 0px; 
   -webkit-touch-callout: none; 
   -webkit-user-select: none; 
   -khtml-user-select: none; 
   -moz-user-select: none; 
   -ms-user-select: none; 
   user-select: none; 
+  box-sizing: border-box;
 }
 
-#awp {
-  position: relative;
-  z-index: 5;
+#awp.grayscale .cover img {
+  filter: grayscale(1) contrast(0.8);
 }
 
 @import "loader-bg.scss";

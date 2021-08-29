@@ -68,6 +68,9 @@ export default {
                   setTimeout(function() { 
                     vue.$store.commit("update", { key: "saving", value: false });
                     vue.saveProgressWidth = -1; 
+                    vue.$nextTick(function() {
+                      vue.centerCanvas();
+                    });
                   }, 1000);
                   
                 }).catch(function( e ) {
@@ -75,6 +78,9 @@ export default {
                   setTimeout(function() { 
                     vue.$store.commit("update", { key: "saving", value: false });
                     vue.saveProgressWidth = -1; 
+                    vue.$nextTick(function() {
+                      vue.centerCanvas();
+                    });
                   }, 1000);
                 });
               }
@@ -114,20 +120,45 @@ export default {
       opts.canvas = {};
       opts.canvas.width   = this.store.canvas.width > -1 ? parseFloat( this.store.canvas.width ) : 0;
       opts.canvas.height  = this.store.canvas.height > -1 ? parseFloat( this.store.canvas.height ) : 0;
-      opts.canvas.overlayColor = this.store.awpOverlayColorEnabled ? this.$store.state.awpOverlayColor : null; 
-      opts.canvas.grayscale = this.store.awpGrayscale ? 'grayscale(1) contrast(0.8)' : null;
+      opts.canvas.overlayColor = this.store.awpOverlayColorEnabled ? this.store.awpOverlayColor : null; 
+      opts.canvas.grayscale = this.store.awpGrayscale ? true : null;
       opts.canvas.padding = {};
-      opts.canvas.padding.left = this.editorCanvasPaddingLeft > -1 ? parseFloat(this.editorCanvasPaddingLeft) : 0;
-      opts.canvas.padding.top = this.editorCanvasPaddingTop > -1 ? parseFloat(this.editorCanvasPaddingTop) : 0;
-      opts.canvas.padding.right = this.editorCanvasPaddingRight > -1 ? parseFloat(this.editorCanvasPaddingRight) : 0;
-      opts.canvas.padding.bottom = this.editorCanvasPaddingBottom > -1 ? parseFloat(this.editorCanvasPaddingBottom) : 0;
+      console.log( this.store.canvas.padding.left )
+      opts.canvas.padding.left = this.store.canvas.padding.left > -1 ? parseFloat(this.store.canvas.padding.left) : 0;
+      opts.canvas.padding.top = this.store.canvas.padding.top > -1 ? parseFloat(this.store.canvas.padding.top) : 0;
+      opts.canvas.padding.right = this.store.canvas.padding.right > -1 ? parseFloat(this.store.canvas.padding.right) : 0;
+      opts.canvas.padding.bottom = this.store.canvas.padding.bottom > -1 ? parseFloat(this.store.canvas.padding.bottom) : 0;
+      opts.prioritizeCoversPerRow = this.store.prioritizeCoversPerRow;
       return opts;
             
     },
     
     makeIndexHTML: function( coversArray) {
       
-      var index = `
+      const grayscale = this.store.awpGrayscale ? '#awp .cover img { filter: grayscale(1) contrast(0.8); }' : '';
+      
+      const overlay = this.store.awpOverlayColorEnabled ? `
+      body:before { 
+        content: ''; 
+        background: ${ this.store.awpOverlayColor }; 
+        position: fixed;
+        z-index: 99999;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        -webkit-touch-callout: none; 
+        -webkit-user-select: none; 
+        -khtml-user-select: none; 
+        -moz-user-select: none; 
+        -ms-user-select: none; 
+        user-select: none; 
+      }
+      ` : '';
+      
+      let index = `
       <!DOCTYPE html>
       <html lang="en">
       <head>
@@ -135,6 +166,14 @@ export default {
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>ALE • Animated Wallpaper</title>
+        <style>
+        #awp {
+          background-color: ${ this.store.canvas.background };
+        }
+        ${ grayscale }
+        ${ overlay }
+        </style>
+        
         <link rel="stylesheet" href="animated-wallpaper.css">
         <script id="optionsData" type="application/json">
           ${ JSON.stringify( this.editorOptions( coversArray ) ) }

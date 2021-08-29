@@ -3,13 +3,25 @@ export default {
     return {
       presets: [
         {
+          name: 'sequential-push-right',
+          description: 'Animates one cover at a time sequentially.',
+          onLoad: false, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
+          use: ['push-right','push-left','push-up','push-down','squish-right','squish-left','squish-up','squish-down',], // Falsy value = all animations.
+          covers: 1, // How many covers to animate in one cycle
+          randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
+          cycleDelay: 3, // Seconds. Length of one animation cycle.
+          animationZone: 100, // Cover animation delay is divided equally within this animation zone.
+          randomDelay: false, // Animations are triggered randomly within the "animationZone" 
+          sequential: true, // Covers are animated: left to right / top down
+        },
+        {
           name: 'piano-swipe-fade',
           description: 'Animates one row at a time time.',
           onLoad: true, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
           use: ['fade-in'], // Falsy value = all animations.
           covers: function(covers) { return covers.perRow; }, // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
-          cycleDelay: 9, // Seconds. Length of one animation cycle.
+          cycleDelay: function(covers) { return covers.percentage(covers.perRow, 90); }, // Seconds. Length of one animation cycle.
           animationZone: 15, // Cover animation delay is divided equally within this animation zone.
           randomDelay: false, // Animations are triggered randomly within the "animationZone" 
           sequential: true, // Covers are animated: left to right / top down
@@ -21,7 +33,7 @@ export default {
           use: ['fade-in-top'], // Falsy value = all animations.
           covers: function(covers) { return covers.perRow; }, // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
-          cycleDelay: function(covers) { return covers.perRow; }, // Seconds. Length of one animation cycle.
+          cycleDelay: function(covers) { return covers.percentage(covers.perRow, 90); }, // Seconds. Length of one animation cycle.
           animationZone: 15, // Cover animation delay is divided equally within this animation zone.
           randomDelay: false, // Animations are triggered randomly within the "animationZone" 
           sequential: true, // Covers are animated: left to right / top down
@@ -33,7 +45,7 @@ export default {
           use: false, // Falsy value = all animations.
           covers: 1, // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
-          cycleDelay: .7, // Seconds. Length of one animation cycle.
+          cycleDelay: 3, // Seconds. Length of one animation cycle.
           animationZone: 100, // Cover animation delay is divided equally within this animation zone.
           randomDelay: false, // Animations are triggered randomly within the "animationZone" 
           sequential: true, // Covers are animated: left to right / top down
@@ -45,7 +57,7 @@ export default {
           use: ['fade-in'], // Falsy value = all animations.
           covers: 1, // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
-          cycleDelay: 1, // Seconds. Length of one animation cycle.
+          cycleDelay: 2, // Seconds. Length of one animation cycle.
           animationZone: 70, // Cover animation delay is divided equally within this animation zone.
           randomDelay: false, // Animations are triggered randomly within the "animationZone" 
           sequential: true, // Covers are animated: left to right / top down
@@ -57,17 +69,17 @@ export default {
           use: ['bounce-in-fwd'], // Falsy value = all animations.
           covers: 1, // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
-          cycleDelay: 1, // Seconds. Length of one animation cycle.
+          cycleDelay: 2.5, // Seconds. Length of one animation cycle.
           animationZone: 70, // Cover animation delay is divided equally within this animation zone.
           randomDelay: false, // Animations are triggered randomly within the "animationZone" 
           sequential: true, // Covers are animated: left to right / top down
         },
         {
           name: 'randomly-regular',
-          description: 'Animates 3 covers every 5 seconds.',
+          description: 'Animates 3 covers every 7 seconds.',
           onLoad: false, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
           use: false, // Falsy value = all animations.
-          cycleDelay: 5, // Seconds. Length of one animation cycle.
+          cycleDelay: 7, // Seconds. Length of one animation cycle.
           covers: 3, // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
           animationZone: 50, // Cover animation delay is divided equally within this animation zone.

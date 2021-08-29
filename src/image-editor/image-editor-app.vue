@@ -124,4 +124,8 @@ body,
     z-index: 0;
   }
 }
+
+.tippy-popper {
+  z-index: 99999999999 !important;
+}
 </style>

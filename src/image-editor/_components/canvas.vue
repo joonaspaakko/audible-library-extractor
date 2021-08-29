@@ -19,8 +19,9 @@
       id="editor-canvas-content"
       :style="canvasStyle"
       >
-        
-        <div id="awp-overlay" v-if="store.awpOverlayColorEnabled && store.animatedWallpaperMode" :style="{ backgroundColor: store.awpOverlayColor }"></div>
+      
+        <div id="canvas-bg-color" v-if="store.canvas.background" :style="{ backgroundColor: store.canvas.background, filter: (this.store.awpGrayscale) ? 'grayscale(1) contrast(0.8)' : null }"></div>
+        <div id="awp-overlay" v-if="store.awpOverlayColorEnabled" :style="{ backgroundColor: store.awpOverlayColor, mixBlendMode: store.awpBlendMode }"></div>
         <div class="canvas-bounds" :class="{ 'prevent-dragging': store.animatedWallpaperMode }"></div>
         
         <div
@@ -38,7 +39,7 @@
           <text-element data-no-dragscroll v-for="(text, index) in store.textElements" :key="text.id" :textObj="text" :textIndex="index" />
         </div>
         
-        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }" :style="{ filter: (this.store.awpGrayscale && this.store.animatedWallpaperMode) ? 'grayscale(1) contrast(0.8)' : null }">
+        <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }">
           <div class="grid-inner-wrap">
             
             <animatedWallpaper v-if="store.animatedWallpaperMode" style="cursor: grab;"
@@ -152,7 +153,6 @@ export default {
     
     canvasStyle: function () {
       var style = {};
-      style.background = this.store.canvas.background || "transparent";
       if (this.store.canvas.width > 0) {
         style.width = this.store.canvas.width + "px";
       }
@@ -291,6 +291,16 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+.grid-inner-wrap .cover .cover-img { 
+  image-rendering: high-quality;
+  background-color: black;
+}
+
+.editor-canvas {
+  image-rendering: high-quality;
+}
+
 .left {
   position: relative;
   cursor: grab;
@@ -485,6 +495,7 @@ export default {
   align-items: flex-start !important;
 }
 
+#canvas-bg-color,
 #awp-overlay {
   position: absolute;
   z-index: 666666;
@@ -492,6 +503,10 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+#canvas-bg-color {
+  z-index: -1;
 }
 
 </style>

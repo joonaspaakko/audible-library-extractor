@@ -51,6 +51,10 @@ export default {
       this.canvas.height = value;
       this.startAutoPlay();
     },
+    "$store.state.awpGrayscale": function( value ) {
+      this.grayscale = value;
+      this.startAutoPlay();
+    },
     "$store.state.excludeArchived": function( value ) {
       this.covers.allOriginal = value ? _.filter(this.editorCovers, function(o) { return !o.inArchive; }) : this.editorCovers;
       this.covers.allOriginal = _.map( this.covers.allOriginal, 'cover');
@@ -87,12 +91,17 @@ export default {
         this.covers.all = standaloneOpts.covers.all;
         this.canvas.overlayColor = standaloneOpts.canvas.overlayColor;
         this.canvas.grayscale = standaloneOpts.canvas.grayscale;
+        this.prioritizeCoversPerRow = standaloneOpts.prioritizeCoversPerRow;
         this.loadAnimationPreset( standaloneOpts.animationPreset );
         
       }
       else if ( this.editorCovers ) {
         
-        this.$store.commit('update', { key: 'animationPresets', value: _.map(this.presets, function( p ) { return { label: _.lowerCase(p.name), value: p.name, description: p.description } }) });
+        let presetsArray = _.map(this.presets, function( p ) { return { label: _.lowerCase(p.name), value: p.name, description: p.description } });
+        this.$store.commit('update', [
+          { key: 'animationPreset', value: presetsArray[0].value },
+          { key: 'animationPresets', value: presetsArray },
+        ]);
         
         if ( this.editorCoverSize > 0 ) this.covers.size = parseFloat(this.editorCoverSize);
         if ( this.editorCoverSize > 0 ) this.covers.sizeOriginal = parseFloat(this.editorCoverSize);
@@ -108,6 +117,8 @@ export default {
         if ( this.$store.state.excludeArchived ) covers = _.filter(covers, function(o) { return !o.inArchive; });
         this.covers.all = this.mappy( covers );
         this.canvas.overlayColor = this.$store.state.awpOverlayColor; 
+        this.prioritizeCoversPerRow = this.$store.state.prioritizeCoversPerRow; 
+        this.grayscale = this.$store.state.awpGrayscale;
         this.loadAnimationPreset( this.$store.state.animationPreset );
         
       }

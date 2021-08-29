@@ -7,6 +7,8 @@ export default {
       let canvas = {};
       if ( !this.editorCovers ) {
         canvas.width  = window.innerWidth - this.canvas.padding.left - this.canvas.padding.right;
+        console.log( window.innerWidth, this.canvas.padding.left, this.canvas.padding.right )
+        console.log( canvas.width )
         canvas.height = window.innerHeight - this.canvas.padding.top - this.canvas.padding.bottom;
       }
       else {
@@ -18,15 +20,18 @@ export default {
       // The covers per row is adjusted to the nearest integer.
       // This makes it so the size of each cover stays pretty close  
       // to the original no matter what the screen size is.
-      if ( !this.editorCovers ) {
+      console.log( ' this.prioritizeCoversPerRow: ', this.prioritizeCoversPerRow )
+      if ( !this.editorCovers && !this.prioritizeCoversPerRow  ) {
+        console.log( canvas.width, this.covers.sizeOriginal, (this.covers.padding*2) )
         this.covers.perRow = Math.round( canvas.width / (this.covers.sizeOriginal + this.covers.padding*2) );
-        this.covers.size = canvas.width / this.covers.perRow;
+        this.covers.size = (canvas.width / this.covers.perRow) - this.covers.padding*2;
+        console.log( 'COVER SIZEEEE' , this.covers.size, this.covers.perRow )
       }
       else {
         this.covers.size = (canvas.width / this.covers.perRow) - this.covers.padding*2;
       }
       
-      this.covers.rows = Math.ceil( canvas.height / this.covers.size ); 
+      this.covers.rows = Math.ceil( canvas.height / (this.covers.size + this.covers.padding*2)  ); 
       this.covers.total = this.covers.rows * this.covers.perRow;
       if ( this.editorCovers ) this.$store.commit('update', { key: 'visibleAnimatedCovers', value: this.covers.total }); // Messaging the image editor...
       

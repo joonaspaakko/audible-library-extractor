@@ -93,13 +93,34 @@ const store = new Vuex.Store({
     awpAnimationZone: null,
     awpAnimatedCoversLength: null,
     awpOverlayColorEnabled: false,
-    awpOverlayColor: 'rgba(30,30,30, .63)',
+    awpOverlayColor: 'rgba(30,30,30, .77)',
     awpGrayscale: false,
+    awpBlendMode: 'normal',
+    awpBlendModes: null, // Whoopsie, turns out html2canvas doesn't support that?
+    // awpBlendModes: [
+    //   { label: 'Normal'     , value: 'normal' },
+    //   { label: 'Multiply'   , value: 'multiply' },
+    //   { label: 'Screen'     , value: 'screen' },
+    //   { label: 'Overlay'    , value: 'overlay' },
+    //   { label: 'Darken'     , value: 'darken' },
+    //   { label: 'Lighten'    , value: 'lighten' },
+    //   { label: 'Color dodge', value: 'color-dodge' },
+    //   { label: 'Color burn' , value: 'color-burn' },
+    //   { label: 'Hard light' , value: 'hard-light' },
+    //   { label: 'Soft light' , value: 'soft-light' },
+    //   { label: 'Difference' , value: 'difference' },
+    //   { label: 'Exclusion'  , value: 'exclusion' },
+    //   { label: 'Hue'        , value: 'hue' },
+    //   { label: 'Saturation' , value: 'saturation' },
+    //   { label: 'Color'      , value: 'color' },
+    //   { label: 'Luminosity' , value: 'luminosity' },
+    // ],
     archivedLength: 0,
     gallery: {
       pageTitle: null,
       pageSubTitle: null,
-    }
+    },
+    prioritizeCoversPerRow: true,
   },
   mutations: {
     
