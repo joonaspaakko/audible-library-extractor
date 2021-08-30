@@ -133,13 +133,13 @@
       <br>
       
       <a target="_blank" :href="releaseURL">
-        <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20version" alt="">
+        <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20release" alt="">
       </a>
       <a target="_blank" :href="releaseURL">
-        <img src="https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20version" alt="">
+        <img src="https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20release" alt="">
       </a>
       <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/labels/bug">
-        <img src="https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug" alt="">
+        <img src="https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug?label=bugs" alt="">
       </a>
       
       <br><br>

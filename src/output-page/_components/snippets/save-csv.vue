@@ -170,7 +170,8 @@ export default {
           columns: null, //or array of strings
         });
         
-        saveAs(new Blob([csv], {type: "text/csv;charset=utf-8"}), this.filename);
+        // saveAs(new Blob([csv], {type: "text/csv;charset=utf-8"}), this.filename);
+        saveAs(new File([csv], this.filename, {type: "text/csv;charset=utf-8"}));
         
         setTimeout(function() {
           vue.bundling = false;
