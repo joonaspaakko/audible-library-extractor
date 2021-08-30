@@ -2,17 +2,15 @@
   <div class="ale-books grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ) }" ref="booksWrapper">
     
     <book-details
-    v-if="detailsBook"
-    :key="'details:' + detailsBook.asin"
-    :book.sync="detailsBook"
+    v-if="$store.state.bookDetails.book"
+    :index="$store.state.bookDetails.index"
     :booksWrapper="$refs.booksWrapper"
-    :index="detailsBookIndex"
     />
     
     <lazy
     v-for="(book, index) in $store.state.chunkCollection"
     class="ale-book"
-    :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }"
+    :class="{ 'details-open': $store.state.bookDetails.book && $store.state.bookDetails.book.asin === book.asin }"
     :data-asin="book.asin"
     :key="'book:'+book.asin"
     v-if="book.asin"
@@ -38,47 +36,8 @@ export default {
   mixins: [slugify],
   data: function() {
     return {
-      detailsBook: null,
-      detailsBookIndex: -1,
     };
   },
-  
-  created: function() {
-    this.$root.$on("book-clicked", this.toggleBookDetails);
-  },
-
-  beforeDestroy: function() {
-    this.$root.$off("book-clicked", this.toggleBookDetails);
-  },
-
-  methods: {
-    
-    toggleBookDetails: function(e) {
-      
-      if (!e.book) {
-        
-        this.detailsBook = null;
-        this.detailsBookIndex = -1;
-        if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
-      
-      } 
-      else {
-        
-        if (!e.index) e.index = _.findIndex( this.$store.getters.collection, { asin: e.book.asin });
-        const sameBook = _.get(this.detailsBook, "asin") === e.book.asin;
-        this.detailsBook = null;
-        this.detailsBookIndex = e.index;
-        this.$nextTick(function() {
-          if (!sameBook) this.detailsBook = e.book;
-          else {
-            if (this.$route.query !== undefined) this.$updateQuery({ query: 'book', value: null });
-          }
-        });
-        
-      }
-    }
-    
-  }
 };
 </script>
 

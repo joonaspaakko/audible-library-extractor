@@ -58,6 +58,10 @@ export default new Vuex.Store({
     siteOnline: true,
     searchOptCloseGuard: false,
     bundlingGallery: false,
+    bookDetails: {
+      book: null,
+      index: -1,
+    },
   },
 
   mutations: {
@@ -65,16 +69,23 @@ export default new Vuex.Store({
       const lsState = JSON.parse(localStorage.getItem("aleSettings"));
       if (lsState) state.sticky = _.assign( state.sticky, lsState );
     },
+    
+    prop(state, config) {
+      
+      let setValues = function (config) {
+        config = config || {};
+        if (config.key) {
+          const newValue = config.freeze ? Object.freeze(config.value) : config.value;
+          _.set(state, config.key, newValue);
+        }
+      };
 
-    prop: function(state, o) {
-      const inputIsArray = _.isArray(o);
-      if ( !o.freeze ) {
-        if ( !inputIsArray ) state[o.key] = o.value;
-        else _.each(o, function( b ) { state[b.key] = b.value; });
-      }
-      else {
-        if ( !inputIsArray ) state[o.key] = Object.freeze( o.value );
-        else _.each(o, function( b ) { state[b.key] = Object.freeze( b.value ); });
+      if (_.isArray(config)) {
+        _.each(config, function(conf) {
+          setValues(conf);
+        });
+      } else {
+        setValues(config);
       }
     },
 
