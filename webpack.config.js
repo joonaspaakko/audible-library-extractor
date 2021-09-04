@@ -114,6 +114,7 @@ var copyPluginArray = { patterns: [
   { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
   { from: 'image-editor/image-editor.html', to: 'image-editor/index.html', transform: transformHtml },
   { from: 'image-editor/animated-wallpaper/animated-wallpaper.html', to: 'image-editor/animated-wallpaper/index.html', transform: transformHtml },
+  { from: 'image-editor/textures', to: 'image-editor/textures' },
   {
     from: 'manifest.json',
     to: 'manifest.json',

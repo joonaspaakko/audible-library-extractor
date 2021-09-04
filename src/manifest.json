@@ -18,7 +18,8 @@
     "storage",
     "unlimitedStorage",
     "https://www.googleapis.com/*",
-    "contextMenus"
+    "contextMenus",
+    "https://m.media-amazon.com/*"
   ],
   "web_accessible_resources": [
     "assets/images/audible-library-extractor-logo.svg",

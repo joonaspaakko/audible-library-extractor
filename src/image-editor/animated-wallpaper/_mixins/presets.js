@@ -3,16 +3,16 @@ export default {
     return {
       presets: [
         {
-          name: 'sequential-push-right',
+          name: 'squishing-and-pushing',
           description: 'Animates one cover at a time sequentially.',
           onLoad: false, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
           use: ['push-right','push-left','push-up','push-down','squish-right','squish-left','squish-up','squish-down',], // Falsy value = all animations.
-          covers: 1, // How many covers to animate in one cycle
+          covers: 3, // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
-          cycleDelay: 3, // Seconds. Length of one animation cycle.
-          animationZone: 100, // Cover animation delay is divided equally within this animation zone.
-          randomDelay: false, // Animations are triggered randomly within the "animationZone" 
-          sequential: true, // Covers are animated: left to right / top down
+          cycleDelay: 7, // Seconds. Length of one animation cycle.
+          animationZone: 60, // Cover animation delay is divided equally within this animation zone.
+          randomDelay: true, // Animations are triggered randomly within the "animationZone" 
+          sequential: false, // Covers are animated: left to right / top down
         },
         {
           name: 'piano-swipe-fade',

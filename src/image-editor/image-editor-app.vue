@@ -97,6 +97,10 @@ html, .editor-canvas, .toolbar {
   font-family: "Open Sans", sans-serif !important;
 }
 
+body {
+  overscroll-behavior: none;
+}
+
 html,
 body,
 #app {

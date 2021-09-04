@@ -1,20 +1,24 @@
 <template>
 <div id="awp"
-:style="!editorCovers ? canvasStyle : null" 
 :class="{ 
   'loader-bg': !afterMounted, 
   'reveal-covers': showLoadInClass,
-  'grayscale': grayscale,
+  'dropped-overflowing-row': covers.dropOverflowingRow
 }"
 >
-  <div style="width: 100%; height: 100%; overflow: hidden;" v-if="afterMounted">
+  <div id="awp-inner-wrap" v-if="afterMounted" :style="!editorCovers ? canvasStyle : null">
     <component is="style">
-      #awp .cover {
-        margin: {{ (this.covers.padding > -1 ? this.covers.padding : 0) }}px;
+      #awp {
+        align-items: {{ canvas.alignmentVertical }} !important;
       }
-      #awp .cover img {
-        width: {{ this.covers.size }}px;
-        height: {{ this.covers.size }}px;
+      #awp .cover {
+        margin: {{ covers.padding }}px;
+        width: {{ covers.size }}px;
+        height: {{ covers.size }}px;
+      }
+      #awp .cover > img {
+        background-color: {{ canvas.background }};
+        {{ canvas.grayscale ? 'filter: grayscale(1) contrast('+ canvas.grayscaleContrast +');' : '' }}
       }
     </component>
     <div class="cover" ref="cover" v-for="(cover, index) in covers.visible" :key="index">
@@ -51,8 +55,10 @@ export default {
       loadPreset: 'random-simple-flips',
       animation: null,
       sequentialCounter: 0,
-      grayscale: null,
       canvas: {
+        background: null,
+        grayscale: null,
+        grayscaleContrast: null,
         overlayColor: null,
         style: null,
         padding: {
@@ -63,6 +69,7 @@ export default {
         },
         width: 0,
         height: 0,
+        alignmentVertical: null,
       },
       covers: {
         style: null,
@@ -76,6 +83,7 @@ export default {
         padding: 0,
         paddingStyle: null,
         visible: null,
+        dropOverflowingRow: false,
       },
       animationCounter: 0,
       mounted: false,
@@ -98,10 +106,10 @@ export default {
         { in: true, class: 'push-left'      },
         { in: true, class: 'push-up'        },
         { in: true, class: 'push-down'      },
-        { in: true, class: 'squish-right'     },
-        { in: true, class: 'squish-left'      },
-        { in: true, class: 'squish-up'        },
-        { in: true, class: 'squish-down'      },
+        { in: true, class: 'squish-right'   },
+        { in: true, class: 'squish-left'    },
+        { in: true, class: 'squish-up'      },
+        { in: true, class: 'squish-down'    },
         
         { in: true, out: true, swap: true, class: 'flip-horizontal-bottom'  },
         { in: true, out: true, swap: true, class: 'flip-horizontal-top'     },
@@ -165,9 +173,7 @@ export default {
     
     this.prepareData();
     
-    let vue = this;
     window.addEventListener('resize', this.windowResized);
-    
     
   },
   
@@ -207,6 +213,10 @@ export default {
       this.sequentialCounter = 0;
       this.cycleCounter = 0;
       this.shuffleCounter = 0;
+      if ( vue.editorCovers ) vue.$store.commit('update', [
+        { key: 'awpAnimationZone', value: null },
+        { key: 'awpCycleDelay', value: null },
+      ]);
       
       this.$nextTick(function() {
         
@@ -290,8 +300,8 @@ export default {
       let coverWrapper = currentTarget;
       coverWrapper.className = 'cover';
       
-      let imageOne = coverWrapper.querySelector('img.cover-one');
-      let imageTwo = coverWrapper.querySelector('img.cover-two');
+      let imageOne = coverWrapper.querySelector('.cover-one');
+      let imageTwo = coverWrapper.querySelector('.cover-two');
       
       if ( imageOne && imageTwo ) {
         
@@ -367,10 +377,17 @@ html, body, #awp {
   -ms-user-select: none; 
   user-select: none; 
   box-sizing: border-box;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
 }
 
-#awp.grayscale .cover img {
-  filter: grayscale(1) contrast(0.8);
+#awp.dropped-overflowing-row {
+  align-items: center;
+}
+
+#awp-inner-wrap {
+  display: inline-block;
 }
 
 @import "loader-bg.scss";

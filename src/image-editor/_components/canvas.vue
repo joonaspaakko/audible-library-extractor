@@ -20,8 +20,12 @@
       :style="canvasStyle"
       >
       
-        <div id="canvas-bg-color" v-if="store.canvas.background" :style="{ backgroundColor: store.canvas.background, filter: (this.store.awpGrayscale) ? 'grayscale(1) contrast(0.8)' : null }"></div>
-        <div id="awp-overlay" v-if="store.awpOverlayColorEnabled" :style="{ backgroundColor: store.awpOverlayColor, mixBlendMode: store.awpBlendMode }"></div>
+        <div id="canvas-bg-color" v-if="store.canvas.background" :style="{ backgroundColor: store.canvas.background }"></div>
+        <div id="awp-overlay" v-if="store.awpOverlayColorEnabled" :style="{ 
+          backgroundColor: store.awpOverlayColor, 
+          mixBlendMode: store.awpBlendMode,
+          backgroundImage: store.overlayTextures ? 'url(textures/'+ store.overlayTexture +'.png)' : null,
+        }"></div>
         <div class="canvas-bounds" :class="{ 'prevent-dragging': store.animatedWallpaperMode }"></div>
         
         <div
@@ -40,7 +44,7 @@
         </div>
         
         <div style="position: relative; z-index: 5; overflow: hidden; height: 100%; width: 100%" :class="{ 'awp-float': store.animatedWallpaperMode }">
-          <div class="grid-inner-wrap">
+          <div class="grid-inner-wrap" :style="canvasAlignmentVertical">
             
             <animatedWallpaper v-if="store.animatedWallpaperMode" style="cursor: grab;"
             :editorCovers="store.covers"
@@ -71,16 +75,18 @@
                 </div>
                 
                 <div v-if="book.placeholderCover" ref="coverImages" class="placeholder"></div>
-                <img v-else ref="coverImages" class="cover-img" :src="book.cover" alt="" draggable="false" data-no-dragscroll />
+                <img v-else ref="coverImages" class="cover-img" :src="book.cover" alt="" draggable="false" data-no-dragscroll 
+                  :style="{ filter: (store.awpGrayscale) ? 'grayscale(1) contrast('+ store.awpGrayscaleContrast +')' : null }"
+                />
                 
               </div>
               
             </draggable>
             <component v-if="!store.animatedWallpaperMode" is="style">
               .grid-inner-wrap .cover {
-                padding: {{ (this.store.paddingSize > -1 ? this.store.paddingSize : 0) }}px !important;
+                padding: {{ ( store.paddingSize > -1 ?  store.paddingSize : 0) }}px !important;
+                opacity: {{ store.coverOpacityEnabled ? store.coverOpacity : 1 }} !important;
               }
-              .grid-inner-wrap .cover .placeholder,
               .grid-inner-wrap .cover .cover-img {
                 width: {{ this.store.coverSize > 0 ? this.store.coverSize : 0 }}px !important;
                 height: {{ this.store.coverSize > 0 ? this.store.coverSize : 0 }}px !important;
@@ -128,6 +134,7 @@ export default {
       this.zoomToFit();
       let vue = this;
       setTimeout(function() {
+        vue.centerCanvas();
         vue.dragscrollEnabled = true;
       }, 10);
     });
@@ -168,7 +175,7 @@ export default {
       style.paddingRight  = this.store.canvas.padding.right  > -1 ? this.store.canvas.padding.right  + "px" : 0 + "px";
       style.paddingBottom = this.store.canvas.padding.bottom > -1 ? this.store.canvas.padding.bottom + "px" : 0 + "px";
       
-      if (this.store.saving && !this.store.canvas.zoomOutputs) style.transform = null;
+      if ( this.store.saving ) style.transform = null;
       else if (this.store.canvas.zoom > 0 && this.store.canvas.zoom != 1) {
         style.transform = "scale(" + this.store.canvas.zoom + ")";
       }
@@ -202,9 +209,44 @@ export default {
     //   } 
     //   return style;
     // },
-    canvasAlignment: function () {
+    canvasAlignment: function() {
       let style = {};
+      
       style.textAlign = this.store.canvas.alignment;
+      // if ( this.store.canvas.height > 0 ) style.height = this.store.canvas.height + 'px';
+      // if ( this.store.canvas.alignmentVertical === 'flex-start' ) {
+      //   style.marginTop = 'auto';
+      //   style.marginBottom = null;
+      // }
+      // else if ( this.store.canvas.alignmentVertical === 'center' ) {
+      //   style.marginTop = 'auto';
+      //   style.marginBottom = 'auto';
+      // }
+      // else if ( this.store.canvas.alignmentVertical === 'flex-end' ) {
+      //   style.marginTop = null;
+      //   style.marginBottom = 'auto';
+      // }
+      
+      return style;
+    },
+    canvasAlignmentVertical: function() {
+      let style = {};
+      
+      style.alignItems = this.store.canvas.alignmentVertical;
+      style.alignContent = this.store.canvas.alignmentVertical;
+      if ( this.store.canvas.alignment === 'left' ) {
+        style.justifyItems = 'flex-start';
+        style.justifyContent = 'flex-start';
+      }
+      else if ( this.store.canvas.alignment === 'center' ) {
+        style.justifyItems = 'center';
+        style.justifyContent = 'center';
+      }
+      else if ( this.store.canvas.alignment === 'right' ) {
+        style.justifyItems = 'flex-end';
+        style.justifyContent = 'flex-end';
+      }
+      
       return style;
     },
   },
@@ -291,15 +333,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
-.grid-inner-wrap .cover .cover-img { 
-  image-rendering: high-quality;
-  background-color: black;
-}
-
-.editor-canvas {
-  image-rendering: high-quality;
-}
 
 .left {
   position: relative;
@@ -503,6 +536,7 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
+  will-change: transform;
 }
 
 #canvas-bg-color {

@@ -69,7 +69,7 @@ export default {
     },
     "$store.state.canvas.zoom": function () {
       this.$nextTick(function () {
-        this.centerCanvas();
+        this.centerCanvas();  
       });
     }
   },
@@ -138,18 +138,33 @@ export default {
       if (this.$store.state.canvas.transformOrigin != newOrigin) {
         this.$store.commit("update", { key: "canvas.transformOrigin", value: newOrigin });
       }
-
-      if (canvasOverflowsVertically) {
-        workingArea.scrollTop = padding / 2; // Align canvas top with the top of the viewport
-      } else {
-        workingArea.scrollTop = ((canvasHeight + padding) - workingArea.clientHeight) / 2; // Center
+      
+      if ( this.store.canvas.alignmentVertical === 'center' || this.store.canvas.alignmentVertical === 'flex-end' ) {
+        let canvasAlignmentVertical = this.store.canvas.alignmentVertical;
+        this.$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start' });
+        this.$nextTick(function() {
+          adjustScroll();
+          vue.$store.commit('update', { key: 'canvas.alignmentVertical', value: canvasAlignmentVertical });
+        });
       }
-
-      if (canvasOverflowsHorizontally) {
-        workingArea.scrollLeft = padding / 2; // Align canvas top with the left of the viewport
-      } else {
-        workingArea.scrollLeft = ((canvasWidth + padding) - workingArea.clientWidth) / 2; // Center
+      else {
+        adjustScroll();
       }
+      
+      function adjustScroll() {
+        if (canvasOverflowsVertically) {
+          workingArea.scrollTop = padding / 2; // Align canvas top with the top of the viewport
+        } else {
+          workingArea.scrollTop = ((canvasHeight + padding) - workingArea.clientHeight) / 2; // Center
+        }
+  
+        if (canvasOverflowsHorizontally) {
+          workingArea.scrollLeft = padding / 2; // Align canvas top with the left of the viewport
+        } else {
+          workingArea.scrollLeft = ((canvasWidth + padding) - workingArea.clientWidth) / 2; // Center
+        }
+      }
+      
     
     }, 20, { leading: true, trailing: true }),
     

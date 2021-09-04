@@ -74,7 +74,6 @@ export default {
                   }, 1000);
                   
                 }).catch(function( e ) {
-                  console.log( e );
                   setTimeout(function() { 
                     vue.$store.commit("update", { key: "saving", value: false });
                     vue.saveProgressWidth = -1; 
@@ -117,17 +116,21 @@ export default {
       opts.covers.size    = this.store.coverSize > 0 ? parseFloat(this.store.coverSize) : 0;
       opts.covers.perRow  = this.store.coversPerRow > -1 ? parseFloat(this.store.coversPerRow) : 0;
       opts.covers.padding = this.store.paddingSize > -1 ? parseFloat(this.store.paddingSize) : 0;
+      opts.covers.dropOverflowingRow = this.store.awpDropOverflowingRow;
       opts.canvas = {};
       opts.canvas.width   = this.store.canvas.width > -1 ? parseFloat( this.store.canvas.width ) : 0;
       opts.canvas.height  = this.store.canvas.height > -1 ? parseFloat( this.store.canvas.height ) : 0;
       opts.canvas.overlayColor = this.store.awpOverlayColorEnabled ? this.store.awpOverlayColor : null; 
-      opts.canvas.grayscale = this.store.awpGrayscale ? true : null;
+      opts.canvas.overlayBlendmode = this.store.awpOverlayColorEnabled ? this.store.awpBlendModes : null; 
+      opts.canvas.grayscale = this.store.awpGrayscale;
+      opts.canvas.grayscaleContrast = this.store.awpGrayscaleContrast;
+      opts.canvas.background = this.store.canvas.background;
       opts.canvas.padding = {};
-      console.log( this.store.canvas.padding.left )
       opts.canvas.padding.left = this.store.canvas.padding.left > -1 ? parseFloat(this.store.canvas.padding.left) : 0;
       opts.canvas.padding.top = this.store.canvas.padding.top > -1 ? parseFloat(this.store.canvas.padding.top) : 0;
       opts.canvas.padding.right = this.store.canvas.padding.right > -1 ? parseFloat(this.store.canvas.padding.right) : 0;
       opts.canvas.padding.bottom = this.store.canvas.padding.bottom > -1 ? parseFloat(this.store.canvas.padding.bottom) : 0;
+      opts.canvas.alignmentVertical = this.store.canvas.alignmentVertical;
       opts.prioritizeCoversPerRow = this.store.prioritizeCoversPerRow;
       return opts;
             
@@ -135,12 +138,14 @@ export default {
     
     makeIndexHTML: function( coversArray) {
       
-      const grayscale = this.store.awpGrayscale ? '#awp .cover img { filter: grayscale(1) contrast(0.8); }' : '';
+      // const grayscale = this.store.awpGrayscale ? '#awp .cover img { filter: grayscale(1) contrast(0.8); }' : '';
       
+      const overlayBlendmode = this.store.awpBlendMode !== 'normal' ? 'mix-blend-mode: '+ this.store.awpBlendMode +';' : '';
       const overlay = this.store.awpOverlayColorEnabled ? `
-      body:before { 
-        content: ''; 
+      #color-overlay { 
+        will-change: transform;
         background: ${ this.store.awpOverlayColor }; 
+        ${ overlayBlendmode }
         position: fixed;
         z-index: 99999;
         top: 0;
@@ -167,10 +172,10 @@ export default {
         <meta http-equiv="X-UA-Compatible" content="ie=edge">
         <title>ALE • Animated Wallpaper</title>
         <style>
-        #awp {
+        html, body, #awp {
+          overscroll-behavior: none;
           background-color: ${ this.store.canvas.background };
         }
-        ${ grayscale }
         ${ overlay }
         </style>
         
@@ -180,7 +185,8 @@ export default {
         </script>
       </head>
       <body>
-
+        
+        ${ this.store.awpOverlayColorEnabled ? '<div id="color-overlay"></div>' : '' }
         <div id="animated-wallpaper"></div>
         <script src="animated-wallpaper.js"></script>
         

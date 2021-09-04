@@ -52,7 +52,11 @@ export default {
       this.startAutoPlay();
     },
     "$store.state.awpGrayscale": function( value ) {
-      this.grayscale = value;
+      this.canvas.grayscale = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpGrayscaleContrast": function( value ) {
+      this.canvas.grayscaleContrast = value;
       this.startAutoPlay();
     },
     "$store.state.excludeArchived": function( value ) {
@@ -64,6 +68,17 @@ export default {
     "$store.state.animationPreset": function( value ) {
       this.loadAnimationPreset( this.$store.state.animationPreset );
       this.startAutoPlay();
+    },
+    "$store.state.background": function( value ) {
+      this.canvas.background = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpDropOverflowingRow": function( value ) {
+      this.covers.dropOverflowingRow = value;
+      this.startAutoPlay();
+    },
+    "$store.state.canvas.alignmentVertical": function( value ) {
+      this.canvas.alignmentVertical = value;
     },
   },
   
@@ -82,6 +97,7 @@ export default {
         this.covers.sizeOriginal = standaloneOpts.covers.size;
         this.covers.perRow = standaloneOpts.covers.perRow;
         this.covers.padding = standaloneOpts.covers.padding;
+        this.covers.dropOverflowingRow = standaloneOpts.covers.dropOverflowingRow;
         this.canvas.width = standaloneOpts.canvas.width;
         this.canvas.height = standaloneOpts.canvas.width;
         this.canvas.padding.left = standaloneOpts.canvas.padding.left;
@@ -91,6 +107,9 @@ export default {
         this.covers.all = standaloneOpts.covers.all;
         this.canvas.overlayColor = standaloneOpts.canvas.overlayColor;
         this.canvas.grayscale = standaloneOpts.canvas.grayscale;
+        this.canvas.grayscaleContrast = standaloneOpts.canvas.grayscaleContrast;
+        this.canvas.background = standaloneOpts.canvas.background;
+        this.canvas.alignmentVertical = standaloneOpts.canvas.alignmentVertical;
         this.prioritizeCoversPerRow = standaloneOpts.prioritizeCoversPerRow;
         this.loadAnimationPreset( standaloneOpts.animationPreset );
         
@@ -98,10 +117,12 @@ export default {
       else if ( this.editorCovers ) {
         
         let presetsArray = _.map(this.presets, function( p ) { return { label: _.lowerCase(p.name), value: p.name, description: p.description } });
-        this.$store.commit('update', [
-          { key: 'animationPreset', value: presetsArray[0].value },
-          { key: 'animationPresets', value: presetsArray },
-        ]);
+        if ( !this.$store.state.animationPresets ) {
+          this.$store.commit('update', [
+            { key: 'animationPreset', value: presetsArray[0].value },
+            { key: 'animationPresets', value: presetsArray },
+          ]);
+        }
         
         if ( this.editorCoverSize > 0 ) this.covers.size = parseFloat(this.editorCoverSize);
         if ( this.editorCoverSize > 0 ) this.covers.sizeOriginal = parseFloat(this.editorCoverSize);
@@ -118,9 +139,13 @@ export default {
         this.covers.all = this.mappy( covers );
         this.canvas.overlayColor = this.$store.state.awpOverlayColor; 
         this.prioritizeCoversPerRow = this.$store.state.prioritizeCoversPerRow; 
-        this.grayscale = this.$store.state.awpGrayscale;
+        this.canvas.grayscale = this.$store.state.awpGrayscale;
+        this.canvas.grayscaleContrast = this.$store.state.awpGrayscaleContrast;
+        this.canvas.background = this.$store.state.canvas.background;
+        this.canvas.alignmentVertical = this.$store.state.canvas.alignmentVertical;
+        this.covers.dropOverflowingRow = this.$store.state.awpDropOverflowingRow;
         this.loadAnimationPreset( this.$store.state.animationPreset );
-        
+        console.log(  this.canvas.background );
       }
       else {
         this.covers.all = require('../../_mixins/getCovers.json');

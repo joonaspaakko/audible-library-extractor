@@ -51,6 +51,10 @@
         <gb-icon size="16px" name="zoom_out_map"></gb-icon>
       </div>
       
+      <div class="reset-settings" v-tippy content="<strong>Reset settings to defaults.</strong> Keeps imported covers but resets everything else." @mousedown="resetSettings">
+        <gb-icon size="16px" name="delete_forever"></gb-icon>
+      </div>
+      
     </div>
 
     <div class="mode-switcher" v-if="!store.saving">
@@ -106,7 +110,6 @@
                         animation-duration: {{ store.awpCycleDelay }}ms !important;
               }
             </component>
-            
           </div>
           <spacer size="default" :line="false" />
         </div>
@@ -201,7 +204,8 @@
             </div>
           </div>
           <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
-            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. Try lowering canvas width or increasing covers per row.
+            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. You can choose to ignore this, but otherwise you can try lowering canvas width or increasing covers per row.
+            <gb-input style="display: none;" warning="1"></gb-input>
           </span></p>
           
           <div v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length">
@@ -209,7 +213,9 @@
             <div class="warning-message">
               <strong>{{ this.store.visibleAnimatedCovers - this.store.covers.length }}/{{ this.store.visibleAnimatedCovers }}</strong> visible covers have been duplicated in order for the animated wallpaper to function.
               <br><br>
-              <span style="color: #fff;">This basically means that you should already see duplicate dovers on the first load and it's not going to get any better because there aren't any leftover covers. If you don't like what you see, try lowering the "Covers per row" setting or consider using another source for the cover images if possible.</span>
+              <span style="color: #fff;">This basically means that you should immediately see duplicate covers and it's not going to get any better when the covers start to animate. If you don't like what you see, try lowering the "Covers per row" setting or consider using another source for the cover images if possible.</span>
+              <br><br>
+              <span style="color: #fff;">Ideally the total number of covers would be visible covers x2 or more.</span>
             </div>
           </div>
           
@@ -262,16 +268,49 @@
         
         </div>
         
+        <div v-if="store.animatedWallpaperMode">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Exclude overflowing row</span>
+            <gb-toggle
+            size="mini"
+            v-model="store.awpDropOverflowingRow"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+        </div>
+        
+        <div v-if="store.animatedWallpaperMode">
+          
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Covers alignment</span>
+            <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 85px; flex: unset;">
+              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-start' }" size="18px" name="vertical_align_top" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start', });"></gb-icon>
+              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'center' }" size="18px" name="vertical_align_center" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'center', });"></gb-icon>
+              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-end' }" size="18px" name="vertical_align_bottom" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-end', });"></gb-icon>
+            </div>
+          </gb-heading>            
+          <spacer size="default" :line="false" />
+        
+        </div>
+        
         <div v-if="!store.animatedWallpaperMode">
           
-          <gb-heading tag="h6" :uppercase="true" v-tippy content="Align last row if it's not full...">
-            <span>Cover alignment</span>
-            <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 145px; flex: unset; width: 96px;">
+          <gb-heading tag="h6" :uppercase="true" v-tippy content="Horizontal alignment aligns the last row if it's not full. If you want to offset horizontally, you can change left or right canvas padding. <br><br>Vertical alignment aligns the covers as a group, but only if the canvas height is set.">
+            <span>Covers alignment</span>
+          </gb-heading>
+          
+            <spacer size="default" :line="false" />
+            
+            <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 145px; flex: unset; width: 100%;">
               <gb-icon :class="{ active: store.canvas.alignment === 'left' }" size="18px" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });"></gb-icon>
               <gb-icon :class="{ active: store.canvas.alignment === 'center' }" size="18px" name="format_align_center" @click="$store.commit('update', { key: 'canvas.alignment', value: 'center', });"></gb-icon>
               <gb-icon :class="{ active: store.canvas.alignment === 'right' }" size="18px" name="format_align_right" @click="$store.commit('update', { key: 'canvas.alignment', value: 'right', });"></gb-icon>
+              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-start' }" size="18px" name="vertical_align_top" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start', });"></gb-icon>
+              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'center' }" size="18px" name="vertical_align_center" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'center', });"></gb-icon>
+              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-end' }" size="18px" name="vertical_align_bottom" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-end', });"></gb-icon>
             </div>
-            </gb-heading>          
+            
           <spacer size="default" :line="false" />
         
         </div>
@@ -280,6 +319,7 @@
           <gb-heading tag="h6" :uppercase="true">
             <span>Background color</span>
             <color-picker
+              style="z-index: 10;"
               class="color-picker-placeholder"
               v-model="store.canvas.background"
               :position="{ left: '-180px', top: '40px' }"
@@ -290,14 +330,15 @@
           <spacer size="default" :line="false" />
         </div>
         
-        <div v-tippy content="Overlay is recommended, especially if you plan to have icons in the desktop.">
-          <gb-heading tag="h6" :uppercase="true">
+        <div>
+          <gb-heading tag="h6" :uppercase="true" v-tippy content="Overlay is recommended if you're making a desktop wallpaper and plan to have icons on top of it.">
             <span>Color overlay</span>
             <gb-toggle
             size="mini"
             v-model="store.awpOverlayColorEnabled"
             ></gb-toggle>
             <color-picker
+              style="z-index: 9;"
               class="color-picker-placeholder"
               v-model="store.awpOverlayColor"
               :position="{ left: '-180px', top: '40px' }"
@@ -308,10 +349,18 @@
           <spacer size="default" :line="false" />
         </div>
         
-        <div v-if="store.awpOverlayColorEnabled && store.awpBlendModes && store.animatedWallpaperMode" style="position: relative; z-index: 1;">
+        <div v-if="store.awpOverlayColorEnabled && store.awpBlendModes" style="position: relative; z-index: 2;">
+          <gb-heading tag="h6" :uppercase="true" v-tippy content="You can adjust the blend mode strentch by adjusting opacity in the color overlay setting. Opacity control is right below the horizontal color strip in the color picker. Lowering the opacity can make all the difference with certain blend modes.">
+            <span>Blend mode</span>
+            <gb-select size="mini" style="position: relative; z-index: 2; width: 133px;" v-model="blendMode" :options="store.awpBlendModes"  />
+          </gb-heading>
+          <spacer size="default" :line="false" />
+        </div>
+        
+        <div v-if="store.overlayTextures" style="position: relative; z-index: 1;">
           <gb-heading tag="h6" :uppercase="true">
-            <span>Blend modes</span>
-            <gb-select size="mini" style="position: relative; z-index: 2; width: 133px;" v-model="blendMode" :options="store.awpBlendModes" />
+            <span>Textures</span>
+            <gb-select size="mini" style="position: relative; z-index: 2; width: 160px;" v-model="overlayTexture" :options="store.overlayTextures" />
           </gb-heading>
           <spacer size="default" :line="false" />
         </div>
@@ -319,9 +368,46 @@
         <div>
           <gb-heading tag="h6" :uppercase="true">
             <span>Grayscale</span>
+            <input
+              v-if="store.awpGrayscale"
+              class="heading-range"
+              style="padding: 0 10px;"
+              type="range"
+              min=".15"
+              max="1"
+              v-model="store.awpGrayscaleContrast"
+              step=".05"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+            />
             <gb-toggle
             size="mini"
             v-model="store.awpGrayscale"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+        </div>
+        
+        <!-- Abbandoning for now... Just doesn't seem so necessary when there's the overlay? -->
+        <div v-if="!store.animatedWallpaperMode && store.coverOpacityEnabled">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Cover opacity</span>
+            <input
+              v-if="store.coverOpacityEnabled"
+              class="heading-range"
+              style="padding: 0 10px;"
+              type="range"
+              min=".01"
+              max="1"
+              v-model="store.coverOpacity"
+              step=".05"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+            />
+            <gb-toggle
+            size="mini"
+            v-model="store.coverOpacityEnabled"
             ></gb-toggle>
           </gb-heading>
           
@@ -425,7 +511,8 @@
             </span>
           </p>
           <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
-            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. Try lowering canvas width or increasing covers per row.
+            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. You can choose to ignore this, but otherwise you can try lowering canvas width or increasing covers per row.
+            <gb-input style="display: none;" warning="1"></gb-input>
           </span></p>
           
           <spacer size="medium" :line="false" />
@@ -697,18 +784,18 @@ import zoomToFit from "@editor-mixins/zoomToFit.js";
 import centerCanvas from "@editor-mixins/centerCanvas.js";
 import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
 import makeWallpaper from "@editor-mixins/makeWallpaper.js";
+import makeImage from "@editor-mixins/makeImage.js";
 
 import spacer from "@editor-comps/toolbar/spacer.vue";
 import textElements from "@editor-comps/toolbar/textElements.vue";
 
-import html2canvas from "html2canvas";
 import { saveAs } from "file-saver";
 import _ from "lodash";
 
 export default {
   name: "toolbar",
   components: { spacer, textElements },
-  mixins: [zoomToFit, centerCanvas, calculateCoverSize, makeWallpaper],
+  mixins: [zoomToFit, centerCanvas, calculateCoverSize, makeWallpaper, makeImage],
   data: function () {
     return {
       store: this.$store.state,
@@ -825,8 +912,17 @@ export default {
       get: function () {
         return this.store.awpBlendMode;
       },
-      set: function ( preset ) {
-        this.$store.commit("update", { key: "awpBlendMode", value:  preset  });
+      set: function ( blendmode ) {
+        this.$store.commit("update", { key: "awpBlendMode", value:  blendmode  });
+      },
+    },
+    
+    overlayTexture: {
+      get: function () {
+        return this.store.overlayTexture;
+      },
+      set: function ( texture ) {
+        this.$store.commit("update", { key: "overlayTexture", value:  texture  });
       },
     },
     
@@ -898,6 +994,18 @@ export default {
       
     // },
     
+    resetSettings: function() {
+      let confirmation = confirm("Are you sure you want to reset all editor settings?");
+      if ( confirmation ) {
+        this.$store.commit('update', { key: 'resetting', value: true });
+        localStorage.removeItem("aleImageEditorSettings");
+        window.location.reload();
+      }
+      else {
+        this.$store.commit('update', { key: 'resetting', value: false });
+      }
+    },
+    
     excludeArchivedChanged: function( value ) {
       
       this.$store.commit('update', { key: 'excludeArchived',  value: value });
@@ -931,6 +1039,7 @@ export default {
           { key: 'canvas.padding.bottom',  value: 0 },
           { key: 'paddingSize',  value: 0 },
           { key: 'canvas.background',  value: '#1f1d1d' },
+          { key: 'canvas.alignmentVertical',  value: 'flex-start' },
         ]);
       }
       else {
@@ -945,6 +1054,7 @@ export default {
           { key: 'canvas.padding.bottom',  value: 32 },
           { key: 'paddingSize',  value: 5 },
           { key: 'canvas.background',  value: '#fff' },
+          { key: 'canvas.alignmentVertical',  value: 'flex-start' },
         ]);
         
       }
@@ -1069,43 +1179,6 @@ export default {
       
       this.$store.commit("updateCoverPlaceholders", value ); 
       
-    },
-
-    makeImage: function () {
-      var vue = this;
-
-      if (!vue.store.saving) {
-        
-        vue.$root.$emit('hide-moveable-controls');
-        vue.$store.commit("update", { key: "saving", value: true });
-
-        vue.$nextTick(function () {
-          
-          let quality = vue.store.compressImage ? parseFloat(vue.store.compressQuality) : null;
-          let mimetype = vue.store.compressImage ? 'image/jpeg' : 'image/png';
-          let extension = vue.store.compressImage ? '.jpg' : '.png';
-          
-          html2canvas(document.querySelector(".editor-canvas"), {
-            backgroundColor: vue.store.canvas.background || "rgba(255,255,255,0)",
-            logging: false,
-            useCORS: true,
-          }).then(function (canvas) {
-            // If I ever need base64 version of the image: canvas.toDataURL("image/png")
-            canvas.toBlob(function (blob) {
-              
-              saveAs( blob, "ale image"+extension );
-              setTimeout(function () {
-                vue.$store.commit("update", { key: "saving", value: false });
-                vue.$nextTick(function() {
-                  vue.centerCanvas();
-                });
-              }, 500);
-              
-            }, mimetype, quality);
-            
-          });
-        });
-      }
     },
 
     canvasFitChanged: function () {
@@ -1248,13 +1321,15 @@ $toolbar-text: #8eabc5;
   position: absolute;
   z-index: 100;
   top: 20px;
-  left: -27px;
+  left: -29px;
   // right: 0;
   text-align: center;
   background: $toolbar-bg;
   padding: 10px;
   border-radius: 99999999px;
   box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20);
+  background: $toolbar-bg;
+  border: 1px solid #222c3c;
 }
 
 .toolbar .zoom-container {
@@ -1263,7 +1338,6 @@ $toolbar-text: #8eabc5;
   z-index: 4;
   top: 56px;
   left: 29px;
-  background: $toolbar-bg;
   padding: 9px 15px 9px 45px;
   display: flex;
   flex-direction: row;
@@ -1271,7 +1345,6 @@ $toolbar-text: #8eabc5;
   justify-self: center;
   align-items: center;
   align-content: center;
-  max-height: 30px;
   .zoom-text {
     display: inline;
     width: 30px;
@@ -1303,6 +1376,37 @@ $toolbar-text: #8eabc5;
     cursor: pointer;
     position: relative;
     i { display: block !important; }
+  }
+  .reset-settings {
+    margin-left: 35px;
+    transform: rotate(-90deg);
+    transform-origin: center center;
+    color: #e03b2e;
+    position: relative;
+    z-index: 1;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 23px;
+    height: 23px;
+    transform-origin: center center;
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
+    cursor: pointer;
+    &:before {
+      content: '';
+      position: absolute;
+      z-index: -1;
+      width: 23px;
+      height: 23px;
+      border-radius: 999999px;
+      background: #222c3c;
+      border: 2px solid #e03b2e;
+    }
   }
 }
 
@@ -1404,6 +1508,7 @@ $toolbar-text: #8eabc5;
 
 .toolbar-inner {
   h6.gb-base-heading {
+    white-space: nowrap;
     font-size: 14px;
     line-height: 19px;
     font-weight: 400;
@@ -1530,6 +1635,16 @@ $toolbar-text: #8eabc5;
   input[type="range"]:focus::-ms-fill-upper {
     background: #313d4f;
   }
+}
+
+.heading-range {
+  background: #212935 !important;
+}
+.heading-range::-moz-range-track {
+  border-color: #212935 !important;
+}
+.heading-range::-webkit-slider-runnable-track {
+  border-color: #212935 !important;
 }
 
 .time-until-next-cycle {

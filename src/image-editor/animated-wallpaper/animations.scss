@@ -1,34 +1,35 @@
 
-.cover {
+#awp .cover {
   display: none;
   position: relative;
+  margin: -.01px; // To prevent some background bleed through
   > img {
-    width: 0;
-    height: 0;
     box-sizing: border-box;
-    image-rendering: high-quality;
-    background-color: black;
-  }
-  
-  img.hide { display: none; }
-  
-}
-
-.reveal-covers .cover {
-  display: inline-block;
-}
-
-
-.cover {
-  .in { 
     position: absolute;
-    z-index: 2;
     top: 0;
     left: 0;
+    width: 100.3%; // To prevent some background bleed through
+    height: 100.3%; // To prevent some background bleed through
+    object-fit: contain;
   }
+  .in {
+    z-index: 2;
+    will-change: transform;
+  }
+  .out {
+    z-index: 1;
+    will-change: transform;
+  }
+  
+  .hide { display: none; }
+  
 }
 
-.cover {
+#awp.reveal-covers .cover {
+  display: inline-block !important;
+}
+
+#awp .cover {
   &[data-animation-class="bounce-in-fwd"],
   &[data-animation-class="fade-in"],
   &[data-animation-class="fade-in-top"],
@@ -54,15 +55,14 @@ $push-ani-duration: .85s;
   .in {
     -webkit-animation:push-right-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:push-right-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes push-right-in{ 0%{left:-100%} 100%{left:0%} }
-    @keyframes push-right-in{ 0%{left:-100%} 100%{left:0%} }
+    @-webkit-keyframes push-right-in{ 0%{transform: translateX(-100%);} 100%{transform: translateX(0%);} }
+    @keyframes push-right-in{ 0%{transform: translateX(-100%);} 100%{transform: translateX(0%);} }
   }
   .out {
-    position: relative;
     -webkit-animation:push-right-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:push-right-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes push-right-out{ 0%{right:0%} 100%{right:-100%} }
-    @keyframes push-right-out{ 0%{right:0%} 100%{right:-100%} }
+    @-webkit-keyframes push-right-out{ 0%{transform: translateX(0%);} 100%{transform: translateX(100%);} }
+    @keyframes push-right-out{ 0%{transform: translateX(0%);} 100%{transform: translateX(100%);} }
   }
 }
 [data-animation-class="squish-right"] {
@@ -70,81 +70,82 @@ $push-ani-duration: .85s;
   .in {
     -webkit-animation:squish-right-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:squish-right-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-right-in{ 0%{left:-100%} 100%{left:0%} }
-    @keyframes squish-right-in{ 0%{left:-100%} 100%{left:0%} }
+    @-webkit-keyframes squish-right-in{ 0%{transform: translateX(-100%);} 100%{transform: translateX(0%);} }
+    @keyframes squish-right-in{ 0%{transform: translateX(-100%);} 100%{transform: translateX(0%);} }
   }
   .out {
+    object-fit: unset !important;
     -webkit-animation:squish-right-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:squish-right-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-right-out{ 0%{padding-left: 0; opacity: 1;} 100%{padding-left: 100%; opacity: 0;} }
-    @keyframes squish-right-out{ 0%{padding-left: 0; opacity: 1;} 100%{padding-left: 100%; opacity: 0;} }
+    @-webkit-keyframes squish-right-out{ 0%{padding-left: 0;} 100%{padding-left: 100%;} }
+    @keyframes squish-right-out{ 0%{padding-left: 0;} 100%{padding-left: 100%;} }
   }
 }
 
 [data-animation-class="push-left"] {
   overflow: hidden;
-  .out {
-    position: relative;
+  .in {
     -webkit-animation:push-left-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:push-left-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes push-left-in{ 0%{left:0%} 100%{left:-100%} }
-    @keyframes push-left-in{ 0%{left:0%} 100%{left:-100%} }
+    @-webkit-keyframes push-left-in{ 0%{transform: translateX(100%);} 100%{transform: translateX(0%);} }
+    @keyframes push-left-in{ 0%{transform: translateX(100%);} 100%{transform: translateX(0%);} }
   }
-  .in {
-    left: unset;
+  .out {
     -webkit-animation:push-left-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:push-left-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes push-left-out{ 0%{right:-100%} 100%{right:0%} }
-    @keyframes push-left-out{ 0%{right:-100%} 100%{right:0%} }
+    @-webkit-keyframes push-left-out{ 0%{transform: translateX(0%);} 100%{transform: translateX(-100%);} }
+    @keyframes push-left-out{ 0%{transform: translateX(0%);} 100%{transform: translateX(-100%);} }
   }
 }
 [data-animation-class="squish-left"] {
   overflow: hidden;
-  .out {
-    -webkit-animation:squish-left-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    animation:squish-left-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-left-out{ 0%{padding-right: 0; opacity: 1;} 100%{padding-right: 100%; opacity: 0;} }
-    @keyframes squish-left-out{ 0%{padding-right: 0; opacity: 1;} 100%{padding-right: 100%; opacity: 0;} }
-  }
   .in {
-    left: unset;
     -webkit-animation:squish-left-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:squish-left-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-left-in{ 0%{right:-100%} 100%{right:0%} }
-    @keyframes squish-left-in{ 0%{right:-100%} 100%{right:0%} }
+    @-webkit-keyframes squish-left-in{ 0%{transform: translateX(100%);} 100%{transform: translateX(0%);} }
+    @keyframes squish-left-in{ 0%{transform: translateX(100%);} 100%{transform: translateX(0%);} }
+  }
+  .out {
+    object-fit: unset !important;
+    -webkit-animation:squish-left-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
+    animation:squish-left-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
+    @-webkit-keyframes squish-left-out{ 0%{padding-right: 0;} 100%{padding-right: 100%;} }
+    @keyframes squish-left-out{ 0%{padding-right: 0;} 100%{padding-right: 100%;} }
   }
 }
 
 
 [data-animation-class="push-up"] {
   overflow: hidden;
-  .out { 
+  .in {
     -webkit-animation:push-up-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:push-up-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes push-up-in{ 0%{transform: translateY(0%);} 100%{transform: translateY(-100%);} }
-    @keyframes push-up-in{ 0%{transform: translateY(0%);} 100%{transform: translateY(-100%);} }
+    @-webkit-keyframes push-up-in{ 0%{transform: translateY(100%);} 100%{transform: translateY(0%);} }
+    @keyframes push-up-in{ 0%{transform: translateY(100%);} 100%{transform: translateY(0%);} }
   }
-  .in {
+  .out { 
     -webkit-animation:push-up-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:push-up-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes push-up-out{ 0%{transform: translateY(100%);} 100%{transform: translateY(0%);} }
-    @keyframes push-up-out{ 0%{transform: translateY(100%);} 100%{transform: translateY(0%);} }
+    @-webkit-keyframes push-up-out{ 0%{transform: translateY(0%);} 100%{transform: translateY(-100%);} }
+    @keyframes push-up-out{ 0%{transform: translateY(0%);} 100%{transform: translateY(-100%);} }
   }
 }
 [data-animation-class="squish-up"] {
   overflow: hidden;
-  .out {   
+  zoom: 1;
+  .in {
+    zoom: 1;
     -webkit-animation:squish-up-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:squish-up-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-up-in{ 0%{padding-bottom: 0; opacity: 1;} 100%{padding-bottom: 100%; opacity: 0;} }
-    @keyframes squish-up-in{ 0%{padding-bottom: 0; opacity: 1;} 100%{padding-bottom: 100%; opacity: 0;} }
+    @-webkit-keyframes squish-up-in{ 0%{transform: translateY(100%);} 100%{transform: translateY(0%);} }
+    @keyframes squish-up-in{ 0%{transform: translateY(100%);} 100%{transform: translateY(0%);} }
   }
-  .in {
-    top: unset;
+  .out {
+    object-fit: unset !important;
     -webkit-animation:squish-up-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:squish-up-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-up-out{ 0%{bottom:-100%;} 100%{bottom:0%;} }
-    @keyframes squish-up-out{ 0%{bottom:-100%;} 100%{bottom:0%;} }
+    @-webkit-keyframes squish-up-out{ 0%{padding-bottom: 0;} 100%{padding-bottom: 100%;} }
+    @keyframes squish-up-out{ 0%{padding-bottom: 0;} 100%{padding-bottom: 100%;} }
   }
 }
 
@@ -165,18 +166,18 @@ $push-ani-duration: .85s;
 }
 [data-animation-class="squish-down"] {
   overflow: hidden;
-  .out { 
-    -webkit-animation:squish-down-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    animation:squish-down-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-down-out{ 0%{padding-top: 0; opacity: 1;} 100%{padding-top: 100%; opacity: 0;} }
-    @keyframes squish-down-out{ 0%{padding-top: 0; opacity: 1;} 100%{padding-top: 100%; opacity: 0;} }
-  }
   .in {
-    top: unset;
     -webkit-animation:squish-down-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
     animation:squish-down-in $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
-    @-webkit-keyframes squish-down-in{ 0%{bottom:100%;} 100%{bottom:0%;} }
-    @keyframes squish-down-in{ 0%{bottom:100%;} 100%{bottom:0%;} }
+    @-webkit-keyframes squish-down-in{ 0%{transform: translateY(-100%);} 100%{transform: translateY(0%);} }
+    @keyframes squish-down-in{ 0%{transform: translateY(-100%);} 100%{transform: translateY(0%);} }
+  }
+  .out {
+    object-fit: unset !important;
+    -webkit-animation:squish-down-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
+    animation:squish-down-out $push-ani-duration cubic-bezier(.39,.575,.565,1.000) both !important;
+    @-webkit-keyframes squish-down-out{ 0%{padding-top: 0;} 100%{padding-top: 100%;} }
+    @keyframes squish-down-out{ 0%{padding-top: 0;} 100%{padding-top: 100%;} }
   }
 }
 
