@@ -12,9 +12,7 @@
     "build:zip": "node scripts/build-zip.js",
     "---": "",
     "build:dev": "cross-env NODE_ENV=development webpack",
-    "watch": "npm run build -- --watch",
-    "prettier": "prettier \"src/**/*.{js,vue}\"",
-    "prettier:write": "npm run prettier -- --write"
+    "watch": "npm run build -- --watch"
   },
   "dependencies": {
     "@caohenghu/vue-colorpicker": "^1.2.4",

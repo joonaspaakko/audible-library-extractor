@@ -7,18 +7,71 @@ import _ from "lodash";
 
 const store = new Vuex.Store({
   state: {
+    canvasPreset: 'wallpaper',
+    canvasPresets: [
+      {
+        label: 'Wallpaper',
+        value: 'wallpaper',
+        options: {
+          coversPerRow: 12,
+          coverAmount: 84,
+          paddingSize: 0,
+          awpOverlayColorEnabled: true,
+          awpOverlayColor: 'rgba(36,33,33, .77)',
+          awpBlendMode: 'normal',
+          showAuthorAndTitle: false,
+          awpGrayscale: false,
+          canvas: {
+            width: 1920,
+            height: 1080,
+            background: '#151515',
+            alignmentVertical: 'flex-start',
+            padding: {
+              top: 0,
+              right: 0,
+              bottom: 0,
+              left: 0,
+            },
+          },
+        }
+      },
+      {
+        label: 'Card',
+        value: 'card',
+        options: {
+          coversPerRow: 5,
+          coverAmount: 30,
+          paddingSize: 5,
+          awpOverlayColorEnabled: false,
+          showAuthorAndTitle: false,
+          awpGrayscale: false,
+          canvas: {
+            width: 1200,
+            height: 0,
+            background: '#fff',
+            alignmentVertical: 'flex-start',
+            padding: {
+              top: 32,
+              right: 32,
+              bottom: 32,
+              left: 32,
+            },
+          },
+        }
+      },
+    ],
     resetting: false,
     visibleAnimatedCovers: null,
     covers: null,
-    coverAmount: 30,
+    coverAmount: 84,
     coverSize: 160,
-    paddingSize: 5,
+    paddingSize: 0,
     coverPlaceholders: 0,
-    coversPerRow: 5,
+    coversPerRow: 12,
     canvas: {
       color: null,
-      width: 1200,
-      height: 0,
+      width: 1920,
+      height: 1080,
       heightActual: 0,
       autoHeight: 0,
       background: "#fff",
@@ -26,10 +79,10 @@ const store = new Vuex.Store({
       zoomOutputs: false,
       fit: false,
       padding: {
-        left: 32,
-        top: 32,
-        right: 32,
-        bottom: 32,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
       },
       transformOrigin: "center center",
       scaled: {
@@ -49,7 +102,7 @@ const store = new Vuex.Store({
     authorAndTitleColor: '#333',
     textElementCounter: 0,
     textElements: [],
-    compressImage: false,
+    compressImage: true,
     compressQuality: .95,
     events: {
       textNudge: true,
@@ -63,13 +116,29 @@ const store = new Vuex.Store({
     animationPresets: null,
     coverOpacityEnabled: false,
     coverOpacity: .77,
+    awpAnimationStarted: false,
+    awpShowAnimationZone: false,
     awpCycleDelay: null,
     awpAnimationZone: null,
+    awpAnimateOnLoad: null,
     awpAnimatedCoversLength: null,
     awpOverlayColorEnabled: false,
     awpOverlayColor: 'rgba(36,33,33, .77)',
     awpGrayscale: false,
+    awpCoversPerCycle: null,
+    awpRandomCovers: null,
+    awpRandomDelay: null,
+    awpSequential: null,
     awpGrayscaleContrast: .8,
+    awpAnimation: ['fade (1)'],
+    awpAnimations: [
+      'fade (1)', 
+      'fade slide (8)', 
+      'bounce in (1)', 
+      'push (4)', 
+      'squish (4)', 
+      'flip (20)'
+    ],
     awpBlendMode: 'normal',
     awpBlendModes: [
       { label: 'Normal'     , value: 'normal' },
@@ -114,6 +183,16 @@ const store = new Vuex.Store({
       pageSubTitle: null,
     },
     prioritizeCoversPerRow: true,
+    textElFonts: [
+      { label: 'Work Sans'   , value: "'Work Sans', sans-serif" },
+      { label: 'Merriweather', value: "'Merriweather', serif" },
+      { label: 'Arvo'        , value: "'Arvo', serif" },
+      { label: 'Concert One' , value: "'Concert One', cursive" },
+      { label: 'Courgette'   , value: "'Courgette', cursive" },
+      { label: 'Indie Flower', value: "'Indie Flower', cursive" },
+      { label: 'Patrick Hand', value: "'Patrick Hand', cursive" },
+    ],
+    duplicateTemp: null,
   },
   mutations: {
     
@@ -161,8 +240,21 @@ const store = new Vuex.Store({
     
     changeText( state, config ) {
       
-      let textObj = state.textElements[ config.index ];
-      textObj[ config.key ] = config.value;
+      let setValues = function (config) {
+        config = config || {};
+        let textObj = state.textElements[ config.index ];
+        if ( config.key && textObj ) {
+          _.set(textObj, config.key, config.value);
+        }
+      };
+
+      if (_.isArray(config)) {
+        _.each(config, function(conf) {
+          setValues(conf);
+        });
+      } else {
+        setValues(config);
+      }
       
     },
     
@@ -204,6 +296,13 @@ const store = new Vuex.Store({
         };
       };
         
+      
+    },
+    
+    changePreset: function( state, presetName ) {
+      
+      let preset = _.find( state.canvasPresets, { value: presetName });
+      if ( preset ) state = _.merge( state, preset.options );
       
     },
     

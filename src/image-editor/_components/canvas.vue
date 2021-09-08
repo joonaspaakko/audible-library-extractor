@@ -136,6 +136,7 @@ export default {
       setTimeout(function() {
         vue.centerCanvas();
         vue.dragscrollEnabled = true;
+        vue.moveableControlsHide();
       }, 10);
     });
     

@@ -102,12 +102,12 @@ export default {
         { in: true, class: 'fade-in-left'   },
         { in: true, class: 'fade-in-bl'     },
         
-        { in: true, class: 'push-right'     },
         { in: true, class: 'push-left'      },
+        { in: true, class: 'push-right'     },
         { in: true, class: 'push-up'        },
         { in: true, class: 'push-down'      },
-        { in: true, class: 'squish-right'   },
         { in: true, class: 'squish-left'    },
+        { in: true, class: 'squish-right'   },
         { in: true, class: 'squish-up'      },
         { in: true, class: 'squish-down'    },
         
@@ -214,13 +214,17 @@ export default {
       this.cycleCounter = 0;
       this.shuffleCounter = 0;
       if ( vue.editorCovers ) vue.$store.commit('update', [
-        { key: 'awpAnimationZone', value: null },
-        { key: 'awpCycleDelay', value: null },
+        { key: 'awpAnimationStarted', value: false },
+        { key: 'awpShowAnimationZone', value: false },
       ]);
       
       this.$nextTick(function() {
         
         this.fitCoversToViewport();
+        
+        let cycleDelay = vue.toMS( vue.animation.cycleDelay );
+        let animationZone = (vue.animation.animationZone / 100) * cycleDelay;
+        
         this.imageLoader( this.covers.visible, function() {
           
           vue.showLoadInClass = true;
@@ -233,22 +237,12 @@ export default {
             visibleCoverElements = _.filter( visibleCoverElements, function( cover ) { return !cover.classList.contains('animating-cover'); }); 
       
             if ( visibleCoverElements[0] ) {
-              let cycleDelay = (typeof vue.animation.cycleDelay === 'function') ? vue.toMS(vue.animation.cycleDelay({ 
-                perRow: vue.covers.perRow, 
-                rows: vue.covers.rows, 
-                total: vue.covers.total, 
-                animationZone: vue.animation.animationZone, 
-                animationCovers: vue.animation.covers,
-                percentage: function( total, percentage ) { return (percentage / 100) * total; },
-              })) : vue.toMS( vue.animation.cycleDelay );
-              
-              let animationZone = (vue.animation.animationZone / 100) * cycleDelay;
               
               let playOnce = function( onLoad ) {
                 
                 if ( vue.editorCovers ) vue.$store.commit('update', [
-                  { key: 'awpAnimationZone', value: vue.animation.animationZone },
-                  { key: 'awpCycleDelay', value: cycleDelay },
+                  { key: 'awpAnimationStarted', value: true },
+                  { key: 'awpShowAnimationZone', value: true },
                 ]);
                 
                 let pickedCoverElements = vue.pickCoversToAnimate( visibleCoverElements, cycleDelay );
@@ -278,8 +272,8 @@ export default {
               if ( vue.animation.onLoad ) {
                 playOnce('onLoad');
               }
-              else {                  
-                if ( vue.editorCovers ) vue.$store.commit('update', { key: 'awpCycleDelay', value: cycleDelay });
+              else {
+                if ( vue.editorCovers ) vue.$store.commit('update', { key: 'awpAnimationStarted', value: true });
               }
               
               vue.cycleInterval = setInterval(function() { playOnce(); }, cycleDelay );

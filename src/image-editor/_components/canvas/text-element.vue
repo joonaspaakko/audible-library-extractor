@@ -10,6 +10,7 @@
   @dblclick.native="doubleClick"
   @mousedown.native="activateControls"
   :style="{
+    fontFamily: textObj.fontFamily,
     fontSize: textObj.fontSize + 'px',
     lineHeight: textObj.fontSize + 'px',
     fontWeight: textObj.bold ? 'bold' : 'normal',
@@ -54,7 +55,7 @@ export default {
         throttleRotate: 45,
         pinchable: false,
         origin: false,
-        elementGuidelines: null,
+        elementGuidelines: [],
         snappable: true,
         snapThreshold: 10,
         isDisplaySnapDigit: false,
@@ -70,7 +71,6 @@ export default {
       frame: {
         translate: [0,0],
       },
-      elementGuidelines: null,
       contenteditable: false,
     };
   },
@@ -93,6 +93,11 @@ export default {
   },
   
   mounted: function() {
+    
+    if ( this.textObj.width  ) this.$refs.moveable.$el.style.width  = this.textObj.width;
+    if ( this.textObj.height ) this.$refs.moveable.$el.style.height = this.textObj.height;
+    if ( this.textObj.transform ) this.$refs.moveable.$el.style.transform = this.textObj.transform;
+    
     this.setElementGuidelines();
     this.$root.$on('update-moveable-handles', this.updateHandles);
     this.$root.$on('nudge-up', this.nudgeUp);
@@ -111,28 +116,50 @@ export default {
 
   methods: {
     
+    updateText: _.debounce( function( config ) {
+      
+      if ( _.isArray(config) ) {
+        let vue = this;
+        _.each( config, function( o ) {
+          o.index = vue.textIndex;
+        });
+      }
+      else {
+        config.index = this.textIndex;
+      }
+      
+      this.$store.commit('changeText', config );
+      
+    }, 550, { leading: false, trailing: true }),
+    
     nudgeUp: function( distance ) {
       if ( this.textObj.active ) {
         this.$refs.moveable.request("draggable", { deltaY: -Math.abs(distance), isInstant: true }); 
+        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
       }
     },
     nudgeRight: function( distance ) {
       if ( this.textObj.active ) {
         this.$refs.moveable.request("draggable", { deltaX: distance, isInstant: true }); 
+        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
       }
     },
     nudgeDown: function( distance ) {
       if ( this.textObj.active ) {
         this.$refs.moveable.request("draggable", { deltaY: distance, isInstant: true }); 
+        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
       }
     },
     nudgeLeft: function( distance ) {
       if ( this.textObj.active ) {
         this.$refs.moveable.request("draggable", { deltaX: -Math.abs(distance), isInstant: true }); 
+        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
       }
     },
     
     activateControls: function() {
+      
+      if ( document.activeElement ) document.activeElement.blur();
       
       let targetIndex = this.textIndex;
       this.$store.commit("activateText", targetIndex);
@@ -153,21 +180,22 @@ export default {
     
     setElementGuidelines: function() {
       
-      this.moveableOpts.elementGuidelines = this.$parent.$refs.coverImages;
+      const guidelinesFirstRow = this.$parent.$refs.coverImages.slice( 0, this.store.coversPerRow );
+      const guidelinesLastRow = this.$parent.$refs.coverImages.slice( this.$parent.$refs.coverImages.length - this.store.coversPerRow, this.$parent.$refs.coverImages.length );
+      this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesFirstRow );
+      this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesLastRow );
       this.moveableOpts.elementGuidelines.push( document.querySelector(".canvas-bounds") );
       
     },
     
-    moveableScale({ target, transform, scale }) {
-      target.style.transform = transform;
-    },
-    
     moveableRotate({ target, dist, transform }) {
       target.style.transform = transform;
+      this.updateText({ key: 'transform', value: transform });
     },
     
     moveableDrag({ target, transform }) {
       target.style.transform = transform;
+      this.updateText({ key: 'transform', value: transform });
     },
     
     moveableResizeStart: function( e ) {
@@ -180,6 +208,11 @@ export default {
       target.style.width = `${width}px`;
       target.style.height = `${height}px`;
       target.style.transform = drag.transform;
+      this.updateText([
+        { key: 'width', value: `${width}px` },
+        { key: 'height', value: `${height}px` },
+        { key: 'transform', value: drag.transform },
+      ]);
     },
     
     arrowNudge: function( e ) {
@@ -258,12 +291,19 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;700&display=swap');
+
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;700&family=Arvo:wght@400;700&family=Concert+One&family=Courgette&family=Indie+Flower&family=Merriweather:wght@400;700&family=Patrick+Hand&display=swap');
 .text-element {
   white-space: nowrap;
   font-size: 30px;
   line-height: 35px;
   font-family: 'Work Sans', sans-serif;
+  font-family: 'Merriweather', serif;
+  font-family: 'Arvo', serif;
+  font-family: 'Concert One', cursive; // no bold
+  font-family: 'Courgette', cursive; // no bold
+  font-family: 'Indie Flower', cursive; // no bold
+  font-family: 'Patrick Hand', cursive; // no bold
   font-weight: 400;
   // letter-spacing: 1px;
   position: absolute;

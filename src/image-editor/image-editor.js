@@ -1,6 +1,10 @@
 import Vue from "vue";
 import App from "./image-editor-app.vue";
 
+// For vue form multiselect...
+import VueCompositionAPI from '@vue/composition-api';
+Vue.use(VueCompositionAPI);
+
 import store from "./image-editor-store.js";
 
 import VueDarkMode from "@growthbunker/vuedarkmode";
@@ -13,7 +17,7 @@ Vue.use(ColorPicker);
 Vue.use(require('vue-shortkey'));
 
 import contenteditable from 'vue-contenteditable';
-Vue.use(contenteditable)
+Vue.use(contenteditable);
 
 // VUE TIPPY
 import VueTippy, { TippyComponent } from "vue-tippy";

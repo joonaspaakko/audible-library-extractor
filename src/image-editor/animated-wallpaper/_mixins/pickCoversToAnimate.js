@@ -2,15 +2,8 @@ export default {
   methods: {
     pickCoversToAnimate: function( visibleCovers, cycleDelay ) {
       
-      let animationCovers = (typeof this.animation.covers === 'function') ? this.animation.covers({ 
-        perRow: this.covers.perRow, 
-        rows: this.covers.rows, 
-        total: this.covers.total, 
-        animationZone: this.animation.animationZone, 
-        cycleDelay: this.toSec( cycleDelay ),
-        percentage: function( total, percentage ) { return (percentage / 100) * total; },
-      }) : this.animation.covers;
-      
+      let animationCovers = this.getCoverAmount();
+      console.log( animationCovers )
       
       let randomCoversAmount = this.animation.randomCovers ? this.random(1, animationCovers) : animationCovers;
       if ( this.editorCovers ) { this.$store.commit('update', { key: 'awpAnimatedCoversLength', value: randomCoversAmount }); }
@@ -35,5 +28,26 @@ export default {
       return picked;
       
     }, 
+    
+    getCoverAmount: function() {
+      console.log( 'this.animation.covers', this.animation.covers )
+      if ( _.isNumber(this.animation.covers) ) {
+        return this.animation.covers;
+      }
+      else {
+        
+        switch ( this.animation.covers ) {
+          case 'one-row':
+            return this.covers.perRow;
+            break;
+          case 'all':
+            return this.covers.total;
+            break;
+        }
+        
+      }
+      
+    },
+    
   }
 };

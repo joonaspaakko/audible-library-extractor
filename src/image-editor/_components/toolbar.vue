@@ -82,37 +82,151 @@
         
         <div v-if="store.animatedWallpaperMode && store.animationPresets" style="position: relative; z-index: 10;">
           <gb-heading tag="h6" :uppercase="true">
-            Animation presets:
+            Animation settings
           </gb-heading>
           <spacer size="small" :line="false" />
           <spacer size="mini" :line="false" />
-          <gb-select style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" @change="$store.commit('update', [{ key: 'awpAnimationZone', value: null }, { key: 'awpCycleDelay', value: null }, { key: 'awpAnimatedCoversLength', value: null }])" />
+          
+          <div style="height: 22px;">
+            <div class="label-row time-until-next-cycle" v-if="store.awpAnimationStarted">
+              <span class="covers-this-cycle" v-tippy content="Covers animated in this cycle...">{{ store.awpAnimatedCoversLength || 0 }}</span> 
+              <div class="progress-bar">
+                <div class="fill" :class="{ animate: store.awpCycleDelay }"></div>
+              </div>
+              <gb-icon style="padding-left: 10px;" name="info" size="16px" v-tippy="{ placement: 'top', allowHTML: true }" content="
+                <strong>Animation cycle indicator.</strong> Covers can animate from the beginning of the cycle up to the white dot. Depending one the preset, animations may trigger immediately, sequentially, or even randomly within this area.
+              "></gb-icon>
+              <component v-if="store.awpShowAnimationZone && store.awpAnimationZone > -1" is="style">
+                .time-until-next-cycle .progress-bar:after {
+                  display: inline-block !important;
+                  left: {{ store.awpAnimationZone }}% !important;
+                }
+              </component>
+              <component v-if="store.awpAnimationStarted && store.awpCycleDelay" is="style">
+                .time-until-next-cycle .progress-bar .fill.animate {
+                  -webkit-animation-duration: {{ store.awpCycleDelay }}s !important;
+                          animation-duration: {{ store.awpCycleDelay }}s !important;
+                }
+              </component>
+            </div>
+          </div>
           
           <spacer size="small" :line="false" />
-          <div class="label-row time-until-next-cycle" v-if="store.awpCycleDelay">
-            <span class="covers-this-cycle" v-tippy content="Covers animated in this cycle...">{{ store.awpAnimatedCoversLength || 0 }}</span> 
-            <div class="progress-bar">
-              <div class="fill" :class="{ animate: store.awpCycleDelay }"></div>
-            </div>
-            <!-- <gb-progress-bar class="time-until-next-cycle" :progress="store.timeUntilNextCycle"></gb-progress-bar> -->
-            <gb-icon style="padding-left: 10px;" name="info" size="16px" v-tippy="{ placement: 'top', allowHTML: true }" content="
-              <strong>Animation cycle indicator.</strong> Covers can animate from the beginning of the cycle up to the white dot. Depending one the preset, animations may trigger immediately, sequentially, or even randomly within this area.
-            "></gb-icon>
-            <component v-if="store.awpAnimationZone" is="style">
-              .time-until-next-cycle .progress-bar:after {
-                display: inline-block !important;
-                left: {{ store.awpAnimationZone }}% !important;
-              }
-            </component>
-            <component v-if="store.awpCycleDelay && store.awpCycleDelay >= 0" is="style">
-              .time-until-next-cycle .progress-bar .fill.animate {
-                -webkit-animation-duration: {{ store.awpCycleDelay }}ms !important;
-                        animation-duration: {{ store.awpCycleDelay }}ms !important;
-              }
-            </component>
+          <spacer size="mini" :line="false" />
+          
+          <div class="label-row">
+            <span>Presets</span>
+            <gb-select size="mini" style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" />
           </div>
-          <spacer size="default" :line="false" />
+          
+          <spacer size="small" :line="false" />
+        
+          <Multiselect
+          v-model="awpAnimations" 
+          placeholder="Animations"
+          :options="store.awpAnimations" 
+          mode="tags" 
+          :hideSelected="true"
+          :clearOnSelect="false"
+          :canClear="true"
+          :closeOnSelect="false"
+          :multiple="true"
+          :taggable="true"
+          />
+        
+          <spacer size="small" :line="false" />
+          
         </div>
+        
+        <div v-if="store.animatedWallpaperMode">
+          <div class="label-row">
+            <span>Animate immediately on load</span>
+            <gb-toggle
+            style="display: flex; justify-content: flex-end;"
+            size="mini"
+            v-model="store.awpAnimateOnLoad"
+            ></gb-toggle>
+          </div>
+          <spacer size="small" :line="false" />
+          
+          <div class="label-row">
+            <span>Animation Cycle (seconds) </span>
+            <gb-input
+              type="number"
+              :min="0"
+              :value="store.awpCycleDelay"
+              @input="inputChanged('awpCycleDelay', $event)"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+              size="mini"
+            ></gb-input>
+          </div>
+          
+          <spacer size="small" :line="false" />
+          
+          <div class="label-row" v-tippy content="A percentage of the animation cycle where covers are animated. Settings this to 0 animates covers immediately at the beginning of the cycle.">
+            <span>Animation Zone (%) </span>
+            <gb-input
+              type="number"
+              :min="0"
+              :max="100"
+              :value="store.awpAnimationZone"
+              @input="inputChanged('awpAnimationZone', $event)"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+              size="mini"
+            ></gb-input>
+          </div>
+          <spacer size="small" :line="false" />
+          
+          <div class="label-row">
+            <span>Covers per cycle</span>
+            <gb-input
+              type="text"
+              :min="1"
+              :value="store.awpCoversPerCycle"
+              @input="inputChanged('awpCoversPerCycle', $event)"
+              @focus="inputFocused"
+              @blur="inputBlurred"
+              size="mini"
+            ></gb-input>
+          </div>
+          <spacer size="small" :line="false" />
+          
+          <div class="label-row">
+            <span>Randomize covers</span>
+            <gb-toggle
+            style="display: flex; justify-content: flex-end;"
+            size="mini"
+            v-model="store.awpRandomCovers"
+            ></gb-toggle>
+          </div>
+          <spacer size="small" :line="false" />
+          
+          <div class="label-row">
+            <span>Randomize delay</span>
+            <gb-toggle
+            style="display: flex; justify-content: flex-end;"
+            size="mini"
+            v-model="store.awpRandomDelay"
+            ></gb-toggle>
+          </div>
+          <spacer size="small" :line="false" />
+          
+          <div class="label-row">
+            <span>Sequential animation</span>
+            <gb-toggle
+            style="display: flex; justify-content: flex-end;"
+            size="mini"
+            v-model="store.awpSequential"
+            ></gb-toggle>
+          </div>
+          <spacer size="small" :line="false" />
+          
+
+          <spacer size="medium" :line="false" />
+        </div>
+        
         
         <!-- <div v-if="store.animatedWallpaperMode">
           <spacer size="small" :line="false" />
@@ -151,6 +265,14 @@
           
           <spacer size="large" :line="true" />
 
+        </div>
+        
+        <div v-if="!store.animatedWallpaperMode && store.canvasPresets" style="position: relative; z-index: 10;">
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Canvas preset</span>
+            <gb-select size="mini" style="padding-left: 20px; flex: 1; position: relative; z-index: 1;" v-model="canvasPreset" :options="store.canvasPresets" />
+          </gb-heading>
+          <spacer size="default" :line="false" />
         </div>
         
         <div  v-if="!store.animatedWallpaperMode">
@@ -226,7 +348,8 @@
             size="mini"
             v-model="prioritizeCoversPerRow"
             label="Prioritize covers per row"
-            :warning="prioritizeCoversPerRow ? null : 'Affects the output: column count may change to to keep the cover size close to the original.'"
+            :info="!prioritizeCoversPerRow ? null : 'No matter what screen resolution you have, the wallpaper will always have ' + store.coversPerRow + ' columns.'"
+            :warning="prioritizeCoversPerRow ? null : 'Affects the output: current cover size is prioritized and columns will likely change.'"
             ></gb-checkbox>
           </div>
           
@@ -350,9 +473,9 @@
         </div>
         
         <div v-if="store.awpOverlayColorEnabled && store.awpBlendModes" style="position: relative; z-index: 2;">
-          <gb-heading tag="h6" :uppercase="true" v-tippy content="You can adjust the blend mode strentch by adjusting opacity in the color overlay setting. Opacity control is right below the horizontal color strip in the color picker. Lowering the opacity can make all the difference with certain blend modes.">
+          <gb-heading tag="h6" :uppercase="true" v-tippy content="You can adjust the blend mode strentch by changing opacity in the color overlay setting. Opacity control is right below the horizontal color strip in the color picker. Lowering the opacity can make all the difference with certain blend modes.">
             <span>Blend mode</span>
-            <gb-select size="mini" style="position: relative; z-index: 2; width: 133px;" v-model="blendMode" :options="store.awpBlendModes"  />
+            <gb-select size="mini" style="position: relative; z-index: 2; width: 133px; text-transform: none;" v-model="blendMode" :options="store.awpBlendModes"  />
           </gb-heading>
           <spacer size="default" :line="false" />
         </div>
@@ -418,15 +541,6 @@
           <gb-heading tag="h6" :uppercase="true">Canvas size</gb-heading>
           <spacer size="mini" :line="false" />
           <spacer size="small" :line="false" />
-          
-          <!-- <gb-select
-          v-model="selectedCanvasPreset" 
-          size="mini" 
-          placeholder="Size presets" 
-          :full-width="true" 
-          :options="canvasPresets"
-          @change="canvasPresetSelected"
-          ></gb-select> -->
           
           <div class="label-row" style="padding-left: 58px">
             <input
@@ -792,18 +906,16 @@ import textElements from "@editor-comps/toolbar/textElements.vue";
 import { saveAs } from "file-saver";
 import _ from "lodash";
 
+import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
+
 export default {
   name: "toolbar",
-  components: { spacer, textElements },
+  components: { spacer, textElements, Multiselect },
   mixins: [zoomToFit, centerCanvas, calculateCoverSize, makeWallpaper, makeImage],
   data: function () {
     return {
       store: this.$store.state,
       slidingTimer: null,
-      selectedCanvasPreset: '',
-      canvasPresets: [
-        { label: 'Wallpaper (1920x1080)', value: 'wallpaper-1920', size: '1920x1080' },
-      ],
       saveProgressWidth: -1,
     };
   },
@@ -822,6 +934,15 @@ export default {
       else {
         return null;
       }
+    },
+    
+    awpAnimations: {
+      get: function () {
+        return this.store.awpAnimation;
+      },
+      set: _.debounce( function(animations) {
+        this.$store.commit("update", { key: "awpAnimation", value: animations });
+      }, 500, { leading: false, trailing: true }),
     },
     
     canvasWidth: {
@@ -898,12 +1019,25 @@ export default {
         { leading: false, trailing: true }
       ),
     },
+    
+    
+    canvasPreset: {
+      get: function () {
+        return this.store.canvasPreset;
+      },
+      set: function ( preset ) {
+        
+        this.changeCanvasPreset( preset );
+        
+      },
+    },
 
     animationPreset: {
       get: function () {
         return this.store.animationPreset;
       },
       set: function ( preset ) {
+        console.log( preset )
         this.$store.commit("update", { key: "animationPreset", value:  preset  });
       },
     },
@@ -970,29 +1104,29 @@ export default {
   
   methods: {
     
-    // canvasPresetSelected: function() {
+    toMS: function( seconds ) {
+      return seconds * 1000;
+    },
+    
+    toSec: function( milliseconds ) {
+      return milliseconds / 1000;
+    },
+    
+    changeCanvasPreset: function( preset ) {
+    
+      this.$store.commit("update", { key: "canvasPreset", value:  preset  });
+      this.$store.commit('changePreset', preset);
       
-    //   if ( this.selectedCanvasPreset ) {
-        
-    //     let vue = this;
-    //     console.log( vue.selectedCanvasPreset )
-    //     let preset = this.canvasPresets.filter(function( o ) {
-    //       return vue.selectedCanvasPreset === o.value;
-    //     });
-        
-    //     console.log( preset[0] )
-    //     let size = preset[0].size.split('x');
-        
-    //     this.$store.commit('update', [
-    //       { key: 'canvas.width', value: size[0] },
-    //       { key: 'canvas.height', value: size[1] },
-    //     ]);
-        
-    //     this.selectedCanvasPreset = ''; 
-        
-    //   }
+      this.$store.commit('update', { 
+        key: 'usedCovers', 
+        value: this.store.covers.slice(0, this.store.coverAmount)
+      });
       
-    // },
+      this.$nextTick(function() {
+        this.zoomToFit('and-center');
+      });
+      
+    },
     
     resetSettings: function() {
       let confirmation = confirm("Are you sure you want to reset all editor settings?");
@@ -1022,48 +1156,50 @@ export default {
     
     editorModeChanged: function( value ) {
       
-      if ( value  ) {
-        // Here the idea was to just make sure there was a set height in the wallpaper mode...
-        // let content = document.querySelector("#editor-canvas-content");
-        // var cHeight = parseFloat(this.$store.state.canvas.height);
-        // var canvasHeight = cHeight || content.clientHeight;
-        // if ( !cHeight ) this.$store.commit('update', { key: 'canvas.heightActual', value: canvasHeight });
+      // if ( value  ) {
+      //   // Here the idea was to just make sure there was a set height in the wallpaper mode...
+      //   // let content = document.querySelector("#editor-canvas-content");
+      //   // var cHeight = parseFloat(this.$store.state.canvas.height);
+      //   // var canvasHeight = cHeight || content.clientHeight;
+      //   // if ( !cHeight ) this.$store.commit('update', { key: 'canvas.heightActual', value: canvasHeight });
         
-        this.$store.commit('update', [
-          { key: 'canvas.width',  value: 1920 },
-          { key: 'canvas.height', value: 1080 },
-          { key: 'coversPerRow',  value: 12   },
-          { key: 'canvas.padding.left',  value: 0 },
-          { key: 'canvas.padding.top',  value: 0 },
-          { key: 'canvas.padding.right',  value: 0 },
-          { key: 'canvas.padding.bottom',  value: 0 },
-          { key: 'paddingSize',  value: 0 },
-          { key: 'canvas.background',  value: '#1f1d1d' },
-          { key: 'canvas.alignmentVertical',  value: 'flex-start' },
-        ]);
-      }
-      else {
+      //   this.$store.commit('update', [
+      //     { key: 'canvas.width',  value: 1920 },
+      //     { key: 'canvas.height', value: 1080 },
+      //     { key: 'coversPerRow',  value: 12   },
+      //     { key: 'canvas.padding.left',  value: 0 },
+      //     { key: 'canvas.padding.top',  value: 0 },
+      //     { key: 'canvas.padding.right',  value: 0 },
+      //     { key: 'canvas.padding.bottom',  value: 0 },
+      //     { key: 'paddingSize',  value: 0 },
+      //     { key: 'canvas.background',  value: '#1f1d1d' },
+      //     { key: 'canvas.alignmentVertical',  value: 'flex-start' },
+      //   ]);
+      // }
+      // else {
         
-        this.$store.commit('update', [
-          { key: 'canvas.width',  value: 1200 },
-          { key: 'canvas.height', value: 0 },
-          { key: 'coversPerRow',  value: 5 },
-          { key: 'canvas.padding.left',  value: 32 },
-          { key: 'canvas.padding.top',  value: 32 },
-          { key: 'canvas.padding.right',  value: 32 },
-          { key: 'canvas.padding.bottom',  value: 32 },
-          { key: 'paddingSize',  value: 5 },
-          { key: 'canvas.background',  value: '#fff' },
-          { key: 'canvas.alignmentVertical',  value: 'flex-start' },
-        ]);
+      //   this.$store.commit('update', [
+      //     { key: 'canvas.width',  value: 1200 },
+      //     { key: 'canvas.height', value: 0 },
+      //     { key: 'coversPerRow',  value: 5 },
+      //     { key: 'canvas.padding.left',  value: 32 },
+      //     { key: 'canvas.padding.top',  value: 32 },
+      //     { key: 'canvas.padding.right',  value: 32 },
+      //     { key: 'canvas.padding.bottom',  value: 32 },
+      //     { key: 'paddingSize',  value: 5 },
+      //     { key: 'canvas.background',  value: '#fff' },
+      //     { key: 'canvas.alignmentVertical',  value: 'flex-start' },
+      //   ]);
         
-      }
+      // }
+      
+      if ( this.store.canvasPreset !== 'wallpaper' ) this.changeCanvasPreset('wallpaper');
       
       this.$nextTick(function() {
         this.zoomToFit();
+        this.$store.commit('update', { key: 'animatedWallpaperMode', value: value });
       });
       
-      this.$store.commit('update', { key: 'animatedWallpaperMode', value: value });
       
     },
     
@@ -1162,7 +1298,8 @@ export default {
         }, 1000);
       }
       
-      this.$store.commit("update", { key: key, value: value }); 
+      const setValue = (value === '') ? value : parseFloat(value);
+      this.$store.commit("update", { key: key, value: setValue }); 
            
       if ( key === 'coverAmount' ) {
         this.$store.commit('update', { 
@@ -1200,6 +1337,9 @@ export default {
 </script>
 
 <style scoped lang="scss">
+
+@import "@vueform/multiselect/themes/default.css";
+
 $toolbar-bg: #171e29;
 $toolbar-text: #8eabc5;
 .toolbar {
@@ -1321,7 +1461,7 @@ $toolbar-text: #8eabc5;
   position: absolute;
   z-index: 100;
   top: 20px;
-  left: -29px;
+  left: -35px;
   // right: 0;
   text-align: center;
   background: $toolbar-bg;
@@ -1332,12 +1472,16 @@ $toolbar-text: #8eabc5;
   border: 1px solid #222c3c;
 }
 
+.toolbar .button-container {
+  box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20), 2px 2px 9px darken( rgba($toolbar-bg, .4), 20);
+}
+
 .toolbar .zoom-container {
   transform: rotate(90deg);
   transform-origin: top left;
   z-index: 4;
   top: 56px;
-  left: 29px;
+  left: 24px;
   padding: 9px 15px 9px 45px;
   display: flex;
   flex-direction: row;
@@ -1815,5 +1959,78 @@ input[type=number] {
 }
 
 
+.multiselect {
+  padding: 4px 0px;
+  background: #171e29;
+  border: 1px solid #313d4f;
+  &.is-open {
+    border: 1px solid #1c93ee;
+  }
+}
+.multiselect-tags {
+  max-height: 140px !important;
+  overflow: auto;
+  padding: 0 8px;
+}
+.multiselect-tag {
+  color: #fff;
+  background: #1c93ee;
+  font-size: 11px;
+  line-height: 11px;
+  font-weight: normal;
+  padding: 3px 6px;
+  padding-right: 3px;
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
+}
+.multiselect.is-active {
+  box-shadow: none;
+}
+.multiselect-caret {
+  display: none !important;
+}
+.multiselect-clear {
+  filter: invert(1);
+  position: absolute;
+  right: -30px;
+  padding: 6px;
+}
+.multiselect-dropdown {
+  background: #222c3c;
+  border: 1px solid #1c93ee;
+  color: #f6f7f7;
+  font-size: 12px;
+  line-height: 12px;
+}
+.multiselect-option {
+  font-size: 12px;
+  line-height: 12px;
+  border-bottom: 1px solid #313d50;
+  color: #a9c7df;
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
+  &.is-pointed,
+  &:hover {
+    background: #273143 !important;
+    color: #a9c7df !important;
+  }
+}
+
+.multiselect-tag-remove {
+  padding: 0 0 0 3px;
+}
+
+.multiselect-placeholder {
+  font-size: 12px;
+  line-height: 12px;
+}
 
 </style>

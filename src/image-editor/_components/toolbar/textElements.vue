@@ -30,6 +30,17 @@
       
       <gb-icon class="remove-text" size="16px" name="close" @click="$store.commit('removeText', index)"></gb-icon>
       
+      
+      <div class="label-row">
+        <span style="width: 30px;">Font:</span>
+        <gb-select size="mini" style="position: relative; z-index: 2;" 
+        :value="text.fontFamily" 
+        :options="store.textElFonts" 
+        @change="changeTextElement( $event, index, text, 'fontFamily' )"
+        />
+      </div>
+      <spacer size="mini" :line="false" />
+      
       <div class="label-row">
         <span style="width: 30px;">Text:</span>
         <gb-input
@@ -43,6 +54,7 @@
         ></gb-input>
       </div>
       <spacer size="mini" :line="false" />
+      
       <div class="label-row">
         <span style="width: 30px;">Size:</span>
         <input
@@ -122,7 +134,6 @@
 import spacer from "@editor-comps/toolbar/spacer.vue";
 export default {
   name: "textElements",
-  
   components: { spacer },
   data: function () {
     return {
@@ -130,6 +141,7 @@ export default {
       textTextCounter: 0,
     };
   },
+  
   methods: {
     
     makeTextElement: function() {
@@ -162,6 +174,7 @@ export default {
         color: '#3a3a3a',
         alignment: 'center',
         verticalAlignment: 'center',
+        fontFamily: "'Work Sans', sans-serif",
       });
       
       if ( this.textTextCounter === 1 ) {

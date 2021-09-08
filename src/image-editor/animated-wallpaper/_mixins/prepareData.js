@@ -67,6 +67,7 @@ export default {
     },
     "$store.state.animationPreset": function( value ) {
       this.loadAnimationPreset( this.$store.state.animationPreset );
+      this.updateStoreAnimation();
       this.startAutoPlay();
     },
     "$store.state.background": function( value ) {
@@ -80,11 +81,45 @@ export default {
     "$store.state.canvas.alignmentVertical": function( value ) {
       this.canvas.alignmentVertical = value;
     },
+    "$store.state.awpCycleDelay": function( value ) {
+      this.animation.cycleDelay = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpAnimationZone": function( value ) {
+      this.animation.animationZone = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpAnimateOnLoad": function( value ) {
+      this.animation.onLoad = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpAnimation": function( value ) {
+      this.animation.use = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpCoversPerCycle": function( value ) {
+      this.$store.commit('update', { key: 'awpAnimatedCoversLength', value: null });
+      this.animation.covers = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpRandomCovers": function( value ) {
+      this.animation.randomCovers = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpRandomDelay": function( value ) {
+      this.animation.randomDelay = value;
+      this.startAutoPlay();
+    },
+    "$store.state.awpSequential": function( value ) {
+      this.animation.sequential = value;
+      this.startAutoPlay();
+    },
   },
   
   methods: {
   
-    
+    // FIXME: I don't know what the heck I was thinking structuring the data this way... 
+    // I should've just mirrored the wallpaper data structure in vuex and merged stuff all at once...
     prepareData: function() {
       
       let vue = this;
@@ -145,7 +180,24 @@ export default {
         this.canvas.alignmentVertical = this.$store.state.canvas.alignmentVertical;
         this.covers.dropOverflowingRow = this.$store.state.awpDropOverflowingRow;
         this.loadAnimationPreset( this.$store.state.animationPreset );
-        console.log(  this.canvas.background );
+        
+        if ( !localStorage.getItem("aleImageEditorSettings") ) {
+          this.updateStoreAnimation();
+        }
+        else {
+          console.log( 'this.animation', this.animation )
+          this.animation.animationZone = this.$store.state.awpAnimationZone;
+          this.animation.cycleDelay = this.$store.state.awpCycleDelay;
+          this.animation.use = this.$store.state.awpAnimation;
+          this.animation.onLoad = this.$store.state.awpAnimateOnLoad;
+          this.animation.covers = this.$store.state.awpCoversPerCycle;
+          this.$store.commit('update', { key: 'awpAnimatedCoversLength', value: null });
+          this.animation.randomCovers = this.$store.state.awpRandomCovers;
+          this.animation.randomDelay = this.$store.state.awpRandomDelay;
+          this.animation.sequential = this.$store.state.awpSequential;
+          let animationsArray = _.map( this.animations, 'class');
+          this.$store.commit('update', { key: 'awpAnimations', value: animationsArray });
+        }
       }
       else {
         this.covers.all = require('../../_mixins/getCovers.json');
@@ -158,7 +210,7 @@ export default {
     },
     
     loadAnimationPreset: function( presetName ) {
-      this.animation = _.find( this.presets, { name: presetName });
+      this.animation = JSON.parse(JSON.stringify(_.find( this.presets, { name: presetName })));
     },  
     
     mappy: function( array ) {
@@ -175,5 +227,22 @@ export default {
       
     },
     
-  }
+    updateStoreAnimation: function() {
+
+      let animationsArray = _.map( this.animations, 'class');
+      this.$store.commit('update', [
+        { key: 'awpAnimationZone', value: this.animation.animationZone },
+        { key: 'awpCycleDelay', value: this.animation.cycleDelay },
+        { key: 'awpAnimation', value: this.animation.use || animationsArray },
+        { key: 'awpAnimations', value: animationsArray },
+        { key: 'awpAnimateOnLoad', value: this.animation.onLoad },
+        { key: 'awpCoversPerCycle', value: this.animation.covers },
+        { key: 'awpRandomCovers', value: this.animation.randomCovers },
+        { key: 'awpRandomDelay', value: this.animation.randomDelay },
+        { key: 'awpSequential', value: this.animation.sequential },
+      ]);
+      
+    },
+  },
+  
 };
