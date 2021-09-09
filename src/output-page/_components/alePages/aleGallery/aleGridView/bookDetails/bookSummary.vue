@@ -126,7 +126,7 @@ export default {
           this.summary.maxHeightTemp = this.summary.maxHeight;
         }
       } else {
-        this.$nextTick(function() {
+        // this.$nextTick(function() {
           const information = this.detailsEl.querySelector('.information');
           const informationH = information.offsetHeight;
           const summary = this.$refs.summary;
@@ -135,7 +135,7 @@ export default {
           // this.summary.readmore.exists = summaryTooSwoll ? true : false;
           this.summary.maxHeight = summaryTooSwoll ? informationH + "px" : null;
           this.summary.maxHeightTemp = informationH + "px";
-        });
+        // });
       }
     },
 

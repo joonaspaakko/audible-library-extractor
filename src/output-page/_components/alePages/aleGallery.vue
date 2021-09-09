@@ -90,6 +90,14 @@ export default {
   
   created: function() {
     
+    // If book details are open but url param is empty, clear book details so it doesn't try to render... 
+    if ( this.$store.state.bookDetails.book && !this.$route.query.book ) {
+      this.$store.commit('prop', [
+        { key: 'bookDetails.book', value: null },
+        { key: 'bookDetails.index', value: -1 },
+      ]);
+    }
+    
     if ( this.$route.name === 'gallery' ) {
       this.pageTitle = 'Library';
       this.pageSubTitle = null;
@@ -117,6 +125,12 @@ export default {
     // Makes it so just the book with book details open with open on page load
     // this.collapseView = this.pageLoadBook && this.$route.name !== 'series';
     
+    this.$root.$on("book-clicked", this.toggleBookDetails);
+    
+  },
+
+  beforeDestroy: function() {
+    this.$root.$off("book-clicked", this.toggleBookDetails);
   },
   
   watch: {
@@ -168,7 +182,7 @@ export default {
           // }
           
           this.$nextTick(function() {
-            this.$root.$emit("book-clicked", { book: this.$store.getters.collection[bookIndex] });
+            this.$root.$emit("book-clicked", { book: this.$store.state.chunkCollection[bookIndex], index: bookIndex, force: true });
           });
           
         }
@@ -236,7 +250,6 @@ export default {
     },
     
     addDomItems: _.throttle( function(e) {
-      
       let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
       let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
       let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
@@ -253,7 +266,48 @@ export default {
       this.$updateQuery({ query: 'y', value: scrollTop });
     }, 600, { leading: false, trailing: true }),
     
+    toggleBookDetails: function(e) {
+      if (!e.book) {
+        // this.$store.state.bookDetails.book
+        
+        this.$store.commit('prop', [
+          { key: 'bookDetails.book', value: null },
+          { key: 'bookDetails.index', value: -1 },
+        ]);
+        
+        // this.detailsBook = null;
+        // this.detailsBookIndex = -1;
+        if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+      
+      } 
+      else {
+        
+        if (!e.index) e.index = _.findIndex( this.$store.state.chunkCollection, { asin: e.book.asin });
+        const sameBook = _.get(this.$store.state.bookDetails.book, "asin") === e.book.asin;
+        
+        this.$store.commit('prop', [
+          { key: 'bookDetails.book', value: null },
+          { key: 'bookDetails.index', value: e.index },
+        ]);
+        // this.detailsBook = null;
+        // this.detailsBookIndex = e.index;
+        
+        this.$nextTick(function() {
+          if (!sameBook || e.force) {
+            // this.detailsBook = e.book;
+            this.$store.commit('prop', { key: 'bookDetails.book', value: e.book });
+          }
+          else if ( this.$route.query.book ) {
+            this.$updateQuery({ query: 'book', value: null });
+          }
+        });
+        
+      }
+    },
+    
   },
+  
+  
   
 };
 </script>

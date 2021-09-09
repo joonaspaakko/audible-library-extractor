@@ -84,6 +84,7 @@ import bookInfoToolbar from "@output-comps/snippets/book-info-toolbar";
 import arrayToHTML from "@output-comps/snippets/arrayToHTML";
 
 
+
 export default {
   name: "bookDetails",
   components: {
@@ -92,7 +93,9 @@ export default {
     carousel,
     booksInSeries,
     arrayToHTML,
-    bookSummary
+    bookSummary,
+    book: null,
+    index: null,
   },
   mixins: [
     // sortBookNumbers,
@@ -102,7 +105,7 @@ export default {
     makeCoverUrl,
     makeUrl
   ],
-  props: ["book", "index", "booksWrapper"],
+  props: ["booksWrapper"],
   data: function() {
     return {
       maxWidth: "unset",
@@ -115,6 +118,9 @@ export default {
   },
 
   created: function() {
+    
+    this.book = this.$store.state.bookDetails.book;
+    this.index = this.$store.state.bookDetails.index;
     
     this.loadJSON();
     
@@ -171,7 +177,7 @@ export default {
           
           vue.peopleAlsoBoughtJSON = window.peopleAlsoBoughtJSON;
           window.peopleAlsoBoughtJSON = true;
-          
+          scrpt = null;
           scrpt.remove();
           
         };
@@ -202,7 +208,7 @@ export default {
     },
 
     resetScroll: function() {
-      this.$nextTick(function() {
+      // this.$nextTick(function() {
         
         let topNav = document.querySelector('#ale-navigation.regular');
         const navigationHeight = topNav ? document.querySelector('#ale-navigation.regular').offsetHeight : 0;
@@ -213,7 +219,8 @@ export default {
         else {
           document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });
         }
-      });
+        
+      // });
     },
 
     repositionBookDetails: function() {
@@ -271,6 +278,7 @@ export default {
 
     openAdjacentBookDetails: function(e) {
       const vue = this;
+      let findIndex, nextBook;
       // These rely on how the book details will close if the sent book is null,
       // meaning that when you come to the end of the line it will just close the details.
       if ( this.$store.state.sticky.viewMode === 'grid' ) {
@@ -279,19 +287,28 @@ export default {
           case "left":
           case "tabShift":
             this.$root.$emit("book-clicked", {
-              book: this.$store.getters.collection[this.index - 1]
+              book: this.$store.state.chunkCollection[this.index - 1]
             });
             break;
           case "right":
           case "tab":
-            this.$root.$emit("book-clicked", {
-              book: this.$store.getters.collection[this.index + 1]
-            });
+            findIndex = this.index + 1;
+            nextBook = this.$store.state.chunkCollection[ findIndex ];
+            if ( findIndex > vue.$store.state.chunkCollection.length-1 ) {
+              this.$store.commit('chunkCollectionAdd');
+              this.$nextTick(function() {
+                nextBook = this.$store.state.chunkCollection[ findIndex ];
+                this.$root.$emit("book-clicked", { book: nextBook });
+              });
+            }
+            else {
+              this.$root.$emit("book-clicked", { book: nextBook});
+            }
             break;
             
           case "up":
           case "down":
-
+            
             let wrapper = {};
             wrapper.el = document.querySelector(".ale-books");
             wrapper.width = wrapper.el.offsetWidth;
@@ -304,19 +321,31 @@ export default {
             const cols = Math.floor(wrapper.width / target.width);
             
             let getClosestTargetBook = function(index) {
-              let el = vue.$store.getters.collection[ index ];
+              let el = vue.$store.state.chunkCollection[ index ];
               if (!el) {
                 el = getClosestTargetBook(--index);
               }
               return el;
             };
+            this.$store.commit('prop', [
+              { key: 'bookDetails.book', value: null },
+              { key: 'bookDetails.index', value: null },
+            ]);
             
-            this.$root.$emit("book-clicked", {
-              book: e.srcKey === 'up' ? 
-                vue.$store.getters.collection[ this.index-cols ] : 
-                getClosestTargetBook( this.index+cols )
-              
-            });
+            findIndex = e.srcKey === 'up' ? this.index-cols : this.index+cols;
+            nextBook = e.srcKey === 'up' ? vue.$store.state.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
+            
+            if ( findIndex > vue.$store.state.chunkCollection.length-1 ) {
+              this.$store.commit('chunkCollectionAdd');
+              this.$nextTick(function() {
+                nextBook = e.srcKey === 'up' ? vue.$store.state.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
+                this.$root.$emit("book-clicked", { book: nextBook });
+              });
+            }
+            else {
+              this.$root.$emit("book-clicked", { book: nextBook });
+            }
+            
             break;
             
         }
@@ -334,9 +363,18 @@ export default {
           case "right":
           case "down":
           case "tab":
-            this.$root.$emit("book-clicked", {
-              book: this.$store.getters.collection[this.index + 1]
-            });
+            findIndex = this.index + 1;
+            nextBook = this.$store.state.chunkCollection[ findIndex ];
+            if ( findIndex > vue.$store.state.chunkCollection.length-1 ) {
+              this.$store.commit('chunkCollectionAdd');
+              this.$nextTick(function() {
+                nextBook = this.$store.state.chunkCollection[ findIndex ];
+                this.$root.$emit("book-clicked", { book: nextBook });
+              });
+            }
+            else {
+              this.$root.$emit("book-clicked", { book: nextBook});
+            }
             break;
             
         }

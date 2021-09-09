@@ -8,9 +8,12 @@ Vue.config.devtools = false;
 
 browser.runtime.sendMessage({ pageAction: true });
 
-let overlayBtnHeading = $('<h2>', {
+let overlayBtnHeading = $('<span>', {
   id: 'audible-library-extractor-btn',
   class: 'bc-heading bc-color-base bc-lens-heading bc-text-bold',
+  css: {
+    display: 'inline-block',
+  }
 }); 
 
 let overlayBtnLink = $('<a>', {
@@ -20,13 +23,15 @@ let overlayBtnLink = $('<a>', {
   'aria-selected': false,
   href: '#',
   text: 'Audible Library Extractor',
-  css: {
-    fontSize: '18px',
+  css: { 
+    lineHeight: '17px',
+    fontSize: '17px',
+    paddingLeft: '20px',
   },
 });
 
 overlayBtnHeading.append( overlayBtnLink );
-overlayBtnHeading.appendTo('.bc-tabs [role="tablist"]');
+overlayBtnHeading.insertAfter('.adbl-library-refinement-section > div:nth-child(1) .library-pilter-button:last');
 
 $("#audible-library-extractor-btn").on("click", function(e) {
   e.preventDefault();
