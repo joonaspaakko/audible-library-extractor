@@ -70,9 +70,10 @@ html.ale-overlay-open body {
   align-items: center;
 
   .inner-wrap {
+    width: 100%;
     margin: auto;
     text-align: center;
-    padding: 60px 0 0 0;
+    padding: 60px 0;
   }
 
   #the-adbl-logo {

@@ -31,7 +31,15 @@ let overlayBtnLink = $('<a>', {
 });
 
 overlayBtnHeading.append( overlayBtnLink );
-overlayBtnHeading.insertAfter('.adbl-library-refinement-section > div:nth-child(1) .library-pilter-button:last');
+let librarySpot = $('.adbl-library-refinement-section > div:nth-child(1) .library-pilter-button:last');
+let fallbackSpot1 = $('.adbl-library-refinement-section > div:nth-child(1) *:last');
+let fallbackSpot2 = $('#center-3 > div > div:nth-child(2) > div.bc-col-responsive.bc-col-2 > span');
+
+overlayBtnHeading.insertAfter( librarySpot.length ? librarySpot : fallbackSpot1.length ? fallbackSpot1 : fallbackSpot2 );
+
+if ( !librarySpot.length && !fallbackSpot1.length && fallbackSpot2.length ) {
+  fallbackSpot2.parent().removeClass('bc-col-2').addClass('bc-col-5').next().removeClass('bc-col-6').addClass('bc-col-3');
+}
 
 $("#audible-library-extractor-btn").on("click", function(e) {
   e.preventDefault();

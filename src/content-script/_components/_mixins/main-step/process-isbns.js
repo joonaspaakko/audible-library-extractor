@@ -1,4 +1,4 @@
-import rateLimit from "axios-rate-limit";
+import rateLimit from "axios-rate-limit"
 import Fuse from 'fuse.js';
 
 export default {

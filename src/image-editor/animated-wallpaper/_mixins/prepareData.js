@@ -185,7 +185,6 @@ export default {
           this.updateStoreAnimation();
         }
         else {
-          console.log( 'this.animation', this.animation )
           this.animation.animationZone = this.$store.state.awpAnimationZone;
           this.animation.cycleDelay = this.$store.state.awpCycleDelay;
           this.animation.use = this.$store.state.awpAnimation;

@@ -3,7 +3,6 @@ export default {
     pickCoversToAnimate: function( visibleCovers, cycleDelay ) {
       
       let animationCovers = this.getCoverAmount();
-      console.log( animationCovers )
       
       let randomCoversAmount = this.animation.randomCovers ? this.random(1, animationCovers) : animationCovers;
       if ( this.editorCovers ) { this.$store.commit('update', { key: 'awpAnimatedCoversLength', value: randomCoversAmount }); }
@@ -30,7 +29,6 @@ export default {
     }, 
     
     getCoverAmount: function() {
-      console.log( 'this.animation.covers', this.animation.covers )
       if ( _.isNumber(this.animation.covers) ) {
         return this.animation.covers;
       }

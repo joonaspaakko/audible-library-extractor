@@ -13,7 +13,8 @@
 import _ from "lodash";
 import $ from "jquery";
 import axios from "axios";
-import axiosRetry from "axios-retry";
+import { exponentialDelay, isNetworkOrIdempotentRequestError } from 'axios-retry';
+const axiosRetry = require('axios-retry');
 import browser from "webextension-polyfill";
 import { format as dateFormat } from "date-fns";
 import DOMPurify from "dompurify";
@@ -26,6 +27,8 @@ global.$ = $;
 global.asyncMap = map;
 global.axios = axios;
 global.axiosRetry = axiosRetry;
+global.exponentialDelay = exponentialDelay;
+global.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
 global.browser = browser;
 global.dateFormat = dateFormat;
 global.DOMPurify = DOMPurify;
@@ -131,7 +134,7 @@ export default {
     });
 
     // vue.init_storePageTest();
-    vue.init_seriesPageTest();
+    // vue.init_seriesPageTest();
     
   },
   
@@ -212,12 +215,20 @@ export default {
 
     goToOutputPage: function(hotpotato) {
       
-      if ( hotpotato.books && _.find(hotpotato.books, 'isNewThisRound') ) {
-        let isNewThisRound = _.filter(hotpotato.books, 'isNewThisRound');
-        _.each(isNewThisRound, function( book ) {
-          delete book.isNewThisRound;
-        });
-      }
+      let removeStragglers = function( key ) {
+        
+        if ( hotpotato[ key ] ) {
+          _.each(hotpotato[ key ], function( book ) {
+            if ( book.storePageRequestUrl ) delete book.storePageRequestUrl;
+            if ( book.isNewThisRound ) delete book.isNewThisRound;
+            if ( book.requestUrl ) delete book.requestUrl;
+          });
+        }
+        
+      };
+      
+      removeStragglers('books'); // Library
+      removeStragglers('wishlist'); 
       
       if ( hotpotato.useStorageData ) {
         browser.runtime.sendMessage({ action: "openOutput" });

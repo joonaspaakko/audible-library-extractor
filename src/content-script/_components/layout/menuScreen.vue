@@ -1,18 +1,18 @@
 <template>
 <div>
-  <div id="ale-menu-screen" v-if="!loading && extractSettings">
+  <div id="ale-menu-screen" v-if="!loading && extractSettings" :class="{ 'show-delete-btns': showDeleteBtns, 'show-partial-extraction': showPartialExtraction }">
     <b-collapse animation="slide" class="panel" :open="settingsOpen">
       <div class="extract-settings">
         <div class="settings-heading">
           <span class="title is-4">Extraction Settings</span>
         </div>
         
-        <div style="font-size: 12px; line-height: 13px; margin: 6px 0 0 0; color: #888;">
+        <!-- <div style="font-size: 12px; line-height: 13px; margin: 6px 0 0 0; color: #888;">
           Previously extracted data is retained as long as you don't overwrite it with new data.
-        </div>
+        </div> -->
         
         <b-field grouped group-multiline class="setting-checkboxes">
-          <span v-for="( setting, index) in mainSteps" :key="setting.name">
+          <span v-for="( setting, index) in mainSteps" :key="setting.name" :class="{ 'partial-extraction': (hasData.books && setting.name == 'library') || (hasData.wishlist && setting.name === 'wishlist') || (hasData.isbn && setting.name === 'isbn') }">
             
             <b-field style="margin: 5px;">
               <p class="control">
@@ -27,12 +27,7 @@
                   </b-checkbox>
                 </b-button>  
               </p>
-              <p class="control" v-if="setting.update && setting.trash" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'left', 'bottom'] }" :content="setting.updateTippy">
-                <b-button type="is-warning" size="is-default" @click="partialExtraction( setting )">
-                  <b-icon pack="fas" icon="sync-alt" size="is-small"></b-icon>
-                </b-button>  
-              </p>
-              <p class="control" v-if="setting.trash" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
+              <p class="control delete-btn" v-if="setting.trash" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
                 <b-button size="is-default" @click="deleteData( setting )" class="remove-individual-sections-icon">
                   <b-icon pack="far" icon="trash-alt" size="is-small"></b-icon>
                 </b-button>  
@@ -52,62 +47,59 @@
           <div class="linky-links">
             <b-button size="is-small" @click="unselectAll">unselect all</b-button>
             <b-button size="is-small" @click="selectAll">select all</b-button>
-            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='During library extraction newly added books get marked and you can filter and sort based on that status in the gallery. With this you can unmark all of those books. <br><br>Deleting previously extracted library data clears all new books too, but with this you can clear those without having to extract books again.<br><br> <strong>Cannot be undone!!</strong>'>reset new books</b-button>
-            <b-button size="is-small" @click="exportRawData">Export raw data</b-button>
+            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='<strong>Removes the status &#34;new&#34; from extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery.'>reset new books</b-button>
+            <b-button size="is-small" @click="exportRawData" :type="exportRawDataDisabled ? 'is-warning' : null" :disabled="exportRawDataDisabled">Export raw data</b-button>
             <b-button size="is-small">
               <label>
                 Import raw data
                 <input accept=".json" type="file" @change="importRawData" style="display:none">
               </label>
             </b-button>
-            <b-button size="is-small" @click="clearStoredData">Remove all extracted data</b-button>
+            <b-button class="delete-btn" size="is-small" @click="clearStoredData">Remove all extracted data</b-button>
           </div>
 
         </b-message>
       </div>
     </b-collapse>
+  
+  
+    <b-message v-if="hasData.books || hasData.wishlist || hasData.isbn" type="is-info">
+      <strong>Previously extracted data detected: <span style="color: #f7991c;">a faster <span v-tippy="{ allowHTML: true }" content="<div style='display: block; text-align: left;'><ol style='margin-left: 15px;'><li>Updates stored data that is likely to change</li><li>Does a full extract on newly added books</li><li>Clears data of removed books</li></ol><span style='display: inline-block; margin-top: 6px; color: #157df0;'>In the case of ISBN extraction, books that already have ISBNs are ignored. A large amount of books (+100) without the numbers will still take quite a while to extract.</span></div>" style="cursor: default; text-decoration: underline">partial extraction</span> is used</span> <span class="init-show-partial-extraction" style="color: #f7991c;" @mouseover="showPartialExtraction = true" @mouseleave="showPartialExtraction = false">where applicable.</span></strong> 
+      <br>
+      If you need to do a <span v-tippy="{ maxWidth: 310 }" content="If the extension is updated, check the changelog to see if there's a recommendation to do a full extract." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
+    </b-message>
+    
+    <div>
+      <div class="extract-wrapper">
+        <b-field class="extract-btn" v-show="!extractionButtonDisabled" >
+          <b-button @click="takeNextStep('extract')" type="is-info" class="extract control" expanded size="is-large" >
+            Extract selected items
+          </b-button>
+          <div class="control">
+            <b-button @click="takeNextStep('extract')" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large" ></b-button>
+          </div>
+        </b-field>
 
-    <div class="extract-wrapper">
-      <b-field class="extract-btn" v-show="!extractionButtonDisabled" >
-        <b-button @click="takeNextStep('extract')" type="is-info" class="extract control" expanded size="is-large" >
-          Extract selected items
-        </b-button>
-        <div class="control">
-          <b-button @click="takeNextStep('extract')" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large" ></b-button>
-        </div>
-      </b-field>
-
-      <b-field class="other-btns">
-        <!-- <b-button
+        <b-field class="other-btns">
+          <b-button
+          tag="a"
+          href="https://joonaspaakko.gitbook.io/audible-library-extractor/"
+          target="_blank"
+          class="control" size="is-small"
+          icon-pack="fas" icon-right="share-square"
+          >
+            Documentation
+          </b-button>
+          <b-button
           :disabled="outputPageDisabled"
-          @click="takeNextStep('update')"
-          class="control"
-          size="is-small"
-          icon-right="sync-alt"
-          icon-pack="fas"
-          v-tippy
-          content="<strong>Usable after one full extraction.</strong> <br>A faster extraction that primarily add new books but also updates data that is likely to change."
-        >
-          Partial extraction
-        </b-button> -->
-        <b-button
-        tag="a"
-        href="https://joonaspaakko.gitbook.io/audible-library-extractor/"
-        target="_blank"
-        class="control" size="is-small"
-        icon-pack="fas" icon-right="share-square"
-        >
-          Documentation
-        </b-button>
-        <b-button
-        :disabled="outputPageDisabled"
-        @click="takeNextStep('output')"
-        class="control" size="is-small"
-        icon-pack="fas" icon-right="share-square"
-        >
-          Open gallery
-        </b-button>
-      </b-field>
+          @click="takeNextStep('output')"
+          class="control" size="is-small"
+          icon-pack="fas" icon-right="share-square"
+          >
+            Open gallery
+          </b-button>
+        </b-field>
+      </div>
     </div>
 
     <b-button
@@ -129,21 +121,40 @@
 
     <div id="footer" class="is-small has-text-grey-light">
       Project source files in <a href="https://github.com/joonaspaakko/audible-library-extractor">Github</a>. <br />
-      Post issues, questions, and suggestion at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>. <br>
+      Post issues, questions, and suggestions at: <a href="https://github.com/joonaspaakko/audible-library-extractor/issues">Github issues</a>. <br>
       <br>
       
-      <a target="_blank" :href="releaseURL">
-        <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20release" alt="">
+      <!-- <b-icon style="position: relative; top: -4px;"
+        v-tippy content="It may take a few days for a new release to propagate from Github to Firefox and Chrome web store."
+        icon-pack="fas"
+        icon="question-circle"
+        size="is-small">
+      </b-icon> -->
+      
+      <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/releases/latest" v-tippy content="It may take a few days for a new release to propagate from Github to Firefox and Chrome web store.">
+        <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20release (Github)&color=6e41bf" alt="">
       </a>
-      <a target="_blank" :href="releaseURL">
-        <img src="https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20release" alt="">
+      <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/releases/latest">
+        <img src="https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20release&color=6e41bf" alt="">
       </a>
       <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/labels/bug">
-        <img src="https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug?label=bugs" alt="">
+        <img src="https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug?label=known bugs&color=6e41bf" alt="">
+      </a>
+
+      <br>
+      
+      <a target="_blank" href="https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall">
+        <img src="https://img.shields.io/chrome-web-store/v/deifcolkciolkllaikijldnjeloeaall?color=2acb41&label=latest%20release (Chrome)" alt="">
+      </a>
+      <a target="_blank" href="https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/">
+        <img src="https://img.shields.io/amo/v/audible-library-extractor?label=latest%20release (Firefox)" alt="">
       </a>
       
-      <br><br>
-      You're currently using version {{ extensionVersion }}
+      <div v-if="extensionVersion" style="margin-top: 10px;">
+        <span style="border: 1px dashed #e1e1e1; padding: 10px 15px; display: inline-block;">
+          You're currently using <strong>version {{ extensionVersion }}</strong>.
+        </span>
+      </div>
     </div>
   </div>
   <div v-else class="extraction-loading">
@@ -168,9 +179,10 @@ import {
   faTimes,
   faCog,
   faCode,
+  faQuestionCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import { faArrowAltCircleDown, faTrashAlt } from "@fortawesome/free-regular-svg-icons";
-library.add(faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, faCog, faTrashAlt, faCode);
+library.add(faShareSquare, faSyncAlt, faArrowAltCircleDown, faTimes, faCog, faTrashAlt, faCode, faQuestionCircle);
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
 
@@ -217,19 +229,24 @@ export default {
       isFirefox: false,
       isChrome: false,
       releaseURL: '',
+      showDeleteBtns: false,
+      showPartialExtraction: false,
+      exportRawDataDisabled: false,
     };
   },
-
+  
   computed: {
     
     saveStandaloneAfter: function() {
       return _.find( this.extractSettings, { name: 'saveStandaloneAfter' });
     },
+    
     mainSteps: function() {
       return _.filter(this.extractSettings, function(o) {
         return !o.extra;
       });
     },
+    
   },
   
   created: function() {
@@ -237,7 +254,7 @@ export default {
     this.hasData = this.storageHasData;
     this.hasConfig = this.storageConfig;
     this.updateSettings();
-  
+    
     this.checkBrowser();
     this.makeReleaseURLs();
     this.getCurrentVersion();
@@ -269,87 +286,87 @@ export default {
         });
       }
       
-      setTimeout(function() {
-        vue.loading = false;
-      }, 500);
+      this.updateSettings(function() {
+        setTimeout(function() {
+          vue.loading = false;
+        }, 100);
+      });
+      
     });
 
   },
 
   methods: {
     
-    updateSettings: function() {
+    updateSettings: function( cllbck ) {
       
       this.outputPageDisabled = !(this.hasData.books || this.hasData.wishlist);
+      
+      let library = _.find( this.extractSettings, { name: 'library' });
+      let collections = _.find( this.extractSettings, { name: 'collections' });
+      let wishlist = _.find( this.extractSettings, { name: 'wishlist' });
+      let isbn = _.find( this.extractSettings, { name: 'isbn' });
+      let saveStandaloneAfter = _.find( this.extractSettings, { name: 'saveStandaloneAfter' });
       
       this.extractSettings = null;
       this.$nextTick(function() {
         
+        let forceLibrary = _.get( collections, 'value' ) || _.get( isbn, 'value' );
+        
         this.extractSettings = [
           {
             name: "library",
-            value: true,
-            disabled: !this.hasData.books,
+            value: forceLibrary,
+            disabled: forceLibrary,
             label: "Library",
             type: "is-success",
-            tippy: "<div style='text-align: left;'>Required for collections and isbn</div>",
+            tippy: "Library is required in order to extract collections and isbn.",
             trash: this.hasData.books,
             trashTippy: 'This will also remove ISBN data.',
-            update: true,
-            updateTippy: `
-            <div style="text-align: left;" class="udpate-tooltip">
-              <strong>Update library data.</strong> Usable after one full extraction.<br><br>
-              This is a faster partial extraction that: 
-              <ol>
-                <li>Adds new books just like it would on a full extract</li>
-                <li>Clears books that were removed from the library</li>
-                <li>
-                  Updates information on old books that is likely to change:
-                  <br>
-                  <ul>
-                  <li><code style="padding: 1px 3px;">unavailable(plus catalog), downloaded, favorite, progress(status), length, myRating</code></li>
-                  </ul>
-                </li>
-                <li>Updates series data by removing books that are no longer in the library and by adding new ones</li>
-                <li>Clears removed library books from collections. <br>Doesn't add new collection entries though, that requires a separate full scan.</li>
-              </ol>
-            </div>
-            `,
           },
           {
             name: "collections",
-            value: true,
+            value: _.get( collections, 'value' ),
+            disabled: _.get( collections, 'disabled' ),
             label: "Collections",
             type: "is-success",
-            disabled: false,
-            tippy: "<div style='text-align: left;'><strong>Always a full extract.</strong> Fairly quick extraction process.</div>",
+            tippy: "Always a full extract, but this is a fairly quick extraction process.",
             trash: this.hasData.collections
           },
           {
             name: "wishlist",
-            value: false,
+            value: _.get( wishlist, 'value' ),
+            disabled: _.get( wishlist, 'disabled' ),
             label: "Wishlist",
-            type: "is-danger",
-            disabled: false,
-            tippy: "<div style='text-align: left;'><strong>Slow process...</strong> + <strong>Always a full extract.</strong> <br><br>Books that also exist in your library are dropped off as long as you also extract library data.</div>",
+            type: "is-success",
+            tippy: "Books that also exist in your library are dropped <br>off as long as you also extract library data.",
             trash: this.hasData.wishlist
           },
           {
             name: "isbn",
-            value: false,
+            value: _.get( isbn, 'value' ),
+            disabled: _.get( isbn, 'disabled' ),
             label: "ISBN",
             type: "is-danger",
-            disabled: false,
-            tippy: "<div style='text-align: left;'>You only need these if you want to try importing to Goodreads.<br><br> Books with previously extracted ISBNs are ignored. <br><br><strong>Very slow process when it needs to process more than 200 books.</strong></div>",
+            tippy: "You only need to extract International Standard Book Numbers (ISBN) if you want to try importing to Goodreads. <br>ISBNs are only fetched for books in the library.",
             trash: this.hasData.isbn
           },
           {
             extra: true,
             name: "saveStandaloneAfter",
-            label: "Start saving the standalone gallery immediately after gallery opens",
-            value: false,
+            value: _.get( saveStandaloneAfter, 'value' ),
+            label: "Start saving the standalone gallery immediately after extraction",
           }
         ];
+        
+        if ( !_.find(this.extractSettings, function( o ) { return o.value && !o.extra; }) ) {
+          library = _.find( this.extractSettings, { name: 'library' });
+          library.disabled = false;
+          library.value = true;
+        }
+        
+        if ( cllbck ) cllbck();
+        
       });
     },
     
@@ -403,13 +420,13 @@ export default {
     
     unselectAll: function() {
       _.each( this.extractSettings, function( setting ) {
-        setting.value = false;
+        if ( !setting.extra ) setting.value = false;
       });
       this.extractionButtonDisabled = true;
     },
     selectAll: function() {
       _.each( this.extractSettings, function( setting ) {
-        setting.value = true;
+        if ( !setting.extra ) setting.value = true;
       });
       this.extractionButtonDisabled = false;
     },
@@ -456,10 +473,37 @@ export default {
     
     exportRawData: function() {
       let vue = this;
+      
+      vue.exportRawDataDisabled = true;
       browser.storage.local.get(null).then(data => {
         
         if ( data.chunks ) vue.glueFriesBackTogether( data );
+        
+        delete data.imageEditorPageTitle;
+        delete data.imageEditorPageSubTitle;
+        delete data.imageEditorChunksLength;
+        delete data.imageEditorChunks;
+        
         saveAs(new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"}), 'Audible Library Extractor Data.json');
+        
+        vue.exportRawDataDisabled = false;
+        
+        vue.$buefy.notification.open({
+          message: 'Data exported succesfully',
+          type: 'is-success',
+          position: 'is-top',
+          closable: false,
+        });
+      
+      }).catch(function( err ) {
+        
+        vue.exportRawDataDisabled = false;
+        vue.$buefy.notification.open({
+          message: 'Data export failed',
+          type: 'is-danger',
+          position: 'is-top',
+          closable: false,
+        });
         
       });
     },
@@ -486,7 +530,6 @@ export default {
               
               vue.updateViewData( data );
               
-              if ( vue.hasData.books || vue.hasData.wishlist ) vue.extractionButtonDisabled = false;
               vue.loading = false; 
               vue.$buefy.notification.open({
                 message: 'Data imported succesfully',
@@ -777,7 +820,7 @@ export default {
       let isbn = _.find(this.extractSettings, { name: 'isbn' });
       
       let collectionsOrIsbn = inputName === 'collections' || inputName === 'isbn';
-      if ( !this.hasData.books && collectionsOrIsbn ) {
+      if ( collectionsOrIsbn ) {
         if ( inputValue && (!collections.value || !isbn.value) ) {
           library.value = true;
           library.disabled = true;
@@ -800,9 +843,14 @@ export default {
           _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
             
             let booksChunk = data[ 'books-chunk-'+index ];
-            _.each( booksChunk, function( book ) {
-              if (book.isNew) delete book.isNew;
-            });
+            _.each( booksChunk, function( book ) { if (book.isNew) delete book.isNew; });
+            
+          });
+          
+          _.each( _.range( 0, data[ 'wishlist-chunk-length'] ), function( index ) { 
+            
+            let wishlistChunk = data[ 'wishlist-chunk-'+index ];
+            _.each( wishlistChunk, function( book ) { if (book.isNew) delete book.isNew; });
             
           });
           
@@ -847,6 +895,7 @@ export default {
           });
           
         });
+        
       }
       
     },
@@ -940,7 +989,7 @@ body > .notices {
   }
 
   .extract-wrapper {
-    width: 300px;
+    display: inline-block;
     margin: 35px auto 0;
     .field-body { width: 100%; }
   }
@@ -1074,13 +1123,19 @@ body > .notices {
   #footer {
     font-size: 0.9em;
     line-height: 1.3em;
-    padding: 50px 0 60px;
-    * {
+    margin-top: 30px;
+    padding-top: 20px;
+    padding-bottom: 60px;
+    a, img { display: inline-block; }
+    &, * {
       transition: all 200ms ease;
+      color: rgba(181, 181, 181, .5) !important;
     }
-    img { opacity: .6; }
+    img { opacity: .2; }
     &:hover {
-      color: #717171 !important;
+      &, * {
+        color: #717171 !important;
+      }
       a {
         color: darken(#717171, 5) !important;
       }
@@ -1163,4 +1218,45 @@ body > .notices {
   font-size: 40px;
   color: #f79a32;
 }
+
+.show-partial-extraction .partial-extraction,
+.show-delete-btns .delete-btn {
+  position: relative;
+  z-index: 0;
+  &:before {
+    content: '';
+    position: absolute;
+    z-index: 90;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background: rgba(red, .1);
+    outline: 1px solid rgba(red, .4);
+  }
+}
+
+.init-show-partial-extraction,
+.init-show-detele-btns {
+  cursor: default;
+  text-decoration: underline;
+  // border: 1px solid rgba(#956d03, .2);
+  // border-radius: 3px;
+  // padding: 0px 3px;
+}
+
+.show-partial-extraction .partial-extraction:before {
+  background: rgba(#47c78e, .25);
+  outline: 2px solid rgba(#47c78e, .8);
+  top: 5px;
+  right: 5px;
+  bottom: 5px;
+  left: 5px;
+}
+
+
+.tippy-content {
+  padding: 7px !important; 
+}
+
 </style>

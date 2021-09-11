@@ -1037,7 +1037,6 @@ export default {
         return this.store.animationPreset;
       },
       set: function ( preset ) {
-        console.log( preset )
         this.$store.commit("update", { key: "animationPreset", value:  preset  });
       },
     },
