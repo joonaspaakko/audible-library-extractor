@@ -68,7 +68,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
     
     // Open the output page
     browser.tabs.create({
-      url: "./output-page/index.html",
+      url: "./gallery/index.html",
       active: true,
       index: sender.tab.index + 1,
     });
@@ -80,7 +80,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
     
     // Open the output page
     browser.tabs.create({
-      url: "./image-editor/index.html",
+      url: "./wallpaper-creator/index.html",
       active: true,
       index: sender.tab.index + 1,
     });
@@ -129,7 +129,7 @@ function makeContextMenu() {
       browser.contextMenus.create({
         id: 'ale-to-gallery',
         title: "1. Extension gallery",
-        contexts: ["page", "browser_action", "page_action"]
+        contexts: ["all"]
       });
     }
     
@@ -137,26 +137,26 @@ function makeContextMenu() {
       browser.contextMenus.create({
         id: 'ale-to-audible',
         title: "2. Audible"+ domainExtension +"/library",
-        contexts: ["page", "browser_action", "page_action"]
+        contexts: ["all"]
       });
     }
     
     browser.contextMenus.create({
       id: 'ale-to-docs',
       title: "3. Documentation",
-      contexts: ["page", "browser_action", "page_action"]
+      contexts: ["all"]
     });
     
     browser.contextMenus.create({
       id: 'ale-to-github',
       title: "4. Github project page",
-      contexts: ["page", "browser_action", "page_action"]
+      contexts: ["all"]
     });
     
     browser.contextMenus.create({
       id: 'ale-to-github-issues',
       title: "5. Github issues",
-      contexts: ["page", "browser_action", "page_action"]
+      contexts: ["all"]
     });
     
   });
@@ -173,7 +173,7 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
   };
   
   if ( info.menuItemId === 'ale-to-gallery' ) {
-    newTab.url = "./output-page/index.html";
+    newTab.url = "./gallery/index.html";
     browser.tabs.create(newTab);
   }
   else if ( info.menuItemId === 'ale-to-audible' ) {

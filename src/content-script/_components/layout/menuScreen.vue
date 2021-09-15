@@ -14,7 +14,7 @@
         <b-field grouped group-multiline class="setting-checkboxes">
           <span v-for="( setting, index) in mainSteps" :key="setting.name" :class="{ 'partial-extraction': (hasData.books && setting.name == 'library') || (hasData.wishlist && setting.name === 'wishlist') || (hasData.isbn && setting.name === 'isbn') }">
             
-            <b-field style="margin: 5px;">
+            <b-field style="margin: 5px;" v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy">
               <p class="control">
                 <b-button size="is-default" :disabled="true" style="cursor: default;">
                   {{ ++index }}
@@ -47,7 +47,7 @@
           <div class="linky-links">
             <b-button size="is-small" @click="unselectAll">unselect all</b-button>
             <b-button size="is-small" @click="selectAll">select all</b-button>
-            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='<strong>Removes the status &#34;new&#34; from extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery.'>reset new books</b-button>
+            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is never reset automatically so that you have more control over it.</div>'>reset new books</b-button>
             <b-button size="is-small" @click="exportRawData" :type="exportRawDataDisabled ? 'is-warning' : null" :disabled="exportRawDataDisabled">Export raw data</b-button>
             <b-button size="is-small">
               <label>
@@ -71,12 +71,22 @@
     
     <div>
       <div class="extract-wrapper">
-        <b-field class="extract-btn" v-show="!extractionButtonDisabled" >
-          <b-button @click="takeNextStep('extract')" type="is-info" class="extract control" expanded size="is-large" >
+        <div v-if="cannotAccessWishlist">
+           <b-message type="is-warning">
+            Please re-login <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/login'">audible{{ domainExtension }}/login</a>  to access wishlist and try again.
+          </b-message>
+        </div>
+        <div v-else-if="extractBtnDisabled">
+          <b-progress style="min-width: 288px;" size="is-large" type="is-warning" show-value>
+            <small style="font-size: 12px;">Checking for wishlist access...</small>
+          </b-progress>
+        </div>
+        <b-field class="extract-btn" v-show="!extractionButtonDisabled" v-else>
+          <b-button @click="extract" type="is-info" class="extract control" expanded size="is-large" >
             Extract selected items
           </b-button>
           <div class="control">
-            <b-button @click="takeNextStep('extract')" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large" ></b-button>
+            <b-button @click="extract" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large" ></b-button>
           </div>
         </b-field>
 
@@ -194,6 +204,8 @@ Vue.use(VueTippy, {
   trigger: "mouseenter focus",
   theme: "light-border",
   zIndex: 9999999991,
+  delay: [500,0],
+  a11y: false,
   maxWidth: 670,
   onShow: options => {
     return !!options.props.content;
@@ -213,9 +225,10 @@ Vue.use(Buefy, {
 
 import helpers from "@contscript-mixins/misc/helpers.js";
 import changelog from "@output-mixins/changelog.js";
+import toolbarVue from '../../../wallpaper-creator/_components/toolbar.vue';
 export default {
   name: "menuScreen",
-  props: ["storageHasData", "storageConfig"],
+  props: ["storageHasData", "storageConfig", "domainExtension", "wishlistUrl"],
   mixins: [ changelog, helpers ],
   data() {
     return {
@@ -232,6 +245,8 @@ export default {
       showDeleteBtns: false,
       showPartialExtraction: false,
       exportRawDataDisabled: false,
+      cannotAccessWishlist: false,
+      extractBtnDisabled: false,
     };
   },
   
@@ -245,6 +260,10 @@ export default {
       return _.filter(this.extractSettings, function(o) {
         return !o.extra;
       });
+    },
+    
+    settingWishlist: function() {
+      return _.find(this.extractSettings, { name: 'wishlist' });
     },
     
   },
@@ -288,7 +307,7 @@ export default {
       
       this.updateSettings(function() {
         setTimeout(function() {
-          vue.loading = false;
+          vue.loading = false;          
         }, 100);
       });
       
@@ -297,6 +316,22 @@ export default {
   },
 
   methods: {
+    
+    checkAccess: function( config ) {
+      
+      config = config || {};
+      
+      // Check if it's possible to read the wishlist page
+      axios.get( config.to )
+      .then(function() {
+        if ( config.success ) config.success();
+      }).catch(function() {
+        if ( config.failed ) config.failed();
+      }).then(function() {
+        if ( config.finally ) config.finally();
+      });
+      
+    },
     
     updateSettings: function( cllbck ) {
       
@@ -340,7 +375,8 @@ export default {
             label: "Wishlist",
             type: "is-success",
             tippy: "Books that also exist in your library are dropped <br>off as long as you also extract library data.",
-            trash: this.hasData.wishlist
+            trash: this.hasData.wishlist,
+            // cannotAccessTippy: this.cannotAccessWishlist ? '<a href="https://audible.com/login">audible.com/login</a>' : null,
           },
           {
             name: "isbn",
@@ -792,7 +828,39 @@ export default {
       
     },
     
+    extract: function() {
+      
+      let vue = this;
+      
+      if ( this.settingWishlist.value ) {
+        
+        vue.extractBtnDisabled = true;
+        vue.extractionButtonDisabled = true;
+        
+        // I don't know the full logic, but Audible tends to require a login to certain pages after you haven't in a while. 
+        // I think it might just do that for any page you haven't visited after a while. The only evidence I have is that I visit
+        // library very often but wishlist and other pages not so much and wishlist requires login way more often than my library.
+        vue.checkAccess({
+          to: vue.wishlistUrl,
+          success: function( e ) {
+            vue.takeNextStep('extract');
+          },
+          failed: function() {
+            vue.cannotAccessWishlist = true;
+          },
+          finally: function() {
+            vue.extractBtnDisabled = false;
+          },
+        });
+      }
+      else {
+        vue.takeNextStep('extract');
+      }
+      
+    },
+    
     takeNextStep: function(step, config) {
+      
       
       if ( !config ) {
         config = {
@@ -810,6 +878,7 @@ export default {
         step: step,
         config: config
       });
+      
     },
 
     settingChanged: function(inputValue, inputName) {
@@ -1255,6 +1324,9 @@ body > .notices {
 }
 
 
+.tippy-tooltip {
+  box-shadow: 0 10px 25px rgba(#000, .15), 0 5px 10px rgba(#000, .4) !important;
+}
 .tippy-content {
   padding: 7px !important; 
 }

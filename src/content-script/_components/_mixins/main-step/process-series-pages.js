@@ -62,7 +62,7 @@ export default {
                 }
               });
               
-              if ( vue.storageHasData.books ) {
+              if ( vue.storageHasData.books && _.get(hotpotato, 'series') ) {
                 vue.mergeBooksWithSeries( hotpotato.series, requests );
               }
               else {

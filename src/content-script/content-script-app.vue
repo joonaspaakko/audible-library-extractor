@@ -4,8 +4,10 @@
     v-if="ui === 'menu-screen'"
     :storageHasData="storageHasData"
     :storageConfig="storageConfig"
+    :domainExtension="domainExtension"
+    :wishlistUrl="wishlistUrl"
     ></menu-screen>
-    <scraping-progress v-if="ui === 'scraping'"></scraping-progress>
+    <scraping-progress v-else-if="ui === 'scraping'"></scraping-progress>
   </overlay>
 </template>
 
@@ -14,7 +16,7 @@ import _ from "lodash";
 import $ from "jquery";
 import axios from "axios";
 import { exponentialDelay, isNetworkOrIdempotentRequestError } from 'axios-retry';
-const axiosRetry = require('axios-retry');
+import axiosRetry from 'axios-retry';
 import browser from "webextension-polyfill";
 import { format as dateFormat } from "date-fns";
 import DOMPurify from "dompurify";
@@ -36,13 +38,10 @@ global.Url = Url;
 global.waterfall = waterfall;
 
 axiosRetry(axios, {
-  retries: 3,
-  retryDelay: axiosRetry.exponentialDelay,
+  retries: 1,
+  retryDelay: function(retryCount) { return 1000 * retryCount; },
   retryCondition: function(error) {
-    return (
-      axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-      (error.response && error.response.status == "429")
-    );
+    return (error && error.response && error.response.status == "429");
   }
 });
 
@@ -83,6 +82,7 @@ import getISBNsFromGoogleBooks from "./_components/_mixins/main-step/process-isb
 import getDataFromSeriesPages from "./_components/_mixins/main-step/process-series-pages.js";
 import getDataFromCollections from "./_components/_mixins/main-step/process-collections.js";
 import getDataFromWishlist from "./_components/_mixins/main-step/process-wishlist.js";
+import getDataFromPurchaseHistory from "./_components/_mixins/main-step/process-purchase-history.js";
 
 // Outside
 import timeStringToSeconds from "@output-mixins/timeStringToSeconds.js";
@@ -107,6 +107,7 @@ export default {
     getDataFromSeriesPages,
     getDataFromCollections,
     getDataFromWishlist,
+    getDataFromPurchaseHistory,
     helpers,
   ],
   props: ["storageHasData", "storageConfig"],
@@ -117,13 +118,14 @@ export default {
       seriesUrl: window.location.origin + "/series",
       collectionsUrl: window.location.origin + "/library/collections",
       wishlistUrl: window.location.origin + "/wl",
+      purchaseHistoryUrl: window.location.origin + "/account/purchase-history", // tf=orders&df=2021
       domainExtension: window.location.hostname.replace('www.audible', ''),
       newBooks: [],
       library: {
         books: [],
         storePageMissing: []
       },
-      ui: "menu-screen"
+      ui: "menu-screen",
     };
   },
   beforeMount: function() {
@@ -132,7 +134,9 @@ export default {
     vue.$root.$on("do-next-step", function(o) {
       vue["init_step_" + o.step](o.config);
     });
-
+    
+    
+    // vue.init_purchaseHistoryTest();
     // vue.init_storePageTest();
     // vue.init_seriesPageTest();
     
@@ -260,6 +264,22 @@ export default {
       }
       
     },
+    
+    init_purchaseHistoryTest: function() {
+      
+      const hotpotato = {
+        config: { test: true, getStorePages: 'books' }
+      };
+      
+      this.getDataFromPurchaseHistory(hotpotato, function(nullBoy, result) {
+        console.log(
+          "%c" + "Purchase history test" + "",
+          "background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;",
+          result
+        );
+      });
+      
+    },
 
     init_storePageTest: function() {
       const vue = this;
@@ -274,8 +294,8 @@ export default {
           // { storePageRequestUrl: "https://www.audible.com/pd/B017J3ZQDG"},
           // { storePageRequestUrl: "https://www.audible.com/pd/B01F7M9KZG"},
           // { storePageRequestUrl: "https://www.audible.com/pd/B002V8MTGM"},
-          { storePageRequestUrl: "https://www.audible.com/pd/B07XTNWRFF"},
-          { storePageRequestUrl: "https://www.audible.com/pd/B08W5DP8VM"},
+          // { storePageRequestUrl: "https://www.audible.com/pd/B07XTNWRFF"},
+          { storePageRequestUrl: "https://www.audible.com/pd/B00YI1CTVU" },
         ]
       };
 
@@ -286,6 +306,7 @@ export default {
           result
         );
       });
+      
     },
     
     init_seriesPageTest: function() {

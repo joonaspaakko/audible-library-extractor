@@ -2,11 +2,13 @@ export default {
   methods: {
     getDataFromStorePages: function(hotpotato, storePagesFetched) {
       
+      let vue = this;
       if ( hotpotato.config.getStorePages ) {
         
         
-        const vue = this;
         const requests = this.prepStorePages(hotpotato, hotpotato.config.getStorePages);
+        
+        const storeKey = hotpotato.config.getStorePages;
         
         hotpotato.config.getStorePages = false;
         
@@ -45,6 +47,7 @@ export default {
               vue.$nextTick(function() {
                 if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
                 storePagesFetched(null, hotpotato);
+                
               });
             }
           });
@@ -58,7 +61,6 @@ export default {
       }
       else {
         vue.$nextTick(function() {
-          hotpotato.config.getStorePages = false;
           this.$root.$emit("reset-progress");
           storePagesFetched(null, hotpotato);
         });
@@ -70,16 +72,22 @@ export default {
       let vue = this;
       
       _.each( hotpotato[ getStorePages ], function( book ) { 
-        if ( vue.storageHasData[ getStorePages ] ) {
+        if ( vue.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
           if ( book.isNewThisRound ) book.requestUrl = book.storePageRequestUrl;
         }
         else {
           book.requestUrl = book.storePageRequestUrl;
         }
+        
+        let url = new Url(book.requestUrl);
+        url.query.ipRedirectOverride = true;
+        url.query.overrideBaseCountry = true;
+        book.requestUrl = url.toString();
+        
         delete book.storePageRequestUrl;
       });
       
-      return vue.storageHasData[ getStorePages ] ? _.filter(hotpotato[ getStorePages ], "isNewThisRound") : hotpotato[ getStorePages ];
+      return vue.storageHasData[ getStorePages ] && !hotpotato.config.test ? _.filter(hotpotato[ getStorePages ], "isNewThisRound") : hotpotato[ getStorePages ];
       
     },
     

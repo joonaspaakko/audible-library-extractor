@@ -202,24 +202,18 @@ export default {
           book = _.omitBy(book, _.isNull);
     
           // - - - - - - -
-    
-          if (vue.storageHasData.books && bookInMemory === undefined) {
-            // console.log("%c" + "book" + "","background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",book.title,book);
-            book.isNew = true;
-            book.isNewThisRound = true;
+          
+          if ( vue.storageHasData.books ) {
+            let newAddition = !bookInMemory;
+            let newFromStorage = bookInMemory && bookInMemory.isNew;
+            if ( newAddition || newFromStorage ) book.isNew = true;
           }
-          else if ( !vue.storageHasData.books ) {
-            if ( bookInMemory ) {
-              if ( bookInMemory.isNew ) book.isNew = true;
-            }
-            else {
-              book.isNew = true;
-              book.isNewThisRound = true;
-            }
-          }
+          
           if (fullScan_ALL_partialScan_NEW) {
+            book.isNewThisRound = true;
             vue.$root.$emit("update-progress-max");
           }
+          
           books.push(book);
           
         }

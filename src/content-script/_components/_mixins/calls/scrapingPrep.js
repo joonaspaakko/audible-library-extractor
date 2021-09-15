@@ -13,10 +13,10 @@ export default {
       
       const letMeAxiosAQuestion = axios.create();
       axiosRetry(letMeAxiosAQuestion, {
-        retries: 3,
-        retryDelay: 5000,
+        retries: 2,
+        retryDelay: function(retryCount) { return 1000 * retryCount; },
         retryCondition: function(error) {
-          return error.response && error.response.status == "500";
+          return axiosRetry.isNetworkOrIdempotentRequestError(error) || error && error.response && error.response.status == "500";
         }
       });
       const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 6 });

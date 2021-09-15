@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>My Audible Library</title>
+  <link rel="stylesheet" href="gallery.css">
+  <% if (NODE_ENV === 'development') { %>
+		<script src="http://localhost:8098"></script>
+  <% } %>
+  
+</head>
+<body>
+  
+  <div id="audible-library-extractor"></div>
+  <script src="extension-js/browser-polyfill.min.js"></script>
+  <script src="extension-js/jszip.min.js"></script>
+  <script src="extension-js/jszip-utils.min.js"></script>
+  <script src="extension-js/FileSaver.min.js"></script>
+  <script src="extension-js/papaparse.min.js"></script>
+  <script src="gallery.js"></script>
+	
+</body>
+</html>

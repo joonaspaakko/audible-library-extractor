@@ -16,9 +16,9 @@ const config = {
   entry: {
     'background': './background.js',
     'content-script/audible-library-extractor-content-script': './content-script/content-script.js',
-    'output-page/output-page': './output-page/output-page.js',
-    'image-editor/image-editor': './image-editor/image-editor.js',
-    'image-editor/animated-wallpaper/animated-wallpaper': './image-editor/animated-wallpaper/animated-wallpaper.js',
+    'gallery/gallery': './gallery/gallery.js',
+    'wallpaper-creator/wallpaper-creator': './wallpaper-creator/wallpaper-creator.js',
+    'wallpaper-creator/animated-wallpaper/animated-wallpaper': './wallpaper-creator/animated-wallpaper/animated-wallpaper.js',
   },
   output: {
     publicPath: '',
@@ -36,17 +36,17 @@ const config = {
     extensions: ['.js', '.vue'],
     alias: {
       'node_modules': path.join(__dirname, '/node_modules'),
-      '@': path.join(__dirname, '/src/output-page'),
-      '@output-images': path.join(__dirname, '/src/output-page/images'),
-      '@output-page': path.join(__dirname, '/src/output-page'),
-      '@output-comps': path.join(__dirname, '/src/output-page/_components'),
-      '@output-snippets': path.join(__dirname, '/src/output-page/_components/snippets'),
-      '@output-mixins': path.join(__dirname, '/src/output-page/_mixins'),
+      '@': path.join(__dirname, '/src/gallery'),
+      '@output-images': path.join(__dirname, '/src/gallery/images'),
+      '@output-page': path.join(__dirname, '/src/gallery'),
+      '@output-comps': path.join(__dirname, '/src/gallery/_components'),
+      '@output-snippets': path.join(__dirname, '/src/gallery/_components/snippets'),
+      '@output-mixins': path.join(__dirname, '/src/gallery/_mixins'),
       '@contscript-mixins': path.join(__dirname, '/src/content-script/_components/_mixins'),
-      '@editor-comps': path.join(__dirname, '/src/image-editor/_components'),
-      '@editor-mixins': path.join(__dirname, '/src/image-editor/_mixins'),
-      '@wallpaper-comps': path.join(__dirname, '/src/image-editor/animated-wallpaper/_components'),
-      '@wallpaper-mixins': path.join(__dirname, '/src/image-editor/animated-wallpaper/_mixins'),
+      '@editor-comps': path.join(__dirname, '/src/wallpaper-creator/_components'),
+      '@editor-mixins': path.join(__dirname, '/src/wallpaper-creator/_mixins'),
+      '@wallpaper-comps': path.join(__dirname, '/src/wallpaper-creator/animated-wallpaper/_components'),
+      '@wallpaper-mixins': path.join(__dirname, '/src/wallpaper-creator/animated-wallpaper/_mixins'),
     },
   },
   module: {
@@ -107,14 +107,14 @@ const config = {
 
 var copyPluginArray = { patterns: [
   { from: 'assets', to: 'assets' },
-  { from: 'output-page/favicons', to: 'output-page/favicons' },
-  { from: 'output-page/extension-js', to: 'output-page/extension-js' },
-  { from: 'output-page/app.webmanifest', to: 'output-page/manifest.json' },
-  // { from: 'output-page/images/', to: 'output-page/images/' },
-  { from: 'output-page/output-page.html', to: 'output-page/index.html', transform: transformHtml },
-  { from: 'image-editor/image-editor.html', to: 'image-editor/index.html', transform: transformHtml },
-  { from: 'image-editor/animated-wallpaper/animated-wallpaper.html', to: 'image-editor/animated-wallpaper/index.html', transform: transformHtml },
-  { from: 'image-editor/textures', to: 'image-editor/textures' },
+  { from: 'gallery/favicons', to: 'gallery/favicons' },
+  { from: 'gallery/extension-js', to: 'gallery/extension-js' },
+  { from: 'gallery/app.webmanifest', to: 'gallery/manifest.json' },
+  // { from: 'gallery/images/', to: 'gallery/images/' },
+  { from: 'gallery/gallery.html', to: 'gallery/index.html', transform: transformHtml },
+  { from: 'wallpaper-creator/wallpaper-creator.html', to: 'wallpaper-creator/index.html', transform: transformHtml },
+  { from: 'wallpaper-creator/animated-wallpaper/animated-wallpaper.html', to: 'wallpaper-creator/animated-wallpaper/index.html', transform: transformHtml },
+  { from: 'wallpaper-creator/textures', to: 'wallpaper-creator/textures' },
   {
     from: 'manifest.json',
     to: 'manifest.json',
@@ -139,10 +139,10 @@ if (config.mode === 'production') {
     new FileManagerPlugin({
       onEnd: {
         delete: [
-          './dist/output-page/chunks'
+          './dist/gallery/chunks'
         ],
         move: [
-          { source: './dist/chunks', destination: './dist/output-page/chunks' }
+          { source: './dist/chunks', destination: './dist/gallery/chunks' }
         ],
       }
     })
@@ -152,7 +152,7 @@ if (config.mode === 'production') {
   
 }
 else {
-  copyPluginArray.patterns.push({ from: __dirname + '/dist/chunks', to: __dirname + '/dist/output-page/chunks', force: true })
+  copyPluginArray.patterns.push({ from: __dirname + '/dist/chunks', to: __dirname + '/dist/gallery/chunks', force: true })
 }
 
 config.plugins.push( new CopyPlugin(copyPluginArray) );

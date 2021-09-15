@@ -30,9 +30,9 @@ export default {
                   const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector("#wishlist-content-main > div > h1.bc-heading").nextElementSibling.textContent.match(/\d+/)[0]) );
                   delete prep.response;
 
-                  if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
-                    max: titlesLength
-                  });
+                  // if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
+                  //   max: titlesLength
+                  // });
 
                   // Forcing smaller pageSize...
                   // - Wishlist pages load a bit faster with less items. I had hopes loading pages with fewer items in parallel would be faster, but it wasn't really in my test.
@@ -71,9 +71,9 @@ export default {
             vue.$nextTick(function() {
               hotpotato.config.getStorePages = 'wishlist';
               
-              if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
-                max: hotpotato.wishlist.length
-              });
+              // if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
+              //   max: hotpotato.wishlist.length
+              // });
               wishlistFetched(null, hotpotato);
             });
             
@@ -172,20 +172,16 @@ export default {
           
           book = _.omitBy(book, _.isNull);
           
-          if (vue.storageHasData.wishlist && bookInMemory === undefined) {
-            book.isNew = true;
-            book.isNewThisRound = true;
+          // - - - - - - -
+          
+          if ( vue.storageHasData.books ) {
+            let newAddition = !bookInMemory;
+            let newFromStorage = bookInMemory && bookInMemory.isNew;
+            if ( newAddition || newFromStorage ) book.isNew = true;
           }
-          else if ( !vue.storageHasData.wishlist ) {
-            if ( bookInMemory ) {
-              if ( bookInMemory.isNew ) book.isNew = true;
-            }
-            else {
-              book.isNew = true;
-              book.isNewThisRound = true;
-            }
-          }
+          
           if (fullScan_ALL_partialScan_NEW) {
+            book.isNewThisRound = true;
             vue.$root.$emit("update-progress-max");
           }
           

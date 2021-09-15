@@ -62,7 +62,7 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
     retryCondition: function(error) {
       return (
         axiosRetry.isNetworkOrIdempotentRequestError(error) ||
-        ( error.response && error.response.status == "429" )
+        ( error && error.response && error.response.status == "429" )
       );
     }
   });

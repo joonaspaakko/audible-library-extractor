@@ -163,6 +163,11 @@ export default {
   font-size: 14px;
   color: #666;
   padding-bottom: 0px;
+  > div,
+  > div > div,
+  .ale-step-additional-info {
+    width: 100%;
+  }
 }
 .ale-bar {
   padding: 2px;
