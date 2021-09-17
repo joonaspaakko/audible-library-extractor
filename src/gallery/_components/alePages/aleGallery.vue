@@ -302,20 +302,20 @@ export default {
         
         this.$store.commit('prop', [
           { key: 'bookDetails.book', value: null },
-          { key: 'bookDetails.index', value: e.index },
+          { key: 'bookDetails.index', value: -1 },
         ]);
-        // this.detailsBook = null;
-        // this.detailsBookIndex = e.index;
         
-        this.$nextTick(function() {
-          if (!sameBook || e.force) {
-            // this.detailsBook = e.book;
-            this.$store.commit('prop', { key: 'bookDetails.book', value: e.book });
-          }
-          else if ( this.$route.query.book ) {
-            this.$updateQuery({ query: 'book', value: null });
-          }
-        });
+        if ( !sameBook || e.force ) {
+          this.$nextTick(function() {
+            this.$store.commit('prop', [
+              { key: 'bookDetails.book', value: e.book },
+              { key: 'bookDetails.index', value: e.index },
+            ]);
+          });
+        }
+        else {
+          this.$updateQuery({ query: 'book', value: null });
+        }
         
       }
     },

@@ -160,6 +160,9 @@ export default {
         
       });
       
+      // console.log( route );
+      // console.log( previousRoute );
+      
       // console.log( route, previousRoute )
       // console.log( this.$routerHistory, this.$router )
       // if ( route.name === previousRoute.name  ) {

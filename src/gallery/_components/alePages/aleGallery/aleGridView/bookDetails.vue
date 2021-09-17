@@ -126,6 +126,7 @@ export default {
     
     this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
     this.resetScroll();
+    
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
     
@@ -134,16 +135,22 @@ export default {
   mounted: function() {
     
     this.maxWidth = this.repositionBookDetails() + "px";
-    // this.changeUrl();
     this.$updateQuery({ query: 'book', value: this.book.asin });
     this.loading = false;
     
   },
 
   beforeDestroy: function() {
+    
     this.$root.$off("afterWindowResize", this.onWindowResize);
     this.peopleAlsoBoughtJSON = null;
     this.bookSummaryJSON = null;
+    
+    this.$store.commit('prop', [
+      { key: 'bookDetails.book', value: null },
+      { key: 'bookDetails.index', value: -1 },
+    ]);
+    
   },
 
   computed: {
@@ -227,6 +234,7 @@ export default {
       const domBooks = gridView.querySelector(".ale-book") ? gridView.querySelectorAll(".ale-book") : gridView.querySelector('table tbody').querySelectorAll(".ale-row");
 
       const target = {};
+      
       target.el = domBooks[this.index];
       target.index = this.index;
       target.width = target.el.getBoundingClientRect().width;

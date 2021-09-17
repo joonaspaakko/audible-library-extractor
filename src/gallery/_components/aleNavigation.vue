@@ -153,7 +153,7 @@
     
     <div v-if="mobileThreshold" class="second-row">
       
-      <div class="search-btn" @click="startSearching">
+      <div v-if="$store.state.searchMounted" class="search-btn" @click="startSearching">
         <font-awesome :icon="['fas', 'search']" />
       </div>
       
@@ -276,6 +276,9 @@ export default {
     },
     
     mobileBrowserNavigation: function( direction ) {
+      
+      
+      // FIXME: Make a custom back button because this one doesn't quite have the control I need...?
       if ( this.$store.state.displayMode && direction ) {
         return this.$routerHistory[ direction ]();
       }
@@ -347,11 +350,15 @@ export default {
   right: 0;
   left: 0;
   &.mobile-nav {
-    top: unset;
+    display: none;
+    // top: unset;
     bottom: 0;
     font-size: 21px !important;
     #view-mode-switcher {
       font-size: 21px !important;
+    }
+    &.mobile-nav-open {
+      display: inline-block;
     }
   }
   box-shadow: 2px 0px 13px rgba(#000, 0.5);
@@ -438,10 +445,6 @@ export default {
     @include themify($themes) {
       border: 1px solid rgba( themed(frontColor), .1);
     }
-  }
-  
-  &.mobile-nav .inner-wrap-wrapper {
-    display: none;
   }
   
   &.mobile-nav.mobile-nav-open .inner-wrap-wrapper {

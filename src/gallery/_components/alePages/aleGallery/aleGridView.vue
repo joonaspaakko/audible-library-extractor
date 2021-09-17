@@ -2,8 +2,7 @@
   <div class="ale-books grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ) }" ref="booksWrapper">
     
     <book-details
-    v-if="$store.state.bookDetails.book"
-    :index="$store.state.bookDetails.index"
+    v-if="!!$store.state.bookDetails.book && $store.state.bookDetails.index > -1"
     :booksWrapper="$refs.booksWrapper"
     />
     
