@@ -43,7 +43,7 @@ export default {
         function(err, results) {
           if (!err) {
             results = options.flatten ? _.flatten(results) : results;
-            results = _.omitBy(results, _.isNull);
+            results = _.compact( results );
             options.done( results );
           } else {
             console.log( "%c" + "axios caught an error (done)" + "", "background: #f79a33; color: #fff; padding: 2px 5px; border-radius: 8px;", err );

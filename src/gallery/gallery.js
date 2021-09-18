@@ -196,7 +196,6 @@ let routesPrep = function( libraryData ) {
           let script = document.createElement('script');
           script.src = (file.prefix || "data/") + file.name +"."+ libraryData.extras.cacheID +".js";
           script.type = "text/javascript";
-          script.async = false;
           script.onload = function() {
             resolve(file);
             script = null;
@@ -613,7 +612,6 @@ else {
     let cacheID = document.querySelector('#audible-library-extractor').getAttribute('data-cache-id');
     scrpt.src = "data/temp-data."+ cacheID +".js";
     scrpt.type="text/javascript";
-    scrpt.async = false;
     scrpt.onload = function() {
       
       let tempData = window.tempDataJSON;

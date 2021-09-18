@@ -64,7 +64,8 @@ export default {
                 },
                 function(err, responses) {
                   if (!err) {
-                    callback(null, _.flatten(responses), collections);
+                    let flatResponses = _.flatten(responses);                    
+                    callback(null, flatResponses, collections);
                   } else console.log(err);
                 }
               );
@@ -75,18 +76,19 @@ export default {
             // Pushes books back to the original array of collections without any duplicate ids
             _.each(responses, function(collection) {
               const targetCollection = _.find(collections, { id: collection.id });
-              if ( targetCollection ) targetCollection.books = targetCollection.books.concat( collection.books );
-              delete targetCollection.pageNumbers;
-              delete targetCollection.pageSize;
-              delete targetCollection.url;
+              if ( targetCollection ) {
+                targetCollection.books = targetCollection.books.concat( collection.books );
+                delete targetCollection.pageNumbers;
+                delete targetCollection.pageSize;
+                delete targetCollection.url;
+              }
             });
-            
-            hotpotato.collections = collections;
 
             vue.$nextTick(function() {
               vue.$root.$emit("reset-progress");
               collectionsFetched(null, hotpotato);
             });
+            
           }
         );
       }

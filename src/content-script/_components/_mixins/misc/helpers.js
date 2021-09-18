@@ -247,8 +247,8 @@ export default {
     // - Remove book from collections if it was removed from the library
     removeFromCollections: function( potatoCollections, removedBooks ) {
       
+      potatoCollections = _.compact( potatoCollections );
       _.each( potatoCollections, function( collection ) {
-        
         if ( collection.books.length > 0 ) {
           _.each( removedBooks, function( book ) {
             const bookInCollection = _.includes( collection.books, book.asin );

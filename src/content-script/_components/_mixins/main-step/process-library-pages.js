@@ -131,7 +131,8 @@ export default {
     
           // "Came from the plus catalog but is no longer available there"
           const unavailableBtn = _thisRow.querySelector(".adbl-library-inaccessible-button");
-          if (unavailableBtn) book.unavailable = true;
+          if (unavailableBtn) { book.unavailable = true; }
+          else { delete book.unavailable; }
           
           // Downloaded
           book.downloaded = _thisRow.querySelector(".adbl-library-action > div:nth-child(4) > span") ? true : null;
