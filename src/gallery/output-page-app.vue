@@ -1,5 +1,5 @@
 <template>
-  <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': this.$store.state.windowWidth < 630 }">
+  <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }">
     
     <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
     <ale-navigation :key="'nav-'+$route.params+$route.name+$store.state.viewRefresh"></ale-navigation>
@@ -159,17 +159,6 @@ export default {
         }
         
       });
-      
-      // console.log( route );
-      // console.log( previousRoute );
-      
-      // console.log( route, previousRoute )
-      // console.log( this.$routerHistory, this.$router )
-      // if ( route.name === previousRoute.name  ) {
-        // this.$nextTick(function() {
-        //   this.$updateQuery({ query: 'refresh', value: null });
-        // });
-      // }
       
     }
   },

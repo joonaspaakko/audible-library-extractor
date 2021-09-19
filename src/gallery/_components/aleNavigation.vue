@@ -1,6 +1,6 @@
 <template>
-<div id="nav-outer-wrapper">
-  <div id="ale-navigation" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
+<div id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
+  <div id="ale-navigation">
     <div class="inner-wrap">
       
       <div class="inner-wrap-wrapper">
@@ -138,12 +138,9 @@
       </div>
       
     </div>
-    <div class="inner-wrap" v-if="showAudioPlayer">
-      
-      <audio-player :showAudioPlayer.sync="showAudioPlayer" :sampleData.sync="sampleData" />
-      
-    </div>
+    <audio-player  v-if="showAudioPlayer" :showAudioPlayer.sync="showAudioPlayer" :sampleData.sync="sampleData" />
   </div>
+  
   
   <!-- 
     This v-show on the parent and v-if on the child element is to retain 
@@ -157,14 +154,14 @@
         <font-awesome :icon="['fas', 'search']" />
       </div>
       
-      <div class="mobile-back-btns-wrapper">
-        <div class="mobile-back-btns" v-if="mobileBrowserNavigation('hasPrevious')">
+      <div class="mobile-back-btns-wrapper" v-if="$store.state.displayMode">
+        <div class="mobile-back-btns" v-if="$routerHistory.hasPrevious()">
           <router-link :to="{ path: $routerHistory.previous().path }">
             <font-awesome fas icon="chevron-left" /> 
           </router-link>
         </div>
         
-        <div class="mobile-back-btns" v-if="mobileBrowserNavigation('hasForward')">
+        <div class="mobile-back-btns" v-if="$routerHistory.hasForward()">
           <router-link :to="{ path: $routerHistory.next().path }">
             <font-awesome fas icon="chevron-right" /> 
           </router-link>
@@ -275,16 +272,6 @@ export default {
       
     },
     
-    mobileBrowserNavigation: function( direction ) {
-      
-      
-      // FIXME: Make a custom back button because this one doesn't quite have the control I need...?
-      if ( this.$store.state.displayMode && direction ) {
-        return this.$routerHistory[ direction ]();
-      }
-
-    },
-    
     toggleMobileMenu: function() {
       this.mobileMenuOpen = !this.mobileMenuOpen;
     },
@@ -300,11 +287,8 @@ export default {
     },
     
     startSearching: function() {
-      this.$updateQuery({ query: 'y', value: null });
-      this.$root.$emit('refresh-page', function( vue ) {
-        vue.$root.$emit("ios-auto-zoom-disable");
-        vue.$root.$emit('search-focus');
-      });
+      this.$root.$emit("ios-auto-zoom-disable");
+      this.$root.$emit('search-focus');
     },
     
     routeExists: function( name ) {
@@ -334,9 +318,6 @@ export default {
 
 #nav-outer-wrapper {
   display: inline-block;
-}
-
-#ale-navigation {
   text-align: center;
   -webkit-touch-callout: none;
   -webkit-user-select: none;
@@ -344,21 +325,26 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  position: fixed;
-  z-index: 900;
-  top: 0;
-  right: 0;
-  left: 0;
-  &.mobile-nav {
-    display: none;
-    // top: unset;
+}
+
+#nav-outer-wrapper {
+  
+  #ale-navigation {
+    position: fixed;
+    z-index: 900;
+    top: 0;
+    right: 0;
+    left: 0;
+  }
+  
+  &.mobile-nav #ale-navigation > .inner-wrap { display: none; }
+  &.mobile-nav-open #ale-navigation > .inner-wrap { display: inline-block; }
+  &.mobile-nav #ale-navigation {
+    top: unset;
     bottom: 0;
     font-size: 21px !important;
     #view-mode-switcher {
       font-size: 21px !important;
-    }
-    &.mobile-nav-open {
-      display: inline-block;
     }
   }
   box-shadow: 2px 0px 13px rgba(#000, 0.5);
@@ -688,4 +674,7 @@ export default {
   }
   
 }
+
+// #nav-outer-wrapper.mobile-nav 
+
 </style>

@@ -88,8 +88,8 @@
                 opacity: {{ store.coverOpacityEnabled ? store.coverOpacity : 1 }} !important;
               }
               .grid-inner-wrap .cover .cover-img {
-                width: {{ this.store.coverSize > 0 ? this.store.coverSize : 0 }}px !important;
-                height: {{ this.store.coverSize > 0 ? this.store.coverSize : 0 }}px !important;
+                width: {{ store.coverSize > 0 ? store.coverSize : 0 }}px !important;
+                height: {{ store.coverSize > 0 ? store.coverSize : 0 }}px !important;
               }
             </component>
 

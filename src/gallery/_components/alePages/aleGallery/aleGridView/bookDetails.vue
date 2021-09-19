@@ -45,17 +45,17 @@
             
           </div> <!-- .information -->
 
-          <book-summary :detailsEl="$el" :book="book" v-if="book.summary || (bookSummaryJSON && bookSummaryJSON !== true)" :bookSummary="bookSummaryJSON"></book-summary>
+          <book-summary :detailsEl="$el" :book="book" :bookSummary="bookSummaryJSON"></book-summary>
         </div>
 
-        <carousel v-if="!loading && (peopleAlsoBought && peopleAlsoBought !== true) && !($store.state.standalone && !$store.state.siteOnline)" :books="peopleAlsoBought" :key="this.maxWidth">
+        <carousel v-if="!loading && (peopleAlsoBought && peopleAlsoBought !== true) && !($store.state.standalone && !$store.state.siteOnline)" :books="peopleAlsoBought" :key="maxWidth">
           <!-- People who bought this also bought: -->
           <!-- Name changed: -->
           Listeners also enjoyed
         </carousel>
         
         <!-- Twas removed by Audible at some point... -->
-        <!-- <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis" :key="this.maxWidth">
+        <!-- <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis" :key="maxWidth">
           More listens like this
         </carousel> -->
       </div>

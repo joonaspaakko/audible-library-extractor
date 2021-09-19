@@ -250,6 +250,7 @@ let routesPrep = function( libraryData ) {
           from.query.subPageSource !== to.query.subPageSource 
         ) {
                     
+          console.log( 'TEST=' );
           if ( to.meta.subPage ) {
             if ( to.query.subPageSource === 'wishlist' || !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist' ) {
               getJSON( next, [

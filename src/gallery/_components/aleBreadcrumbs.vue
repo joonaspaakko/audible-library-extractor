@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-breadcrumbs" v-if="this.general.categories">
+  <div id="ale-breadcrumbs" v-if="general.categories">
     <div>
       <router-link class="crumb" :to="{ name: 'categories' }"
         >Categories</router-link

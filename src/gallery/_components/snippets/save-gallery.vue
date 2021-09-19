@@ -58,9 +58,9 @@ export default {
         "gallery.js.LICENSE.txt",
         "gallery.css",
         
+        "chunks/384.css",
+        "chunks/384.js",
         "chunks/612.js",
-        "chunks/740.css",
-        "chunks/740.js",
         "chunks/audio-player.css",
         "chunks/audio-player.js",
         "chunks/authors.css",

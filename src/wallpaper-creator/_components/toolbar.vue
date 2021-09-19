@@ -1,4 +1,4 @@
-<<template>
+<template>
   <div class="right toolbar">
 
     <div class="button-container">
@@ -289,7 +289,7 @@
               <input type="range" min="1" max="20" v-model="coversPerRow" step="1" />
             </div>
           </div>
-          <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
+          <p v-if="store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
             Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. You can choose to ignore this, but otherwise you can try lowering canvas width or increasing covers per row.
             <gb-input style="display: none;" warning="1"></gb-input>
           </span></p>
@@ -297,7 +297,7 @@
           <div v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length">
             <spacer size="default" :line="false" />
             <div class="warning-message">
-              <strong>{{ this.store.visibleAnimatedCovers - this.store.covers.length }}/{{ this.store.visibleAnimatedCovers }}</strong> visible covers have been duplicated in order for the animated wallpaper to function.
+              <strong>{{ store.visibleAnimatedCovers - store.covers.length }}/{{ store.visibleAnimatedCovers }}</strong> visible covers have been duplicated in order for the animated wallpaper to function.
               <br><br>
               <span style="color: #fff;">This basically means that you should already see duplicate covers on load and it's not going to get any better when the covers start to animate. If you don't like what you see, try lowering the "Covers per row" setting or consider using another source for the cover images if possible.</span>
               <br><br>
@@ -401,7 +401,7 @@
               :value="parseFloat(store.canvas.height)"
               @input="inputChanged('canvas.height', $event)"
               size="mini"
-              :info="(store.canvas.height > 0) ? null : '0 = automatic height.' + (this.store.canvas.autoHeight > 0 ? '<br>Estimated height: ' + this.store.canvas.autoHeight + 'px' : ' ')"
+              :info="(store.canvas.height > 0) ? null : '0 = automatic height.' + (store.canvas.autoHeight > 0 ? '<br>Estimated height: ' + store.canvas.autoHeight + 'px' : ' ')"
             ></gb-input>
           </div>
           
@@ -456,7 +456,7 @@
               The animated wallaper fits itself to any screen size, canvas size is for preview purposes only.
             </span>
           </p>
-          <p v-if="this.store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
+          <p v-if="store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
             Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. You can choose to ignore this, but otherwise you can try lowering canvas width or increasing covers per row.
             <gb-input style="display: none;" warning="1"></gb-input>
           </span></p>
@@ -867,7 +867,7 @@
           size="small"
           v-model="store.canvas.zoomOutputs"
           label="Output with zoomed scale"
-          :warning="(this.store.canvas.zoom > 0 && this.store.canvas.zoom != 1) ? outputWidthZoomSize : null"
+          :warning="(store.canvas.zoom > 0 && store.canvas.zoom != 1) ? outputWidthZoomSize : null"
           ></gb-toggle>
           
           <spacer size="medium" :line="false" />

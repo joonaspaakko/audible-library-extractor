@@ -1,13 +1,11 @@
 global.browser = require("webextension-polyfill");
 
-var activeIcons = [];
+import {
+  get,
+} from "lodash";
 
-const get = (obj, path, defValue) => {
-  if (!path) return undefined
-  const pathArray = Array.isArray(path) ? path : path.match(/([^[.\]])+/g)
-  const result = pathArray.reduce((prevObj, key) => prevObj && prevObj[key], obj)
-  return result === undefined ? defValue : result
-}
+var domainExtension = false;
+var activeIcons = [];
 
 browser.runtime.onMessage.addListener(function(msg, sender) {
   if ( msg.pageAction == true && !browser.runtime.lastError ) {
@@ -89,7 +87,6 @@ browser.runtime.onMessage.addListener((message, sender) => {
 });
 
 // CONTEXT MENU
-var domainExtension;
 browser.tabs.onActivated.addListener((activeInfo) => {
   
   if ( !browser.runtime.lastError ) {
@@ -117,29 +114,36 @@ function makeContextMenu() {
   // Permission: "storage"
   browser.storage.local.get(null).then(data => {
     
+    var dataExists = typeof data === 'object' && data.chunks && data.chunks.length > 0;
+    domainExtension = _.get(data, 'extras.domain-extension');
+    data = null;
+    
     // https://developer.chrome.com/docs/extensions/reference/contextMenus/
     // Permissions: contextMenus
     browser.contextMenus.removeAll();
     
-    var dataExists = typeof data === 'object' && data.chunks && data.chunks.length > 0;
-    domainExtension = get( data, 'extras.domain-extension' );
-    data = null;
+    if ( domainExtension ) {
+      browser.contextMenus.create({
+        id: 'ale-to-audible',
+        title: "1. Audible"+ domainExtension +"/library",
+        contexts: ["all"]
+      });
+    }
     
     if ( dataExists ) {
       browser.contextMenus.create({
         id: 'ale-to-gallery',
-        title: "1. Extension gallery",
+        title: "2. Extension gallery",
         contexts: ["all"]
       });
     }
     
-    if ( domainExtension ) {
-      browser.contextMenus.create({
-        id: 'ale-to-audible',
-        title: "2. Audible"+ domainExtension +"/library",
-        contexts: ["all"]
-      });
-    }
+    browser.contextMenus.create({
+      id: 'separator-1',
+      type: "separator",
+      contexts: ["all"]
+    });
+    
     
     browser.contextMenus.create({
       id: 'ale-to-docs',
@@ -172,12 +176,13 @@ browser.contextMenus.onClicked.addListener((info, tab) => {
     openerTabId: tab.id
   };
   
-  if ( info.menuItemId === 'ale-to-gallery' ) {
-    newTab.url = "./gallery/index.html";
+  if ( info.menuItemId === 'ale-to-audible' ) {
+    console.log( domainExtension );
+    newTab.url = "https://audible"+ domainExtension +"/library/titles";
     browser.tabs.create(newTab);
   }
-  else if ( info.menuItemId === 'ale-to-audible' ) {
-    newTab.url = "https://audible"+ domainExtension +"/library/titles";
+  else if ( info.menuItemId === 'ale-to-gallery' ) {
+    newTab.url = "./gallery/index.html";
     browser.tabs.create(newTab);
   }
   else if ( info.menuItemId === 'ale-to-docs' ) {

@@ -160,34 +160,39 @@ export default {
     
     filterAmounts: function( ) {
       
-      this.$root.$emit('repositionSearchOpts');
+      this.$root.$emit('repositionSearchOpts'); // potentially changes the width of the container...
       
-      const vue = this;
-      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
-      
-      let conditionCheck = function( book ) {
+      let isRegularFilter = !(this.item.range || this.item.dropdownOpts); 
+      let specialFilterIsActive = (!isRegularFilter && this.item.active === true);
+      if ( isRegularFilter || specialFilterIsActive ) {
         
-        let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
-          return !!filter.condition( book );
-        });
+        const vue = this;
+        const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
         
-        return !_.includes( filterExtrasConditions, false );
-        
-      };
-      
-      // I could just do "this.$store.getters.collection", but it would've shown 0 for unchecked regular filters.
-      // So with this change even unchecked regular filters show a number... So you kinda know what you're missing.
-      let collection = this.item.type === 'filter' ? 
-          (
-            this.$store.getters.searchIsActive ? 
-              this.$store.state.searchCollection : 
-              this.$store.getters.collectionSource 
-          ) : 
-          this.$store.getters.collection;
+        let conditionCheck = function( book ) {
           
-      return _.filter( collection, function(book) {
-        return vue.item.condition(book) && conditionCheck( book );
-      }).length;
+          let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
+            return !!filter.condition( book );
+          });
+          
+          return !_.includes( filterExtrasConditions, false );
+          
+        };
+        
+        // I could just do "this.$store.getters.collection", but it would've shown 0 for unchecked regular filters.
+        // So with this change even unchecked regular filters show a number... So you kinda know what you're missing.
+        let collection = this.item.type === 'filter' ? 
+            (this.$store.getters.searchIsActive ? this.$store.state.searchCollection : this.$store.getters.collectionSource ) : 
+            this.$store.getters.collection;
+            
+        return _.filter( collection, function(book) {
+          return vue.item.condition(book) && conditionCheck( book );
+        }).length;
+        
+      }
+      else {
+        return 0;
+      }
       
     },
     
@@ -601,7 +606,12 @@ export default {
     opacity: 0.35;
   }
   
-  &.faux-disabled.is-dropdown .input-label { text-decoration: none; }
+  &.faux-disabled {
+    &.ranged,
+    &.is-dropdown {
+      .input-label { text-decoration: none; }
+    }
+  }
   
   .books-in-filter {
     vertical-align: middle;

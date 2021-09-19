@@ -47,7 +47,7 @@
           <div class="linky-links">
             <b-button size="is-small" @click="unselectAll">unselect all</b-button>
             <b-button size="is-small" @click="selectAll">select all</b-button>
-            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is never reset automatically so that you have more control over it.</div>'>reset new books</b-button>
+            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is only ever reset automatically when you clear library data or press this button.</div>'>reset new books</b-button>
             <b-button size="is-small" @click="exportRawData" :type="exportRawDataDisabled ? 'is-warning' : null" :disabled="exportRawDataDisabled">Export raw data</b-button>
             <b-button size="is-small">
               <label>

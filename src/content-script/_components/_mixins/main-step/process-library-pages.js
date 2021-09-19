@@ -1,3 +1,5 @@
+import _ from "lodash";
+
 export default {
   methods: {
     getDataFromLibraryPages: function(hotpotato, libraryPagesFetched) {
@@ -30,8 +32,10 @@ export default {
             done: function(books) {
               vue.$nextTick(function() {
                 
+                hotpotato.books = books;
+                
                 // Removes unnecessary data from series and collections durin a partial extraction
-                if ( vue.storageHasData.books ) {
+                if ( hotpotato.books && hotpotato.books.length ) {
                   const changedBooks = _.xorBy( hotpotato.books, books, 'asin');
                   if ( changedBooks.length > 0 ) {
                     let removedBooks = _.filter( changedBooks, function( book ) { return !book.isNewThisRound; });
@@ -40,9 +44,18 @@ export default {
                       vue.removeFromCollections( hotpotato.collections, removedBooks );
                     }
                   }
+                  if ( hotpotato.wishlist && hotpotato.wishlist.length > 0 ) {
+                    let newBooks = _.filter( hotpotato.books, 'isNewThisRound');
+                    if ( newBooks.length > 0 ) {
+                      newBooks = _.map(newBooks, 'asin');
+                      _.remove( hotpotato.wishlist, function( wBook ) {
+                        return _.includes(newBooks, wBook.asin);
+                      });
+                    }
+                  }
                 }
                 
-                hotpotato.books = books;
+                
                 hotpotato.config.getStorePages = 'books';
                 libraryPagesFetched(null, hotpotato);
                   

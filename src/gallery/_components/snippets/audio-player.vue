@@ -135,7 +135,7 @@ export default {
   width: 100%;
   text-align: center;
   margin: 0 auto !important;
-  margin-top: 5px !important;
+  margin-top: 0 !important;
   padding: 11px 20px;
   box-sizing: border-box;
   @include themify($themes) {
@@ -212,6 +212,9 @@ export default {
     display: block;
     font-size: 14px;
     line-height: 17px;
+    @include themify($themes) {
+      color: themed(frontColor);
+    }
   }
   
 }

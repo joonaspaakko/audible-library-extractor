@@ -156,55 +156,55 @@ export default {
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
 
-html.theme-dark #ale-background:after {
-  $bgColor: $darkBackColor;
+// html.theme-dark #ale-background:after {
+//   $bgColor: $darkBackColor;
   
-  background: -moz-linear-gradient(
-    top,
-    rgba($bgColor, 0) 0%,
-    rgba($bgColor, 0.6) 24%,
-    $bgColor 78%,
-    $bgColor 100%
-  );
-  background: -webkit-linear-gradient(
-    top,
-    rgba($bgColor, 0) 0%,
-    rgba($bgColor, 0.6) 24%,
-    $bgColor 78%,
-    $bgColor 100%
-  );
-  background: linear-gradient(
-    to bottom,
-    rgba($bgColor, 0) 0%,
-    rgba($bgColor, 0.6) 24%,
-    $bgColor 78%,
-    $bgColor 100%
-  );
-}
+//   background: -moz-linear-gradient(
+//     top,
+//     rgba($bgColor, 0) 0%,
+//     rgba($bgColor, 0.6) 24%,
+//     $bgColor 78%,
+//     $bgColor 100%
+//   );
+//   background: -webkit-linear-gradient(
+//     top,
+//     rgba($bgColor, 0) 0%,
+//     rgba($bgColor, 0.6) 24%,
+//     $bgColor 78%,
+//     $bgColor 100%
+//   );
+//   background: linear-gradient(
+//     to bottom,
+//     rgba($bgColor, 0) 0%,
+//     rgba($bgColor, 0.6) 24%,
+//     $bgColor 78%,
+//     $bgColor 100%
+//   );
+// }
 
-html.theme-light #ale-background:after {
-  background: -moz-linear-gradient(
-    top,
-    rgba($lightBackColor, 0) 0%,
-    rgba($lightBackColor, 0.6) 24%,
-    $lightBackColor 78%,
-    $lightBackColor 100%
-  );
-  background: -webkit-linear-gradient(
-    top,
-    rgba($lightBackColor, 0) 0%,
-    rgba($lightBackColor, 0.6) 24%,
-    $lightBackColor 78%,
-    $lightBackColor 100%
-  );
-  background: linear-gradient(
-    to bottom,
-    rgba($lightBackColor, 0) 0%,
-    rgba($lightBackColor, 0.6) 24%,
-    $lightBackColor 78%,
-    $lightBackColor 100%
-  );
-}
+// html.theme-light #ale-background:after {
+//   background: -moz-linear-gradient(
+//     top,
+//     rgba($lightBackColor, 0) 0%,
+//     rgba($lightBackColor, 0.6) 24%,
+//     $lightBackColor 78%,
+//     $lightBackColor 100%
+//   );
+//   background: -webkit-linear-gradient(
+//     top,
+//     rgba($lightBackColor, 0) 0%,
+//     rgba($lightBackColor, 0.6) 24%,
+//     $lightBackColor 78%,
+//     $lightBackColor 100%
+//   );
+//   background: linear-gradient(
+//     to bottom,
+//     rgba($lightBackColor, 0) 0%,
+//     rgba($lightBackColor, 0.6) 24%,
+//     $lightBackColor 78%,
+//     $lightBackColor 100%
+//   );
+// }
 
 #ale-background {
   position: fixed;
@@ -212,7 +212,7 @@ html.theme-light #ale-background:after {
   left: -3.05%;
   right: -3.05%;
   top: 0;
-  opacity: 0.25;
+  // opacity: 0.25;
   text-align: center;
   font-size: 0px;
   line-height: 0px;
@@ -274,6 +274,7 @@ html.theme-light #ale-background:after {
     }
   }
 }
+/*
 // In ios, the gradient "mask" flickers when a cover animates behind it.
 // Fix: hide it on IOS and use mask-image instead..
 @supports (-webkit-touch-callout: none) {
@@ -290,6 +291,12 @@ html.theme-light #ale-background:after {
       to(rgba(0, 0, 0, 0))
     ) !important;
   }
+}
+*/
+#ale-background {
+  opacity: 0.25;
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 19%,rgba(0,0,0,0) 92%,rgba(0,0,0,0) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 19%,rgba(0,0,0,0) 92%,rgba(0,0,0,0) 100%);
 }
 
 .theme-dark #ale-background:after {
