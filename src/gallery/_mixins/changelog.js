@@ -12,7 +12,7 @@ export default {
           changes: [
             { 
               link: { text: 'New documentation', href: 'https://joonaspaakko.gitbook.io/audible-library-extractor/' }, 
-              description: '<a href="https://joonaspaakko.gitbook.io/audible-library-extractor/" target="_blank">https://joonaspaakko.gitbook.io/audible-library-extractor/</a>',
+              description: '<a href="https://joonaspaakko.gitbook.io/audible-library-extractor/" target="_blank" rel="noopener noreferrer">https://joonaspaakko.gitbook.io/audible-library-extractor/</a>',
               highlight: true,
               class: 'info'
             },

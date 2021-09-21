@@ -141,22 +141,22 @@
         size="is-small">
       </b-icon> -->
       
-      <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/releases/latest" v-tippy content="It may take a few days for a new release to propagate from Github to Firefox and Chrome web store.">
+      <a target="_blank" rel="noopener noreferrer" href="https://github.com/joonaspaakko/audible-library-extractor/releases/latest" v-tippy content="It may take a few days for a new release to propagate from Github to Firefox and Chrome web store.">
         <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20release (Github)&color=6e41bf" alt="">
       </a>
-      <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/releases/latest">
+      <a target="_blank" rel="noopener noreferrer" href="https://github.com/joonaspaakko/audible-library-extractor/releases/latest">
         <img src="https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20release&color=6e41bf" alt="">
       </a>
-      <a target="_blank" href="https://github.com/joonaspaakko/audible-library-extractor/labels/bug">
+      <a target="_blank" rel="noopener noreferrer" href="https://github.com/joonaspaakko/audible-library-extractor/labels/bug">
         <img src="https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug?label=known bugs&color=6e41bf" alt="">
       </a>
 
       <br>
       
-      <a target="_blank" href="https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall">
+      <a target="_blank" rel="noopener noreferrer" href="https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall">
         <img src="https://img.shields.io/chrome-web-store/v/deifcolkciolkllaikijldnjeloeaall?color=2acb41&label=latest%20release (Chrome)" alt="">
       </a>
-      <a target="_blank" href="https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/">
+      <a target="_blank" rel="noopener noreferrer" href="https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/">
         <img src="https://img.shields.io/amo/v/audible-library-extractor?label=latest%20release (Firefox)" alt="">
       </a>
       
@@ -535,7 +535,7 @@ export default {
         
         vue.exportRawDataDisabled = false;
         vue.$buefy.notification.open({
-          message: 'Data export failed',
+          message: 'Data export failed. Reload the page and try again.',
           type: 'is-danger',
           position: 'is-top',
           closable: false,
@@ -987,7 +987,7 @@ export default {
             let linkText;
             if ( change.link ) linkText = change.highlight ? ('<strong>' + change.link.text + '</strong>') : change.link.text;
             changelogInnerHTML += '<li class="'+ (change.class || '') +'">'+
-              (change.link ? '<a target="_blank" href="'+ change.link.href +'">'+ linkText +'</a>: ' : '') + 
+              (change.link ? '<a target="_blank" rel="noopener noreferrer" href="'+ change.link.href +'">'+ linkText +'</a>: ' : '') + 
               (change.description || '')
             +'</li>';
           }

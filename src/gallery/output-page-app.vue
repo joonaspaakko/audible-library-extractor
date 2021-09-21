@@ -1,5 +1,9 @@
 <template>
   <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }">
+        
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
     <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
     <ale-navigation :key="'nav-'+$route.params+$route.name+$store.state.viewRefresh"></ale-navigation>
@@ -182,8 +186,6 @@ html.theme-light {
   background-color: $lightBackColor;
 }
 
-@import url("https://fonts.googleapis.com/css2?family=Montserrat:ital,wght@0,400;0,700&display=swap");
-
 .is-ios .tippy-popper { display: none !important; }
 
   @media ( max-width: 630px ) {
@@ -199,7 +201,7 @@ body {
   margin: 0px;
   -moz-osx-font-smoothing: grayscale;
   -webkit-font-smoothing: antialiased;
-  font-family: "Montserrat", sans-serif !important;
+  font-family: "Roboto", sans-serif !important;
   font-size: 14px !important;
   line-height: 1.55em !important;
 }

@@ -2,7 +2,7 @@
   <a
   v-if="url"
   :href="url"
-  target="_blank"
+  target="_blank" rel="noopener noreferrer"
   :class="{ 'top-right': topRight }"
   >
     <div

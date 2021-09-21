@@ -72,7 +72,7 @@
         
         <div v-if="store.animatedWallpaperMode" style="text-align: center;">
           <spacer size="largest" :line="false" />
-          <gb-button size="mini" :full-width="true" :rounded="true" left-icon="library_books" color="red" target="_blank" href="https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info">Installation instructions</gb-button>
+          <gb-button size="mini" :full-width="true" :rounded="true" left-icon="library_books" color="red" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info">Installation instructions</gb-button>
           <spacer size="largest" :line="false" />          
         </div>
         <spacer v-else size="large" :line="false" />

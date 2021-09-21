@@ -217,9 +217,9 @@ export default {
         }
       }
       else {
-        this.covers.all = require('../../_mixins/getCovers.json');
-        this.covers.all = this.mappy( this.covers.all );
-        this.loadAnimationPreset( 'piano-swipe-fade' );
+        // this.covers.all = require('../../_mixins/getCovers.json');
+        // this.covers.all = this.mappy( this.covers.all );
+        // this.loadAnimationPreset( 'piano-swipe-fade' );
       }
       
       this.covers.allOriginal = JSON.parse(JSON.stringify( this.covers.all )); 

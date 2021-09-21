@@ -30,7 +30,10 @@ export default new Vuex.Store({
       exportSettingsCSVcompatibility: null,
       booksInSeriesAll: false,
       booksInSeriesFinished: true,
+      booksInSeriesOpenInApp: true,
       subPageSource: 'books',
+      bookDetailsCollapsedCover: false,
+      bookDetailsCollapsedDetails: false,
     },
     // States that don't persist
     searchMounted: false,

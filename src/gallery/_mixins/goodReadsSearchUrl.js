@@ -7,10 +7,14 @@ export default {
       // let isbn13 = _.find( this.book.isbns, { type: "ISBN_13" });
       // if ( isbn13 ) isbn13 = isbn13.identifier
       book = book || this.book;
-      const author = book.authors ? (book.authors[0].name + " - ") : '';
-      const title = author + ( book.titleShort || book.title );
-      if ( author && title || title ) {
-        return "https://www.goodreads.com/search?q=" + encodeURIComponent(author && title);
+      const author = book.authors ? (book.authors[0].name + " - ") : (book.obj && book.obj.authors) ? (book.obj.authors[0].name + " - ") : '';
+      const title = book.titleShort || book.title || '';
+      const searchQuery = author + title;
+      if ( book.titleShort || book.title ) {
+        return "https://www.goodreads.com/search?q=" + encodeURIComponent( searchQuery );
+      }
+      else {
+        return null;
       }
       
       // return "https://www.goodreads.com/search?q=" + (isbn10 || isbn13 || encodeURIComponent(authorBook) );

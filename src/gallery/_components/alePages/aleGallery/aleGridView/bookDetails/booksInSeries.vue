@@ -12,19 +12,7 @@
     </div>
     <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
       
-      <div class="list-filter-wrapper">
-        <div class="show-all-toggle" :class="{ active: $store.state.sticky.booksInSeriesAll}" v-if="showAllToggle">
-          <div @click="listFilter('booksInSeriesAll')">
-            <span>Not in library</span> <font-awesome :icon="['fas', 'ban']" />
-          </div>
-        </div>
-        
-        <div class="show-finished" :class="{ active: $store.state.sticky.booksInSeriesFinished}" v-if="showFinishedToggle">
-          <div @click="listFilter('booksInSeriesFinished')">
-            <span>Finished</span> <font-awesome :icon="['fas', 'archive']" />
-          </div>
-        </div>
-      </div>
+      <filters :series="series"></filters>
       
       <div
       class="series-section"
@@ -34,7 +22,7 @@
         <div
         class="series-heading"
         v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom'], maxWidth: 300, allowHTML: true }"
-        content="<div style='text-align: left;'>The total number of books is based on every single listing in the series page, including different versions or bundles with books you may already have.</div>"
+        content="<div style='text-align: left;'>The first number is how many books you have in the series. The total is based on every single listing in the series page, including different versions or bundles with books you may already have.</div>"
         >
           <div class="series-name">
             <router-link 
@@ -58,7 +46,9 @@
         v-if="checkFilter( seriesBook )"
         > 
         
-          <open-in-app :size="14" :book="seriesBook" :muted="true" />
+          <open-in-app v-if="$store.state.sticky.booksInSeriesOpenInApp" :size="14" :book="seriesBook" :muted="true" />
+          <good-reads-link v-else :size="14" :book="seriesBook" :icon="true" :muted="true"  />
+          
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
@@ -75,7 +65,9 @@
 
 <script>
 import openInApp from "@output-comps/snippets/openInApp";
+import goodReadsLink from "@output-comps/snippets/goodReadsLink";
 import booksInSeriesLink from "./booksInSeriesLink.vue";
+import filters from "./booksInSeriesFilters.vue";
 import makeUrl from "@output-mixins/makeFullUrl";
 
 export default {
@@ -84,13 +76,13 @@ export default {
   mixins: [makeUrl],
   components: {
     openInApp,
+    goodReadsLink,
     booksInSeriesLink,
+    filters,
   },
   data: function() {
     return {
       inSeries: false,
-      showAllToggle: false,
-      showFinishedToggle: true,
       series: {
         collection: null,
         toggle: false
@@ -152,11 +144,6 @@ export default {
 
     },
     
-    listFilter: function( key ) {
-      this.$store.commit('stickyProp', { key: key, value: !this.$store.state.sticky[ key ] });
-      // this.series.collection = this.getBooksInSeries();
-    },
-
     getBooksInSeries: function() {
       const vue = this;
       let series = [];
@@ -168,11 +155,7 @@ export default {
           if (allBooksInSeries) {
             
             let booksSource = allBooksInSeries.books;
-            
-            if ( !!allBooksInSeries.allBooks ) {
-              booksSource = allBooksInSeries.allBooks;
-              vue.showAllToggle = true;
-            }
+            if ( !!allBooksInSeries.allBooks ) booksSource = allBooksInSeries.allBooks;
             
             series.push({
               asin: currentSeries.asin,
@@ -396,47 +379,6 @@ export default {
     
   }
   
-  .list-filter-wrapper {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    > div {
-      -webkit-touch-callout: none; 
-      -webkit-user-select: none; 
-      -khtml-user-select: none; 
-      -moz-user-select: none; 
-      -ms-user-select: none; 
-      user-select: none; 
-      // position: relative;
-      // z-index: 1;
-      // height: 10px;
-      text-align: center;
-      > div {
-        outline: none;
-        // position: relative;
-        // top: -6px;
-        // left: 0px;
-        border-radius: 9999px;
-        display: inline-block;
-        padding: 0px 8px;
-        font-size: 12px;
-        cursor: pointer;
-        @include themify($themes) {
-          color: rgba( themed(frontColor), .4);
-          border: 1px solid rgba( themed(frontColor), .4);
-        }
-        svg {
-          margin-left: 2px;
-        }
-      }
-      &.active svg {
-        @include themify($themes) {
-          color: rgba( themed(audibleOrange), .5);
-        }
-      }
-    }
-  }
-  
 }
 
 div.hidden-section-label {
@@ -519,15 +461,6 @@ div.hidden-section {
     .icon, .title {
       opacity: .50 !important;
     }
-  }
-}
-
-.theme-light .my-books-in-series .list-filter-wrapper > div {
-  > div {
-    color: rgba( $lightFrontColor, .9) !important;
-  }
-  &.active svg {
-    color: rgba( $audibleOrange, 1) !important;
   }
 }
 

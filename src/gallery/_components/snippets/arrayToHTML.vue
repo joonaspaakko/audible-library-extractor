@@ -1,10 +1,15 @@
 <template>
   <div :class="identifierClass" v-if="inputDataExists">
-    <strong class="strong-label">{{ label }}:</strong>
+    <strong class="strong-label" v-if="!noLabel">{{ label }}:</strong>
     <span v-for="(item, index) in array" :key="item.name + '(' + index + ')'">
       <span>
-        <span v-if="index !== 0">{{ delim || ", " }}</span>
-        <a :href="makeUrl(label.toLowerCase(), item)" target="_blank">{{
+        <span v-if="index !== 0">
+          <span v-if="chevron" class="chevron">
+            <font-awesome fas icon="chevron-right" />
+          </span>
+          <span v-else>{{ delim || ", " }}</span>
+        </span>
+        <a :href="makeUrl(label.toLowerCase(), item)" target="_blank" rel="noopener noreferrer">{{
           item.name
         }}</a
         ><span v-if="item.bookNumbers" class="book-number">
@@ -29,7 +34,7 @@ export default {
       inputDataExists: null,
     };
   },
-  props: ["label", "array", "delim"],
+  props: ["label", "array", "delim", "noLabel", "chevron"],
   mixins: [makeUrl],
   created: function() {
     this.inputDataExists = this.checkIfArrayHasData();
@@ -48,3 +53,15 @@ export default {
   }
 };
 </script>
+
+<style scoped lang="scss">
+@import "~@/_variables.scss";
+.chevron {
+  @include themify($themes) { color: rgba(themed(frontColor), .7); };
+  font-size: 9px;
+  line-height: 9px;
+  padding-left: 5px;
+  position: relative;
+  top: -1px;
+}
+</style>

@@ -13,42 +13,44 @@
       <div class="summary-meta-top" ref="summaryMetaTop">
           
         <h2 class="book-title">
-          <a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener nofollow noreferrer">
+          <a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener noreferrer">
             {{ book.title }}
           </a>
         </h2>
         
-        <div class="categories" v-if="book.categories">
-          <arrayToHTML v-if="book.categories" label="Categories" :array="book.categories" delim=" > " ></arrayToHTML>
+        <div class="categories" v-if="book.categories" style="margin-top: 4px;">
+          <arrayToHTML v-if="book.categories" label="categories" :noLabel="true" :array="book.categories" :chevron="true"></arrayToHTML>
         </div>
         
         <book-tags v-if="book.tags" :book="book"></book-tags>
         
         <div class="inline-children smoll-text">
-          <div class="release-date" v-if="book.releaseDate">
+          
+          <div class="release-date" v-if="book.releaseDate" style="margin-right: 5px;">
             <span class="strong-label">Released:</span>
             <span>{{ book.releaseDate }}</span>
           </div>
           
-          <div class="info-tag store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why some data is unavailable.">
-            <font-awesome :icon="['fas', 'shopping-bag']" />
-            changed
+          <div>
+            <div class="info-tag store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why some data is unavailable.">
+              <font-awesome :icon="['fas', 'shopping-bag']" />
+              changed
+            </div>
+            <div class="info-tag store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was possibly removed or it became unavailable in your region since it was added. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
+              <font-awesome :icon="['fas', 'shopping-bag']" />
+              missing
+            </div>
+            
+            <div class="info-tag plus-catalog" :class="{ 'plus-catalog-unavailable': book.unavailable }" v-if="book.fromPlusCatalog" v-tippy="{ maxWidth: 300 }" :content="book.unavailable ? 'Used to be in the plus catalog but you no longer have access to it' : 'In the plus catalog'">
+              <font-awesome fas :icon="['fas', 'plus-circle']" />
+              Plus catalog
+            </div>
+            
+            <div class="info-tag whispersync" :class="{ owned: book.whispersync === 'owned' }" v-if="book.whispersync" v-tippy="{ maxWidth: 300 }" :content="book.whispersync === 'owned' ? 'You own the Kindle version' : 'Kindle book available for purchase...'">
+              <font-awesome :icon="['fas', 'headphones-alt']" />
+              whispersync
+            </div>
           </div>
-          <div class="info-tag store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was possibly removed or it became unavailable in your region since it was added. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
-            <font-awesome :icon="['fas', 'shopping-bag']" />
-            missing
-          </div>
-          
-          <div class="info-tag plus-catalog" :class="{ 'plus-catalog-unavailable': book.unavailable }" v-if="book.fromPlusCatalog" v-tippy="{ maxWidth: 300 }" :content="book.unavailable ? 'Used to be in the plus catalog but you no longer have access to it' : 'In the plus catalog'">
-            <font-awesome fas :icon="['fas', 'plus-circle']" />
-            Plus catalog
-          </div>
-          
-          <div class="info-tag whispersync" :class="{ owned: book.whispersync === 'owned' }" v-if="book.whispersync" v-tippy="{ maxWidth: 300 }" :content="book.whispersync === 'owned' ? 'You own the Kindle version' : 'Kindle book available for purchase...'">
-            <font-awesome :icon="['fas', 'headphones-alt']" />
-            whispersync
-          </div>
-          
           
         </div>
         
@@ -120,15 +122,17 @@ export default {
 
   methods: {
     getSummaryMaxHeight: function() {
+      const minHeight = this.$refs.summaryMetaTop.offsetHeight + 260;
       if ( window.innerWidth <= 688 ) {
         if ( this.summaryHTML ) {
-          this.summary.maxHeight = this.$refs.summaryMetaTop.offsetHeight + 260 + "px";
+          this.summary.maxHeight = minHeight + "px";
           this.summary.maxHeightTemp = this.summary.maxHeight;
         }
       } else {
         // this.$nextTick(function() {
           const information = this.detailsEl.querySelector('.information');
-          const informationH = information.offsetHeight;
+          let informationH = information.offsetHeight;
+          if ( informationH < minHeight) informationH = minHeight;
           const summary = this.$refs.summary;
           const summaryH = summary.offsetHeight;
           const summaryTooSwoll = summaryH > informationH;
@@ -216,23 +220,25 @@ export default {
     cursor: default;
     border-radius: 999999px;
     margin-left: 5px;
-    padding: 2px 7px;
+    &:first-of-type { margin-left: 0; }
+    padding: 1px 6px 1px 4px;
     background: #990017;
     color: #fff;
-    svg { display: inline-block; padding-right: 4px; }
+    svg { display: inline-block; padding-right: 3px; }
     display: inline-flex !important; 
     flex-direction: row;
     justify-items: center;
     justify-content: center;
     align-items: center;
     align-content: center;
+    font-size: .9em;
     
     &.store-page-changed {
       background: #bd3f00;
     }
     
     &.store-page-info {
-      padding: 2px;
+      // padding: 2px;
       background: #252525;
     }
     

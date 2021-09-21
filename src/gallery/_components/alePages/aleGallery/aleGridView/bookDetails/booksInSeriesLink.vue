@@ -1,6 +1,6 @@
 <template>
   <div class="linky">
-    <a v-if="book.notInLibrary && book.asin" class="clickety-click cursor-alias" target="_blank" :href="makeUrl('book', book.asin)"
+    <a v-if="book.notInLibrary && book.asin" class="clickety-click cursor-alias" target="_blank" rel="noopener noreferrer" :href="makeUrl('book', book.asin)"
     :content="book.title !== book.titleShort ? book.title : false" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
     >
       <span class="numbers">{{ book.bookNumbers }}</span>

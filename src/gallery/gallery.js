@@ -133,7 +133,7 @@ let routesPrep = function( libraryData ) {
       });
     }
     // Extension-gallery SUBPAGES
-    else if ( libraryData.books ) {
+    else if ( libraryData.books || libraryData.wishlist ) {
       _.each(subPages, function( subPage ) {
         routes.push( subPage );
       });
@@ -249,8 +249,7 @@ let routesPrep = function( libraryData ) {
           _.get(from, 'query.book') !== _.get(to, 'query.book') || 
           from.query.subPageSource !== to.query.subPageSource 
         ) {
-                    
-          console.log( 'TEST=' );
+          
           if ( to.meta.subPage ) {
             if ( to.query.subPageSource === 'wishlist' || !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist' ) {
               getJSON( next, [
@@ -647,14 +646,19 @@ function vuexPrep( libraryData ) {
     }
   });
   
-  store.commit("prop", { key: "library", value: libraryData, freeze: standalone ? false : true });
-  store.commit("prop", { key: "standalone", value: !!standalone });
-  store.commit("prop", { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches });
-  store.commit("prop", { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] });
-  store.commit("prop", { key: "extractSettings", value: libraryData.config });
+  
+  store.commit("prop", [
+    { key: "library", value: libraryData, freeze: standalone ? false : true },
+    { key: "standalone", value: !!standalone },
+    { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches },
+    { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] },
+    { key: "extractSettings", value: libraryData.config },
+  ]);
   
   if      ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'books'    });
   else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
+  
+  if ( !libraryData.books && libraryData.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
   
   const { version } = require('../../package.json');
   store.commit("prop", { key: "version", value: version });

@@ -1,8 +1,8 @@
 <template>
   <a
-  v-if="url"
+  v-if="url || muted"
   :href="url"
-  target="_blank"
+  target="_blank" rel="noopener noreferrer"
   class="audible-app-link"
   :class="{ 'muted': muted, 'placeholder': !book.asin }"
   :tabindex="muted ? 0 : -1"
@@ -31,7 +31,7 @@ export default {
     };
   },
   created: function() {
-    if ( this.muted || (this.book && this.book.asin) ) {
+    if ( _.get(this.book, 'asin') ) {
       this.url = 'https://smart.link/o3waqx4wg1gdn?asin=' + this.book.asin;
     }
   }

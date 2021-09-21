@@ -57,19 +57,19 @@ export default {
         });
       } catch(e) {
         
-        let coversArray = require('./getCovers.json');
-        coversArray = this.mappy( coversArray );
-        vue.$store.commit("update", [
-          { key: "covers", value: coversArray },
-          { key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) },
-        ]);
+        // let coversArray = require('./getCovers.json');
+        // coversArray = this.mappy( coversArray );
+        // vue.$store.commit("update", [
+        //   { key: "covers", value: coversArray },
+        //   { key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) },
+        // ]);
         
-        if ( coversArray.length ) {
-          vue.dataReady = true;
-        }
-        else {
-          vue.noCovers = true;
-        }
+        // if ( coversArray.length ) {
+        //   vue.dataReady = true;
+        // }
+        // else {
+        //   vue.noCovers = true;
+        // }
         
       }
       

@@ -27,12 +27,12 @@
             <!-- <a :href="makeLinkToSeries({ 
               name: 'series', 
               params: { series: series.asin }, 
-            })" target="_blank">
+            })" target="_blank" rel="noopener noreferrer">
               {{ series.name }}
             </a> -->
             
             <router-link v-if="$route.name !== 'series'" 
-            :to="{ name: 'series', params: { series: series.asin } }" target="_blank">
+            :to="{ name: 'series', params: { series: series.asin } }" target="_blank" rel="noopener noreferrer">
               {{ series.name }}
             </router-link>
             <a v-else href="#" @click.prevent="goToBookInSeries( series )">
@@ -57,7 +57,7 @@
           name: 'series', 
           params: { series: series.asin }, 
           query: { book: book.asin }, 
-        }" target="_blank">
+        }" target="_blank" rel="noopener noreferrer">
           
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />

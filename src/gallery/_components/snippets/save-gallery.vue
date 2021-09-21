@@ -27,18 +27,18 @@
             <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
         </button>
         <div>
-          <a class="github-btn" target="_blank" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github"> 
+          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github"> 
             <span>Upload instructions</span>
             <font-awesome :icon="['fab', 'github']" />
           </a>
-          <a class="github-btn" target="_blank" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/updating-gallery-in-github"> 
+          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/updating-gallery-in-github"> 
             <span>Update instructions</span>
             <font-awesome :icon="['fab', 'github']" />
           </a>
         </div>
         <!--
         <div class="file-desc">
-          You can upload the files to Github for free. See instructions <a href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github" target="_blank">here</a>.
+          You can upload the files to Github for free. See instructions <a href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github" target="_blank" rel="noopener noreferrer">here</a>.
         </div>
         -->
       </div>

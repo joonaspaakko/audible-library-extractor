@@ -19,8 +19,17 @@
         
         <div class="top">
           <div class="information" ref="information">
+            
+            <div class="collapse-btn" 
+            v-if="$store.state.windowWidth > 688"
+            v-tippy :content="(!$store.state.sticky.bookDetailsCollapsedCover ? 'Collapse' : 'Expand') + ' cover image.'"
+            :style="{ top: '5px' }"
+            @click="collapseBtnClicked('bookDetailsCollapsedCover')">
+              <font-awesome fas :icon="!$store.state.sticky.bookDetailsCollapsedCover ? 'chevron-up' : 'chevron-down'" />
+            </div>
+            
             <div class="cover-wrap">
-              <a :href="makeUrl('book', book.asin)" target="_blank">
+              <a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener noreferrer">
                 <div class="progressbar">
                   <div class="progress" :style="progressbarWidth(book)">
                     <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
@@ -29,7 +38,7 @@
                 <img 
                   crossorigin="anonymous"
                   class="cover"
-                  v-if="book.cover && $store.state.windowWidth > 688"
+                  v-if="!$store.state.sticky.bookDetailsCollapsedCover && book.cover && $store.state.windowWidth > 688"
                   :src="makeCoverUrl(book.cover)"
                 />
               </a>
@@ -37,8 +46,16 @@
             <div class="progress-info" v-html="progressInfo(book)"></div>
             
             <div class="basic-details">
+              
+              <div class="collapse-btn" 
+              v-tippy :content="(!$store.state.sticky.bookDetailsCollapsedDetails ? 'Collapse' : 'Expand') + ' book details.'"
+              :style="{ top: !$store.state.sticky.bookDetailsCollapsedDetails ? '25px' : '-10px' }" 
+              @click="collapseBtnClicked('bookDetailsCollapsedDetails')">
+                <font-awesome fas :icon="!$store.state.sticky.bookDetailsCollapsedDetails ? 'chevron-up' : 'chevron-down'" />
+              </div>
+              
               <book-info-toolbar :book="book"></book-info-toolbar>
-              <book-basic-info :book="book"></book-basic-info>
+              <book-basic-info :book="book" v-if="!$store.state.sticky.bookDetailsCollapsedDetails"></book-basic-info>
             </div>
             
             <books-in-series :book="book"></books-in-series>
@@ -168,6 +185,13 @@ export default {
     
   },
   methods: {
+    
+    collapseBtnClicked: function( key ) {
+      this.$store.commit('stickyProp', { key: key, value: !this.$store.state.sticky[ key ] });
+      this.$nextTick(() => {
+        this.$root.$emit("resizeSummary");
+      });
+    },
     
     loadJSON: function( afterError )  {
       
@@ -524,8 +548,10 @@ export default {
       background-color: rgba(themed(frontColor), 0.01);
       box-shadow: 0 3px 15px rgba(darken(themed(backColor), 30), 0.8);
     }
+    position: relative;
     border-radius: 3px;
-    overflow: hidden;
+    // overflow: hidden;
+    display: inline-block;
     background-clip: padding-box;
     flex-basis: 280px;
     max-width: 280px;
@@ -576,7 +602,7 @@ export default {
     div.progress-info {
       font-size: 0.9em;
       text-align: center;
-      margin-bottom: 15px;
+      margin-bottom: 15px !important;
       padding: 3px 13px;
       display: flex;
       flex-direction: row;
@@ -593,12 +619,13 @@ export default {
     }
 
     .basic-details {
+      position: relative;
       padding: 0 20px;
       > div {
         &:first-child {
           padding-top: 0;
         }
-        padding-top: 10px;
+        margin-top: 10px;
       }
     }
 
@@ -717,6 +744,48 @@ export default {
   font-size: 18px;
   @include themify($themes) {
     color: rgba(themed(frontColor), 0.1);
+  }
+}
+
+// Makes the collapse/expand buttons easier to work with by making it so that 
+// you can be hovering slightly outside of the information panel and still 
+// show the buttons.
+.information:before {
+  content: '';
+  position: absolute;
+  z-index: 4;
+  left: -35px;
+  width: 35px;
+  height: 100%;
+  // background:rgba(red, .5 ); // for testing
+}
+
+.collapse-btn { display: none; }
+.information:hover .collapse-btn { display: flex; }
+
+.collapse-btn {
+  position: absolute;
+  z-index: 5;
+  top: 5px;
+  left: -23px;
+  width: 22px;
+  height: 28px;
+  justify-items: center;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+  border-radius: 4px 0 0 4px;
+  @include themify($themes) {
+    color: rgba( themed(frontColor), .35);
+    background: rgba( themed(backColor), .25);
+    border: 1px solid rgba( themed(frontColor), .1);
+    border-right: none;
+  }
+  &:hover {
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .90);
+      background: rgba( themed(backColor), .95);
+    }
   }
 }
 </style>

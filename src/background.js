@@ -114,7 +114,14 @@ function makeContextMenu() {
   // Permission: "storage"
   browser.storage.local.get(null).then(data => {
     
+    var libraryExists = false;
+    var wishlistExists = false;
     var dataExists = typeof data === 'object' && data.chunks && data.chunks.length > 0;
+    if ( dataExists ) {
+      libraryExists = data.chunks.lastIndexOf('books') > -1;
+      wishlistExists = data.chunks.lastIndexOf('wishlist') > -1;
+    }
+    console.log(data);
     domainExtension = _.get(data, 'extras.domain-extension');
     data = null;
     
@@ -130,7 +137,7 @@ function makeContextMenu() {
       });
     }
     
-    if ( dataExists ) {
+    if ( libraryExists || wishlistExists ) {
       browser.contextMenus.create({
         id: 'ale-to-gallery',
         title: "2. Extension gallery",
