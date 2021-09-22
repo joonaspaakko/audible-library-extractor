@@ -50,26 +50,6 @@ export default {
             
           });
           
-          // html2canvas(document.querySelector(".editor-canvas"), {
-          //   backgroundColor: vue.store.canvas.background || "rgba(255,255,255,0)",
-          //   logging: false,
-          //   useCORS: true,
-          //   allowTaint: true
-          // }).then(function (canvas) {
-          //   // If I ever need base64 version of the image: canvas.toDataURL("image/png")
-          //   canvas.toBlob(function (blob) {
-              
-          //     saveAs( blob, "ale image"+extension );
-          //     setTimeout(function () {
-          //       vue.$store.commit("update", { key: "saving", value: false });
-          //       vue.$nextTick(function() {
-          //         vue.centerCanvas();
-          //       });
-          //     }, 500);
-              
-          //   }, mimetype, quality);
-            
-          // });
         });
       }
     },

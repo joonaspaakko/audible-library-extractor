@@ -340,7 +340,6 @@
           
           <tippy to="coverNumberTippy">
             Showing <strong>{{ store.coverAmount }}</strong> covers out of a possible <strong>{{ store.covers.length }}</strong>. Excess covers are removed from the tail end.
-            </span>
           </tippy>
           
           <spacer size="default" :line="false" />

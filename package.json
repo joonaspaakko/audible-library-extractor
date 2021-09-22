@@ -15,7 +15,6 @@
     "watch": "npm run build -- --watch"
   },
   "dependencies": {
-    "@caohenghu/vue-colorpicker": "^1.2.4",
     "@fortawesome/fontawesome-svg-core": "^1.2.35",
     "@fortawesome/free-brands-svg-icons": "^5.15.3",
     "@fortawesome/free-regular-svg-icons": "^5.15.3",
@@ -35,11 +34,9 @@
     "dompurify": "^2.3.0",
     "domurl": "^2.3.4",
     "downloadjs": "^1.4.7",
-    "elliptic": "^6.5.4",
     "file-saver": "^2.0.5",
     "fuse.js": "^6.4.6",
     "html-to-image": "^1.7.0",
-    "html2canvas": "^1.1.5",
     "jquery": "^3.6.0",
     "jszip": "^3.7.1",
     "jszip-utils": "^0.1.0",
@@ -75,6 +72,7 @@
     "cross-env": "^7.0.3",
     "css-loader": "^5.2.6",
     "ejs": "^3.1.6",
+    "elliptic": "^6.5.4",
     "file-loader": "^6.2.0",
     "filemanager-webpack-plugin-fixed": "^2.0.9",
     "mini-css-extract-plugin": "^2.1.0",
