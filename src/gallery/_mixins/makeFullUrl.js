@@ -17,6 +17,7 @@ export default {
           break;
         case "author":
           if (input.url) newUrl = base + "/author/" + input.url;
+          else newUrl = base + "/search?searchAuthor=" + encodeURIComponent(input.name);
           break;
         case "narrator":
           if (input.name) newUrl = base + "/search?searchNarrator=" + encodeURIComponent(input.name);

@@ -7,7 +7,7 @@ export default {
         
         const seriesASIN = this.$route.params.series;
         const series = _.find( this.$store.state.library.series, { asin: seriesASIN });
-        const seriesHasBooks = series && series.books && series.books.length > 0;
+        const seriesHasBooks = series && series.books && series.books.length > 0 && this.subPageSource.name == 'books';
         
         if ( seriesHasBooks ) {
           // Add book number sorting + activate sort values
@@ -46,7 +46,7 @@ export default {
             this.pageTitle = series.name;
           }
           if ( !seriesHasBooks ) {
-            this.pageSubTitle = "Couldn't find series order: Using number sort";
+            this.pageSubTitle = "Couldn't find series order: using number sort";
           }
         }
         

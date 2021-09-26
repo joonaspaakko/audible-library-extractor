@@ -19,7 +19,7 @@ export default {
           return axiosRetry.isNetworkOrIdempotentRequestError(error) || error && error.response && error.response.status == "500";
         }
       });
-      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 6 });
+      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 10 });
       
       waterfall(
         [

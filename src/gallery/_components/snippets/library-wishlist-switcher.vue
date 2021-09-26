@@ -27,6 +27,9 @@ export default {
     switcher: function( key ) {
       
       this.$updateQuery({ query: 'subPageSource', value: key });
+      this.$updateQuery({ query: 'filterExtras', value: null });
+      this.$updateQuery({ query: 'sort', value: null });
+      this.$updateQuery({ query: 'sortDir', value: null });
       this.$store.commit('stickyProp', { key: 'subPageSource', value: key });
       
     },
@@ -42,6 +45,8 @@ export default {
   text-align: center;
   // float: right;
   button {
+    font-size: 13px;
+    cursor: pointer;
     box-shadow: 0 2px 7px rgba(#000, .3);
     outline: none;
     padding: 3px 9px;

@@ -61,10 +61,10 @@ export default {
     this.$store.commit('prop', { key: 'siteOnline', value: navigator.onLine });
     window.addEventListener('offline', function() {
       vue.$store.commit('prop', { key: 'siteOnline', value: false });
-    });
+    }, { passive: true });
     window.addEventListener('online', function() {
       vue.$store.commit('prop', { key: 'siteOnline', value: true });
-    });
+    }, { passive: true });
     
   },
 
@@ -75,7 +75,7 @@ export default {
       _.debounce( function() { 
         vue.onWindowResize(vue); 
       }, 320, { leading: true, trailing: true })
-    );
+    , { passive: true });
     
     this.showTheBackgroundGrid();
     

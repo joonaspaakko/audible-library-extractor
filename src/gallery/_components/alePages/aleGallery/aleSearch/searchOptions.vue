@@ -63,7 +63,7 @@ export default {
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
     
     if ( this.listName === 'filter' ) {
-      let topNav = document.querySelector('#ale-navigation.regular');
+      let topNav = document.querySelector('#nav-outer-wrapper.regular .inner-wrap');
       this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
     }
     
@@ -73,9 +73,6 @@ export default {
     
     // Reposition options list
     this.repositionSearchOptions();
-    // Start listening for an outside click...
-    if (this.listName) document.addEventListener("click", this.outsideClick);
-    if (this.listName) document.addEventListener("touchend", this.outsideClick);
     this.$root.$on("repositionSearchOpts", this.repositionSearchOptions);
     this.$root.$on("afterWindowResize", this.repositionSearchOptions);
 
@@ -83,9 +80,6 @@ export default {
 
   beforeDestroy: function() {
     
-    // Start listening for an outside click...
-    document.removeEventListener("click", this.outsideClick);
-    document.removeEventListener("touchend", this.outsideClick);
     this.$root.$off("repositionSearchOpts", this.repositionSearchOptions);
     this.$root.$off("afterWindowResize", this.repositionSearchOptions);
     
@@ -106,23 +100,12 @@ export default {
       
     },
     
-    outsideClick: function(e) {
-      const vue = this;
-      if ( vue.listName && !this.$store.state.searchOptCloseGuard ) {
-        var options = e.target.closest(".search-options-inner-wrap");
-        var optionsBtn = e.target.closest(".search-opt-btn");
-        if (!(options || optionsBtn) ) {
-          vue.$emit("update:listName", false);
-        }
-      }
-    },
-    
     repositionSearchOptions: _.debounce(function() {
       
       this.$nextTick(function() {
         
         if ( this.listName === 'filter' ) {
-          let topNav = document.querySelector('#ale-navigation.regular');
+          let topNav = document.querySelector('#nav-outer-wrapper.regular .inner-wrap');
           this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
         }
         
@@ -189,7 +172,7 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  padding-bottom: 250px !important;
+  padding-bottom: 100px !important;
   
   .search-options-inner-wrap {
     position: relative;

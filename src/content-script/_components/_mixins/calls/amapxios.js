@@ -14,7 +14,7 @@ export default {
           return axiosRetry.isNetworkOrIdempotentRequestError(error) || error && error.response && ( error.response.status == "500" || error.response.status == "400" );
         }
       });
-      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 6 });
+      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 10 });
       
       asyncMap(
         options.requests,

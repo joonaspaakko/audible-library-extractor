@@ -35,10 +35,6 @@ export default {
   created: function() {
     if (this.book) {
       this.goodreadsUrl = this.makeGoodReadsUrl();
-      console.log( this.goodreadsUrl );
-      // console.log(  )
-      // console.log( this.book )
-      // console.log( this.goodreadsUrl )
     }
   }
 };

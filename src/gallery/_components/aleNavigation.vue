@@ -211,7 +211,7 @@ export default {
   
   created: function() {
     this.$root.$on("play-audio", this.playSample);
-    document.addEventListener("mousedown", this.outsideClick);
+    document.addEventListener("mousedown", this.outsideClick, { passive: true });
   },
 
   beforeDestroy: function() {
@@ -335,6 +335,7 @@ export default {
     top: 0;
     right: 0;
     left: 0;
+    box-shadow: 0px 2px 13px rgba(#000, 0.4);
   }
   
   &.mobile-nav #ale-navigation > .inner-wrap { display: none; }
@@ -347,7 +348,6 @@ export default {
       font-size: 21px !important;
     }
   }
-  box-shadow: 2px 0px 13px rgba(#000, 0.5);
   line-height: 0px;
 
   &,

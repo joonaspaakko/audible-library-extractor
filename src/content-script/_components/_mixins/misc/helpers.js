@@ -133,11 +133,14 @@ export default {
       const objArray = [];
       $(elements).each(function() {
         const url = new Url( DOMPurify.sanitize( $(this).attr("href") ), true);
-        var searchNarrator;
-        var searchProvider;
+        let searchAuthor;
+        let searchNarrator;
+        let searchProvider;
+        if (url.query.searchAuthor) searchAuthor = url.query.searchAuthor;
         if (url.query.searchNarrator) searchNarrator = url.query.searchNarrator;
         if (url.query.searchProvider) searchProvider = url.query.searchProvider;
         url.clearQuery();
+        if (searchAuthor) url.query.searchAuthor = searchAuthor;
         if (searchNarrator) url.query.searchNarrator = searchNarrator;
         if (searchProvider) url.query.searchProvider = searchProvider;
         searchNarrator = null;
@@ -148,7 +151,7 @@ export default {
         };
         const minifiedUrl = minifyUrl(url.toString());
         if (minifiedUrl) obj.url = minifiedUrl;
-
+        
         objArray.push(obj);
       });
       return objArray.length > 0 ? objArray : null;
@@ -158,6 +161,7 @@ export default {
           // When the data is rendered the url is formed using the parent key + the asin
           return url.substring(url.lastIndexOf("/") + 1);
         } else if (
+          url.match(/^\/search\?searchAuthor/) ||
           url.match(/^\/search\?searchNarrator/) ||
           url.match(/^\/search\?searchProvider/)
         ) {

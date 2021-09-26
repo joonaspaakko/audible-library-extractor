@@ -287,15 +287,8 @@ export default {
       const hotpotato = {
         config: { test: true, getStorePages: 'books' },
         books: [
-          // { storePageRequestUrl: 'https://www.audible.com/pd/Goon-Squad-Audiobook/B01MFBRCHN', },
-          // { storePageRequestUrl: 'https://www.audible.com/pd/The-Martian-Audiobook/B082BHJMFF', },
-          // { storePageRequestUrl: 'https://www.audible.com/pd/The-Dire-King-Audiobook/B0751GMDXN', },
-          // { storePageRequestUrl: 'https://www.audible.com/pd/Aliens-of-Extraordinary-Ability-Audiobook/B07TXLC1NF', },
-          // { storePageRequestUrl: "https://www.audible.com/pd/B017J3ZQDG"},
-          // { storePageRequestUrl: "https://www.audible.com/pd/B01F7M9KZG"},
-          // { storePageRequestUrl: "https://www.audible.com/pd/B002V8MTGM"},
-          // { storePageRequestUrl: "https://www.audible.com/pd/B07XTNWRFF"},
-          { storePageRequestUrl: "https://www.audible.com/pd/B00YI1CTVU" },
+          { storePageRequestUrl: "https://www.audible.com/pd/B07C7S798P" },
+          { storePageRequestUrl: "https://www.audible.com/pd/B07V5K12WX" },
         ]
       };
 

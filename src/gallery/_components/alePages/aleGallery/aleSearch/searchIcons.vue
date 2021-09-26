@@ -16,9 +16,9 @@
       v-tippy
       :content="item.tooltip"
       @click="openSearchOptions(item, $event)"
+      v-if="showIcon(item)"
     >
       <div
-        v-if="item.name !== 'scope' && $store.state.listRenderingOpts[ item.name ].length > 0 || item.name === 'scope' && $store.state.listRenderingOpts[ item.name ].length > 1"
         class="search-opt-btn"
         :data-option="item.name"
         :class="{ active: listName === item.name, 'active-filters': item.name === 'filter' && filtersActive }"
@@ -65,11 +65,13 @@ export default {
     // totalTitle: function() {
     //   return (( this.$route.meta.title === this.$store.state.pageTitle ) ? this.$store.state.pageTitle : (this.$store.state.pageTitle ? (this.$route.meta.title + ' - ' + this.$store.state.pageTitle) : this.$route.meta.title));
     // },
-    filtersActive : function() {
+    filtersActive: function() {
       return this.$store.getters.filterExtrasKeys || (this.$store.getters.filterKeys !== 'notStarted,started,finished' && this.$store.getters.filterKeysLength );
     },
+    
   },
   methods: {
+    
     openSearchOptions: function(clickedOption, e) {
       const listBeforeClick = this.listName;
       this.$emit("update:listName", false);
@@ -78,7 +80,37 @@ export default {
           this.$emit("update:listName", clickedOption.name);
         });
       }
-    }
+    },
+    
+    showIcon: function( item ) {
+      switch ( item.name ) {
+        case 'scope':
+          return this.$store.state.listRenderingOpts[ item.name ].length > 0;
+          break;
+          
+        case 'filter':
+          let noRegularFilters = !this.$store.getters.regularFilters;
+          return _.filter( this.$store.state.listRenderingOpts[ item.name ], function( filter ) {
+            
+            let isDivider = filter.type === 'divider';
+            let isFilter = noRegularFilters ? true : filter.type === item.name;
+            return !isDivider && isFilter;
+            
+          }).length > 0;
+          break;
+          
+        case 'sort':
+          return _.filter( this.$store.state.listRenderingOpts[ item.name ], function( filter ) {
+            
+            let isDivider = filter.type === 'divider';
+            let isFilter = filter.type === item.name;
+            return !isDivider && isFilter;
+            
+          }).length > 0;
+          break;
+      }
+    },
+    
   }
 };
 </script>

@@ -21,7 +21,6 @@
 
 <script>
 import makeUrl from "@output-mixins/makeFullUrl";
-import { faBullseye } from '@fortawesome/free-solid-svg-icons';
 
 export default {
   name: "booksInSeriesLink",

@@ -21,9 +21,16 @@ export default {
         params.books, 
           function(o) {
             
+            let numberize = function( allNumbers ) {
+              if (_.isEmpty( allNumbers ) || !allNumbers ) allNumbers = undefined;
+              const numbers = _.isArray(allNumbers) ? allNumbers[0] : allNumbers;
+              const dashSplit = typeof numbers == "string" ? numbers.split("-") : [numbers];
+              return dashSplit[0] ? parseFloat(dashSplit[0]) : dashSplit[0];
+            };
+            
             if ( seriesAsin && o.series ) {
               let activeSeries = _.find( o.series, { asin: seriesAsin });
-              return _.isArray(activeSeries.bookNumbers) ? activeSeries.bookNumbers[0] : undefined;
+              return numberize(activeSeries.bookNumbers);
             }
             else {
                 
@@ -33,11 +40,7 @@ export default {
                 let allNumbers = _.filter( o.series, 'bookNumbers')
                 allNumbers = _.map( allNumbers, 'bookNumbers')
                 allNumbers = _.flatten( allNumbers );
-                if (_.isEmpty( allNumbers ) ) allNumbers = null;
-                
-                const numbers = _.isArray(allNumbers) ? allNumbers[0] : allNumbers;
-                const dashSplit = typeof numbers == "string" ? numbers.split("-") : [numbers];
-                return parseFloat(dashSplit[0]);
+                return numberize( allNumbers );
               } 
               else {
                 

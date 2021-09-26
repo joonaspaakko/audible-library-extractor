@@ -8,7 +8,7 @@
       class="single-box"
       :data-name="item.name"
       v-if="item.name"
-      :key="'authors:'+item.url"
+      :key="'authors:'+item.name"
       >
         <router-link :to="{ name: 'author', params: { author: item.url }, query: { subPageSource: subPageSource.name } }">
           
@@ -90,35 +90,39 @@ export default {
       
       // Processed in reverse order so that the "added" order is based on the first book added to the library of each author.
       _.eachRight(vue.subPageSource.collection, function(book) {
-        
         if ( book.authors ) {
           
           _.each(book.authors, function(author) {
-            
-            let authorsAdded = _.find(authorsCollection, { url: author.url });
-            
-            // Author not in the collection so add it with the book...
-            if ( !authorsAdded ) {
-              const newSeries = {
-                name: author.name,
-                url: author.url,
-                added: addedCounter,
-                books: [ book.title || book.shortTitle ],
-              };
+            if ( author.name ) {
               
-              authorsCollection.push( newSeries );
-              ++addedCounter;
+              let authorsAdded = _.find(authorsCollection, { name: author.name });
+              
+              // Author not in the collection so add it with the book...
+              if ( !authorsAdded ) {
+                const newSeries = {
+                  name: author.name,
+                  url: author.url,
+                  added: addedCounter,
+                  books: [ book.title || book.shortTitle ],
+                  narrators: book.narrators,
+                  publishers: book.publishers,
+                  series: book.series,
+                };
+                
+                authorsCollection.push( newSeries );
+                ++addedCounter;
+                
+              }
+              // Series already exists in the collection so just add the book...
+              else {
+                authorsAdded.books.push( book.title || book.shortTitle );
+                return false;
+              }
               
             }
-            // Series already exists in the collection so just add the book...
-            else {
-              authorsAdded.books.push( book.title || book.shortTitle );
-              return false;
-            }
-            
           });
+          
         }
-        
       });
       
       _.reverse( authorsCollection );
@@ -136,9 +140,11 @@ export default {
         scope: [
           { active: true,  key: 'name', tippy: 'Search authors by name' },
           { active: true,  key: 'books', tippy: 'Search authors by book titles' },
+          { active: true,  key: 'narrators.name', tippy: 'Search authors by narrators' },
+          { active: true,  key: 'publishers.name', tippy: 'Search authors by publishers' },
+          { active: true,  key: 'series.name', tippy: 'Search authors by series' },
         ],
         filter: [
-          
           { active: false, type: 'filterExtras', label: 'Number of books', key: 'books', range: [1, (function() {
             let authors = _.get(vue.$store.state, vue.collectionSource);
             let max = _.maxBy( authors, function( author ){ 

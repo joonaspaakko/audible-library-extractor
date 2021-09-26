@@ -172,37 +172,40 @@ function makeContextMenu() {
     
   });
   
+  let hasEvents = browser.contextMenus.onClicked.hasListener(contextEvents);
+  if ( !hasEvents ) browser.contextMenus.onClicked.addListener(contextEvents);
+  
+  function contextEvents( info, tab ) {
+      
+    var newTab = {
+      active: true,
+      index: tab.index + 1,
+      openerTabId: tab.id
+    };
+    
+    if ( info.menuItemId === 'ale-to-audible' ) {
+      console.log( domainExtension );
+      newTab.url = "https://audible"+ domainExtension +"/library/titles";
+      browser.tabs.create(newTab);
+    }
+    else if ( info.menuItemId === 'ale-to-gallery' ) {
+      newTab.url = "./gallery/index.html";
+      browser.tabs.create(newTab);
+    }
+    else if ( info.menuItemId === 'ale-to-docs' ) {
+      newTab.url = "https://joonaspaakko.gitbook.io/audible-library-extractor/";
+      browser.tabs.create(newTab);
+    }
+    else if ( info.menuItemId === 'ale-to-github' ) {
+      newTab.url = "https://github.com/joonaspaakko/audible-library-extractor";
+      browser.tabs.create(newTab);
+    }
+    else if ( info.menuItemId === 'ale-to-github-issues' ) {
+      newTab.url = "https://github.com/joonaspaakko/audible-library-extractor/issues";
+      browser.tabs.create(newTab);
+    }
+      
+  }
 }
 
 
-browser.contextMenus.onClicked.addListener((info, tab) => {
-      
-  var newTab = {
-    active: true,
-    index: tab.index + 1,
-    openerTabId: tab.id
-  };
-  
-  if ( info.menuItemId === 'ale-to-audible' ) {
-    console.log( domainExtension );
-    newTab.url = "https://audible"+ domainExtension +"/library/titles";
-    browser.tabs.create(newTab);
-  }
-  else if ( info.menuItemId === 'ale-to-gallery' ) {
-    newTab.url = "./gallery/index.html";
-    browser.tabs.create(newTab);
-  }
-  else if ( info.menuItemId === 'ale-to-docs' ) {
-    newTab.url = "https://joonaspaakko.gitbook.io/audible-library-extractor/";
-    browser.tabs.create(newTab);
-  }
-  else if ( info.menuItemId === 'ale-to-github' ) {
-    newTab.url = "https://github.com/joonaspaakko/audible-library-extractor";
-    browser.tabs.create(newTab);
-  }
-  else if ( info.menuItemId === 'ale-to-github-issues' ) {
-    newTab.url = "https://github.com/joonaspaakko/audible-library-extractor/issues";
-    browser.tabs.create(newTab);
-  }
-  
-});

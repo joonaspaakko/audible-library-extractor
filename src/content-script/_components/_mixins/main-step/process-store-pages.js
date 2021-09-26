@@ -8,7 +8,7 @@ export default {
         
         const requests = this.prepStorePages(hotpotato, hotpotato.config.getStorePages);
         
-        const storeKey = hotpotato.config.getStorePages;
+        // const storeKey = hotpotato.config.getStorePages;
         
         hotpotato.config.getStorePages = false;
         
@@ -25,14 +25,14 @@ export default {
           
           vue.amapxios({
             requests: requests,
-            returnCatch: true,
+            returnCatch: true, // Returns failed steps in the step() callback in order to mark missing sote page data
             step: function(response, stepCallback, book) {
               delete book.requestUrl;
 
               if (!hotpotato.config.test)
                 vue.$root.$emit("update-progress", { text2: book.title });
 
-              if (response.status >= 400) {
+              if ( !response || response && response.status >= 400) {
                 book.storePageMissing = true;
               } else {
                 vue.getStorePageData(response, book, hotpotato.config.test);
@@ -138,7 +138,17 @@ export default {
         book.sample = isTest ? null : DOMPurify.sanitize(audible.querySelector("#sample-player-" + book.asin + " > button").getAttribute("data-mp3"));
         book.language = bookData.inLanguage ? DOMPurify.sanitize(_.startCase(bookData.inLanguage)) : DOMPurify.sanitize(audible.querySelector(".languageLabel").textContent.trimToColon());
         book.format = DOMPurify.sanitize(audible.querySelector(".format").textContent.trimAll());
-        /*if (!book.series)*/ book.series = vue.getSeries(audible.querySelector(".seriesLabel"));
+        
+        // Decided against this for now since this would never get updated... It's better if I can do this from the lbirary page....
+        // Also couldn't get any results in my test...
+        // if ( storeKey === 'books' && !book.fromPlusCatalog && plusCatalogTag ) {
+        //   let plusCatalogTag = document.querySelector('.bc-badge-group .bc-tag-primary');
+        //   book.inPlusCatalog = plusCatalogTag; // Owned but also in plus catalog...
+        //   console.log('%c' + 'inPlusCatalog' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', book);
+        // }
+        
+        if (!book.series) book.series = vue.getSeries(audible.querySelector(".seriesLabel"));
+        
         const whisperSyncLink = audible.querySelector(".ws4vLabel > a");
         if ( whisperSyncLink ) {
           const whisperSyncIcon = whisperSyncLink.querySelector("img");
@@ -179,11 +189,13 @@ export default {
         // Around July 2020 audible has removed any mention of the added date.
         // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.
         // book.dateAdded   = vue.fixDates( audible.querySelector('#adbl-buy-box-purchase-date > span') );
-    
+        
         vue.getDataFromCarousel(book, audible, "peopleAlsoBought", 5);
         vue.getDataFromCarousel(book, audible, "moreLikeThis", 6);
         // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
+        
         book = _.omitBy(book, _.isNull);
+        
       } 
       else {
         book.storePageMissing = true;

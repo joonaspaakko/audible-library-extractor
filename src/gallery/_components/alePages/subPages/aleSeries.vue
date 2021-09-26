@@ -127,6 +127,9 @@ export default {
                 asin: series.asin,
                 added: addedCounter,
                 books: [book.title || book.shortTitle],
+                authors: book.authors,
+                narrators: book.narrators,
+                publishers: book.publishers,
               };
 
               // Only add if it's in the library series array as well...
@@ -177,19 +180,21 @@ export default {
       let vue = this;
       let list = {
         scope: [
-          {active: true, key: 'name', tippy: 'Search narrators by name'},
-          {active: true, key: 'books', tippy: 'Search narrators by book titles'},
+          {active: true, key: 'name', tippy: 'Search series by name'},
+          {active: true, key: 'books', tippy: 'Search series by book titles'},
+          { active: true,  key: 'authors.name', tippy: 'Search series by authors' },
+          { active: true,  key: 'narrators.name', tippy: 'Search series by narrators' },
+          { active: true,  key: 'publishers.name', tippy: 'Search series by publishers' },
         ],
         filter: [
           {
-            excludeFromWishlist: true,
             active: false,
             type: 'filterExtras',
             label: 'Number of books',
             key: 'inSeries',
             range: [1, (function () {
               let series = _.get(vue.$store.state, vue.collectionSource);
-              let max = _.maxBy(series, function (series) {
+              let max = _.maxBy(series, function (series) { 
                 if (series.books) return series.books.length;
               });
               return max ? max.books.length : 1;
@@ -215,6 +220,7 @@ export default {
             }
           },
           {
+            excludeFromWishlist: true,
             type: 'divider',
             key: 'divider1.0'
           },
@@ -254,6 +260,7 @@ export default {
             },
           },
           {
+            excludeFromWishlist: true,
             type: 'divider',
             key: 'divider1.1'
           },
@@ -261,14 +268,15 @@ export default {
             excludeFromWishlist: true,
             active: false,
             type: 'filterExtras',
-            label: 'Incomplete',
+            label: 'Incomplete series',
             key: 'series-incomplete',
-            tippy: `Series where you don't have all the books`,
+            tippy: "Series where I don't own all the books",
             condition: function (series) {
               return series.allBooksMinusDupes.length > series.books.length;
             }
           },
           {
+            excludeFromWishlist: true,
             type: 'divider',
             key: 'divider1.2'
           },
@@ -276,9 +284,8 @@ export default {
             excludeFromWishlist: true,
             active: false,
             type: 'filterExtras',
-            label: 'Missing latest',
+            label: 'Missing latest book',
             key: 'missing-latest',
-            tippy: `Series where you are missing the latest book`,
             condition: function (series) {
               return series.missingLatest && series.allBooksMinusDupes.length > series.books.length;
             }
@@ -311,10 +318,11 @@ export default {
             type: 'sort',
           },
           {
+            excludeFromWishlist: true,
             active: false,
             current: false,
             key: 'amountTotal',
-            label: 'Total number of books in the series',
+            label: 'Total number of books',
             type: 'sort',
           },
           {
@@ -323,7 +331,7 @@ export default {
             current: false,
             key: 'missing',
             label: 'Missing',
-            tippy: 'Sort by the number of books you are missing in the series',
+            tippy: 'Number of missing books',
             type: 'sort',
           },
         ],
@@ -331,9 +339,11 @@ export default {
       
       if ( this.subPageSource.wishlist ) {
         list.filter = _.filter( list.filter, function( o ) { return !o.excludeFromWishlist; });
-        list.sort = _.filter( list.sort, function( o ) { return !o.excludeFromWishlist; });
+        list.sort = _.filter( list.sort, function( o ) { 
+          return !o.excludeFromWishlist; 
+        });
       }
-
+      
       this.$setListRenderingOpts(list);
 
     },

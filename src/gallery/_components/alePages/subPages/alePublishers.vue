@@ -104,6 +104,9 @@ export default {
                 url: vue.slugify(publisher.name),
                 added: addedCounter,
                 books: [ book.title || book.shortTitle ],
+                authors: book.authors,
+                narrators: book.narrators,
+                series: book.series,
               };
               
               publishersCollection.push( newSeries );
@@ -136,6 +139,9 @@ export default {
         scope: [
           { active: true,  key: 'name', tippy: 'Search publishers by name' },
           { active: true,  key: 'books', tippy: 'Search publishers by book titles' },
+          { active: true,  key: 'authors.name', tippy: 'Search publishers by authors' },
+          { active: true,  key: 'narrators.name', tippy: 'Search publishers by narrators' },
+          { active: true,  key: 'series.name', tippy: 'Search publishers by series' },
         ],
         filter: [
           

@@ -245,7 +245,7 @@ export default {
       
       this.scrollContainer = window;
       this.scrollContainer.removeEventListener('scroll', this.addDomItems);
-      this.scrollContainer.addEventListener('scroll', this.addDomItems);
+      this.scrollContainer.addEventListener('scroll', this.addDomItems, { passive: true });
       
       this.childrenMounted();
       
@@ -254,7 +254,7 @@ export default {
       
       this.scrollContainer = document.querySelector('.list-view-inner-wrap');
       this.scrollContainer.removeEventListener('scroll', this.addDomItems);
-      this.scrollContainer.addEventListener('scroll', this.addDomItems);
+      this.scrollContainer.addEventListener('scroll', this.addDomItems, { passive: true });
       
       this.childrenMounted();
       

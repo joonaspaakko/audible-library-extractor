@@ -11,7 +11,13 @@
     :class="{ 'search-fixed': fixedSearch, 'highlight-search': highlightSearch }"
     >
       
-      <div id="search-dropdown-overlay" v-show="listName"></div>
+      <div id="search-dropdown-overlay" v-show="listName"
+      @mousedown="readyToCloseOpts = true" 
+      @touchstart="readyToCloseOpts = true" 
+      @touchmove="dontCloseOpts"
+      @mouseup="closeOpts"
+      @touchend="closeOpts"
+      ></div>
       
       <div id="ale-search" ref="aleSearch">
         <div class="search-wrapper" @click="$refs.searchInput.focus()">
@@ -22,6 +28,7 @@
             @input="search"
             @keyup.enter="searchEnterBlur"
             :placeholder="placeholder"
+            @focus="listName = false"
           />
         </div>
         
@@ -84,12 +91,13 @@ export default {
       },
       fixedSearch: false,
       highlightSearch: false,
+      readyToCloseOpts: false,
     };
   },
 
   mounted: function() {
     
-    var vue = this;
+    this.listName = false;
     
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);
@@ -111,39 +119,50 @@ export default {
     }
     
     if ( this.$route.query.search ) {
-      const searchQuery = decodeURIComponent(this.$route.query.search);
       if ( this.$route.query.sort ) this.fuseOptions.shouldSort = false;
-      this.search();
+      this.search( this.$event, 'on-load');
     }
     
+    this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable, { passive: true });
     this.$root.$on("ios-auto-zoom-disable", this.iosAutozoomDisable);
-    this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable );
-    
     this.$root.$on("start-scope", this.scope);
     this.$root.$on("start-sort", this.sort);
     this.$root.$on("start-filter", this.filter);
     this.$root.$on("search-focus", this.focusOnSearch);
     this.$store.commit('prop', { key: 'searchMounted', value: true });
-    // this.$root.$on("start-re-render", this.reRender);
     
   },
 
   beforeDestroy: function() {
     
     this.$store.commit("prop", { key: "searchQuery", value: '' });
-    this.$root.$off("ios-auto-zoom-disable", this.iosAutozoomDisable);
     this.$refs.aleSearch.removeEventListener( "touchstart", this.iosAutozoomDisable);
-
+    this.$root.$off("ios-auto-zoom-disable", this.iosAutozoomDisable);
     this.$root.$off("start-scope", this.scope);
     this.$root.$off("start-sort", this.sort);
     this.$root.$off("start-filter", this.filter);
     this.$root.$off("search-focus", this.focusOnSearch);
     this.$store.commit('prop', { key: 'searchMounted', value: false });
-    // this.$root.$off("start-re-render", this.reRender);
     
   },
   
   methods: {
+    
+    dontCloseOpts: _.throttle( function() {
+      if ( this.readyToCloseOpts ) this.readyToCloseOpts = false;
+    }, 40, { leading: false, trailing: true }),
+    
+    closeOpts: function() {
+      if ( this.readyToCloseOpts ) {
+        this.readyToCloseOpts = false;
+        this.$nextTick(function() {
+          let vue = this;
+          setTimeout(function() {
+            vue.listName = false;
+          }, 10); // Timeout prevents mouseup from opening the cover below...
+        });
+      }
+    },
     
     scope: function() {
       this.$root.$emit("book-clicked", { book: null });
@@ -151,7 +170,7 @@ export default {
       if ( this.$store.getters.searchIsActive ) {
         this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
         // this.$nextTick(function() {
-          if ( !this.$store.state.searchSort ) this.fuseOptions.shouldSort = false;
+          if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
           this.search();
         // });
       } 
@@ -164,7 +183,7 @@ export default {
       
       if ( this.$store.getters.searchIsActive ) {
         // this.$nextTick(function() {
-          if ( !this.$store.state.searchSort ) this.fuseOptions.shouldSort = false;
+          if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
           this.search();
         // });
       } 
@@ -177,11 +196,11 @@ export default {
       
     },
     
-    search: _.debounce( function( e, shouldSort ) {
+    search: _.debounce( function( e, onLoad ) {
       
       // Reset 
       const searchQuery = decodeURIComponent(this.$route.query.search);
-      this.$root.$emit("book-clicked", { book: null });
+      if ( !onLoad ) this.$root.$emit("book-clicked", { book: null });
       
       const triggeredByEvent = e;
       if ( triggeredByEvent ) {
@@ -202,14 +221,6 @@ export default {
           this.$updateQuery({ query: 'sortDir', value: activeSorter.active ? "desc" : "asc" });
         }
         
-      }
-      
-      // This was really just for making sure sorters aren't shown as active when searching )
-      if ( this.fuseOptions.shouldSort ) {
-        this.$store.commit("prop", { 
-          key: 'searchSort', 
-          value: this.$store.getters.searchIsActive
-        });
       }
       
       // Start searching

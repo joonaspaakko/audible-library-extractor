@@ -66,7 +66,7 @@
     <b-message v-if="hasData.books || hasData.wishlist || hasData.isbn" type="is-info">
       <strong>Previously extracted data detected: <span style="color: #f7991c;">a faster <span v-tippy="{ allowHTML: true }" content="<div style='display: block; text-align: left;'><ol style='margin-left: 15px;'><li>Updates stored data that is likely to change</li><li>Does a full extract on newly added books</li><li>Clears data of removed books</li></ol><span style='display: inline-block; margin-top: 6px; color: #157df0;'>In the case of ISBN extraction, books that already have ISBNs are ignored. A large amount of books (+100) without the numbers will still take quite a while to extract.</span></div>" style="cursor: default; text-decoration: underline">partial extraction</span> is used</span> <span class="init-show-partial-extraction" style="color: #f7991c;" @mouseover="showPartialExtraction = true" @mouseleave="showPartialExtraction = false">where applicable.</span></strong> 
       <br>
-      If you need to do a <span v-tippy="{ maxWidth: 310 }" content="If the extension is updated, check the changelog to see if there's a recommendation to do a full extract." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
+      If you need to do a <span v-tippy="{ maxWidth: 310 }" content="If the extension is updated, check the changelog (below) to see if there's a recommendation to do a full extract." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
     </b-message>
     
     <div>
@@ -357,7 +357,7 @@ export default {
             type: "is-success",
             tippy: "Library is required in order to extract collections and isbn.",
             trash: this.hasData.books,
-            trashTippy: 'This will also remove ISBN data.',
+            trashTippy: 'This will also remove Collections and ISBN data.',
           },
           {
             name: "collections",
@@ -471,39 +471,31 @@ export default {
       let vue = this;
       let confirmation = window.confirm('Are you sure you want to remove all extracted data?');
       if ( confirmation ) {
+        let errorNotification = function() {
+          vue.loading = false; 
+          vue.$buefy.notification.open({
+            duration: 4000,
+            message: 'Data clear failed',
+            type: 'is-danger',
+            position: 'is-top',
+            closable: false,
+          });
+        };
+        
         browser.storage.local.clear().then(function() {
-          
           browser.storage.local.get(null).then(data => {
             vue.updateViewData(data);
         
             vue.$buefy.notification.open({
+              duration: 4000,
               message: 'Data removed succesfully',
               type: 'is-success',
               position: 'is-top',
               closable: false,
             });
             
-          }).catch(function( err ) {
-            
-            vue.$buefy.notification.open({
-              message: 'Data clear failed',
-              type: 'is-danger',
-              position: 'is-top',
-              closable: false,
-            });
-            
-          });
-          
-        }).catch(function( err ) {
-            
-            vue.$buefy.notification.open({
-              message: 'Data clear failed',
-              type: 'is-danger',
-              position: 'is-top',
-              closable: false,
-            });
-            
-          });
+          }).catch( errorNotification );
+        }).catch( errorNotification );
       };
     },
     
@@ -525,6 +517,7 @@ export default {
         vue.exportRawDataDisabled = false;
         
         vue.$buefy.notification.open({
+          duration: 4000,
           message: 'Data exported succesfully',
           type: 'is-success',
           position: 'is-top',
@@ -535,6 +528,7 @@ export default {
         
         vue.exportRawDataDisabled = false;
         vue.$buefy.notification.open({
+          duration: 4000,
           message: 'Data export failed. Reload the page and try again.',
           type: 'is-danger',
           position: 'is-top',
@@ -554,6 +548,17 @@ export default {
       
       if ( file ) {
         
+        let errorNotification = function() {
+            vue.loading = false; 
+            vue.$buefy.notification.open({
+              duration: 4000,
+              message: 'Data import failed',
+              type: 'is-danger',
+              position: 'is-top',
+              closable: false,
+            });
+        };
+        
         let read = new FileReader();
         read.onload = function( e ) {
           
@@ -561,55 +566,24 @@ export default {
           vue.makeFrenchFries( data );
           
           browser.storage.local.clear().then(() => {
-            
             browser.storage.local.set(data).then(function() {
               
               vue.updateViewData( data );
               
               vue.loading = false; 
               vue.$buefy.notification.open({
+                duration: 4000,
                 message: 'Data imported succesfully',
                 type: 'is-success',
                 position: 'is-top',
                 closable: false,
               });
               
-            }).catch(function( err ) {
-              
-              vue.loading = false; 
-              vue.$buefy.notification.open({
-                message: 'Data import failed',
-                type: 'is-danger',
-                position: 'is-top',
-                closable: false,
-              });
-              
-            });
-            
-          }).catch(function( err ) {
-              
-            vue.loading = false; 
-            vue.$buefy.notification.open({
-              message: 'Data import failed',
-              type: 'is-danger',
-              position: 'is-top',
-              closable: false,
-            });
-            
-          });
+            }).catch(errorNotification);
+          }).catch(errorNotification);
           
         };
-        read.onerror = function( e ) {
-          
-          vue.loading = false; 
-          vue.$buefy.notification.open({
-            message: 'Data import failed',
-            type: 'is-danger',
-            position: 'is-top',
-            closable: false,
-          });
-          
-        };
+        read.onerror = errorNotification;
         read.readAsText(file);
       }
       else {
@@ -621,198 +595,102 @@ export default {
       
       let vue = this;
       switch( setting.name ) {
-        
         case 'library':
-          vue.deleteChunkData( { name: 'books'}, function( data ) {
-            vue.deleteChunkData( { name: 'series'}, function( data ) {
-              
-              data.chunks = _.remove( data.chunks, function( value ) {
-                return value !== 'isbn';
-              });
-              
-              if ( data.config ) {
-                data.config.steps = _.remove( data.config.steps, function( o ) {
-                  return o.name !== 'isbn';
-                });
-              }
-              browser.storage.local.clear().then(() => {
-                browser.storage.local.set(data).then(function() {
-                  
-                  vue.updateViewData( data );
-                  
-                });
-              });
-              
-            });
-          });
+          vue.deleteChunkData(['books', 'series', 'collections']);
           break;
-          
-        case 'collections':
-        case 'wishlist':
-          vue.deleteChunkData( setting );
-          break;
-        
         case 'isbn':
-          vue.loading = false; 
-          browser.storage.local.get(null).then(data => {
-            
-            _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
-              
-              let booksChunk = data[ 'books-chunk-'+index ];
-              _.each( booksChunk, function( book ) {
-                if ( book.isbns ) delete book.isbns;
-              });
-              
-            });
-            
-            if ( data.config ) {
-              data.config.steps = _.remove( data.config.steps, function( o ) {
-                return o.name !== 'isbn';
-              });
-            }
-            
-            browser.storage.local.clear().then(() => {
-              browser.storage.local.set(data).then(() => {
-                
-                let isbnSetting = _.find( vue.extractSettings, { name: 'isbn' });
-                if ( isbnSetting ) isbnSetting.trash = false;
-                
-                vue.updateViewData( data );
-                vue.loading = false; 
-                vue.$buefy.notification.open({
-                  message: `Removed ISBNs`,
-                  type: 'is-success',
-                  position: 'is-top',
-                  closable: false,
-                });
-                
-              }).catch(function( err ) {
-                
-                vue.loading = false; 
-                vue.$buefy.notification.open({
-                  message: `Failed to remove ISBNs`,
-                  type: 'is-danger',
-                  position: 'is-top',
-                  closable: false,
-                });
-                
-              });
-            }).catch(function( err ) {
-              
-              vue.loading = false; 
-              vue.$buefy.notification.open({
-                message: `Failed to remove ISBNs`,
-                type: 'is-danger',
-                position: 'is-top',
-                closable: false,
-              });
-              
-            });
-            
-          }).catch(function( err ) {
-            
-            vue.loading = false; 
-            vue.$buefy.notification.open({
-              message: `Failed to remove ISBNs`,
-              type: 'is-danger',
-              position: 'is-top',
-              closable: false,
-            });
-            
-          });
+          vue.deleteChunkData(['isbn']);
           break;
-        
+        default:
+          vue.deleteChunkData([ setting.name ]);
+          break;
       }
       
     },
     
-    deleteChunkData: function( setting, callback ) {
+    deleteChunkData: function( deleteArray, onSuccess ) {
       
-      let vue = this;
+      let vue = this; 
       vue.loading = true; 
       
-      let settingName = setting.name === 'books' ? 'library' : setting.name;
+      let keysString = deleteArray.join(', ').replace('books', 'library');
+      let errorMsg = "Failed to remove data for: <strong>" + keysString + "</strong>";
+      let successMsg = "Successfully removed data for: <strong>" + keysString + "</strong>";
+      
+      let errorNotification = function() {
+        vue.loading = false; 
+        vue.$buefy.notification.open({
+          duration: 4000,
+          message: errorMsg,
+          type: 'is-danger',
+          position: 'is-top',
+          closable: false,
+        });
+      };
       
       browser.storage.local.get(null).then(data => {
         
-        _.each( _.range( 0, data[ setting.name + '-chunk-length'] ), function( index ) { 
-          delete data[ setting.name + '-chunk-'+index ];
-        });
-        delete data[setting.name + '-chunk-length'];
-        
-        data.chunks = _.remove( data.chunks, function( value ) {
-          return value !== setting.name;
-        });
-        
-        if ( data.config ) {
-          data.config.steps = _.remove( data.config.steps, function( o ) {
-            if ( setting.name === 'books' )
-              return o.name !== 'library';
-            else
-              return o.name !== setting.name;
+        _.each( deleteArray, function( deleteKey ) {
+          
+          let realKey;
+          if ( deleteKey === 'isbn' ) {
+            deleteKey = 'books';
+            realKey = 'isbn';
+          }
+          
+          // REMOVE CHUNK ARRAYS
+          _.each( _.range( 0, data[ deleteKey + '-chunk-length'] ), function( index ) { 
+            if ( realKey === 'isbn' ) {
+              _.each( data[ 'books-chunk-'+index ], function( book ) {
+                if ( book.isbns ) delete book.isbns;
+              });
+            }
+            else {
+              delete data[ deleteKey + '-chunk-'+index ];
+            }
           });
-        }
+          
+          if ( deleteKey !== 'books' || deleteKey === 'books' && realKey !== 'isbn' ) {
+            // REMOVE CHUNK LENGTH
+            delete data[deleteKey + '-chunk-length'];
+            
+            // REMOVE FROM CHUNKS ARRAY (basically array of data point keys)
+            _.remove( data.chunks, function( value ) {
+              return value === deleteKey;
+            });
+          }
+          
+          if ( deleteKey === 'books') {
+            _.remove( data.chunks, function( value ) {
+              return value === 'isbn';
+            });
+          }
+          
+          if ( data.config && data.config.steps ) delete data.config.steps;
+          
+          
+        });
         
         browser.storage.local.clear().then(() => {
           browser.storage.local.set(data).then(() => {
             
-            let s;
-            if ( setting.name === 'books' ) {
-              s = _.find( vue.extractSettings, { name: 'library' });
-              if ( s ) s.trash = false;
-            }
-            else {
-              s = _.find( vue.extractSettings, { name: setting.name });
-              if ( s ) s.trash = false;
-            }
-            
-            if ( data.chunks.indexOf('books') === -1 && data.chunks.indexOf('wishlist') === -1 ) vue.outputPageDisabled = true;
-            
-            if ( callback ) callback( data );
+            if ( onSuccess ) onSuccess( data );
           
-            vue.loading = false; 
-            vue.updateViewData( data );
             vue.$buefy.notification.open({
-              message: `Removed ${settingName} data`,
+              duration: 4000,
+              message: successMsg,
               type: 'is-success',
               position: 'is-top',
               closable: false,
             });
             
-          }).catch(function( err ) {
-            
             vue.loading = false; 
-            vue.$buefy.notification.open({
-              message: `Failed to remove ${settingName} data`,
-              type: 'is-danger',
-              position: 'is-top',
-              closable: false,
-            });
+            vue.updateViewData( data );
             
-          });
-        }).catch(function( err ) {
-          
-          vue.loading = false; 
-          vue.$buefy.notification.open({
-            message: `Failed to remove ${settingName} data`,
-            type: 'is-danger',
-            position: 'is-top',
-            closable: false,
-          });
-          
-        });
+          }).catch( errorNotification );
+        }).catch( errorNotification );
         
-      }).catch(function( err ) {
-        
-        vue.loading = false; 
-        vue.$buefy.notification.open({
-          message: `Failed to remove ${settingName} data`,
-          type: 'is-danger',
-          position: 'is-top',
-          closable: false,
-        });
-        
-      });
+      }).catch( errorNotification );
       
     },
     
@@ -907,6 +785,19 @@ export default {
       
       let confirmation = window.confirm('Are you sure you want to clear new book status?');
       if ( confirmation ) {
+        
+        let vue = this;
+        let errorNotification = function() {
+          vue.loading = false; 
+          vue.$buefy.notification.open({
+            duration: 4000,
+            message: 'Failed to remove "new" status from books',
+            type: 'is-danger',
+            position: 'is-top',
+            closable: false,
+          });
+        };
+        
         browser.storage.local.get(null).then(data => {
           
           _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
@@ -933,37 +824,10 @@ export default {
                 closable: false,
               });
               
-            }).catch(function( err ) {
-              
-              vue.$buefy.notification.open({
-                message: 'Failed to remove "new" status from books',
-                type: 'is-danger',
-                position: 'is-top',
-                closable: false,
-              });
-              
-            });
-          }).catch(function( err ) {
-            
-            vue.$buefy.notification.open({
-              message: 'Failed to remove "new" status from books',
-              type: 'is-danger',
-              position: 'is-top',
-              closable: false,
-            });
-            
-          });
+            }).catch( errorNotification );
+          }).catch( errorNotification );
           
-        }).catch(function( err ) {
-          
-          vue.$buefy.notification.open({
-            message: 'Failed to remove "new" status from books',
-            type: 'is-danger',
-            position: 'is-top',
-            closable: false,
-          });
-          
-        });
+        }).catch( errorNotification );
         
       }
       

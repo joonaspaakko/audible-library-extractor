@@ -62,7 +62,7 @@
             
           </div> <!-- .information -->
 
-          <book-summary :detailsEl="$el" :book="book" :bookSummary="bookSummaryJSON"></book-summary>
+          <book-summary v-if="$el" :detailsEl="$el" :book="book" :bookSummary="bookSummaryJSON"></book-summary>
         </div>
 
         <carousel v-if="!loading && (peopleAlsoBought && peopleAlsoBought !== true) && !($store.state.standalone && !$store.state.siteOnline)" :books="peopleAlsoBought" :key="maxWidth">
@@ -238,19 +238,16 @@ export default {
     },
 
     resetScroll: function() {
-      // this.$nextTick(function() {
-        
-        let topNav = document.querySelector('#ale-navigation.regular');
-        const navigationHeight = topNav ? document.querySelector('#ale-navigation.regular').offsetHeight : 0;
-        const offset = 25;
+      this.$nextTick(function() {
         if ( this.$store.state.sticky.viewMode === 'grid' ) {
-          scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });
+          const topNav = document.querySelector('#nav-outer-wrapper.regular .inner-wrap');
+          const navigationHeight = topNav ? topNav.offsetHeight : 0;
+          scroll({ top: this.clickedBook.offsetTop - navigationHeight - 25 });
         }
         else {
-          document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - navigationHeight - offset });
+          document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 45 });
         }
-        
-      // });
+      });
     },
 
     repositionBookDetails: function() {
@@ -754,8 +751,8 @@ export default {
   content: '';
   position: absolute;
   z-index: 4;
-  left: -35px;
-  width: 35px;
+  left: -50vw;
+  width: 50vw;
   height: 100%;
   // background:rgba(red, .5 ); // for testing
 }
