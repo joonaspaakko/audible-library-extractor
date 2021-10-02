@@ -7,11 +7,11 @@
       This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web browser.
     </div>
     
-    <h3>Pages:</h3>
+    <h3>Include:</h3>
 
     <div class="options opt-groups">
-      <div class="opt-group" v-for="(group, index) in chunkSource" :key="index">
-        <label v-for="item in group" :key="item.key">
+      <div class="opt-group" v-for="(group, groupIndex) in chunkSource" :key="groupIndex" :class="'group-' + groupIndex">
+        <label :class="'item-' + itemIndex" :data-extra="item.extra"  v-for="(item, itemIndex) in group" :key="item.key" v-tippy :content="item.tippy">
           <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)"> {{ item.key }}
         </label>
       </div>
@@ -58,8 +58,8 @@ export default {
         "gallery.js.LICENSE.txt",
         "gallery.css",
         
-        "chunks/384.css",
-        "chunks/384.js",
+        "chunks/68.css",
+        "chunks/68.js",
         "chunks/612.js",
         "chunks/audio-player.css",
         "chunks/audio-player.js",
@@ -109,13 +109,15 @@ export default {
       ],
       dataSources: [
         { checked: true, disabled: false, key: 'Library' },
-        { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
         { checked: true, disabled: false, key: 'Categories', parent: ['Library', 'Wishlist'], subPage: true },
-        { checked: true, disabled: false, key: 'Series', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Authors', parent: ['Library', 'Wishlist'], subPage: true },
-        { checked: true, disabled: false, key: 'Narrators', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Publishers', parent: ['Library', 'Wishlist'], subPage: true },
+        { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
+        { checked: true, disabled: false, key: 'Series', parent: ['Library', 'Wishlist'], subPage: true },
+        { checked: true, disabled: false, key: 'Narrators', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Wishlist' },
+        { checked: true, disabled: true, key: 'Export archived books', extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export and "My books in the series" will list archived books as not owned. This option is disabled if the archive is empty.' },
+        
       ],
       zip: null,
       cacheBuster: null,
@@ -141,6 +143,13 @@ export default {
     librarySource.disabled =  !this.$store.state.library.books;
     let wishlistSource = _.find( this.dataSources, { key: 'Wishlist' });
     wishlistSource.disabled =  !this.$store.state.library.wishlist;
+    
+    let collections = this.$store.state.library.collections;
+    let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
+    if ( archive && archive.books.length > 0  ) {
+      let archivedSource = _.find( this.dataSources, { key: 'Export archived books' });
+      if ( archivedSource ) archivedSource.disabled = false;
+    }
     
   },
   
@@ -174,7 +183,7 @@ export default {
   
   computed: {
     chunkSource: function() {
-      return _.chunk(this.dataSources, 2);
+      return _.chunk(this.dataSources, 4);
     },
   },
   
@@ -412,7 +421,9 @@ export default {
             break;
           
           case "Series":
-            if ( itemDisabled ) delete data.series;
+            if ( itemDisabled ) {
+              delete data.series;
+            }
             break;
             
           case "Collections":
@@ -424,6 +435,47 @@ export default {
               delete data.wishlist;
             }
             break;
+            
+          case "Export archived books":
+            if ( itemDisabled ) {
+              let collections = data.collections;
+              let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
+              if ( archive && archive.books.length > 0 && data.books ) {
+                _.remove( data.books, 'archived');
+                
+                // Removes archived books from series
+                if ( data.series ) {
+                  _.each( data.series, function( series ) {
+                    if ( series.books.length > 0 ) {
+                      _.remove( series.books, function( book ) {
+                        return _.includes( archive.books, book );
+                      });
+                    }
+                    if ( series.allBooks.length > 0 ) {
+                      _.each( series.allBooks, function( book ) {
+                        const inArchive = _.includes( archive.books, book.asin );
+                        if ( inArchive ) book.notInLibrary = true;
+                      });
+                    }
+                  });
+                  _.remove( data.series, function( series) {
+                    return series.books.length === 0;
+                  });
+                }
+                
+                // Makes sure archived won't show up in any other collection either...
+                _.each( collections, function( collection ) {
+                  _.remove( collection.books, function( book ) {
+                    return _.includes( archive.books, book );
+                  });
+                });
+              }
+              if ( archive ) _.remove( collections, function( collection ) {
+                return collection.id === '__ARCHIVE' || !collection.books || collection.books.length === 0;
+              });
+            }
+            break;
+            
         }
         
         if ( item.subPage ) {
@@ -568,4 +620,25 @@ export default {
   padding: 1px 6px;
   border-radius: 3px;
 }
+
+.opt-groups {
+  flex-direction: column !important;
+  .opt-group {
+    flex-direction: row !important;
+    justify-content: space-between !important;
+    margin: 0 !important;
+    
+    > div {
+      padding-top: 0px !important;
+    }
+    
+    .item-0 { width: 100px; }
+    .item-1 { width: 100px; }
+    .item-2 { width: 100px; }
+    .item-3 { width: 100px; }
+    [data-extra] { width: auto; }
+  }
+}
+
+
 </style>

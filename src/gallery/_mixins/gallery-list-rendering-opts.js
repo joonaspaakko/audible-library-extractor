@@ -292,6 +292,32 @@ export default {
           },
           {
             type: 'divider',
+            key: 'divider-archived'
+          },
+          
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Archived',
+            key: 'archived',
+            group: 'filterExtras',
+            condition: function(book) {
+              return book.archived;
+            }
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Not archived',
+            key: 'not-archived',
+            group: 'filterExtras',
+            condition: function(book) {
+              return !book.archived;
+            }
+          },
+          
+          {
+            type: 'divider',
             key: 'divider2.2'
           },
 
@@ -968,7 +994,6 @@ export default {
             }
           },
 
-
         ],
         sort: [{
             active: false,
@@ -1221,6 +1246,16 @@ export default {
           },
         ],
       };
+      
+      
+      let collections = this.$store.state.library.collections;
+      let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
+      if ( !archive || archive.books.length > 0 ) {
+        let removeArchiveKeys = ['archived', 'not-archived'];
+        _.remove(list.filter, function( filter ) {
+          return filter.key === 'divider-archived' || _.includes( removeArchiveKeys, filter.key );
+        });
+      }
 
       this.$setListRenderingOpts(list);
 

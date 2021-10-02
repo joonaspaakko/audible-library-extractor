@@ -219,13 +219,25 @@ export default {
 
     goToOutputPage: function(hotpotato) {
       
+      let collections = hotpotato.collections;
+      let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
+      if ( archive ) archive.description = '';
+      
       let removeStragglers = function( key ) {
         
         if ( hotpotato[ key ] ) {
           _.each(hotpotato[ key ], function( book ) {
+            
             if ( book.storePageRequestUrl ) delete book.storePageRequestUrl;
             if ( book.isNewThisRound ) delete book.isNewThisRound;
             if ( book.requestUrl ) delete book.requestUrl;
+            // Add prop "archived" if a book is in the archive....
+            // This helps simplify the filters related to archive
+            if ( key === 'books' && book.asin && archive && archive.books.length > 0 ) {
+              let bookInArchive = _.includes( archive.books, book.asin );
+              if ( bookInArchive ) book.archived = true;
+            }
+            
           });
         }
         
@@ -233,6 +245,13 @@ export default {
       
       removeStragglers('books'); // Library
       removeStragglers('wishlist'); 
+      
+      // Make sure library books are excluded from the wishlist no matter hwhat...
+      if ( hotpotato.books && hotpotato.books.length && hotpotato.wishlist && hotpotato.wishlist.length ) {
+        _.remove( hotpotato.wishlist, function( book ) {
+          if ( book.asin ) return _.find( hotpotato.books, { asin: book.asin });
+        });
+      }
       
       if ( hotpotato.useStorageData ) {
         browser.runtime.sendMessage({ action: "openOutput" });
