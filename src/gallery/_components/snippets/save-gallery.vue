@@ -6,7 +6,7 @@
     <div class="description">
       This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web browser.
     </div>
-    
+
     <h3>Pages:</h3>
 
     <div class="options opt-groups">
@@ -27,11 +27,11 @@
             <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
         </button>
         <div>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github"> 
+          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github">
             <span>Upload instructions</span>
             <font-awesome :icon="['fab', 'github']" />
           </a>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/updating-gallery-in-github"> 
+          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/updating-gallery-in-github">
             <span>Update instructions</span>
             <font-awesome :icon="['fab', 'github']" />
           </a>
@@ -57,7 +57,7 @@ export default {
         "gallery.js",
         "gallery.js.LICENSE.txt",
         "gallery.css",
-        
+
         "chunks/384.css",
         "chunks/384.js",
         "chunks/612.js",
@@ -95,7 +95,7 @@ export default {
         "chunks/spreadsheet-view.js",
         "chunks/view-mode-switcher.css",
         "chunks/view-mode-switcher.js",
-        
+
         "favicons/android-chrome-192x192.png",
         "favicons/android-chrome-512x512.png",
         "favicons/apple-touch-icon.png",
@@ -124,11 +124,11 @@ export default {
       progressWidth: null,
     };
   },
-  
+
   beforeMount: function() {
-    
+
     let vue = this;
-    
+
     if ( this.$store.state.sticky.exportSettingsGallery ) {
       _.each(this.$store.state.sticky.exportSettingsGallery, function( stickySource ) {
         var source = _.find(vue.dataSources, { key: stickySource.key });
@@ -136,48 +136,48 @@ export default {
         source.disabled = stickySource.disabled;
       });
     }
-    
+
     let librarySource = _.find( this.dataSources, { key: 'Library' });
     librarySource.disabled =  !this.$store.state.library.books;
     let wishlistSource = _.find( this.dataSources, { key: 'Wishlist' });
     wishlistSource.disabled =  !this.$store.state.library.wishlist;
-    
+
   },
-  
+
   mounted: function() {
-    
+
     let vue = this;
-    
+
     if ( vue.$store.getters.saveStandaloneAfter ) {
       this.$nextTick(function() {
         try {
-          
+
           let newConfig = JSON.parse(JSON.stringify( vue.$store.state.extractSettings ));
           let saveStandaloneAfter = _.find( newConfig.extraSettings, { name: 'saveStandaloneAfter' });
           saveStandaloneAfter.deactivated = true;
-          
+
           this.$store.commit('prop', { key: 'extractSettings', value: newConfig });
           browser.storage.local.set({config: newConfig }).then(function() {
             vue.saveButtonClicked();
           });
-          
-        } catch (e) {} 
+
+        } catch (e) {}
       });
     }
-    
+
   },
-  
+
   beforeDestroy: function() {
     this.zip = null;
     this.cacheBuster = null;
   },
-  
+
   computed: {
     chunkSource: function() {
       return _.chunk(this.dataSources, 2);
     },
   },
-  
+
   methods: {
     
     cancelZipping: function() {
@@ -202,18 +202,22 @@ export default {
         }
       });
     },
-    
-    saveButtonClicked: function() {
-      if ( !this.bundling ) {
-        
-        const vue = this;
+
+    saveButtonClicked: async function () {
+      const vue = this;
+
+      if (this.bundling) {
+        return;
+      }
+
+      try {
         vue.bundling = true;
         vue.$store.commit("prop", { key: 'bundlingGallery', value: true });
         
         vue.cacheBuster = this.runCachebuster();
         vue.zip = new JSZip();
         const zip = vue.zip;
-        
+
         // I've had a few build errors so might as well make sure it never happens because this file doesn't exist...
         zip.file(".nojekyll", '');
         
@@ -228,7 +232,7 @@ export default {
           wishlist: !!libraryData.wishlist,
           extras: libraryData.extras,
         };
-        
+
         let loadServiceWorker = `
           if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('service-worker.${vue.cacheBuster}.js')
@@ -246,8 +250,8 @@ export default {
         
         const indexHTML =
           "<!DOCTYPE html>" +
-          '<html lang="en" class="theme-light standalone-gallery">' +
-          "<head>" +
+            '<html lang="en" class="theme-light standalone-gallery">' +
+            "<head>" +
             '<meta charset="UTF-8">' +
             // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
             '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
@@ -276,10 +280,10 @@ export default {
             "<noscript>This library requires javascript to work!</noscript>" +
             
           "</body>" +
-          "</html>";
-        
+            "</html>";
+
         zip.file("index.html", indexHTML);
-        
+
         // Split "peopleAlsoBought" into separate files and exclude from book data because 
         // it's a good amount of data that isn't necessarily needed immediately or all at once
         
@@ -320,86 +324,84 @@ export default {
             "chunks/save-locally.js",
           ], file);
         });
-        
+
         // Service worker file
         if ( useServiceWorker ) {
           zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
         }
-        
-        let count = 0;
-        _.each(vue.files, function(url) {
-          JSZipUtils.getBinaryContent(url, function(err, data) {
-            if (err) throw err;
-  
+
+        for (let url of vue.files) {
+          try {
+            const data = await JSZipUtils.getBinaryContent(url);
+
             if (url === "gallery.js") {
               url = url.replace(".js", "." + vue.cacheBuster + ".js");
             } else if (url === "gallery.css") {
               url = url.replace(".css", "." + vue.cacheBuster + ".css");
             }
-  
-            zip.file(url, data, { binary: true });
-            
-            count++;
-            if (count == vue.files.length) {
-              zip.generateAsync({ type: "blob", streamFiles: true }, function updateCallback(metadata) {
-                vue.progressWidth = metadata.percent + '%';
-              }).then(function(content) {
-                saveAs(content, "ALE-gallery.zip");
-                setTimeout(function() { 
-                  vue.bundling = false; 
-                  vue.progressWidth = 0; 
-                }, 1000);
-              });
-            }
-          });
+
+            zip.file(url, data, {binary: true});
+          } catch (e) {
+            console.warn(e);
+          }
+        }
+
+        const content = await zip.generateAsync({type: "blob", streamFiles: true}, function updateCallback(metadata) {
+          vue.progressWidth = metadata.percent + '%';
         });
-        
+
+        saveAs(content, "ALE-gallery.zip");
+      } finally {
+        setTimeout(function () {
+          vue.bundling = false;
+          vue.progressWidth = 0;
+        }, 1000);
       }
     },
-    
+
     sourceChecked: function( e, item ) {
-      
-      let vue = this; 
-      
+
+      let vue = this;
+
       // Toggle children with parent
       let children = _.filter( this.dataSources, function( source ) {
         return _.isArray(source.parent) ? _.includes(source.parent, item.key) : source.parent === item.key;
       });
       _.each( children, function( child ) {
-        
+
         if ( _.isArray(child.parent) ) {
-          
+
           let parents = _.map( child.parent, function( parent ) {
             return _.find( vue.dataSources, { key: parent });
           });
           let parentsEnabled = _.filter( parents, function( parent) {
             return parent.checked && !parent.disabled;
           }).length > 0;
-          
+
           child.disabled = (!e.target.checked && !parentsEnabled);
-          
+
         }
         else {
           child.disabled = !e.target.checked;
         }
-        
-        
+
+
       });
-      
+
       // Disable download button if the chosen data sources aren't going to work...
       let checkedSources = _.filter( this.dataSources, { checked: true, disabled: false });
       this.saveBtnEnabled = !!checkedSources.length;
-      
+
       this.$store.commit('stickyProp', { key: 'exportSettingsGallery', value: this.dataSources });
-      
+
     },
-    
+
     excludeData: function( data ) {
-      
+
       let vue = this;
-      
+
       _.each( this.dataSources, function( item ) {
-        
+
         var lowercaseKey = item.key.toLowerCase();
         var itemDisabled = !item.checked || item.disabled;
         switch ( item.key ) {
@@ -410,49 +412,49 @@ export default {
               delete data.collections;
             }
             break;
-          
+
           case "Series":
             if ( itemDisabled ) delete data.series;
             break;
-            
+
           case "Collections":
             if ( itemDisabled ) delete data.collections;
             break;
-            
+
           case "Wishlist":
             if ( itemDisabled ) {
               delete data.wishlist;
             }
             break;
         }
-        
+
         if ( item.subPage ) {
-          
+
           data.extras.subPageStates = data.extras.subPageStates || [];
           data.extras.subPageStates.push({
             key: lowercaseKey,
             enabled: !itemDisabled
           });
-          
+
         }
-        
+
       });
-      
+
       return data;
-      
+
     },
-    
+
     serviceWorker: function() {
-      
+
       let vue = this;
-      
+
       return `
       importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.1.5/workbox-sw.js');
-      
+
       workbox.setConfig({
         debug: false,
       });
-      
+
       const {registerRoute} = workbox.routing;
       const {
         NetworkFirst,
@@ -502,8 +504,8 @@ export default {
       // Cache images with a Cache First strategy
       registerRoute(
         // Check to see if the request's destination is style for an image
-        ({ url, request }) => 
-          (request.destination === 'image' && url.origin !== 'https://m.media-amazon.com') || 
+        ({ url, request }) =>
+          (request.destination === 'image' && url.origin !== 'https://m.media-amazon.com') ||
           (request.destination === 'image' && url.origin === 'https://m.media-amazon.com' && !url.href.match(/_SL200_/) && !url.href.match(/_SL150_/)),
         // Use a Cache First caching strategy
         new CacheFirst({
@@ -522,7 +524,7 @@ export default {
           ],
         }),
       );
-      
+
       // Cache the Google Fonts stylesheets with a stale-while-revalidate strategy.
       registerRoute(
         ({url}) => url.origin === 'https://fonts.googleapis.com',
@@ -554,7 +556,7 @@ export default {
       return new Date().getTime();
     }
   }
-  
+
 };
 </script>
 
