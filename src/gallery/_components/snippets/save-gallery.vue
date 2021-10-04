@@ -57,10 +57,6 @@ export default {
         "gallery.js",
         "gallery.js.LICENSE.txt",
         "gallery.css",
-
-        "chunks/384.css",
-        "chunks/384.js",
-        "chunks/612.js",
         "chunks/audio-player.css",
         "chunks/audio-player.js",
         "chunks/authors.css",
@@ -330,20 +326,32 @@ export default {
           zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
         }
 
-        for (let url of vue.files) {
+        // Attempt to add any unnamed chunks
+        for (let i = 1; i < 10; i++) {
           try {
-            const data = await JSZipUtils.getBinaryContent(url);
-
-            if (url === "gallery.js") {
-              url = url.replace(".js", "." + vue.cacheBuster + ".js");
-            } else if (url === "gallery.css") {
-              url = url.replace(".css", "." + vue.cacheBuster + ".css");
+            const js = await JSZipUtils.getBinaryContent(`chunks/${i}.js`);
+            zip.file(`chunks/${i}.js`, js, {binary: true});
+            try {
+              const css = await JSZipUtils.getBinaryContent(`chunks/${i}.css`);
+              zip.file(`chunks/${i}.css`, css, {binary: true});
+            } catch (e) {
+              // We expect to fall into this, since not all js chunks have corresponding css
             }
-
-            zip.file(url, data, {binary: true});
           } catch (e) {
-            console.warn(e);
+            // We expect to fall into this, since we only have a couple of unnamed chunks today
           }
+        }
+
+        for (let url of vue.files) {
+          const data = await JSZipUtils.getBinaryContent(url);
+
+          if (url === "gallery.js") {
+            url = url.replace(".js", "." + vue.cacheBuster + ".js");
+          } else if (url === "gallery.css") {
+            url = url.replace(".css", "." + vue.cacheBuster + ".css");
+          }
+
+          zip.file(url, data, {binary: true});
         }
 
         const content = await zip.generateAsync({type: "blob", streamFiles: true}, function updateCallback(metadata) {

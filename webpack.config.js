@@ -10,6 +10,15 @@ const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const FileManagerPlugin = require('filemanager-webpack-plugin-fixed');
 
+let runningChunkId = 0;
+const runningChunkMap = {};
+
+const getSafeChunkFilename = (extension) => (a) => {
+  if (a.chunk.name)  return `chunks/[name].${extension}`;
+  if (!runningChunkMap[a.chunk.id]) runningChunkMap[a.chunk.id] = ++runningChunkId;
+  // console.log('chunk', { a, runningChunkId, runningChunkMap })
+  return `chunks/${runningChunkMap[a.chunk.id]}.${extension}`;
+}
 const config = {
   mode: process.env.NODE_ENV,
   context: path.join(__dirname, '/src'),
@@ -24,7 +33,7 @@ const config = {
     publicPath: '',
     path: path.join(__dirname, '/dist'),
     filename: '[name].js',
-    chunkFilename: 'chunks/[name].js',
+    chunkFilename: getSafeChunkFilename('js'),
   },
   watchOptions: {
     ignored: [
@@ -100,7 +109,7 @@ const config = {
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: '[name].css',
-      chunkFilename: 'chunks/[name].css',
+      chunkFilename: getSafeChunkFilename('css'),
     }),
   ],
 };
