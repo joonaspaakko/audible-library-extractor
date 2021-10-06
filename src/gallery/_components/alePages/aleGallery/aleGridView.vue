@@ -45,7 +45,7 @@ export default {
 
 .ale-books.grid-view {
   max-width: 728px;
-  margin: 0 auto 550px auto;
+  margin: 0 auto 350px auto;
   text-align: center;
   -webkit-user-select: none;
   -khtml-user-select: none;

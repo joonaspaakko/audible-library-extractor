@@ -18,7 +18,8 @@ const getSafeChunkFilename = (extension) => (a) => {
   if (!runningChunkMap[a.chunk.id]) runningChunkMap[a.chunk.id] = ++runningChunkId;
   // console.log('chunk', { a, runningChunkId, runningChunkMap })
   return `chunks/${runningChunkMap[a.chunk.id]}.${extension}`;
-}
+};
+
 const config = {
   mode: process.env.NODE_ENV,
   context: path.join(__dirname, '/src'),
@@ -33,7 +34,8 @@ const config = {
     publicPath: '',
     path: path.join(__dirname, '/dist'),
     filename: '[name].js',
-    chunkFilename: getSafeChunkFilename('js'),
+    // chunkFilename: getSafeChunkFilename('js'),
+    chunkFilename: 'chunks/[name].js',
   },
   watchOptions: {
     ignored: [
@@ -109,9 +111,33 @@ const config = {
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: '[name].css',
-      chunkFilename: getSafeChunkFilename('css'),
+      // chunkFilename: getSafeChunkFilename('css'),
+      chunkFilename: 'chunks/[name].css',
     }),
   ],
+  optimization: {
+    chunkIds: 'named',
+    // Something something too much trouble didn't finish...
+    // As it is, it will f some s up....
+    // splitChunks: {
+    //   cacheGroups: {
+    //     commons: {
+    //       test: /[\\/]node_modules[\\/]/,
+    //       // cacheGroupKey here is `commons` as the key of the cacheGroup
+    //       name(module, chunks, cacheGroupKey) {
+    //         const moduleFileName = module
+    //           .identifier()
+    //           .split('/')
+    //           .reduceRight((item) => item);
+    //         const allChunksNames = chunks.map((item) => item.name).join('~');
+    //         // return `${cacheGroupKey}-${allChunksNames}-${moduleFileName}`;
+    //         return allChunksNames;
+    //       },
+    //       chunks: 'all',
+    //     },
+    //   },
+    // },
+  },
 };
 
 var copyPluginArray = { patterns: [

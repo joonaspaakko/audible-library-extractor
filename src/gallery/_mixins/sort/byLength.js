@@ -22,7 +22,7 @@ export default {
             }
           }
           else {
-            return book.[params.sortKey].length || 0;
+            return book[params.sortKey].length || 0;
           }
           
         },

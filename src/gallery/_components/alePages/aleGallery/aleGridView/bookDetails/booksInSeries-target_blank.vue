@@ -24,12 +24,6 @@
         content="<div style='text-align: left;'>The total number of books is based on every single listing in the series page, including different versions or bundles with books you may already have.</div>"
         >
           <div class="series-name">
-            <!-- <a :href="makeLinkToSeries({ 
-              name: 'series', 
-              params: { series: series.asin }, 
-            })" target="_blank" rel="noopener noreferrer">
-              {{ series.name }}
-            </a> -->
             
             <router-link v-if="$route.name !== 'series'" 
             :to="{ name: 'series', params: { series: series.asin } }" target="_blank" rel="noopener noreferrer">
@@ -137,72 +131,6 @@ export default {
   },
 
   methods: {
-    
-    makeLinkToSeries: function( route ) {
-      
-      let routeData = this.$router.resolve( route );
-      let newUrl = window.location.href.split('#')[0] + routeData.href.replace('/gallery/', '');
-      return newUrl;
-      
-    },
-    
-    makeLinkToSeries2: function( route ) {
-      
-      let routeData = this.$router.resolve( route );
-      let newUrl = window.location.href.split('#')[0] + routeData.href.replace('/gallery/', '');
-      return routeData.resolved.path;
-      
-    },
-    
-    /*
-    goToBookInSeries: function( series, book ) {
-      
-      if ( book ) {
-        if ( this.$route.name !== 'series' ) {
-          this.$router.push({ 
-            name: 'series', 
-            params: { series: series.asin }, 
-            query: { book: book.asin }, 
-          });
-        }
-        else {
-          this.$root.$emit('book-clicked', { book: book });
-        }
-      }
-      else if ( series ) {
-        
-        if ( this.$route.name !== 'series' ) {
-          // this.$router.push({ 
-          //   name: 'series', 
-          //   params: { series: series.asin }, 
-          // });
-          console.log('TEST')
-          let routeData = this.$router.resolve({ 
-            name: 'series', 
-            params: { series: series.asin }, 
-          });
-          console.log( routeData )
-          // console.log( window.location )
-          // console.log( this.$route.fullPath )
-          let newUrl = this.$store.state.standalone ? routeData.href : routeData.href.replace('/output-page/#', '/output-page/index.html#');
-          console.log( 'test', newUrl )
-          window.open(newUrl, '_blank');
-          // FIXME: Issue is that now coming back from a series page means you lose the position of where you 
-          // were before going to the series sub page... Then you click expand and whoopsie, you need to start
-          // scrolling from the top again.
-          // So I guess the best solution would be to open the series sub page in a new tab.
-          // I guess I could, but I'd have to use <route-link> and I guess if statements to say, do this other thing if whatever....
-          // And somehow mutate the path .......... like in the variable "newUrl"
-        }
-        else {
-          this.$root.$emit('book-clicked', { book: null });
-          scroll({ top: 0 });
-        }
-        
-      }
-      
-    },
-    */
     
     goToBookInSeries: function( series, book ) {
       if ( book ) {

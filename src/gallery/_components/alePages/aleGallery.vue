@@ -26,8 +26,6 @@
 </template>
 
 <script>
-import aleSearch from "./aleGallery/aleSearch";
-
 import prepCategoriesSubPage from "@output-mixins/prepCategoriesSubPage.js";
 import prepCollectionsSubPage from "@output-mixins/prepCollectionsSubPage.js";
 import prepSeriesSubPage from "@output-mixins/prepSeriesSubPage.js";
@@ -37,13 +35,14 @@ import prepPublishersSubPage from "@output-mixins/prepPublishersSubPage.js";
 import prepWishlist from "@output-mixins/prepWishlist.js";
 
 import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
-import filterAndSort from "@output-mixins/filter-and-sort.js";
 import galleryListRenderingOpts from "@output-mixins/gallery-list-rendering-opts.js";
 import smoothscroll from "smoothscroll-polyfill";
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 smoothscroll.polyfill();
 
 // import aleBreadcrumbs from '../aleBreadcrumbs'
+
+import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
 
 export default {
   name: "aleGallery",
@@ -54,7 +53,6 @@ export default {
     // aleBreadcrumbs,
   },
   mixins: [
-    filterAndSort, 
     prepCategoriesSubPage, 
     prepCollectionsSubPage, 
     prepSeriesSubPage,

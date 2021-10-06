@@ -103,8 +103,8 @@
 </template>
 
 <script>
-
 import 'vue-slider-component/theme/default.css';
+import '@vueform/multiselect/themes/default.css';
 import slugify from "@output-mixins/slugify";
 
 export default {
@@ -221,7 +221,7 @@ export default {
 
     isActiveSortItem: function() {
       if ( this.listName === "sort" ) {
-        if ( !this.$store.getters.searchIsActive ) {
+        if ( !this.$store.getters.searchIsActive || this.$store.getters.searchIsActive && this.$route.query.sort ) {
           const changedIndex = _.findIndex(this.currentList, "current");
           return changedIndex === this.index;
         }
@@ -363,7 +363,6 @@ export default {
 };
 </script>
 
-<style src="@vueform/multiselect/themes/default.css"></style>
 <style lang="scss">
   @import "~@/_variables.scss";
   .multiselect {
@@ -459,6 +458,24 @@ export default {
     }
     .multiselect-clear-icon {
       background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'/%3E%3C/svg%3E");
+    }
+  }
+  
+  .vue-slider-dot-tooltip-inner,
+  .vue-slider-process {
+    @include themify($themes) {
+      background: themed(audibleOrange);
+    }
+  }
+  .vue-slider-dot-tooltip-inner {
+    @include themify($themes) {
+      border-color: themed(audibleOrange);
+    }
+  }
+  .vue-slider-mark {
+    width: 2px !important;
+    @include themify($themes) {
+      background-color: rgba(#000, .05);
     }
   }
 </style>
@@ -649,26 +666,4 @@ export default {
   }
   
 } // .sort-button
-</style>
-
-
-<style lang="scss">
-  @import "~@/_variables.scss";
-  .vue-slider-dot-tooltip-inner,
-  .vue-slider-process {
-    @include themify($themes) {
-      background: themed(audibleOrange);
-    }
-  }
-  .vue-slider-dot-tooltip-inner {
-    @include themify($themes) {
-      border-color: themed(audibleOrange);
-    }
-  }
-  .vue-slider-mark {
-    width: 2px !important;
-    @include themify($themes) {
-      background-color: rgba(#000, .05);
-    }
-  }
 </style>

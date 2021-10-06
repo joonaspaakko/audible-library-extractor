@@ -57,6 +57,7 @@ export default {
         "gallery.js",
         "gallery.js.LICENSE.txt",
         "gallery.css",
+        
         "chunks/audio-player.css",
         "chunks/audio-player.js",
         "chunks/authors.css",
@@ -69,6 +70,8 @@ export default {
         "chunks/categories.js",
         "chunks/collections.css",
         "chunks/collections.js",
+        "chunks/fuse-search.js",
+        "chunks/gallery__mixins_findSubPageSource_js-gallery__components_alePages_aleGallery_aleSearch_vue.js",
         "chunks/gallery.css",
         "chunks/gallery.js",
         "chunks/grid-view.css",
@@ -85,6 +88,8 @@ export default {
         "chunks/series.js",
         "chunks/sort-values.css",
         "chunks/sort-values.js",
+        "chunks/sorter.css",
+        "chunks/sorter.js",
         "chunks/splide.js",
         "chunks/splide.js.LICENSE.txt",
         "chunks/spreadsheet-view.css",
@@ -335,21 +340,21 @@ export default {
           zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
         }
 
-        // Attempt to add any unnamed chunks
-        for (let i = 1; i < 10; i++) {
-          try {
-            const js = await JSZipUtils.getBinaryContent(`chunks/${i}.js`);
-            zip.file(`chunks/${i}.js`, js, {binary: true});
-            try {
-              const css = await JSZipUtils.getBinaryContent(`chunks/${i}.css`);
-              zip.file(`chunks/${i}.css`, css, {binary: true});
-            } catch (e) {
-              // We expect to fall into this, since not all js chunks have corresponding css
-            }
-          } catch (e) {
-            // We expect to fall into this, since we only have a couple of unnamed chunks today
-          }
-        }
+        // // Attempt to add any unnamed chunks
+        // for (let i = 1; i < 10; i++) {
+        //   try {
+        //     const js = await JSZipUtils.getBinaryContent(`chunks/${i}.js`);
+        //     zip.file(`chunks/${i}.js`, js, {binary: true});
+        //     try {
+        //       const css = await JSZipUtils.getBinaryContent(`chunks/${i}.css`);
+        //       zip.file(`chunks/${i}.css`, css, {binary: true});
+        //     } catch (e) {
+        //       // We expect to fall into this, since not all js chunks have corresponding css
+        //     }
+        //   } catch (e) {
+        //     // We expect to fall into this, since we only have a couple of unnamed chunks today
+        //   }
+        // }
 
         for (let url of vue.files) {
           const data = await JSZipUtils.getBinaryContent(url);

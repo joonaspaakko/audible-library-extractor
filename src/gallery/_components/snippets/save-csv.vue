@@ -320,7 +320,7 @@ export default {
               case "isbn":
               case "isbn10":
               case "isbn13":
-                return "'" + (book.[key] || '');
+                return "'" + (book[key] || '');
                 break;
                 
               default:

@@ -41,13 +41,12 @@
 
 <script>
 
-import sorter from "@output-snippets/sorter.vue";
 
 export default {
   name: "searchOptions",
   props: ["listName"],
   components: {
-    sorter,
+    sorter: () => import( /* webpackChunkName: "sorter" */ "@output-snippets/sorter.vue"),
   },
   data: function() {
     return {
@@ -143,10 +142,13 @@ export default {
     
     sortersMounted: _.debounce(function() {
       
-      let maxHeight = this.$refs.options.offsetHeight + this.$refs.options.offsetTop;
-      if ( window.innerHeight > maxHeight ) maxHeight = window.innerHeight;
-      
-      this.$store.commit('prop', { key: 'searchOptOpenHeight', value: maxHeight });
+      if ( this.$refs.options ) {
+        let maxHeight = this.$refs.options.offsetHeight + this.$refs.options.offsetTop;
+        if ( window.innerHeight > maxHeight ) maxHeight = window.innerHeight;
+        else maxHeight = maxHeight + 100;
+        
+        this.$store.commit('prop', { key: 'searchOptOpenHeight', value: maxHeight });
+      }
       
     }, 250, { leading: false, trailing: true }),
     
@@ -172,7 +174,6 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-  padding-bottom: 100px !important;
   
   .search-options-inner-wrap {
     position: relative;

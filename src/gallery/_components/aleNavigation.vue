@@ -125,7 +125,7 @@
           </div>
         </div>
         
-        <div class="text-button" v-if="!$store.state.standalone">
+        <div class="text-button" v-if="!$store.state.standalone" style="z-index: 9999;">
           <ale-save-locally></ale-save-locally>
         </div>
         
@@ -187,8 +187,8 @@ import lightSwitch from "@output-snippets/lightSwitch";
 export default {
   name: "aleMenuActions",
   components: {
-    aleSaveLocally: () => import( /* webpackChunkName: "save-locally" */ "./aleSaveLocally"),
     lightSwitch,
+    aleSaveLocally: () => import( /* webpackChunkName: "save-locally" */ "./aleSaveLocally"),
     viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
     audioPlayer: () => import( /* webpackChunkName: "audio-player" */ "@output-snippets/audio-player"),
   },

@@ -7,5 +7,6 @@
     "**/dist-zip": true,
     "**/node_modules": true,
     "**/scripts": true
-  }
+  },
+  "files.trimTrailingWhitespace": false
 }

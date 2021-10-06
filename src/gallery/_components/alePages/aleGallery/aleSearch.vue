@@ -48,15 +48,15 @@
 
 <script>
 
-import Fuse from "fuse.js";
+let getFuse = () => import( /* webpackPrefetch: true */ /* webpackChunkName: "fuse-search" */ "fuse.js");
+import filterAndSort from '@output-mixins/filter-and-sort.js';
 import searchIcons from "./aleSearch/searchIcons";
 import searchOptions from "./aleSearch/searchOptions";
-import filterAndSort from "@output-mixins/filter-and-sort.js";
 import pageTitle from "@output-snippets/page-title.vue";
 import libraryWishlistSwitcher from "@output-snippets/library-wishlist-switcher.vue";
 
 export default {
-  name: "aleBookdetails",
+  name: "aleSearch",
   components: {
     searchIcons,
     searchOptions,
@@ -84,7 +84,7 @@ export default {
         useExtendedSearch: true
       },
 
-      listName: false,
+      listName: 'scope', // Crude cheat to get the component file to load 
 
       waypointOpts: {
         rootMargin: "-37px"
@@ -97,8 +97,10 @@ export default {
 
   mounted: function() {
     
-    this.listName = false;
-    
+    this.$nextTick(function() {
+      this.listName = false;
+    });
+  
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);
       this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
@@ -228,16 +230,23 @@ export default {
         const query = this.modifyQuery(this.$store.state.searchQuery);
         
         this.fuseOptions.keys = this.aliciaKeys;
-        this.fuse = new Fuse( this.$store.state.mutatingCollection, this.fuseOptions );
-        let result = this.fuse.search(query);
         
-        if (result.length > 0) {
-          result = _.map(result, function(o) {
-            return o.item;
-          });
-        }
+        let vue = this;
+        getFuse().then(function( Fuse ) {
+          
+          vue.fuse = new Fuse.default( vue.$store.state.mutatingCollection, vue.fuseOptions );
+          let result = vue.fuse.search(query);
+          
+          if (result.length > 0) {
+            result = _.map(result, function(o) {
+              return o.item;
+            });
+          }
+          
+          vue.$store.commit("prop", { key: 'searchCollection', value: result });
+          
+        });
         
-        this.$store.commit("prop", { key: 'searchCollection', value: result });
       }
       // Stop searching  
       else {
@@ -266,23 +275,23 @@ export default {
       
     },
     
-    scrolling: _.throttle(function(e) {
-      if (!this.fixedSearch && window.pageYOffset > 44) {
-        this.fixedSearch = true;
-      } else if (this.fixedSearch && window.pageYOffset < 44) {
-        this.fixedSearch = false;
-      }
-    }, 350),
+    // scrolling: _.throttle(function(e) {
+    //   if (!this.fixedSearch && window.pageYOffset > 44) {
+    //     this.fixedSearch = true;
+    //   } else if (this.fixedSearch && window.pageYOffset < 44) {
+    //     this.fixedSearch = false;
+    //   }
+    // }, 350),
     
-    onWaypoint({ going, direction }) {
-      // going: in, out
-      // direction: top, right, bottom, left
-      if (going === this.$waypointMap.GOING_IN) {
-        this.fixedSearch = false;
-      } else {
-        this.fixedSearch = true;
-      }
-    },
+    // onWaypoint({ going, direction }) {
+    //   // going: in, out
+    //   // direction: top, right, bottom, left
+    //   if (going === this.$waypointMap.GOING_IN) {
+    //     this.fixedSearch = false;
+    //   } else {
+    //     this.fixedSearch = true;
+    //   }
+    // },
 
     modifyQuery: function(query) {
       let newQuery = "";
