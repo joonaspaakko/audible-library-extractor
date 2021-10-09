@@ -42,6 +42,7 @@ export default new Vuex.Store({
     collectionSource: null,
     pageCollection: null,
     route: null,
+    routeParams: null,
     library: null,
     urlOrigin: null,
     searchQuery: "",

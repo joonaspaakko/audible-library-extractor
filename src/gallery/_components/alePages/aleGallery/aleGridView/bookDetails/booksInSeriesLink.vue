@@ -1,6 +1,7 @@
 <template>
   <div class="linky">
-    <a v-if="book.notInLibrary && book.asin" class="clickety-click cursor-alias" target="_blank" rel="noopener noreferrer" :href="makeUrl('book', book.asin)"
+    <span v-if="seriesName && linkDisabled" class="series-not-link">{{ seriesName }}</span>
+    <a v-else-if="!seriesName && book.notInLibrary && book.asin" class="clickety-click cursor-alias" target="_blank" rel="noopener noreferrer" :href="makeUrl('book', book.asin)"
     :content="book.title !== book.titleShort ? book.title : false" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
     >
       <span class="numbers">{{ book.bookNumbers }}</span>
@@ -11,10 +12,13 @@
     :event="linkDisabled ? '' : 'click'" 
     @click.native="linkDisabled && openBook($event)" 
     :to="linkDisabled ? '' : routerLink"
-    :content="(book.notInLibrary ? '<strong>Not available:</strong> ' : '') + ( book.title !== book.titleShort ? book.title : '')" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
+    :content="seriesName ? null : (book.notInLibrary ? '<strong>Not available:</strong> ' : '') + ( book.title !== book.titleShort ? book.title : '')" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
     >
-      <span class="numbers">{{ book.bookNumbers }}</span>
-      <span class="title">{{ book.titleShort || book.title }}</span>
+      <span v-if="seriesName">
+        {{ seriesName }}
+      </span>
+      <span v-if="!seriesName" class="numbers">{{ book.bookNumbers }}</span>
+      <span v-if="!seriesName" class="title">{{ book.titleShort || book.title }}</span>
     </router-link>
   </div>
 </template>
@@ -24,7 +28,7 @@ import makeUrl from "@output-mixins/makeFullUrl";
 
 export default {
   name: "booksInSeriesLink",
-  props: ["series","book", "index"],
+  props: ["series","book", "index", "seriesName"],
   mixins: [makeUrl],
   data: function() {
     return {
@@ -44,11 +48,15 @@ export default {
     // Except when the link leads to another series...
     this.seriesPage = this.$route.name === 'series';
     
+    // console.log( this.book.asin )
+    
     this.routerLink = { 
       name: 'series', 
       params: { series: this.series.asin }, 
-      query: { book: this.book.asin, subPageSource: 'books' }, 
+      query: { subPageSource: 'books', closeBookDetails: true }, 
     };
+    
+    if ( this.seriesName ) this.routerLink.query.book = this.book.asin;
     
     this.linkDisabled = this.book.notInLibrary || this.seriesPage && this.$route.params.series === this.series.asin;
     
@@ -76,4 +84,11 @@ export default {
   text-overflow: ellipsis;
   flex: 1;
 }
+
+.series-not-link {
+  @include themify($themes) {
+    color: rgba(themed(frontColor), 0.85);
+  }
+}
+
 </style>

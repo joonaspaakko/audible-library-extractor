@@ -25,15 +25,9 @@
         content="<div style='text-align: left;'>The first number is how many books you have in the series. The total is based on every single listing in the series page, including different versions or bundles with books you may already have.</div>"
         >
           <div class="series-name">
-            <router-link 
-            :event="$route.params.series === series.asin ? '' : 'click'"
-            :to="{ 
-              name: 'series', 
-              params: { series: series.asin }, 
-              query: { subPageSource: 'books' },
-            }">
-              {{ series.name }}
-            </router-link>
+            <!-- <span v-if="$route.params.series === series.asin">{{ series.name }}</span>
+            <books-in-series-link v-else :series="series" :book="seriesBook" :index="index" :seriesName="series.name" /> -->
+            <books-in-series-link :series="series" :book="{}" :index="-1" :seriesName="series.name" />
           </div>
           <div class="series-length">
             {{ inLibraryLength( series ) }} / {{ series.length }}

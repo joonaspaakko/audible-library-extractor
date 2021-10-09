@@ -38,16 +38,16 @@ export default {
         
       }
     },
-    getTags: function( books ) {
+    // getTags: function( books ) {
       
-      let allTags = _.filter( books, 'tags');
-      allTags = _.map( allTags, 'tags');
-      allTags = _.flatten( allTags );
-      if (_.isEmpty( allTags ) ) allTags = null;
-      else { allTags = _.union(allTags); }
+    //   let allTags = _.filter( books, 'tags');
+    //   allTags = _.map( allTags, 'tags');
+    //   allTags = _.flatten( allTags );
+    //   if (_.isEmpty( allTags ) ) allTags = null;
+    //   else { allTags = _.union(allTags); }
       
-      console.log( allTags )
+    //   console.log( allTags )
       
-    },
+    // },
   }
 };

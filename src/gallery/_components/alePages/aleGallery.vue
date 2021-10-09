@@ -107,7 +107,8 @@ export default {
   created: function() {
     
     // If book details are open but url param is empty, clear book details so it doesn't try to render... 
-    if ( this.$store.state.bookDetails.book && !this.$route.query.book ) {
+    if ( this.$store.state.bookDetails.book && !this.$route.query.book || this.$route.query.closeBookDetails ) {
+      this.$updateQuery({ query: 'closeBookDetails', value: false });
       this.$store.commit('prop', [
         { key: 'bookDetails.book', value: null },
         { key: 'bookDetails.index', value: -1 },

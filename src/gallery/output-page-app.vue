@@ -6,8 +6,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     
     <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
-    <ale-navigation :key="'nav-'+$route.params+$route.name+$store.state.viewRefresh"></ale-navigation>
-    <router-view v-if="$route.name !== '404'" :key="$route.params+$route.name+$store.state.viewRefresh"></router-view>
+    <ale-navigation :key="'nav-'+$route.name+'-'+$store.state.routeParams+'-'+$store.state.viewRefresh"></ale-navigation>
+    
+    <router-view v-if="$route.name !== '404'" :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.viewRefresh"></router-view>
     <div v-else id="nothing-here-404">
       <h3 v-if="$store.getters.searchIsActive && !$store.state.searchCollection.length">Search: no results</h3>
       <h3 v-else>404: There's nothing here</h3>
@@ -150,10 +151,15 @@ export default {
 
   watch: {
     $route: function(route, previousRoute) {
-            
+      
+      let paramsString = route.params ? _.map( route.params, function( value, param ) { return param + ':' + value; }).join(',') : null;
+      this.$store.commit("prop", [
+        { key: "route", value: route },
+        { key: "routeParams", value: paramsString },
+      ]);
+      
       this.$nextTick(function() {
         
-        this.$store.commit("prop", { key: "route", value: route });
         
         if ( this.$store.state.pageTitle && (this.$route.meta.title || this.$route.meta.title === '') ) {
           document.title = 'ALE • ' + (( this.$route.meta.title === this.$store.state.pageTitle ) ? this.$store.state.pageTitle : (this.$route.meta.title + ': ' + this.$store.state.pageTitle));
