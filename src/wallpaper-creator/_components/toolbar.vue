@@ -335,10 +335,11 @@
               :value="parseFloat(store.coverAmount)"
               @input="inputChanged('coverAmount', $event)"
               size="mini"
+              >
             ></gb-input>
           </gb-heading>
           
-          <tippy to="coverNumberTippy">
+          <tippy to="coverNumberTippy" placement="top" trigger="focus mouseenter">
             Showing <strong>{{ store.coverAmount }}</strong> covers out of a possible <strong>{{ store.covers.length }}</strong>. Excess covers are removed from the tail end.
           </tippy>
           
@@ -769,6 +770,25 @@
  -->
         
         <div v-if="!store.animatedWallpaperMode">
+          
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Show My Rating</span>
+            <gb-toggle
+            size="small"
+            v-model="store.showMyRating"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
+          <gb-heading tag="h6" :uppercase="true">
+            <span>Show Favorites</span>
+            <gb-toggle
+            size="small"
+            v-model="store.showFavorites"
+            ></gb-toggle>
+          </gb-heading>
+          
+          <spacer size="default" :line="false" />
           
           <gb-heading tag="h6" :uppercase="true">
             <span>Show author & title</span>

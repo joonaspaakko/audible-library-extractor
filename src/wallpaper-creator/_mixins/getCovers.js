@@ -84,6 +84,8 @@ export default {
         obj.asin = book.asin;
         if ( book.titleShort || book.title ) obj.title = book.titleShort || book.title;
         if ( book.authors ) obj.author = book.authors[0].name;
+        if ( book.myRating ) obj.myRating = parseFloat(book.myRating);
+        if ( book.favorite ) obj.favorite = book.favorite;
         obj.cover = vue.makeCoverUrl(book.cover);
         if ( archive && _.includes( archive, book.asin ) ) {
           obj.inArchive = true;

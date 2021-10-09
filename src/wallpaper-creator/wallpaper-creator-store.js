@@ -71,7 +71,7 @@ const store = new Vuex.Store({
     awpAnimateOnLoad: null,
     awpAnimatedCoversLength: null,
     awpOverlayColorEnabled: true,
-    awpOverlayColor: 'rgba(43,41,41, .77)',
+    awpOverlayColor: 'rgba(0,0,0, .77)',
     awpGrayscale: false,
     awpCoversPerCycle: null,
     awpRandomCovers: null,
@@ -135,6 +135,8 @@ const store = new Vuex.Store({
     ],
     duplicateTemp: null,
     animation: null,
+    showFavorites: false,
+    showMyRating: false,
     
     // PRESETS
     canvasPreset: 'wallpaper',
@@ -147,7 +149,7 @@ const store = new Vuex.Store({
           coverAmount: 300,
           paddingSize: 0,
           awpOverlayColorEnabled: true,
-          awpOverlayColor: 'rgba(36,33,33, .77)',
+          awpOverlayColor: 'rgba(0,0,0, .77)',
           awpBlendMode: 'normal',
           showAuthorAndTitle: false,
           awpGrayscale: false,

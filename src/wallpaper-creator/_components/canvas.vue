@@ -75,9 +75,21 @@
                 </div>
                 
                 <div v-if="book.placeholderCover" ref="coverImages" class="placeholder"></div>
-                <img v-else ref="coverImages" class="cover-img" :src="book.cover" alt="" draggable="false" data-no-dragscroll 
+                <div v-else style="position: relative; display: inline-block;">
+                  
+                  <img ref="coverImages" class="cover-img" :src="book.cover" alt="" draggable="false" data-no-dragscroll 
                   :style="{ filter: (store.awpGrayscale) ? 'grayscale(1) contrast('+ store.awpGrayscaleContrast +')' : null }"
-                />
+                  />
+                  
+                  <div v-if="!store.animatedWallpaperMode && store.showFavorites && book.favorite" class="cover-heart-icon">
+                    <gb-icon size="13px" name="favorite"></gb-icon>
+                  </div>
+                  <div v-if="!store.animatedWallpaperMode && store.showMyRating && book.myRating" class="cover-star-icons">
+                    <gb-icon size="13px" name="star" v-for="number in book.myRating" :key="number"></gb-icon> ( {{ store.paddingSize +' - '+ (store.paddingSize > -1) }} )
+                  </div>
+                  
+                </div>
+                
                 
               </div>
               
@@ -90,6 +102,22 @@
               .grid-inner-wrap .cover .cover-img {
                 width: {{ store.coverSize > 0 ? store.coverSize : 0 }}px !important;
                 height: {{ store.coverSize > 0 ? store.coverSize : 0 }}px !important;
+              }
+              .grid-inner-wrap .cover .cover-heart-icon {
+                height: {{ coverIconSize }}px !important;
+                top: {{ coverIconSize/2 }}px !important;
+                right: {{coverIconSize/2 }}px !important;
+              }
+              .grid-inner-wrap .cover .cover-heart-icon i,
+              .grid-inner-wrap .cover .cover-star-icons i {
+                font-size: {{ coverIconSize }}px !important;
+                text-shadow: 0 0 {{ (coverIconSize/2.8) }}px rgba(0,0,0, .9), 0 0 {{ (coverIconSize/3.2) }}px rgba(0,0,0, 1), 0 0 2px rgba(0,0,0, 1) !important;
+              }
+              .grid-inner-wrap .cover .cover-star-icons {
+                height: {{ coverIconSize-4 }}px !important;
+              }
+              .grid-inner-wrap .cover .cover-star-icons {
+                bottom: {{ (store.paddingSize > 0) ? (-store.paddingSize/1.5) : 12 }}px !important;
               }
             </component>
 
@@ -149,6 +177,14 @@ export default {
   },
 
   computed: {
+    
+    coverIconSize: function() {
+      
+      const coverMatchedSize = this.store.coverSize/7.3; 
+      const min = 13;
+      return coverMatchedSize < min ? min : coverMatchedSize;
+      
+    },
     
     usedCovers: {
       get() {
@@ -469,8 +505,8 @@ export default {
   .cover {
     position: relative;
     display: inline-block;
-    font-size: 13px;
-    line-height: 17px;
+    font-size: 0;
+    line-height: 0;
   }
 
   .cover .placeholder,
@@ -550,6 +586,21 @@ export default {
   display: none;
 }
 
+.cover-star-icons,
+.cover-heart-icon {
+  position: absolute;
+  z-index: 50;
+  i { color: #ff0000; }
+}
+.cover-star-icons {
+  left: 0px;
+  right: 0px;
+  bottom: 0px;
+  // background: #333;
+  border-radius: 2px;
+  // border-radius: 999999px;
+  i { color: #f8991c; }
+}
 
 </style>
 
