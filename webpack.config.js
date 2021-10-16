@@ -9,16 +9,9 @@ const path = require('path');
 const { CleanWebpackPlugin } = require('clean-webpack-plugin');
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const FileManagerPlugin = require('filemanager-webpack-plugin-fixed');
-
-let runningChunkId = 0;
-const runningChunkMap = {};
-
-const getSafeChunkFilename = (extension) => (a) => {
-  if (a.chunk.name)  return `chunks/[name].${extension}`;
-  if (!runningChunkMap[a.chunk.id]) runningChunkMap[a.chunk.id] = ++runningChunkId;
-  // console.log('chunk', { a, runningChunkId, runningChunkMap })
-  return `chunks/${runningChunkMap[a.chunk.id]}.${extension}`;
-};
+const Chunks2JsonPlugin = require('chunks-2-json-webpack-plugin');
+ 
+const _ = require('lodash');
 
 const config = {
   mode: process.env.NODE_ENV,
@@ -34,7 +27,6 @@ const config = {
     publicPath: '',
     path: path.join(__dirname, '/dist'),
     filename: '[name].js',
-    // chunkFilename: getSafeChunkFilename('js'),
     chunkFilename: 'chunks/[name].js',
   },
   watchOptions: {
@@ -58,6 +50,7 @@ const config = {
       '@editor-mixins': path.join(__dirname, '/src/wallpaper-creator/_mixins'),
       '@wallpaper-comps': path.join(__dirname, '/src/wallpaper-creator/animated-wallpaper/_components'),
       '@wallpaper-mixins': path.join(__dirname, '/src/wallpaper-creator/animated-wallpaper/_mixins'),
+      '@dist': path.join(__dirname, '/dist'),
     },
   },
   module: {
@@ -107,36 +100,34 @@ const config = {
   plugins: [
     new webpack.DefinePlugin({
       global: 'window',
+      'process.env': {
+        NODE_ENV: JSON.stringify(process.env.NODE_ENV),
+      },
     }),
     new VueLoaderPlugin(),
     new MiniCssExtractPlugin({
       filename: '[name].css',
-      // chunkFilename: getSafeChunkFilename('css'),
       chunkFilename: 'chunks/[name].css',
+    }),
+    new Chunks2JsonPlugin({ 
+      outputDir: './dist/',
+      excludeFile: /^(?!chunks\/)/,
+      publicPath: '',
+      filename: 'chunk-file-paths.js',  
+      objectToString: function( result ) {
+        let chunks = _.map( result, function( o ) {
+          let js = o.js;
+          let css = o.css;
+          return _.concat( js, css );
+        });
+        chunks = _.flatten(chunks);
+        chunks = _.compact(chunks);
+        return 'window.chunksFilePaths = ' + JSON.stringify(chunks.sort(), null, 2) + ';';
+      },
     }),
   ],
   optimization: {
     chunkIds: 'named',
-    // Something something too much trouble didn't finish...
-    // As it is, it will f some s up....
-    // splitChunks: {
-    //   cacheGroups: {
-    //     commons: {
-    //       test: /[\\/]node_modules[\\/]/,
-    //       // cacheGroupKey here is `commons` as the key of the cacheGroup
-    //       name(module, chunks, cacheGroupKey) {
-    //         const moduleFileName = module
-    //           .identifier()
-    //           .split('/')
-    //           .reduceRight((item) => item);
-    //         const allChunksNames = chunks.map((item) => item.name).join('~');
-    //         // return `${cacheGroupKey}-${allChunksNames}-${moduleFileName}`;
-    //         return allChunksNames;
-    //       },
-    //       chunks: 'all',
-    //     },
-    //   },
-    // },
   },
 };
 
@@ -174,10 +165,12 @@ if (config.mode === 'production') {
     new FileManagerPlugin({
       onEnd: {
         delete: [
-          './dist/gallery/chunks'
+          './dist/gallery/chunks',
+          './dist/gallery/chunk-file-paths.js',
         ],
         move: [
-          { source: './dist/chunks', destination: './dist/gallery/chunks' }
+          { source: './dist/chunks', destination: './dist/gallery/chunks' },
+          { source: './dist/chunk-file-paths.js', destination: './dist/gallery/chunk-file-paths.js' },
         ],
       }
     })
@@ -187,21 +180,10 @@ if (config.mode === 'production') {
   
 }
 else {
-  copyPluginArray.patterns.push({ from: __dirname + '/dist/chunks', to: __dirname + '/dist/gallery/chunks', force: true })
+  copyPluginArray.patterns.push({ from: __dirname + '/dist/chunks', to: __dirname + '/dist/gallery/chunks', force: true });
 }
 
 config.plugins.push( new CopyPlugin(copyPluginArray) );
-
-
-if (config.mode === 'production') {
-  config.plugins = (config.plugins || []).concat([
-    new webpack.DefinePlugin({
-      'process.env': {
-        NODE_ENV: '"production"',
-      },
-    }),
-  ]);
-}
 
 if (process.env.HMR === 'true') {
   config.plugins = (config.plugins || []).concat([

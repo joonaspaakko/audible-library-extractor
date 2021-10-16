@@ -19,7 +19,11 @@
 
     <div class="buttons-footer">
       <div class="btn-wrapper">
-        <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="bundling || !saveBtnEnabled">
+        
+        <div v-if="$store.state.devMode" style="color: #f79a1c; font-weight: bold;">
+          Saving the standalone gallery is only possible in "production" <br>builds, like for example after doing: <code>npm run build</code>
+        </div>
+        <button v-else class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="bundling || !saveBtnEnabled">
           <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
             <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
             <font-awesome v-else :icon="['fas', 'download']" />
@@ -47,6 +51,7 @@
 </template>
 
 <script>
+
 // import makeCoverUrl from "@output-mixins/makeCoverUrl";
 export default {
   name: "saveGallery",
@@ -58,45 +63,6 @@ export default {
         "gallery.js.LICENSE.txt",
         "gallery.css",
         
-        "chunks/audio-player.css",
-        "chunks/audio-player.js",
-        "chunks/authors.css",
-        "chunks/authors.js",
-        "chunks/book-Details.css",
-        "chunks/book-Details.js",
-        "chunks/book.css",
-        "chunks/book.js",
-        "chunks/categories.css",
-        "chunks/categories.js",
-        "chunks/collections.css",
-        "chunks/collections.js",
-        "chunks/fuse-search.js",
-        "chunks/gallery__mixins_findSubPageSource_js-gallery__components_alePages_aleGallery_aleSearch_vue.js",
-        "chunks/gallery.css",
-        "chunks/gallery.js",
-        "chunks/grid-view.css",
-        "chunks/grid-view.js",
-        "chunks/narrators.css",
-        "chunks/narrators.js",
-        "chunks/publishers.css",
-        "chunks/publishers.js",
-        "chunks/rangeslider-and-multiselect.js",
-        "chunks/rangeslider-and-multiselect.js.LICENSE.txt",
-        "chunks/save-locally.css",
-        "chunks/save-locally.js",
-        "chunks/series.css",
-        "chunks/series.js",
-        "chunks/sort-values.css",
-        "chunks/sort-values.js",
-        "chunks/sorter.css",
-        "chunks/sorter.js",
-        "chunks/splide.js",
-        "chunks/splide.js.LICENSE.txt",
-        "chunks/spreadsheet-view.css",
-        "chunks/spreadsheet-view.js",
-        "chunks/view-mode-switcher.css",
-        "chunks/view-mode-switcher.js",
-
         "favicons/android-chrome-192x192.png",
         "favicons/android-chrome-512x512.png",
         "favicons/apple-touch-icon.png",
@@ -128,8 +94,10 @@ export default {
     };
   },
 
-  beforeMount: function() {
-
+  created: function() {
+    
+    this.files = this.files.concat( window.chunksFilePaths );
+    
     let vue = this;
 
     if ( this.$store.state.sticky.exportSettingsGallery ) {
@@ -339,23 +307,7 @@ export default {
         if ( useServiceWorker ) {
           zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
         }
-
-        // // Attempt to add any unnamed chunks
-        // for (let i = 1; i < 10; i++) {
-        //   try {
-        //     const js = await JSZipUtils.getBinaryContent(`chunks/${i}.js`);
-        //     zip.file(`chunks/${i}.js`, js, {binary: true});
-        //     try {
-        //       const css = await JSZipUtils.getBinaryContent(`chunks/${i}.css`);
-        //       zip.file(`chunks/${i}.css`, css, {binary: true});
-        //     } catch (e) {
-        //       // We expect to fall into this, since not all js chunks have corresponding css
-        //     }
-        //   } catch (e) {
-        //     // We expect to fall into this, since we only have a couple of unnamed chunks today
-        //   }
-        // }
-
+        
         for (let url of vue.files) {
           const data = await JSZipUtils.getBinaryContent(url);
 

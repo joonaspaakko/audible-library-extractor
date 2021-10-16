@@ -9,7 +9,9 @@
   <% if (NODE_ENV === 'development') { %>
 		<script src="http://localhost:8098"></script>
   <% } %>
-  
+  <% if (NODE_ENV === 'production') { %>
+    <script src="chunk-file-paths.js"></script>
+  <% } %>
 </head>
 <body>
   

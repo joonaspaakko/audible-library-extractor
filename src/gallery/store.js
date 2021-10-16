@@ -67,6 +67,7 @@ export default new Vuex.Store({
       index: -1,
     },
     searchOptOpenHeight: null,
+    devMode: _.get( process.env, 'NODE_ENV' ) !== 'production',
   },
 
   mutations: {
