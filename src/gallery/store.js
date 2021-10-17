@@ -156,7 +156,8 @@ export default new Vuex.Store({
       //   });
       // }
 
-      currentItem.active = o.active;
+      if ( o.active === false || o.active === true ) currentItem.active = o.active;
+      
       if ( currentItem.type === 'filterExtras' ) {
         if ( o.range ) currentItem.range = o.range;
         if ( o.value ) currentItem.value = o.value;

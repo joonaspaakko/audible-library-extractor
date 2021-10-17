@@ -110,7 +110,8 @@ const config = {
       chunkFilename: 'chunks/[name].css',
     }),
     new Chunks2JsonPlugin({ 
-      outputDir: './dist/',
+      // Put the file in the root folder because it got destroyed on build (whoopsie) and this was just the easier thing to do
+      outputDir: './', 
       excludeFile: /^(?!chunks\/)/,
       publicPath: '',
       filename: 'chunk-file-paths.js',  
@@ -170,7 +171,7 @@ if (config.mode === 'production') {
         ],
         move: [
           { source: './dist/chunks', destination: './dist/gallery/chunks' },
-          { source: './dist/chunk-file-paths.js', destination: './dist/gallery/chunk-file-paths.js' },
+          { source: './chunk-file-paths.js', destination: './dist/gallery/chunk-file-paths.js' },
         ],
       }
     })

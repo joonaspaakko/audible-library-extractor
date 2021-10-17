@@ -13,7 +13,7 @@
           <save-gallery></save-gallery>
           <save-csv></save-csv>
           
-          <div class="close-btn" @click="close" v-shortkey.once="['esc']" @shortkey="modalOpen = false">
+          <div class="close-btn" @click="close" v-shortkey.once="['esc']" @shortkey="close">
             <font-awesome fas icon="times" />
           </div>
           

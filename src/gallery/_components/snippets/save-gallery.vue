@@ -325,9 +325,11 @@ export default {
         });
 
         saveAs(content, "ALE-gallery.zip");
+        
       } finally {
         setTimeout(function () {
           vue.bundling = false;
+          vue.$store.commit("prop", { key: 'bundlingGallery', value: false });
           vue.progressWidth = 0;
         }, 1000);
       }

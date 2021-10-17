@@ -550,8 +550,8 @@ globalMethods.install = function (Vue) {
             }
             else if ( targetItem.range ) {
               let splitDash = splitColon[1].split('-');
-              let min = splitDash[0];
-              let max = splitDash[1];
+              let min = parseFloat( splitDash[0] );
+              let max = parseFloat( splitDash[1] );
               targetItem.range = [min, max];
             }
           }

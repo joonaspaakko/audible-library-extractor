@@ -20,7 +20,7 @@
         </span>
         
         <!-- HIDDEN input -->
-        <input type="checkbox" :value="index" v-model="inputVmodel" :disabled="item.range ? item.range && range.min === range.max : false" />
+        <input type="checkbox" :value="index" v-model="inputVmodel" />
         
         <!-- SORT ARROWS -->
         <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
@@ -55,19 +55,21 @@
       </label>
       
       <div class="range-slider" v-if="item.range">
-        <span style="cursor: w-resize;" @click="adjustRange('left')">{{ rangeVal[0] }}{{ item.rangeSuffix }}</span>
+        <span style="cursor: w-resize;" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
+        
         <vue-slider 
+        :disabled="range.disabled"
         :dragOnClick="true" 
         :adsorb="true"
         :lazy="true" 
         :hideLabel="true" 
         :included="!!(range.marks)" 
-        :interval="item.rangeInterval || 1" 
+        :interval="range.min === range.max ? 1 : (item.rangeInterval || 1)" 
         :marks="range.marks || Math.abs(range.min - range.max) <= 10" 
-        :value="rangeVal" 
+        :value="range.value" 
         :min="range.min" 
         :max="range.max" 
-        :min-range="item.rangeMinDist || 0" 
+        :min-range="range.min === range.max ? 0 : (item.rangeMinDist || 0)" 
         :enable-cross="false" 
         @change="rangeChanged" 
         :tooltip-formatter="item.tooltipFormatter || tooltipFormatter" 
@@ -77,7 +79,7 @@
         @drag-start="$store.commit('prop', { key: 'searchOptCloseGuard', value: true })"
         @drag-end="$store.commit('prop', { key: 'searchOptCloseGuard', value: false })"
         ></vue-slider>
-        <span style="cursor: e-resize;" @click="adjustRange('right')">{{ rangeVal[1] }}{{ item.rangeSuffix }}</span>
+        <span style="cursor: e-resize;" @click="adjustRange('right')">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
       </div>
       
       <div v-if="!!item.dropdownOpts">
@@ -123,34 +125,43 @@ export default {
   },
   
   created: function() {
-    
     if ( this.item.range ) {
       
-      const min = this.item.rangeMin();
-      const max = this.item.rangeMax();
-      this.range = {
-        min: min,
-        max: max,
-        value: _.isArray(this.item.range) ? this.item.range : [min, max],
+      var range = {
+        min: this.item.rangeMin(),
+        max: this.item.rangeMax(),
       };
       
-      if ( this.item.rangeMarks ) this.range.marks = this.item.rangeMarks( max );
+      // Sorta crude failsafe to make sure the calculated rangeMax() is never smaller than rangeMin()
+      if ( range.min < 0 ) range.min = 0;
+      if ( range.max < 0 ) range.max = 0;
+      if ( range.min > range.max ) range.min = range.max;
       
-      let changes = {
-        listName: this.listName,
-        index: this.index,
-        value: this.item.value,
-        range: this.range.value,
-        active: this.item.active,
-      };
+      // So basically if the user has changed the range, use that and otherwise min max...
+      // ...unless user set range goes past the current min or max.
+      let rangeIsSetByUser = _.isArray(this.item.range);
+      if ( rangeIsSetByUser ) {
+        range.value = _.clone(this.item.range);
+        if ( range.value[0] < range.min || range.value[0] > range.max ) range.value[0] = range.min;
+        if ( range.value[1] > range.max || range.value[1] < range.max ) range.value[1] = range.max;
+      }
+      else {
+        range.value = [range.min, range.max];
+      }
       
-      this.$store.commit("updateListRenderingOpts", changes);
+      // If all values are equal disable the slinger since it won't be very useful...
+      // const noRange = (range.min === range.value[0] && range.value[0] === range.value[1] && range.value[1] === range.max);
+      // if (  noRange ) range.disabled = true;
+      // else range.disabled = false;
+      
+      if ( this.item.rangeMarks ) range.marks = this.item.rangeMarks( range.max );
+      
+      this.range = range; 
       
     }
-    
-    // Compiles dropdown data (options) on create it it's active
-    // Otherwise the data is compiled when the dropdown is first opened on click in the "dropdownOpened" method
-    if ( this.$store.getters.filterExtrasKeys.match( this.item.key ) ) {
+    else if ( this.$store.getters.filterExtrasKeys.match( this.item.key ) ) {
+      // Compiles dropdown data (options) on create it it's active
+      // Otherwise the data is compiled when the dropdown is first opened on click in the "dropdownOpened" method
       if ( !this.dropdownOptions && !!this.item.dropdownOpts ) this.dropdownOptions = this.item.dropdownOpts();
     }
     
@@ -197,7 +208,9 @@ export default {
     },
     
     rangeVal: function() {
-      return (this.item.range && this.item.range !== true) ? this.item.range : this.range.value;
+      // let itemRange = _.get( this.item, 'range' );
+      // return _.isArray(itemRange) ? itemRange : this.range.value;
+      return this.range.value;
     },
     
     inputVmodel: {
@@ -268,8 +281,8 @@ export default {
       let changes = {
         listName: this.listName,
         index: this.index,
-        active: true,
         range: value,
+        active: true,
       };
       
       if ( this.item.group ) changes.group = true;
@@ -284,7 +297,7 @@ export default {
         listName: this.listName,
         index: this.index,
         active: true,
-        range: _.cloneDeep(this.rangeVal),
+        range: _.clone(this.range.value),
       };
       
       if ( direction === 'left' ) {
@@ -340,7 +353,7 @@ export default {
           const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
             const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
             if ( keyItem && keyItem.range ) {
-              return encodeURIComponent( key + ':' + keyItem.range[0] +'-'+ keyItem.range[1] );
+              return encodeURIComponent( key + ':' + vue.range.value[0] +'-'+ vue.range.value[1] );
             }
             else if ( keyItem && keyItem.value && keyItem.value.length > 0 ) {
               return encodeURIComponent(key + ':') + _.map( keyItem.value, function( val ) { return encodeURIComponent(val); }).join('|');
