@@ -29,13 +29,13 @@ export default {
               }, request );
             })
             .catch(function(e) {
+              console.log( "%c" + "axios caught an error (step)" + "", "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;", e );
               if ( options.returnCatch ) {
                 options.step( e.response, function(result) {
-                    stepCallback(null, result);
-                }, request );
+                  stepCallback(null, result);
+                }, request, 'processingError' );
               } 
               else {
-                console.log( "%c" + "axios caught an error (step)" + "", "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;", e );
                 stepCallback(null, null);
               }
             });

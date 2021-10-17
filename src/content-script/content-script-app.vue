@@ -272,7 +272,7 @@ export default {
           if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
           this.makeFrenchFries(hotpotato);
         }
-        
+
         browser.storage.local.clear().then(() => {
           browser.storage.local.set(hotpotato).then(() => {
             

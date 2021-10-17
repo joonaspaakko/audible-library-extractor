@@ -26,14 +26,14 @@ export default {
           vue.amapxios({
             requests: requests,
             returnCatch: true, // Returns failed steps in the step() callback in order to mark missing sote page data
-            step: function(response, stepCallback, book) {
+            step: function(response, stepCallback, book, processingError) {
               delete book.requestUrl;
 
               if (!hotpotato.config.test)
                 vue.$root.$emit("update-progress", { text2: book.title });
 
               if ( !response || response && response.status >= 400) {
-                book.storePageMissing = true;
+                if ( !processingError ) book.storePageMissing = true;
               } else {
                 vue.getStorePageData(response, book, hotpotato.config.test);
               }
@@ -114,6 +114,8 @@ export default {
     
       // This "#sample-player..." selector tries to weed out missing store pages
       if ( isTest || audible.querySelector("#sample-player-" + book.asin + " > button") ) {
+        
+        book.storePageMissing = false;
         
         if ( !book.cover ) {
           const regularCover = audible.querySelector('#center-1 > div > div > div > div.bc-col-responsive.bc-col-3 > div > div:nth-child(1) > img');
