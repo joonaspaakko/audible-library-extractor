@@ -15,8 +15,7 @@
       @mousedown="readyToCloseOpts = true" 
       @touchstart="readyToCloseOpts = true" 
       @touchmove="dontCloseOpts"
-      @mouseup="closeOpts"
-      @touchend="closeOpts"
+      @click="closeOpts"
       ></div>
       
       <div id="ale-search" ref="aleSearch">
@@ -152,7 +151,7 @@ export default {
     
     dontCloseOpts: _.throttle( function() {
       if ( this.readyToCloseOpts ) this.readyToCloseOpts = false;
-    }, 40, { leading: false, trailing: true }),
+    }, 50, { leading: false, trailing: true }),
     
     closeOpts: function() {
       if ( this.readyToCloseOpts ) {
@@ -161,7 +160,7 @@ export default {
           let vue = this;
           setTimeout(function() {
             vue.listName = false;
-          }, 10); // Timeout prevents mouseup from opening the cover below...
+          }, 30); // Timeout prevents interaction with elements below the overlay on click...
         });
       }
     },

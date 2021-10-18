@@ -31,6 +31,7 @@ export default {
       this.$updateQuery({ query: 'sort', value: null });
       this.$updateQuery({ query: 'sortDir', value: null });
       this.$store.commit('stickyProp', { key: 'subPageSource', value: key });
+      this.$root.$emit('refresh-page');
       
     },
   },
