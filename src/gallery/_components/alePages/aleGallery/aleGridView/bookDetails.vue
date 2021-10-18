@@ -3,7 +3,7 @@
   id="ale-bookdetails"
   ref="bookDetails"
   v-shortkey.once="['esc']"
-  @shortkey="closeBookDetails()"
+  @shortkey="closeBookDetails"
   :class="{ 'spreadsheet-details': $store.state.sticky.viewMode === 'spreadsheet' }"
   > 
     <div v-if="$store.state.sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
@@ -15,7 +15,7 @@
     
       <div class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
         
-        <font-awesome class="book-details-info" :icon="['fas', 'info-circle']" v-tippy="{ placement: 'left', flipBehavior: ['left', 'right'], allowHTML: true }" content="<div style='text-align: left;'><h3 style='margin: 0; padding-top: 10px; padding-left: 15px;'>Shortcuts</h3><ul><li><strong>Close:</strong> Esc</li><li><strong>Previous book:</strong> shift+tab, left arrow, up arrow (spreadsheet)</li><li><strong>Next book:</strong> tab, right arrow, down arrow (spreadsheet)</li><li><strong>Previous row:</strong> up arrow (Grid view)</li><li><strong>Next row:</strong> down arrow (Grid view)</li></ul></div>" />
+        <font-awesome class="book-details-info" :icon="['fas', 'info-circle']" v-tippy="{ placement: 'left', flipBehavior: ['left', 'right'], allowHTML: true }" content="<div style='text-align: left;'><h3 style='margin: 0; padding-top: 10px; padding-left: 15px;'>Shortcuts</h3><ul><li><strong>Close:</strong> Esc</li><li><strong>Move to adjacent book:</strong> arrow keys</li></ul></div>" />
         
         <div class="top">
           <div class="information" ref="information">
@@ -167,6 +167,7 @@ export default {
       { key: 'bookDetails.book', value: null },
       { key: 'bookDetails.index', value: -1 },
     ]);
+    if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
     
   },
 
@@ -355,10 +356,12 @@ export default {
               }
               return el;
             };
+            
             this.$store.commit('prop', [
               { key: 'bookDetails.book', value: null },
-              { key: 'bookDetails.index', value: null },
+              { key: 'bookDetails.index', value: -1 },
             ]);
+            if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
             
             findIndex = e.srcKey === 'up' ? this.index-cols : this.index+cols;
             nextBook = e.srcKey === 'up' ? vue.$store.state.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
@@ -410,8 +413,13 @@ export default {
     },
 
     closeBookDetails: function() {
-      this.$emit("update:book", null);
-      if (this.$route.query !== undefined) this.$router.replace({ query: { book: undefined } });
+      
+      this.$store.commit('prop', [
+        { key: 'bookDetails.book', value: null },
+        { key: 'bookDetails.index', value: -1 },
+      ]);
+      if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+      
     },
 
     // progressToolTipBoundaryEl: function() {
@@ -563,6 +571,12 @@ export default {
     }
 
     .cover-wrap {
+      -webkit-touch-callout: none; 
+      -webkit-user-select: none; 
+      -khtml-user-select: none; 
+      -moz-user-select: none; 
+      -ms-user-select: none; 
+      user-select: none; 
       min-height: 5px;
       position: relative;
       padding: 0;
@@ -742,6 +756,10 @@ export default {
   @include themify($themes) {
     color: rgba(themed(frontColor), 0.1);
   }
+  
+  @media (max-width: 688px) {
+    display: none !important;
+  }
 }
 
 // Makes the collapse/expand buttons easier to work with by making it so that 
@@ -761,6 +779,7 @@ export default {
 .information:hover .collapse-btn { display: flex; }
 
 .collapse-btn {
+  outline: none !important;
   position: absolute;
   z-index: 5;
   top: 5px;
@@ -772,16 +791,17 @@ export default {
   align-items: center;
   align-content: center;
   border-radius: 4px 0 0 4px;
+  cursor: pointer;
   @include themify($themes) {
-    color: rgba( themed(frontColor), .35);
-    background: rgba( themed(backColor), .25);
+    color: rgba( themed(frontColor), .55);
+    background: rgba( themed(backColor), .35);
     border: 1px solid rgba( themed(frontColor), .1);
     border-right: none;
   }
   &:hover {
     @include themify($themes) {
-      color: rgba( themed(frontColor), .90);
-      background: rgba( themed(backColor), .95);
+      color: rgba( themed(frontColor), 1) !important;
+      background: rgba( themed(backColor), .95) !important;
     }
   }
 }

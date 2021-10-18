@@ -263,17 +263,19 @@ export default {
     },
     
     addDomItems: _.throttle( function(e) {
-      
-      let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
-      let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
-      let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
-      
-      if ( atTheBottom ) {
-        this.$store.commit('chunkCollectionAdd');
+      if ( this.$store.state.lazyScroll ) {
+        
+        let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
+        let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
+        let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
+        
+        if ( atTheBottom ) {
+          this.$store.commit('chunkCollectionAdd');
+        }
+        
+        this.updateScrollDistance( container.scrollTop );
+        
       }
-      
-      this.updateScrollDistance( container.scrollTop );
-      
     }, 500, { leading: false, trailing: true }),
     
     updateScrollDistance: _.debounce( function( scrollTop ) {

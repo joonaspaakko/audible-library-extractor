@@ -133,3 +133,5 @@ yarn-error.log
 
 /*.log
 #dist-zip/*.zip
+
+/chunk-file-paths.js

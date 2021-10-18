@@ -68,6 +68,7 @@ export default new Vuex.Store({
     },
     searchOptOpenHeight: null,
     devMode: _.get( process.env, 'NODE_ENV' ) !== 'production',
+    lazyScroll: true,
   },
 
   mutations: {

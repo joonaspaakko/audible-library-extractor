@@ -55,8 +55,7 @@
       </label>
       
       <div class="range-slider" v-if="item.range">
-        <span style="cursor: w-resize;" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
-        
+        <span style="font-size: 13px; line-height: 13px; cursor: w-resize;" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
         <vue-slider 
         :disabled="range.disabled"
         :dragOnClick="true" 
@@ -79,7 +78,7 @@
         @drag-start="$store.commit('prop', { key: 'searchOptCloseGuard', value: true })"
         @drag-end="$store.commit('prop', { key: 'searchOptCloseGuard', value: false })"
         ></vue-slider>
-        <span style="cursor: e-resize;" @click="adjustRange('right')">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
+        <span style="font-size: 13px; line-height: 13px; cursor: e-resize;" @click="adjustRange('right')">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
       </div>
       
       <div v-if="!!item.dropdownOpts">
@@ -143,7 +142,7 @@ export default {
       if ( rangeIsSetByUser ) {
         range.value = _.clone(this.item.range);
         if ( range.value[0] < range.min || range.value[0] > range.max ) range.value[0] = range.min;
-        if ( range.value[1] > range.max || range.value[1] < range.max ) range.value[1] = range.max;
+        if ( range.value[1] < range.min || range.value[1] > range.max ) range.value[1] = range.max;
       }
       else {
         range.value = [range.min, range.max];
@@ -225,6 +224,10 @@ export default {
           active: value,
         };
         
+        if ( this.item.range ) {
+          changes.range = value ? _.clone( this.range.value ) : true;
+        }
+        
         if ( this.item.group ) changes.group = true;
         this.$store.commit("updateListRenderingOpts", changes);
         this.doTheThings( value );
@@ -278,6 +281,8 @@ export default {
     
     rangeChanged: function( value ) { 
       
+      this.range.value = value;
+      
       let changes = {
         listName: this.listName,
         index: this.index,
@@ -297,14 +302,18 @@ export default {
         listName: this.listName,
         index: this.index,
         active: true,
-        range: _.clone(this.range.value),
+        range: [0,0],
       };
       
       if ( direction === 'left' ) {
-        changes.range[0] = this.range.min;
+        const min = this.range.min;
+        changes.range[0]    = min;
+        this.range.value = [min, this.range.value[1]];
       }
       else {
-        changes.range[1] = this.range.max;
+        const max = this.range.max;
+        changes.range[1]    = max;
+        this.range.value = [this.range.value[0], max];
       }
       
       if ( this.item.group ) changes.group = true;

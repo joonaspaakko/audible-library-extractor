@@ -59,6 +59,10 @@ export default {
   },
 
   created: function() {
+    
+    this.$store.commit('prop', { key: 'lazyScroll', value: false });
+    this.$updateQuery({ query: 'y', value: null });
+    
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
     
     if ( this.listName === 'filter' ) {
@@ -85,6 +89,7 @@ export default {
     scroll({ top: 0, behavior: 'smooth' });
     
     this.$store.commit('prop', { key: 'searchOptOpenHeight', value: null });
+    this.$store.commit('prop', { key: 'lazyScroll', value: true });
     
   },
 

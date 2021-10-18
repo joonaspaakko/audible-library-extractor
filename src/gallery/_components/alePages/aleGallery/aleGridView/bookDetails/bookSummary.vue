@@ -222,7 +222,6 @@ export default {
     margin-left: 5px;
     &:first-of-type { margin-left: 0; }
     padding: 1px 6px 1px 4px;
-    background: #990017;
     color: #fff;
     svg { display: inline-block; padding-right: 3px; }
     display: inline-flex !important; 
@@ -235,6 +234,20 @@ export default {
     
     &.store-page-changed {
       background: #bd3f00;
+      [data-icon] {
+        font-size: .85em;
+        position: relative;
+        top: -1px;
+      }
+    }
+    
+    &.store-page-missing {
+      background: #990017;
+      [data-icon] {
+        font-size: .85em;
+        position: relative;
+        top: -1px;
+      }
     }
     
     &.store-page-info {
