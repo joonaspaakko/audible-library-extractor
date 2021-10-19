@@ -212,14 +212,22 @@ export default {
   created: function() {
     this.$root.$on("play-audio", this.playSample);
     document.addEventListener("mousedown", this.outsideClick, { passive: true });
+    this.$root.$on("afterWindowResize", this.onWindowResize);
   },
 
   beforeDestroy: function() {
     this.$root.$off("play-audio", this.playSample);
     document.removeEventListener("mousedown", this.outsideClick);
+    this.$root.$off("afterWindowResize", this.onWindowResize);
   },
   
   methods: {
+    
+    onWindowResize: function( win ) {
+      if ( this.mobileMenuOpen && win.widthChanged && win.width >= this.mobileWidth ) {
+        this.mobileMenuOpen = false;
+      }
+    },
     
     openImageGallery: function() {
       

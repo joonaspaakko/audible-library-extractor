@@ -581,11 +581,11 @@ globalMethods.install = function (Vue) {
 Vue.use( globalMethods );
 
 // APP prep
-// For testing purposes: offloading JSON
-var offLoadJSON = false;
-// var offLoadJSON = require('./test-data.json');
-if ( offLoadJSON ) {
-  startVue( offLoadJSON );
+// For testing side loading JSON
+var sideLoadJSON = false;
+// var sideLoadJSON = require('./test-data.json');
+if ( sideLoadJSON ) {
+  startVue( sideLoadJSON );
 }
 // In the extension environment...
 else if (!standalone) {

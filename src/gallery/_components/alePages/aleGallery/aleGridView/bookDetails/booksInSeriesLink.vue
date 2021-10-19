@@ -48,15 +48,18 @@ export default {
     // Except when the link leads to another series...
     this.seriesPage = this.$route.name === 'series';
     
-    // console.log( this.book.asin )
-    
     this.routerLink = { 
       name: 'series', 
       params: { series: this.series.asin }, 
-      query: { subPageSource: 'books', closeBookDetails: true }, 
+      query: { subPageSource: 'books' }, 
     };
     
-    if ( this.seriesName ) this.routerLink.query.book = this.book.asin;
+    if ( this.seriesName ) {
+      this.routerLink.query.closeBookDetails = true;
+    }
+    else {
+      this.routerLink.query.book = this.book.asin;
+    }
     
     this.linkDisabled = this.book.notInLibrary || this.seriesPage && this.$route.params.series === this.series.asin;
     

@@ -7,52 +7,81 @@ export default {
         const books = [];
         const flyouts = carousel.querySelectorAll(".carousel-product");
 
-        flyouts.forEach(function(el) {
+        _.each(flyouts, function(el) {
+          
           const book = {};
-          const image = el.querySelector('[id^="product-carousel-image"]');
-          const cover = image.getAttribute("src") || image.getAttribute("data-lazy");
+          
+          let image = el.querySelector('[id^="product-carousel-image"]');
+          if ( image ) image = image.getAttribute("src") || image.getAttribute("data-lazy");
+          if ( !image ) return false;
 
-          const coverId = cover.match(/\/images\/I\/(.*)._SL/);
-          if (coverId && coverId[1]) book.cover = DOMPurify.sanitize( coverId[1] );
-
-          book.asin = "" + DOMPurify.sanitize(el.querySelector("[data-asin]").getAttribute("data-asin"));
-
-          var list = el.querySelector("[id^=product-list-flyout] ul");
-          var listItems = list.querySelectorAll("li:not(.bc-size-base)");
-          var subHeading = list.querySelector("li.bc-size-base:nth-child(2)");
-          if (subHeading) book.subHeading = DOMPurify.sanitize(subHeading.textContent.trim());
-          listItems.forEach(function(el, i) {
-            
-            let trailingComma = el.querySelector('.bc-pub-offscreen');
-            if ( trailingComma ) trailingComma.remove();
-            
-            let text = DOMPurify.sanitize(el.textContent.trimAll());
-
-            if (!el.querySelector("h2")) {
-              text = text.trimToColon();
+          let coverId = image.match(/\/images\/I\/(.*)._SL/);
+          if (coverId && coverId[1]) coverId = "" + DOMPurify.sanitize( coverId[1] );
+          if ( !coverId ) return false;
+          book.cover = coverId;
+          
+          let bookASIN = el.querySelector("[data-asin]");
+          if ( bookASIN ) bookASIN = bookASIN.getAttribute("data-asin");
+          if ( bookASIN ) bookASIN = "" + DOMPurify.sanitize( bookASIN );
+          if ( !bookASIN ) return false;
+          book.asin = bookASIN;
+          
+          // As long as we have all of the above, we can return the book
+          
+          const list = el.querySelector("[id^=product-list-flyout] ul");
+          let listItems, subHeading;
+          if ( list ) {
+            listItems = list.querySelectorAll("li:not(.bc-size-base)");
+            if ( listItems ) {
+              subHeading = list.querySelector("li.bc-size-base:nth-child(2)");
+              if ( subHeading ) {
+                let shTrailingComma = subHeading.querySelector('.bc-pub-offscreen');
+                if ( shTrailingComma ) shTrailingComma.remove();
+              }
+              if ( subHeading ) subHeading = subHeading.textContent;
+              if ( subHeading ) subHeading = DOMPurify.sanitize(subHeading.trim());
+              if ( subHeading ) book.subHeading = subHeading;
             }
-
-            var line = i + 1;
-            switch (line) {
-              case 1:
-                book.title = text;
-                break;
-              case 2:
-                book.authors = text;
-                break;
-              case 3:
-                book.narrators = text;
-                break;
-              case 4:
-                book.length = text;
-                break;
-            }
-          });
+          }
+          
+          if ( listItems ) {
+            _.each(listItems, function(el, i) {
+              
+              let trailingComma = el.querySelector('.bc-pub-offscreen');
+              if ( trailingComma ) trailingComma.remove();
+              
+              let text = el.textContent;
+              if ( text ) text = DOMPurify.sanitize(text.trimAll());
+              if ( text && !el.querySelector("h2") ) text = text.trimToColon();
+              if ( !text ) return false;
+              
+              var line = i + 1;
+              switch (line) {
+                case 1:
+                  book.title = text;
+                  break;
+                case 2:
+                  book.authors = text;
+                  break;
+                case 3:
+                  book.narrators = text;
+                  break;
+                case 4:
+                  book.length = text;
+                  break;
+              }
+              
+            });
+          }
+                    
           books.push(book);
+          
         });
 
         if (books.length > 0) parentBook[key] = books;
+        
       }
-    }
+      
+    },
   }
 };

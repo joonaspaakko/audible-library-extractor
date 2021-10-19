@@ -113,6 +113,7 @@ export default {
         { key: 'bookDetails.book', value: null },
         { key: 'bookDetails.index', value: -1 },
       ]);
+      if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
     }
     
     if ( this.$route.name === 'gallery' ) {
