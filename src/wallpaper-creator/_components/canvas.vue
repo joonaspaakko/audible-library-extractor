@@ -523,6 +523,10 @@ export default {
 
 .grid-inner-wrap.hide-author-and-title .author-and-title { display: none !important; }
 
+// .author-and-title {
+//   text-align: center;
+// }
+
 .canvas-padding-preview {
   position: absolute;
   z-index: 1;

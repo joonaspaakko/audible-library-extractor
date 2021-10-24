@@ -17,7 +17,13 @@ export default {
       let vue = this;
       
       try {
-        browser.storage.local.get(['imageEditorChunks', 'imageEditorChunksLength', 'imageEditorPageTitle', 'imageEditorPageSubTitle']).then(data => {
+        browser.storage.local.get([
+          'imageEditorChunks', 
+          'imageEditorChunksLength', 
+          'imageEditorTimeCode', 
+          'imageEditorPageTitle', 
+          'imageEditorPageSubTitle'
+      ]).then(data => {
           // browser.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
           
           if ( data.imageEditorChunksLength ) {
@@ -33,23 +39,31 @@ export default {
                 { key: "archived", value: vue.archivedLength },
               ];
               
-              if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
-                changes.push({ key: "coverAmount", value: coversArray.length });
+              // time code changes when wallpaper creator is opened through the gallery
+              if ( data.imageEditorTimeCode ) changes.push({ key: "timeCode", value: data.imageEditorTimeCode });
+              
+              let coverAmount = vue.$store.state.canvasPreset === 'wallpaper' ? 300 : 50;
+              const fromLocalstorage = data.imageEditorTimeCode === vue.$store.state.timeCode;
+              if ( !fromLocalstorage ) {
+                
+                coverAmount = coversArray.length > coverAmount ? coverAmount : coversArray.length;
+                changes.push({ key: "coverAmount", value: coverAmount });
+                
+              }
+              else if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
+                coverAmount = coversArray.length;
+                changes.push({ key: "coverAmount", value: coverAmount });
               }
               
-              changes.push({ key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) });
+              changes.push({ key: "usedCovers", value: coversArray.slice( 0, coverAmount ) });
               
               if ( data.imageEditorPageTitle    ) changes.push({ key: 'gallery.pageTitle', value: data.imageEditorPageTitle });
               if ( data.imageEditorPageSubTitle ) changes.push({ key: 'gallery.pageSubTitle', value: data.imageEditorPageSubTitle });
               
               vue.$store.commit("update", changes);
               
-              if ( coversArray.length ) {
-                vue.dataReady = true;
-              }
-              else {
-                vue.noCovers = true;
-              }
+              if ( coversArray.length ) { vue.dataReady = true; }
+              else { vue.noCovers = true; }
               
             }); 
           }
@@ -57,19 +71,15 @@ export default {
         });
       } catch(e) {
         
-        // let coversArray = require('./getCovers.json');
-        // coversArray = this.mappy( coversArray );
-        // vue.$store.commit("update", [
-        //   { key: "covers", value: coversArray },
-        //   { key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) },
-        // ]);
+        let coversArray = require('./getCovers.json');
+        coversArray = this.mappy( coversArray );
+        vue.$store.commit("update", [
+          { key: "covers", value: coversArray },
+          { key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) },
+        ]);
         
-        // if ( coversArray.length ) {
-        //   vue.dataReady = true;
-        // }
-        // else {
-        //   vue.noCovers = true;
-        // }
+        if ( coversArray.length ) { vue.dataReady = true; }
+        else { vue.noCovers = true; }
         
       }
       

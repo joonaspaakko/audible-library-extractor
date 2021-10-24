@@ -86,7 +86,7 @@
           
           <div style="height: 22px;">
             <div class="label-row time-until-next-cycle" v-if="store.awpAnimationStarted">
-              <span class="covers-this-cycle" v-tippy content="Covers animated in this cycle...">{{ store.awpAnimatedCoversLength || 0 }}</span> 
+              <span class="covers-this-cycle" v-tippy content="Number of covers animated in one cycle.">{{ store.awpAnimatedCoversLength || 0 }}</span> 
               <div class="progress-bar">
                 <div class="fill" :class="{ animate: store.awpCycleDelay }"></div>
               </div>
@@ -186,7 +186,7 @@
           <spacer size="small" :line="false" />
           
           <div class="label-row" 
-          v-tippy content='Cover amount is randomized for every cycle. The setting above "Cover sper cycle" defines the maximum amount.'
+          v-tippy content='Cover amount is randomized for every cycle. The setting above "Covers per cycle" defines the maximum amount.'
           >
             <span>Randomize covers <span v-if="store.awpRandomCovers">(1-{{ store.awpCoversPerCycle }})</span></span>
             <gb-toggle
@@ -324,7 +324,7 @@
         <div  v-if="!store.animatedWallpaperMode">
           <gb-heading tag="h6" :uppercase="true" name="coverNumberTippy">
             <span :style="{ color: store.covers.length > store.coverAmount ? '#ffc02b' : null }">
-              Limit cover images
+              Limit covers
             </span>
             
             <gb-input
@@ -337,10 +337,12 @@
               size="mini"
               >
             ></gb-input>
+          <span style="color: #8eabc3; text-transform: lowercase;">of {{ store.covers.length }}</span>
           </gb-heading>
           
+          
           <tippy to="coverNumberTippy" placement="top" trigger="focus mouseenter">
-            Showing <strong>{{ store.coverAmount }}</strong> covers out of a possible <strong>{{ store.covers.length }}</strong>. Excess covers are removed from the tail end.
+            Showing <strong>{{ store.coverAmount }}</strong> covers out of a possible <strong>{{ store.covers.length }}</strong>. <br>Excess covers are removed from the tail end.
           </tippy>
           
           <spacer size="default" :line="false" />
@@ -351,7 +353,7 @@
             Randomize covers 
             <gb-button :rounded="true" size="mini" left-icon="shuffle" @click="randomizeCovers" 
             v-tippy content="Randomizes all covers from the source data. You might want to use this before manual sorting."
-            >randomize</gb-button>
+            >shuffle</gb-button>
           </gb-heading>
           
           <spacer size="default" :line="false" />
@@ -448,6 +450,7 @@
             @click="fitCanvasToContent"
             :rounded="true"
             left-icon="crop"
+            v-if="store.canvas.height > 0"
             >Fit canvas size to covers</gb-button>
           </div>
           
@@ -528,7 +531,7 @@
         
         <div>
           <gb-heading tag="h6" :uppercase="true" v-tippy content="Overlay is recommended if you're making a desktop wallpaper and plan to have icons on top of it.">
-            <span>Color overlay</span>
+            <span :style="{ color: store.awpOverlayColorEnabled ? '#ffc02b' : null }">Color overlay</span>
             <gb-toggle
             size="mini"
             v-model="store.awpOverlayColorEnabled"
@@ -887,6 +890,7 @@
           v-model="store.canvas.zoomOutputs"
           label="Output with zoomed scale"
           :warning="(store.canvas.zoom > 0 && store.canvas.zoom != 1) ? outputWidthZoomSize : null"
+          :info="(store.canvas.zoom === 1) ? outputWidthZoomSize : null"
           ></gb-toggle>
           
           <spacer size="medium" :line="false" />
@@ -1137,7 +1141,6 @@ export default {
     
       this.$store.commit("update", { key: "canvasPreset", value:  preset  });
       this.$store.commit('changePreset', preset);
-      
       this.$store.commit('update', { 
         key: 'usedCovers', 
         value: this.store.covers.slice(0, this.store.coverAmount)

@@ -59,7 +59,6 @@ import {
 import VueRouter from "vue-router";
 Vue.use(VueRouter);
 import aleLibraryView from "./_components/aleLibraryView";
-import VueRouterBackButton from "vue-router-back-button";
 
 let routesPrep = function( libraryData ) {
   if ( libraryData ) {
@@ -183,11 +182,6 @@ let routesPrep = function( libraryData ) {
       }
     });
     
-    Vue.use(VueRouterBackButton, { 
-      router,
-      ignoreRoutesWithSameName: true,
-    });
-    
     // Tries to load relevant JSON data from a file before each route change on the standalone site
     if ( standalone ) {
       
@@ -244,6 +238,8 @@ let routesPrep = function( libraryData ) {
       
       router.beforeEach((to, from, next) => {
         
+        console.log( 'TEST:', to );
+        
         if ( 
           from.name !== to.name || 
           _.get(from, 'query.book') !== _.get(to, 'query.book') || 
@@ -299,12 +295,31 @@ let routesPrep = function( libraryData ) {
         else { next(); }
       });
       
+      router.afterEach((to, from, next) => {
+        if ( from.name !== to.name ) {
+          
+          const navForward = store.state.navHistory.forward;
+          const navBack = store.state.navHistory.back;
+          
+          if ( 
+            from.name && from.name !== navForward[ navForward.length-1]  && from.name !== navBack[ navBack.length-1 ] 
+          ) {
+            store.commit('navHistory', { key: 'back', value: from.name, pushOnly: true });
+          }
+          
+          if ( !store.state.navHistory.btnNavigation ) store.commit('prop', { key: 'navHistory.forward', value: [] });
+          store.commit('prop', { key: 'navHistory.btnNavigation', value: false });
+          
+        }
+      });
+        
     }
     
     return router;
   
   }
 };
+
 
 
 // FONT AWESOME
@@ -366,6 +381,7 @@ import {
   faMinusCircle,
   faHeadphonesAlt,
   faImages,
+  faGraduationCap,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -431,6 +447,7 @@ library.add(
   faMinusCircle,
   faHeadphonesAlt,
   faImages,
+  faGraduationCap,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);

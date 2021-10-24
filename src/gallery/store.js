@@ -69,6 +69,11 @@ export default new Vuex.Store({
     searchOptOpenHeight: null,
     devMode: _.get( process.env, 'NODE_ENV' ) !== 'production',
     lazyScroll: true,
+    navHistory: {
+      btnNavigation: false,
+      forward: [],
+      back: [],
+    },
   },
 
   mutations: {
@@ -211,6 +216,17 @@ export default new Vuex.Store({
         }
       }
 
+    },
+    
+    navHistory: function( state, config ) {
+      
+      const direction = config.pushOnly ? config.key : (config.key === 'back' ? 'forward' : 'back');
+      state.navHistory[ direction ].push( config.value );
+      if ( !config.pushOnly ) {
+        state.navHistory[ config.key ].pop;
+        state.navHistory.btnNavigation = true;
+      }
+      
     },
 
   },

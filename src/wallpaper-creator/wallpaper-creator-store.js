@@ -7,10 +7,11 @@ import _ from "lodash";
 
 const store = new Vuex.Store({
   state: {
+    timeCode: null,
     resetting: false,
     visibleAnimatedCovers: null,
     covers: null,
-    coverAmount: 320,
+    coverAmount: 300,
     coverSize: 160,
     paddingSize: 0,
     coverPlaceholders: 0,
@@ -63,7 +64,7 @@ const store = new Vuex.Store({
     animationPreset: null,
     animationPresets: null,
     coverOpacityEnabled: false,
-    coverOpacity: .77,
+    coverOpacity: .65,
     awpAnimationStarted: false,
     awpShowAnimationZone: false,
     awpCycleDelay: null,
@@ -71,7 +72,7 @@ const store = new Vuex.Store({
     awpAnimateOnLoad: null,
     awpAnimatedCoversLength: null,
     awpOverlayColorEnabled: true,
-    awpOverlayColor: 'rgba(0,0,0, .77)',
+    awpOverlayColor: 'rgba(28,28,28, .54)',
     awpGrayscale: false,
     awpCoversPerCycle: null,
     awpRandomCovers: null,
@@ -149,7 +150,7 @@ const store = new Vuex.Store({
           coverAmount: 300,
           paddingSize: 0,
           awpOverlayColorEnabled: true,
-          awpOverlayColor: 'rgba(0,0,0, .77)',
+          awpOverlayColor: 'rgba(28,28,28, .54)',
           awpBlendMode: 'normal',
           showAuthorAndTitle: false,
           awpGrayscale: false,
@@ -172,7 +173,7 @@ const store = new Vuex.Store({
         value: 'card',
         options: {
           coversPerRow: 5,
-          coverAmount: 30,
+          coverAmount: 50,
           paddingSize: 5,
           awpOverlayColorEnabled: false,
           showAuthorAndTitle: false,
@@ -302,6 +303,7 @@ const store = new Vuex.Store({
     changePreset: function( state, presetName ) {
       
       let preset = _.find( state.canvasPresets, { value: presetName });
+      console.dir( preset.options )
       if ( preset ) state = _.merge( state, preset.options );
       
     },

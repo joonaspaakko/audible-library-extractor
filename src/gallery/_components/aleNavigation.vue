@@ -125,14 +125,22 @@
           </div>
         </div>
         
-        <div class="text-button" v-if="!$store.state.standalone" style="z-index: 9999;">
+        <div class="text-button" v-if="!$store.state.standalone" style="z-index: 9999;" v-tippy="{ placement: 'bottom' }" content="Save standalone gallery or extracted data as csv.">
           <ale-save-locally></ale-save-locally>
         </div>
         
-        <div class="text-button" v-if="!$store.state.standalone && $route.meta.gallery && $store.getters.collection && $store.getters.collection.length">
-          <div class="icon" @click="openImageGallery">
+        <div class="text-button" v-if="!$store.state.standalone && $route.meta.gallery && $store.getters.collection && $store.getters.collection.length"
+        v-tippy="{ placement: 'bottom', maxWidth: 400 }" content="Wallpaper creator: takes books from the current page and creates a collage using their cover images. Searches, filters and sorting affects what you see when you open the editor."
+        >
+          <div class="icon" @click="openWallpaperCreator">
             <font-awesome :icon="['fas', 'images']" />
           </div>
+        </div>
+        
+        <div class="text-button" v-if="!$store.state.standalone" v-tippy="{ placement: 'bottom' }" content="Link to external documentation.">
+          <a class="icon" href="https://joonaspaakko.gitbook.io/audible-library-extractor/" target="_blank">
+            <font-awesome :icon="['fas', 'graduation-cap']" />
+          </a>
         </div>
         
       </div>
@@ -155,16 +163,12 @@
       </div>
       
       <div class="mobile-back-btns-wrapper" v-if="$store.state.displayMode">
-        <div class="mobile-back-btns" v-if="$routerHistory.hasPrevious()">
-          <router-link :to="{ path: $routerHistory.previous().path }">
-            <font-awesome fas icon="chevron-left" /> 
-          </router-link>
+        <div class="mobile-back-btns" :class="{ disabled: $store.state.navHistory.back.length < 1 }" @click.prevent="navigate('back')">
+          <font-awesome fas icon="chevron-left" /> 
         </div>
         
-        <div class="mobile-back-btns" v-if="$routerHistory.hasForward()">
-          <router-link :to="{ path: $routerHistory.next().path }">
-            <font-awesome fas icon="chevron-right" /> 
-          </router-link>
+        <div class="mobile-back-btns" :class="{ disabled: $store.state.navHistory.forward.length < 1 }" @click.prevent="navigate('forward')">
+          <font-awesome fas icon="chevron-right" /> 
         </div>
       </div>
       
@@ -223,13 +227,20 @@ export default {
   
   methods: {
     
+    navigate: function( direction ) {
+      if ( this.$store.state.navHistory[ direction ].length > 0 ) {
+        this.$store.commit('navHistory', { key: direction, value: this.$route.name });
+        this.$router[ direction ]();
+      }      
+    },
+    
     onWindowResize: function( win ) {
       if ( this.mobileMenuOpen && win.widthChanged && win.width >= this.mobileWidth ) {
         this.mobileMenuOpen = false;
       }
     },
     
-    openImageGallery: function() {
+    openWallpaperCreator: function() {
       
       try {
         
@@ -240,6 +251,7 @@ export default {
         let storageObj = {
           imageEditorChunks: covers,
           imageEditorChunksLength: covers.length,
+          imageEditorTimeCode: new Date().getTime(),
         };
         
         if ( this.$store.state.pageTitle    ) storageObj.imageEditorPageTitle = this.$store.state.pageTitle;
@@ -638,6 +650,7 @@ export default {
     // @include themify($themes) {
     //   background: rgba( themed(backColor), .25);
     // }
+    &, svg { color: #fff; }
     background: rgba( #292929, .90);
     border: 1px solid rgba( #fff, 1);
   }
@@ -670,6 +683,12 @@ export default {
     white-space: nowrap;
   }
   .mobile-back-btns {
+    -webkit-touch-callout: none; 
+    -webkit-user-select: none; 
+    -khtml-user-select: none; 
+    -moz-user-select: none; 
+    -ms-user-select: none; 
+    user-select: none; 
     @extend .search-btn;
     position: relative;
     top: 0;
@@ -678,6 +697,12 @@ export default {
       @extend .center-contents;
       width:  32px;
       height: 32px;
+    }
+    &.disabled {
+      border-color: #b1b1b1 !important;
+    }
+    &.disabled svg {
+      color: #999 !important;
     }
   }
   

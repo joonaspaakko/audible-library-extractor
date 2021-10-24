@@ -52,7 +52,6 @@
     "vue-lazyload": "^1.3.3",
     "vue-moveable": "^1.8.11",
     "vue-router": "^3.5.2",
-    "vue-router-back-button": "^1.3.0",
     "vue-shortkey": "^3.1.7",
     "vue-slider-component": "^3.2.15",
     "vue-tippy": "^4.10.2",

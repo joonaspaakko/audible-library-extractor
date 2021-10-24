@@ -77,11 +77,11 @@ export default {
         dataSources: [
           { key: 'Library' },
           { key: 'Wishlist' },
-          { key: 'Current list', tippy: 'What you see is what you get. For example, in a series sub page this option would export the entire series as listed, unless you modify it by adding filters or by searching. Will be exported with the active sorting. <strong>This data source only works on gallery pages with books.</strong>' },
+          { key: 'Current list', tippy: 'What you see is what you get. For example, in a series sub page this option would export the entire series as listed, unless you modify it by adding filters or by searching. This list is also exported with the active sorting. <strong>This data source only works on gallery pages with books.</strong>' },
         ],
         compatibilityChecked: 'Google Sheets',
         compatibility: [
-          { key: 'Raw data', label: 'Generic data', tippy: "Basically the same as the Google Sheets output but without the formulas. If you don't like formulas, this would also work just as well in Google Sheets." },
+          { key: 'Raw data', label: 'Raw data', tippy: "Basically the same as the Google Sheets output but without the formulas. If you don't like formulas, this would also work just as well in Google Sheets." },
           { key: 'Google Sheets', tippy: "<strong>Google Sheets compatible formulas:</strong> <ul><li>Cover image + link to the store page in Audible</li><li>Sample audio icon + link</li><li>Web player icon + link</li><li>Goodreads search icon + link</li><li>Title has a link to store page in Audible</li></ul>" },
           { key: 'Goodreads', tippy: "Removes any books that don't have ISBNs because Goodreads won't import without it. Each book is imported in bookshelves as per their status: not started (to-read), started(currently-reading), finished (read). The categories are divided into shelves as well." },
         ] 

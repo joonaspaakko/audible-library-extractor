@@ -509,6 +509,7 @@ export default {
         
         delete data.imageEditorPageTitle;
         delete data.imageEditorPageSubTitle;
+        delete data.imageEditorTimeCode;
         delete data.imageEditorChunksLength;
         delete data.imageEditorChunks;
         

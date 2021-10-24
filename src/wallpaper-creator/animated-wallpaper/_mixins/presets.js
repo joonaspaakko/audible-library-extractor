@@ -41,7 +41,7 @@ export default {
         {
           name: 'row-switcheroo',
           description: 'Animates one row at a time time.',
-          onLoad: true, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
+          onLoad: false, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
           use: ['fade-in'], // Falsy value = all animations.
           covers: 'one-row', // How many covers to animate in one cycle
           randomCovers: false, // If enabled, random amount of covers are animated each cycle. Minimum is 1 and max is "covers" amount.
@@ -66,7 +66,7 @@ export default {
         {
           name: 'raindrops',
           description: '...',
-          onLoad: false, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
+          onLoad: true, // Animates immediately on load. Otherwise it waits for "cycleDelay" to finish before starting.
           use: ['fade-in-top'], // Falsy value = all animations.
           cycleDelay: 20, // Seconds. Length of one animation cycle.
           covers: 'all', // How many covers to animate in one cycle
