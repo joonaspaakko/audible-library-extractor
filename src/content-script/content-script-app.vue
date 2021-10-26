@@ -88,6 +88,10 @@ import getDataFromPurchaseHistory from "./_components/_mixins/main-step/process-
 import timeStringToSeconds from "@output-mixins/timeStringToSeconds.js";
 import secondsToTimeString from "@output-mixins/secondsToTimeString.js";
 
+import eruda from "eruda";
+import erudaMemory from "eruda-memory";
+import erudaDom from "eruda-dom";
+
 export default {
   components: {
     overlay,
@@ -126,6 +130,14 @@ export default {
         storePageMissing: []
       },
       ui: "menu-screen",
+      doStorePageTest: [
+        // { storePageRequestUrl: "https://www.audible.com/pd/B07C7S798P" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B07V5K12WX" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B007PR4J4E" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B005FRGT44" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B089T5SW3N" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B089T5SW3N" },
+      ],
     };
   },
   beforeMount: function() {
@@ -137,9 +149,15 @@ export default {
     
     
     // vue.init_purchaseHistoryTest();
-    // vue.init_storePageTest();
+    if ( this.doStorePageTest && this.doStorePageTest.length > 0 ) vue.init_storePageTest();
     // vue.init_seriesPageTest();
     
+  },
+  
+  mounted: function() {
+    this.$nextTick(function() {
+      this.startConsole();
+    });
   },
   
   methods: {
@@ -219,6 +237,7 @@ export default {
 
     goToOutputPage: function(hotpotato) {
       
+      let vue = this;
       let collections = hotpotato.collections;
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
       if ( archive ) archive.description = '';
@@ -276,12 +295,42 @@ export default {
         browser.storage.local.clear().then(() => {
           browser.storage.local.set(hotpotato).then(() => {
             
+            // If console is open don't open the gallery page....
+            if ( vue.erudaOpenStayInAudible() ) return;
             browser.runtime.sendMessage({ action: "openOutput" });
             
           });
         });
       }
       
+    },
+    
+    erudaOpenStayInAudible: function() {
+      
+      let erudaIsOpen = false;
+      
+      if ( !!eruda ) {
+        let erudaStatus = eruda.get();
+        if ( erudaStatus )erudaIsOpen = erudaStatus._isShow; 
+      }
+      
+      if ( erudaIsOpen ) {
+            
+        this.$root.$emit("reset-progress");
+        this.$root.$emit("update-big-step", {
+          title: "Data has been saved, but since the console window is open, gallery won't be opened automatically.",
+          step: 0,
+          max: 0
+        });
+        this.$root.$emit("update-progress", {
+          text: "You can still open the gallery manually without the need to do a new extract...",
+          step: 0,
+          max: 0
+        });
+        
+      }
+      
+      return erudaIsOpen;
     },
     
     init_purchaseHistoryTest: function() {
@@ -301,14 +350,12 @@ export default {
     },
 
     init_storePageTest: function() {
+      
       const vue = this;
       
       const hotpotato = {
         config: { test: true, getStorePages: 'books' },
-        books: [
-          { storePageRequestUrl: "https://www.audible.com/pd/B07C7S798P" },
-          { storePageRequestUrl: "https://www.audible.com/pd/B07V5K12WX" },
-        ]
+        books: this.doStorePageTest,
       };
 
       vue.getDataFromStorePages(hotpotato, function(nullBoy, result) {
@@ -340,6 +387,32 @@ export default {
         );
       });
     },
+    
+    startConsole: function() {
+      
+      let el = document.createElement('div');
+      el.style.zIndex = 999999999999999999;
+      el.style.position = 'absolute';
+      document.body.appendChild(el);
+      
+      eruda.init({
+        container: el,
+        tool: ['console'],
+        autoScale: true,
+        defaults: {
+          displaySize: 40,
+          transparency: .9,
+          theme: 'Monokai Pro',
+        },
+      });
+      
+      eruda.add(erudaMemory);
+      eruda.add(erudaDom);
+      
+      // eruda.show();
+      
+    }
+    
   }
 };
 </script>
