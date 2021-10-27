@@ -2,8 +2,8 @@
   <overlay>
     <menu-screen
     v-if="ui === 'menu-screen'"
-    :storageHasData="storageHasData"
-    :storageConfig="storageConfig"
+    :storageHasData.sync="storageHasData"
+    :storageConfig.sync="storageConfig"
     :domainExtension="domainExtension"
     :wishlistUrl="wishlistUrl"
     ></menu-screen>
@@ -76,7 +76,7 @@ import helpers from "./_components/_mixins/misc/helpers.js";
 
 // Steps
 import getDataFromLibraryPages from "./_components/_mixins/main-step/process-library-pages.js";
-import getDataFromLibraryPagesFin from "./_components/_mixins/main-step/process-library-pages-fin.js";
+// import getDataFromLibraryPagesFin from "./_components/_mixins/main-step/process-library-pages-fin.js";
 import getDataFromStorePages from "./_components/_mixins/main-step/process-store-pages.js";
 import getISBNsFromGoogleBooks from "./_components/_mixins/main-step/process-isbns.js";
 import getDataFromSeriesPages from "./_components/_mixins/main-step/process-series-pages.js";
@@ -88,9 +88,9 @@ import getDataFromPurchaseHistory from "./_components/_mixins/main-step/process-
 import timeStringToSeconds from "@output-mixins/timeStringToSeconds.js";
 import secondsToTimeString from "@output-mixins/secondsToTimeString.js";
 
-import eruda from "eruda";
-import erudaMemory from "eruda-memory";
-import erudaDom from "eruda-dom";
+// import eruda from "eruda";
+// import erudaMemory from "eruda-memory";
+// import erudaDom from "eruda-dom";
 
 export default {
   components: {
@@ -104,7 +104,7 @@ export default {
     amapxios,
     scrapingPrep,
     getDataFromLibraryPages,
-    getDataFromLibraryPagesFin,
+    // getDataFromLibraryPagesFin,
     getDataFromStorePages,
     getISBNsFromGoogleBooks,
     getDataFromCarousel,
@@ -114,9 +114,11 @@ export default {
     getDataFromPurchaseHistory,
     helpers,
   ],
-  props: ["storageHasData", "storageConfig"],
+  props: ["storageHasDataInit", "storageConfigInit"],
   data: function() {
     return {
+      storageHasData: {},
+      storageConfig: {},
       libraryUrl: window.location.origin + "/library/titles",
       libraryUrlFin: window.location.origin + "/library/titles?isFinished=true",
       seriesUrl: window.location.origin + "/series",
@@ -140,6 +142,14 @@ export default {
       ],
     };
   },
+  
+  created: function() {
+    
+    this.storageHasData = JSON.parse(JSON.stringify(this.storageHasDataInit));
+    this.storageConfig = JSON.parse(JSON.stringify(this.storageConfigInit));
+    
+  },
+  
   beforeMount: function() {
     const vue = this;
 
@@ -156,17 +166,19 @@ export default {
   
   mounted: function() {
     this.$nextTick(function() {
-      this.startConsole();
+      // this.startConsole();
     });
   },
   
   methods: {
     init_step_extract: function( config ) {
       
+      
       const vue = this;
+      console.log( 'TEEEEST:', vue.storageHasData );
       browser.storage.local.get(null).then(hotpotato => {
         
-        if ( hotpotato.chunks ) vue.glueFriesBackTogether(hotpotato);
+        if ( hotpotato.chunks && hotpotato.chunks.length ) vue.glueFriesBackTogether(hotpotato);
         
         vue.ui = "scraping";
         vue.$nextTick(function() {
@@ -296,7 +308,7 @@ export default {
           browser.storage.local.set(hotpotato).then(() => {
             
             // If console is open don't open the gallery page....
-            if ( vue.erudaOpenStayInAudible() ) return;
+            // if ( vue.erudaOpenStayInAudible() ) return;
             browser.runtime.sendMessage({ action: "openOutput" });
             
           });
@@ -305,33 +317,33 @@ export default {
       
     },
     
-    erudaOpenStayInAudible: function() {
+    // erudaOpenStayInAudible: function() {
       
-      let erudaIsOpen = false;
+    //   let erudaIsOpen = false;
       
-      if ( !!eruda ) {
-        let erudaStatus = eruda.get();
-        if ( erudaStatus )erudaIsOpen = erudaStatus._isShow; 
-      }
+    //   if ( !!eruda ) {
+    //     let erudaStatus = eruda.get();
+    //     if ( erudaStatus )erudaIsOpen = erudaStatus._isShow; 
+    //   }
       
-      if ( erudaIsOpen ) {
+    //   if ( erudaIsOpen ) {
             
-        this.$root.$emit("reset-progress");
-        this.$root.$emit("update-big-step", {
-          title: "Data has been saved, but since the console window is open, gallery won't be opened automatically.",
-          step: 0,
-          max: 0
-        });
-        this.$root.$emit("update-progress", {
-          text: "You can still open the gallery manually without the need to do a new extract...",
-          step: 0,
-          max: 0
-        });
+    //     this.$root.$emit("reset-progress");
+    //     this.$root.$emit("update-big-step", {
+    //       title: "Data has been saved, but since the console window is open, gallery won't be opened automatically.",
+    //       step: 0,
+    //       max: 0
+    //     });
+    //     this.$root.$emit("update-progress", {
+    //       text: "You can still open the gallery manually without the need to do a new extract...",
+    //       step: 0,
+    //       max: 0
+    //     });
         
-      }
+    //   }
       
-      return erudaIsOpen;
-    },
+    //   return erudaIsOpen;
+    // },
     
     init_purchaseHistoryTest: function() {
       
@@ -388,30 +400,30 @@ export default {
       });
     },
     
-    startConsole: function() {
+    // startConsole: function() {
       
-      let el = document.createElement('div');
-      el.style.zIndex = 999999999999999999;
-      el.style.position = 'absolute';
-      document.body.appendChild(el);
+    //   let el = document.createElement('div');
+    //   el.style.zIndex = 999999999999999999;
+    //   el.style.position = 'absolute';
+    //   document.body.appendChild(el);
       
-      eruda.init({
-        container: el,
-        tool: ['console'],
-        autoScale: true,
-        defaults: {
-          displaySize: 40,
-          transparency: .9,
-          theme: 'Monokai Pro',
-        },
-      });
+    //   eruda.init({
+    //     container: el,
+    //     tool: ['console'],
+    //     autoScale: true,
+    //     defaults: {
+    //       displaySize: 40,
+    //       transparency: .9,
+    //       theme: 'Monokai Pro',
+    //     },
+    //   });
       
-      eruda.add(erudaMemory);
-      eruda.add(erudaDom);
+    //   eruda.add(erudaMemory);
+    //   eruda.add(erudaDom);
       
-      // eruda.show();
+    //   // eruda.show();
       
-    }
+    // }
     
   }
 };

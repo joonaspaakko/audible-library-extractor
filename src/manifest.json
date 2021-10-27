@@ -19,7 +19,9 @@
     "unlimitedStorage",
     "https://www.googleapis.com/*",
     "contextMenus",
-    "https://m.media-amazon.com/*"
+    "https://m.media-amazon.com/*",
+    "https://fonts.googleapis.com/*",
+    "https://fonts.gstatic.com/*"
   ],
   "web_accessible_resources": [
     "assets/images/audible-library-extractor-logo.svg",

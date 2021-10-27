@@ -129,10 +129,10 @@
           <ale-save-locally></ale-save-locally>
         </div>
         
-        <div class="text-button" v-if="!$store.state.standalone && $route.meta.gallery && $store.getters.collection && $store.getters.collection.length"
-        v-tippy="{ placement: 'bottom', maxWidth: 400 }" content="Wallpaper creator: takes books from the current page and creates a collage using their cover images. Searches, filters and sorting affects what you see when you open the editor."
+        <div class="text-button" v-if="!$store.state.standalone" :class="{ disabled: wallpaperCreatorDisabled }"
+        v-tippy="{ placement: 'bottom', maxWidth: 400, allowHTML: true }" :content="wallpaperCreatorTippy"
         >
-          <div class="icon" @click="openWallpaperCreator">
+          <div class="icon" @click="openWallpaperCreator(wallpaperCreatorDisabled)">
             <font-awesome :icon="['fas', 'images']" />
           </div>
         </div>
@@ -210,7 +210,14 @@ export default {
   computed: {
     mobileThreshold: function() {
       return this.$store.state.windowWidth < this.mobileWidth;
-    }
+    },
+    wallpaperCreatorDisabled: function() {
+      return !(this.$route.meta.gallery && this.$store.getters.collection && this.$store.getters.collection.length);
+    },
+    wallpaperCreatorTippy: function() {
+      const disabledSuffix = this.wallpaperCreatorDisabled ? "<br><br><span style='color: #f79a1c; font-weight: bold;'>You have to be on a page with books to open the editor.</span>" : "";
+      return 'Wallpaper creator: takes books from the current page and creates a collage using their cover images. Searches, filters and sorting affects what you see when you open the editor.' + disabledSuffix;
+    },
   },
   
   created: function() {
@@ -240,7 +247,9 @@ export default {
       }
     },
     
-    openWallpaperCreator: function() {
+    openWallpaperCreator: function( btnDisabled ) {
+      
+      if ( btnDisabled ) return;
       
       try {
         
@@ -438,6 +447,10 @@ export default {
       > span {
         padding-left: 6px;
       }
+    }
+    
+    &.disabled {
+      opacity: .6;
     }
   }
   

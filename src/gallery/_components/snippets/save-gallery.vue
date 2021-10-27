@@ -261,6 +261,8 @@ export default {
             "</html>";
 
         zip.file("index.html", indexHTML);
+        
+        zip.file("ALE-Documentation.url", `[InternetShortcut]\nURL=https://joonaspaakko.gitbook.io/audible-library-extractor/`);
 
         // Split "peopleAlsoBought" into separate files and exclude from book data because 
         // it's a good amount of data that isn't necessarily needed immediately or all at once

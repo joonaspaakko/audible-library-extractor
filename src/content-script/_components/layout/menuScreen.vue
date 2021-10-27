@@ -81,7 +81,7 @@
             <small style="font-size: 12px;">Checking for wishlist access...</small>
           </b-progress>
         </div>
-        <b-field class="extract-btn" v-show="!extractionButtonDisabled" v-else>
+        <b-field class="extract-btn" v-show="!extractionButtonDisabled && !loading" v-else>
           <b-button @click="extract" type="is-info" class="extract control" expanded size="is-large" >
             Extract selected items
           </b-button>
@@ -437,7 +437,17 @@ export default {
       }) : {};
       
       this.hasConfig = data.config || {};
-      this.updateSettings();
+      
+      // Fixme: could've gotten rid of hasData, but didn't feel like cleaning up the code so I just added this so the code gets updated in the parent component.
+      this.$emit('update:storageHasData', JSON.parse(JSON.stringify(this.hasData)));
+      this.$emit('update:storageConfig', JSON.parse(JSON.stringify(this.hasConfig)));
+      
+      let vue = this;
+      this.updateSettings(function() {
+        setTimeout(function() {
+          vue.loading = false;          
+        }, 100);
+      });
       
     },
     
@@ -569,9 +579,6 @@ export default {
           browser.storage.local.clear().then(() => {
             browser.storage.local.set(data).then(function() {
               
-              vue.updateViewData( data );
-              
-              vue.loading = false; 
               vue.$buefy.notification.open({
                 duration: 4000,
                 message: 'Data imported succesfully',
@@ -579,6 +586,8 @@ export default {
                 position: 'is-top',
                 closable: false,
               });
+              
+              vue.updateViewData( data );
               
             }).catch(errorNotification);
           }).catch(errorNotification);
@@ -685,7 +694,6 @@ export default {
               closable: false,
             });
             
-            vue.loading = false; 
             vue.updateViewData( data );
             
           }).catch( errorNotification );

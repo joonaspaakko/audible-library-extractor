@@ -84,13 +84,13 @@ function audibleLibraryExtractor(data) {
     render: h => {
       return h(App, {
         props: {
-          storageHasData: storageHasData ? ({ 
+          storageHasDataInit: storageHasData ? ({ 
             books: data.chunks.indexOf('books') > -1, 
             isbn: data.chunks.indexOf('books') > -1 ? checkISBNs( data ) : false,
             wishlist: data.chunks.indexOf('wishlist') > -1,
             collections: data.chunks.indexOf('collections') > -1,
           }) : {},
-          storageConfig: data.config || {},
+          storageConfigInit: data.config || {},
         }
       });
     }

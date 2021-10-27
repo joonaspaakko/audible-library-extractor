@@ -85,7 +85,7 @@
                     <gb-icon size="13px" name="favorite"></gb-icon>
                   </div>
                   <div v-if="!store.animatedWallpaperMode && store.showMyRating && book.myRating" class="cover-star-icons">
-                    <gb-icon size="13px" name="star" v-for="number in book.myRating" :key="number"></gb-icon> ( {{ store.paddingSize +' - '+ (store.paddingSize > -1) }} )
+                    <gb-icon size="13px" name="star" v-for="number in book.myRating" :key="number"></gb-icon>
                   </div>
                   
                 </div>
@@ -603,6 +603,7 @@ export default {
   // background: #333;
   border-radius: 2px;
   // border-radius: 999999px;
+  text-align: center;
   i { color: #f8991c; }
 }
 
