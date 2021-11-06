@@ -24,8 +24,8 @@ let overlayBtnLink = $('<a>', {
   href: '#',
   text: 'Audible Library Extractor',
   css: { 
-    lineHeight: '17px',
-    fontSize: '17px',
+    lineHeight: '16px',
+    fontSize: '16px',
     paddingLeft: '20px',
   },
 });
@@ -91,6 +91,7 @@ function audibleLibraryExtractor(data) {
             collections: data.chunks.indexOf('collections') > -1,
           }) : {},
           storageConfigInit: data.config || {},
+          dataVersionInit: data.version || {},
         }
       });
     }

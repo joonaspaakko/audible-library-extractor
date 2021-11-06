@@ -81,6 +81,7 @@ export default {
         case "authors.name":
         case "narrators.name":
         case "publishers.name":
+        case "tags.name":
           var name = _.get( this.book, sortKey.replace('.name', '[0].name') );
           return name || this.notAvailable;
           break;

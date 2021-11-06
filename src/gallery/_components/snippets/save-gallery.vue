@@ -21,7 +21,7 @@
       <div class="btn-wrapper">
         
         <div v-if="$store.state.devMode" style="color: #f79a1c; font-weight: bold;">
-          Saving the standalone gallery is only possible in "production" <br>builds, like for example after doing: <code>npm run build</code>
+          Saving the standalone gallery is only possible <br> in "production" builds (<code>node run build</code>)
         </div>
         <button v-else class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="bundling || !saveBtnEnabled">
           <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
@@ -62,6 +62,13 @@ export default {
         "gallery.js",
         "gallery.js.LICENSE.txt",
         "gallery.css",
+        
+        "fonts/inconsolata-v21-latin-regular.woff",
+        "fonts/inconsolata-v21-latin-regular.woff2",
+        "fonts/roboto-v29-latin-700.woff",
+        "fonts/roboto-v29-latin-700.woff2",
+        "fonts/roboto-v29-latin-regular.woff",
+        "fonts/roboto-v29-latin-regular.woff2",
         
         "favicons/android-chrome-192x192.png",
         "favicons/android-chrome-512x512.png",
@@ -306,20 +313,25 @@ export default {
         });
 
         // Service worker file
-        if ( useServiceWorker ) {
-          zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
-        }
+        // if ( useServiceWorker ) {
+        //   zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
+        // }
         
         for (let url of vue.files) {
+          
           const data = await JSZipUtils.getBinaryContent(url);
 
-          if (url === "gallery.js") {
+          if ( url === "gallery.js" ) {
             url = url.replace(".js", "." + vue.cacheBuster + ".js");
-          } else if (url === "gallery.css") {
+          } else if ( url === "gallery.css" ) {
             url = url.replace(".css", "." + vue.cacheBuster + ".css");
           }
+          // else if ( url.match(/\.woff2?$/) ) {
+          //   url = url.replace(/^\.\.\//, '');
+          // }
 
           zip.file(url, data, {binary: true});
+          
         }
 
         const content = await zip.generateAsync({type: "blob", streamFiles: true}, function updateCallback(metadata) {
@@ -328,7 +340,8 @@ export default {
 
         saveAs(content, "ALE-gallery.zip");
         
-      } finally {
+      }
+      finally {
         setTimeout(function () {
           vue.bundling = false;
           vue.$store.commit("prop", { key: 'bundlingGallery', value: false });

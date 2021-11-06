@@ -3,6 +3,8 @@
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     
+    <context-menu-reminder v-if="!$store.state.standalone && $store.state.sticky.contextMenuReminder" />
+    
     <ale-search v-if="prepsCompleted" :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     
     <div v-if="collapseView" class="collection-expanded-btn" @click="expandView">
@@ -43,10 +45,12 @@ smoothscroll.polyfill();
 // import aleBreadcrumbs from '../aleBreadcrumbs'
 
 import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
+import contextMenuReminder from "@output-snippets/contextMenuReminder.vue";
 
 export default {
   name: "aleGallery",
   components: {
+    contextMenuReminder,
     aleSearch,
     aleGridView: () => import( /* webpackChunkName: "grid-view" */ "./aleGallery/aleGridView"),
     aleListView: () => import( /* webpackChunkName: "spreadsheet-view" */ "./aleGallery/aleListView"),

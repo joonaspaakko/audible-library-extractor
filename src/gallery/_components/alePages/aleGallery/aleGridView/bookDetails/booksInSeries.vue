@@ -188,9 +188,16 @@ export default {
 
     getSeriesCount: function() {
       let array = [];
-
-      _.each(this.series.collection, function(series) {
-        array.push(series.books.length);
+      
+      _.each(this.series.collection, function(series, seriesIndex ) {
+        if ( series.books.length ) {
+          _.each(series.books, function(book) {
+            if ( !book.notInLibrary ) {
+              if ( !array[ seriesIndex ] ) array.push(0);
+              ++array[ seriesIndex ];
+            }
+          });
+        }
       });
 
       return array.join(", ");

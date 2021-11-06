@@ -31,6 +31,24 @@ $themes: (
   ),
 );
 
+.center-contents {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-items: center;
+  align-content: center;
+  justify-content: center;
+}
+
+.no-selection {
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
+}
+
 /*
  * Implementation of themes
  */

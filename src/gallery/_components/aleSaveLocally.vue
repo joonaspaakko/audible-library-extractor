@@ -4,7 +4,9 @@
     class="icon"
     style="cursor: default;"
   >
-    <font-awesome @click="modalOpen = true" fas icon="save" style="cursor: pointer;" />
+    <font-awesome 
+    v-tippy="{ placement: 'bottom' }" content="Save standalone gallery or extracted data as csv."
+    @click="modalOpen = true" fas icon="save" style="cursor: pointer; outline: none;" />
     
     <div id="save-locally-overlay" v-if="modalOpen" ref="modalGrandpa" @click="closeOverlay">
       <div class="outer-wrap" ref="modalPapa">

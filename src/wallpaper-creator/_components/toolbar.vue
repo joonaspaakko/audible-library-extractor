@@ -72,7 +72,7 @@
         
         <div v-if="store.animatedWallpaperMode" style="text-align: center;">
           <spacer size="largest" :line="false" />
-          <gb-button size="mini" :full-width="true" :rounded="true" left-icon="library_books" color="red" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info">Installation instructions</gb-button>
+          <gb-button size="mini" :full-width="true" :rounded="true" left-icon="library_books" color="red" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers">Installation instructions</gb-button>
           <spacer size="largest" :line="false" />          
         </div>
         <spacer v-else size="large" :line="false" />
@@ -324,7 +324,7 @@
         <div  v-if="!store.animatedWallpaperMode">
           <gb-heading tag="h6" :uppercase="true" name="coverNumberTippy">
             <span :style="{ color: store.covers.length > store.coverAmount ? '#ffc02b' : null }">
-              Limit covers
+              Limit covers 
             </span>
             
             <gb-input
@@ -337,12 +337,12 @@
               size="mini"
               >
             ></gb-input>
-          <span style="color: #8eabc3; text-transform: lowercase;">of {{ store.covers.length }}</span>
+          <span style="color: #8eabc3; text-transform: lowercase;"> of {{ store.covers.length }}</span>
           </gb-heading>
           
           
           <tippy to="coverNumberTippy" placement="top" trigger="focus mouseenter">
-            Showing <strong>{{ store.coverAmount }}</strong> covers out of a possible <strong>{{ store.covers.length }}</strong>. <br>Excess covers are removed from the tail end.
+            Maximum amount of covers set to <strong>{{ store.coverAmount }}</strong>. Amount of covers available <strong>{{ store.covers.length }}</strong>. <br>Excess covers are removed from the tail end.
           </tippy>
           
           <spacer size="default" :line="false" />

@@ -261,6 +261,7 @@ export default {
           },
           {
             active: false,
+            excludeFromWishlist: true,
             type: 'filterExtras',
             label: 'Whisperync: owned',
             key: 'whispersync-owned',
@@ -291,12 +292,14 @@ export default {
             }
           },
           {
+            excludeFromWishlist: true,
             type: 'divider',
-            key: 'divider-archived'
+            key: 'divider-archived',
           },
           
           {
             active: false,
+            excludeFromWishlist: true,
             type: 'filterExtras',
             label: 'Archived',
             key: 'archived',
@@ -307,6 +310,7 @@ export default {
           },
           {
             active: false,
+            excludeFromWishlist: true,
             type: 'filterExtras',
             label: 'Not archived',
             key: 'not-archived',
@@ -1127,21 +1131,22 @@ export default {
             current: false,
             key: 'favorite',
             label: 'Favorite',
-            type: 'sort'
+            type: 'sort',
+            excludeFromWishlist: true,
           },
           {
             active: true,
             current: false,
             key: 'categories',
             label: 'Categories',
-            type: 'sort'
+            type: 'sort',
           },
           {
             active: true,
             current: false,
-            key: 'tags',
+            key: 'tags.name',
             label: 'Tags',
-            type: 'sort'
+            type: 'sort',
           },
           {
             active: false,
@@ -1149,12 +1154,20 @@ export default {
             key: 'isNew',
             label: 'New books',
             type: 'sort',
-            excludeFromWishlist: true
+            excludeFromWishlist: true,
+          },
+          {
+            active: false,
+            current: false,
+            key: 'archived',
+            label: 'Archived',
+            type: 'sort',
+            excludeFromWishlist: true,
           },
 
           {
             type: 'divider',
-            key: 'divider4'
+            key: 'divider4',
           },
           {
             active: true,
@@ -1169,6 +1182,13 @@ export default {
             key: 'format',
             label: 'Format',
             type: 'sort'
+          },
+          {
+            active: false,
+            current: false,
+            key: 'whispersync',
+            label: 'Whispersync',
+            type: 'sort',
           },
           {
             active: false,
@@ -1237,13 +1257,6 @@ export default {
             type: 'sort',
             tippy: '<strong>This is only a simple number sort.</strong> <br> If you want the correct series order, as listed in Audible, check the series page in the top menu or the "my books in the series" button in book details. <br><br>Click any book cover (or row) to reveal book details. <br><br> The infinite symbol (∞) means the book is in a series but does not have a number.'
           },
-          {
-            active: false,
-            current: false,
-            key: 'whispersync',
-            label: 'Whispersync',
-            type: 'sort',
-          },
         ],
       };
       
@@ -1264,6 +1277,9 @@ export default {
         let removeArchiveKeys = ['archived', 'not-archived'];
         _.remove(list.filter, function( filter ) {
           return filter.key === 'divider-archived' || _.includes( removeArchiveKeys, filter.key );
+        });
+        _.remove(list.sort, function( sorter ) {
+          return _.includes( removeArchiveKeys, sorter.key );
         });
       }
       

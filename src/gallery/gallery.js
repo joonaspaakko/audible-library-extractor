@@ -237,9 +237,7 @@ let routesPrep = function( libraryData ) {
       
       
       router.beforeEach((to, from, next) => {
-        
-        console.log( 'TEST:', to );
-        
+                
         if ( 
           from.name !== to.name || 
           _.get(from, 'query.book') !== _.get(to, 'query.book') || 
@@ -295,25 +293,25 @@ let routesPrep = function( libraryData ) {
         else { next(); }
       });
       
-      router.afterEach((to, from, next) => {
-        if ( from.name !== to.name ) {
-          
-          const navForward = store.state.navHistory.forward;
-          const navBack = store.state.navHistory.back;
-          
-          if ( 
-            from.name && from.name !== navForward[ navForward.length-1]  && from.name !== navBack[ navBack.length-1 ] 
-          ) {
-            store.commit('navHistory', { key: 'back', value: from.name, pushOnly: true });
-          }
-          
-          if ( !store.state.navHistory.btnNavigation ) store.commit('prop', { key: 'navHistory.forward', value: [] });
-          store.commit('prop', { key: 'navHistory.btnNavigation', value: false });
-          
-        }
-      });
-        
     }
+    
+    router.afterEach((to, from, next) => {
+      if ( from.name !== to.name ) {
+        
+        const navForward = store.state.navHistory.forward;
+        const navBack = store.state.navHistory.back;
+        
+        if ( 
+          from.name && from.name !== navForward[ navForward.length-1]  && from.name !== navBack[ navBack.length-1 ] 
+        ) {
+          store.commit('navHistory', { key: 'back', value: from.name, pushOnly: true });
+        }
+        
+        if ( !store.state.navHistory.btnNavigation ) store.commit('prop', { key: 'navHistory.forward', value: [] });
+        store.commit('prop', { key: 'navHistory.btnNavigation', value: false });
+        
+      }
+    });
     
     return router;
   
@@ -460,7 +458,7 @@ Vue.use(VueTippy, {
   theme: "dark",
   maxWidth: 650,
   delay: [500,0],
-  ally: false,
+  a11y: false,
   onShow: options => {
     return !!options.props.content;
   },

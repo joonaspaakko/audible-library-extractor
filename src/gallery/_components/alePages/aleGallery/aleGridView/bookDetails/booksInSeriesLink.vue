@@ -14,7 +14,7 @@
     :to="linkDisabled ? '' : routerLink"
     :content="seriesName ? null : (book.notInLibrary ? '<strong>Not available:</strong> ' : '') + ( book.title !== book.titleShort ? book.title : '')" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
     >
-      <span v-if="seriesName">
+      <span v-if="seriesName" style="white-space: normal; padding-bottom: 3px; display: inline-block;">
         {{ seriesName }}
       </span>
       <span v-if="!seriesName" class="numbers">{{ book.bookNumbers }}</span>

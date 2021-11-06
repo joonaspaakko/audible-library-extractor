@@ -41,12 +41,13 @@
 
 <script>
 
+import sorter from "@output-snippets/sorter.vue";
 
 export default {
   name: "searchOptions",
   props: ["listName"],
   components: {
-    sorter: () => import( /* webpackChunkName: "sorter" */ "@output-snippets/sorter.vue"),
+    sorter,
   },
   data: function() {
     return {
