@@ -34,6 +34,7 @@ export default new Vuex.Store({
       subPageSource: 'books',
       bookDetailsCollapsedCover: false,
       bookDetailsCollapsedDetails: false,
+      contextMenuReminder: true,
     },
     // States that don't persist
     searchMounted: false,

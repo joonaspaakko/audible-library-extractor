@@ -38,7 +38,7 @@
           </a>
           <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export#import-to-goodreads"> 
             <span>Goodreads import</span>
-            <font-awesome :icon="['fab', 'goodreads']" />
+            <font-awesome :icon="['fas', 'share-square']" />
           </a>
         </div>
         
@@ -77,13 +77,13 @@ export default {
         dataSources: [
           { key: 'Library' },
           { key: 'Wishlist' },
-          { key: 'Current list', tippy: 'What you see is what you get. For example, in a series sub page this option would export the entire series as listed, unless you modify it by adding filters or by searching. This list is also exported with the active sorting. <strong>This data source only works on gallery pages with books.</strong>' },
+          { key: 'Current list', tippy: 'What you see is what you get. For example, in a series sub page this option would export the entire series as listed, unless you modify it by adding filters or by searching. This option also exports with the current sorting, whereas the other two use the default descending sort by added. <strong>This data source only works on gallery pages with books.</strong>' },
         ],
         compatibilityChecked: 'Google Sheets',
         compatibility: [
-          { key: 'Raw data', label: 'Raw data', tippy: "Basically the same as the Google Sheets output but without the formulas. If you don't like formulas, this would also work just as well in Google Sheets." },
-          { key: 'Google Sheets', tippy: "<strong>Google Sheets compatible formulas:</strong> <ul><li>Cover image + link to the store page in Audible</li><li>Sample audio icon + link</li><li>Web player icon + link</li><li>Goodreads search icon + link</li><li>Title has a link to store page in Audible</li></ul>" },
-          { key: 'Goodreads', tippy: "Removes any books that don't have ISBNs because Goodreads won't import without it. Each book is imported in bookshelves as per their status: not started (to-read), started(currently-reading), finished (read). The categories are divided into shelves as well." },
+          { key: 'Raw data', label: 'Raw data', tippy: "This is the format that works with any CSV capable application, like Open Office, Excel, Numbers, Google Sheets (though the GS specific format is recommended)." },
+          { key: 'Google Sheets', tippy: "<strong>Google Sheets compatible formulas:</strong> <ul><li>Cover image and store page hyperlink</li><li>Sample audio icon and hyperlink</li><li>Web player icon and hyperlink</li><li>Goodreads search icon and hyperlink</li><li>Title with a hyperlink to store page</li></ul>" },
+          { key: 'Goodreads', tippy: "Includes columns that are relevant to Goodreads and removes any books that don't have ISBNs because Goodreads won't import books without any. <br><br>Each book is imported in bookshelves as per their status: not started (to-read), started(currently-reading), finished (read). The categories are divided into shelves as well." },
         ] 
       },
       bundling: false,
@@ -237,12 +237,18 @@ export default {
             
               case "isbn10":
                 const isbn10 = _.find( book.isbns, { type: "ISBN_10" });
-                if ( isbn10 ) return isbn10.identifier;
+                if ( isbn10 ) {
+                  if ( vue.googleSheets ) return "'" + isbn10.identifier;
+                  else return isbn10.identifier;
+                }
                 else { return ''; }
                 break;
               case "isbn13":
                 const isbn13 = _.find( book.isbns, { type: "ISBN_13" });
-                if ( isbn13 ) return isbn13.identifier;
+                if ( isbn13 ) {
+                  if ( vue.googleSheets ) return "'" + isbn13.identifier;
+                  else return isbn13.identifier;
+                }
                 else { return ''; }
                 break;
                 
@@ -320,7 +326,12 @@ export default {
               case "isbn":
               case "isbn10":
               case "isbn13":
-                return "'" + (book[key] || '');
+                if ( vue.googleSheets ) return "'" + (book[key] || '');
+                else return (book[key] || '');
+                break;
+                
+              case "storePageUrl":
+                return book.asin ? vue.makeUrl('book', book.asin) : '';
                 break;
                 
               default:
@@ -467,13 +478,27 @@ export default {
             "favorite",
             "format",
             "language",
+            "whispersync",
             "fromPlusCatalog",
             "unavailable",
+            "archived",
             "downloaded",
-            "storePage",
+            "storePageChanged",
+            "storePageMissing",
+            "asin",
+            "isbn10",
+            "isbn13",
+            "summary",
+            "peopleAlsoBought",
           ];
           
-          if ( this.settings.compatibilityChecked === 'Raw data' ) {
+          const rawData = this.settings.compatibilityChecked === 'Raw data';
+          
+          // Add extra column(s)
+          if ( rawData ) priorityKeys.push('storePageUrl');
+          
+          // Moves urls to the back of the csv in raw data
+          if ( rawData ) {
             var hyperlinkKeys = [
               'sample',
               'webPlayer',
@@ -491,6 +516,7 @@ export default {
             removeKeys: ['isbns'],
             priorityKeys: priorityKeys,
           });
+          
           break;
         case 'Goodreads':
           keys = ['dateRead','myReview','title','bookshelves','author','publisher','myRating','binding','yearPublished','dateAdded','isbn','isbn13'];

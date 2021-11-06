@@ -73,9 +73,9 @@ export default {
       fuseOptions: {
         keys: ["title"],
         location: 0,
-        distance: 150,
+        distance: 350,
         // threshold: 0.25,
-        threshold: 0.25,
+        threshold: 0.15,
         // ignoreLocation: true,
         shouldSort: true,
         includeScore: false,
@@ -83,7 +83,7 @@ export default {
         useExtendedSearch: true
       },
 
-      listName: 'scope', // Crude cheat to get the component file to load 
+      listName: false,
 
       waypointOpts: {
         rootMargin: "-37px"
@@ -95,10 +95,6 @@ export default {
   },
 
   mounted: function() {
-    
-    this.$nextTick(function() {
-      this.listName = false;
-    });
   
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);

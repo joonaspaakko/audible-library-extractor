@@ -8,7 +8,7 @@
         <!-- Makes the empty area above mobile menu clickable and it closes the menu -->
         <div class="close-area" style="flex: 1; margin-bottom: 30px;" v-if="mobileMenuOpen" @click="mobileMenuOpen = false"></div>
         
-        <div class="text-button gallery-page" v-if="routeExists('gallery')">
+        <div class="text-button gallery-page" v-if="routeAvailable.gallery">
           <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
             <div class="icon">
               <font-awesome fas icon="book" />
@@ -19,7 +19,7 @@
           </router-link>
         </div>
         
-        <div class="text-button collections-page" v-if="routeExists('collections')">
+        <div class="text-button collections-page" v-if="routeAvailable.collections">
           <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
           <div class="icon">
             <font-awesome fas icon="folder-open" />
@@ -28,7 +28,7 @@
           </router-link>
         </div>
         
-        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="!$store.state.standalone || routeExists('anySubPage')" @click="subMenuClicked">
+        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="!$store.state.standalone || routeAvailable.anySubPage" @click="subMenuClicked">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
             <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">
@@ -38,7 +38,7 @@
             <span v-else>Sub pages</span>
             <div class="sub-menu">
               
-              <div class="text-button" v-if="routeExists('categories')">
+              <div class="text-button" v-if="routeAvailable.categories">
                 <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
                   <div class="icon">
                     <font-awesome fas icon="indent" />
@@ -47,7 +47,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="routeExists('all-series')">
+              <div class="text-button" v-if="routeAvailable['all-series']">
                 <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
                   <div class="icon">
                     <font-awesome fas icon="list-ol" />
@@ -56,7 +56,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="routeExists('authors')">
+              <div class="text-button" v-if="routeAvailable.authors">
                 <router-link :to="{ name: 'authors' }" @click.native="linkClicked('authors')">
                   <div class="icon">
                     <font-awesome fas icon="user-friends" />
@@ -65,7 +65,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="routeExists('narrators')">
+              <div class="text-button" v-if="routeAvailable.narrators">
                 <router-link :to="{ name: 'narrators' }" @click.native="linkClicked('narrators')">
                   <div class="icon">
                     <font-awesome fas icon="users" />
@@ -74,7 +74,7 @@
                 </router-link>
               </div>
               
-              <div class="text-button" v-if="routeExists('publishers')">
+              <div class="text-button" v-if="routeAvailable.publishers">
                 <router-link :to="{ name: 'publishers' }" @click.native="linkClicked('publishers')">
                   <div class="icon">
                     <font-awesome fas icon="book" />
@@ -87,7 +87,7 @@
           </div>
         </div>
         
-        <div class="text-button wishlist-page" v-if="routeExists('wishlist')">
+        <div class="text-button wishlist-page" v-if="routeAvailable.wishlist">
           <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">
           <div class="icon">
             <font-awesome fas icon="bookmark" />
@@ -125,7 +125,7 @@
           </div>
         </div>
         
-        <div class="text-button" v-if="!$store.state.standalone" style="z-index: 9999;" v-tippy="{ placement: 'bottom' }" content="Save standalone gallery or extracted data as csv.">
+        <div class="text-button" v-if="!$store.state.standalone" style="z-index: 9999;">
           <ale-save-locally></ale-save-locally>
         </div>
         
@@ -142,6 +142,8 @@
             <font-awesome :icon="['fas', 'graduation-cap']" />
           </a>
         </div>
+        
+        <back-forward-btns :viewportFloat="true" v-if="$store.state.displayMode" />
         
       </div>
       
@@ -162,15 +164,7 @@
         <font-awesome :icon="['fas', 'search']" />
       </div>
       
-      <div class="mobile-back-btns-wrapper" v-if="$store.state.displayMode">
-        <div class="mobile-back-btns" :class="{ disabled: $store.state.navHistory.back.length < 1 }" @click.prevent="navigate('back')">
-          <font-awesome fas icon="chevron-left" /> 
-        </div>
-        
-        <div class="mobile-back-btns" :class="{ disabled: $store.state.navHistory.forward.length < 1 }" @click.prevent="navigate('forward')">
-          <font-awesome fas icon="chevron-right" /> 
-        </div>
-      </div>
+      <back-forward-btns v-if="$store.state.displayMode" />
       
       <div class="burger-menu" @click="toggleMobileMenu()">
         <font-awesome 
@@ -186,12 +180,14 @@
 </template>
 
 <script>
-import lightSwitch from "@output-snippets/lightSwitch";
+import lightSwitch from "@output-snippets/lightSwitch.vue";
+import backForwardBtns from "@output-snippets/back-forward-btns.vue";
 
 export default {
   name: "aleMenuActions",
   components: {
     lightSwitch,
+    backForwardBtns,
     aleSaveLocally: () => import( /* webpackChunkName: "save-locally" */ "./aleSaveLocally"),
     viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
     audioPlayer: () => import( /* webpackChunkName: "audio-player" */ "@output-snippets/audio-player"),
@@ -204,6 +200,7 @@ export default {
       sampleData: null,
       mobileWidth: 630,
       subMenuActive: false,
+      routeAvailable: {},
     };
   },
   
@@ -220,10 +217,14 @@ export default {
     },
   },
   
-  created: function() {
+  mounted: function() {
+    
+    this.routesCheck();
+    
     this.$root.$on("play-audio", this.playSample);
     document.addEventListener("mousedown", this.outsideClick, { passive: true });
     this.$root.$on("afterWindowResize", this.onWindowResize);
+    
   },
 
   beforeDestroy: function() {
@@ -233,13 +234,6 @@ export default {
   },
   
   methods: {
-    
-    navigate: function( direction ) {
-      if ( this.$store.state.navHistory[ direction ].length > 0 ) {
-        this.$store.commit('navHistory', { key: direction, value: this.$route.name });
-        this.$router[ direction ]();
-      }      
-    },
     
     onWindowResize: function( win ) {
       if ( this.mobileMenuOpen && win.widthChanged && win.width >= this.mobileWidth ) {
@@ -335,6 +329,27 @@ export default {
         let test = this.$router.resolve({ name: name });
         return test.resolved.matched.length > 0;
       }
+      
+    },
+    
+    routesCheck: function() {
+      
+      const expectedRoutes = [
+        "wishlist",
+        "publishers",
+        "narrators",
+        "authors",
+        "all-series",
+        "categories",
+        "anySubPage",
+        "collections",
+        "gallery",
+      ];
+      
+      let vue = this;
+      _.each( expectedRoutes, function( routeName ) {
+        vue.routeAvailable[ routeName ] = vue.routeExists( routeName );
+      });
       
     },
     
@@ -628,15 +643,6 @@ export default {
   }
 }
 
-.center-contents {
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-  justify-items: center;
-  align-content: center;
-  justify-content: center;
-}
-
 #mobile-menu-floaters {
   transition: bottom 200ms ease-in-out;
   position: fixed;
@@ -687,38 +693,6 @@ export default {
   .second-row {
     @extend .center-contents;
   }
-  
-  .mobile-back-btns-wrapper {
-    @extend .center-contents;
-    position: absolute;
-    z-index: 1;
-    right: 65px;
-    white-space: nowrap;
-  }
-  .mobile-back-btns {
-    -webkit-touch-callout: none; 
-    -webkit-user-select: none; 
-    -khtml-user-select: none; 
-    -moz-user-select: none; 
-    -ms-user-select: none; 
-    user-select: none; 
-    @extend .search-btn;
-    position: relative;
-    top: 0;
-    margin: 7px;
-    &, a {
-      @extend .center-contents;
-      width:  32px;
-      height: 32px;
-    }
-    &.disabled {
-      border-color: #b1b1b1 !important;
-    }
-    &.disabled svg {
-      color: #999 !important;
-    }
-  }
-  
 }
 
 // #nav-outer-wrapper.mobile-nav 

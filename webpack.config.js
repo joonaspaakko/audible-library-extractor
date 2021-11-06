@@ -51,6 +51,7 @@ const config = {
       '@wallpaper-comps': path.join(__dirname, '/src/wallpaper-creator/animated-wallpaper/_components'),
       '@wallpaper-mixins': path.join(__dirname, '/src/wallpaper-creator/animated-wallpaper/_mixins'),
       '@dist': path.join(__dirname, '/dist'),
+      '@fonts': path.join(__dirname, '/src/fonts'),
     },
   },
   module: {
@@ -91,7 +92,7 @@ const config = {
         loader: 'file-loader',
         options: {
           name: '[name].[ext]',
-          outputPath: '/fonts/',
+          outputPath: 'fonts/',
           emitFile: false,
         },
       },
@@ -134,9 +135,15 @@ const config = {
 
 var copyPluginArray = { patterns: [
   { from: 'assets', to: 'assets' },
+  // This is a pretty dumb way to solve the font issue in standalone gallery, but I couldn't seem to fix it any other way...
+  // This wouldn't be necessary without the standalone gallery...
+  // It doesn't really matter since the extension package wont be that much larger due to this, but it's obviously less than ideal...
+  { from: 'fonts', to: 'fonts' }, 
+  { from: 'fonts', to: 'gallery/fonts' }, 
+  { from: 'fonts', to: 'wallpaper-creator/fonts' }, 
   { from: 'gallery/favicons', to: 'gallery/favicons' },
   { from: 'gallery/extension-js', to: 'gallery/extension-js' },
-  { from: 'gallery/app.webmanifest', to: 'gallery/manifest.json' },
+  { from: 'gallery/app.webmanifest', to: 'gallery/app.webmanifest' },
   // { from: 'gallery/images/', to: 'gallery/images/' },
   { from: 'gallery/gallery.html', to: 'gallery/index.html', transform: transformHtml },
   { from: 'wallpaper-creator/wallpaper-creator.html', to: 'wallpaper-creator/index.html', transform: transformHtml },

@@ -4,6 +4,7 @@
     v-if="ui === 'menu-screen'"
     :storageHasData.sync="storageHasData"
     :storageConfig.sync="storageConfig"
+    :dataVersion.sync="dataVersion"
     :domainExtension="domainExtension"
     :wishlistUrl="wishlistUrl"
     ></menu-screen>
@@ -114,7 +115,7 @@ export default {
     getDataFromPurchaseHistory,
     helpers,
   ],
-  props: ["storageHasDataInit", "storageConfigInit"],
+  props: ["storageHasDataInit", "storageConfigInit", "dataVersionInit"],
   data: function() {
     return {
       storageHasData: {},
@@ -147,6 +148,7 @@ export default {
     
     this.storageHasData = JSON.parse(JSON.stringify(this.storageHasDataInit));
     this.storageConfig = JSON.parse(JSON.stringify(this.storageConfigInit));
+    this.dataVersion = JSON.parse(JSON.stringify(this.dataVersionInit));
     
   },
   
@@ -173,9 +175,7 @@ export default {
   methods: {
     init_step_extract: function( config ) {
       
-      
       const vue = this;
-      console.log( 'TEEEEST:', vue.storageHasData );
       browser.storage.local.get(null).then(hotpotato => {
         
         if ( hotpotato.chunks && hotpotato.chunks.length ) vue.glueFriesBackTogether(hotpotato);
@@ -296,9 +296,12 @@ export default {
             if ( steps ) hotpotato.config.steps = steps;
             if ( extraSettings ) hotpotato.config.extraSettings = extraSettings; 
           }
+          
         }
-
-        if (!hotpotato.chunks) {
+        
+        this.addDataVersions( hotpotato );
+        
+        if (!hotpotato.chunks ) {
           if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
           if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
           this.makeFrenchFries(hotpotato);
@@ -314,6 +317,20 @@ export default {
           });
         });
       }
+      
+    },
+    
+    addDataVersions: function( hotpotato ) {
+      
+      if ( !_.isObject( hotpotato.version ) ) hotpotato.version = {};
+      
+      let hasData = this.storageHasData;
+      let version = browser.runtime.getManifest().version;
+      
+      // If a step was just extracted and there was no existing data update data version...
+      if ( _.find( hotpotato.config.steps, { name: 'library', value: true })     && !hasData.books       ) hotpotato.version.library     = version;
+      if ( _.find( hotpotato.config.steps, { name: 'collections', value: true }) && !hasData.collections ) hotpotato.version.collections = version;
+      if ( _.find( hotpotato.config.steps, { name: 'wishlist', value: true })    && !hasData.wishlist    ) hotpotato.version.wishlist    = version;
       
     },
     

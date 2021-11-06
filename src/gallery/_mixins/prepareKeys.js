@@ -21,6 +21,7 @@ export default {
         "bookNumbers",
         "authors",
         "narrators",
+        "tags",
         "categories",
         "length",
         "progress",
@@ -29,8 +30,16 @@ export default {
         "myRating",
         "rating",
         "ratings",
+        "favorite",
+        "format",
+        "language",
+        "whispersync",
         "fromPlusCatalog",
         "unavailable",
+        "archived",
+        "downloaded",
+        "storePageChanged",
+        "storePageMissing",
       ];
       if ( config.priorityKeys ) priorityKeys = config.priorityKeys;
       let leftoverKeys = _.remove(keys, function(key) {

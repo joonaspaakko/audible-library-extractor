@@ -7,6 +7,96 @@ export default {
       
       changeLog: [
         {
+          version: 'v.0.2.7',
+          highlights: `
+            You should do a full extraction after updating to this version. There are a a few new data points that the partial extraction will not update to any old books.
+            <br><br>
+            I added global context menu items so you can easily open the gallery by right-clicking anywhere inside any tab and choose "Audible Library Extracor > Gallery page".
+            <br><br>
+            There's now a wallpaper creator in the extension gallery. Look for it in the top menu.
+          `,
+          changes: [
+            {
+              description: `Added import and export for raw data. Data is stored in your browser, but if you for example get a new computer you could export data on your current computer and import it on the new one and you don't have to do a full extraction.`,
+              class: 'added'
+            },
+            {
+              description: `Added dropdown list type filters, which allow you to filter books by properties like the language or format etc...`,
+              class: 'added'
+            },
+            {
+              description: `You can now collapse & expand book cover and information in the book details view.`,
+              class: 'improved'
+            },
+            {
+              description: `"My books in the library" list now shows you if any books you don't own are available in the Plus Catalog. Also you can now open book links to a new tab, which wasn't possible before. `,
+              class: 'improved'
+            },
+            {
+              description: "Added genre / theme tags. These are little pill shaped text btns you see below the summary on some store pages.",
+              class: 'added'
+            },
+            {
+              description: "Added better Archive handling. Filters and sorting for archived books. Standalone gallery now has an option to exclude archived books / archived collection.",
+              class: 'added'
+            },
+            {
+              description: "Added whispersync data: 1. Color dot on the covers if you own the Kindle version. 2. Whispersync filters 3. Whispersync sorters 4. Whispersync label inside the book details view",
+              class: 'added'
+            },
+            {
+              link: { text: 'Fixed #66', href: githubIssues+'66' }, 
+              description: "Extraction can not complete: Cannot read properties of null (reading 'getAttribute').",
+              class: 'fixed'
+            },
+            {
+              link: { text: 'Added #62', href: githubIssues+'62' }, 
+              description: 'Image editor (wallpaper generator).',
+              class: 'added'
+            },
+            {
+              link: { text: 'Fixed #60', href: githubIssues+'60' }, 
+              description: '"Audible Library Extractor" text button is cut off in Audible library page.',
+              class: 'fixed'
+            },
+            {
+              link: { text: 'Fixed #56', href: githubIssues+'56' }, 
+              description: "Wishlist extraction stops right when it's about to start.",
+              class: 'fixed'
+            },
+            {
+              link: { text: 'Fixed #54', href: githubIssues+'54' }, 
+              description: "Partial library update doesn't merge old series data with new series data properly.",
+              class: 'fixed'
+            },
+            {
+              link: { text: 'Fixed #50', href: githubIssues+'50' }, 
+              description: "Collections larger than 20 titles are not getting extracted properly.",
+              class: 'fixed'
+            },
+            {
+              link: { text: 'Fixed #49', href: githubIssues+'49' }, 
+              description: "Sub pages don't show up in the the stand-alone gallery if you saved it with wishlist and any sub pages while excluding library.",
+              class: 'fixed'
+            },
+            {
+              link: { text: 'Fixed #48', href: githubIssues+'48' }, 
+              description: "My books in the series list: links lead to empty pages inside the gallery (sometimes). Related to sub page source.",
+              class: 'fixed'
+            },
+            {
+              link: { text: 'Improved #47', href: githubIssues+'47' }, 
+              description: "Merged the library data update button with the full extraction button. Now wishlist has a partial extraction too!",
+              class: 'improved'
+            },
+            {
+              link: { text: 'Fixed #46', href: githubIssues+'46' }, 
+              description: "After opening a link to the gallery on a page with book details open, the next chunk of books would not load when scrolling far enough down.",
+              class: 'fixed'
+            },
+          ],
+        },
+        {
           version: 'v.0.2.6',
           highlights: "If you want to filter wishlist by Plus Catalog titles, you'll have to extract the <strong>wishlist</strong> again. The 'My books in the series' list can now show all books in the series, but this too requires a full extraction of the <strong>library</strong>. <br><br>Performance improvement <a href='https://github.com/joonaspaakko/audible-library-extractor/issues/41'>#41</a> changes the way the books are loaded in: they are loaded in chunks as you scroll down. This unfortunately makes it so you can't just jump to the beginning of your library at the bottom like you could before. If you must, you can get around this: in the address bar you should see a url parameter like this '?y=347'. The number keeps track of how far you're scrolled. Change that to and obnoxiously high number, like '?y=9999999' and press enter or refresh the page and it will load the entire library at once.",
           changes: [

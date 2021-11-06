@@ -122,7 +122,6 @@ export default {
 
 <style lang="scss">
 @import "~@/_variables.scss";
-@import url('https://fonts.googleapis.com/css2?family=Inconsolata&display=swap');
 
 #audio-player {
   -webkit-touch-callout: none;

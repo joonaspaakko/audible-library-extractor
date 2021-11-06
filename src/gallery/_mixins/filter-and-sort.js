@@ -106,6 +106,7 @@ export default {
           case "narrators.name":
           case "publishers.name":
           case "categories":
+          case "tags.name":
             books = this.sortStringNameProp(sortOptions);
             break;
           case "narratorsNumber":
@@ -122,7 +123,7 @@ export default {
           case "downloaded":
           case "storePageMissing":
           case "storePageChanged":
-          case "tags":
+          case "archived":
             books = this.sortTitle(sortOptions);
             break;
           case "whispersync":

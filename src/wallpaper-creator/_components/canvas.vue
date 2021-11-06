@@ -96,7 +96,7 @@
             </draggable>
             <component v-if="!store.animatedWallpaperMode" is="style">
               .grid-inner-wrap .cover {
-                padding: {{ ( store.paddingSize > -1 ?  store.paddingSize : 0) }}px !important;
+                padding: {{ ( paddingSizeNumber > -1 ?  store.paddingSize : 0) }}px !important;
                 opacity: {{ store.coverOpacityEnabled ? store.coverOpacity : 1 }} !important;
               }
               .grid-inner-wrap .cover .cover-img {
@@ -117,7 +117,8 @@
                 height: {{ coverIconSize-4 }}px !important;
               }
               .grid-inner-wrap .cover .cover-star-icons {
-                bottom: {{ (store.paddingSize > 0) ? (-store.paddingSize/1.5) : 12 }}px !important;
+                /* {{ store.paddingSize }} - {{ paddingSizeNumber > 5 }} */
+                bottom: {{ (paddingSizeNumber > 0) ? (paddingSizeNumber > 7 ? -paddingSizeNumber*1.2 : -paddingSizeNumber) : 12 }}px !important;
               }
             </component>
 
@@ -177,6 +178,10 @@ export default {
   },
 
   computed: {
+    
+    paddingSizeNumber: function() {
+      return parseFloat( this.store.paddingSize );
+    },
     
     coverIconSize: function() {
       

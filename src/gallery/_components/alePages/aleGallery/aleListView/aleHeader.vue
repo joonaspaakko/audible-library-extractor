@@ -70,6 +70,7 @@ export default {
           case "authors":
           case "narrators":
           case "publishers":
+          case "tags":
             header.key += '.name';
             break;
         }

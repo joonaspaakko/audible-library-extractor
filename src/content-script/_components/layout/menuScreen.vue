@@ -61,19 +61,23 @@
         </b-message>
       </div>
     </b-collapse>
+    
   
-  
+    <b-message v-if="dataVersionMismatch.length > 0" type="is-danger">
+      You should <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">remove</span> <strong>{{ dataVersionMismatch.join(', ') }}</strong> data and re-extract to get the most out of the new version.
+    </b-message>
+    
     <b-message v-if="hasData.books || hasData.wishlist || hasData.isbn" type="is-info">
       <strong>Previously extracted data detected: <span style="color: #f7991c;">a faster <span v-tippy="{ allowHTML: true }" content="<div style='display: block; text-align: left;'><ol style='margin-left: 15px;'><li>Updates stored data that is likely to change</li><li>Does a full extract on newly added books</li><li>Clears data of removed books</li></ol><span style='display: inline-block; margin-top: 6px; color: #157df0;'>In the case of ISBN extraction, books that already have ISBNs are ignored. A large amount of books (+100) without the numbers will still take quite a while to extract.</span></div>" style="cursor: default; text-decoration: underline">partial extraction</span> is used</span> <span class="init-show-partial-extraction" style="color: #f7991c;" @mouseover="showPartialExtraction = true" @mouseleave="showPartialExtraction = false">where applicable.</span></strong> 
       <br>
-      If you need to do a <span v-tippy="{ maxWidth: 310 }" content="If the extension is updated, check the changelog (below) to see if there's a recommendation to do a full extract." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
+      If you need to do a <span v-tippy="{ maxWidth: 310 }" content="The data structure may change from version to version, in which case a full extraction is needed or at least preferred. <br><br>You need to remove extracted data in order to do a full extraction." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
     </b-message>
     
     <div>
       <div class="extract-wrapper">
         <div v-if="cannotAccessWishlist">
            <b-message type="is-warning">
-            Please re-login <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/login'">audible{{ domainExtension }}/login</a>  to access wishlist and try again.
+            Please re-login to access wishlist and try again: <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/login'">audible{{ domainExtension }}/login</a>
           </b-message>
         </div>
         <div v-else-if="extractBtnDisabled">
@@ -228,7 +232,7 @@ import changelog from "@output-mixins/changelog.js";
 import toolbarVue from '../../../wallpaper-creator/_components/toolbar.vue';
 export default {
   name: "menuScreen",
-  props: ["storageHasData", "storageConfig", "domainExtension", "wishlistUrl"],
+  props: ["storageHasData", "storageConfig", "domainExtension", "wishlistUrl", "dataVersion"],
   mixins: [ changelog, helpers ],
   data() {
     return {
@@ -251,6 +255,29 @@ export default {
   },
   
   computed: {
+    
+    dataVersionMismatch: function() {
+      
+      const extensionVersion = this.extensionVersion;
+      const dataVersions = this.dataVersion;
+      const hasData = this.hasData;
+    
+      let mismatch = [];
+      const dataPoints = ['library', 'collections', 'wishlist'];
+      
+      _.each( dataPoints, function( key ) {
+        
+        const version = _.isObject( dataVersions ) ? dataVersions[ key ] : null;
+        const keyHasData = !!hasData[ key === 'library' ? 'books' : key ];
+        const noVersion = keyHasData && !version;
+        const versionMismatch = keyHasData && version !== extensionVersion;
+        if ( noVersion || versionMismatch ) mismatch.push( key );
+        
+      });
+      
+      return mismatch;
+      
+    },
     
     saveStandaloneAfter: function() {
       return _.find( this.extractSettings, { name: 'saveStandaloneAfter' });
@@ -441,6 +468,7 @@ export default {
       // Fixme: could've gotten rid of hasData, but didn't feel like cleaning up the code so I just added this so the code gets updated in the parent component.
       this.$emit('update:storageHasData', JSON.parse(JSON.stringify(this.hasData)));
       this.$emit('update:storageConfig', JSON.parse(JSON.stringify(this.hasConfig)));
+      this.$emit('update:dataVersion', data.version);
       
       let vue = this;
       this.updateSettings(function() {
@@ -676,10 +704,13 @@ export default {
             });
           }
           
+          delete data.version[ deleteKey === 'books' ? 'library' : deleteKey ];
+          
           if ( data.config && data.config.steps ) delete data.config.steps;
           
-          
         });
+        
+        if ( data.chunks.length < 1 ) delete data.chunks;
         
         browser.storage.local.clear().then(() => {
           browser.storage.local.set(data).then(() => {
