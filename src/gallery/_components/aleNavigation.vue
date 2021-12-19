@@ -1,5 +1,5 @@
 <template>
-<div id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
+<div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation">
     <div class="inner-wrap">
       
@@ -201,6 +201,7 @@ export default {
       mobileWidth: 630,
       subMenuActive: false,
       routeAvailable: {},
+      loading: true,
     };
   },
   
@@ -220,6 +221,7 @@ export default {
   mounted: function() {
     
     this.routesCheck();
+    this.loading = false;
     
     this.$root.$on("play-audio", this.playSample);
     document.addEventListener("mousedown", this.outsideClick, { passive: true });
