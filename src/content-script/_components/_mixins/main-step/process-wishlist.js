@@ -116,10 +116,14 @@ export default {
             if (titleLink) book.title = DOMPurify.sanitize( titleLink.textContent.trimAll() );
             
             // COVER
-            const getCover = DOMPurify.sanitize( _thisRow.querySelector("img[data-lazy]").getAttribute("src") );
-            if ( getCover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
-              const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
-              if (coverId && coverId[1]) book.cover = coverId[1];
+            let getCover = _thisRow.querySelector("img[data-lazy]");
+            if ( !getCover ) getCover = _thisRow.querySelector("picture > img");
+            if ( getCover ) {
+              getCover = DOMPurify.sanitize( getCover.getAttribute("src") );
+              if ( getCover && getCover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
+                const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
+                if (coverId && coverId[1]) book.cover = coverId[1];
+              }
             }
             
             // SAMPLE
