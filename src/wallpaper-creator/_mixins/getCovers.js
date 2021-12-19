@@ -118,12 +118,14 @@ export default {
           browser.storage.local.get( collectionChunkKeys ).then(cData => {
             
             let collections = _.flatMap(cData);
-            let archive = _.find( collections, { id: '__ARCHIVE' });
+            let archive = _.find(collections, {id: '__ARCHIVE'}) ?? {};
             
             callback( archive.books );
             
           });
           
+        } else {
+          callback({});
         }
       });
       
