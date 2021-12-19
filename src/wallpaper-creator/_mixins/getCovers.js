@@ -125,7 +125,7 @@ export default {
           });
           
         } else {
-          callback({});
+          callback([]);
         }
       });
       

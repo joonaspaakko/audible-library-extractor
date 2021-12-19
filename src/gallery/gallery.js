@@ -599,6 +599,7 @@ Vue.use( globalMethods );
 // For testing side loading JSON
 var sideLoadJSON = false;
 // var sideLoadJSON = require('./test-data.json');
+// var sideLoadJSON = require('./test-data-2.json');
 if ( sideLoadJSON ) {
   startVue( sideLoadJSON );
 }
@@ -626,7 +627,7 @@ else {
     let scrpt = document.createElement("script");
     let cacheID = document.querySelector('#audible-library-extractor').getAttribute('data-cache-id');
     scrpt.src = "data/temp-data."+ cacheID +".js";
-    scrpt.type="text/javascript";
+    scrpt.type = "text/javascript";
     scrpt.onload = function() {
       
       let tempData = window.tempDataJSON;
