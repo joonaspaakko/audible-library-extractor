@@ -29,11 +29,10 @@ export default {
             step: function(response, stepCallback, book, processingError) {
               delete book.requestUrl;
 
-              if (!hotpotato.config.test)
-                vue.$root.$emit("update-progress", { text2: book.title });
+              if (!hotpotato.config.test) vue.$root.$emit("update-progress", { text2: book.title });
 
               if ( !response || response && response.status >= 400) {
-                if ( !processingError ) book.storePageMissing = true;
+                book.storePageMissing = true;
               } else {
                 vue.getStorePageData(response, book, hotpotato.config.test);
               }
@@ -106,14 +105,13 @@ export default {
       // When the store page is replaced with a new version, its ID (asin) may change and so here
       // I just make a note of it so that we can say in the gallery that  the information here may
       // be inaccurate
-      if (!isTest) {
-        const storePageChanged =
-          response.request.responseURL.lastIndexOf(book.asin) < 0;
+      if ( !isTest ) {
+        const storePageChanged = response.request.responseURL.lastIndexOf(book.asin) < 0;
         if (storePageChanged) book.storePageChanged = true;
       }
-    
+      
       // This "#sample-player..." selector tries to weed out missing store pages
-      if ( isTest || audible.querySelector("#sample-player-" + book.asin + " > button") ) {
+      if ( isTest || audible && audible.querySelector("#sample-player-" + book.asin + " > button") ) {
         
         book.storePageMissing = false;
         
