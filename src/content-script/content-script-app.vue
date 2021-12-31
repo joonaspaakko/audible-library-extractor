@@ -164,6 +164,10 @@ export default {
     if ( this.doStorePageTest && this.doStorePageTest.length > 0 ) vue.init_storePageTest();
     // vue.init_seriesPageTest();
     
+    // this.scrapingPrep(this.libraryUrl, function(prep) {
+    //   console.log('PREP?', prep)
+    // });
+    
   },
   
   mounted: function() {

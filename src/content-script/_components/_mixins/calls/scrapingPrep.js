@@ -47,12 +47,12 @@ export default {
               }
             });
           },
-
+          
           function(o, callback) {
             axiosLimited.get(o.urlObj.toString()).then(function(response) {
               const audible = $($.parseHTML(response.data)).find("div.adbl-main");
               const pagination = audible.find(".pagingElements");
-              const pagesLength = pagination.length > 0 ? parseFloat( DOMPurify.sanitize(pagination.find(".pageNumberElement:last").data("value")) ) : 1;
+              const pagesLength = pagination.length > 0 ? parseFloat( DOMPurify.sanitize(pagination.find(".pageNumberElement:last").text()) ) : 1;
               o.pageNumbers = _.range(1, pagesLength + 1);
               o.pageSize = o.urlObj.query.pageSize || null;
               callback(null, o);
