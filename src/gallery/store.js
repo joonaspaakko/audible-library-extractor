@@ -81,7 +81,7 @@ export default new Vuex.Store({
 
     fromLocalStorage: function(state) {
       const lsState = JSON.parse(localStorage.getItem("aleSettings"));
-      if (lsState) state.sticky = _.assign( state.sticky, lsState );
+      if (lsState) _.merge( state.sticky, lsState );
     },
 
     prop(state, config) {

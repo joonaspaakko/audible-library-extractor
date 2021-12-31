@@ -21,7 +21,7 @@
       <div class="btn-wrapper">
         
         <div v-if="$store.state.devMode" style="color: #f79a1c; font-weight: bold;">
-          Saving the standalone gallery is only possible <br> in "production" builds (<code>node run build</code>)
+          Saving the standalone gallery is only possible <br> in "production" builds (<code>npm run build</code>)
         </div>
         <button v-else class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="bundling || !saveBtnEnabled">
           <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>

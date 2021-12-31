@@ -1,6 +1,6 @@
 {
   "name": "audible-library-extractor",
-  "version": "0.2.7",
+  "version": "0.2.8",
   "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
   "author": "Joonas Pääkkö <paakkoj@gmail.com>",
   "engines": {

@@ -220,7 +220,7 @@ const store = new Vuex.Store({
       if ( lsState ) {
         lsState.resetting = false;
         lsState.saving = false;
-        state = _.assign( state, lsState );
+        _.merge( state, lsState );
       }
     },
     

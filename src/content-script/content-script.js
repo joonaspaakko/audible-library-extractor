@@ -8,15 +8,8 @@ Vue.config.devtools = false;
 
 browser.runtime.sendMessage({ pageAction: true });
 
-let overlayBtnHeading = $('<span>', {
-  id: 'audible-library-extractor-btn',
-  class: 'bc-heading bc-color-base bc-lens-heading bc-text-bold',
-  css: {
-    display: 'inline-block',
-  }
-}); 
-
 let overlayBtnLink = $('<a>', {
+  id: 'audible-library-extractor-btn',
   class: 'bc-link bc-tab-heading bc-inline-block bc-tab-lens bc-size-title1 bc-color-secondary', 
   tabindex: '0',
   role: 'tab',
@@ -24,22 +17,50 @@ let overlayBtnLink = $('<a>', {
   href: '#',
   text: 'Audible Library Extractor',
   css: { 
-    lineHeight: '16px',
+    height: '33px',
+    lineHeight: '33px',
     fontSize: '16px',
-    paddingLeft: '20px',
+    padding: '0 4px 0 15px',
+    borderRadius: '4px',
+    textDecoration: 'none',
+    background: '#f7991c',
+    color: '#fff',
+    boxShadow: '0 2px 4px rgb(0 0 0 / 10%), 0 2px 10px rgb(0 0 0 / 10%)',
+    display: 'inline-flex',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    fontWeight: '900',
   },
 });
 
-overlayBtnHeading.append( overlayBtnLink );
-let librarySpot = $('.adbl-library-refinement-section > div:nth-child(1) .library-pilter-button:last');
-let fallbackSpot1 = $('.adbl-library-refinement-section > div:nth-child(1) *:last');
-let fallbackSpot2 = $('#center-3 > div > div:nth-child(2) > div.bc-col-responsive.bc-col-2 > span');
+let librarySpot = $('.library-header-divider').next().find('> h1');
+librarySpot.css({
+  display: 'flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'space-between',
+});
+overlayBtnLink.appendTo( librarySpot );
 
-overlayBtnHeading.insertAfter( librarySpot.length ? librarySpot : fallbackSpot1.length ? fallbackSpot1 : fallbackSpot2 );
+let chevronIcon = $('<i>', {
+  class: 'bc-icon bc-icon-fill-base bc-icon-chevron-right-s4 bc-icon-chevron-right bc-icon-size-large bc-color-base',
+  ariaHidden: 'true',
+});
+chevronIcon[0].setAttribute( 'style', "font-weight: 900 !important" );
+chevronIcon.css({
+  verticalAlign: 'center',
+  color: 'white',
+  fontSize: '23px',
+  width: '28px',
+  height: '28px',
+  display: 'inline-flex',
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+});
 
-if ( !librarySpot.length && !fallbackSpot1.length && fallbackSpot2.length ) {
-  fallbackSpot2.parent().removeClass('bc-col-2').addClass('bc-col-5').next().removeClass('bc-col-6').addClass('bc-col-3');
-}
+chevronIcon.appendTo( overlayBtnLink );
 
 $("#audible-library-extractor-btn").on("click", function(e) {
   e.preventDefault();

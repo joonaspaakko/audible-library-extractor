@@ -97,7 +97,7 @@ export default {
         if ( book.myRating ) obj.myRating = parseFloat(book.myRating);
         if ( book.favorite ) obj.favorite = book.favorite;
         obj.cover = vue.makeCoverUrl(book.cover);
-        if ( archive && _.includes( archive, book.asin ) ) {
+        if ( _.includes( archive, book.asin ) ) {
           obj.inArchive = true;
           ++vue.archivedLength;
         }
@@ -108,24 +108,28 @@ export default {
     
     fetchArchive: function( callback ) {
       
+      let archivedBooks = [];
+      
       browser.storage.local.get(['collections-chunk-length']).then(ccData => {
         const ccLength = _.get(ccData, 'collections-chunk-length');
         if ( ccLength ) {
+          
           let collectionChunkKeys = _.map( _.range(0, ccLength), function( index ) {
             return 'collections-chunk-'+index;
           });
           
           browser.storage.local.get( collectionChunkKeys ).then(cData => {
             
-            let collections = _.flatMap(cData);
-            let archive = _.find(collections, {id: '__ARCHIVE'}) ?? {};
+            const collections = _.flatMap(cData);
+            const archive = _.find(collections, {id: '__ARCHIVE'});
+            archivedBooks = _.get( archive, 'books', []);
             
-            callback( archive.books );
+            callback( archivedBooks );
             
           });
           
         } else {
-          callback([]);
+          callback( archivedBooks );
         }
       });
       

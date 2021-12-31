@@ -270,7 +270,7 @@ export default {
         const version = _.isObject( dataVersions ) ? dataVersions[ key ] : null;
         const keyHasData = !!hasData[ key === 'library' ? 'books' : key ];
         const noVersion = keyHasData && !version;
-        const versionMismatch = keyHasData && version !== extensionVersion;
+        const versionMismatch = keyHasData && (version !== extensionVersion && version !== '0.2.7' );
         if ( noVersion || versionMismatch ) mismatch.push( key );
         
       });
