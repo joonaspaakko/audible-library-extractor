@@ -453,14 +453,15 @@ export default {
     
     updateViewData: function( data ) {
       
-      let storageHasData = !$.isEmptyObject(data);
-      if ( storageHasData && !!data.chunks && data.chunks.length === 0 ) storageHasData = false;
+      
+      const dataChunks = _.get(data, 'chunks', []);
+      const storageHasData = dataChunks.length > 0;
       
       this.hasData = storageHasData ? ({ 
-        books: data.chunks.indexOf('books') > -1, 
-        isbn: data.chunks.indexOf('books') > -1 ? this.checkISBNs( data ) : false,
-        wishlist: data.chunks.indexOf('wishlist') > -1,
-        collections: data.chunks.indexOf('collections') > -1,
+        books: dataChunks.indexOf('books') > -1, 
+        isbn: dataChunks.indexOf('books') > -1 ? this.checkISBNs( data ) : false,
+        wishlist: dataChunks.indexOf('wishlist') > -1,
+        collections: dataChunks.indexOf('collections') > -1,
       }) : {};
       
       this.hasConfig = data.config || {};

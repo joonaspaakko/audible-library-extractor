@@ -114,13 +114,10 @@ function makeContextMenu() {
   // Permission: "storage"
   browser.storage.local.get(['chunks', 'extras']).then(data => {
     
-    var libraryExists = false;
-    var wishlistExists = false;
-    var dataExists = typeof data === 'object' && data.chunks && data.chunks.length > 0;
-    if ( dataExists ) {
-      libraryExists = data.chunks.lastIndexOf('books') > -1;
-      wishlistExists = data.chunks.lastIndexOf('wishlist') > -1;
-    }
+    const dataChunks = _.get(data, 'chunks', []);
+    const storageHasData = dataChunks.length > 0;
+    const libraryExists = dataChunks.lastIndexOf('books') > -1;
+    const wishlistExists = dataChunks.lastIndexOf('wishlist') > -1;
     domainExtension = _.get(data, 'extras.domain-extension');
     data = null;
     

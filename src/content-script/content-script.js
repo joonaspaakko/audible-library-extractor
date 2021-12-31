@@ -93,8 +93,8 @@ function audibleLibraryExtractor(data) {
   // Storage data is dropped immediately. I just want to know if the data exists
   // in load so I can enable/disable things based on that info.
   // Later it's fetched again if needed.
-  let storageHasData = !$.isEmptyObject(data);
-  if ( storageHasData && !!data.chunks && data.chunks.length === 0 ) storageHasData = false;
+  const dataChunks = _.get(data, 'chunks', []);
+  const storageHasData = dataChunks.length > 0;
   
   Vue.directive("visible", function(el, binding) {
     el.style.visibility = !!binding.value ? "visible" : "hidden";
@@ -106,10 +106,10 @@ function audibleLibraryExtractor(data) {
       return h(App, {
         props: {
           storageHasDataInit: storageHasData ? ({ 
-            books: data.chunks.indexOf('books') > -1, 
-            isbn: data.chunks.indexOf('books') > -1 ? checkISBNs( data ) : false,
-            wishlist: data.chunks.indexOf('wishlist') > -1,
-            collections: data.chunks.indexOf('collections') > -1,
+            books: dataChunks.indexOf('books') > -1, 
+            isbn: dataChunks.indexOf('books') > -1 ? checkISBNs( data ) : false,
+            wishlist: dataChunks.indexOf('wishlist') > -1,
+            collections: dataChunks.indexOf('collections') > -1,
           }) : {},
           storageConfigInit: data.config || {},
           dataVersionInit: data.version || {},
