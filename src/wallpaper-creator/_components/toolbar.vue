@@ -1169,11 +1169,11 @@ export default {
       this.$store.commit('update', { key: 'excludeArchived',  value: value });
       
       let covers = value ? _.filter(this.store.covers, function(o) { return !o.inArchive; }) : this.store.covers;
-      covers = covers.slice(0, this.store.coverAmount);
+      covers = covers.slice(0, this.store.coverAmount || 1);
       
       this.$store.commit('update', [
         { key: 'usedCovers', value: covers },
-        { key: 'coverAmount', value: covers.length },
+        // { key: 'coverAmount', value: covers.length },
       ]);
       
     },

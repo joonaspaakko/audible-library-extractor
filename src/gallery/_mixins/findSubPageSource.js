@@ -29,17 +29,16 @@ export default {
   watch: {
     
     '$route.query.subPageSource': function( source ) {
-      
       if ( !this.$route.meta.gallery && this.$route.meta.subPage ) {
+        
         this.listReady = false;
+        this.subPageSource = this.findSubPageSource();
+        
         this.$nextTick(function() {
-          
-          this.subPageSource = this.findSubPageSource();
           this.makeCollection();
-          
         });
+        
       }
-      
     }
     
   },

@@ -267,7 +267,7 @@ export default new Vuex.Store({
       return state.searchQuery.trim() !== "" ? state.searchCollection : _.get(state, state.collectionSource);
     },
     collectionTotal: function( state ) {
-      return state.collectionSource ? _.get(state, state.collectionSource).length : 0;
+      return _.get(state, state.collectionSource, []).length;
     },
     collection: function( state ) {
       const searchIsActive = state.searchQuery.trim() !== "";

@@ -19,7 +19,7 @@ let overlayBtnLink = $('<a>', {
   css: { 
     height: '33px',
     lineHeight: '33px',
-    fontSize: '16px',
+    fontSize: '14px',
     padding: '0 4px 0 15px',
     borderRadius: '4px',
     textDecoration: 'none',
@@ -31,6 +31,7 @@ let overlayBtnLink = $('<a>', {
     alignItems: 'center',
     justifyContent: 'space-between',
     fontWeight: '900',
+    width: '232px',
   },
 });
 

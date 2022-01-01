@@ -191,9 +191,7 @@ export default {
     saveButtonClicked: async function () {
       const vue = this;
 
-      if (this.bundling) {
-        return;
-      }
+      if ( this.bundling ) return;
 
       try {
         vue.bundling = true;

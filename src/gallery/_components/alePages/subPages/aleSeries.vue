@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-series" class="box-layout-wrapper" v-if="$store.state.pageCollection && $store.state.pageCollection.length && listReady" :style="optionsOpenMargin" ref="wrapper">
+  <div id="ale-series" class="box-layout-wrapper" v-if="listReady" :style="optionsOpenMargin" ref="wrapper">
     
     <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
     

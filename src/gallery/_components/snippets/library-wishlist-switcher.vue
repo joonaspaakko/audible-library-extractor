@@ -26,12 +26,11 @@ export default {
   methods: {
     switcher: function( key ) {
       
-      this.$updateQuery({ query: 'subPageSource', value: key });
-      this.$updateQuery({ query: 'filterExtras', value: null });
       this.$updateQuery({ query: 'sort', value: null });
       this.$updateQuery({ query: 'sortDir', value: null });
+      this.$updateQuery({ query: 'filterExtras', value: null });
+      this.$updateQuery({ query: 'subPageSource', value: key });
       this.$store.commit('stickyProp', { key: 'subPageSource', value: key });
-      this.$root.$emit('refresh-page');
       
     },
   },
