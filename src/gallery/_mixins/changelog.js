@@ -7,6 +7,37 @@ export default {
       
       changeLog: [
         {
+          version: 'v.0.2.8',
+          highlights: `The "Audible Library Extractor" button in Audible's website now looks like a button and was moved above the search input, because Audible continually made small changes and it could no longer fit where it used to be.`,
+          changes: [
+            {
+              description: `Extraction comes up with 20 books (single page). Note: audible changed things`,
+              class: 'fixed',
+              link: { text: 'Fixed #72', href: githubIssues+'72' }, 
+            },
+            {
+              description: `Wishlist extraction discards all data and the wishlist gallery page comes up empty. Note: audible changed things`,
+              class: 'fixed',
+              link: { text: 'Fixed #71', href: githubIssues+'71' }, 
+            },
+            {
+              description: `Wallpaper creator showing a blank page (if used hadn't extracted collections).`,
+              class: 'fixed',
+              link: { text: 'Fixed #69', href: githubIssues+'69' }, 
+            },
+            {
+              description: `Some "unavailable" books not marked properly. Note: this bug was introduced in v.0.2.7`,
+              class: 'fixed',
+              link: { text: 'Fixed #68', href: githubIssues+'68' }, 
+            },
+            {
+              description: `Top menu disappears sometimes on certain pages bug`,
+              class: 'fixed',
+              link: { text: 'Fixed #67', href: githubIssues+'67' }, 
+            },
+          ],
+        },
+        {
           version: 'v.0.2.7',
           highlights: `
             You should do a full extraction after updating to this version. There are a a few new data points that the partial extraction will not update to any old books.

@@ -229,7 +229,7 @@ Vue.use(Buefy, {
 
 import helpers from "@contscript-mixins/misc/helpers.js";
 import changelog from "@output-mixins/changelog.js";
-import toolbarVue from '../../../wallpaper-creator/_components/toolbar.vue';
+
 export default {
   name: "menuScreen",
   props: ["storageHasData", "storageConfig", "domainExtension", "wishlistUrl", "dataVersion"],
