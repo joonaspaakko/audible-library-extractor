@@ -79,7 +79,7 @@
     "file-loader": "^6.2.0",
     "filemanager-webpack-plugin-fixed": "^2.0.9",
     "mini-css-extract-plugin": "^2.1.0",
-    "node-sass": "^6.0.1",
+    "node-sass": "^7.0.0",
     "sass-loader": "^12.1.0",
     "vue-loader": "^15.9.7",
     "vue-template-compiler": "^2.6.14",
