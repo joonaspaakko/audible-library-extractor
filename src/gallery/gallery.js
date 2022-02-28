@@ -239,55 +239,29 @@ let routesPrep = function( libraryData ) {
       router.beforeEach((to, from, next) => {
                 
         if ( 
-          from.name !== to.name || 
-          _.get(from, 'query.book') !== _.get(to, 'query.book') || 
-          from.query.subPageSource !== to.query.subPageSource 
+          to.name && (
+            from.name !== to.name || 
+            _.get(from, 'query.book') !== _.get(to, 'query.book') || 
+            from.query.subPageSource !== to.query.subPageSource 
+          )
         ) {
           
-          if ( to.meta.subPage ) {
-            if ( to.query.subPageSource === 'wishlist' || !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist' ) {
-              getJSON( next, [
-                {name: 'wishlist'},
-                {name: 'series'},
-                {name: 'collections'},
-              ]);
-            }
-            else {
-              getJSON( next, [
-                {name: 'library', keyOverride: 'books'}, 
-                {name: 'series'},
-                {name: 'collections'},
-              ]);
-            }
+          const loaderArray = [];
+          const openingWishlist = to.name === 'wishlist' || 
+                                  to.query.subPageSource === 'wishlist' || 
+                                  to.meta.subPage && !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist';
+          
+          if ( libraryData.wishlist && openingWishlist ) {
+            loaderArray.push({name: 'wishlist'}); 
           }
-          else {
-            switch( to.name ) {
-              case 'gallery':
-                getJSON( next, [
-                  {name: 'library', keyOverride: 'books'}, 
-                  {name: 'series'},
-                  {name: 'collections'},
-                ]);
-                break;
-              case 'collections':
-              case 'collection':
-                getJSON( next, [
-                  {name: 'library', keyOverride: 'books'}, 
-                  {name: 'series'},
-                  {name: 'collections'},
-                ]);  
-                break;
-              case 'wishlist':
-                getJSON( next, [
-                  {name: 'wishlist'},
-                  {name: 'series'},
-                  {name: 'collections'},
-                ]);
-                break;
-              default:
-                next();
-            }
+          else if ( libraryData.books ) {
+            loaderArray.push({name: 'library', keyOverride: 'books'}); 
           }
+          
+          if ( libraryData.series      ) loaderArray.push({name: 'series'});
+          if ( libraryData.collections ) loaderArray.push({name: 'collections'}); 
+          
+          getJSON( next, loaderArray);
         
         }
         else { next(); }

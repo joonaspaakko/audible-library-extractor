@@ -1271,6 +1271,8 @@ export default {
     
     removeArchived: function( list ) {
 
+      if ( !this.$store.state.library.collections ) return;
+      
       let collections = this.$store.state.library.collections;
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
       if ( !archive || archive.books.length < 1 ) {
