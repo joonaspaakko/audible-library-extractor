@@ -1,6 +1,6 @@
 const standalone = document.querySelector("html.standalone-gallery");
 
-// VUE 
+// VUE
 import Vue from "vue";
 import VueCompositionAPI from '@vue/composition-api';
 Vue.use(VueCompositionAPI);
@@ -62,9 +62,9 @@ import aleLibraryView from "./_components/aleLibraryView";
 
 let routesPrep = function( libraryData ) {
   if ( libraryData ) {
-    
+
     let routes = [];
-    
+
     // Home page redirect
     if ( libraryData.books ) {
       routes.push({ path: "/", redirect: "/library" },);
@@ -72,14 +72,14 @@ let routesPrep = function( libraryData ) {
     else if ( libraryData.wishlist ) {
       routes.push({ path: "/", redirect: "/wishlist" },);
     }
-    
+
     const aleGallery = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
-    
+
     // LIBRARY
     if ( libraryData.books ) {
       routes.push({ name: "gallery", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library' } });
     }
-    
+
     // SUB PAGES
     var subPages = {
       categories: {
@@ -123,7 +123,7 @@ let routesPrep = function( libraryData ) {
         ],
       },
     };
-    
+
     // Standalone-gallery SUBPAGES
     let subPageStates = _.get( libraryData, 'extras.subPageStates' );
     if ( subPageStates ) {
@@ -137,7 +137,7 @@ let routesPrep = function( libraryData ) {
         routes.push( subPage );
       });
     }
-    
+
     // COLLECTIONS
     if ( libraryData.collections ) {
       routes.push({
@@ -149,7 +149,7 @@ let routesPrep = function( libraryData ) {
         ]
       });
     }
-    
+
     // WISHLIST
     if ( libraryData.wishlist ) {
       routes.push({
@@ -160,10 +160,10 @@ let routesPrep = function( libraryData ) {
         ]
       });
     }
-    
+
     routes.push({
       path: '*',
-      name:'404', 
+      name:'404',
       component: aleLibraryView
     });
 
@@ -181,10 +181,10 @@ let routesPrep = function( libraryData ) {
         }
       }
     });
-    
+
     // Tries to load relevant JSON data from a file before each route change on the standalone site
     if ( standalone ) {
-      
+
       function loadScript(file) {
         return new Promise(function(resolve, reject) {
           let script = document.createElement('script');
@@ -201,18 +201,18 @@ let routesPrep = function( libraryData ) {
           document.body.appendChild(script);
         });
       }
-      
+
       let getJSON = function( next, files, afterError ) {
-        
+
         // Exclude JSON that's already been loaded
         files = _.filter( files, function( file ){ return window[file.name+'JSON'] !== true; });
-        
+
         // save all Promises as array
         let promises = [];
         files.forEach(function(file) {
           promises.push(loadScript(file));
         });
-        
+
         Promise.all(promises).catch(function() {
           if ( !afterError ) {
             setTimeout(function() {
@@ -220,30 +220,30 @@ let routesPrep = function( libraryData ) {
             }, 1000);
           }
         }).finally(function() {
-          
-          let storageArray = _.map( files, function( file ) { 
+
+          let storageArray = _.map( files, function( file ) {
             return {
               key: (file.keyOverride || file.name),
               value: window[file.name+'JSON'],
-            }; 
+            };
           });
           store.commit("buildStandaloneData", storageArray);
           _.each( files, function( file ) { window[file.name+'JSON'] = true; });
           next();
-          
+
         });
-        
+
       };
-      
-      
+
+
       router.beforeEach((to, from, next) => {
-                
-        if ( 
+
+        if (
           from.name !== to.name || 
-          _.get(from, 'query.book') !== _.get(to, 'query.book') || 
-          from.query.subPageSource !== to.query.subPageSource 
+          _.get(from, 'query.book') !== _.get(to, 'query.book') ||
+          from.query.subPageSource !== to.query.subPageSource
         ) {
-          
+
           if ( to.meta.subPage ) {
             if ( to.query.subPageSource === 'wishlist' || !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist' ) {
               getJSON( next, [
@@ -254,7 +254,7 @@ let routesPrep = function( libraryData ) {
             }
             else {
               getJSON( next, [
-                {name: 'library', keyOverride: 'books'}, 
+                {name: 'library', keyOverride: 'books'},
                 {name: 'series'},
                 {name: 'collections'},
               ]);
@@ -264,7 +264,7 @@ let routesPrep = function( libraryData ) {
             switch( to.name ) {
               case 'gallery':
                 getJSON( next, [
-                  {name: 'library', keyOverride: 'books'}, 
+                  {name: 'library', keyOverride: 'books'},
                   {name: 'series'},
                   {name: 'collections'},
                 ]);
@@ -272,10 +272,10 @@ let routesPrep = function( libraryData ) {
               case 'collections':
               case 'collection':
                 getJSON( next, [
-                  {name: 'library', keyOverride: 'books'}, 
+                  {name: 'library', keyOverride: 'books'},
                   {name: 'series'},
                   {name: 'collections'},
-                ]);  
+                ]);
                 break;
               case 'wishlist':
                 getJSON( next, [
@@ -288,33 +288,33 @@ let routesPrep = function( libraryData ) {
                 next();
             }
           }
-        
+
         }
         else { next(); }
       });
-      
+
     }
-    
+
     router.afterEach((to, from, next) => {
       if ( from.name !== to.name ) {
-        
+
         const navForward = store.state.navHistory.forward;
         const navBack = store.state.navHistory.back;
-        
-        if ( 
-          from.name && from.name !== navForward[ navForward.length-1]  && from.name !== navBack[ navBack.length-1 ] 
+
+        if (
+          from.name && from.name !== navForward[ navForward.length-1]  && from.name !== navBack[ navBack.length-1 ]
         ) {
           store.commit('navHistory', { key: 'back', value: from.name, pushOnly: true });
         }
-        
+
         if ( !store.state.navHistory.btnNavigation ) store.commit('prop', { key: 'navHistory.forward', value: [] });
         store.commit('prop', { key: 'navHistory.btnNavigation', value: false });
-        
+
       }
     });
-    
+
     return router;
-  
+
   }
 };
 
@@ -378,6 +378,7 @@ import {
   faBan,
   faMinusCircle,
   faHeadphonesAlt,
+  faHandHoldingHeart,
   faImages,
   faGraduationCap,
 } from "@fortawesome/free-solid-svg-icons";
@@ -397,6 +398,7 @@ library.add(
   faChevronRight,
   faChevronUp,
   faArchive,
+  faHandHoldingHeart,
   // faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
   faBars,
   faBook,
@@ -477,36 +479,36 @@ import store from "./store.js";
 const updateVuexQuery = {};
 updateVuexQuery.install = function (Vue) {
   Vue.prototype.$updateQuery = function( config ) {
-    
+
     config      = config || {};
     let query   = config.query;
     let value   = config.value;
     let history = config.history;
     let queries = config.queries || this.$route.query;
-    
+
     let queryClone = JSON.parse( JSON.stringify( queries ) );
-    
+
     // Toggle
     if ( value === undefined ) {
-      if ( queryClone[ query ] ) delete queryClone[ query ];  
+      if ( queryClone[ query ] ) delete queryClone[ query ];
       else queryClone[ query ] = true;
     }
     // Truthy value adds the value
     // Falsy value removes the query
     else {
-      if ( !value ) delete queryClone[ query ]; 
+      if ( !value ) delete queryClone[ query ];
       else queryClone[ query ] = value;
     }
-    
+
     // push() writes a history state...
     if ( history ) {
-      this.$router.push({ query: queryClone }).catch(() => {}); 
+      this.$router.push({ query: queryClone }).catch(() => {});
     }
     // replace() doesn't...
     else {
-      this.$router.replace({ query: queryClone }).catch(() => {}); 
+      this.$router.replace({ query: queryClone }).catch(() => {});
     }
-    
+
   };
 }
 Vue.use( updateVuexQuery );
@@ -516,12 +518,12 @@ Vue.use( updateVuexQuery );
 const globalMethods = {};
 globalMethods.install = function (Vue) {
   Vue.prototype.$setListRenderingOpts = function( list ) {
-    
+
     if ( this.$route.query.sortValues ) {
       const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });
       list.sort[ sortValuesIndex ].active = this.$route.query.sortValues;
     }
-    
+
     if ( this.$route.query.sort ) {
       let currentSorter = _.find( list.sort, { current: true });
       currentSorter.current = false;
@@ -531,35 +533,35 @@ globalMethods.install = function (Vue) {
         list.sort[ sortIndex ].active = this.$route.query.sortDir === 'desc' ? true : false;
       }
     }
-    
+
     if ( this.$route.query.filter ) {
-      
+
       let paramFilters = decodeURIComponent(this.$route.query.filter).split(',');
-      
+
       _.each( _.filter(list.filter, { type: 'filter' }), function( filter ) {
         filter.active = false;
         _.each( paramFilters, function( paramFilter ) {
           if ( filter.key === paramFilter ) filter.active = true;
         });
       });
-      
+
     }
-    
+
     if ( this.$route.query.filterExtras ) {
-      
+
       let paramFilterExtras = this.$route.query.filterExtras.split(',');
       paramFilterExtras = _.map( paramFilterExtras, function( param ) { return decodeURIComponent(param); });
-      
+
       _.each( paramFilterExtras, function( key ) {
-        
+
         let splitColon = key.split(':');
         let targetKey = splitColon[0];
         let targetItem = _.find(list.filter, { type: 'filterExtras', key: targetKey });
-        
+
         if ( targetItem ) {
           targetItem.active = true;
           if ( splitColon.length > 1 ) {
-            
+
             if ( targetItem.dropdownOpts ) {
               targetItem.value = splitColon[1].split('|');
             }
@@ -571,26 +573,26 @@ globalMethods.install = function (Vue) {
             }
           }
         }
-        
+
       });
-      
+
     }
-    
+
     if ( this.$route.query.scope ) {
-      
+
       let paramScope = decodeURIComponent(this.$route.query.scope).split(',');
-      
+
       _.each( list.scope, function( scope ) {
         scope.active = false;
         _.each( paramScope, function( paramScope ) {
           if ( scope.key === paramScope ) scope.active = true;
         });
       });
-      
+
     }
-    
+
     this.$store.commit("prop", { key: "listRenderingOpts", value: list });
-    
+
   };
 }
 Vue.use( globalMethods );
@@ -617,10 +619,10 @@ else if (!standalone) {
       }
     });
   } catch (e) {}
-} 
+}
 // As a standalone website...
 else {
-  
+
   let vue = this;
   loadJSON();
   function loadJSON( afterError ) {
@@ -629,13 +631,13 @@ else {
     scrpt.src = "data/temp-data."+ cacheID +".js";
     scrpt.type = "text/javascript";
     scrpt.onload = function() {
-      
+
       let tempData = window.tempDataJSON;
       window.bookSummaryJSON = true;
-      
+
       scrpt = null;
       startVue( tempData );
-      
+
     };
     // Tries again if there's an error loading the files, but only once...
     scrpt.onerror = function() {
@@ -646,11 +648,11 @@ else {
     };
     document.head.appendChild(scrpt);
   }
-  
+
 }
 
 function vuexPrep( libraryData ) {
-  
+
   // window.localStorage.clear();
 
   // Overwrite sticky defaults with local storage values
@@ -661,8 +663,8 @@ function vuexPrep( libraryData ) {
       localStorage.setItem("aleSettings", JSON.stringify( state.sticky ));
     }
   });
-  
-  
+
+
   store.commit("prop", [
     { key: "library", value: libraryData, freeze: standalone ? false : true },
     { key: "standalone", value: !!standalone },
@@ -670,19 +672,19 @@ function vuexPrep( libraryData ) {
     { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] },
     { key: "extractSettings", value: libraryData.config },
   ]);
-  
+
   if      ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'books'    });
   else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
-  
+
   if ( !libraryData.books && libraryData.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
-  
+
   const { version } = require('../../package.json');
   store.commit("prop", { key: "version", value: version });
 
 }
 
 function startVue( libraryData ) {
-  
+
   let standaloneRouteData;
   libraryData.extras.pages = libraryData.extras.pages || {};
   if ( standalone ) {
@@ -692,10 +694,10 @@ function startVue( libraryData ) {
     if ( libraryData.collections === true ) { delete libraryData.collections; libraryData.extras.pages.collections = true; }
     if ( libraryData.wishlist    === true ) { delete libraryData.wishlist;    libraryData.extras.pages.wishlist = true;    }
   }
-  
+
   vuexPrep( libraryData );
   let router = routesPrep( standaloneRouteData || libraryData );
-  
+
   new Vue({
     router,
     el: "#audible-library-extractor",
@@ -708,5 +710,5 @@ function startVue( libraryData ) {
       });
     }
   });
-  
+
 }

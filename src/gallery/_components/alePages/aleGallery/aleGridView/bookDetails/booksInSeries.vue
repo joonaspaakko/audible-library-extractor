@@ -11,9 +11,9 @@
       <font-awesome fas :icon="$store.state.sticky.booksInSeriesToggle ? 'chevron-up' : 'chevron-down'" />
     </div>
     <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
-      
+
       <filters :series="series"></filters>
-      
+
       <div
       class="series-section"
       v-for="(series, seriesIndex) in series.collection"
@@ -33,24 +33,24 @@
             {{ inLibraryLength( series ) }} / {{ series.length }}
           </div>
         </div>
-        
+
         <div
         :data-series-name="series.name" class="numbers-list-item" :class="numbersClass(seriesBook)"
         v-for="(seriesBook, index) in series.books" :key="seriesBook.asin"
         v-if="checkFilter( seriesBook )"
-        > 
-        
+        >
+
           <open-in-app v-if="$store.state.sticky.booksInSeriesOpenInApp" :size="14" :book="seriesBook" :muted="true" />
           <good-reads-link v-else :size="14" :book="seriesBook" :icon="true" :muted="true"  />
-          
+
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
             <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
           </span>
-          
+
           <books-in-series-link :series="series" :book="seriesBook" :index="index" />
-          
+
         </div>
-        
+
       </div>
     </div>
     <!-- .by-books-in-series -->
@@ -58,11 +58,11 @@
 </template>
 
 <script>
-import openInApp from "@output-comps/snippets/openInApp";
 import goodReadsLink from "@output-comps/snippets/goodReadsLink";
-import booksInSeriesLink from "./booksInSeriesLink.vue";
-import filters from "./booksInSeriesFilters.vue";
+import openInApp from "@output-comps/snippets/openInApp";
 import makeUrl from "@output-mixins/makeFullUrl";
+import filters from "./booksInSeriesFilters.vue";
+import booksInSeriesLink from "./booksInSeriesLink.vue";
 
 export default {
   name: "booksInSeries",
@@ -84,17 +84,17 @@ export default {
       // seriesPage: false,
     };
   },
-  
+
   created: function() {
-    
+
     // Because these links lead to the series page, they are disabled
     // when on that page and instead a different book is opened...
     // Except when the link leads to another series...
     this.seriesPage = this.$route.name === 'series';
-    
+
     this.series.collection = this.getBooksInSeries();
     this.series.count = this.getSeriesCount();
-    
+
     // Check if this book is in a series
     const vue = this;
     _.each(this.series.collection, function(series) {
@@ -103,25 +103,25 @@ export default {
         return false;
       }
     });
-    
+
   },
-  
+
   mounted: function() {
-    
+
     if ( this.$store.state.sticky.booksInSeriesToggle ) {
       this.$nextTick(() => {
         this.$root.$emit("resizeSummary");
       });
     }
-    
+
   },
 
   methods: {
-    
+
     inLibraryLength: function( series ) {
       return _.filter( series.books, function( o ) { return !o.notInLibrary; }).length;
     },
-    
+
     checkFilter: function( book ) {
       if ( book.notInLibrary ) {
         return this.$store.state.sticky.booksInSeriesAll;
@@ -137,7 +137,7 @@ export default {
       }
 
     },
-    
+
     getBooksInSeries: function() {
       const vue = this;
       let series = [];
@@ -147,10 +147,10 @@ export default {
             asin: currentSeries.asin
           });
           if (allBooksInSeries) {
-            
+
             let booksSource = allBooksInSeries.books;
             if ( !!allBooksInSeries.allBooks ) booksSource = allBooksInSeries.allBooks;
-            
+
             series.push({
               asin: currentSeries.asin,
               name: currentSeries.name,
@@ -158,11 +158,11 @@ export default {
               books: _.map( booksSource , function( book ) {
                 let asin = book.asin || book;
                 let inLibrary = _.includes( allBooksInSeries.books, asin );
-                
+                const wishlistBook = vue.$store.state.library.wishlist?.find(b => b.asin === asin);
                 if ( inLibrary ) {
                   let libBook = _.find(vue.$store.state.library.books, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
-                  let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(',') : libSeries.bookNumbers) : book.bookNumbers;
+                  let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(',') : libSeries.bookNumbers) : book.bookNumbers;
                   let newLibBook = {
                     asin: book.asin || libBook.asin,
                     bookNumbers: inLibBookNumbers,
@@ -171,6 +171,16 @@ export default {
                     obj: libBook,
                   };
                   return newLibBook;
+                }
+                else if (wishlistBook) {
+                  return {
+                    asin,
+                    title: wishlistBook.title,
+                    titleShort: book.titleShort,
+                    obj: wishlistBook,
+                    bookNumbers: book.bookNumbers,
+                    inWishlist: true,
+                  }
                 }
                 else {
                   book.notInLibrary = true;
@@ -182,13 +192,13 @@ export default {
           }
         });
       }
-      
+
       return series.length > 0 ? series : null;
     },
 
     getSeriesCount: function() {
       let array = [];
-      
+
       _.each(this.series.collection, function(series, seriesIndex ) {
         if ( series.books.length ) {
           _.each(series.books, function(book) {
@@ -231,6 +241,9 @@ export default {
       else if ( book.notInLibrary ) {
         return 'Not in library...';
       }
+      else if (book.inWishlist) {
+        return 'In wishlist';
+      }
       else {
         const classes = this.numbersClass(book);
         var tippyContent = "";
@@ -254,6 +267,9 @@ export default {
       }
       else if ( book.notInLibrary ) {
         return 'ban';
+      }
+      else if (book.inWishlist) {
+        return 'hand-holding-heart';
       }
       else {
         const classes = this.numbersClass(book);
@@ -291,7 +307,7 @@ export default {
     @include themify($themes) {
       border-bottom: 1px dotted rgba(themed(frontColor), 0.2);
     }
-    
+
     .clickety-click {
         cursor: pointer;
         display: flex;
@@ -321,7 +337,7 @@ export default {
       outline: none;
       padding-right: 8px;
     }
-    
+
     &.not-in-library,
     &.finished {
       .title {
@@ -353,7 +369,7 @@ export default {
     }
     &.not-in-library .title { text-decoration: none; }
     &.not-in-library .numbers { opacity: 0.5; }
-    
+
     &.reading {
       font-style: normal;
     }
@@ -366,7 +382,7 @@ export default {
         }
       }
     }
-    
+
     a {
       @include themify($themes) {
         color: themed(frontColor) !important;
@@ -377,9 +393,9 @@ export default {
         }
       }
     }
-    
+
   }
-  
+
 }
 
 div.hidden-section-label {
@@ -457,7 +473,7 @@ div.hidden-section {
       opacity: .65 !important;
     }
   }
-  
+
   &.finished {
     .icon, .title {
       opacity: .50 !important;
