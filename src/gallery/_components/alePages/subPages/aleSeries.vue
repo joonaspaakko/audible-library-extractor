@@ -1,22 +1,36 @@
 <template>
-  <div id="ale-series" class="box-layout-wrapper" v-if="listReady" :style="optionsOpenMargin" ref="wrapper">
-    
-    <ale-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
-    
-    <div :style="galleryStyle" class="page-content">
+  <div id="ale-series"
+       class="box-layout-wrapper"
+       v-if="listReady"
+       :style="optionsOpenMargin"
+       ref="wrapper">
+
+    <ale-search :collectionSource="collectionSource"
+                :pageTitle="pageTitle"
+                :pageSubTitle="pageSubTitle"></ale-search>
+
+    <div :style="galleryStyle"
+         class="page-content">
       <lazy
-      v-for="(item, index) in $store.getters.collection"
-      class="single-box"
-      :data-asin="item.asin"
-      v-if="item.asin"
-      :key="'series:'+item.asin"
+          v-for="(item, index) in $store.getters.collection"
+          class="single-box"
+          :data-asin="item.asin"
+          v-if="item.asin"
+          :key="'series:'+item.asin"
       >
         <router-link :to="{ name: 'series', params: { series: item.asin }, query: { subPageSource: subPageSource.name } }">
 
           <h2>{{ item.name }}</h2>
 
-          <div class="books-total" v-if="item.books && item.books.length" content="Total number of books I have in this series." v-tippy="{ placement: 'right' }">
-            <span :class="{ 'my-books': item.allBooksMinusDupes && item.allBooksMinusDupes.length}">{{ item.books.length }}</span><span v-if="item.allBooksMinusDupes && item.allBooksMinusDupes.length">&nbsp;of&nbsp;{{ item.allBooksMinusDupes.length }}</span>
+          <div class="books-total"
+               v-if="item.books && item.books.length"
+               content="Total number of books I have in this series."
+               v-tippy="{ placement: 'right' }">
+            <span :class="{ 'my-books': item.allBooksMinusDupes && item.allBooksMinusDupes.length}">{{
+                item.books.length
+              }}</span><span v-if="item.allBooksMinusDupes && item.allBooksMinusDupes.length">&nbsp;of&nbsp;{{
+              item.allBooksMinusDupes.length
+            }}</span>
           </div>
 
         </router-link>
@@ -28,9 +42,9 @@
 
 <script>
 
+import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 import lazy from "@output-snippets/lazy.vue";
-import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
 
 export default {
   name: "aleSeries",
@@ -47,133 +61,113 @@ export default {
       listReady: false,
     };
   },
-  
+
   computed: {
-    optionsOpenMargin: function() {
-      
-      if ( this.$store.state.searchOptOpenHeight ) {
-        
+    optionsOpenMargin: function () {
+
+      if (this.$store.state.searchOptOpenHeight) {
+
         return {
           marginBottom: 0
         };
-        
-      }
-      else {
+
+      } else {
         return false;
       }
-      
+
     },
-    galleryStyle: function() {
-      
-      if ( this.$store.state.searchOptOpenHeight ) {
-        
+    galleryStyle: function () {
+
+      if (this.$store.state.searchOptOpenHeight) {
+
         return {
           overflow: 'hidden',
-          height: this.$store.state.searchOptOpenHeight- (this.$refs.wrapper.offsetTop*2) + 'px',
+          height: this.$store.state.searchOptOpenHeight - (this.$refs.wrapper.offsetTop * 2) + 'px',
         };
-        
-      }
-      else {
+
+      } else {
         return false;
       }
-      
+
     },
   },
-  
+
   methods: {
 
     makeCollection: function () {
-      
       const vue = this;
-      let seriesCollection = [];
+      const seriesCollection = [];
+      const librarySeries = this.$store.state.library.series;
       let addedCounter = 1;
-      let librarySeries = this.$store.state.library.series;
-      
+
       // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
-      _.eachRight( vue.subPageSource.collection, function (book) {
+      _.eachRight(vue.subPageSource.collection, function (book) {
         if (book.series) {
           _.each(book.series, function (series) {
-            
+            // Find an existing entry in our series collection
             const seriesAdded = _.find(seriesCollection, {asin: series.asin});
-            let thisSeriesFromLibrary = !!librarySeries ? _.find(librarySeries, { asin: series.asin }) : false;
-            
-            let myBooks, maxSeriesBookNumber, myMaxBookNumber;
-            
-            // Series not in the collection so add it with the book...
-            if (!seriesAdded) {
-              
-              
-              if ( vue.subPageSource.library ) {
-                // The assumption is that in most situations you won't be buying multiple versions of a book, so duplicates are removed, 
-                // because multiple versions of books make it so that some series will always be considered incomplete...
-                // I was thinking this could be cool in the "My books in the series list" too, but it's too unreliable for that purpose.
-                
-                // Logic - Remove duplicate books from series: 
-                // - Compare book numbers and remove duplicates prioritizing books in the library
-                // - Needs to be an exact match: "0.3, 0.5, 1" !== "1" 
-                // - Any kind of bundles will be ignored, even if you have separate book copies from the bundle.
-                // - Of course identical bundle numbers are considered duplicates
-                // Simply put: 
-                // 1. Book in library: always keep
-                // 2. Not in Library: remove if it exists in the library and if there are multiple books (not in library) make sure only one is kept
-                thisSeriesFromLibrary.allBooksMinusDupes = vue.removeDuplicates( thisSeriesFromLibrary.allBooks );
-                myBooks = thisSeriesFromLibrary.allBooksMinusDupes.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
-                maxSeriesBookNumber = _.max(thisSeriesFromLibrary.allBooksMinusDupes.map(b => _.toNumber(b.bookNumbers)));
-                myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
-              }
-              
-              const newSeries = {
-                name: series.name,
-                asin: series.asin,
-                added: addedCounter,
-                books: [book.title || book.shortTitle],
-                authors: book.authors,
-                narrators: book.narrators,
-                publishers: book.publishers,
-              };
+            // Find the series in our library
+            const thisSeriesFromLibrary = _.find(librarySeries ?? [], {asin: series.asin});
 
-              // Only add if it's in the library series array as well...
-              if ( vue.subPageSource.library && !!thisSeriesFromLibrary ) {
-                
-                ++addedCounter;
-                newSeries.minRating = _.toNumber(book.myRating),
-                newSeries.allBooksMinusDupes = thisSeriesFromLibrary.allBooksMinusDupes;
-                newSeries.missingLatest = myMaxBookNumber !== maxSeriesBookNumber,
-                seriesCollection.push(newSeries);
-                
-              } else if ( vue.subPageSource.wishlist ) {
-                ++addedCounter;
-                seriesCollection.push(newSeries);
-              }
+            // If we have an existing series in our series collection (which we're building over time), use it
+            // Otherwise, create a new series to add and increment our counter
+            const thisSeries = seriesAdded ?? {
+              name: series.name,
+              asin: series.asin,
+              books: [],
+              added: addedCounter++,
+              authors: book.authors,
+              narrators: book.narrators,
+              publishers: book.publishers,
+              minRating: _.toNumber(book.myRating),
+            };
+
+            // If we this series in our library, we can add some extra goodies to the series
+            if (thisSeriesFromLibrary) {
+              // The assumption is that in most situations you won't be buying multiple versions of a book, so duplicates are removed,
+              // because multiple versions of books make it so that some series will always be considered incomplete...
+              // I was thinking this could be cool in the "My books in the series list" too, but it's too unreliable for that purpose.
+
+              // Logic - Remove duplicate books from series:
+              // - Compare book numbers and remove duplicates prioritizing books in the library
+              // - Needs to be an exact match: "0.3, 0.5, 1" !== "1"
+              // - Any kind of bundles will be ignored, even if you have separate book copies from the bundle.
+              // - Of course identical bundle numbers are considered duplicates
+              // Simply put:
+              // 1. Book in library: always keep
+              // 2. Not in Library: remove if it exists in the library and if there are multiple books (not in library) make sure only one is kept
+              thisSeriesFromLibrary.allBooksMinusDupes = vue.removeDuplicates(thisSeriesFromLibrary.allBooks);
+              const myBooks = thisSeriesFromLibrary.allBooksMinusDupes.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
+              const maxSeriesBookNumber = thisSeriesFromLibrary.allBooksMinusDupes.length;
+              const myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
+
+              thisSeries.allBooksMinusDupes = thisSeriesFromLibrary.allBooksMinusDupes;
+              thisSeries.missingLatest = myMaxBookNumber < maxSeriesBookNumber;
+              thisSeries.myMaxBookNumber = myMaxBookNumber;
+              thisSeries.maxBookNumber = maxSeriesBookNumber;
+              thisSeries.minRating = _.min(
+                  [thisSeries.minRating, book.myRating]
+                  .map(_.toNumber)
+                  .filter(rating => !_.isNaN(rating))
+              );
             }
-            // Series already exists in the collection so just add the book...
-            else {
-              
-              seriesAdded.books.push(book.title || book.shortTitle);
-              
-              if ( vue.subPageSource.library ) {
-                seriesAdded.minRating = _.min(
-                  [seriesAdded.minRating, book.myRating]
-                    .map(_.toNumber)
-                    .filter(rating => !_.isNaN(rating))
-                );
-                seriesAdded.allBooksMinusDupes = thisSeriesFromLibrary.allBooksMinusDupes;
-                seriesAdded.missingLatest = myMaxBookNumber !== maxSeriesBookNumber;
-              }
-              // return false;
-            } 
-            
+
+            // Add the book we're processing to the series book list
+            thisSeries.books.push(book.title || book.shortTitle);
+
+            // If this is a new series, add it to the series collection
+            if (!seriesAdded) {
+              seriesCollection.push(thisSeries);
+            }
           });
         }
       });
 
       _.reverse(seriesCollection);
-      
+
       this.$store.commit("prop", {key: "pageCollection", value: seriesCollection});
       this.updateListRenderingOptions();
-
       this.listReady = true;
-
     },
 
     updateListRenderingOptions: function () {
@@ -182,9 +176,9 @@ export default {
         scope: [
           {active: true, key: 'name', tippy: 'Search series by name'},
           {active: true, key: 'books', tippy: 'Search series by book titles'},
-          { active: true,  key: 'authors.name', tippy: 'Search series by authors' },
-          { active: true,  key: 'narrators.name', tippy: 'Search series by narrators' },
-          { active: true,  key: 'publishers.name', tippy: 'Search series by publishers' },
+          {active: true, key: 'authors.name', tippy: 'Search series by authors'},
+          {active: true, key: 'narrators.name', tippy: 'Search series by narrators'},
+          {active: true, key: 'publishers.name', tippy: 'Search series by publishers'},
         ],
         filter: [
           {
@@ -194,7 +188,7 @@ export default {
             key: 'inSeries',
             range: [1, (function () {
               let series = _.get(vue.$store.state, vue.collectionSource);
-              let max = _.maxBy(series, function (series) { 
+              let max = _.maxBy(series, function (series) {
                 if (series.books) return series.books.length;
               });
               return max ? max.books.length : 1;
@@ -239,22 +233,22 @@ export default {
             rangeMax: () => 5,
             rangeMinDist: 0,
             rangeSuffix: '',
-            tooltipFormatter: function( val ) {
-              switch ( val ) {
+            tooltipFormatter: function (val) {
+              switch (val) {
                 case 1:
-                  return val+' (Not for me)';
+                  return val + ' (Not for me)';
                   break;
                 case 2:
-                  return val+' (It’s okay)';
+                  return val + ' (It’s okay)';
                   break;
                 case 3:
-                  return val+' (Pretty good)';
+                  return val + ' (Pretty good)';
                   break;
                 case 4:
-                  return val+' (It’s great)';
+                  return val + ' (It’s great)';
                   break;
                 case 5:
-                  return val+' (I love it)';
+                  return val + ' (I love it)';
                   break;
               }
             },
@@ -286,9 +280,7 @@ export default {
             type: 'filterExtras',
             label: 'Missing latest book',
             key: 'missing-latest',
-            condition: function (series) {
-              return series.missingLatest && series.allBooksMinusDupes.length > series.books.length;
-            }
+            condition: (series) => series?.missingLatest,
           },
         ],
         sort: [
@@ -336,94 +328,67 @@ export default {
           },
         ],
       };
-      
-      if ( this.subPageSource.wishlist ) {
-        list.filter = _.filter( list.filter, function( o ) { return !o.excludeFromWishlist; });
-        list.sort = _.filter( list.sort, function( o ) { 
-          return !o.excludeFromWishlist; 
+
+      if (this.subPageSource.wishlist) {
+        list.filter = _.filter(list.filter, function (o) {
+          return !o.excludeFromWishlist;
+        });
+        list.sort = _.filter(list.sort, function (o) {
+          return !o.excludeFromWishlist;
         });
       }
-      
+
       this.$setListRenderingOpts(list);
 
     },
-    
+
     // Basically drops out all other versions of books you already own (tries to anyways)
-    removeDuplicates: function( books ) {
-      
+    removeDuplicates: function (books) {
+
       let dollybooks = _.clone(books);
       // const inLibrary = _.filter( dollybooks, function( book ) { return !book.notInLibrary;  });
       // const notInLibrary = _.filter( dollybooks, function( book ) { return book.notInLibrary;  });
-      
+
       var n = 0;
-      _.each( dollybooks, function( book ) { book.order = ++n; });
-      
+      _.each(dollybooks, function (book) {
+        book.order = ++n;
+      });
+
       dollybooks = _.groupBy(dollybooks, 'bookNumbers');
 
-      _.each( dollybooks, function( chunk, i ) {
+      _.each(dollybooks, function (chunk, i) {
 
-        if ( chunk.length === 1 ) {
+        if (chunk.length === 1) {
           dollybooks[i] = [chunk[0]];
-        }
-        else {
-          var inLibrary = _.filter( chunk, function( o ) { return !o.notInLibrary });
-          if ( inLibrary.length > 0 ) {
+        } else {
+          var inLibrary = _.filter(chunk, function (o) {
+            return !o.notInLibrary
+          });
+          if (inLibrary.length > 0) {
             dollybooks[i] = inLibrary;
-          }
-          else {
+          } else {
             dollybooks[i] = [chunk[0]];
           }
         }
 
       });
 
-      dollybooks = _.map( dollybooks, function( o ) { return o; });
+      dollybooks = _.map(dollybooks, function (o) {
+        return o;
+      });
       dollybooks = _.flatten(dollybooks);
       dollybooks = _.orderBy(dollybooks, 'order', 'asc');
-      
-      return dollybooks;
-      
-    },
-    
-    // sliceNumbers: function( book ) {
-      
-    //   let numbers = book.bookNumbers.split(',');
-    //   return _.map( numbers, function( number ) {
-        
-    //     const isRange = number.match('-');
-    //     if (isRange) {
-    //       const range = number.split('-');
-    //       return _.range(range[0], ++range[1]);
-    //     }
-    //     else {
-    //       return number;
-    //     }
 
-    //   });
-      
-    // },
-    
-    // individualNumbersMatch: function( book, dBook ) {
-      
-    //   let numbersSplit = this.sliceNumbers( book );
-    //   let dNumbersSplit = this.sliceNumbers( dBook );
-      
-    //   let ping = false;
-    //   _.each( numbersSplit, function( number ) {
-    //     if ( _.includes( dNumbersSplit, number ) ) {
-    //       ping = true; 
-    //       return false;
-    //     }
-    //   });
-    //   return ping;
-      
-    // },
+      return dollybooks;
+
+    },
   },
-  
+
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss"
+       scoped>
 @import "~@/_variables.scss";
 @import "~@/box-layout.scss";
 
@@ -466,6 +431,7 @@ export default {
 .theme-dark .books-total .my-books {
   color: $audibleOrange !important;
 }
+
 .theme-light .books-total .my-books {
   font-weight: bold;
 }

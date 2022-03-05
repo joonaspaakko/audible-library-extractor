@@ -1,19 +1,18 @@
-
-import sortName from "@output-mixins/sort/name.js";
-import sortIsbns from "@output-mixins/sort/isbns.js";
-import sortTitle from "@output-mixins/sort/title.js";
 import sortAmount from "@output-mixins/sort/amount.js";
-import sortLength from "@output-mixins/sort/length.js";
-import sortRatings from "@output-mixins/sort/ratings.js";
+import sortBookNumbers from "@output-mixins/sort/bookNumbers.js";
 import sortByLength from "@output-mixins/sort/byLength.js";
-import sortProgress from "@output-mixins/sort/progress.js";
 import sortDateAdded from "@output-mixins/sort/dateAdded.js";
 import sortFavorites from "@output-mixins/sort/favorites.js";
-import sortWhispersync from "@output-mixins/sort/whispersync.js";
-import sortBookNumbers from "@output-mixins/sort/bookNumbers.js";
+import sortIsbns from "@output-mixins/sort/isbns.js";
+import sortLength from "@output-mixins/sort/length.js";
+import sortMissing from "@output-mixins/sort/missing.js";
+import sortName from "@output-mixins/sort/name.js";
+import sortProgress from "@output-mixins/sort/progress.js";
+import sortRatings from "@output-mixins/sort/ratings.js";
 import sortReleaseDate from "@output-mixins/sort/releaseDate.js";
 import sortStringNameProp from "@output-mixins/sort/stringNameProp.js";
-import sortMissing from "@output-mixins/sort/missing.js";
+import sortTitle from "@output-mixins/sort/title.js";
+import sortWhispersync from "@output-mixins/sort/whispersync.js";
 
 export default {
   mixins: [
@@ -35,46 +34,39 @@ export default {
   ],
   methods: {
 
-    filterBooks: function(books) {
+    filterBooks: function (books) {
+      const filterRules = _.filter(this.$store.state.listRenderingOpts.filter, {type: 'filter', active: true});
+      const regularFilters = _.find(this.$store.state.listRenderingOpts.filter, {type: 'filter'});
+      const filterExtraRules = _.filter(this.$store.state.listRenderingOpts.filter, {
+        type: 'filterExtras',
+        active: true
+      });
 
-      const filterRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filter', active: true });
-      const regularFilters = _.find( this.$store.state.listRenderingOpts.filter, { type: 'filter' });
-      const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true });
-
-      if ( filterRules || filterExtraRules ) {
-
-        let vue = this;
-
-        let conditionCheck = function( book ) {
-
-          let filterConditions = _.map( filterRules, function( filter ) {
-            return !!filter.condition( book );
+      if (filterRules || filterExtraRules) {
+        function conditionCheck(book) {
+          let filterConditions = _.map(filterRules, function (filter) {
+            return !!filter.condition(book);
           });
-          let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
-            return !!filter.condition( book );
+          let filterExtrasConditions = _.map(filterExtraRules, function (filter) {
+            return !!filter.condition(book);
           });
 
-          return ( regularFilters ? _.includes( filterConditions, true ) : true ) && !_.includes( filterExtrasConditions, false );
+          return (regularFilters ? _.includes(filterConditions, true) : true) && !_.includes(filterExtrasConditions, false);
+        }
 
-        };
-
-        return _.filter(books, function(book) {
-          return conditionCheck( book );
-        });
-
+        return _.filter(books, conditionCheck);
       } else {
         return books;
       }
-
     },
 
-    sortBooks: function(books) {
-      const sortByItem = _.find( this.$store.state.listRenderingOpts.sort, function( o ) {
-        if ( o.key === 'randomize' && o.active ) return true;
-        else if ( o.current ) return true;
+    sortBooks: function (books) {
+      const sortByItem = _.find(this.$store.state.listRenderingOpts.sort, function (o) {
+        if (o.key === 'randomize' && o.active) return true;
+        else if (o.current) return true;
       });
 
-      if ( sortByItem ) {
+      if (sortByItem) {
 
         const sortOptions = {
           books: books,

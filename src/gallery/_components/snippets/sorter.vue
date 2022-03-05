@@ -3,31 +3,31 @@
     <span
     v-if="item"
     :class="item.key"
-    v-tippy="{ 
+    v-tippy="{
       delay: 150,
-      maxWidth: 350, 
-      placement: (tippyTop ? 'top' : 'left'), 
+      maxWidth: 350,
+      placement: (tippyTop ? 'top' : 'left'),
       flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']),
       distance: listName ? 20 : 10,
-    }" 
+    }"
     :content="item.tippy ? item.tippy : false"
     >
       <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts }">
-        
+
         <!-- LABEL in the front -->
         <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
           <slot />
         </span>
-        
+
         <!-- HIDDEN input -->
         <input type="checkbox" :value="index" v-model="inputVmodel" />
-        
+
         <!-- SORT ARROWS -->
         <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
           <font-awesome fas icon="sort-down" />
           <font-awesome fas icon="sort-up" />
         </span>
-        
+
         <!-- RADIOBUTTONS -->
         <span v-else-if="item.radiobutton" class="radiobutton">
           <font-awesome fas icon="circle" />
@@ -42,7 +42,7 @@
         <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem }">
           {{ item.label || item.key.replace(".name", "") }}
         </span>
-        
+
         <!-- EXTRA suffix -->
         <span class="books-in-filter" v-if="listName === 'filter'">
           {{ filterAmounts }}
@@ -51,28 +51,28 @@
             / {{ $store.getters.collectionSource.length }}
           </span> -->
         </span>
-        
+
       </label>
-      
+
       <div class="range-slider" v-if="item.range">
         <span style="font-size: 13px; line-height: 13px; cursor: w-resize;" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
-        <vue-slider 
+        <vue-slider
         :disabled="range.disabled"
-        :dragOnClick="true" 
+        :dragOnClick="true"
         :adsorb="true"
-        :lazy="true" 
-        :hideLabel="true" 
-        :included="!!(range.marks)" 
-        :interval="range.min === range.max ? 1 : (item.rangeInterval || 1)" 
-        :marks="range.marks || Math.abs(range.min - range.max) <= 10" 
-        :value="range.value" 
-        :min="range.min" 
-        :max="range.max" 
-        :min-range="range.min === range.max ? 0 : (item.rangeMinDist || 0)" 
-        :enable-cross="false" 
-        @change="rangeChanged" 
-        :tooltip-formatter="item.tooltipFormatter || tooltipFormatter" 
-        tooltip-placement="top" 
+        :lazy="true"
+        :hideLabel="true"
+        :included="!!(range.marks)"
+        :interval="range.min === range.max ? 1 : (item.rangeInterval || 1)"
+        :marks="range.marks || Math.abs(range.min - range.max) <= 10"
+        :value="range.value"
+        :min="range.min"
+        :max="range.max"
+        :min-range="range.min === range.max ? 0 : (item.rangeMinDist || 0)"
+        :enable-cross="false"
+        @change="rangeChanged"
+        :tooltip-formatter="item.tooltipFormatter || tooltipFormatter"
+        tooltip-placement="top"
         tooltip="active"
         :use-keyboard="false"
         @drag-start="$store.commit('prop', { key: 'searchOptCloseGuard', value: true })"
@@ -80,22 +80,22 @@
         ></vue-slider>
         <span style="font-size: 13px; line-height: 13px; cursor: e-resize;" @click="adjustRange('right')">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
       </div>
-      
+
       <div v-if="!!item.dropdownOpts">
         <Multiselect
         ref="multiselect"
-        :value="item.value" 
+        :value="item.value"
         placeholder="Search..."
-        @change="dropdownChanged" 
+        @change="dropdownChanged"
         @open="dropdownOpened"
-        :options="dropdownOptions" 
-        mode="tags" 
+        :options="dropdownOptions"
+        mode="tags"
         :hideSelected="true"
         :clearOnSelect="false"
         :closeOnSelect="false"
         :multiple="true"
         :taggable="true"
-        :searchable="true" 
+        :searchable="true"
         />
       </div>
 
@@ -122,20 +122,20 @@ export default {
       dropdownOptions: null,
     };
   },
-  
+
   created: function() {
     if ( this.item.range ) {
-      
+
       var range = {
         min: this.item.rangeMin(),
         max: this.item.rangeMax(),
       };
-      
+
       // Sorta crude failsafe to make sure the calculated rangeMax() is never smaller than rangeMin()
       if ( range.min < 0 ) range.min = 0;
       if ( range.max < 0 ) range.max = 0;
       if ( range.min > range.max ) range.min = range.max;
-      
+
       // So basically if the user has changed the range, use that and otherwise min max...
       // ...unless user set range goes past the current min or max.
       let rangeIsSetByUser = _.isArray(this.item.range);
@@ -147,91 +147,91 @@ export default {
       else {
         range.value = [range.min, range.max];
       }
-      
+
       // If all values are equal disable the slinger since it won't be very useful...
       // const noRange = (range.min === range.value[0] && range.value[0] === range.value[1] && range.value[1] === range.max);
       // if (  noRange ) range.disabled = true;
       // else range.disabled = false;
-      
+
       if ( this.item.rangeMarks ) range.marks = this.item.rangeMarks( range.max );
-      
-      this.range = range; 
-      
+
+      this.range = range;
+
     }
     else if ( this.$store.getters.filterExtrasKeys.match( this.item.key ) ) {
       // Compiles dropdown data (options) on create it it's active
       // Otherwise the data is compiled when the dropdown is first opened on click in the "dropdownOpened" method
       if ( !this.dropdownOptions && !!this.item.dropdownOpts ) this.dropdownOptions = this.item.dropdownOpts();
     }
-    
+
   },
 
   computed: {
-    
+
     filterAmounts: function( ) {
-      
+
       this.$root.$emit('repositionSearchOpts'); // potentially changes the width of the container...
-      
-      let isRegularFilter = !(this.item.range || this.item.dropdownOpts); 
+
+      let isRegularFilter = !(this.item.range || this.item.dropdownOpts);
       let specialFilterIsActive = (!isRegularFilter && this.item.active === true);
       if ( isRegularFilter || specialFilterIsActive ) {
-        
+
         const vue = this;
-        const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true }); 
-        
+        const filterExtraRules = _.filter( this.$store.state.listRenderingOpts.filter, { type: 'filterExtras', active: true });
+
         let conditionCheck = function( book ) {
-          
+
           let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
             return !!filter.condition( book );
           });
-          
+
           return !_.includes( filterExtrasConditions, false );
-          
+
         };
-        
+
         // I could just do "this.$store.getters.collection", but it would've shown 0 for unchecked regular filters.
         // So with this change even unchecked regular filters show a number... So you kinda know what you're missing.
-        let collection = this.item.type === 'filter' ? 
-            (this.$store.getters.searchIsActive ? this.$store.state.searchCollection : this.$store.getters.collectionSource ) : 
+        let collection = this.item.type === 'filter' ?
+            (this.$store.getters.searchIsActive ? this.$store.state.searchCollection : this.$store.getters.collectionSource ) :
             this.$store.getters.collection;
-            
+
         return _.filter( collection, function(book) {
           return vue.item.condition(book) && conditionCheck( book );
         }).length;
-        
+
       }
       else {
         return 0;
       }
-      
+
     },
-    
+
     rangeVal: function() {
       // let itemRange = _.get( this.item, 'range' );
       // return _.isArray(itemRange) ? itemRange : this.range.value;
       return this.range.value;
     },
-    
+
     inputVmodel: {
       get: function() {
         return this.item.active;
       },
       set: function(value) {
-        
+
         let changes = {
           listName: this.listName,
           index: this.index,
           active: value,
         };
-        
+
         if ( this.item.range ) {
           changes.range = value ? _.clone( this.range.value ) : true;
         }
-        
+
         if ( this.item.group ) changes.group = true;
         this.$store.commit("updateListRenderingOpts", changes);
         this.doTheThings( value );
-        
+
       }
     },
 
@@ -248,63 +248,63 @@ export default {
         return false;
       }
     },
-    
+
   },
-  
+
   methods: {
-    
+
     tooltipFormatter: function( val ) {
       return val+this.item.rangeSuffix;
     },
-    
+
     dropdownChanged: function( value ) {
-      
+
       let changes = {
         listName: this.listName,
         index: this.index,
         active: value.length > 0,
         value: value,
       };
-      
+
       if ( this.item.group ) changes.group = true;
       this.$store.commit("updateListRenderingOpts", changes);
       this.doTheThings( value, true );
-      
+
     },
-    
+
     dropdownOpened: function( e ) {
-      
+
       const createDropdownDataOnFirstOpen = !this.dropdownOptions && !!this.item.dropdownOpts;
       if ( createDropdownDataOnFirstOpen ) this.dropdownOptions = this.item.dropdownOpts();
-      
+
     },
-    
-    rangeChanged: function( value ) { 
-      
+
+    rangeChanged: function( value ) {
+
       this.range.value = value;
-      
+
       let changes = {
         listName: this.listName,
         index: this.index,
         range: value,
         active: true,
       };
-      
+
       if ( this.item.group ) changes.group = true;
       this.$store.commit("updateListRenderingOpts", changes);
       this.doTheThings( value, true);
-      
+
     },
-    
+
     adjustRange: function( direction ) {
-      
+
       let changes = {
         listName: this.listName,
         index: this.index,
         active: true,
         range: [0,0],
       };
-      
+
       if ( direction === 'left' ) {
         const min = this.range.min;
         changes.range[0]    = min;
@@ -315,41 +315,41 @@ export default {
         changes.range[1]    = max;
         this.range.value = [this.range.value[0], max];
       }
-      
+
       if ( this.item.group ) changes.group = true;
       this.$store.commit("updateListRenderingOpts", changes);
       this.doTheThings( changes.range, true);
     },
-    
+
     doTheThings: function( value, specialBoy ) {
-      
+
       this.saveOptions( value, specialBoy);
-      
+
       if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
-    
+
       if ( this.listName === "scope" ) {
         this.$root.$emit("start-scope");
       }
       else if (
-        ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) 
+        ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive )
         && this.item.key !== "sortValues"
       ) {
         this.$store.commit("prop", { 'key': 'searchSort', value: false });
         this.$root.$emit("start-sort");
       } else if ( this.listName === "filter" ) {
         this.$root.$emit("start-filter");
-      } 
-        
+      }
+
     },
-    
+
     saveOptions: function( value, specialBoy ) {
-      
+
       let vue = this;
-      
+
       if ( this.item.key === "sortValues" ) {
         this.$updateQuery({ query: this.item.key, value: value });
       }
-      else if ( this.item.type === "sort" ) { 
+      else if ( this.item.type === "sort" ) {
         this.$updateQuery({ query: this.item.type, value: this.item.key });
         this.$updateQuery({ query: 'sortDir', value: value ? "desc" : "asc" });
       }
@@ -361,7 +361,7 @@ export default {
           let vue = this;
           const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
             const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
-            if ( keyItem && keyItem.range ) {
+            if ( keyItem && keyItem.range && vue.range?.value ) {
               return encodeURIComponent( key + ':' + vue.range.value[0] +'-'+ vue.range.value[1] );
             }
             else if ( keyItem && keyItem.value && keyItem.value.length > 0 ) {
@@ -378,9 +378,9 @@ export default {
       // else {
       //   this.$updateQuery({ query: this.item.key, value: value });
       // }
-      
+
     },
-    
+
   },
 };
 </script>
@@ -403,12 +403,12 @@ export default {
     // margin-top: 0 !important;
     padding-right: 5px;
     padding-left: 5px;
-    > *, 
+    > *,
     > * > * {
       box-sizing: border-box;
     }
   }
-  .multiselect-tag, 
+  .multiselect-tag,
   .multiselect-option {
     line-height: 12px;
     padding: 5px;
@@ -458,8 +458,8 @@ export default {
     // display: inline-block !important;
   }
   .multiselect-tags-search {
-    font-size: 12px !important; 
-    background: transparent !important; 
+    font-size: 12px !important;
+    background: transparent !important;
     margin-bottom: 4px !important;
     align-self: stretch;
     border: none !important;
@@ -468,7 +468,7 @@ export default {
   .multiselect-placeholder {
     padding-left: 13px;
   }
-  
+
   .theme-dark {
     .multiselect {
       background: rgba( $darkBackColor, .15) !important;
@@ -482,7 +482,7 @@ export default {
       background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'/%3E%3C/svg%3E");
     }
   }
-  
+
   .vue-slider-dot-tooltip-inner,
   .vue-slider-process {
     @include themify($themes) {
@@ -617,9 +617,9 @@ export default {
         opacity: 1;
       }
     }
-    &.radiobutton, 
+    &.radiobutton,
     &.checkbox {
-      
+
       [data-icon="circle"]:first-child,
       [data-icon="square"] {
         opacity: 1;
@@ -631,26 +631,26 @@ export default {
       }
     }
   }
-  
+
   // &.faux-disabled .checkbox [data-icon="check"],
   input[disabled="disabled"] + .radiobutton [data-icon="circle"]:last-child,
   input[disabled="disabled"] + .checkbox [data-icon="check"] {
     display: none;
   }
-  
+
   &.faux-disabled .input-label,
   input[disabled="disabled"] ~ .input-label {
     text-decoration: line-through;
     opacity: 0.35;
   }
-  
+
   &.faux-disabled {
     &.ranged,
     &.is-dropdown {
       .input-label { text-decoration: none; }
     }
   }
-  
+
   .books-in-filter {
     vertical-align: middle;
     font-size: .8em;
@@ -658,34 +658,34 @@ export default {
       color: rgba( themed(frontColor), .6);
     }
   }
-  
-  
+
+
   .input-label {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    flex-shrink: 2;  
+    flex-shrink: 2;
   }
-  
+
   .input-label.active {
     @include themify($themes) {
       color: themed(audibleOrange);
     }
   }
-  
+
   .radiobutton {
     top: 2px;
   }
-  
+
   .of-total {
     opacity: .5;
   }
-  
+
   &.is-dropdown,
   &.ranged {
     display: inline-block !important;
     width: auto !important;
   }
-  
+
 } // .sort-button
 </style>
