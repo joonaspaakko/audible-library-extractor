@@ -128,23 +128,23 @@ export default {
               // because multiple versions of books make it so that some series will always be considered incomplete...
               // I was thinking this could be cool in the "My books in the series list" too, but it's too unreliable for that purpose.
 
-              // Logic - Remove duplicate books from series:
-              // - Compare book numbers and remove duplicates prioritizing books in the library
-              // - Needs to be an exact match: "0.3, 0.5, 1" !== "1"
-              // - Any kind of bundles will be ignored, even if you have separate book copies from the bundle.
-              // - Of course identical bundle numbers are considered duplicates
-              // Simply put:
-              // 1. Book in library: always keep
-              // 2. Not in Library: remove if it exists in the library and if there are multiple books (not in library) make sure only one is kept
+              function parseBookNumbers(bookNumbers) {
+                return bookNumbers.split("-").map(_.toNumber).filter(_.isFinite);
+              }
+              function getBookNumbers(books) {
+                return _.flatMap(books.map(b => parseBookNumbers(b.bookNumbers)))
+              }
+              function getMaxBookNumber(books) {
+                return _.max(getBookNumbers(books));
+              }
+
               thisSeriesFromLibrary.allBooksMinusDupes = vue.removeDuplicates(thisSeriesFromLibrary.allBooks);
               const myBooks = thisSeriesFromLibrary.allBooksMinusDupes.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
-              const maxSeriesBookNumber = thisSeriesFromLibrary.allBooksMinusDupes.length;
-              const myMaxBookNumber = _.max(myBooks.map(b => _.toNumber(b.bookNumbers)));
 
               thisSeries.allBooksMinusDupes = thisSeriesFromLibrary.allBooksMinusDupes;
-              thisSeries.missingLatest = myMaxBookNumber < maxSeriesBookNumber;
-              thisSeries.myMaxBookNumber = myMaxBookNumber;
-              thisSeries.maxBookNumber = maxSeriesBookNumber;
+              thisSeries.myMaxBookNumber = getMaxBookNumber(myBooks);
+              thisSeries.maxBookNumber = getMaxBookNumber(thisSeriesFromLibrary.allBooksMinusDupes);
+              thisSeries.missingLatest = thisSeries.myMaxBookNumber < thisSeries.maxBookNumber;
               thisSeries.minRating = _.min(
                   [thisSeries.minRating, book.myRating]
                   .map(_.toNumber)
@@ -344,6 +344,14 @@ export default {
 
     // Basically drops out all other versions of books you already own (tries to anyways)
     removeDuplicates: function (books) {
+      // Logic - Remove duplicate books from series:
+      // - Compare book numbers and remove duplicates prioritizing books in the library
+      // - Needs to be an exact match: "0.3, 0.5, 1" !== "1"
+      // - Any kind of bundles will be ignored, even if you have separate book copies from the bundle.
+      // - Of course identical bundle numbers are considered duplicates
+      // Simply put:
+      // 1. Book in library: always keep
+      // 2. Not in Library: remove if it exists in the library and if there are multiple books (not in library) make sure only one is kept
 
       let dollybooks = _.clone(books);
       // const inLibrary = _.filter( dollybooks, function( book ) { return !book.notInLibrary;  });
