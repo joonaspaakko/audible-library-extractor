@@ -173,7 +173,7 @@ export default {
           if ( !lsAnimationPresetExists ) this.$store.commit('update', { key: 'animationPreset', value: presetsArray[0].value });
         }
         else {
-          this.$store.commit('update', { key: 'animationPreset', value: presetsArray[0].value });
+          this.$store.commit('update', { key: 'animationPreset', value: presetsArray[0].value });
         }
         this.$store.commit('update', { key: 'animationPresets', value: presetsArray });
         this.loadAnimationPreset( this.$store.state.animationPreset );

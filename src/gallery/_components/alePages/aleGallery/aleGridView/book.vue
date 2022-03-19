@@ -53,7 +53,7 @@
         
         <div v-if="!book.cover" class="placeholder-cover">
           <div class="cover-content">
-            <div class="title" v-if="book.titleShort || book.title">{{ book.titleShort || book.title }}</div>
+            <div class="title" v-if="book.titleShort || book.title">{{ book.titleShort || book.title }}</div>
             <div class="author" v-if="book.authors">{{ book.authors[0].name }}</div>
           </div>
         </div>

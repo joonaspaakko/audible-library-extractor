@@ -100,7 +100,7 @@ export default {
 
   computed: {
     summaryHTML: function() {
-      return this.book.summary || this.bookSummary || this.book.blurb;
+      return this.book.summary || this.bookSummary || this.book.blurb;
     }
   },
 

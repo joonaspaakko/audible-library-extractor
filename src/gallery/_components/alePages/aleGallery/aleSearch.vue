@@ -1,7 +1,7 @@
 <template>
   <div>
     
-    <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
+    <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
     
     <library-wishlist-switcher v-if="$route.meta.subPage" :aboveSearch="true" />
     
@@ -106,7 +106,7 @@ export default {
     const ifUrlParams = this.$route.query.sort || this.$route.query.filter || this.$route.query.filterExtras;
     let collection = _.get(this.$store.state, this.collectionSource);
     if ( ifUrlParams ) {
-      if ( this.$route.query.filter || this.$route.query.filterExtras ) collection = this.filterBooks( collection );
+      if ( this.$route.query.filter || this.$route.query.filterExtras ) collection = this.filterBooks( collection );
       if ( this.$route.query.sort   ) collection = this.sortBooks( collection );
       this.$store.commit("prop", { key: 'mutatingCollection', value: collection });
     }

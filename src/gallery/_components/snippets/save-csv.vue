@@ -25,7 +25,7 @@
 
     <div class="buttons-footer">
       <div class="btn-wrapper">
-        <button class="save-btn save-csv" @click="saveButtonClicked"  :class="{ saving: bundling }" :disabled="bundling || !saveBtnEnabled">
+        <button class="save-btn save-csv" @click="saveButtonClicked"  :class="{ saving: bundling }" :disabled="bundling || !saveBtnEnabled">
           <span>{{ filename}}</span>
           <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
           <font-awesome v-else :icon="['fas', 'download']" />
@@ -210,7 +210,7 @@ export default {
               case "publishers":
               case "tags":
                 // console.log( vue.stringifyArray( book[ key ], "name", key === "categories" ? " > " : null ) )
-                return vue.stringifyArray( book[ key ], "name", key === "categories" ? " > " : null ) || '';
+                return vue.stringifyArray( book[ key ], "name", key === "categories" ? " > " : null ) || '';
                 break;
                 
               case "series":
@@ -375,17 +375,17 @@ export default {
           
           switch ( key ) {
             case "title":
-              return book.title || book.titleShort || '';
+              return book.title || book.titleShort || '';
               break;
               
             case "author":
             case "publisher":
-              if ( book[ key+'s' ] ) return vue.stringifyArray( [book[ key+'s' ][0]], "name" ) || '';
+              if ( book[ key+'s' ] ) return vue.stringifyArray( [book[ key+'s' ][0]], "name" ) || '';
               else { return '' }
               break;
             
             case "myRating":
-              return book.myRating || '';
+              return book.myRating || '';
               break;
             
             case "binding":
@@ -393,7 +393,7 @@ export default {
               break;
             
             case "yearPublished":
-              return book.releaseDate || '';
+              return book.releaseDate || '';
               break;
               
             // Added to goodreads...

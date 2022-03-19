@@ -112,7 +112,7 @@ function audibleLibraryExtractor(data) {
             wishlist: dataChunks.indexOf('wishlist') > -1,
             collections: dataChunks.indexOf('collections') > -1,
           }) : {},
-          storageConfigInit: data.config || {},
+          storageConfigInit: data.config || {},
           dataVersionInit: data.version || {},
         }
       });

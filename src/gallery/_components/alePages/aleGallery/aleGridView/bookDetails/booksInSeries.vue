@@ -162,7 +162,7 @@ export default {
                 if ( inLibrary ) {
                   let libBook = _.find(vue.$store.state.library.books, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
-                  let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(',') : libSeries.bookNumbers) : book.bookNumbers;
+                  let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(',') : libSeries.bookNumbers) : book.bookNumbers;
                   let newLibBook = {
                     asin: book.asin || libBook.asin,
                     bookNumbers: inLibBookNumbers,

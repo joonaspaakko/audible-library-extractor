@@ -1275,7 +1275,7 @@ export default {
       
       let collections = this.$store.state.library.collections;
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
-      if ( !archive || archive.books.length < 1 ) {
+      if ( !archive || archive.books.length < 1 ) {
         let removeArchiveKeys = ['archived', 'not-archived'];
         _.remove(list.filter, function( filter ) {
           return filter.key === 'divider-archived' || _.includes( removeArchiveKeys, filter.key );

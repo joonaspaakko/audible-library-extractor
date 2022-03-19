@@ -173,7 +173,7 @@ export default {
 
   computed: {
     peopleAlsoBought: function () {
-      return this.book.peopleAlsoBought || this.peopleAlsoBoughtJSON;
+      return this.book.peopleAlsoBought || this.peopleAlsoBoughtJSON;
     },
     getMaxWidth: function() {
       if ( this.$store.state.sticky.viewMode === 'spreadsheet' ) {

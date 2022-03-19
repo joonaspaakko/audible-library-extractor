@@ -141,6 +141,7 @@ export default {
         // { storePageRequestUrl: "https://www.audible.com/pd/B089T5SW3N" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B089T5SW3N" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B078X15P2P" },
       ],
     };
   },
@@ -196,11 +197,11 @@ export default {
             function(callback) { callback(null, hotpotato); },
             vue.getDataFromLibraryPages,    // Can be scraped alone
             // vue.getDataFromLibraryPagesFin, // Requires library page data
-            vue.getDataFromStorePages,      // Requires library page data
-            vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
-            vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
-            vue.getDataFromWishlist,        // Can be scraped alone
-            vue.getDataFromStorePages,      // Requires wishlist data
+            vue.getDataFromStorePages,      // Requires library page data
+            vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
+            vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
+            vue.getDataFromWishlist,        // Can be scraped alone
+            vue.getDataFromStorePages,      // Requires wishlist data
             vue.getISBNsFromGoogleBooks,    // Requires library page data
           ];
           
@@ -221,7 +222,7 @@ export default {
 
             // const configISBN = _.find(hotpotato.config.steps, { name: "isbn" });
             // const foundISBNs = _.filter(hotpotato.books, 'isbns');
-            // if (configISBN && configISBN.value ||foundISBNs.length > 0 ) {
+            // if (configISBN && configISBN.value ||foundISBNs.length > 0 ) {
             //   vue.$root.$emit("update-progress", {
             //     text: "Currently " + foundISBNs.length + "/" + hotpotato.books.length + " books have ISBNs",
             //     step: 0,

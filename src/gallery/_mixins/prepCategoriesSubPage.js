@@ -22,7 +22,7 @@ export default {
         });
         
         // Set page title
-        if ( categoryBooks && (category.parent || category.child)  ) {
+        if ( categoryBooks && (category.parent || category.child)  ) {
           const parentCategoryName = categoryBooks[0].categories[0] ? categoryBooks[0].categories[0].name : null;
           const childCategoryName = categoryBooks[0].categories[1] ? categoryBooks[0].categories[1].name : null;
           if ( parentCategoryName ) this.pageTitle = parentCategoryName;

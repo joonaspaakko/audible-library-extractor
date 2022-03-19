@@ -1,7 +1,7 @@
 <template>
   <div id="ale-collections" class="box-layout-wrapper" v-if="collections">
     
-    <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
+    <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
     
     <div
     class="single-box"

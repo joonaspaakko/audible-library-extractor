@@ -2,68 +2,56 @@ export default {
   methods: {
     getDataFromStorePages: function(hotpotato, storePagesFetched) {
       
-      let vue = this;
+      const vue = this;
+      let requests = [];
       if ( hotpotato.config.getStorePages ) {
-        
-        
-        const requests = this.prepStorePages(hotpotato, hotpotato.config.getStorePages);
-        
-        // const storeKey = hotpotato.config.getStorePages;
-        
+        requests = this.prepStorePages(hotpotato, hotpotato.config.getStorePages);
         hotpotato.config.getStorePages = false;
-        
-        if (requests) {
-          
-          if (!hotpotato.config.test) {
-            
-            this.$root.$emit("update-progress", {
-              text: "Fetching additional data from store pages...",
-              step: 0,
-              bar: true
-            });
-          }
-          
-          vue.amapxios({
-            requests: requests,
-            returnCatch: true, // Returns failed steps in the step() callback in order to mark missing sote page data
-            step: function(response, stepCallback, book, processingError) {
-              delete book.requestUrl;
-
-              if (!hotpotato.config.test) vue.$root.$emit("update-progress", { text2: book.title });
-
-              if ( !response || response && response.status >= 400) {
-                book.storePageMissing = true;
-              } else {
-                vue.getStorePageData(response, book, hotpotato.config.test);
-              }
-
-              if (!hotpotato.config.test) vue.$root.$emit("update-progress-step");
-              // if ( book.cover ) vue.$root.$emit('update-progress-thumbnail', 'https://m.media-amazon.com/images/I/'+ book.cover + '._SL120_.jpg' );
-              stepCallback(book);
-            },
-            flatten: true,
-            done: function() {
-              vue.$nextTick(function() {
-                if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
-                storePagesFetched(null, hotpotato);
-                
-              });
-            }
-          });
-        } else {
-          vue.$nextTick(function() {
-            vue.$root.$emit("reset-progress");
-            storePagesFetched(null, hotpotato);
-          });
-        }
-        
+      }
+      
+      if ( !requests.length ) {
+        moveOn();
       }
       else {
+        
+        if (!hotpotato.config.test) this.$root.$emit("update-progress", {
+          text: "Fetching additional data from store pages...",
+          step: 0,
+          bar: true
+        });
+        
+        vue.amapxios({
+          requests: requests,
+          returnCatch: true, // Returns failed steps in the step() callback in order to mark missing sote page data
+          step: function(response, stepCallback, book, processingError) {
+            delete book.requestUrl;
+
+            if (!hotpotato.config.test) vue.$root.$emit("update-progress", { text2: book.title });
+
+            if ( !response || response && response.status >= 400) {
+              book.storePageMissing = true;
+            } else {
+              vue.getStorePageData(response, book, hotpotato.config.test);
+            }
+
+            if (!hotpotato.config.test) vue.$root.$emit("update-progress-step");
+            // if ( book.cover ) vue.$root.$emit('update-progress-thumbnail', 'https://m.media-amazon.com/images/I/'+ book.cover + '._SL120_.jpg' );
+            stepCallback(book);
+          },
+          flatten: true,
+          done: moveOn,
+        });
+        
+      }
+      
+      function moveOn() {
+        
         vue.$nextTick(function() {
-          this.$root.$emit("reset-progress");
+          if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
           storePagesFetched(null, hotpotato);
         });
       }
+      
     },
     
     prepStorePages: function(hotpotato, getStorePages) {

@@ -149,7 +149,7 @@ export default new Vuex.Store({
     updateListRenderingOpts: function(state, o) {
 
       let currentList = state.listRenderingOpts[o.listName];
-      let currentItem = currentList[ (o.index === 0 || o.index) ? o.index : _.findIndex( currentList, { key: o.key })];
+      let currentItem = currentList[ (o.index === 0 || o.index) ? o.index : _.findIndex( currentList, { key: o.key })];
 
       if ( o.sortValues !== undefined ) {
         let sortValues = _.find( state.listRenderingOpts.sort, { key: 'sortValues' });

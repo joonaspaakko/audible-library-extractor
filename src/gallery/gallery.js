@@ -240,7 +240,7 @@ let routesPrep = function( libraryData ) {
                 
         if ( 
           to.name && (
-            from.name !== to.name || 
+            from.name !== to.name || 
             _.get(from, 'query.book') !== _.get(to, 'query.book') || 
             from.query.subPageSource !== to.query.subPageSource 
           )

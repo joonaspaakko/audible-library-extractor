@@ -8,7 +8,7 @@ export default {
       // if ( isbn13 ) isbn13 = isbn13.identifier
       book = book || this.book;
       const author = book.authors ? (book.authors[0].name + " - ") : (book.obj && book.obj.authors) ? (book.obj.authors[0].name + " - ") : '';
-      const title = book.titleShort || book.title || '';
+      const title = book.titleShort || book.title || '';
       const searchQuery = author + title;
       if ( book.titleShort || book.title ) {
         return "https://www.goodreads.com/search?q=" + encodeURIComponent( searchQuery );

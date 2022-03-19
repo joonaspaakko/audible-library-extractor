@@ -338,7 +338,7 @@ export default {
     
     moveableControlsHide: function( e ) {
       
-      let textElement = !e ? false : e.target.classList.contains('text-element') || e.target.classList.contains('text-element-child');
+      let textElement = !e ? false : e.target.classList.contains('text-element') || e.target.classList.contains('text-element-child');
       if ( !textElement ) {
         
         this.$store.commit("activateText", -1);

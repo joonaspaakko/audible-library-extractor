@@ -3,95 +3,93 @@ export default {
     getDataFromSeriesPages: function(hotpotato, seriesFetched) {
       
       const vue = this;
+      let booksInSeries = [];
+      if ( _.find(hotpotato.config.steps, { name: "library" }) || hotpotato.config.seriesTest ) {
+        booksInSeries = vue.storageHasData.books ? _.filter(hotpotato.books, 'isNewThisRound') : hotpotato.books;
+      }
       
-      if ( _.find(hotpotato.config.steps, { name: "library" }) || hotpotato.config.seriesTest ) {
-        
-        let booksInSeries = vue.storageHasData.books ? _.filter(hotpotato.books, 'isNewThisRound') : hotpotato.books;
-
-        if ( booksInSeries.length > 0 ) {
-          
-          booksInSeries = _.filter(booksInSeries, "series");
-          let requests = [];
-          
-          _.each(booksInSeries, function(book) {
-            _.each(book.series, function(series) {
-              requests.push({
-                url: vue.seriesUrl + "/" + series.asin,
-                asin: series.asin,
-                books: [],
-                allBooks: [],
-                length: 0
-              });
-            });
-          });
-
-          requests = _.uniqBy(requests, "asin");
-          
-          this.$root.$emit("update-progress", {
-            text: "Preparing books in series...",
-            step: 0,
-            max: 0,
-            bar: true
-          });
-
-          asyncMap(
-            requests,
-            function(request, stepCallback) {
-              vue.scrapingPrep(request.url, function(prep) {
-                vue.$root.$emit("update-progress", { max: requests.length });
-
-                request.pageNumbers = prep.pageNumbers;
-                request.pageSize = prep.pageSize;
-                vue.getBooksFromSeries(hotpotato, request, stepCallback);
-                
-              });
-            },
-            function(err, responses) {
-              
-              // Each series page is fetched as a separate request.
-              // This merges the books arrays and cleans up the returning object a little
-              _.each(_.flatten(responses), function(series) {
-                const targetSeries = _.find(requests, { asin: series.asin });
-                if (targetSeries) {
-                  targetSeries.books = targetSeries.books.concat(series.books);
-                  targetSeries.allBooks = targetSeries.allBooks.concat(series.allBooks);
-                  targetSeries.length += series.length;
-                  delete targetSeries.pageNumbers;
-                  delete targetSeries.pageSize;
-                  delete targetSeries.url;
-                }
-              });
-              
-              if ( vue.storageHasData.books && _.get(hotpotato, 'series') ) {
-                vue.mergeBooksWithSeries( hotpotato.series, requests );
-              }
-              else {
-                hotpotato.series = requests;
-              }
-              
-              if (!err) {
-                vue.$nextTick(function() {
-                  vue.$root.$emit("reset-progress");
-                  seriesFetched(null, hotpotato);
-                });
-              } else console.log(err);
-              
-            }
-          );
-        } else {
-          vue.$nextTick(function() {
-            vue.$root.$emit("reset-progress");
-            seriesFetched(null, hotpotato);
-          });
-        }
-        
+      if ( !booksInSeries.length ) {
+        moveOn();
       }
       else {
         
-        vue.$root.$emit("reset-progress");
-        seriesFetched(null, hotpotato);
+        booksInSeries = _.filter(booksInSeries, "series");
+        let requests = [];
+        
+        _.each(booksInSeries, function(book) {
+          _.each(book.series, function(series) {
+            requests.push({
+              url: vue.seriesUrl + "/" + series.asin,
+              asin: series.asin,
+              books: [],
+              allBooks: [],
+              length: 0
+            });
+          });
+        });
+
+        requests = _.uniqBy(requests, "asin");
+        
+        this.$root.$emit("update-progress", {
+          text: "Preparing books in series...",
+          step: 0,
+          max: 0,
+          bar: true
+        });
+
+        asyncMap(
+          requests,
+          function(request, stepCallback) {
+            vue.scrapingPrep(request.url, function(prep) {
+              vue.$root.$emit("update-progress", { max: requests.length });
+
+              request.pageNumbers = prep.pageNumbers;
+              request.pageSize = prep.pageSize;
+              vue.getBooksFromSeries(hotpotato, request, stepCallback);
+              
+            });
+          },
+          function(err, responses) {
+            
+            // Each series page is fetched as a separate request.
+            // This merges the books arrays and cleans up the returning object a little
+            _.each(_.flatten(responses), function(series) {
+              const targetSeries = _.find(requests, { asin: series.asin });
+              if (targetSeries) {
+                targetSeries.books = targetSeries.books.concat(series.books);
+                targetSeries.allBooks = targetSeries.allBooks.concat(series.allBooks);
+                targetSeries.length += series.length;
+                delete targetSeries.pageNumbers;
+                delete targetSeries.pageSize;
+                delete targetSeries.url;
+              }
+            });
+            
+            if ( vue.storageHasData.books && _.get(hotpotato, 'series') ) {
+              vue.mergeBooksWithSeries( hotpotato.series, requests );
+            }
+            else {
+              hotpotato.series = requests;
+            }
+            
+            if ( err ) console.error('%c' + 'error' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', err);
+            
+            moveOn();
+            
+          }
+        );
         
       }
+      
+      function moveOn() {
+        
+        vue.$nextTick(function() {
+          vue.$root.$emit("reset-progress");
+          seriesFetched(null, hotpotato);
+        });
+        
+      }
+      
     },
     
     fetchMissingNumbers: function( missingNumbers, series, parentStepCallback ) {

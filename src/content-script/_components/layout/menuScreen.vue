@@ -12,7 +12,7 @@
         </div> -->
         
         <b-field grouped group-multiline class="setting-checkboxes">
-          <span v-for="( setting, index) in mainSteps" :key="setting.name" :class="{ 'partial-extraction': (hasData.books && setting.name == 'library') || (hasData.wishlist && setting.name === 'wishlist') || (hasData.isbn && setting.name === 'isbn') }">
+          <span v-for="( setting, index) in mainSteps" :key="setting.name" :class="{ 'partial-extraction': (hasData.books && setting.name == 'library') || (hasData.wishlist && setting.name === 'wishlist') || (hasData.isbn && setting.name === 'isbn') }">
             
             <b-field style="margin: 5px;" v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy">
               <p class="control">
@@ -67,7 +67,7 @@
       You should <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">remove</span> <strong>{{ dataVersionMismatch.join(', ') }}</strong> data and re-extract to get the most out of the new version.
     </b-message>
     
-    <b-message v-if="hasData.books || hasData.wishlist || hasData.isbn" type="is-info">
+    <b-message v-if="hasData.books || hasData.wishlist || hasData.isbn" type="is-info">
       <strong>Previously extracted data detected: <span style="color: #f7991c;">a faster <span v-tippy="{ allowHTML: true }" content="<div style='display: block; text-align: left;'><ol style='margin-left: 15px;'><li>Updates stored data that is likely to change</li><li>Does a full extract on newly added books</li><li>Clears data of removed books</li></ol><span style='display: inline-block; margin-top: 6px; color: #157df0;'>In the case of ISBN extraction, books that already have ISBNs are ignored. A large amount of books (+100) without the numbers will still take quite a while to extract.</span></div>" style="cursor: default; text-decoration: underline">partial extraction</span> is used</span> <span class="init-show-partial-extraction" style="color: #f7991c;" @mouseover="showPartialExtraction = true" @mouseleave="showPartialExtraction = false">where applicable.</span></strong> 
       <br>
       If you need to do a <span v-tippy="{ maxWidth: 310 }" content="The data structure may change from version to version, in which case a full extraction is needed or at least preferred. <br><br>You need to remove extracted data in order to do a full extraction." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
@@ -346,7 +346,7 @@ export default {
     
     checkAccess: function( config ) {
       
-      config = config || {};
+      config = config || {};
       
       // Check if it's possible to read the wishlist page
       axios.get( config.to )
@@ -891,9 +891,9 @@ export default {
           else {
             let linkText;
             if ( change.link ) linkText = change.highlight ? ('<strong>' + change.link.text + '</strong>') : change.link.text;
-            changelogInnerHTML += '<li class="'+ (change.class || '') +'">'+
+            changelogInnerHTML += '<li class="'+ (change.class || '') +'">'+
               (change.link ? '<a target="_blank" rel="noopener noreferrer" href="'+ change.link.href +'">'+ linkText +'</a>: ' : '') + 
-              (change.description || '')
+              (change.description || '')
             +'</li>';
           }
         });

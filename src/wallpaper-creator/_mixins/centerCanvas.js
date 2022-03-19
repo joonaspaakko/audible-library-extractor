@@ -148,7 +148,7 @@ export default {
         this.$store.commit("update", { key: "canvas.transformOrigin", value: newOrigin });
       }
       
-      // if ( this.store.canvas.alignmentVertical === 'center' || this.store.canvas.alignmentVertical === 'flex-end' ) {
+      // if ( this.store.canvas.alignmentVertical === 'center' || this.store.canvas.alignmentVertical === 'flex-end' ) {
       //   let canvasAlignmentVertical = this.store.canvas.alignmentVertical;
       //   this.$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start' });
       //   this.$nextTick(function() {

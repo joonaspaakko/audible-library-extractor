@@ -55,6 +55,7 @@ export default {
                   }
                 }
                 
+                // hotpotato.books = _.filter( hotpotato.books, { asin: 'B078X15P2P' });
                 
                 hotpotato.config.getStorePages = 'books';
                 libraryPagesFetched(null, hotpotato);

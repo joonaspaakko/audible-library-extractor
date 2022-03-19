@@ -5,7 +5,7 @@
     :content="book.title !== book.titleShort ? book.title : false" v-tippy="{ maxWidth: 350, placement: 'right', flipBehavior: ['right', 'top', 'bottom'] }"
     >
       <span class="numbers">{{ book.bookNumbers }}</span>
-      <span class="title">{{ book.titleShort || book.title  }}</span>
+      <span class="title">{{ book.titleShort || book.title  }}</span>
     </a>
     <router-link v-else 
     class="clickety-click" :class="{ 'link-disabled': linkDisabled }"

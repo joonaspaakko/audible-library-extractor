@@ -102,7 +102,7 @@ export default {
               let numbers = series.bookNumbers ? (' (book '+ series.bookNumbers.join(", ") +')') : '';
               return series.name + numbers;
             }).join(", ");
-            col.text = series || '';
+            col.text = series || '';
             break;
             
           case "title":

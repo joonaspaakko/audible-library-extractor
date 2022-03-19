@@ -50,7 +50,7 @@ export default {
                 changes.push({ key: "coverAmount", value: coverAmount });
                 
               }
-              else if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
+              else if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
                 coverAmount = coversArray.length;
                 changes.push({ key: "coverAmount", value: coverAmount });
               }

@@ -64,7 +64,7 @@
         :hideLabel="true" 
         :included="!!(range.marks)" 
         :interval="range.min === range.max ? 1 : (item.rangeInterval || 1)" 
-        :marks="range.marks || Math.abs(range.min - range.max) <= 10" 
+        :marks="range.marks || Math.abs(range.min - range.max) <= 10" 
         :value="range.value" 
         :min="range.min" 
         :max="range.max" 
@@ -141,7 +141,7 @@ export default {
       let rangeIsSetByUser = _.isArray(this.item.range);
       if ( rangeIsSetByUser ) {
         range.value = _.clone(this.item.range);
-        if ( range.value[0] < range.min || range.value[0] > range.max ) range.value[0] = range.min;
+        if ( range.value[0] < range.min || range.value[0] > range.max ) range.value[0] = range.min;
         if ( range.value[1] < range.min || range.value[1] > range.max ) range.value[1] = range.max;
       }
       else {

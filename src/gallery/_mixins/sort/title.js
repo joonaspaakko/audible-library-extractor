@@ -19,7 +19,7 @@ export default {
                 //   (getThe && /^the /) || (getA && /^a /) || (getAn && /^an /);
                 // if (replacements) titleLowercase = titleLowercase.replace(replacements, "");
                 // return titleLowercase.toLowerCase();
-                return o.title || o.titleShort;
+                return o.title || o.titleShort;
               } else {
                 if ( _.isArray( sortValue ) && _.find( sortValue, 'name') ) { 
                   return _.map(sortValue, 'name').join(', ');

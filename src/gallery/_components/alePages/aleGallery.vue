@@ -272,7 +272,7 @@ export default {
         
         let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
         let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
-        let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
+        let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
         
         if ( atTheBottom ) {
           this.$store.commit('chunkCollectionAdd');
@@ -311,7 +311,7 @@ export default {
           { key: 'bookDetails.index', value: -1 },
         ]);
         
-        if ( !sameBook || e.force ) {
+        if ( !sameBook || e.force ) {
           this.$nextTick(function() {
             this.$store.commit('prop', [
               { key: 'bookDetails.book', value: e.book },

@@ -113,7 +113,8 @@ export default {
               asin: reverse ? url.query.asin : url.path.substring(url.path.lastIndexOf("/") + 1),
             });
             
-          } else if (numberRow) {
+          } 
+          else if (numberRow) {
             if ( string.match(/\d/) ) {
               // Trims text from the front: ("Book ", removes trailing comma, and splits numbers separated by commas
               var numbers = string.replace(/^[^0-9]*/, "").replace(/,$/, "").replace(/;$/, "").trim().split(",");

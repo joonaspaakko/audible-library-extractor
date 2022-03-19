@@ -2,7 +2,7 @@ export default {
   methods: {
     prepareKeys: function( config ) {
       
-      config = config || {};
+      config = config || {};
       const vue = this;
       let collection = config.collection || _.get(this.$store.state, this.$store.state.collectionSource);
       // Flattens all available keys into an array: ['title', 'sample'] ...etc
