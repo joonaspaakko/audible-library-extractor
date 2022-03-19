@@ -237,10 +237,22 @@ export default {
             if ( !aBook.bookNumbers ) {
               let findBookNumber = aBook.title.match(/(?:, Book.)(.+)/);
               if ( aBook.title && findBookNumber ) {
-                aBook.bookNumbers = findBookNumber[1];
+                aBook.bookNumbers = findBookNumber[1].replace(/\)$/, '');
               }
-              else { aBook.bookNumbers = '∞'; }
+              else {
+                
+                aBook.bookNumbers = (function( books, seriesAsin, bookAsin ) {
+                
+                  const book = _.find(books, { asin: bookAsin }); if ( !book ) return;
+                  const series = _.find(book.series, { asin: seriesAsin }); if ( !series ) return;
+                  return series.bookNumbers.join(',');
+                  
+                })( hotpotato.books, request.asin, aBook.asin );
+                
+              }
             }
+            
+            if ( !aBook.bookNumbers ) aBook.bookNumbers = '∞';
             
             if ( this.querySelector('[name="discovery-add-to-library-form"]') ) aBook.plus = true;
             // if ( title.match(/^FREE:/) ) aBook.free = true;
