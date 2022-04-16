@@ -1,6 +1,9 @@
 <template>
 <div class="reminder slide-in-blurred-top">
-  You can open this gallery from any tab from the browser's global context menu with a <strong>right-click</strong>.
+  <span>You can open this gallery page any time from <br>the browser context menu (right-click) </span>
+  <div >
+    <img src="@output-images/context-menu.png" alt="">
+  </div>
   <font-awesome class="hide" @click="hide" :icon="['fas', 'times']" />
 </div>
 </template>
@@ -20,6 +23,11 @@ export default {
  
 <style scoped lang='scss'>
 @import "~@/_variables.scss";
+
+img, span { display: inline-block; }
+
+img { max-width: 100%; }
+span { padding-bottom: 10px; }
 
 .reminder {
   position: relative;

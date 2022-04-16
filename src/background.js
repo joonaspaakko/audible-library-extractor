@@ -125,28 +125,32 @@ function makeContextMenu() {
     // Permissions: contextMenus
     browser.contextMenus.removeAll();
     
-    if ( domainExtension ) {
-      browser.contextMenus.create({
-        id: 'ale-to-audible',
-        title: "1. Audible"+ domainExtension +"/library",
-        contexts: ["all"]
-      });
+    const audibleLink = {
+      id: 'ale-to-audible',
+      title: "1. Audible"+ domainExtension +"/library",
+      contexts: ["all"]
+    };
+    if ( !domainExtension ) {
+      audibleLink.title = "1. Audible.com/library"
     }
+    browser.contextMenus.create( audibleLink );
     
-    if ( libraryExists || wishlistExists ) {
-      browser.contextMenus.create({
-        id: 'ale-to-gallery',
-        title: "2. Extension gallery",
-        contexts: ["all"]
-      });
+    const galleryLink = {
+      id: 'ale-to-gallery',
+      title: "2. Extension gallery",
+      contexts: ["all"]
+    };
+    if ( !(libraryExists || wishlistExists) ) {
+      galleryLink.enabled = false;
+      galleryLink.title   = galleryLink.title + ' ' + '(available after extraction)';
     }
-    
+    browser.contextMenus.create( galleryLink );
+  
     browser.contextMenus.create({
       id: 'separator-1',
       type: "separator",
       contexts: ["all"]
     });
-    
     
     browser.contextMenus.create({
       id: 'ale-to-docs',
@@ -163,6 +167,11 @@ function makeContextMenu() {
     browser.contextMenus.create({
       id: 'ale-to-github-issues',
       title: "5. Github issues",
+      contexts: ["all"]
+    }); 
+    browser.contextMenus.create({
+      id: 'ale-to-github-discussions',
+      title: "6. Github discussions",
       contexts: ["all"]
     });
     
@@ -184,12 +193,12 @@ function contextEvents( info, tab ) {
     if ( !domainExtension ) {
       browser.storage.local.get(['extras']).then(data => {
         domainExtension = _.get(data, 'extras.domain-extension');
-        newTab.url = "https://audible"+ (domainExtension || '.com') +"/library/titles";
+        newTab.url = "https://audible"+ (domainExtension || '.com') +"/library/titles?ipRedirectOverride=true&overrideBaseCountry=true";
         browser.tabs.create(newTab);
       });
     }
     else {
-      newTab.url = "https://audible"+ domainExtension +"/library/titles";
+      newTab.url = "https://audible"+ domainExtension +"/library/titles?ipRedirectOverride=true&overrideBaseCountry=true";
       browser.tabs.create(newTab);
     }
   }
@@ -207,6 +216,10 @@ function contextEvents( info, tab ) {
   }
   else if ( info.menuItemId === 'ale-to-github-issues' ) {
     newTab.url = "https://github.com/joonaspaakko/audible-library-extractor/issues";
+    browser.tabs.create(newTab);
+  }
+  else if ( info.menuItemId === 'ale-to-github-discussions' ) {
+    newTab.url = "https://github.com/joonaspaakko/audible-library-extractor/discussions";
     browser.tabs.create(newTab);
   }
     

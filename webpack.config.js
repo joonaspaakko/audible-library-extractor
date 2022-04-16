@@ -82,7 +82,7 @@ const config = {
         loader: 'file-loader',
         options: {
           name: '[name].[ext]',
-          outputPath: '/images/',
+          outputPath: 'images/',
           emitFile: false,
           esModule: false,
         },
@@ -144,7 +144,7 @@ var copyPluginArray = { patterns: [
   { from: 'gallery/favicons', to: 'gallery/favicons' },
   { from: 'gallery/extension-js', to: 'gallery/extension-js' },
   { from: 'gallery/app.webmanifest', to: 'gallery/app.webmanifest' },
-  // { from: 'gallery/images/', to: 'gallery/images/' },
+  { from: 'gallery/images/', to: 'gallery/images/' },
   { from: 'gallery/gallery.html', to: 'gallery/index.html', transform: transformHtml },
   { from: 'wallpaper-creator/wallpaper-creator.html', to: 'wallpaper-creator/index.html', transform: transformHtml },
   { from: 'wallpaper-creator/animated-wallpaper/animated-wallpaper.html', to: 'wallpaper-creator/animated-wallpaper/index.html', transform: transformHtml },
