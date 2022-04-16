@@ -5,6 +5,7 @@ import Vue from "vue";
 import VueCompositionAPI from '@vue/composition-api';
 Vue.use(VueCompositionAPI);
 import App from "./output-page-app";
+import "normalize.css/normalize.css";
 
 Vue.config.devtools = false;
 Vue.config.productionTip = false;

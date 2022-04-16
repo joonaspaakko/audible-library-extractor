@@ -9,7 +9,6 @@
     :data-collection-id="collection.id"
     :key="collection.id"
     >
-      
       <div class="sample-covers-square">
         <div
         class="sample-cover"
@@ -82,7 +81,7 @@ export default {
     });
     
     // Make sure favorites are always at the top
-    this.collections = _.orderBy(collections, function( o ) { return o.id === '__FAVORITES' }, "desc");
+    this.collections = _.orderBy(collections, function( o ) { return o.title; }, "asc");
     
     this.$store.commit("prop", [
       { key: "pageCollection", value: [] }, 

@@ -25,6 +25,7 @@ export default new Vuex.Store({
       viewMode: 'grid',
       chunkLocation: 0,
       booksInSeriesToggle: false,
+      collectionsDrawerToggle: true,
       exportSettingsGallery: null,
       exportSettingsCSVdataSources: null,
       exportSettingsCSVcompatibility: null,

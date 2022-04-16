@@ -58,7 +58,9 @@
               <book-basic-info :book="book" v-if="!$store.state.sticky.bookDetailsCollapsedDetails"></book-basic-info>
             </div>
             
-            <books-in-series :book="book"></books-in-series>
+            <collections-drawer :book="book" />
+            
+            <books-in-series :book="book" />
             
           </div> <!-- .information -->
 
@@ -93,6 +95,7 @@ import makeCoverUrl from "@output-mixins/makeCoverUrl";
 import carousel from "./bookDetails/carousel";
 import booksInSeries from "./bookDetails/booksInSeries";
 import bookSummary from "./bookDetails/bookSummary";
+import collectionsDrawer from "./bookDetails/collectionsDrawer.vue";
 
 import makeUrl from "@output-mixins/makeFullUrl";
 
@@ -111,8 +114,7 @@ export default {
     booksInSeries,
     arrayToHTML,
     bookSummary,
-    book: null,
-    index: null,
+    collectionsDrawer,
   },
   mixins: [
     // sortBookNumbers,
@@ -125,6 +127,8 @@ export default {
   props: ["booksWrapper"],
   data: function() {
     return {
+      book: null,
+      index: null,
       maxWidth: "unset",
       scrollTop: 0,
       loading: true,
@@ -146,6 +150,7 @@ export default {
     
     this.scrollTop = window.pageYOffset;
     this.$root.$on("afterWindowResize", this.onWindowResize);
+    
     
   },
   

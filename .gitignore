@@ -135,3 +135,4 @@ yarn-error.log
 #dist-zip/*.zip
 
 /chunk-file-paths.js
+.DS_Store
