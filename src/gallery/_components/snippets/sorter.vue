@@ -359,17 +359,22 @@ export default {
         }
         if ( this.item.type === 'filterExtras' ) {
           let vue = this;
-          const rangedKeys = _.map( vue.$store.getters.filterExtrasKeys.split(','), function( key ) {
+          const filterExtrasKeys = vue.$store.getters.filterExtrasKeys;
+          const queryKeysArray = !filterExtrasKeys ? false : _.map( filterExtrasKeys.split(','), function( key ) {
             const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
-            if ( keyItem && keyItem.range ) {
-              return encodeURIComponent( key + ':' + vue.range.value[0] +'-'+ vue.range.value[1] );
+            let range = _.get(vue.range, 'value');
+            if ( !range ) range = _.get(keyItem, 'range');
+            if ( range && _.isArray(range) ) {
+              return encodeURIComponent( key + ':' + range[0] +'-'+ (range[1]||range[0]) );
             }
             else if ( keyItem && keyItem.value && keyItem.value.length > 0 ) {
               return encodeURIComponent(key + ':') + _.map( keyItem.value, function( val ) { return encodeURIComponent(val); }).join('|');
             }
-            else { if ( key ) return encodeURIComponent(key); }
+            else if ( key ) { 
+              return encodeURIComponent(key); 
+            }
           });
-          this.$updateQuery({ query: this.item.type, value: (rangedKeys.length === 1 && rangedKeys[0] === undefined) ? false : rangedKeys.join(',') });
+          this.$updateQuery({ query: this.item.type, value: queryKeysArray ? queryKeysArray.join(',') : false  });
         }
       }
       else if ( this.listName === "scope" ) {
