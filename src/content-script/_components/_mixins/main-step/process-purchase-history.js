@@ -18,12 +18,16 @@ export default {
         text: this.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..."
       });
       
-      vue.scrapingPrep(vue.purchaseHistoryUrl, function(prep) {
+      vue.scrapingPrep({
+        url: vue.purchaseHistoryUrl, 
+        maxSize: 20,
+        done: function(prep) {
         
-        const requestURL = prep.urlObj.toString();
-        console.log( prep )
-        
-      }, false, false, 20);
+          const requestURL = prep.urlObj.toString();
+          console.log( prep )
+          
+        }
+      });
       
     },
     

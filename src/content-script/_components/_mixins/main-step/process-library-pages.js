@@ -7,68 +7,84 @@ export default {
       
       if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
         
-        this.$root.$emit("update-big-step", {
-          title: "Library",
-          stepAdd: 1
-        });
+        this.$store.commit('update', [
+          { key: 'bigStep.title', value: 'Library' },
+          { key: 'bigStep.step', add: 1 },
+          { key: 'subStep.step', add: 1 },
+          { key: 'subStep.max', value: 5 },
+          { key: 'progress.step', value: 0 },
+          { key: 'progress.max', value: 0 },
+          { key: 'progress.text', value: this.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..." },
+        ]);
         
-        this.$root.$emit("update-progress", {
-          step: 0,
-          max: 0,
-          text: this.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..."
-        });
-        
-        vue.scrapingPrep(vue.libraryUrl, function(prep) {
+        vue.scrapingPrep({
+          url: vue.libraryUrl, 
+          maxSize: 20,
+          done: function(prep) {
           
-          const requestURL = prep.urlObj.toString();
-          vue.amapxios({
-            requests: _.map(prep.pageNumbers, function(page) {
-              return requestURL + "&page=" + page; // + '&stampyStamp=' + (new Date().getTime());
-            }),
-            step: function(response, stepCallback) {
-              vue.processLibraryPage(response, hotpotato, stepCallback);
-            },
-            flatten: true,
-            done: function(books) {
-              vue.$nextTick(function() {
-                
-                hotpotato.books = books;
-                
-                // Removes unnecessary data from series and collections durin a partial extraction
-                if ( hotpotato.books && hotpotato.books.length ) {
-                  const changedBooks = _.xorBy( hotpotato.books, books, 'asin');
-                  if ( changedBooks.length > 0 ) {
-                    let removedBooks = _.filter( changedBooks, function( book ) { return !book.isNewThisRound; });
-                    if ( removedBooks.length > 0 )  {
-                      vue.removeFromSeries( hotpotato.series, removedBooks );
-                      vue.removeFromCollections( hotpotato.collections, removedBooks );
-                    }
-                  }
-                  if ( hotpotato.wishlist && hotpotato.wishlist.length > 0 ) {
-                    let newBooks = _.filter( hotpotato.books, 'isNewThisRound');
-                    if ( newBooks.length > 0 ) {
-                      newBooks = _.map(newBooks, 'asin');
-                      _.remove( hotpotato.wishlist, function( wBook ) {
-                        return _.includes(newBooks, wBook.asin);
-                      });
-                    }
-                  }
-                }
-                
-                // hotpotato.books = _.filter( hotpotato.books, { asin: 'B078X15P2P' });
-                
-                hotpotato.config.getStorePages = 'books';
-                libraryPagesFetched(null, hotpotato);
+            const requestURL = prep.urlObj.toString();
+            vue.amapxios({
+              requests: _.map(prep.pageNumbers, function(page) {
+                return requestURL + "&page=" + page; // + '&stampyStamp=' + (new Date().getTime());
+              }),
+              step: function(response, stepCallback) {
+                vue.processLibraryPage(response, hotpotato, stepCallback);
+              },
+              flatten: true,
+              done: function(books) {
+                vue.$nextTick(function() {
                   
-              });
-            }
-          });
-        }, false, false, 20);
+                  hotpotato.books = books;
+                  
+                  // Removes unnecessary data from series and collections durin a partial extraction
+                  if ( hotpotato.books && hotpotato.books.length ) {
+                    const changedBooks = _.xorBy( hotpotato.books, books, 'asin');
+                    if ( changedBooks.length > 0 ) {
+                      let removedBooks = _.filter( changedBooks, function( book ) { return !book.isNewThisRound; });
+                      if ( removedBooks.length > 0 )  {
+                        vue.removeFromSeries( hotpotato.series, removedBooks );
+                        vue.removeFromCollections( hotpotato.collections, removedBooks );
+                      }
+                    }
+                    if ( hotpotato.wishlist && hotpotato.wishlist.length > 0 ) {
+                      let newBooks = _.filter( hotpotato.books, 'isNewThisRound');
+                      if ( newBooks.length > 0 ) {
+                        newBooks = _.map(newBooks, 'asin');
+                        _.remove( hotpotato.wishlist, function( wBook ) {
+                          return _.includes(newBooks, wBook.asin);
+                        });
+                      }
+                    }
+                  }
+                  
+                  // hotpotato.books = _.sampleSize( hotpotato.books, 40);
+                  
+                  // hotpotato.books = _.sampleSize( hotpotato.books, function( book ) {
+                    
+                  //   return _.includes([
+                  //     'B078X15P2P',
+                  //     '1799751511',
+                  //     '1781103798',
+                  //   ], book.asin);
+                     
+                  // });
+                  
+                  hotpotato.config.getStorePages = 'books';
+                  vue.$nextTick(function() {
+                    libraryPagesFetched(null, hotpotato);
+                  });
+                    
+                });
+              }
+            });
+            
+          }
+        });
         
       }
       else {
         
-        vue.$root.$emit("reset-progress");
+        vue.$store.commit('resetProgress');
         libraryPagesFetched(null, hotpotato);
         
       }
@@ -85,9 +101,7 @@ export default {
       const books = [];
     
       const titleRows = audible.querySelectorAll("#adbl-library-content-main > .adbl-library-content-row");
-      titleRows.forEach(function(el) {
-        const _thisRow = el;
-        
+      each( titleRows, function( _thisRow ) {
         
         // const rowItem = {
         //   is: {
@@ -146,7 +160,7 @@ export default {
           // "Came from the plus catalog but is no longer available there"
           const unavailableBtn = _thisRow.querySelector(".adbl-library-inaccessible-button");
           if (unavailableBtn) { book.unavailable = true; }
-          else { delete book.unavailable; }
+          else if ( book.unavailable ) { delete book.unavailable; }
           
           // Downloaded
           book.downloaded = _thisRow.querySelector(".adbl-library-action > div:nth-child(4) > span") ? true : null;
@@ -154,6 +168,7 @@ export default {
           // Favorite
           const favorite = _thisRow.querySelector('[id^="remove-from-favorites-button"]:not(.bc-pub-hidden)');
           if (favorite) book.favorite = true;
+          else if ( book.favorite ) delete book.favorite;
     
           // Progress
           const progressbar = _thisRow.querySelector('[id^="time-remaining-display"] [role="progressbar"]');
@@ -167,6 +182,16 @@ export default {
             book.progress = 0;
           }
           
+          // Collection IDs
+          let collectionIds = _thisRow.querySelector('[id^="collectionIds-"]');
+          if ( book.collectionIds ) delete book.collectionIds;
+          if ( collectionIds ) collectionIds = collectionIds.getAttribute('value');
+          if ( collectionIds ) collectionIds = collectionIds.replace(/^\[/, '').replace(/\]$/, '').trim();
+          if ( collectionIds ) collectionIds = collectionIds.split(', ');
+          if ( collectionIds && collectionIds.length > 0 ) {
+            _.remove( collectionIds, function( value ) { return value === '__PENDING' || value.trim() === ''; });
+            if ( collectionIds.length > 0 ) book.collectionIds = collectionIds;
+          }
           
           // if ( 
           //   book.title.lastIndexOf('Besiege') > -1 ||
@@ -226,7 +251,7 @@ export default {
           
           if (fullScan_ALL_partialScan_NEW) {
             book.isNewThisRound = true;
-            vue.$root.$emit("update-progress-max");
+            vue.$store.commit('update', { key: 'progress.max', add: 1 });
           }
           
           books.push(book);

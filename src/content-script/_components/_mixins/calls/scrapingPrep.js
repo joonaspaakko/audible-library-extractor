@@ -7,10 +7,12 @@ import rateLimit from "axios-rate-limit";
 
 export default {
   methods: {
-    scrapingPrep: function( baseUrl, callbach, returnResponse, returnAfterFirstCall, maxSize ) {
+    
+    scrapingPrep: function( config ) {
+      
       const vue = this;
-      
-      
+      config = config || {};
+            
       const letMeAxiosAQuestion = axios.create();
       axiosRetry(letMeAxiosAQuestion, {
         retries: 2,
@@ -19,35 +21,30 @@ export default {
           return axiosRetry.isNetworkOrIdempotentRequestError(error) || error && error.response && error.response.status == "500";
         }
       });
-      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 10 });
+      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 15 });
       
       waterfall(
         [
+          // GET MAX PAGE SIZE (how many items per page)
           function(callback) {
-            let url = new Url( DOMPurify.sanitize(baseUrl) );
+            let url = new Url( DOMPurify.sanitize(config.url) );
             url.query.ale = true;
             url.query.bp_ua = 'yes';
-
-            axiosLimited.get(url.toString()).then(function(response) {
-              const audible = $($.parseHTML(response.data)).find("div.adbl-main");
-              const pageSizeDropdown = audible.find('select[name="pageSize"]');
-              const maxPageSize = pageSizeDropdown.length > 0 ? DOMPurify.sanitize(pageSizeDropdown.find("option:last").val()) : null;
-              url.query.pageSize = maxSize ? (maxPageSize > maxSize ? maxSize : maxPageSize) : maxPageSize;
-
-              let obj = {};
-              if (returnResponse) obj.response = response;
-              obj.urlObj = url;
-
-              if (!maxPageSize || maxPageSize < 50 || returnAfterFirstCall) {
-                obj.pageNumbers = [1];
-                obj.pageSize = maxPageSize;
-                callback(true, obj);
-              } else {
-                callback(null, obj);
-              }
-            });
+            let obj = {};
+            obj.urlObj = url;
+            
+            if ( config.skipFirstCall ) {
+              vue.getMaxPageSize( obj, config, config.response, callback);
+            }
+            else {
+              axiosLimited.get(url.toString()).then(function(response) {
+                vue.getMaxPageSize( obj, config, response, callback);
+              });
+            }
+            
           },
           
+          // GET MAX PAGE COUNT (pagination)
           function(o, callback) {
             axiosLimited.get(o.urlObj.toString()).then(function(response) {
               const audible = $($.parseHTML(response.data)).find("div.adbl-main");
@@ -60,9 +57,39 @@ export default {
           }
         ],
         function(err, obj) {
-          callbach(obj);
+          config.done(obj);
         }
       );
-    }
+    },
+    
+    getMaxPageSize: function( obj, config, response, waterfallback ) {
+      
+      const audible = $($.parseHTML(response.data)).find("div.adbl-main");
+      const pageSizeDropdown = audible.find('select[name="pageSize"]');
+      const maxPageSize = pageSizeDropdown.length > 0 ? DOMPurify.sanitize(pageSizeDropdown.find("option:last").val()) : null;
+      obj.urlObj.query.pageSize = config.maxSize || obj.urlObj.query.pageSize || maxPageSize;
+      
+      if (config.returnResponse) obj.response = response;
+      
+      const pagination = audible.find(".pagingElements").length;
+      if ( !pagination || !maxPageSize || maxPageSize < 50 || config.returnAfterFirstCall ) {
+        obj.pageNumbers = [1];
+        obj.pageSize = obj.urlObj.query.pageSize;
+        waterfallback(true, obj); // true makes the waterfall jump to the end.
+      } else {
+        waterfallback(null, obj);
+      }
+      
+    },
+    
+    getPageNumbers: function( response  ) {
+      
+      const audible = $($.parseHTML(response.data)).find("div.adbl-main");
+      const pagination = audible.find(".pagingElements");
+      const pagesLength = pagination.length > 0 ? parseFloat( DOMPurify.sanitize(pagination.find(".pageNumberElement:last").text()) ) : 1;
+      return _.range(1, pagesLength + 1); 
+      
+    },
+    
   }
 };

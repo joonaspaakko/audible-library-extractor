@@ -270,22 +270,5 @@ export default {
       
     },
     
-    mergeBooksWithSeries: function( potatoSeries, newSeriesCollection ) {
-      
-      _.each( newSeriesCollection, function( series ) {
-        
-        const seriesExists = _.find(potatoSeries, { asin: series.asin });
-        if ( seriesExists ) {
-          _.merge( seriesExists, series );
-        }
-        else {
-          potatoSeries.push( series );
-        }
-        
-      });
-      
-      
-    },
-    
   }
 };

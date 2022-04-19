@@ -6,24 +6,34 @@ export default {
     getISBNsFromGoogleBooks: function(hotpotato, isbnsFetched) {
       if ( !_.find(hotpotato.config.steps, { name: "isbn" }) ) {
         
-        this.$root.$emit("reset-progress");
+        // this.$root.$emit("reset-progress");
+        this.$store.commit("resetProgress");
         isbnsFetched(null, hotpotato);
         
       } 
       else {
-        this.$root.$emit("update-big-step", {
-          title: "International Standard Book Number (ISBN)",
-          stepAdd: 1
-        });
+        // this.$root.$emit("update-big-step", {
+        //   title: "International Standard Book Number (ISBN)",
+        //   stepAdd: 1
+        // });
 
-        this.$root.$emit("update-progress", {
-          text2:
-            "(The matching process is relatively loose: beware of false matches)",
-          text: "Fetching ISBNs from Google Books API...",
-          step: 0,
-          max: 0,
-          bar: true
-        });
+        // this.$root.$emit("update-progress", {
+        //   text2: "(The matching process is relatively loose: beware of false matches)",
+        //   text: "Fetching ISBNs from Google Books API...",
+        //   step: 0,
+        //   max: 0,
+        //   bar: true
+        // });
+        
+        this.$store.commit('update', [
+          { key: 'bigStep.title', value: 'International Standard Book Number (ISBN)' },
+          { key: 'bigStep.step', add: 1 },
+          { key: 'progress.text2', value: "(The matching process is relatively loose: beware of false matches)" },
+          { key: 'progress.text', value: "Fetching ISBNs from Google Books API..." },
+          { key: 'progress.step', value: 0 },
+          { key: 'progress.max', value: 0 },
+          { key: 'progress.bar', value: true },
+        ]);
 
         const vue = this;
         fetchISBNs(vue, hotpotato, isbnsFetched);
@@ -54,7 +64,9 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
     }
   });
 
-  vue.$root.$emit("update-progress", { max: requestUrls.length });
+  // vue.$root.$emit("update-progress", { max: requestUrls.length });
+  vue.$store.commit('update', { key: 'progress.max', add: requestUrls.length });
+  
   const letMeAxiosAQuestion = axios.create();
   axiosRetry(letMeAxiosAQuestion, {
     retries: 7,
@@ -71,17 +83,22 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
     perMilliseconds: 1100
   });
 
-  asyncMap(
+  asyncMapLimit(
     requestUrls,
+    18,
     function(request, stepCallback) {
       isbn
-        .get(request.url)
+        .get(request.url, {
+          validateStatus: function (status) {
+            return status >= 200 && status < 400;
+          }
+        })
         .then(function(response) {
           const book = _.find(hotpotato.books, { asin: request.asin });
           if (
             response &&
             response.status >= 200 &&
-            response.status < 300 &&
+            response.status < 400 &&
             response.data &&
             response.data.totalItems
           ) {
@@ -115,9 +132,11 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
                 book.isbns = isbns;
                 
                 if (_.get(api_book, "volumeInfo.imageLinks.smallThumbnail")) {
-                  vue.$root.$emit(
-                    "update-progress-thumbnail", DOMPurify.sanitize( api_book.volumeInfo.imageLinks.smallThumbnail.replace("http://","https://") )
-                  );
+                  // vue.$root.$emit(
+                  //   "update-progress-thumbnail", DOMPurify.sanitize( api_book.volumeInfo.imageLinks.smallThumbnail.replace("http://","https://") )
+                  // );
+                  const thumbnail = DOMPurify.sanitize( api_book.volumeInfo.imageLinks.smallThumbnail.replace("http://","https://") );
+                  vue.$store.commit('update', { key: 'progress.thumbnail', value: thumbnail });
                 }
                 
               }
@@ -132,7 +151,8 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
             );
           }
 
-          vue.$root.$emit("update-progress-step");
+          // vue.$root.$emit("update-progress-step");
+          vue.$store.commit('update', { key: 'progress.step', add: 1 });
           stepCallback(null);
         })
         .catch(e => {
@@ -141,14 +161,16 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
             "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",
             e.respone
           );
-          vue.$root.$emit("update-progress-step");
+          // vue.$root.$emit("update-progress-step");
+          vue.$store.commit('update', { key: 'progress.step', add: 1 });
           stepCallback(null);
         });
     },
     function(err, result) {
       if (!err) {
         vue.$nextTick(function() {
-          vue.$root.$emit("reset-progress");
+          // vue.$root.$emit("reset-progress");
+          vue.$store.commit('resetProgress');
           isbnsFetched(null, hotpotato);
         });
       } else console.log(err);

@@ -9,21 +9,24 @@ export default {
           text: 'Double checking book status...'
         });
         
-        vue.scrapingPrep(vue.libraryUrlFin, function(prep) {
+        vue.scrapingPrep({
+          url: vue.libraryUrlFin, 
+          done: function(prep) {
           
-          const requestURL = prep.urlObj.toString();
-          vue.amapxios({
-            requests: _.map(prep.pageNumbers, function(page) {
-              return requestURL + "&page=" + page;
-            }),
-            step: function(response, stepCallback) {
-              processLibraryPage(vue, response, hotpotato, stepCallback);
-            },
-            flatten: true,
-            done: function() {
-              libraryPagesFetched(null, hotpotato);
-            }
-          });
+            const requestURL = prep.urlObj.toString();
+            vue.amapxios({
+              requests: _.map(prep.pageNumbers, function(page) {
+                return requestURL + "&page=" + page;
+              }),
+              step: function(response, stepCallback) {
+                processLibraryPage(vue, response, hotpotato, stepCallback);
+              },
+              flatten: true,
+              done: function() {
+                libraryPagesFetched(null, hotpotato);
+              }
+            });
+          }
         });
         
       }
@@ -42,7 +45,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
   response.data = null;
   
   const titleRows = audible.querySelectorAll("#adbl-library-content-main > .adbl-library-content-row");
-  titleRows.forEach(function(el) {
+  each( titleRows, function(el) {
     const _thisRow = el;
     
     const rowItemIsBook =

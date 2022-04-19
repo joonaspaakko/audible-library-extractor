@@ -391,8 +391,8 @@ export default {
             value: _.get( collections, 'value' ),
             disabled: _.get( collections, 'disabled' ),
             label: "Collections",
-            type: "is-success",
-            tippy: "Always a full extract, but this is a fairly quick extraction process.",
+            type: "is-info",
+            tippy: "Super quick extraction that just needs to check the first <br>page of each collection to find out the title and description",
             trash: this.hasData.collections
           },
           {
@@ -401,7 +401,7 @@ export default {
             disabled: _.get( wishlist, 'disabled' ),
             label: "Wishlist",
             type: "is-success",
-            tippy: "Books that also exist in your library are dropped <br>off as long as you also extract library data.",
+            tippy: "Similar to library extraction but series order is not fetched. Books that also exist in your library are dropped <br>off as long as you also extract library data.",
             trash: this.hasData.wishlist,
             // cannotAccessTippy: this.cannotAccessWishlist ? '<a href="https://audible.com/login">audible.com/login</a>' : null,
           },
@@ -411,7 +411,7 @@ export default {
             disabled: _.get( isbn, 'disabled' ),
             label: "ISBN",
             type: "is-danger",
-            tippy: "You only need to extract International Standard Book Numbers (ISBN) if you want to try importing to Goodreads. <br>ISBNs are only fetched for books in the library.",
+            tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. <br>ISBNs are fetched for library books and not for books in the wishlist. Very slow extraction.",
             trash: this.hasData.isbn
           },
           {

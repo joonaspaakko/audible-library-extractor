@@ -2,8 +2,11 @@ export default {
   methods: {
     getDataFromStorePages: function(hotpotato, storePagesFetched) {
       
+      this.$store.commit('update', { key: 'subStep.step', add: 1 });
+      
       const vue = this;
       let requests = [];
+      const processing = hotpotato.config.getStorePages;
       if ( hotpotato.config.getStorePages ) {
         requests = this.prepStorePages(hotpotato, hotpotato.config.getStorePages);
         hotpotato.config.getStorePages = false;
@@ -14,27 +17,27 @@ export default {
       }
       else {
         
-        if (!hotpotato.config.test) this.$root.$emit("update-progress", {
-          text: "Fetching additional data from store pages...",
-          step: 0,
-          bar: true
-        });
+        if ( !hotpotato.config.test ) this.$store.commit('update', [
+          { key: 'progress.step', value: 0 },
+          { key: 'progress.bar', value: true },
+          { key: 'progress.text', value: "Fetching additional data from store pages..." },
+        ]);
+        
         
         vue.amapxios({
           requests: requests,
           returnCatch: true, // Returns failed steps in the step() callback in order to mark missing sote page data
           step: function(response, stepCallback, book, processingError) {
-            delete book.requestUrl;
-
-            if (!hotpotato.config.test) vue.$root.$emit("update-progress", { text2: book.title });
-
-            if ( !response || response && response.status >= 400) {
-              book.storePageMissing = true;
-            } else {
+            
+            if ( _.get(book, 'requestUrl') ) delete book.requestUrl;
+            if (!hotpotato.config.test) vue.$store.commit('update', { key: 'progress.text2', value: _.get(book, 'title') });
+            
+            if ( response && response.status >= 200 &&response.status < 400 ) {
               vue.getStorePageData(response, book, hotpotato.config.test);
+            } else if ( !!book ) {
+              book.storePageMissing = true;
             }
-
-            if (!hotpotato.config.test) vue.$root.$emit("update-progress-step");
+            if (!hotpotato.config.test) vue.$store.commit('update', { key: 'progress.step', add: 1 });
             // if ( book.cover ) vue.$root.$emit('update-progress-thumbnail', 'https://m.media-amazon.com/images/I/'+ book.cover + '._SL120_.jpg' );
             stepCallback(book);
           },
@@ -46,10 +49,16 @@ export default {
       
       function moveOn() {
         
+        if (!hotpotato.config.test) vue.$store.commit("resetProgress");
+        if ( processing === 'wishlist' ) vue.$store.commit('update', [
+          { key: 'subStep.step', value: 0 },
+          { key: 'subStep.max', value: 0 },
+        ]);
+        
         vue.$nextTick(function() {
-          if (!hotpotato.config.test) vue.$root.$emit("reset-progress");
           storePagesFetched(null, hotpotato);
         });
+        
       }
       
     },
@@ -150,7 +159,7 @@ export default {
           
           var tagsArray = [];
           var tags = audible.querySelectorAll('.bc-chip-text');
-          tags.forEach( function( tag ) {
+          each( tags, function( tag ) {
             
             var tagObj = {};
             

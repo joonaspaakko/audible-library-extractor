@@ -3,29 +3,47 @@ export default {
     getDataFromWishlist: function(hotpotato, wishlistFetched) {
       if ( !_.find(hotpotato.config.steps, { name: "wishlist" }) ) {
         
-        this.$root.$emit("reset-progress");
+        // this.$root.$emit("reset-progress");
+        this.$store.commit("resetProgress");
         wishlistFetched(null, hotpotato);
         
       } else {
         
-        this.$root.$emit("update-big-step", {
-          title: "Wishlist",
-          stepAdd: 1
-        });
+        // this.$root.$emit("update-big-step", {
+        //   title: "Wishlist",
+        //   stepAdd: 1
+        // });
+        
+        // this.$root.$emit("update-sub-step", {
+        //   step: 1,
+        //   max: 2,
+        // });
 
-        this.$root.$emit("update-progress", {
-          text: this.storageHasData.wishlist ? "Updating old books and adding new books..." : "Scanning wishlist for books...",
-          step: 0,
-          max: 0,
-        });
+        // this.$root.$emit("update-progress", {
+        //   text: this.storageHasData.wishlist ? "Updating old books and adding new books..." : "Scanning wishlist for books...",
+        //   step: 0,
+        //   max: 0,
+        // });
+        
+        this.$store.commit('update', [
+          { key: 'bigStep.title', value: 'Wishlist' },
+          { key: 'bigStep.step', add: 1 },
+          { key: 'subStep.step', value: 1 },
+          { key: 'subStep.max', value: 2 },
+          { key: 'progress.text', value: this.storageHasData.wishlist ? "Updating old books and adding new books..." : "Scanning wishlist for books..." },
+          { key: 'progress.step', value: 0 },
+          { key: 'progress.max', value: 0 },
+        ]);
 
         const vue = this;
         waterfall(
           [
             function(callback) {
-              vue.scrapingPrep(
-                vue.wishlistUrl,
-                function(prep) {
+              vue.scrapingPrep({
+                url: vue.wishlistUrl,
+                returnResponse: true,
+                returnAfterFirstCall: true,
+                done: function(prep) {
                   const audible = $($.parseHTML(prep.response.data)).find("div.adbl-main")[0];
                   const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector("#wishlist-content-main > div > h1.bc-heading").nextElementSibling.textContent.match(/\d+/)[0]) );
                   delete prep.response;
@@ -43,10 +61,9 @@ export default {
                   prep.pageNumbers = _.range(1, pagesLength + 1);
 
                   callback(null, prep);
-                },
-                true,
-                true
-              ); // Stopping after the first call then doing some sleuthing around to figure out the amount of pages to scrape, rather than doing a second call (just because wisthlist loads super slow)
+                  
+                }
+              }); // Stopping after the first call then doing some sleuthing around to figure out the amount of pages to scrape, rather than doing a second call (just because wisthlist loads super slow)
             },
 
             function(prep, callback) {
@@ -66,14 +83,11 @@ export default {
             }
           ],
           function(err, books) {
-            hotpotato.wishlist = books;
-
+            
+            if ( books.length ) hotpotato.wishlist = books;
+            
             vue.$nextTick(function() {
               hotpotato.config.getStorePages = 'wishlist';
-              
-              // if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
-              //   max: hotpotato.wishlist.length
-              // });
               wishlistFetched(null, hotpotato);
             });
             
@@ -186,7 +200,8 @@ export default {
           
           if (fullScan_ALL_partialScan_NEW) {
             book.isNewThisRound = true;
-            vue.$root.$emit("update-progress-max");
+            // vue.$root.$emit("update-progress-max");
+            vue.$store.commit('update', { key: 'progress.max', add: 1 });
           }
           
           wishlist.push(book);

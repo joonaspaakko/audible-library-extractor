@@ -2,6 +2,7 @@
 
 import Vue from "vue";
 import App from "./content-script-app";
+import store from "./store.js";
 
 Vue.config.productionTip = false;
 Vue.config.devtools = false;
@@ -89,6 +90,8 @@ browser.runtime.onMessage.addListener(message => {
 
 function audibleLibraryExtractor(data) {
   
+  store.commit("fromLocalStorage");
+  
   $('<div>', { id: 'audible-library-extractor'}).prependTo("body");
   
   // Storage data is dropped immediately. I just want to know if the data exists
@@ -103,6 +106,7 @@ function audibleLibraryExtractor(data) {
   
   new Vue({
     el: "#audible-library-extractor",
+    store,
     render: h => {
       return h(App, {
         props: {

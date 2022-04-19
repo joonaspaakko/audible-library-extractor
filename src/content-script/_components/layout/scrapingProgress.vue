@@ -6,42 +6,53 @@
       </div>
     </transition>
 
-    <div class="ale-big-step" v-if="bigStep.title">
+    <div class="ale-big-step" :class="{ 'sub-step-exists': store.subStep.max > 0 }" v-if="store.bigStep.title">
       <h2>
-        {{ bigStep.title }}
+        {{ store.bigStep.title }}
         <span class="step" v-if="bigSteps">{{ bigSteps }}</span>
       </h2>
     </div>
 
-    <div class="ale-progress" v-visible="progress.text">
+    <div class="ale-progress" v-visible="store.progress.text">  
       <div>
         <div class="ale-step-text">
-          <div class="ale-step-additional-info" v-visible="progress.text2">
-            {{ progress.text2 }}
+          <div class="ale-step-additional-info" v-visible="store.progress.text2">
+            {{ store.progress.text2 }}
           </div>
-          {{ progress.text }}
+          {{ store.progress.text }}
           <transition name="fade" v-if="steps"
             ><span>{{ steps }}</span></transition
           >
-          {{ progress.textsuffix }}
-        </div>
+          {{ store.progress.textsuffix }}
+        </div>        
       </div>
     </div>
 
     <div
       class="ale-bar"
-      v-visible="progress.bar && progress.step && progress.max"
-      :class="{ 'scale-in-hor-center': progress.bar }"
+      v-visible="store.progress.bar && store.progress.step && store.progress.max"
+      :class="{ 'scale-in-hor-center': store.progress.bar }"
     >
       <div class="ale-step-line" :style="progressWidth"></div>
     </div>
-
+    
+    <div>
+      <div class="sub-step-wrapper" v-if="store.subStep.max > 0">
+        <small class="step" >{{ store.bigStep.title }} sub steps {{ subSteps }}</small>
+      </div>
+    </div>
+    
     <div
-      v-show="progress.thumbnail"
+      v-show="store.progress.thumbnail"
       style="text-align: center; margin-top: 20px; height: 110px;"
     >
-      <img :src="progress.thumbnail" alt="" style="max-height: 110px;" />
+      <img :src="store.progress.thumbnail" alt="" style="max-height: 110px;" />
     </div>
+    
+    <div class="footnote">
+      Keep this tab and the browser window on top until the extraction is completed.
+    </div>
+    
   </div>
 </template>
 
@@ -50,87 +61,30 @@ export default {
   name: "scrapingProgress",
   data() {
     return {
+      store: this.$store.state,
       imageSources: {
-        logo: browser.runtime.getURL(
-          "assets/images/audible-library-extractor-logo.svg"
-        ),
+        logo: browser.runtime.getURL("assets/images/audible-library-extractor-logo.svg"),
         loader: browser.runtime.getURL("assets/images/loader-64px.gif")
       },
-      progress: {
-        text: null,
-        textSuffix: null,
-        text2: null,
-        step: 0,
-        max: 0,
-        bar: false,
-        thumbnail: null
-      },
-      bigStep: {
-        title: "",
-        step: 0,
-        max: 0
-      }
     };
   },
   computed: {
     steps: function() {
-      return this.progress.step > 0
-        ? this.progress.step + " / " + this.progress.max
-        : this.progress.max;
+      return this.store.progress.step > 0 ? this.store.progress.step + " / " + this.store.progress.max : this.store.progress.max;
     },
 
     bigSteps: function() {
-      return this.bigStep.step > 0
-        ? this.bigStep.step + " / " + this.bigStep.max
-        : this.bigStep.max;
+      return this.store.bigStep.step > 0 ? this.store.bigStep.step + " / " + this.store.bigStep.max : this.store.bigStep.max;
+    },
+    
+    subSteps: function() {
+      return this.store.subStep.step > 0 ? this.store.subStep.step + " / " + this.store.subStep.max : this.store.subStep.max;
     },
 
     progressWidth: function() {
-      return { width: (this.progress.step / this.progress.max) * 100 + "%" };
+      return { width: (this.store.progress.step / this.store.progress.max) * 100 + "%" };
     }
   },
-
-  created: function() {
-    var vue = this;
-
-    this.$root.$on("update-progress", function(progress) {
-      if (progress.text) vue.progress.text = progress.text;
-      if (progress.textSuffix) vue.progress.textSuffix = progress.textSuffix;
-      if (progress.text2) vue.progress.text2 = progress.text2;
-      if (progress.step > -1) vue.progress.step = progress.step;
-      if (progress.max > -1) vue.progress.max = progress.max;
-      if (progress.bar) vue.progress.bar = progress.bar;
-    });
-
-    this.$root.$on("update-progress-step", function() {
-      ++vue.progress.step;
-    });
-
-    this.$root.$on("update-progress-max", function() {
-      ++vue.progress.max;
-    });
-
-    this.$root.$on("update-progress-thumbnail", function(thumbnail) {
-      vue.progress.thumbnail = thumbnail;
-    });
-
-    this.$root.$on("reset-progress", function() {
-      vue.progress.text = null;
-      vue.progress.textSuffix = null;
-      vue.progress.text2 = null;
-      vue.progress.step = 0;
-      vue.progress.max = 0;
-      vue.progress.bar = false;
-      vue.progress.thumbnail = null;
-    });
-
-    this.$root.$on("update-big-step", function(o) {
-      if (o.title) vue.bigStep.title = o.title;
-      if (o.step > -1) vue.bigStep.step = o.step;
-      if (o.stepAdd) vue.bigStep.step += o.stepAdd;
-      if (o.max > -1) vue.bigStep.max = o.max;
-    });
-  }
 };
 </script>
 
@@ -142,17 +96,37 @@ export default {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
+  text-align: center;
 }
 
 .ale-big-step {
+  display: inline-block;
+  text-align: center;
+  box-sizing: border-box;
   margin: 30px 0 25px;
+  // &.sub-step-exists {
+  //   margin-bottom: 15px;
+  // }
   h2 {
     font-size: 19px;
     line-height: 21px;
+    padding: 0px 8px 8px;
+    box-sizing: border-box;
   }
   span {
     color: #999;
   }
+}
+
+.sub-step-wrapper {
+  width: auto !important;
+  display: inline-block !important;
+  border-radius: 7px;
+  box-shadow: inset 0 3px 10px rgba(#000,.15);
+  padding: 5px 14px;
+  // margin-bottom: 15px;
+  margin-top: 15px;
+  color: #999;
 }
 
 .ale-progress {
@@ -191,5 +165,14 @@ export default {
 .ale-step-additional-info {
   font-size: 13px;
   color: #7a7a7a;
+}
+
+.footnote {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  color: #999;
+  z-index: 10;
 }
 </style>
