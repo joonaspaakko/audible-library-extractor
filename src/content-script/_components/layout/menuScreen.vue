@@ -77,7 +77,9 @@
       <div class="extract-wrapper">
         <div v-if="cannotAccessWishlist">
            <b-message type="is-warning">
-            Please re-login to access wishlist and try again: <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/login'">audible{{ domainExtension }}/login</a>
+            Try to open your
+            <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
+            After that try  to redo the extraction. <strong>The link will open in a new tab!</strong>
           </b-message>
         </div>
         <div v-else-if="extractBtnDisabled">
