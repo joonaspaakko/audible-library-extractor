@@ -1,7 +1,18 @@
 <template>
   <div class="sort-values-container">
     
-    <div v-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContents()"></div>
+    <div class="ratings" v-if="($store.getters.sortBy === 'myRating' || $store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && sortContents() !== '&nbsp;'"
+    v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
+    :content="
+      ($store.getters.sortBy !== 'myRating' && book.myRating ? ('My rating: ' + book.myRating + '<br>') : '') + 
+      ($store.getters.sortBy === 'myRating' && book.rating ? ('Average rating: ' + book.rating + '<br>') : '') + 
+      ($store.getters.sortBy === 'myRating' && book.ratings ? ('Number of ratings: ' + book.ratings + '<br>') : '') + 
+      ''
+    "
+    >
+      <star-rating :prioritizeRatingsText="$store.getters.sortBy === 'ratings'" :size="10" :rating="sortContents()" :number="true" :ratingsText="false" :ratings="($store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && book.ratings ? book.ratings : null"></star-rating>
+    </div>
+    <div v-else-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContents()"></div>
     <div v-else :class="'sort-'+$store.getters.sortBy">
       <font-awesome v-if="book.favorite" :icon="['fas', 'heart']" />
       <span v-else>&nbsp;</span>
@@ -14,11 +25,16 @@
 import timeStringToSeconds from "../../../../_mixins/timeStringToSeconds";
 import secondsToTimeString from "../../../../_mixins/secondsToTimeString";
 import progressbarWidth from "../../../../_mixins/progressbarWidth";
+import starRating from '@output-comps/snippets/starRatings';
 
 export default {
   name: "sortValues",
   props: ["book"],
   mixins: [timeStringToSeconds, secondsToTimeString, progressbarWidth],
+  components: {
+    starRating,
+  },
+  
   data: function() {
     return {
       // notAvailable: "N/A"
@@ -87,8 +103,9 @@ export default {
           break;
         case "rating":
           if ( this.book.ratings ) {
-            const ratings = this.book.ratings ? " <small>("+ this.book.ratings +")</small>" : "";
-            return this.book[sortKey] + ratings;
+            // const ratings = this.book.ratings ? " <small>("+ this.book.ratings +")</small>" : "";
+            // return this.book[sortKey] + ratings;
+            return this.book[sortKey];
           }
           else {
             return this.notAvailable;
@@ -96,8 +113,9 @@ export default {
           break;
         case "ratings":
           if ( this.book.rating ) {
-            const rating = this.book.rating ? " <small>(" + this.book.rating + ")</small>" : "";
-            return this.book[sortKey] + rating;
+            // const rating = this.book.rating ? " <small>(" + this.book.rating + ")</small>" : "";
+            // return this.book[sortKey] + rating;
+            return this.book.rating;
           }
           else {
             return this.notAvailable;
@@ -310,4 +328,113 @@ export default {
     }
   }
 }
+
+.sort-values-container .ratings {
+  padding-left: 0 !important;
+  padding-right: 0 !important;
+  .prioritize-ratings-text {
+    .text-label   { color: #a1a1a1; line-height: 10px; }
+    .rating-count { color: #fff; }
+  }
+}
+
+
+@media ( max-width: 690px ) {
+  .sort-values-container {
+    .sRatings-wrapper {
+      [data-star] {
+        margin-left: 1px !important;
+      }
+      .text-label {
+        margin-left: 2px !important;
+        font-size: 12px !important;
+      }
+      .rating-count {
+        margin-left: 2px !important;
+      }
+      &.prioritize-ratings-text {
+        .text-label {
+          font-size: 13px !important;
+        }
+        .rating-count {
+          margin-right: 2px !important;
+          font-size: 12px !important;
+        }
+      }
+    }
+  }
+}
+
+
+@media ( max-width: 530px ) {
+  .sort-values-container {
+    .sRatings-wrapper {
+      [data-star] {
+        margin-left: 1px !important;
+      }
+    }
+  }
+}
+
+@media ( max-width: 504px ) {
+  .sort-values-container {
+    .sRatings-wrapper {
+      [data-star] {
+        margin-left: 2px !important;
+      }
+      .text-label {
+        margin-left: 5px !important;
+        font-size: 13px !important;
+      }
+      .rating-count {
+        margin-left: 5px !important;
+      }
+      &.prioritize-ratings-text {
+        .text-label {
+          font-size: 13px !important;
+        }
+        .rating-count {
+          margin-right: 5px !important;
+          font-size: 13px !important;
+        }
+      }
+    }
+  }
+}
+
+
+@media ( max-width: 389px ) {
+  .sort-values-container {
+    .sRatings-wrapper {
+      [data-star] {
+        margin-left: 0px !important;
+      }
+      .text-label {
+        margin-left: 2px !important;
+        font-size: 12px !important;
+      }
+      .rating-count {
+        margin-left: 2px !important;
+      }
+      &.prioritize-ratings-text {
+        .text-label {
+          font-size: 13px !important;
+        }
+        .rating-count {
+          margin-right: 2px !important;
+          font-size: 12px !important;
+        }
+      }
+    }
+  }
+}
+
+@media ( max-width: 350px ) {
+  .sort-values-container {
+    .sRatings-wrapper {
+      [data-star] { display: none; }
+    }
+  }
+}
+
 </style>
