@@ -310,6 +310,25 @@ const store = new Vuex.Store({
       
     },
     
+    // updateBook: function( state, config ) {
+      
+    //   console.log( 'jupdateBook', config.book );
+      
+    //   const index = _.findIndex( state.covers, { asin: config.book.asin });
+    //   if ( index < 0 ) return;
+      
+    //   let newValue = (config.book.scale || 1);
+    //   if ( newValue === config.changes.max ) {
+    //     newValue = 1;
+    //   }
+    //   else {
+    //     newValue += config.changes.add;
+    //   }
+      
+    //   _.set( state, 'covers['+ index +'].' + config.changes.key, newValue );
+      
+    // },
+    
   },
   getters: {
     

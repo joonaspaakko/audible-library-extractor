@@ -1,17 +1,14 @@
 <template>
-  <div v-if="!tag" :class="{ mounted: intersected }">
+  <component :is="tag || 'div'" :class="{ mounted: intersected }">
     <slot v-if="intersected" />
-  </div>
-  <td v-else-if="tag === 'td'" :class="{ mounted: intersected }">
-    <slot v-if="intersected" />
-  </td>
+  </component>
 </template>
 
 <script>
 
 export default {
   name: "lazy",
-  props: ['row', 'tag'],
+  props: ['tag'],
   data: function() {
     return {
       observer: null, 

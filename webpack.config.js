@@ -129,7 +129,7 @@ const config = {
     }),
   ],
   optimization: {
-    chunkIds: 'named',
+    chunkIds: 'natural', // 'named'
   },
 };
 

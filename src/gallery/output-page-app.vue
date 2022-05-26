@@ -4,6 +4,8 @@
     <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
     <ale-navigation :key="'nav-'+$route.name+'-'+$store.state.routeParams+'-'+$store.state.viewRefresh"></ale-navigation>
     
+    <!-- <extension-gallery-toolbar /> -->
+    
     <router-view v-if="$route.name !== '404'" :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.viewRefresh"></router-view>
     <div v-else id="nothing-here-404">
       <h3 v-if="$store.getters.searchIsActive && !$store.state.searchCollection.length">Search: no results</h3>
@@ -16,6 +18,7 @@
 <script>
 import aleNavigation from "./_components/aleNavigation";
 import aleBackground from "./_components/aleBackground";
+// import extensionGalleryToolbar from "./_components/extension-gallery-toolbar.vue";
 // import aleBreadcrumbs from "./_components/aleBreadcrumbs";
 
 export default {
@@ -23,6 +26,7 @@ export default {
     // aleBackground: () => import('./_components/aleBackground'),
     aleBackground,
     aleNavigation,
+    // extensionGalleryToolbar,
     // aleBreadcrumbs
   },
   data: function() {

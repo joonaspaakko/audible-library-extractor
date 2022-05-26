@@ -15,8 +15,8 @@ import {
 } from "lodash";
 
 export default new Vuex.Store({
-
   state: {
+    canceledRequests: [],
     progress: {
       text: null,
       textSuffix: null,
@@ -79,6 +79,10 @@ export default new Vuex.Store({
       state.progress.bar = false;
       state.progress.thumbnail = null;
       
+    },
+    
+    pushToCanceledRequests: function( state, value ) {
+      state.canceledRequests.push( value );
     },
     
   }

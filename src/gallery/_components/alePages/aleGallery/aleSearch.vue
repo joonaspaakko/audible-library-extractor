@@ -42,6 +42,29 @@
       
     </div> <!-- #ale-search-wrap -->
     
+    <div class="autocomplete" v-if="useAutocomplete && autocompleteResults && autocompleteResults.length">
+      <div class="header-wrapper">
+        <div class="title">Autocomplete: </div>
+        <div 
+        class="header" :class="{ active: item.active }"
+        v-for="item in autocompleteResults" :key="item.key+'-header'" 
+        @click="active_ac_item( item )"
+        >
+          <div>{{ item.name }}</div>
+        </div>
+      </div>
+      <div class="content-wrapper" v-for="item in autocompleteResults" :key="item.key" v-if="item.active">
+          <div class="content">
+            <div v-for="book in item.books" @click="searchAutocompleteResult(  book )">
+            <!-- <label> -->
+              <!-- <input type="checkbox" > -->
+              <span>{{ book.match.value }}</span>
+            <!-- </label> -->
+          </div>
+        </div>
+      </div>
+    </div>
+    
   </div>
 </template>
 
@@ -71,16 +94,17 @@ export default {
       fuse: null,
       // Defaults
       fuseOptions: {
-        keys: ["title"],
+        keys: [],
         location: 0,
-        distance: 350,
-        // threshold: 0.25,
-        threshold: 0.15,
-        // ignoreLocation: true,
+        // distance: 350,
+        // threshold: 0.15,
+        threshold: 0.3,
+        ignoreLocation: true,
         shouldSort: true,
-        includeScore: false,
-        includeMatches: false,
-        useExtendedSearch: true
+        includeScore: true,
+        includeMatches: true,
+        useExtendedSearch: true,
+        minMatchCharLength: 2,
       },
 
       listName: false,
@@ -91,6 +115,8 @@ export default {
       fixedSearch: false,
       highlightSearch: false,
       readyToCloseOpts: false,
+      autocompleteResults: [],
+      useAutocomplete: false,
     };
   },
 
@@ -232,6 +258,8 @@ export default {
           vue.fuse = new Fuse.default( vue.$store.state.mutatingCollection, vue.fuseOptions );
           let result = vue.fuse.search(query);
           
+          if ( vue.useAutocomplete ) vue.autocomplete( result );
+          
           if (result.length > 0) {
             result = _.map(result, function(o) {
               return o.item;
@@ -249,6 +277,70 @@ export default {
       }
       
     }, 270, { leading: false, trailing: true }),
+    
+    autocomplete: function( result ) {
+      
+      const vue = this;
+      let sections = _.map( JSON.parse(JSON.stringify(this.aliciaKeys)), function( o, index ) {
+        o.key = o.name;
+        o.name = o.name.replace('.name', '');
+        o.active = index < 1;
+        return o;
+      });
+      
+      _.each( result, function( item ) {
+        _.each( item.matches, function( match ) {
+          
+          const targetSection = _.find( sections, { key: match.key });
+          targetSection.books = targetSection.books || [];          
+          targetSection.books.push({
+            item: item.item,
+            match: match,
+            refIndex: item.refIndex,
+            score: item.score,
+          });
+          
+        });
+      });
+      
+      sections = _.filter( sections, 'books');
+      
+      _.each( sections, function( section, i ) {
+        section.books = _.uniqBy( section.books, 'match.value');
+        section.books = section.books.slice(0,5);
+        if ( section.books.length < 2 ) sections[i] = null;
+        section.active = false;
+      });
+      
+      sections = _.compact( sections );
+      if ( sections.length ) sections[0].active = true;
+      
+      console.log('serctions', sections);
+      
+      // sections = _.orderBy( sections, function( sect ) {
+      //   return _.minBy( sect.books, 'score' ).score;
+      // }, 'asc');
+      
+      this.autocompleteResults = sections;
+      
+      console.log( sections );
+      
+    },
+    
+    active_ac_item: function( item ) {
+      _.each( this.autocompleteResults, function( o ) {
+        o.active = false;
+      });
+      item.active = true;
+    },
+    
+    searchAutocompleteResult: function( book ) {
+      
+      const searchQuery = book.match.value;
+      this.$store.commit('prop', { key: 'searchQuery', value: `"${searchQuery}"` });
+      this.search();
+      
+    },
     
     searchEnterBlur: _.debounce( function(e) {
       this.$refs.searchInput.blur();
@@ -293,9 +385,7 @@ export default {
       const hasAmpersand = query.match(/&/);
       const hasAnd = query.match(/ ?and ?/);
       if (hasAmpersand) {
-        newQuery = query + "|" + query.replace("&", "and");
-      } else if (hasAnd) {
-        newQuery = query + "|" + query.replace("and", "&");
+        newQuery = query + "|" + query.replace("&", "");
       } else {
         newQuery = query;
       }
@@ -325,14 +415,14 @@ export default {
         ["active", true]
       );
       return _.map(filteredKeys, function(item) {
-        if (item.active) return item.key;
+        return { name: item.key, weight: item.weight || 0 };
       });
     },
 
     placeholder: function() {
       const placeholderKeys = (function(keys) {
         return _.map(keys, function(key) {
-          return key.replace(".name", "");
+          return key.name.replace(".name", "");
         }).join(", ");
       })(this.aliciaKeys);
 
@@ -516,6 +606,61 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
+}
+
+.autocomplete {
+  @include themify($themes) {
+    color: themed( frontColor );
+    max-width: 600px;
+    margin: 0 auto;
+    margin-bottom: 30px;
+    padding: 10px;
+    border-radius: 15px;
+    border: 1px solid themed( frontColor );
+    @extend .no-selection;
+  }
+  
+  .header-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 5px;
+    .title {
+      font-weight: bold;
+    }
+    .header {
+      cursor: pointer;
+      padding: 2px 6px;
+      margin: 2px;
+      &.active {
+        @include themify($themes) {
+          color: themed(audibleOrange);
+        }
+      }
+    }
+  }
+  .content-wrapper {
+    cursor: pointer;
+    display: block;
+    padding: 5px;
+    .search-highlight {
+      @include themify($themes) {
+        background: rgba( themed(audibleOrange), .4);
+        color: #ffff;
+      }
+    }
+  }
+}
+
+.theme-light .autocomplete {
+  background: #fff;
+  box-shadow: 0 3px 15px rgba(#000, 0.2);
+}
+
+.theme-dark .autocomplete {
+  background: lighten( #121517, 4);
+  box-shadow: 0 3px 15px rgba(#000, 1);
 }
 
 </style>

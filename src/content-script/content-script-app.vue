@@ -464,6 +464,7 @@ export default {
     goToOutputPage: function(hotpotato) {
       
       // console.log('goToOutputPage', hotpotato);
+      // console.log( this.$store.state.canceledRequests );
       // return;
       
       let vue = this;

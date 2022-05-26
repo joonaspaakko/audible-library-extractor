@@ -9,18 +9,20 @@ export default {
     
     amapxios: function(options) {
       
+      const vue = this;
       const limiter = options.rateLimit || 50;
-      const timeout = this.minutesToMilliseconds(1);
+      const maxTimeout = this.minutesToMilliseconds(1);
       
       // AXIOS
       let cAxios = axios.create();
       // AXIOS RETRY
       axiosRetry(cAxios, {
         retries: 1,
-        retryDelay: function(retryCount) { return 1000 * retryCount; },
+        retryDelay: function(retryCount) { return 3000 * retryCount; },
         retryCondition: function(error) {
-          return axiosRetry.isNetworkOrIdempotentRequestError(error) || error && error.response && ( error.response.status == "500" || error.response.status == "400" || error.response.status == "429" );
-        }
+          return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.code === 'ECONNABORTED';
+        },
+        shouldResetTimeout: true,
       });
       // AXIOS RATE LIMIT
       cAxios = rateLimit(cAxios, { maxRPS: limiter });
@@ -42,32 +44,48 @@ export default {
           
           let requestTimer = setTimeout(() => {
             controller.abort('Request took too long... ('+ requestURL +')');
-          }, timeout);
+          }, maxTimeout );
           
-          cAxios.get(requestURL, axiosConfig).then(function(response) {
-              
-            clearTimeout(requestTimer); // Request succeeded: keep alive
+          let requestResult = null;
+          cAxios.get(requestURL, axiosConfig)
+          // SUCCESS
+          .then(function(response) {
             
-            options.step( response,function(result) {
-              stepCallback(null, result);
-            }, request );
-            
-          })
-          .catch(function(e) {
-            
-            clearTimeout(requestTimer); // Request succeeded: keep alive
-            
-            console.log( "%c" + "axios caught an error (step)" + "", "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;", '\n', requestURL, '\n', e );
-            if ( options.returnCatch ) {
-              options.step( e.response, function(result) {
-                stepCallback(null, result);
-              }, request, 'processingError' );
-            } 
-            else {
-              stepCallback(null, null);
+            try {
+              options.step( response, function(result) {
+                requestResult = result;
+              }, request );
+            } catch(e) {
+              console.log( "%c" + "axios caught an error (step)" + "", "background: #0082ab; color: #fff; padding: 2px 5px; border-radius: 8px;", e );
             }
             
-            });
+          })
+          // FAILURE
+          .catch(function(e) {
+            
+            
+            console.log( "%c" + "axios caught an error (step)" + "", "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;", '\n\n', requestURL, '\n\n', e );
+            
+            if ( _.get( e, 'message') === 'canceled' ) vue.$store.commit('pushToCanceledRequests', requestURL);
+            
+            try {
+              if ( options.returnCatch ) {
+                options.step( _.get( e, 'response', e), function(result) {
+                  requestResult = result;
+                }, request, 'processingError' );
+              }
+            } catch(e) {
+              console.log( "%c" + "axios caught an error (step)" + "", "background: #0082ab; color: #fff; padding: 2px 5px; border-radius: 8px;", e );
+            }
+            
+          })
+          // ALWAYS
+          .then(function() {
+            
+            clearTimeout(requestTimer); // Request succeeded: keep alive
+            stepCallback(null, requestResult);
+            
+          });
             
         },
         function(err, results) {

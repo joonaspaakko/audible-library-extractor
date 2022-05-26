@@ -1,7 +1,8 @@
 <template>
   <tr class="ale-row-inner" @click="$root.$emit('book-clicked', { book })">
     
-    <td
+    <lazy
+    tag="td"
     v-for="col in columns"
     :key="col.key"
     class="ale-col"
@@ -20,7 +21,7 @@
 
         <span class="text-container"> {{ col.text || "&nbsp;" }}</span>
       </div>
-    </td>
+    </lazy>
     
   </tr>
 </template>
@@ -111,14 +112,26 @@ export default {
             break;
 
           case "bookNumbers":
-            let allNumbers = _.filter(vue.book.series, "bookNumbers");
-            allNumbers = _.map(allNumbers, "bookNumbers");
-            allNumbers = _.flatten(allNumbers);
-            if (_.isEmpty(allNumbers)) allNumbers = null;
-            else if (_.isArray(allNumbers)) {
-              allNumbers = allNumbers.join(", ");
+            if ( !vue.book.series ) {
+              col.text = '';
             }
-            col.text = vue.book.series ? (allNumbers || '∞') : '';
+            else {
+              console.log( vue.book.series )
+              let allNumbers = vue.book.series.filter(function( o ) { return o.bookNumbers; });
+                  allNumbers = allNumbers.map(function( o ) { return o.bookNumbers; });
+                  allNumbers = allNumbers.join(", ");
+                  
+              col.text = allNumbers || '∞';
+              
+              // let allNumbers = _.filter(vue.book.series, "bookNumbers");
+              // allNumbers = _.map(allNumbers, "bookNumbers");
+              // allNumbers = _.flatten(allNumbers);
+              // if (_.isEmpty(allNumbers)) allNumbers = null;
+              // else if (_.isArray(allNumbers)) {
+              //   allNumbers = allNumbers.join(", ");
+              // }
+              // col.text = vue.book.series ? (allNumbers || '∞') : '';
+            }
             break;
           
           case "isbn10":

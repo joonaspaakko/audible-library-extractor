@@ -189,7 +189,8 @@ export default {
           if ( collectionIds ) collectionIds = collectionIds.replace(/^\[/, '').replace(/\]$/, '').trim();
           if ( collectionIds ) collectionIds = collectionIds.split(', ');
           if ( collectionIds && collectionIds.length > 0 ) {
-            _.remove( collectionIds, function( value ) { return value === '__PENDING' || value.trim() === ''; });
+            const ignoreCollections = ['', '__PENDING', '__PURCHASE'];
+            _.remove( collectionIds, function( value ) { return _.includes( ignoreCollections, value.trim() ); });
             if ( collectionIds.length > 0 ) book.collectionIds = collectionIds;
           }
           

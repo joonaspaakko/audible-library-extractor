@@ -62,7 +62,7 @@
             <draggable v-else v-model="usedCovers" group="covers" @end="draggingEnded" :style="canvasAlignment">
               <div 
               class="cover"
-              v-for="book in usedCovers" :key="book.asin"
+              v-for="(book, index) in usedCovers" :key="book.asin"
               @mouseover="coverHover"
               @mouseleave="coverHover"
               >
@@ -369,7 +369,19 @@ export default {
       this.panningAlert = hover;
       
     },
-
+    
+    // coverDoubleClick: function( book ) {
+      
+    //   this.$store.commit('updateBook', { 
+    //     book, 
+    //     changes: { 
+    //       key: 'scale', 
+    //       add: 1, 
+    //       max: 3 
+    //     }, 
+    //   });
+      
+    // },
     
   },
   

@@ -128,7 +128,7 @@ export default {
       }
       
       function moveOn() {
-        
+        console.log('%c' + 'SERIES FETCHED' + '', 'border: 1px dashed #f41b1b; color: #f41b1b; padding: 2px 5px; border-radius: 8px;');
         resetProgress();
         vue.$nextTick(function() {
           seriesFetched(null, hotpotato);
@@ -145,7 +145,7 @@ export default {
       const vue = this;
       vue.amapxios({
         requests: requests,
-        limiter: 100,
+        // limiter: 100,
         step: function(response, stepCallback, request) {
           
           request.pageNumbers = vue.getPageNumbers( response );
@@ -291,6 +291,7 @@ export default {
                   
                 })( hotpotato.books, request.asin, aBook.asin );
               }
+              
               // IF a book doesn't have a number, make it the infinity symbol...
               if ( !aBook.bookNumbers ) aBook.bookNumbers = '∞';
               
@@ -301,6 +302,17 @@ export default {
           }
           
           vue.$store.commit('update', { key: 'progress.step', add: 1 });
+          
+          // // Final attempt at finding missing numbers by checking series pages:
+          // let missingNumbers = _.filter( series.allBooks, { bookNumbers: '∞' });
+          // if ( missingNumbers.length > 0 ) {
+          //   console.log('Fetch missing numbers (BEFORE)')
+          //   vue.fetchMissingNumbers( missingNumbers, series, stepCallback );
+          // }
+          // else {
+          //   vue.$store.commit('update', { key: 'progress.step', add: 1 });
+          //   stepCallback(series);
+          // }
           stepCallback(series);
           
         },
@@ -343,7 +355,7 @@ export default {
       vue.amapxios({
         requests: booksWithMissingNumber,
         returnCatch: true,
-        limiter: 100,
+        // limiter: 100,
         step: function(response, stepCallback, request) {
           
           let seriesBook = null;
@@ -387,6 +399,63 @@ export default {
           });
           
           waterfallback(null, series);
+        }
+      });
+      
+    },
+    
+    
+    fetchMissingNumbers: function( missingNumbers, series, parentStepCallback ) {
+      
+      let vue = this;
+      vue.amapxios({
+        requests: _.map( missingNumbers, function( book ) { 
+          return { 
+            requestUrl: window.location.origin +'/pd/'+ book.asin, 
+            seriesAsin: series.asin,
+            bookAsin: book.asin,
+          };
+        }),
+        step: function(response, stepCallback, request) {
+          
+          let seriesBook = null;
+          const responseStatus = _.get( response, 'status', 0);
+          if ( responseStatus >= 200 && responseStatus < 400 ) {
+            let html = $($.parseHTML(response.data));
+            let audible = html.find("div.adbl-main")[0];
+            html = null;
+            if ( audible && audible.querySelector('[id^="sample-player-"] > button') ) {
+              
+              const serieslEl = audible.querySelector(".seriesLabel");
+              let bookSeries = vue.getSeries( serieslEl );
+              if ( bookSeries ) bookSeries = _.find(bookSeries, { asin: request.seriesAsin });
+              const bookNumbers = _.get( bookSeries, 'bookNumbers' );
+              if ( bookNumbers ) {
+                seriesBook = {
+                  seriesAsin: request.seriesAsin,
+                  asin: request.bookAsin, 
+                  bookNumbers: _.isArray(bookNumbers) ? bookNumbers.join(',') : bookNumbers,
+                };
+              }
+              
+            }
+          }
+          
+          console.log('missing numbers step done!');
+          stepCallback(seriesBook);
+          
+        },
+        flatten: true,
+        done: function( newBooks ) {
+          
+          _.each( newBooks, function( newBook ) {
+            let targetBook = _.find( series.allBooks, { asin: newBook.asin });
+            if ( targetBook ) targetBook.bookNumbers = newBook.bookNumbers;
+          });
+          console.log('Fetched missing numbers!');
+          vue.$store.commit('update', { key: 'progress.step', add: 1 });
+          parentStepCallback(series);
+          
         }
       });
       

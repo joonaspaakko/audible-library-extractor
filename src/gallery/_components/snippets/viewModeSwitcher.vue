@@ -1,5 +1,8 @@
 <template>
-  <div id="view-mode-switcher" :class="{ 'no-style': justIcon }" @click="changeViewMode">
+  <div id="view-mode-switcher" :class="{ 'no-style': justIcon }" @click="changeViewMode"
+  v-tippy="{ allowHTML: true, }"
+  :content="'Change to <strong>' + (sticky.viewMode === 'grid' ? 'spreadsheet' : 'grid')  + '</strong> view'"
+  >
     
     <font-awesome class="icon" v-if="sticky.viewMode === 'grid'"             :icon="['fas', 'table']" />
     <font-awesome class="icon" v-else-if="sticky.viewMode === 'spreadsheet'" :icon="['fas', 'th']"    />

@@ -7,35 +7,57 @@ export default {
       let list = {
         scope: [{
             active: true,
-            key: 'title'
+            key: 'title',
+            // weight: 2,
+            weight: 1,
           },
           {
             active: true,
-            key: 'authors.name'
+            key: 'authors.name',
+            // weight: .9,
+            weight: 1,
           },
           {
             active: true,
-            key: 'narrators.name'
+            key: 'narrators.name',
+            // weight: .9,
+            weight: 1,
           },
           {
             active: true,
-            key: 'series.name'
+            key: 'series.name',
+            // weight: .8,
+            weight: 1,
           },
           {
             active: false,
-            key: 'categories.name'
+            key: 'categories.name',
+            // weight: .2,
+            weight: 1,
           },
           {
             active: false,
-            key: 'tags.name'
+            key: 'tags.name',
+            // weight: .2,
+            weight: 1,
           },
           {
             active: false,
-            key: 'publishers.name'
+            key: 'publishers.name',
+            // weight: .2,
+            weight: 1,
           },
           {
-            active: true,
-            key: 'blurb'
+            active: false,
+            key: 'blurb',
+            // weight: .5,
+            weight: 1,
+          },
+          {
+            active: false,
+            key: 'summary',
+            // weight: .4,
+            weight: 1,
           },
         ],
         filter: [{
