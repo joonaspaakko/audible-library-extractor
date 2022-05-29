@@ -584,8 +584,8 @@ export default {
 .awp-float,
 .awp-float .grid-inner-wrap {
   display: flex !important;
-  align-content: flex-start !important;
-  align-items: flex-start !important;
+  align-content: flex-start;
+  align-items: flex-start;
 }
 
 #canvas-bg-color,

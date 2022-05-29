@@ -3,12 +3,16 @@
 :class="{ 
   'loader-bg': !afterMounted, 
   'reveal-covers': showLoadInClass,
-  'dropped-overflowing-row': covers.dropOverflowingRow
+  'dropped-overflowing-row': covers.dropOverflowingRow,
+  'in-editor': editorCovers,
+  'not-in-editor': !editorCovers,
 }"
+ :style="!editorCovers ? canvasStyle : null"
 >
-  <div id="awp-inner-wrap" v-if="afterMounted" :style="!editorCovers ? canvasStyle : null">
+  <div id="awp-inner-wrap" v-if="afterMounted">
     <component is="style">
-      #awp {
+      {{ editorCovers ? '#awp' : '#awp-inner-wrap' }} {
+        {{ editorCovers ? '' : 'display: flex;' }}
         align-items: {{ canvas.alignmentVertical }} !important;
       }
       #awp .cover {
@@ -21,9 +25,11 @@
         {{ canvas.grayscale ? 'filter: grayscale(1) contrast('+ canvas.grayscaleContrast +');' : '' }}
       }
     </component>
-    <div class="cover" ref="cover" v-for="(cover, index) in covers.visible" :key="index">
-      <img :src="cover" alt="" draggable="false" class="cover-one">
-      <img :src="cover" alt="" draggable="false" class="cover-two hide">
+    <div>
+      <div class="cover" ref="cover" v-for="(cover, index) in covers.visible" :key="index">
+        <img :src="cover" alt="" draggable="false" class="cover-one">
+        <img :src="cover" alt="" draggable="false" class="cover-two hide">
+      </div>
     </div>
   </div>
 </div>
@@ -377,6 +383,14 @@ html, body, #awp {
 
 #awp-inner-wrap {
   display: inline-block;
+}
+
+.not-in-editor {
+  #awp-inner-wrap {
+    overflow: hidden;
+    width: 100%;
+    height: 100%;
+  }
 }
 
 @import "loader-bg.scss";
