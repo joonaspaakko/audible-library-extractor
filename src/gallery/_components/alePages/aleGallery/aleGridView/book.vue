@@ -51,7 +51,7 @@
           <div><font-awesome fas icon="book" /></div>
         </div>
         
-        <div v-if="!book.cover" class="placeholder-cover">
+        <div v-if="!book.cover || false" class="placeholder-cover">
           <div class="cover-content">
             <div class="title" v-if="book.titleShort || book.title">{{ book.titleShort || book.title }}</div>
             <div class="author" v-if="book.authors">{{ book.authors[0].name }}</div>
@@ -192,8 +192,12 @@ export default {
     display: block;
     width: 100%;
     height: auto;
-    // width: $thumbnailSize;
-    // height: $thumbnailSize;
+    // Fitting oversized images in the grid (The grid wasn't broken, the cover was just overflowing...)
+    // Examle image https://m.media-amazon.com/images/I/41TXZZ024QL._SL500_.jpg
+    // Book https://www.audible.com/pd/Krondor-Tear-of-the-Gods-Audiobook/0061124117
+    object-fit: contain; 
+    height: 100%;
+    //  -----------
     -webkit-user-drag: none;
     -khtml-user-drag: none;
     -moz-user-drag: none;

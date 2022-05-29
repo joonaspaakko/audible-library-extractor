@@ -168,6 +168,7 @@ export default {
     &, img {
       width: 27px;
       height: 27px;
+      object-fit: contain;
     }
   }
 }

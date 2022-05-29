@@ -591,6 +591,7 @@ export default {
         display: block;
         width: 280px;
         height: 280px;
+        object-fit: contain;
       }
       .progressbar {
         position: absolute;
