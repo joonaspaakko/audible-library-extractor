@@ -4,28 +4,31 @@
   ref="bookDetails"
   v-shortkey.once="['esc']"
   @shortkey="closeBookDetails"
-  :class="{ 'spreadsheet-details': $store.state.sticky.viewMode === 'spreadsheet' }"
+  :class="{ 'spreadsheet-details': sticky.viewMode === 'spreadsheet' }"
   > 
-    <div v-if="$store.state.sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
+  
+    <div v-if="sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
     <div
     id="book-info-container"
     v-shortkey.once="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'], tab: ['tab'], tabShift: ['tab', 'shift'] }"
+    :class="{ 'book-detail-settings-open': store.bookDetailSettingsOpen }"
     @shortkey="openAdjacentBookDetails"
     >
     
-      <div class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
+      <div class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
         
-        <font-awesome class="book-details-info" :icon="['fas', 'info-circle']" v-tippy="{ placement: 'left', flipBehavior: ['left', 'right'], allowHTML: true }" content="<div style='text-align: left;'><h3 style='margin: 0; padding-top: 10px; padding-left: 15px;'>Shortcuts</h3><ul><li><strong>Close:</strong> Esc</li><li><strong>Move to adjacent book:</strong> arrow keys</li></ul></div>" />
+        <font-awesome class="book-details-info" :icon="['fas', 'cog']" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
+        <book-details-settings v-if="store.bookDetailSettingsOpen" />
         
-        <div class="top">
-          <div class="information" ref="information">
+        <div class="top details-wrap">
+          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show">
             
             <div class="collapse-btn" 
-            v-if="$store.state.windowWidth > 688"
-            v-tippy :content="(!$store.state.sticky.bookDetailsCollapsedCover ? 'Collapse' : 'Expand') + ' cover image.'"
+            v-if="store.windowWidth > 688"
+            v-tippy :content="(!sticky.bookDetailsCollapsedCover ? 'Collapse' : 'Expand') + ' cover image.'"
             :style="{ top: '5px' }"
             @click="collapseBtnClicked('bookDetailsCollapsedCover')">
-              <font-awesome fas :icon="!$store.state.sticky.bookDetailsCollapsedCover ? 'chevron-up' : 'chevron-down'" />
+              <font-awesome fas :icon="!sticky.bookDetailsCollapsedCover ? 'chevron-up' : 'chevron-down'" />
             </div>
             
             <div class="cover-wrap">
@@ -38,7 +41,7 @@
                 <img 
                   crossorigin="anonymous"
                   class="cover"
-                  v-if="!$store.state.sticky.bookDetailsCollapsedCover && book.cover && $store.state.windowWidth > 688"
+                  v-if="!sticky.bookDetailsCollapsedCover && book.cover && store.windowWidth > 688"
                   :src="makeCoverUrl(book.cover)"
                 />
               </a>
@@ -48,35 +51,38 @@
             <div class="basic-details">
               
               <div class="collapse-btn" 
-              v-tippy :content="(!$store.state.sticky.bookDetailsCollapsedDetails ? 'Collapse' : 'Expand') + ' book details.'"
-              :style="{ top: !$store.state.sticky.bookDetailsCollapsedDetails ? '25px' : '-10px' }" 
+              v-tippy :content="(!sticky.bookDetailsCollapsedDetails ? 'Collapse' : 'Expand') + ' book details.'"
+              :style="{ top: !sticky.bookDetailsCollapsedDetails ? '25px' : '-10px' }" 
               @click="collapseBtnClicked('bookDetailsCollapsedDetails')">
-                <font-awesome fas :icon="!$store.state.sticky.bookDetailsCollapsedDetails ? 'chevron-up' : 'chevron-down'" />
+                <font-awesome fas :icon="!sticky.bookDetailsCollapsedDetails ? 'chevron-up' : 'chevron-down'" />
               </div>
               
-              <book-info-toolbar :book="book"></book-info-toolbar>
-              <book-basic-info :book="book" v-if="!$store.state.sticky.bookDetailsCollapsedDetails"></book-basic-info>
+              <book-info-toolbar :book="book" v-if="sticky.bookDetailSettings.sidebar.iconToolbar"></book-info-toolbar>
+              <book-basic-info :book="book" v-if="!sticky.bookDetailsCollapsedDetails"></book-basic-info>
             </div>
             
-            <collections-drawer :book="book" />
+            <collections-drawer :book="book" v-if="sticky.bookDetailSettings.sidebar.seriesList" />
             
-            <books-in-series :book="book" />
+            <books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
 
           <book-summary v-if="$el" :detailsEl="$el" :book="book" :bookSummary="bookSummaryJSON"></book-summary>
         </div>
 
-        <carousel v-if="!loading && (peopleAlsoBought && peopleAlsoBought !== true) && !($store.state.standalone && !$store.state.siteOnline)" :books="peopleAlsoBought" :key="maxWidth">
-          <!-- People who bought this also bought: -->
-          <!-- Name changed: -->
-          Listeners also enjoyed
-        </carousel>
+        <div class="carousel-wrap">
+          <carousel v-if="sticky.bookDetailSettings.carousel && !loading && (peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :books="peopleAlsoBought" :key="maxWidth">
+            <!-- People who bought this also bought: -->
+            <!-- Name changed: -->
+            Listeners also enjoyed
+          </carousel>
+          
+          <!-- Twas removed by Audible at some point... -->
+          <!-- <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis" :key="maxWidth">
+            More listens like this
+          </carousel> -->
+        </div>
         
-        <!-- Twas removed by Audible at some point... -->
-        <!-- <carousel v-if="!loading && book.moreLikeThis" :books="book.moreLikeThis" :key="maxWidth">
-          More listens like this
-        </carousel> -->
       </div>
       <!-- .inner-wrap -->
     </div>
@@ -96,6 +102,7 @@ import carousel from "./bookDetails/carousel";
 import booksInSeries from "./bookDetails/booksInSeries";
 import bookSummary from "./bookDetails/bookSummary";
 import collectionsDrawer from "./bookDetails/collectionsDrawer.vue";
+import bookDetailsSettings from "./bookDetails/book-details-settings.vue";
 
 import makeUrl from "@output-mixins/makeFullUrl";
 
@@ -115,6 +122,7 @@ export default {
     arrayToHTML,
     bookSummary,
     collectionsDrawer,
+    bookDetailsSettings,
   },
   mixins: [
     // sortBookNumbers,
@@ -127,6 +135,8 @@ export default {
   props: ["booksWrapper"],
   data: function() {
     return {
+      store: this.$store.state,
+      sticky: this.$store.state.sticky,
       book: null,
       index: null,
       maxWidth: "unset",
@@ -140,8 +150,8 @@ export default {
 
   created: function() {
     
-    this.book = this.$store.state.bookDetails.book;
-    this.index = this.$store.state.bookDetails.index;
+    this.book = this.store.bookDetails.book;
+    this.index = this.store.bookDetails.index;
     
     this.loadJSON();
     
@@ -181,7 +191,7 @@ export default {
       return this.book.peopleAlsoBought || this.peopleAlsoBoughtJSON;
     },
     getMaxWidth: function() {
-      if ( this.$store.state.sticky.viewMode === 'spreadsheet' ) {
+      if ( this.sticky.viewMode === 'spreadsheet' ) {
         return this.maxWidth;
       }
       else {
@@ -193,7 +203,7 @@ export default {
   methods: {
     
     collapseBtnClicked: function( key ) {
-      this.$store.commit('stickyProp', { key: key, value: !this.$store.state.sticky[ key ] });
+      this.$store.commit('stickyProp', { key: key, value: !this.sticky[ key ] });
       this.$nextTick(() => {
         this.$root.$emit("resizeSummary");
       });
@@ -201,11 +211,11 @@ export default {
     
     loadJSON: function( afterError )  {
       
-      if ( this.$store.state.standalone ) {
+      if ( this.store.standalone ) {
         
         let vue = this;
         let scrpt = document.createElement("script");
-        scrpt.src = "data/split-book-data/"+ vue.book.asin +"."+ this.$store.state.library.extras.cacheID +".js";
+        scrpt.src = "data/split-book-data/"+ vue.book.asin +"."+ this.store.library.extras.cacheID +".js";
         scrpt.type="text/javascript";
         scrpt.onload = function() {
           
@@ -245,7 +255,7 @@ export default {
 
     resetScroll: function() {
       this.$nextTick(function() {
-        if ( this.$store.state.sticky.viewMode === 'grid' ) {
+        if ( this.sticky.viewMode === 'grid' ) {
           const topNav = document.querySelector('#nav-outer-wrapper.regular .inner-wrap');
           const navigationHeight = topNav ? topNav.offsetHeight : 0;
           scroll({ top: this.clickedBook.offsetTop - navigationHeight - 25 });
@@ -297,9 +307,9 @@ export default {
         info.rowEndEl.nextSibling
       );
 
-      if ( this.$store.state.sticky.viewMode !== 'spreadsheet' ) this.repositionBookDetailsArrow(target.el);
+      if ( this.sticky.viewMode !== 'spreadsheet' ) this.repositionBookDetailsArrow(target.el);
       
-      return (this.$store.state.sticky.viewMode === 'spreadsheet') ? wrapper.width-60 : (target.width * info.cols);
+      return (this.sticky.viewMode === 'spreadsheet') ? wrapper.width-60 : (target.width * info.cols);
     },
 
     repositionBookDetailsArrow: function(clickedEl) {
@@ -315,23 +325,23 @@ export default {
       let findIndex, nextBook;
       // These rely on how the book details will close if the sent book is null,
       // meaning that when you come to the end of the line it will just close the details.
-      if ( this.$store.state.sticky.viewMode === 'grid' ) {
+      if ( this.sticky.viewMode === 'grid' ) {
         switch (e.srcKey) {
           
           case "left":
           case "tabShift":
             this.$root.$emit("book-clicked", {
-              book: this.$store.state.chunkCollection[this.index - 1]
+              book: this.store.chunkCollection[this.index - 1]
             });
             break;
           case "right":
           case "tab":
             findIndex = this.index + 1;
-            nextBook = this.$store.state.chunkCollection[ findIndex ];
-            if ( findIndex > vue.$store.state.chunkCollection.length-1 ) {
+            nextBook = this.store.chunkCollection[ findIndex ];
+            if ( findIndex > vue.store.chunkCollection.length-1 ) {
               this.$store.commit('chunkCollectionAdd');
               this.$nextTick(function() {
-                nextBook = this.$store.state.chunkCollection[ findIndex ];
+                nextBook = this.store.chunkCollection[ findIndex ];
                 this.$root.$emit("book-clicked", { book: nextBook });
               });
             }
@@ -355,7 +365,7 @@ export default {
             const cols = Math.floor(wrapper.width / target.width);
             
             let getClosestTargetBook = function(index) {
-              let el = vue.$store.state.chunkCollection[ index ];
+              let el = vue.store.chunkCollection[ index ];
               if (!el) {
                 el = getClosestTargetBook(--index);
               }
@@ -369,12 +379,12 @@ export default {
             if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
             
             findIndex = e.srcKey === 'up' ? this.index-cols : this.index+cols;
-            nextBook = e.srcKey === 'up' ? vue.$store.state.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
+            nextBook = e.srcKey === 'up' ? vue.store.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
             
-            if ( findIndex > vue.$store.state.chunkCollection.length-1 ) {
+            if ( findIndex > vue.store.chunkCollection.length-1 ) {
               this.$store.commit('chunkCollectionAdd');
               this.$nextTick(function() {
-                nextBook = e.srcKey === 'up' ? vue.$store.state.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
+                nextBook = e.srcKey === 'up' ? vue.store.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
                 this.$root.$emit("book-clicked", { book: nextBook });
               });
             }
@@ -400,11 +410,11 @@ export default {
           case "down":
           case "tab":
             findIndex = this.index + 1;
-            nextBook = this.$store.state.chunkCollection[ findIndex ];
-            if ( findIndex > vue.$store.state.chunkCollection.length-1 ) {
+            nextBook = this.store.chunkCollection[ findIndex ];
+            if ( findIndex > vue.store.chunkCollection.length-1 ) {
               this.$store.commit('chunkCollectionAdd');
               this.$nextTick(function() {
-                nextBook = this.$store.state.chunkCollection[ findIndex ];
+                nextBook = this.store.chunkCollection[ findIndex ];
                 this.$root.$emit("book-clicked", { book: nextBook });
               });
             }
@@ -478,6 +488,23 @@ export default {
 
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
+
+.book-details-info {
+  position: absolute;
+  z-index: 2;
+  top: -28px;
+  right: 0px;
+  font-size: 18px;
+  cursor: pointer;
+  transition: color 200ms cubic-bezier(0, 0, 0, .1);
+  @include themify($themes) {
+    color: rgba(themed(frontColor), 0.4);
+    &.active,
+    &:hover {
+      color: themed(frontColor);
+    }
+  }
+}
 
 #ale-bookdetails {
   -webkit-user-select: text;
@@ -753,21 +780,6 @@ export default {
   }
 }
 
-.book-details-info {
-  position: absolute;
-  z-index: 2;
-  top: -25px;
-  right: 0px;
-  font-size: 18px;
-  @include themify($themes) {
-    color: rgba(themed(frontColor), 0.1);
-  }
-  
-  @media (max-width: 688px) {
-    display: none !important;
-  }
-}
-
 // Makes the collapse/expand buttons easier to work with by making it so that 
 // you can be hovering slightly outside of the information panel and still 
 // show the buttons.
@@ -811,4 +823,24 @@ export default {
     }
   }
 }
+
+.carousel-wrap {
+  width: 100%;
+}
+.book-detail-settings-open {
+  .details-wrap,
+  .carousel-wrap {
+    opacity: .2;
+    filter: blur(3px) grayscale(1);
+  }
+}
+.theme-light {
+  .book-detail-settings-open {
+    .details-wrap,
+    .carousel-wrap {
+      opacity: .4;
+    }
+  }
+}
+
 </style>

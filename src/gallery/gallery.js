@@ -355,6 +355,9 @@ import {
   faHeadphonesAlt,
   faImages,
   faGraduationCap,
+  faRandom,
+  faCog,
+  faQuestionCircle,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -421,6 +424,9 @@ library.add(
   faHeadphonesAlt,
   faImages,
   faGraduationCap,
+  faRandom,
+  faCog,
+  faQuestionCircle,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
@@ -632,8 +638,17 @@ function vuexPrep( libraryData ) {
   store.commit("fromLocalStorage");
   // Listen for sticky commits and push them to local storage
   store.subscribe(function(mutation, state) {
+    
     if ( mutation.type === "stickyProp" ) {
       localStorage.setItem("aleSettings", JSON.stringify( state.sticky ));
+    }
+    else if ( mutation.type === "prop" ) {
+      _.each( _.isArray(mutation.payload) ? mutation.payload : [mutation.payload], function( payload ) {
+        const mutationKey = _.get(payload, 'key', '');
+        const arrayFirstItem_sticky = _.get(mutationKey, '0') === 'sticky';
+        const startsWith_sticky = arrayFirstItem_sticky || !!mutationKey.match(/^sticky\./i);
+        if ( startsWith_sticky ) localStorage.setItem("aleSettings", JSON.stringify(state.sticky));
+      });
     }
   });
   

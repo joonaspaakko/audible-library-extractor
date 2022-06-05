@@ -4,7 +4,7 @@
     <sort-values v-if="sortValuesEnabled" :book="book"></sort-values>
 
     <div class="ale-cover">
-      <div class="ale-play-sample" v-if="book.sample" @click="playSample(book, index)">
+      <div class="ale-play-sample" v-if="book.sample && sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
         <div><font-awesome fas icon="play" /></div>
       </div>
 
@@ -13,30 +13,30 @@
         @click="$root.$emit('book-clicked', { book, index })"
       >
         
-        <div class="blurb-tooltip" v-if="book.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
+        <div class="blurb-tooltip" v-if="book.blurb && sticky.bookDetailSettings.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
       
         <div class="info-icons-wrapper">
           <!-- FAVORITE -->
-          <div class="favorite-marker" v-if="book.favorite">
+          <div class="favorite-marker" v-if="book.favorite && sticky.bookDetailSettings.favorite">
             <span><font-awesome fas icon="heart" /></span>
             <span>favorite</span>
           </div>
 
           <!-- BOOK IS FINISHED -->
-          <div class="finished-marker" v-if="book.progress === 'Finished'">
+          <div class="finished-marker" v-if="book.progress === 'Finished' && sticky.bookDetailSettings.finished">
             <span><font-awesome fas icon="check" /></span>
             <span>finished</span>
           </div>
 
           <!-- FROM PLUS CATALOG -->
-          <div class="plus-catalog-marker" v-if="book.fromPlusCatalog">
+          <div class="plus-catalog-marker" v-if="book.fromPlusCatalog && sticky.bookDetailSettings.plusCatalog">
             <span v-if="book.unavailable"><font-awesome fas icon="lock" /></span>
             <span v-else><font-awesome fas icon="plus-circle" /></span>
             <span>catalog</span>
           </div>
           
           <!-- IN KINDLE -->
-          <div class="kindle-marker" v-if="book.whispersync === 'owned'">
+          <div class="kindle-marker" v-if="book.whispersync === 'owned' && sticky.bookDetailSettings.whispersync">
             
             <span><font-awesome :icon="['fas', 'headphones-alt']" /></span>
             <span>In my kindle</span>
@@ -75,7 +75,12 @@ export default {
   components: {
     'sort-values': () => import( /* webpackChunkName: "sort-values" */ './aleSortValues.vue'),
   },
-
+  data: function() {
+    return {
+      store: this.$store.state,
+      sticky: this.$store.state.sticky,
+    };
+  },
   methods: {
     // imageAlt: function(book, index) {
     //   return book.authors[0].name + " - " + book.title;

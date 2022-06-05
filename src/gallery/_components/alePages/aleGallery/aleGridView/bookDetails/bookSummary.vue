@@ -8,13 +8,15 @@
     paddingBottom: summary.readmore.toggle ? '40px' : '0px'
   }"
   >
+    
     <div class="book-summary" ref="summary">
       
       <div class="summary-meta-top" ref="summaryMetaTop">
-          
+        
         <h2 class="book-title">
           <a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener noreferrer">
-            {{ book.title }}
+            <span v-if="!$store.state.sticky.bookDetailSettings.titleShort">{{ book.title || book.titleShort }}</span>
+            <span v-else>{{ book.titleShort || book.title }}</span>
           </a>
         </h2>
         
@@ -131,6 +133,7 @@ export default {
       } else {
         // this.$nextTick(function() {
           const information = this.detailsEl.querySelector('.information');
+          if ( !information ) return;
           let informationH = information.offsetHeight;
           if ( informationH < minHeight) informationH = minHeight;
           const summary = this.$refs.summary;
