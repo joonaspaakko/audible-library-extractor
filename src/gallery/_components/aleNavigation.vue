@@ -28,7 +28,7 @@
           </router-link>
         </div>
         
-        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive }" v-if="!$store.state.standalone || routeAvailable.anySubPage" @click="subMenuClicked">
+        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive === 'subPages' }" v-if="!$store.state.standalone || routeAvailable.anySubPage" @click="subMenuClicked('subPages')">
           <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
             <font-awesome fas icon="chevron-down" />
             <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">
@@ -94,6 +94,62 @@
             <span>Wishlist</span>
           </div>
           </router-link>
+        </div>
+        
+        
+        <div class="text-button parent-item extension-tools" :class="{ 'sub-menu-active': subMenuActive === 'extensionTools' }" v-if="!$store.state.standalone" @click="subMenuClicked('extensionTools')">
+          <div class="icon">
+            <!-- <font-awesome fas icon="cog" /> -->
+            <span>Extension tools</span>
+            <div class="sub-menu">
+              
+              <div class="text-button">
+                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
+                  <div class="icon">
+                    <font-awesome fas icon="save" />
+                    <span>Save gallery locally</span>
+                  </div>
+                </router-link>
+              </div>
+              
+              <div class="text-button">
+                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
+                  <div class="icon">
+                    <font-awesome fas icon="file-csv" />
+                    <span>Export a CSV file</span>
+                  </div>
+                </router-link>
+              </div>
+              
+              <div class="text-button">
+                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
+                  <div class="icon">
+                    <font-awesome fas icon="th" />
+                    <span>Desktop wallpaper creator</span>
+                  </div>
+                </router-link>
+              </div>
+              
+              <div class="text-button">
+                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
+                  <div class="icon">
+                    <font-awesome :icon="['fas', 'graduation-cap']" />
+                    <span>Extension documentation</span>
+                  </div>
+                </router-link>
+              </div>
+              
+              <div class="text-button" v-tippy="{ placement: 'left' }" content="<strong>Save current page as the gallery landing page.</strong> <br> This includes search query, filters, and sorting. <br><br> Doesn't apply to the standalone gallery. <br> Instead save the url as a bookmark or to your mobile device's home screen.">
+                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
+                  <div class="icon">
+                    <font-awesome :icon="['fas', 'home']" />
+                    <span>Set as home page</span>
+                  </div>
+                </router-link>
+              </div>
+              
+            </div>
+          </div>
         </div>
         
         <div class="close-mobile-menu" v-if="mobileMenuOpen" @click="mobileMenuOpen = false">
@@ -199,7 +255,7 @@ export default {
       showAudioPlayer: false,
       sampleData: null,
       mobileWidth: 630,
-      subMenuActive: false,
+      subMenuActive: null,
       routeAvailable: {},
       loading: true,
     };
@@ -272,19 +328,15 @@ export default {
     },
     
     outsideClick: function(e) {
-      if (this.subMenuActive) {
-        var subMenu = e.target.closest(".sub-menu");
-        var subMenuActive = e.target.closest(".sub-menu-active");
-        if (!subMenu && !subMenuActive) {
-          this.subMenuActive = false;
-        }
-      }
+      
+      var subMenu = e.target.closest(".sub-menu");
+      var subMenuActive = e.target.closest(".sub-menu-active");
+      if (!subMenu && !subMenuActive) this.subMenuActive = null;
+      
     },
     
-    subMenuClicked: function() {
-      
-      this.subMenuActive = !this.subMenuActive;
-      
+    subMenuClicked: function( menuKey ) {
+      this.subMenuActive = (this.subMenuActive === menuKey) ? null : menuKey;
     },
     
     linkClicked: function( linkName ) {
@@ -698,5 +750,25 @@ export default {
 }
 
 // #nav-outer-wrapper.mobile-nav 
+
+.extension-tools > .icon {
+  margin: 7px;
+  padding: 0 8px !important;
+  border-radius: 99999px !important;
+  > span {
+    padding: 0 !important;
+    font-size: .85em;
+  }
+  @include themify($themes) {
+    // color: themed(audibleOrange);
+    border: 2px solid themed(audibleOrange);
+    background: rgba(themed(audibleOrange), .1);
+    color: themed(front_color);
+  }  
+  .sub-menu {
+    left: -30px !important;
+    width: 300px;
+  }
+}
 
 </style>
