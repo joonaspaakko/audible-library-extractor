@@ -10,9 +10,9 @@
     <div v-if="sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
     <div
     id="book-info-container"
-    v-shortkey.once="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'], tab: ['tab'], tabShift: ['tab', 'shift'] }"
-    :class="{ 'book-detail-settings-open': store.bookDetailSettingsOpen }"
+    v-shortkey="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'], tab: ['tab'], tabShift: ['tab', 'shift'] }"
     @shortkey="openAdjacentBookDetails"
+    :class="{ 'book-detail-settings-open': store.bookDetailSettingsOpen }"
     >
     
       <div class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
@@ -319,112 +319,120 @@ export default {
 
       this.$refs.arrow.style.left = targetCenter + "px";
     },
-
-    openAdjacentBookDetails: function(e) {
+    
+    openAdjacentBookDetails: _.throttle(function( e ) { 
+      
       const vue = this;
-      let findIndex, nextBook;
-      // These rely on how the book details will close if the sent book is null,
-      // meaning that when you come to the end of the line it will just close the details.
+      // GRID VIEW
       if ( this.sticky.viewMode === 'grid' ) {
         switch (e.srcKey) {
-          
           case "left":
           case "tabShift":
-            this.$root.$emit("book-clicked", {
-              book: this.store.chunkCollection[this.index - 1]
-            });
+            vue.keyboardMove('prev');
             break;
           case "right":
           case "tab":
-            findIndex = this.index + 1;
-            nextBook = this.store.chunkCollection[ findIndex ];
-            if ( findIndex > vue.store.chunkCollection.length-1 ) {
-              this.$store.commit('chunkCollectionAdd');
-              this.$nextTick(function() {
-                nextBook = this.store.chunkCollection[ findIndex ];
-                this.$root.$emit("book-clicked", { book: nextBook });
-              });
-            }
-            else {
-              this.$root.$emit("book-clicked", { book: nextBook});
-            }
+            vue.keyboardMove('next');
             break;
-            
           case "up":
           case "down":
-            
-            let wrapper = {};
-            wrapper.el = document.querySelector(".ale-books");
-            wrapper.width = wrapper.el.offsetWidth;
-            
-            let target = {};
-            target.el = this.clickedBook;
-            target.index = this.index;
-            target.width = target.el.offsetWidth;
+            vue.keyboardMove_inGrid_vertically( e );
+            break;
+        }
+      }
+      // SPREADSHEET VIEW
+      else {
+        switch (e.srcKey) {
+          case "left":
+          case "up":
+          case "tabShift":
+            console.log('spreadsheet - UP');
+            vue.keyboardMove('prev');
+            break;
+          case "right":
+          case "down":
+          case "tab":
+            console.log('spreadsheet - DOWN');
+            vue.keyboardMove('next');
+            break;
+        }
+      }
+      
+    }, 70, { leading: false, trailing: true }),
+    
+    keyboardMove( direction ) {
+      
+      const prev = direction === 'prev';
+      const nextIndex = prev ? this.index-1 : this.index+1;
+      const nextBook = this.store.chunkCollection[ nextIndex ];
+      const condition = prev ? (nextIndex > -1) : (nextIndex < this.store.chunkCollection.length);
+      if ( condition ) {
+        if ( !prev && (nextIndex > this.store.chunkCollection.length-2) ) {
+          this.$store.commit('chunkCollectionAdd');
+          this.$nextTick(function() {
+            this.$root.$emit("book-clicked", { book: nextBook });
+          });
+        }
+        else {
+          this.$root.$emit("book-clicked", { book: nextBook });
+        }
+      }
+      
+    },
+    
+    keyboardMove_inGrid_vertically( e ) {
+      
+      const vue = this;
+      const wrapper = {};
+      wrapper.el = document.querySelector(".ale-books");
+      wrapper.width = wrapper.el.offsetWidth;
+      
+      const target = {};
+      target.el = this.clickedBook;
+      target.index = this.index;
+      target.width = target.el.offsetWidth;
             
             const cols = Math.floor(wrapper.width / target.width);
+            // const currentRow = Math.floor(this.index / cols) + 1;
+            // const currentRowLast = (currentRow*cols)-1;
+            // const previousRowLast = ((currentRow-1)*cols)-1;
             
-            let getClosestTargetBook = function(index) {
-              let el = vue.store.chunkCollection[ index ];
-              if (!el) {
-                el = getClosestTargetBook(--index);
+            const getVerticalIndex = function() {
+              
+              const direction = e.srcKey;
+              let index = -1;
+              if ( direction === 'up' ) {
+                index = vue.index - cols;
+                if ( index < 0 ) index = 0;
               }
-              return el;
+              else {
+                index = vue.index + cols;
+                const booksLength = vue.store.chunkCollection.length-1;
+                if ( index > booksLength ) index = booksLength;
+              }
+              return index;
+              
             };
             
             this.$store.commit('prop', [
               { key: 'bookDetails.book', value: null },
               { key: 'bookDetails.index', value: -1 },
-            ]);
-            if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
-            
-            findIndex = e.srcKey === 'up' ? this.index-cols : this.index+cols;
-            nextBook = e.srcKey === 'up' ? vue.store.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
-            
-            if ( findIndex > vue.store.chunkCollection.length-1 ) {
-              this.$store.commit('chunkCollectionAdd');
-              this.$nextTick(function() {
-                nextBook = e.srcKey === 'up' ? vue.store.chunkCollection[ findIndex ] : getClosestTargetBook( findIndex );
-                this.$root.$emit("book-clicked", { book: nextBook });
-              });
-            }
-            else {
-              this.$root.$emit("book-clicked", { book: nextBook });
-            }
-            
-            break;
-            
-        }
+      ]);
+      if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+      
+      const nextIndex = getVerticalIndex();
+      const nextBook = vue.store.chunkCollection[ nextIndex ];
+      
+      if ( e.srcKey === 'down' && (nextIndex > vue.store.chunkCollection.length-2) ) {
+        this.$store.commit('chunkCollectionAdd');
+        this.$nextTick(function() {
+          this.$root.$emit("book-clicked", { book: nextBook });
+        });
       }
       else {
-        switch (e.srcKey) {
-          
-          case "left":
-          case "up":
-          case "tabShift":
-            this.$root.$emit("book-clicked", {
-              book: this.$store.getters.collection[this.index - 1]
-            });
-            break;
-          case "right":
-          case "down":
-          case "tab":
-            findIndex = this.index + 1;
-            nextBook = this.store.chunkCollection[ findIndex ];
-            if ( findIndex > vue.store.chunkCollection.length-1 ) {
-              this.$store.commit('chunkCollectionAdd');
-              this.$nextTick(function() {
-                nextBook = this.store.chunkCollection[ findIndex ];
-                this.$root.$emit("book-clicked", { book: nextBook });
-              });
-            }
-            else {
-              this.$root.$emit("book-clicked", { book: nextBook});
-            }
-            break;
-            
-        }
+        this.$root.$emit("book-clicked", { book: nextBook });
       }
+      
     },
 
     closeBookDetails: function() {
