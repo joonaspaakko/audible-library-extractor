@@ -10,13 +10,15 @@ $lightFrontColor: #212325;
 
 $darkBackColor: #050505;
 $darkFrontColor: #f9f8f8;
+
 $audibleOrange: #f79a1c;
 
 $themes: (
   light: (
-		audibleOrange: $audibleOrange,
-    backColor: #f9f8f8,
-    frontColor: #212325,
+		audibleOrange: saturate(darken($audibleOrange,7), 100),
+    backColor: $lightBackColor,
+    elementColor: lighten( $lightBackColor, 12),
+    frontColor: $lightFrontColor,
     outerColor: #999,
     shadowSmall: $shadowSmall rgba(0,0,0,0.15),
     shadowMedium: $shadowMedium rgba(0,0,0,0.1),
@@ -24,6 +26,7 @@ $themes: (
   dark: (
 		audibleOrange: $audibleOrange,
     backColor: $darkBackColor,
+    elementColor: lighten( $darkBackColor, 12),
     frontColor: $darkFrontColor,
     outerColor: #000,
     shadowSmall: $shadowSmall rgba(0,0,0,0.6),

@@ -276,6 +276,8 @@ export default {
 @import "~@/_variables.scss";
 
 .my-books-in-series {
+  position: relative;
+  z-index: 0;
   .numbers-list-item {
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -427,7 +429,8 @@ div.hidden-section {
 }
 
 .series-section {
-  margin-top: 15px;
+  margin-top: 1px;
+  // margin-top: 17px;
   &:first-child {
     margin-top: 0;
   }
@@ -436,11 +439,17 @@ div.hidden-section {
 .series-heading {
   display: block;
   font-weight: 700;
+  line-height: 1.2em;
+  padding-bottom: 5px;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   .series-name {
     flex: 1;
+  }
+  .series-length {
+    white-space: nowrap;
+    padding-left: 5px;
   }
 }
 

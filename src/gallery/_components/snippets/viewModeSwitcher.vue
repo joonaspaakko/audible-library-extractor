@@ -1,11 +1,11 @@
 <template>
-  <div id="view-mode-switcher" :class="{ 'no-style': justIcon }" @click="changeViewMode"
+  <div class="view-mode-switcher icon" :class="{ 'no-style': justIcon }" @click="changeViewMode"
   v-tippy="{ allowHTML: true, }"
   :content="'Change to <strong>' + (sticky.viewMode === 'grid' ? 'spreadsheet' : 'grid')  + '</strong> view'"
   >
     
-    <font-awesome class="icon" v-if="sticky.viewMode === 'grid'"             :icon="['fas', 'table']" />
-    <font-awesome class="icon" v-else-if="sticky.viewMode === 'spreadsheet'" :icon="['fas', 'th']"    />
+    <font-awesome class="icon" v-if="sticky.viewMode === 'grid'"             :icon="['fas', 'list']" />
+    <font-awesome class="icon" v-else-if="sticky.viewMode === 'spreadsheet'" :icon="['fas', 'grip']"    />
     
   </div>
 </template>
@@ -47,11 +47,10 @@ export default {
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "~@/_variables.scss";
 
-#view-mode-switcher {
-  
+.view-mode-switcher {
   cursor: pointer;
   // margin-left: -27px;
   // padding: 0 5px 0 30px;

@@ -1,5 +1,5 @@
 <template>
-<div class="list-filter-wrapper">
+<div class="list-filter-wrapper" :style="{ top: $store.state.topNavOffset + 'px' }">
   <div class="row">
     
     <div class="show-all-toggle" v-if="showAllToggle" @click="$store.commit('stickyProp', { key: 'booksInSeriesAll', value: !$store.state.sticky.booksInSeriesAll })">
@@ -35,6 +35,9 @@
     </div>
     
   </div>
+  
+  <!-- <div class="shadow-box"></div> -->
+  
 </div>
 </template>
 
@@ -107,6 +110,40 @@ export default {
 @import "~@/_variables.scss";
 
 .list-filter-wrapper {
+  position: sticky;
+  top: 0px;
+  z-index: 20;
+  padding: 15px 20px;
+  margin: -20px -20px;
+  margin-bottom: 0;
+  @include themify($themes) {
+    // background: lighten(themed(backColor), 5);
+    $bgColor: lighten(themed(backColor), 7.5);
+    background: mix(blue, $bgColor, 2%);
+    .shadow-box {
+      padding: 0 !important;
+      position: absolute;
+      top: 100%;
+      left: 0;
+      right: 0;
+      width: 100%;
+      height: 6px;
+      overflow: hidden;
+      &:after {
+        position: absolute;
+        top: 0;
+        left: -20%;
+        right: 0;
+        content: '';
+        width: 150%;
+        height: 12px;
+        box-shadow: inset 0 3px 3px rgba(darken(themed(backColor), 30), 0.2);
+      }
+    }
+  }
+}
+
+.list-filter-wrapper {
   display: flex;
   flex-direction: column;
   > div {
@@ -135,7 +172,8 @@ export default {
       @include themify($themes) {
         color: rgba( themed(frontColor), .5);
         border: 1px solid rgba( themed(frontColor), .2);
-        background: rgba( themed(frontColor), .02);
+        // background: rgba( themed(frontColor), .02);
+        // background: themed(backColor);
       }
       svg {
         margin-left: 2px;

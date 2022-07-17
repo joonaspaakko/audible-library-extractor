@@ -1,8 +1,29 @@
 <template>
   <tr class="ale-row-inner" @click="$root.$emit('book-clicked', { book })">
     
-    <lazy
-    tag="td"
+    <!-- 
+      Note to self: 
+      
+      I've lazyfied the columns multiple times with <lazy>, but I always ended up tearing it down in fear of adding too many elements to observe.
+      SO DON'T TRY IT ANYMORE FUTURE ME!!!
+      
+      - It's already observing for every row in the loaded chunk, though assuming you don't skip any rows, as you're scrolling 
+        down you're also releasing each row from observation... Lazy loading each column would mean it would take less time to 
+        render each row, since there's way less to render, but it would also add like way over a dozen more elements to observe 
+        per each row  (1 for each column).
+        
+      - It might seem like it's negligible, like what's a few more elements to observe... but the potential performance 
+        issues start showing up when you scroll down without doing a whole lot of sideways scrolling.
+        
+      - Like if you initially see 3 columns and scroll down 1000 rows while never scrolling sideways, you're now observing
+        maybe something like 25 thousand elements and you keep observing for them until you scroll sideways to see some 
+        or all of them or somehow refresh the current page/view.
+       
+    -->
+    
+    <!-- <lazy
+    tag="td" -->
+    <td
     v-for="col in columns"
     :key="col.key"
     class="ale-col"
@@ -21,7 +42,8 @@
 
         <span class="text-container"> {{ col.text || "&nbsp;" }}</span>
       </div>
-    </lazy>
+    </td>
+    <!-- </lazy> -->
     
   </tr>
 </template>
@@ -116,7 +138,6 @@ export default {
               col.text = '';
             }
             else {
-              console.log( vue.book.series )
               let allNumbers = vue.book.series.filter(function( o ) { return o.bookNumbers; });
                   allNumbers = allNumbers.map(function( o ) { return o.bookNumbers; });
                   allNumbers = allNumbers.join(", ");

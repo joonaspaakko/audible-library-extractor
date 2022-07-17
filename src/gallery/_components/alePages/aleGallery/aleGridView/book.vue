@@ -2,8 +2,9 @@
   <div class="details-inner-wrap">
     
     <sort-values v-if="sortValuesEnabled" :book="book"></sort-values>
-
+    
     <div class="ale-cover">
+      
       <div class="ale-play-sample" v-if="book.sample && sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
         <div><font-awesome fas icon="play" /></div>
       </div>
@@ -58,7 +59,7 @@
           </div>
         </div>
         <div v-else class="cover-img-wrapper">
-          <img crossorigin="anonymous" class="ale-cover-image" :src="makeCoverUrl(book.cover, 280)" alt="" />
+          <img crossorigin="anonymous" class="ale-cover-image" draggable="false" @touchstart.prevent :src="makeCoverUrl(book.cover, 280)" alt="" />
         </div>
       </div>
     </div>
@@ -79,6 +80,7 @@ export default {
     return {
       store: this.$store.state,
       sticky: this.$store.state.sticky,
+      smartLink: "https://smart.link/o3waqx4wg1gdn?asin=",
     };
   },
   methods: {
@@ -93,7 +95,8 @@ export default {
         book: book,
         index: index
       });
-    }
+    },
+    
   }
 };
 </script>
@@ -183,6 +186,17 @@ export default {
   }
 }
 
+.smart-link {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  top: 0;
+  left: 0;
+  visibility: hidden;
+  z-index: -1;
+}
+
 .ale-cover {
   cursor: pointer;
   position: relative;
@@ -203,11 +217,19 @@ export default {
     object-fit: contain; 
     height: 100%;
     //  -----------
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
     -webkit-user-drag: none;
     -khtml-user-drag: none;
     -moz-user-drag: none;
     -o-user-drag: none;
     user-drag: none;
+    pointer-events: none;
+    -webkit-touch-callout: none;
     @-webkit-keyframes showImage {
       0% {
         opacity: 0;
@@ -433,7 +455,7 @@ export default {
   border-radius: 0 0 100% 0;
 }
 .ale-click-wrap:hover .blurb-tooltip { display: block; }
-body.is-ios .blurb-tooltip { display: none !important; }
+// body.is-ios .blurb-tooltip { display: none !important; }
 
 body.is-ios .ale-click-wrap {
   .ale-info-indicator {

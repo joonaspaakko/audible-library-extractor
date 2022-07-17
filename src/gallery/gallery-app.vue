@@ -1,8 +1,8 @@
 <template>
-  <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }">
+  <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }" :data-block-scrolling="$store.state.blockScrolling">
     
     <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
-    <ale-navigation :key="'nav-'+$route.name+'-'+$store.state.routeParams+'-'+$store.state.viewRefresh"></ale-navigation>
+    <ale-navigation></ale-navigation>
     
     <!-- <extension-gallery-toolbar /> -->
     
@@ -46,6 +46,12 @@ export default {
   
   created: function() {
     
+    if ( !this.$store.state.sticky.lightSwitchSetByUser ) {
+      const html = document.querySelector('html');
+      html.classList.remove("theme-dark");
+      html.classList.add("theme-light");
+    }
+    
     let vue = this;
     
     // var isbn = _.filter(this.$store.state.library.books, 'isbns');
@@ -72,12 +78,7 @@ export default {
   mounted: function() {
     
     const vue = this;
-    window.addEventListener("resize", 
-      _.debounce( function() { 
-        vue.onWindowResize(vue); 
-      }, 320, { leading: true, trailing: true })
-    , { passive: true });
-    
+    window.addEventListener("resize", vue.onWindowResize, { passive: true });
     this.showTheBackgroundGrid();
     
   },
@@ -122,21 +123,21 @@ export default {
       }
     },
     
-    onWindowResize: function(vue) {
+    onWindowResize: _.debounce(function() { 
       
       const currentWidth = window.innerWidth;
       const currentHeight = window.innerHeight;
-      const widthChanged = (vue.window.width !== currentWidth);
-      const heightChanged = (vue.window.height !== currentHeight);
+      const widthChanged = (this.window.width !== currentWidth);
+      const heightChanged = (this.window.height !== currentHeight);
       
       if (widthChanged || heightChanged) {
         
-        vue.window.width = currentWidth;
-        vue.window.height = currentHeight;
+        this.window.width = currentWidth;
+        this.window.height = currentHeight;
         
         if ( widthChanged ) this.$store.commit('prop', { key: 'windowWidth', value: currentWidth});
         
-        vue.$root.$emit("afterWindowResize", {
+        this.$root.$emit("afterWindowResize", {
           from: "app",
           width: currentWidth,
           widthChanged: widthChanged,
@@ -146,7 +147,8 @@ export default {
         
       }
       
-    }
+    }, 320, { leading: true, trailing: true }),
+    
   },
 
   watch: {
@@ -208,24 +210,18 @@ export default {
        url('../fonts/roboto-v29-latin-700.woff') format('woff'); /* Chrome 6+, Firefox 3.6+, IE 9+, Safari 5.1+ */
 }
 
-@media (prefers-color-scheme: dark) {
-  background-color: $darkBackColor;
-}
-@media (prefers-color-scheme: light) {
-  background-color: $lightBackColor;
-}
 html.theme-dark {
-  background-color: $darkBackColor;
+  background-color: $darkBackColor !important;
 }
 html.theme-light {
-  background-color: $lightBackColor;
+  background-color: $lightBackColor !important;
 }
 
-.is-ios .tippy-popper { display: none !important; }
+// .is-ios .tippy-popper { display: none !important; }
 
-  @media ( max-width: 630px ) {
-    .tippy-popper { display: none !important; }
-  }
+// @media ( max-width: 630px ) {
+//   .tippy-popper { display: none !important; }
+// }
 
 html {
   padding-top: 1px;
@@ -242,6 +238,7 @@ body {
 }
 
 #audible-library-extractor {
+  box-sizing: border-box;
   padding-top: 80px;
   &.mobile-threshold { padding-top: 45px; };
   
@@ -372,6 +369,10 @@ body {
   }
 }
 
+[content] {
+  outline: none !important;
+}
+
 #nothing-here-404 {
   text-align: center;
   font-size: 2em;
@@ -380,4 +381,22 @@ body {
     color: themed(frontColor);
   }
 }
+
+div[data-block-scrolling] {
+  height: 100vh !important;
+  width:  100vw !important;
+  overflow: hidden !important;
+}
+
+.audible-orange-text {
+  @include themify($themes) {
+    color: themed(audibleOrange) !important;
+  }
+}
+.audible-orange-background {
+  @include themify($themes) {
+    background: themed(audibleOrange) !important;
+  }
+}
+
 </style>

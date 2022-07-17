@@ -123,6 +123,8 @@ export default {
         }
         
         book.titleShort = DOMPurify.sanitize(bookData.name);
+        const subtitle = audible.querySelector('.subtitle');
+        if ( subtitle ) book.subtitle = DOMPurify.sanitize( subtitle.textContent.trimAll() );
         const ratingsLink = audible.querySelector(".ratingsLabel > a");
         if ( ratingsLink ) book.ratings = parseFloat( DOMPurify.sanitize(ratingsLink.textContent.match(/\d/g).join("")) );
         const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");

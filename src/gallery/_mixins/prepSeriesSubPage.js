@@ -7,7 +7,7 @@ export default {
         
         const seriesASIN = this.$route.params.series;
         const series = _.find( this.$store.state.library.series, { asin: seriesASIN });
-        const seriesHasBooks = series && series.books && series.books.length > 0 && this.subPageSource.name == 'books';
+        const seriesHasBooks = series && series.books && series.books.length > 0 && this.subPageSource.name == 'library';
         
         if ( seriesHasBooks ) {
           // Add book number sorting + activate sort values

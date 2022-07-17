@@ -12,6 +12,7 @@
       alt=""
     />
     </div>
+    <div class="dimmer-overlay"></div>
   </div>
 </template>
 
@@ -156,63 +157,12 @@ export default {
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
 
-// html.theme-dark #ale-background:after {
-//   $bgColor: $darkBackColor;
-  
-//   background: -moz-linear-gradient(
-//     top,
-//     rgba($bgColor, 0) 0%,
-//     rgba($bgColor, 0.6) 24%,
-//     $bgColor 78%,
-//     $bgColor 100%
-//   );
-//   background: -webkit-linear-gradient(
-//     top,
-//     rgba($bgColor, 0) 0%,
-//     rgba($bgColor, 0.6) 24%,
-//     $bgColor 78%,
-//     $bgColor 100%
-//   );
-//   background: linear-gradient(
-//     to bottom,
-//     rgba($bgColor, 0) 0%,
-//     rgba($bgColor, 0.6) 24%,
-//     $bgColor 78%,
-//     $bgColor 100%
-//   );
-// }
-
-// html.theme-light #ale-background:after {
-//   background: -moz-linear-gradient(
-//     top,
-//     rgba($lightBackColor, 0) 0%,
-//     rgba($lightBackColor, 0.6) 24%,
-//     $lightBackColor 78%,
-//     $lightBackColor 100%
-//   );
-//   background: -webkit-linear-gradient(
-//     top,
-//     rgba($lightBackColor, 0) 0%,
-//     rgba($lightBackColor, 0.6) 24%,
-//     $lightBackColor 78%,
-//     $lightBackColor 100%
-//   );
-//   background: linear-gradient(
-//     to bottom,
-//     rgba($lightBackColor, 0) 0%,
-//     rgba($lightBackColor, 0.6) 24%,
-//     $lightBackColor 78%,
-//     $lightBackColor 100%
-//   );
-// }
-
 #ale-background {
   position: fixed;
   z-index: -1;
   left: -3.05%;
   right: -3.05%;
   top: 0;
-  // opacity: 0.25;
   text-align: center;
   font-size: 0px;
   line-height: 0px;
@@ -222,16 +172,9 @@ export default {
   -moz-user-select: none; 
   -ms-user-select: none; 
   user-select: none; 
-
-  &:after {
-    content: "";
-    position: absolute;
-    z-index: 1;
-    top: 40%;
-    right: 0;
-    bottom: 0;
-    left: 0;
-  }
+  
+  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 19%,rgba(0,0,0,0) 92%,rgba(0,0,0,0) 100%);
+  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 19%,rgba(0,0,0,0) 92%,rgba(0,0,0,0) 100%);
 
   .image-wrapper {
     display: inline-block;
@@ -240,7 +183,7 @@ export default {
     width: 6%;
     margin: 2px;
     transition: all 900ms;
-    opacity: 1;
+    opacity: .25;
     transform: rotateY(0deg);
     animation: 1000ms showImage;
     &.flip-out {
@@ -254,7 +197,7 @@ export default {
         // transform: rotateY(-180deg);
       }
       100% {
-        opacity: 1;
+        opacity: .25;
         // transform: rotateY(0deg);
       }
     }
@@ -264,7 +207,7 @@ export default {
         // transform: rotateY(-180deg);
       }
       100% {
-        opacity: 1;
+        opacity: .25;
         // transform: rotateY(0deg);
       }
     }
@@ -273,39 +216,6 @@ export default {
       width: 100%;
     }
   }
-}
-/*
-// In ios, the gradient "mask" flickers when a cover animates behind it.
-// Fix: hide it on IOS and use mask-image instead..
-@supports (-webkit-touch-callout: none) {
-  #ale-background:after {
-    display: none !important;
-  }
-  #ale-background {
-    opacity: 0.25;
-    -webkit-mask-image: -webkit-gradient(
-      linear,
-      left 40%,
-      left bottom,
-      from(rgba(0, 0, 0, 1)),
-      to(rgba(0, 0, 0, 0))
-    ) !important;
-  }
-}
-*/
-#ale-background {
-  opacity: 0.25;
-  -webkit-mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 19%,rgba(0,0,0,0) 92%,rgba(0,0,0,0) 100%);
-  mask-image: linear-gradient(to bottom, rgba(0,0,0,1) 0%,rgba(0,0,0,1) 19%,rgba(0,0,0,0) 92%,rgba(0,0,0,0) 100%);
-}
-
-.theme-dark #ale-background:after {
-  -webkit-animation: color-change-dark 400ms linear;
-  animation: color-change-dark 400ms linear;
-}
-.theme-light #ale-background:after {
-  -webkit-animation: color-change-light 400ms linear;
-  animation: color-change-light 400ms linear;
 }
 
 @media (max-width: 1300px) {

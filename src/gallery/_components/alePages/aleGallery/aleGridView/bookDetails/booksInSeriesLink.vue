@@ -51,7 +51,7 @@ export default {
     this.routerLink = { 
       name: 'series', 
       params: { series: this.series.asin }, 
-      query: { subPageSource: 'books' }, 
+      query: { subPageSource: 'library' }, 
     };
     
     if ( this.seriesName ) {

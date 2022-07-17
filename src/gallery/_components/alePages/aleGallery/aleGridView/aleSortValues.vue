@@ -12,7 +12,12 @@
     >
       <star-rating :prioritizeRatingsText="$store.getters.sortBy === 'ratings'" :size="10" :rating="sortContents()" :number="true" :ratingsText="false" :ratings="($store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && book.ratings ? book.ratings : null"></star-rating>
     </div>
-    <div v-else-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContents()"></div>
+    <div v-else-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContents()"
+    v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
+    :content="
+      ($store.getters.sortBy === 'progress' ? book.progress : '' ) + 
+      ''
+    "></div>
     <div v-else :class="'sort-'+$store.getters.sortBy">
       <font-awesome v-if="book.favorite" :icon="['fas', 'heart']" />
       <span v-else>&nbsp;</span>
@@ -204,7 +209,7 @@ export default {
           const length = this.timeStringToSeconds(book.length);
           const difference = length - progress;
           return (
-            this.secondsToTimeString(difference, true) + " / " + this.secondsToTimeString(length, true)
+            this.secondsToTimeString(difference, true) + " <strong class='audible-orange-text'>/</strong> " + this.secondsToTimeString(length, true)
           );
         }
       } else {
@@ -212,7 +217,8 @@ export default {
         else if ( book.length ) return "<div>Length: " + book.length + "</div>";
         else return "<div>" + book.progress + "</div>";
       }
-    }
+    },
+    
   }
 };
 </script>

@@ -1,410 +1,387 @@
 <template>
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
-  <div id="ale-navigation">
-    <div class="inner-wrap">
-      
-      <div class="inner-wrap-wrapper">
-        
-        <!-- Makes the empty area above mobile menu clickable and it closes the menu -->
-        <div class="close-area" style="flex: 1; margin-bottom: 30px;" v-if="mobileMenuOpen" @click="mobileMenuOpen = false"></div>
-        
-        <div class="text-button gallery-page" v-if="routeAvailable.gallery">
-          <router-link :to="{ name: 'gallery' }" @click.native="linkClicked('gallery')">
-            <div class="icon">
-              <font-awesome fas icon="book" />
-              <span>Library</span>
-              <!-- <font-awesome fas icon="th" />
-              <span>Gallery</span> -->
-            </div>
-          </router-link>
-        </div>
-        
-        <div class="text-button collections-page" v-if="routeAvailable.collections">
-          <router-link :to="{ name: 'collections' }" @click.native="linkClicked('collections')">
-          <div class="icon">
-            <font-awesome fas icon="folder-open" />
-            <span>Collections</span>
-          </div>
-          </router-link>
-        </div>
-        
-        <div class="text-button parent-item" :class="{ 'sub-menu-active': subMenuActive === 'subPages' }" v-if="!$store.state.standalone || routeAvailable.anySubPage" @click="subMenuClicked('subPages')">
-          <div class="icon" :class="{ 'router-link-active': $route.meta && $route.meta.subPage }">
-            <font-awesome fas icon="chevron-down" />
-            <span v-if="$route.meta && $route.meta.subPage && $route.meta.title">
-              {{ ($route.query.subPageSource || $store.state.sticky.subPageSource) === 'books' ? 'Library: ' : 'Wishlist: ' }}
-              {{ $route.meta.title }}
-            </span>
-            <span v-else>Sub pages</span>
-            <div class="sub-menu">
-              
-              <div class="text-button" v-if="routeAvailable.categories">
-                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-                  <div class="icon">
-                    <font-awesome fas icon="indent" />
-                    <span>Categories</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button" v-if="routeAvailable['all-series']">
-                <router-link :to="{ name: 'all-series' }" @click.native="linkClicked('all-series')">
-                  <div class="icon">
-                    <font-awesome fas icon="list-ol" />
-                    <span>Series</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button" v-if="routeAvailable.authors">
-                <router-link :to="{ name: 'authors' }" @click.native="linkClicked('authors')">
-                  <div class="icon">
-                    <font-awesome fas icon="user-friends" />
-                    <span>Authors</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button" v-if="routeAvailable.narrators">
-                <router-link :to="{ name: 'narrators' }" @click.native="linkClicked('narrators')">
-                  <div class="icon">
-                    <font-awesome fas icon="users" />
-                    <span>Narrators</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button" v-if="routeAvailable.publishers">
-                <router-link :to="{ name: 'publishers' }" @click.native="linkClicked('publishers')">
-                  <div class="icon">
-                    <font-awesome fas icon="book" />
-                    <span>Publishers</span>
-                  </div>
-                </router-link>
-              </div>
-              
-            </div>
-          </div>
-        </div>
-        
-        <div class="text-button wishlist-page" v-if="routeAvailable.wishlist">
-          <router-link :to="{ name: 'wishlist' }" @click.native="linkClicked('wishlist')">
-          <div class="icon">
-            <font-awesome fas icon="bookmark" />
-            <span>Wishlist</span>
-          </div>
-          </router-link>
-        </div>
-        
-        
-        <div class="text-button parent-item extension-tools" :class="{ 'sub-menu-active': subMenuActive === 'extensionTools' }" v-if="!$store.state.standalone" @click="subMenuClicked('extensionTools')">
-          <div class="icon">
-            <!-- <font-awesome fas icon="cog" /> -->
-            <span>Extension tools</span>
-            <div class="sub-menu">
-              
-              <div class="text-button">
-                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-                  <div class="icon">
-                    <font-awesome fas icon="save" />
-                    <span>Save gallery locally</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button">
-                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-                  <div class="icon">
-                    <font-awesome fas icon="file-csv" />
-                    <span>Export a CSV file</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button">
-                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-                  <div class="icon">
-                    <font-awesome fas icon="th" />
-                    <span>Desktop wallpaper creator</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button">
-                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-                  <div class="icon">
-                    <font-awesome :icon="['fas', 'graduation-cap']" />
-                    <span>Extension documentation</span>
-                  </div>
-                </router-link>
-              </div>
-              
-              <div class="text-button" v-tippy="{ placement: 'left' }" content="<strong>Save current page as the gallery landing page.</strong> <br> This includes search query, filters, and sorting. <br><br> Doesn't apply to the standalone gallery. <br> Instead save the url as a bookmark or to your mobile device's home screen.">
-                <router-link :to="{ name: 'categories' }" @click.native="linkClicked('categories')">
-                  <div class="icon">
-                    <font-awesome :icon="['fas', 'home']" />
-                    <span>Set as home page</span>
-                  </div>
-                </router-link>
-              </div>
-              
-            </div>
-          </div>
-        </div>
-        
-        <div class="close-mobile-menu" v-if="mobileMenuOpen" @click="mobileMenuOpen = false">
-          <!-- <div class="icon"> -->
-            <font-awesome :icon="['fas', 'times']" />
-            <!-- <span>Close</span> -->
-          <!-- </div> -->
-        </div>
-        
-        <div class="mobile-menu-extras" v-show="mobileMenuOpen">
-          
-          <light-switch></light-switch>
-          
-          <view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted" />
-          
-        </div>
-        
-      </div>
-      
-      <div class="special-icons-wrapper" v-if="!mobileThreshold">
-        
-        <light-switch></light-switch>
-        
-        <view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted && mobileThreshold" />
-        
-        <div class="text-button" v-if="$store.state.searchMounted" v-tippy="{ interactive: true, allowHTML: true }" style="outline: none;" content='Click to scroll up and search. <br>Read about advanced search operators <a target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/advanced-search">here</a>.'>
-          <div class="icon" @click="startSearching">
-            <font-awesome :icon="['fas', 'search']" />
-          </div>
-        </div>
-        
-        <div class="text-button" v-if="!$store.state.standalone" style="z-index: 9999;">
-          <ale-save-locally></ale-save-locally>
-        </div>
-        
-        <div class="text-button" v-if="!$store.state.standalone" :class="{ disabled: wallpaperCreatorDisabled }"
-        v-tippy="{ placement: 'bottom', maxWidth: 400, allowHTML: true }" :content="wallpaperCreatorTippy"
-        >
-          <div class="icon" @click="openWallpaperCreator(wallpaperCreatorDisabled)">
-            <font-awesome :icon="['fas', 'images']" />
-          </div>
-        </div>
-        
-        <div class="text-button" v-if="!$store.state.standalone" v-tippy="{ placement: 'bottom' }" content="Link to external documentation.">
-          <a class="icon" href="https://joonaspaakko.gitbook.io/audible-library-extractor/" target="_blank">
-            <font-awesome :icon="['fas', 'graduation-cap']" />
-          </a>
-        </div>
-        
-        <back-forward-btns :viewportFloat="true" v-if="$store.state.displayMode" />
-        
-      </div>
-      
-    </div>
-    <audio-player  v-if="showAudioPlayer" :showAudioPlayer.sync="showAudioPlayer" :sampleData.sync="sampleData" />
-  </div>
-  
-  
-  <!-- 
-    This v-show on the parent and v-if on the child element is to retain 
-    inline styles when the user opens and closes the sample audio player 
-  -->
-  <div id="mobile-menu-floaters" v-show="mobileThreshold && !mobileMenuOpen">
+  <div id="ale-navigation" ref="navigation">
     
-    <div v-if="mobileThreshold" class="second-row">
-      
-      <div v-if="$store.state.searchMounted" class="search-btn" @click="startSearching">
-        <font-awesome :icon="['fas', 'search']" />
-      </div>
-      
-      <back-forward-btns v-if="$store.state.displayMode" />
-      
-      <div class="burger-menu" @click="toggleMobileMenu()">
-        <font-awesome 
-        class="brgr-btn" 
-        :icon="['fas', 'bars']" 
-        />
-      </div>
-      
+    <desktop-menu :routes="routes" :mobileMenuOpen.sync="mobileMenuOpen" :inRoot="true" />
+    
+    <!-- Component opened by one of the menu items -->
+    <div class="floater-components" v-if="!mobileThreshold">
+      <component v-if="clickedRouteComp" :is="clickedRouteComp" @closeComp="clickedRoute = null" />
     </div>
+    <!-- <mobile-menu /> -->
     
   </div>
+  
+  <mobile-menu-floaters v-if="mobileThreshold" :mobileMenuOpen.sync="mobileMenuOpen" @startSearching="startSearching" />
+  
 </div>
 </template>
 
 <script>
-import lightSwitch from "@output-snippets/lightSwitch.vue";
 import backForwardBtns from "@output-snippets/back-forward-btns.vue";
+import desktopMenu from "@output-comps/aleNavigation-looper.vue";
+import mobileMenuFloaters from "@output-comps/mobile-menu-floaters.vue";
+// import aleSaveLocally from "@output-comps/aleSaveLocally.vue";
+// import mobileMenu from "@output-comps/aleNavigation-mobile.vue";
 
 export default {
   name: "aleMenuActions",
   components: {
-    lightSwitch,
+    desktopMenu,
+    mobileMenuFloaters,
     backForwardBtns,
-    aleSaveLocally: () => import( /* webpackChunkName: "save-locally" */ "./aleSaveLocally"),
-    viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
-    audioPlayer: () => import( /* webpackChunkName: "audio-player" */ "@output-snippets/audio-player"),
+    // aleSaveLocally,
+    // aleSaveLocally: () => import( /* webpackChunkName: "save-locally" */ "@output-comps/aleSaveLocally.vue"),
+    // audioPlayer: () => import( /* webpackChunkName: "audio-player" */ "@output-snippets/audio-player"),
+    // viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
+    // mobileMenu,
   },
   
   data: function() {
     return {
+      store: this.$store.state,
       mobileMenuOpen: false,
-      showAudioPlayer: false,
       sampleData: null,
       mobileWidth: 630,
       subMenuActive: null,
       routeAvailable: {},
       loading: true,
+      routes: null,
+      clickedRoute: null,
     };
   },
   
-  computed: {
-    mobileThreshold: function() {
+  computed: {    
+    clickedRouteComp() {
+      return _.get( this.clickedRoute, 'meta.component' );
+    },
+    
+    mobileThreshold() {
       return this.$store.state.windowWidth < this.mobileWidth;
     },
-    wallpaperCreatorDisabled: function() {
-      return !(this.$route.meta.gallery && this.$store.getters.collection && this.$store.getters.collection.length);
+  },
+  
+  watch: {
+    '$store.state.audioPlayerVisible': function() {
+      this.globalTopNavHeight( this.mobileSize );
     },
-    wallpaperCreatorTippy: function() {
-      const disabledSuffix = this.wallpaperCreatorDisabled ? "<br><br><span style='color: #f79a1c; font-weight: bold;'>You have to be on a page with books to open the editor.</span>" : "";
-      return 'Wallpaper creator: takes books from the current page and creates a collage using their cover images. Searches, filters and sorting affects what you see when you open the editor.' + disabledSuffix;
+    mobileThreshold( mobileSize ) {
+      this.mobileMenuOpen = false;
+      this.routes = this.getRoutes();
+      this.globalTopNavHeight( mobileSize );
     },
+    mobileMenuOpen( open ) {
+      // FIXME this resets the scroll, so if you were looking at a book and you just close the menu, the scroll position is lost
+      // - This should still exist in case there's need to scroll the mobile menu... just in case.
+      // - So perhaps the fix should be to remember the scroll position when blockScrolling is triggered and reinstate it later
+      this.$store.commit('prop', { key: 'blockScrolling', value: open }); // Makes it so if you have to scroll in the mobile menu, the viewport won't scroll
+      this.routes = this.getRoutes();
+    },
+  },
+  
+  created() {
+    
+    this.routes = this.getRoutes();
+    
   },
   
   mounted: function() {
     
-    this.routesCheck();
     this.loading = false;
-    
-    this.$root.$on("play-audio", this.playSample);
-    document.addEventListener("mousedown", this.outsideClick, { passive: true });
-    this.$root.$on("afterWindowResize", this.onWindowResize);
+    this.globalTopNavHeight( this.mobileSize );
+    // document.addEventListener("mousedown", this.outsideClick, { passive: true });
+    // this.$root.$on("afterWindowResize", this.onWindowResize);
     
   },
 
   beforeDestroy: function() {
-    this.$root.$off("play-audio", this.playSample);
-    document.removeEventListener("mousedown", this.outsideClick);
-    this.$root.$off("afterWindowResize", this.onWindowResize);
+    // document.removeEventListener("mousedown", this.outsideClick);
+    // this.$root.$off("afterWindowResize", this.onWindowResize);
   },
   
   methods: {
     
-    onWindowResize: function( win ) {
-      if ( this.mobileMenuOpen && win.widthChanged && win.width >= this.mobileWidth ) {
-        this.mobileMenuOpen = false;
-      }
-    },
     
-    openWallpaperCreator: function( btnDisabled ) {
-      
-      if ( btnDisabled ) return;
-      
-      try {
-        
-        let covers = _.filter( this.$store.getters.collection, 'asin' );
-        covers = JSON.parse(JSON.stringify(covers));
-        covers = _.chunk(covers, 50);
-        
-        let storageObj = {
-          imageEditorChunks: covers,
-          imageEditorChunksLength: covers.length,
-          imageEditorTimeCode: new Date().getTime(),
-        };
-        
-        if ( this.$store.state.pageTitle    ) storageObj.imageEditorPageTitle = this.$store.state.pageTitle;
-        if ( this.$store.state.pageSubTitle ) storageObj.imageEditorPageSubTitle = this.$store.state.pageSubTitle;
-        
-        browser.storage.local.set(storageObj).then(() => {
-          browser.runtime.sendMessage({ action: "openImageEditor" });
-        });
-        
-        
-      } catch (e) {}
-      
-    },
-    
-    outsideClick: function(e) {
-      
-      var subMenu = e.target.closest(".sub-menu");
-      var subMenuActive = e.target.closest(".sub-menu-active");
-      if (!subMenu && !subMenuActive) this.subMenuActive = null;
-      
-    },
-    
-    subMenuClicked: function( menuKey ) {
-      this.subMenuActive = (this.subMenuActive === menuKey) ? null : menuKey;
-    },
-    
-    linkClicked: function( linkName ) {
-      
-      this.mobileMenuOpen = false;
-      
-      if ( this.$route.name === linkName ) {
-        this.$root.$emit('refresh-page');
-      }
-      
-    },
-    
-    toggleMobileMenu: function() {
-      this.mobileMenuOpen = !this.mobileMenuOpen;
-    },
-    
-    playSample: function( msg ) {
-      
-      this.showAudioPlayer = false;
-      this.$nextTick(function() {
-        this.showAudioPlayer = true;
-        this.sampleData = msg;
-      });
-      
-    },
-    
-    startSearching: function() {
+    startSearching() {
       this.$root.$emit("ios-auto-zoom-disable");
       this.$root.$emit('search-focus');
     },
     
-    routeExists: function( name ) {
-      if ( name === 'anySubPage' ) {
-        let  subPageStates = _.get( this.$store.state, 'library.extras.subPageStates' );
-        if ( !subPageStates ) { return true; } 
-        else {
-          let foundEnabled = _.find( subPageStates, { enabled: true });
-          if ( foundEnabled ) {
-            return true;
-          }
-        }
+    getRoutes() {
+      
+      let routes = _.filter( this.$router.options.routes, 'meta.icon' );
+          routes = JSON.parse(JSON.stringify( routes ));
+      
+      if ( !this.mobileThreshold ) {
+        this.getExtraItems( routes );
+        this.getNestedGroups( routes );
       }
-      else {
-        let test = this.$router.resolve({ name: name });
-        return test.resolved.matched.length > 0;
-      }
+      
+      return routes;
       
     },
     
-    routesCheck: function() {
+    getNestedGroups( routes ) {
       
-      const expectedRoutes = [
-        "wishlist",
-        "publishers",
-        "narrators",
-        "authors",
-        "all-series",
-        "categories",
-        "anySubPage",
-        "collections",
-        "gallery",
-      ];
+      const vue = this;
+      const indexes = this.getNestedIndexes( routes );
       
-      let vue = this;
-      _.each( expectedRoutes, function( routeName ) {
-        vue.routeAvailable[ routeName ] = vue.routeExists( routeName );
+      // Detach all nestedGroups from the routes array...
+      let removedRoutes = _.remove( routes, function( route ) {
+        return _.get(route, 'meta.nestedGroup');
       });
       
+      // Group nestedGroups array
+      removedRoutes = _.groupBy( removedRoutes, 'meta.nestedGroup');
+      
+      // Put nested groups back...
+      _.each( removedRoutes, function( routeGroup, key ) {
+        const indexObj = _.find(indexes, { key: key });
+        if ( indexObj ) routes.splice(indexObj.index, 0, vue.getSubPageSettings(routeGroup, key));
+      });
+      
+    },
+    
+    getSubPageSettings( routeGroup, key ) {
+      
+      const vue = this;
+      const group = {
+        name: key,
+        meta: {
+          groupName: routeGroup[0].meta.nestedGroup,
+          icon: ['fas', 'chevron-down'],
+        },
+        tag: 'div',
+        childItems: routeGroup,
+      };
+      
+      const groupName = routeGroup[0].meta.nestedGroup;
+      
+      switch( groupName ) {
+        case 'subPages':
+          group.altName = function( route ) {
+            
+            const routeTitle = _.get( vue.$route, 'meta.title');
+            const labelPath = 'children.0.meta.title';
+            const routeMatch = _.find( routeGroup, [ labelPath, routeTitle ]);
+            if ( routeMatch ) {
+              const prefix = vue.$route.query.subPageSource || vue.$store.state.sticky.subPageSource;
+              return _.startCase(prefix) + ': ' + _.get( routeMatch, labelPath );
+            }
+            else {
+              return _.startCase( key );
+            }
+            
+          };
+          break;
+      }
+      
+      return group;
+      
+    },
+    
+    getNestedIndexes( routes ) {
+      
+      routes = _.clone(routes);
+      
+      // Remove everything but the first occurrence of a nestedGroup
+      const keys = [];
+      const removed = _.remove(routes, function( route ) {
+        const nestedGroup = _.get(route, 'meta.nestedGroup');
+        const firstOccurrence = !_.includes(keys, nestedGroup );
+        if ( nestedGroup ) {
+          if ( firstOccurrence ) keys.push( nestedGroup );
+          else return true;
+        }
+      });
+      
+      // Find the index of the remaining routes that are part of a nestedGroup
+      _.each(keys, function( key, i ) {
+        const firstIndex = _.findIndex(routes, { 
+          meta: { 
+            nestedGroup: key 
+          } 
+        });
+        keys[i] = { key, index: firstIndex };
+      });
+      
+      return keys;
+      
+    },
+    
+    getExtraItems( routes ) {
+      
+      const vue = this;
+      let additionalItems = [];
+      
+      if ( !this.$store.state.standalone ) {
+        
+        const extensionTools = [
+          {
+            tag: 'a',
+            href: 'https://joonaspaakko.gitbook.io/audible-library-extractor/',
+            name: 'Extension documentation',
+            disabled: false,
+            meta: {
+              icon: ['fas', 'graduation-cap'],
+              nestedGroup: 'extension-tools'
+            },
+          },
+          {
+            tag: 'div',
+            name: 'Save gallery locally',
+            disabled: false,
+            click: this.routeClick, 
+            meta: {
+              icon: ['fas', 'save'],
+              nestedGroup: 'extension-tools',
+              // component: () => import( /* webpackChunkName: "save-locally" */ "@output-comps/aleSaveLocally.vue"),
+              component: () => import( /* webpackChunkName: "save-locally" */ "@output-snippets/save-gallery.vue"),
+            },
+          },
+          {
+            tag: 'div',
+            name: 'CSV export&nbsp;<small>(spreadsheet)</small>',
+            disabled: false,
+            click: this.routeClick, 
+            meta: {
+              icon: ['fas', 'file-csv'],
+              nestedGroup: 'extension-tools',
+              component: () => import( /* webpackChunkName: "save-locally" */ "@output-snippets/save-csv.vue"),
+            },
+          },
+          {
+            tag: 'div',
+            name: 'Desktop wallpaper creator',
+            disabled: false,
+            click: function( route ) {
+              
+              if ( !route.condition() ) return;
+              
+              try {
+                
+                let covers = _.filter( vue.$store.getters.collection, 'asin' );
+                covers = JSON.parse(JSON.stringify(covers));
+                covers = _.chunk(covers, 50);
+                
+                let storageObj = {
+                  imageEditorChunks: covers,
+                  imageEditorChunksLength: covers.length,
+                  imageEditorTimeCode: new Date().getTime(),
+                };
+                
+                if ( vue.$store.state.pageTitle    ) storageObj.imageEditorPageTitle = vue.$store.state.pageTitle;
+                if ( vue.$store.state.pageSubTitle ) storageObj.imageEditorPageSubTitle = vue.$store.state.pageSubTitle;
+                
+                browser.storage.local.set(storageObj).then(() => {
+                  browser.runtime.sendMessage({ action: "openImageEditor" });
+                });
+                
+                
+              } catch (e) {}
+            },
+            condition: function() {
+              return vue.$route.meta.gallery && vue.$store.getters.collection && vue.$store.getters.collection.length; // Collection being an array, not Audible collections
+            },
+            tippy: function() {
+              let txt = "When you open wallpaper creator, books are imported from the current page with the active sorting. Search and filters also affect what gets imported.";
+              const nobooks = !(vue.$route.meta.gallery && vue.$store.getters.collection && vue.$store.getters.collection.length);
+              const booksWithCovers = _.filter( vue.$store.getters.collection, 'cover');
+              if ( nobooks ) txt += "<br><br> <strong style='color: #f79a1c; font-size: 19px;'>Disabled on pages that don't have any books</strong>";
+                        else txt += "<br><br> <strong style='color: #f79a1c;'>"+ booksWithCovers.length +" book covers to import from this page.</strong>";
+              return txt;
+            },
+            meta: {
+              icon: ['fas', 'th'],
+              nestedGroup: 'extension-tools'
+            },
+          },
+          {
+            tag: 'div',
+            name: 'Set as gallery landing page',
+            tippy: "Click here and any links leading to the extension gallery (in browser context menu or extraction settings) will open this exact page. The url will be saved as is, so all url parameters will be saved as well. This includes: searches, filters, sorting, and some other things. <br><br>For example, open the library page, filter out finished books, click this menu item, and now you don't have to do that every time you open the gallery, if that is what you prefer...",
+            disabled: false,
+            click: function( route ) {
+              try {
+                
+                const path = window.location.pathname;
+                const newUrl = '.'+path + window.location.href.split( path )[1];
+                browser.runtime.sendMessage({ action: "changeGalleryUrl", url: newUrl }).then(() => {
+                  
+                  // This part makes sure the galleryUrl sticks between sessions (assumin)
+                  browser.storage.local.get(['extras']).then(data => {
+                    data.extras.galleryUrl = newUrl;
+                    browser.storage.local.set({ extras: data.extras}).then(() => {
+                      
+                    });
+                  });
+                  
+                });
+                
+              } catch(e) {}
+            },
+            meta: {
+              icon: ['fas', 'crosshairs'],
+              nestedGroup: 'extension-tools'
+            },
+          },
+          {
+            tag: 'div',
+            name: 'Reset gallery landing page',
+            disabled: false,
+            click: function( route ) {
+              try {
+                
+                const newUrl = null;
+                browser.runtime.sendMessage({ action: "changeGalleryUrl", url: newUrl }).then(() => {
+                  
+                  // This part makes sure the galleryUrl sticks between sessions (assumin)
+                  browser.storage.local.get(['extras']).then(data => {
+                    data.extras.galleryUrl = newUrl;
+                    browser.storage.local.set({ extras: data.extras}).then(() => {
+                      
+                    });
+                  });
+                  
+                });
+                
+              } catch(e) {}
+            },
+            meta: {
+              icon: ['fas', 'home'],
+              nestedGroup: 'extension-tools'
+            },
+          },
+        ];
+        
+        additionalItems = additionalItems.concat( extensionTools );
+        
+      }
+      
+      if ( additionalItems.length ) {
+        _.each( additionalItems, function( route ) {
+          routes.push( route );
+        });
+      }
+    },
+    
+    routeClick( route ) {
+      this.clickedRoute = route;
+    },
+    
+    globalTopNavHeight( mobileSize ) {
+      this.$nextTick(function() {
+        
+        let offset = 0;
+        
+        if ( !mobileSize ) {
+          const nav = this.$refs.navigation;
+          if ( nav ) offset = Math.floor( nav.getBoundingClientRect().height );
+        }
+        
+        this.$store.commit('prop', { key: 'topNavOffset', value: offset });
+        
+      });
     },
     
   }
@@ -425,350 +402,76 @@ export default {
   user-select: none;
 }
 
-#nav-outer-wrapper {
-  
-  #ale-navigation {
-    position: fixed;
-    z-index: 900;
-    top: 0;
-    right: 0;
-    left: 0;
-    box-shadow: 0px 2px 13px rgba(#000, 0.4);
+#ale-navigation {
+  @include themify($themes) {
+    background: themed(elementColor);
+    color: themed(frontColor);
   }
-  
-  &.mobile-nav #ale-navigation > .inner-wrap { display: none; }
-  &.mobile-nav-open #ale-navigation > .inner-wrap { display: inline-block; }
-  &.mobile-nav #ale-navigation {
-    top: unset;
-    bottom: 0;
-    font-size: 21px !important;
-    #view-mode-switcher {
-      font-size: 21px !important;
-    }
-  }
-  line-height: 0px;
-
+  position: fixed;
+  z-index: 900;
+  top: 0;
+  right: 0;
+  left: 0;
+  box-shadow: 0px 2px 13px rgba(#000, 0.4);
   &,
   a {
     text-decoration: none;
     @include themify($themes) {
-      color: rgba(themed(frontColor), 0.9) !important;
+      color: themed(frontColor) !important;
     }
   }
-  
-  .inner-wrap,
-  .inner-wrap-wrapper,
-  .inner-wrap-wrapper > div {
-    display: flex;
-    flex-direction: row;
-    align-items: stretch;
-    justify-items: center;
-    align-content: stretch;
-    justify-content: center;
-  }
-  
-  .inner-wrap-wrapper {
-    margin-left: 10px;
-    &:first-child {
-      margin-left: 0px;
-    }
-  }
-  
-  .inner-wrap-wrapper > div > * {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-items: center;
-    align-content: center;
-    justify-content: center;
-  }
-
-  .icon {
-    cursor: pointer;
-    // cursor: default !important;
-    border-radius: 999999px;
-    outline: none;
-
-    display: inline-flex;
-    flex-direction: row;
-    align-items: center;
-    justify-items: center;
-    align-content: center;
-    justify-content: center;
-    // width: 30px;
-    // height: 30px;
-  }
-  
-  svg {
-    border-radius: none;
-  }
-
-  .text-button {
-    a.router-link-active .icon [data-icon] {
-      @include themify($themes) {
-        color: themed(audibleOrange);
-      }
-    }
-
-    .icon {
-      width: auto;
-      padding: 0 12px;
-      > span {
-        padding-left: 6px;
-      }
-    }
-    
-    &.disabled {
-      opacity: .6;
-    }
-  }
-  
-  div.special-icons-wrapper {
-    margin: 5px 0;
-    margin-left: 10px;
-    display: flex;
-    flex-direction: row;
-    padding: 7px 2px;
-    border-radius: 9999px;
-    @include themify($themes) {
-      border: 1px solid rgba( themed(frontColor), .1);
-    }
-  }
-  
-  &.mobile-nav.mobile-nav-open .inner-wrap-wrapper {
-    backdrop-filter: grayscale(100%);
-    -webkit-backdrop-filter: grayscale(100%);
-    display: flex;
+  .menu-items {
     flex-direction: column;
-    justify-content: flex-end !important;
-    position: fixed;
-    top: 0;
-    right: 0;
-    bottom: 0;
-    left: 0;
-    z-index: 9999999999999;
-    background: rgba(#000, .88);
-    padding-bottom: 55px;
-    > *,
-    > .parent-item .sub-menu > * {
-      font-size: 1.1em !important;
-      line-height: 1.0em !important;
-    }
-    .text-button {
-      margin: 0;
-      padding: 0;
-    }
-    .parent-item {
-      padding: 0;
-    }
-    a {
-      margin-top: 3px !important;
-      padding: 9px 0px !important;
-    }
-    &, a {
-      color: rgba(#fff, 0.85) !important;
-    }
   }
-  
-  .close-mobile-menu,
-  .brgr-btn {
-    cursor: pointer;
+}
+    
+#nav-outer-wrapper.mobile-nav #ale-navigation {
+  @include themify($themes) {
+    display: none;
+    background: themed(elementColor);
   }
-  
-  div.close-mobile-menu {
-    position: absolute;
-    z-index: 10;
-    left: 0px;
+}
+#nav-outer-wrapper.mobile-nav-open #ale-navigation {
+  @include themify($themes) {
+    flex-direction: column-reverse;
+    display: block;
+    background: rgba( themed(backColor), .85 );
+    -webkit-backdrop-filter: grayscale(.96) blur(1.5px);
+    backdrop-filter: grayscale(.96) blur(1.5px);
     bottom: 0px;
-    padding: 15px !important;
-    margin: 0 !important;
-    svg {
-      font-size:   38px !important;
-      line-height: 38px !important;
+    
+    -webkit-animation:swing-in-top-fwd 360ms cubic-bezier(.175,.885,.32,1.275) both;
+            animation:swing-in-top-fwd 360ms cubic-bezier(.175,.885,.32,1.275) both;
+    /* ----------------------------------------------
+    * Generated by Animista on 2022-6-12 16:52:51
+    * Licensed under FreeBSD License.
+    * See http://animista.net/license for more info. 
+    * w: http://animista.net, t: @cssanimista
+    * ---------------------------------------------- */
+    @-webkit-keyframes swing-in-top-fwd{0%{-webkit-transform:rotateX(-100deg);transform:rotateX(-100deg);-webkit-transform-origin:top;transform-origin:top;opacity:0}100%{-webkit-transform:rotateX(0deg);transform:rotateX(0deg);-webkit-transform-origin:top;transform-origin:top;opacity:1}}@keyframes swing-in-top-fwd{0%{-webkit-transform:rotateX(-100deg);transform:rotateX(-100deg);-webkit-transform-origin:top;transform-origin:top;opacity:0}100%{-webkit-transform:rotateX(0deg);transform:rotateX(0deg);-webkit-transform-origin:top;transform-origin:top;opacity:1}}
+    
+    .menu-items {
+      height: 100%;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
     }
-    color: rgba( #fff, .6);
-  }
-  
-  .text-button {
-    &.parent-item > .icon { cursor: pointer; }
-    position: relative;
-    z-index: 0;
-    .sub-menu {
-      cursor: default;
-      display: none;
-      position: absolute;
-      top: 40px;
-      left: 0;
-      z-index: 10;
-      padding-bottom: 6px;
-      border-radius: 0 0 3px 3px;
-      @include themify($themes) {
-        color: themed( frontColor );
-        box-shadow: 0 5px 15px rgba( themed(outerColor), .7);
-        // border: 1px solid rgba( themed(frontColor), .2);
-      }
-      // border-top: none;
-      > .text-button > a {
-        text-align: left;
-        display: block;
-        margin-top: 6px;
-        padding: 6px 0px;
-      }
-    }
-    &.sub-menu-active .sub-menu {
-    // &:hover .sub-menu {
-      display: inline-block;
-    }
-    &.parent-item .router-link-active > [data-icon] {
-      @include themify($themes) {
-        color: themed(audibleOrange);
-      }
-    }
-  }
-  
-  &.mobile-nav {
-    .parent-item > .icon > * {
-      display: none;
-    }
-    .sub-menu {
-      display: inline-block !important;
-      position: static;
-      padding: 0;
-      background: transparent !important;
-      box-shadow: none !important;
-      a { text-align: center !important; }
-    }
-  }
-  
-}
-
-.theme-light #ale-navigation,
-.theme-light #ale-navigation .sub-menu {
-  background: #fff;
-}
-
-.theme-dark #ale-navigation,
-.theme-dark #ale-navigation .sub-menu {
-  background: lighten( #121517, 4);
-}
-
-#ale-navigation div.mobile-menu-extras {
-  margin: 0 !important;
-  padding: 0 !important;
-  display: flex;
-  flex-direction: column;
-  position: absolute;
-  z-index: 5;
-  right: 5px;
-  bottom: 5px; 
-  > div {
-    margin: 6px !important;
-    position: relative;
-    &:before {
-      content: '';
-      position: absolute;
-      z-index: -1;
-      border-radius: 50%;
-      width: 100%;
-      height: auto;
-      padding-top: 100%;
-      border-radius: 9999999px;
-      // border: 2px solid rgba(#fff, .2);
-      background: rgba(#fff, .1);
-      // box-shadow: 0px 0px 6px rgba(#fff, .15);
-    }
-    &:after {
-      content: '';
-      position: absolute;
-      z-index: -2;
-      border-radius: 50%;
-      width: 100%;
-      height: auto;
-      padding-top: 100%;
-      border-radius: 9999999px;
-      // border: 2px solid rgba(#fff, .2);
-      background: rgba(#000, 1);
-      // box-shadow: 0px 0px 6px rgba(#fff, .15);
-    }
-  }
-  > div > * {
-    padding: 11px !important;
-    z-index: 0;
-  }
-}
-
-#mobile-menu-floaters {
-  transition: bottom 200ms ease-in-out;
-  position: fixed;
-  z-index: 200;
-  bottom: 10px;
-  right: 10px;
-  
-  @extend .center-contents;
-  align-items: flex-end;
-  align-content: flex-end;
-  flex-direction: column;
-  &, a {
-    color: #fff !important;
-  }
-  
-  .search-btn {
-    position: absolute;
-    top: -46px;
-    cursor: pointer;
-    @extend .center-contents;
-    border-radius: 999999px;
-    width:  32px;
-    height: 32px;
-    // @include themify($themes) {
-    //   background: rgba( themed(backColor), .25);
-    // }
-    &, svg { color: #fff; }
-    background: rgba( #292929, .90);
-    border: 1px solid rgba( #fff, 1);
-  }
-  
-  .burger-menu {
-    cursor: pointer;
-    position: relative;
-    z-index: 5;
-    @extend .center-contents;
-    width: 60px;
-    height: 60px;
-    @include themify($themes) {
-      background: themed(audibleOrange);
-      border: 2px solid rgba( themed(backColor), .8);
-    }
-    border-radius: 999999px;
-    color: #fff;
-    box-shadow: 0 2px 15px rgba(#000, .5);
     
   }
-  .second-row {
-    @extend .center-contents;
-  }
 }
 
-// #nav-outer-wrapper.mobile-nav 
+// #nav-outer-wrapper.mobile-nav-open #audio-player {
+//   top: 0;
+//   right: 0;
+//   bottom: unset;
+//   left: 0;
+//   position: absolute;
+// }
+    
 
-.extension-tools > .icon {
-  margin: 7px;
-  padding: 0 8px !important;
-  border-radius: 99999px !important;
-  > span {
-    padding: 0 !important;
-    font-size: .85em;
-  }
-  @include themify($themes) {
-    // color: themed(audibleOrange);
-    border: 2px solid themed(audibleOrange);
-    background: rgba(themed(audibleOrange), .1);
-    color: themed(front_color);
-  }  
-  .sub-menu {
-    left: -30px !important;
-    width: 300px;
-  }
+.floater-components {
+  position: absolute;
+  z-index: 50;
 }
 
 </style>

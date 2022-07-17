@@ -1,9 +1,9 @@
 <template>
   <div id="library-wishlist-switcher" :class="{ 'above-search': aboveSearch }" v-if="($route.meta.subPage && !$route.meta.gallery) && ($store.state.library.books || $store.state.library.extras.pages.books) && ($store.state.library.wishlist || $store.state.library.extras.pages.wishlist)">
-    <button @click="switcher('books')" :class="{ active: ($route.query.subPageSource || $store.state.sticky.subPageSource ) === 'books' }">
+    <button @click="switcher('library')" :class="{ active: isActive('library') }">
       Library
     </button>
-    <button @click="switcher('wishlist')" :class="{ active: ($route.query.subPageSource || $store.state.sticky.subPageSource ) === 'wishlist' }">
+    <button @click="switcher('wishlist')" :class="{ active: isActive('wishlist') }">
       Wishlist
     </button>
   </div>
@@ -24,6 +24,17 @@ export default {
     
   },
   methods: {
+    
+    isActive: function( button ) {
+      const source = this.$route.query.subPageSource || this.$store.state.sticky.subPageSource;
+      if ( button === 'wishlist' && source === 'wishlist' ) {
+        return true;
+      }
+      else if ( button === 'library' && (source === 'library' || source === 'books') ) {
+        return true;
+      }
+    },
+    
     switcher: function( key ) {
       
       this.$updateQuery({ query: 'sort', value: null });
@@ -45,14 +56,17 @@ export default {
   text-align: center;
   // float: right;
   button {
-    font-size: 13px;
+    font-size: 14px;
     cursor: pointer;
     box-shadow: 0 2px 7px rgba(#000, .3);
     outline: none;
-    padding: 3px 9px;
+    padding: 5px 11px;
     border-radius: 3px;
     border: 1px solid transparent;
     margin: 0 3px;
+    @include themify($themes) {
+      background: themed(elementColor);
+    }
     &.active {
       @include themify($themes) {
         border-color: themed(audibleOrange) !important;
@@ -65,14 +79,14 @@ export default {
 }
 
 .theme-light #library-wishlist-switcher button {
-  background: #fff;
+  // background: #fff;
   border-color: #666;
   color: #333;
 }
 
 .theme-dark #library-wishlist-switcher button {
-  background: #1d1d1d;
-  border-color: #3e3e3e;
-  color: #9b9a9a;
+  // background: #1d1d1d;
+  border-color: #4d4d4d;
+  color: #aeadad;
 }
 </style>

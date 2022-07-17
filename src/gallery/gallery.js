@@ -4,7 +4,15 @@ const standalone = document.querySelector("html.standalone-gallery");
 import Vue from "vue";
 import VueCompositionAPI from '@vue/composition-api';
 Vue.use(VueCompositionAPI);
-import App from "./output-page-app";
+
+// DOMURL
+global.Url = require("domurl");
+
+// LODASH
+import _ from "lodash";
+global._ = _;
+
+import App from "./gallery-app.vue";
 import "normalize.css/normalize.css";
 
 Vue.config.devtools = false;
@@ -12,49 +20,6 @@ Vue.config.productionTip = false;
 
 // VUE SHORTKEY
 Vue.use(require("vue-shortkey"));
-
-// VUE AUDIO
-import VueAudio from "vue-audio-better";
-Vue.use(VueAudio);
-
-// DOMURL
-global.Url = require("domurl");
-
-// LODASH
-import {
-  debounce,
-  isEqual,
-  filter,
-  findIndex,
-  find,
-  each,
-  isEmpty,
-  assign,
-  isArray,
-  map,
-  get,
-  sampleSize,
-  pick,
-  union,
-  reverse,
-  maxBy,
-  orderBy,
-  includes,
-  throttle,
-  eachRight,
-  flatten,
-  keys,
-  remove,
-  startCase,
-  kebabCase,
-  clone,
-  cloneDeep,
-  shuffle,
-  minBy,
-  range,
-  unionBy,
-  chunk,
-} from "lodash";
 
 // VUE ROUTER
 import VueRouter from "vue-router";
@@ -78,13 +43,17 @@ let routesPrep = function( libraryData ) {
     
     // LIBRARY
     if ( libraryData.books ) {
-      routes.push({ name: "gallery", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library' } });
+      routes.push({ name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: [ 'fas', 'book' ] } });
     }
     
     // SUB PAGES
     var subPages = {
       categories: {
         path: "/categories",
+        meta: {
+          icon: [ 'fas', 'indent' ],
+          nestedGroup: 'subPages',
+        },
         component: aleLibraryView,
         children: [
           { name: "categories", path: "", component: () => import( /* webpackChunkName: "categories" */ "./_components/alePages/subPages/aleCategories"), meta: { subPage: true, title: 'Categories' } },
@@ -94,6 +63,10 @@ let routesPrep = function( libraryData ) {
       series: {
         path: "/series",
         component: aleLibraryView,
+        meta: {
+          icon: [ 'fas', 'list-ol' ],
+          nestedGroup: 'subPages',
+        },
         children: [
           { name: "all-series", path: "", component: () => import( /* webpackChunkName: "series" */ "./_components/alePages/subPages/aleSeries"), meta: { subPage: true, title: 'Series' } },
           { name: "series", path: ":series", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Series' } }
@@ -102,6 +75,10 @@ let routesPrep = function( libraryData ) {
       authors: {
         path: "/authors",
         component: aleLibraryView,
+        meta: {
+          icon: [ 'fas', 'user-friends' ],
+          nestedGroup: 'subPages',
+        },
         children: [
           { name: "authors", path: "", component: () => import( /* webpackChunkName: "authors" */ "./_components/alePages/subPages/aleAuthors"), meta: { subPage: true, title: 'Authors' } },
           { name: "author", path: ":author", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Authors' } }
@@ -110,6 +87,10 @@ let routesPrep = function( libraryData ) {
       narrators: {
         path: "/narrators",
         component: aleLibraryView,
+        meta: {
+          icon: [ 'fas', 'users' ],
+          nestedGroup: 'subPages',
+        },
         children: [
           { name: "narrators", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/subPages/aleNarrators"), meta: { subPage: true, title: 'Narrators' } },
           { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
@@ -118,6 +99,10 @@ let routesPrep = function( libraryData ) {
       publishers: {
         path: "/publishers",
         component: aleLibraryView,
+        meta: {
+          icon: [ 'fas', 'book' ],
+          nestedGroup: 'subPages',
+        },
         children: [
           { name: "publishers", path: "", component: () => import( /* webpackChunkName: "publishers" */ "./_components/alePages/subPages/alePublishers"), meta: { subPage: true, title: 'Publishers' } },
           { name: "publisher", path: ":publisher", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Publishers' } }
@@ -144,6 +129,9 @@ let routesPrep = function( libraryData ) {
       routes.push({
         path: "/collections",
         component: aleLibraryView,
+        meta: {
+          icon: [ 'fas', 'folder-open' ],
+        },
         children: [
           { name: "collections", path: "", component: () => import( /* webpackChunkName: "collections" */ "./_components/alePages/aleCollections"), meta: { title: 'Collections' } },
           { name: "collection", path: ":collection", component: aleGallery, meta: { gallery: true, title: 'Collections' } }
@@ -156,6 +144,9 @@ let routesPrep = function( libraryData ) {
       routes.push({
         path: "/wishlist",
         component: aleLibraryView,
+        meta: {
+          icon: [ 'fas', 'bookmark' ],
+        },
         children: [
           { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
         ]
@@ -328,6 +319,8 @@ import {
   faMoon,
   faPlay,
   faPlayCircle,
+  faPauseCircle,
+  faPause,
   // faPlus,
   faPlusCircle,
   // faRandom,
@@ -346,6 +339,7 @@ import {
   faUsers,
   faUserFriends,
   faRedoAlt,
+  faUndoAlt,
   faTimes,
   faDownload,
   faFileCsv,
@@ -358,6 +352,11 @@ import {
   faRandom,
   faCog,
   faQuestionCircle,
+  faCrosshairs,
+  faMusic,
+  faRetweet,
+  faGrip,
+  faLink,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -395,6 +394,8 @@ library.add(
   faMoon,
   faPlay,
   faPlayCircle,
+  faPauseCircle,
+  faPause,
   // faPlus,
   faPlusCircle,
   // faRandom,
@@ -413,6 +414,7 @@ library.add(
   faUsers,
   faUserFriends,
   faRedoAlt,
+  faUndoAlt,
   faTimes,
   faDownload,
   faGithub,
@@ -427,6 +429,11 @@ library.add(
   faRandom,
   faCog,
   faQuestionCircle,
+  faCrosshairs,
+  faMusic,
+  faRetweet,
+  faGrip,
+  faLink,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 Vue.component("font-awesome", FontAwesomeIcon);
@@ -492,6 +499,38 @@ updateVuexQuery.install = function (Vue) {
 }
 Vue.use( updateVuexQuery );
 
+// Long press
+// https://www.vuesnippets.com/posts/long-press/
+const longpress_timeout = 700;
+Vue.directive('longpress', {
+  bind: function (el, { value }, vNode) {
+    if (typeof value !== 'function') {
+      console.warn(`Expect a function, got ${value}`)
+      return
+    }
+
+    let pressTimer = null
+
+    const start = e => {
+      
+      if ( e.type === 'touchstart' ) e.preventDefault();
+      
+      if (e.type === 'click' && e.button !== 0) return;
+      if (pressTimer === null) pressTimer = setTimeout(() => value(e), longpress_timeout)
+      
+    }
+
+    const cancel = () => {
+      if (pressTimer !== null) {
+        clearTimeout(pressTimer)
+        pressTimer = null
+      }
+    }
+
+    ;['mousedown', 'touchstart'].forEach(e => el.addEventListener(e, start, { passive: true }))
+    ;['click', 'mouseout', 'touchend', 'touchcancel'].forEach(e => el.addEventListener(e, cancel, { passive: true }))
+  }
+});
 
 // GLOBAL METHODS
 const globalMethods = {};
@@ -661,7 +700,7 @@ function vuexPrep( libraryData ) {
     { key: "extractSettings", value: libraryData.config },
   ]);
   
-  if      ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'books'    });
+       if ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'library'  });
   else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
   
   if ( !libraryData.books && libraryData.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });

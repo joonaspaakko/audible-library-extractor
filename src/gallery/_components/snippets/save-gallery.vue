@@ -1,4 +1,6 @@
 <template>
+<modal @closeModal="$emit('closeComp')">
+  
   <div class="export-group">
 
     <h2><font-awesome fas icon="th" /> Stand-alone gallery</h2>
@@ -10,9 +12,15 @@
     <h3>Include:</h3>
 
     <div class="options opt-groups">
-      <div class="opt-group" v-for="(group, groupIndex) in chunkSource" :key="groupIndex" :class="'group-' + groupIndex">
-        <label :class="'item-' + itemIndex" :data-extra="item.extra"  v-for="(item, itemIndex) in group" :key="item.key" v-tippy :content="item.tippy">
-          <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)"> {{ item.key }}
+      <div class="opt-group" v-for="(group, groupIndex) in chunkSource" :key="groupIndex" :class="[ 'group-' + groupIndex ]">
+        <label :class="[ 'item-' + itemIndex, item.disabled ? 'disabled' : null ]" :data-extra="item.extra"  v-for="(item, itemIndex) in group" :key="item.key" v-tippy :content="item.tippy">
+          <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)"> 
+          <div class="visual-checkbox">
+            <span class="icon">
+              <font-awesome :icon="['fas', 'check']" />
+            </span>
+          </div>
+          <span>{{ item.key }}</span>
         </label>
       </div>
     </div>
@@ -20,10 +28,10 @@
     <div class="buttons-footer">
       <div class="btn-wrapper">
         
-        <div v-if="$store.state.devMode" style="color: #f79a1c; font-weight: bold;">
+        <div v-if="$store.state.devMode" style="color: #999; font-weight: bold; margin-bottom: 5px;">
           Saving the standalone gallery is only possible <br> in "production" builds (<code>npm run build</code>)
         </div>
-        <button v-else class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="bundling || !saveBtnEnabled">
+        <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
           <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
             <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
             <font-awesome v-else :icon="['fas', 'download']" />
@@ -48,20 +56,41 @@
       </div>
     </div>
   </div>
+  
+</modal>
 </template>
 
-<script>
 
+<script>
+import modal from '@output-snippets/modal.vue';
 // import makeCoverUrl from "@output-mixins/makeCoverUrl";
+
 export default {
   name: "saveGallery",
   // mixins: [makeCoverUrl],
+  components: {
+    modal,
+  },
   data: function() {
     return {
       files: [
         "gallery.js",
         "gallery.js.LICENSE.txt",
         "gallery.css",
+        
+        "images/info/blurb-hover-corner.jpg",
+        "images/info/carousel.jpg",
+        "images/info/cover-favorite-finished-indicators.jpg",
+        "images/info/cover-plus-calatog-indicator.jpg",
+        "images/info/cover-whispersync-indicator.jpg",
+        "images/info/prefer-short-title.jpg",
+        "images/info/sample-play-button.jpg",
+        "images/info/sidebar-collections-list.jpg",
+        "images/info/sidebar-cover.jpg",
+        "images/info/sidebar-main-info.jpg",
+        "images/info/sidebar-series-list.jpg",
+        "images/info/sidebar-toolbar.jpg",
+        "images/info/sidebar.jpg",
         
         "fonts/inconsolata-v21-latin-regular.woff",
         "fonts/inconsolata-v21-latin-regular.woff2",
@@ -191,7 +220,7 @@ export default {
     saveButtonClicked: async function () {
       const vue = this;
 
-      if ( this.bundling ) return;
+      if ( this.bundling || this.$store.state.devMode ) return;
 
       try {
         vue.bundling = true;
@@ -233,8 +262,8 @@ export default {
         
         const indexHTML =
           "<!DOCTYPE html>" +
-            '<html lang="en" class="theme-light standalone-gallery">' +
-            "<head>" +
+          '<html lang="en" class="theme-dark standalone-gallery" style="background: #171717; min-height: 100%;">' +
+          "<head>" +
             '<meta charset="UTF-8">' +
             // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
             '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
@@ -622,5 +651,54 @@ export default {
   }
 }
 
+.opt-group label {
+  display: inline-flex !important;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  // margin-bottom: 8px;
+  padding: 6px !important;
+}
+
+.opt-group {
+  position: relative;
+  z-index: 0;
+}
+
+.opt-group input {
+  opacity: 0;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+}
+
+.opt-group .visual-checkbox {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width:  17px;
+  height: 17px;
+  background: #292929;
+  border-radius: 4px;
+  margin-right: 5px;
+}
+
+.opt-group .visual-checkbox .icon {
+  display: none;
+  color: #00ed00;
+}
+
+.opt-group label input:checked ~ .visual-checkbox .icon {
+  display: inline-block;
+}
+
+.opt-group > .disabled {
+  opacity: .6;
+  cursor: default !important;
+  .visual-checkbox .icon {
+    color: inherit;
+  }
+}
 
 </style>

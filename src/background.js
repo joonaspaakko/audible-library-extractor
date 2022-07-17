@@ -6,6 +6,11 @@ import {
 
 var domainExtension = false;
 var activeIcons = [];
+var galleryUrl;
+
+browser.storage.local.get(['extras']).then(data => {
+  galleryUrl = _.get(data, 'extras.galleryUrl');
+});
 
 browser.runtime.onMessage.addListener(function(msg, sender) {
   if ( msg.pageAction == true && !browser.runtime.lastError ) {
@@ -56,7 +61,7 @@ browser.pageAction.onClicked.addListener(tabId => {
 });
 
 // LISTENS FOR A MESSAGES form the content script
-browser.runtime.onMessage.addListener((message, sender) => {
+browser.runtime.onMessage.addListener( async (message, sender) => {
   if (message.action === "openOutput") {
     
     // Close the tab where extraction started
@@ -66,7 +71,7 @@ browser.runtime.onMessage.addListener((message, sender) => {
     
     // Open the output page
     browser.tabs.create({
-      url: "./gallery/index.html",
+      url: galleryUrl || "./gallery/index.html",
       active: true,
       index: sender.tab.index + 1,
     });
@@ -82,6 +87,13 @@ browser.runtime.onMessage.addListener((message, sender) => {
       active: true,
       index: sender.tab.index + 1,
     });
+    
+  }
+  else if (message.action === "changeGalleryUrl") {
+    
+    galleryUrl = message.url;
+    console.log('galleryUrl', galleryUrl);
+    makeContextMenu();
     
   }
 });
@@ -131,7 +143,7 @@ function makeContextMenu() {
       contexts: ["all"]
     };
     if ( !domainExtension ) {
-      audibleLink.title = "1. Audible.com/library"
+      audibleLink.title = "1. Audible.com/library (placeholder)"
     }
     browser.contextMenus.create( audibleLink );
     
@@ -203,7 +215,7 @@ function contextEvents( info, tab ) {
     }
   }
   else if ( info.menuItemId === 'ale-to-gallery' ) {
-    newTab.url = "./gallery/index.html";
+    newTab.url = galleryUrl || "./gallery/index.html";
     browser.tabs.create(newTab);
   }
   else if ( info.menuItemId === 'ale-to-docs' ) {

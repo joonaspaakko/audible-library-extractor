@@ -4,10 +4,11 @@
   ref="summaryWrapper"
   :class="{ expanded: summary.readmore.toggle }"
   :style="{
-    maxHeight: summary.maxHeight,
-    paddingBottom: summary.readmore.toggle ? '40px' : '0px'
+    maxHeight: summary.maxHeight ? summary.maxHeight + 'px' : null,
+    paddingBottom: summary.readmore.toggle ? '50px' : '0px',
   }"
   >
+    <!-- paddingBottom: '65px', -->
     
     <div class="book-summary" ref="summary">
       
@@ -19,6 +20,10 @@
             <span v-else>{{ book.titleShort || book.title }}</span>
           </a>
         </h2>
+        
+        <div class="additional-long-book-title" v-if="showSubtitle">
+          {{ book.subtitle || book.title }}
+        </div>
         
         <div class="categories" v-if="book.categories" style="margin-top: 4px;">
           <arrayToHTML v-if="book.categories" label="categories" :noLabel="true" :array="book.categories" :chevron="true"></arrayToHTML>
@@ -56,9 +61,11 @@
           
         </div>
         
+        <div class="meta-padding"></div>
+        
       </div>
       
-      <div class="summary-inner-wrap" v-if="summaryHTML" v-html="summaryHTML"></div>
+      <div class="summary-inner-wrap" ref="summaryInnerWrap" v-if="summaryHTML" v-html="summaryHTML"></div>
       
     </div>
 
@@ -66,8 +73,13 @@
     class="summary-read-more"
     ref="readMoreBtn"
     @click="summaryReadMoreclick"
-    v-if="summary.maxHeight"
+    v-if="summary.maxHeightTemp && (summary.fullHeight > summary.maxHeightTemp)"
     >
+    <!-- 
+      FIXME: doesn't always show up on mobile. Flipping the phone sideways and then back to portrait I'm guessing readoes the math and this is able to show up
+      // This is the summary I noticed the issue with...
+      // https://joonaspaakko.github.io/ale-test-new/#/library?book=B01B8AN3SQ
+    -->
       <span>{{ summary.readmore.toggle ? "Read less" : "Read more" }}</span>
       <font-awesome fas :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'" />
     </div>
@@ -81,7 +93,7 @@ import bookTags from "./bookTags";
 
 export default {
   name: "bookSummary",
-  props: ["book", "detailsEl", "bookSummary"],
+  props: ["book", "bookSummary"],
   mixins: [makeUrl],
   components: { 
     arrayToHTML, 
@@ -91,22 +103,35 @@ export default {
     return {
       summary: {
         readmore: {
-          toggle: false,
+          toggle: false,  
           exists: false
         },
+        minHeight: null,
         maxHeight: null,
-        maxHeightTemp: null
+        maxHeightTemp: null,
+        height: null,
+        fullHeight: null,
       }
     };
   },
 
   computed: {
+    showSubtitle() {
+      
+      const preferSubtitle = this.$store.state.sticky.bookDetailSettings.titleShort;
+      const hasSubtitle = !!this.book.subtitle;
+      const noTitleDuplicate = !!this.book.title && !!this.book.titleShort && this.book.title !== this.book.titleShort;
+      
+      return preferSubtitle && ( hasSubtitle || noTitleDuplicate );
+      
+    },
     summaryHTML: function() {
       return this.book.summary || this.bookSummary || this.book.blurb;
     }
   },
 
   mounted: function() {
+    
     this.$nextTick(function() {
       this.getSummaryMaxHeight();
     });
@@ -124,37 +149,50 @@ export default {
 
   methods: {
     getSummaryMaxHeight: function() {
-      const minHeight = this.$refs.summaryMetaTop.offsetHeight + 260;
+      
+      if ( !this.summaryHTML ) return;
+      
+      const minHeight = _.get(this.$refs, 'summaryMetaTop.offsetHeight', 0);
+      const minHeightExtra = minHeight + 300;
+      this.summary.minHeight = minHeight;
+      const summaryHeight = _.get(this.$refs, 'summaryInnerWrap.offsetHeight', 0);
+      this.summary.height = summaryHeight;
+      const summaryFullHeight = _.get(this.$refs, 'summary.offsetHeight', 0);
+      this.summary.fullHeight = summaryFullHeight;
+      let maxHeight = minHeight + summaryHeight;
+      
+      // MOBILE SIZE
       if ( window.innerWidth <= 688 ) {
-        if ( this.summaryHTML ) {
-          this.summary.maxHeight = minHeight + "px";
-          this.summary.maxHeightTemp = this.summary.maxHeight;
+        if ( summaryHeight > 300 ) maxHeight = minHeightExtra; 
+        this.summary.maxHeight = maxHeight;
+        this.summary.maxHeightTemp = this.summary.maxHeight;
+      } 
+      // ANY OLD DESKTOP WIDTH
+      else {
+        
+        const information = this.$parent.$el.querySelector('.information');
+        const informationH = _.get(information, 'offsetHeight', 0);
+        if ( informationH < minHeightExtra ) {
+          this.summary.maxHeight = minHeightExtra;
+          this.summary.maxHeightTemp = minHeightExtra;
         }
-      } else {
-        // this.$nextTick(function() {
-          const information = this.detailsEl.querySelector('.information');
-          if ( !information ) return;
-          let informationH = information.offsetHeight;
-          if ( informationH < minHeight) informationH = minHeight;
-          const summary = this.$refs.summary;
-          const summaryH = summary.offsetHeight;
-          const summaryTooSwoll = summaryH > informationH;
-          // this.summary.readmore.exists = summaryTooSwoll ? true : false;
-          this.summary.maxHeight = summaryTooSwoll ? informationH + "px" : null;
-          this.summary.maxHeightTemp = informationH + "px";
-        // });
+        else {
+          const summaryTooSwoll = summaryFullHeight > informationH;
+          this.summary.maxHeight = summaryTooSwoll ? informationH : null;
+          this.summary.maxHeightTemp = informationH;
+        }
+        
       }
+      
     },
 
     summaryReadMoreclick: function() {
+      
       const btnOffset = this.$refs.readMoreBtn.getBoundingClientRect().top;
-      this.summary.readmore.toggle = !this.summary.readmore.toggle
-        ? true
-        : false;
-      this.summary.maxHeight = this.summary.readmore.toggle
-        ? "none"
-        : this.summary.maxHeightTemp;
-      if (!this.summary.readmore.toggle) {
+      this.summary.readmore.toggle = !this.summary.readmore.toggle ? true : false;
+      this.summary.maxHeight = this.summary.readmore.toggle ? "none" : this.summary.maxHeightTemp;
+      
+      if ( !this.summary.readmore.toggle ) {
         this.$nextTick(function() {
           scroll({
             top:
@@ -167,6 +205,7 @@ export default {
           // this.$refs.summaryWrapper.scrollTop = 0;
         });
       }
+      
     }
 
     // onWindowResize: function() {
@@ -183,6 +222,11 @@ export default {
 
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
+
+.summary-meta-top .meta-padding {
+  width: 100%;
+  height: 20px;
+}
 
 .book-summary-wrapper {
   // transition: all 200ms linear;
@@ -299,7 +343,6 @@ export default {
   p:first-child {
     margin-top: 0;
   }
-  margin-top: 1em;
 }
 
 .theme-light #ale-bookdetails .summary-read-more:after {
@@ -353,11 +396,14 @@ export default {
   // overflow-y: auto;
   // flex-grow: 1;
   text-align: left;
+  // padding-bottom: 75px;
   h2.book-title {
+    display: inline-block;
+    width: 100%;
     font-size: 1.8em;
     line-height: 1.1em;
     margin: 0;
-    margin-bottom: 10px;
+    padding-bottom: 10px;
     a {
       white-space: normal;
       text-decoration: none;
@@ -368,6 +414,13 @@ export default {
         text-decoration: underline;
       }
     }
+  }
+  .additional-long-book-title {
+    margin-top: -2px;
+    position: relative;
+    top: -2px;
+    font-size: .9em;
+    line-height: 1.28em;
   }
   .categories {
     line-height: 1.2em;

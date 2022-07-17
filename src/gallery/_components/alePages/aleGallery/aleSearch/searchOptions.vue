@@ -4,7 +4,7 @@
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
       
-      <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="css.filter">
+      <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="{ top: $store.state.topNavOffset + 'px' }">
         <li class="reset-filters" @click="resetFilters" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
           <font-awesome fas icon="redo-alt" />
         </li>
@@ -54,7 +54,6 @@ export default {
       css: {
         arrow: { left: "0px" },
         options: { right: "0px" },
-        filter: { top: '40px' },
       },
     };
   },
@@ -65,11 +64,6 @@ export default {
     this.$updateQuery({ query: 'y', value: null });
     
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
-    
-    if ( this.listName === 'filter' ) {
-      let topNav = document.querySelector('#nav-outer-wrapper.regular .inner-wrap');
-      this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
-    }
     
   },
 
@@ -108,11 +102,6 @@ export default {
     repositionSearchOptions: _.debounce(function() {
       
       this.$nextTick(function() {
-        
-        if ( this.listName === 'filter' ) {
-          let topNav = document.querySelector('#nav-outer-wrapper.regular .inner-wrap');
-          this.css.filter = { top: (topNav ? topNav.offsetHeight+'px' : 0) };
-        }
         
         const searchOpts = {};
         searchOpts.el = this.$refs.options;

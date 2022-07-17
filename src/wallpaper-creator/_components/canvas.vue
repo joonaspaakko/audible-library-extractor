@@ -4,9 +4,10 @@
   v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
   >
     <div class="show-blank-canvas" v-show="store.saving"></div>
-    <div class="floating-alerts" v-if="!store.animatedWallpaperMode">
+    <div class="floating-alerts" v-if="!store.animatedWallpaperMode || true">
       <gb-toast :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
       <gb-toast :closable="false" color="blue" width="200" v-show="$store.getters.textElementActive">You can also move text using arrow keys. Shift modifier increases the step to 10px.</gb-toast>
+      <gb-toast :closable="false" color="red" width="200" v-show="store.awpOverlayColorEnabled">Overlay option is enabled, which by default adds a darker overlay on top of the covers.</gb-toast>
     </div>
     <div class="grid" ref="grid"  
     v-shortkey="store.events.textNudge ? {upShift: ['shift','arrowup'], up: ['arrowup'], rightShift: ['shift','arrowright'], right: ['arrowright'], downShift: ['shift','arrowdown'], down: ['arrowdown'], leftShift: ['shift','arrowleft'], left: ['arrowleft']} : null" 

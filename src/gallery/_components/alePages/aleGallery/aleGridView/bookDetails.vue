@@ -6,7 +6,7 @@
   @shortkey="closeBookDetails"
   :class="{ 'spreadsheet-details': sticky.viewMode === 'spreadsheet' }"
   > 
-  
+    
     <div v-if="sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
     <div
     id="book-info-container"
@@ -17,10 +17,11 @@
     
       <div class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
         
+        <sidebar-flipper />
         <font-awesome class="book-details-info" :icon="['fas', 'cog']" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
         <book-details-settings v-if="store.bookDetailSettingsOpen" />
         
-        <div class="top details-wrap">
+        <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">
           <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show">
             
             <div class="collapse-btn" 
@@ -66,8 +67,7 @@
             <books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
-
-          <book-summary v-if="$el" :detailsEl="$el" :book="book" :bookSummary="bookSummaryJSON"></book-summary>
+          <book-summary :book="book" :bookSummary="bookSummaryJSON"></book-summary>
         </div>
 
         <div class="carousel-wrap">
@@ -103,6 +103,7 @@ import booksInSeries from "./bookDetails/booksInSeries";
 import bookSummary from "./bookDetails/bookSummary";
 import collectionsDrawer from "./bookDetails/collectionsDrawer.vue";
 import bookDetailsSettings from "./bookDetails/book-details-settings.vue";
+import sidebarFlipper from "./bookDetails/sidebar-flipper.vue";
 
 import makeUrl from "@output-mixins/makeFullUrl";
 
@@ -123,6 +124,7 @@ export default {
     bookSummary,
     collectionsDrawer,
     bookDetailsSettings,
+    sidebarFlipper,
   },
   mixins: [
     // sortBookNumbers,
@@ -256,9 +258,9 @@ export default {
     resetScroll: function() {
       this.$nextTick(function() {
         if ( this.sticky.viewMode === 'grid' ) {
-          const topNav = document.querySelector('#nav-outer-wrapper.regular .inner-wrap');
+          const topNav = document.querySelector('#ale-navigation');
           const navigationHeight = topNav ? topNav.offsetHeight : 0;
-          scroll({ top: this.clickedBook.offsetTop - navigationHeight - 25 });
+          scroll({ top: this.clickedBook.offsetTop - navigationHeight - 25, behavior: 'auto' });
         }
         else {
           document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 45 });
@@ -346,13 +348,11 @@ export default {
           case "left":
           case "up":
           case "tabShift":
-            console.log('spreadsheet - UP');
             vue.keyboardMove('prev');
             break;
           case "right":
           case "down":
           case "tab":
-            console.log('spreadsheet - DOWN');
             vue.keyboardMove('next');
             break;
         }
@@ -391,32 +391,32 @@ export default {
       target.el = this.clickedBook;
       target.index = this.index;
       target.width = target.el.offsetWidth;
-            
-            const cols = Math.floor(wrapper.width / target.width);
-            // const currentRow = Math.floor(this.index / cols) + 1;
-            // const currentRowLast = (currentRow*cols)-1;
-            // const previousRowLast = ((currentRow-1)*cols)-1;
-            
-            const getVerticalIndex = function() {
-              
-              const direction = e.srcKey;
-              let index = -1;
-              if ( direction === 'up' ) {
-                index = vue.index - cols;
-                if ( index < 0 ) index = 0;
-              }
-              else {
-                index = vue.index + cols;
-                const booksLength = vue.store.chunkCollection.length-1;
-                if ( index > booksLength ) index = booksLength;
-              }
-              return index;
-              
-            };
-            
-            this.$store.commit('prop', [
-              { key: 'bookDetails.book', value: null },
-              { key: 'bookDetails.index', value: -1 },
+      
+      const cols = Math.floor(wrapper.width / target.width);
+      // const currentRow = Math.floor(this.index / cols) + 1;
+      // const currentRowLast = (currentRow*cols)-1;
+      // const previousRowLast = ((currentRow-1)*cols)-1;
+      
+      const getVerticalIndex = function() {
+        
+        const direction = e.srcKey;
+        let index = -1;
+        if ( direction === 'up' ) {
+          index = vue.index - cols;
+          if ( index < 0 ) index = 0;
+        }
+        else {
+          index = vue.index + cols;
+          const booksLength = vue.store.chunkCollection.length-1;
+          if ( index > booksLength ) index = booksLength;
+        }
+        return index;
+        
+      };
+      
+      this.$store.commit('prop', [
+        { key: 'bookDetails.book', value: null },
+        { key: 'bookDetails.index', value: -1 },
       ]);
       if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
       
@@ -500,7 +500,7 @@ export default {
 .book-details-info {
   position: absolute;
   z-index: 2;
-  top: -28px;
+  top: -30px;
   right: 0px;
   font-size: 18px;
   cursor: pointer;
@@ -562,9 +562,7 @@ export default {
     display: flex;
     flex-direction: column;
     justify-content: start;
-    justify-items: start;
-    align-content: start;
-    align-items: start;
+    align-items: center;
     margin: 0 auto;
     max-width: $containerSize;
     width: 100%;
@@ -576,6 +574,17 @@ export default {
       width: 100%;
       display: flex;
       flex-direction: row;
+      &.reverse-direction {
+        flex-direction: row-reverse;
+        .information {
+          margin-left: 31px;
+          margin-right: 0;
+          &:before {
+            left: -35px !important;
+            width: 20px !important;
+          }
+        }
+      }
       justify-content: start;
       justify-items: start;
       align-content: start;
@@ -590,7 +599,8 @@ export default {
   .information {
     @include themify($themes) {
       // border: 1px solid rgba( themed(frontColor), .1);
-      background-color: rgba(themed(frontColor), 0.01);
+      $bgColor: lighten(themed(backColor), 7.5);
+      background: mix(blue, $bgColor, 2%);
       box-shadow: 0 3px 15px rgba(darken(themed(backColor), 30), 0.8);
     }
     position: relative;
@@ -700,9 +710,6 @@ export default {
 } // #ale-bookdetails
 
 .theme-light #ale-bookdetails {
-  .information {
-    background: #fff;
-  }
   background: -moz-linear-gradient(
     top,
     rgba(255, 255, 255, 0.9) 0%,
@@ -751,6 +758,13 @@ export default {
       .top {
         display: flex;
         flex-direction: column;
+        &.reverse-direction {
+          flex-direction: column-reverse;
+          .information {
+            margin-left: 0;
+            margin-top: 20px;
+          }
+        }
         .information {
           max-width: none;
           width: 100%;
@@ -846,7 +860,7 @@ export default {
   .book-detail-settings-open {
     .details-wrap,
     .carousel-wrap {
-      opacity: .4;
+      opacity: .3;
     }
   }
 }

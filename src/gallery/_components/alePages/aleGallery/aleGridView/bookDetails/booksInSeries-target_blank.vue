@@ -349,13 +349,6 @@ div.hidden-section {
   padding-bottom: 0;
 }
 
-.series-section {
-  margin-top: 15px;
-  &:first-child {
-    margin-top: 0;
-  }
-}
-
 .series-heading {
   display: block;
   font-weight: 700;

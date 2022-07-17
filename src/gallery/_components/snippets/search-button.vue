@@ -1,0 +1,60 @@
+<template>
+  <div v-if="$store.state.searchMounted || true" 
+  class="search-btn" 
+  :class="{ float: float }"
+  @click="startSearching" 
+  v-tippy="{ interactive: true, allowHTML: true }" 
+  content='
+    Click to scroll up and search. <br>
+    Read about advanced search operators 
+    <a target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/advanced-search">
+      here
+    </a>.'
+  >
+    <font-awesome :icon="['fas', 'search']" />
+  </div>
+</template>
+
+<script>
+export default {
+  props: [ 'float' ],
+  methods: {
+    
+    startSearching() {
+      this.$root.$emit("ios-auto-zoom-disable");
+      this.$root.$emit('search-focus');
+    },
+    
+  }
+};
+</script>
+
+<style lang="scss" scoped>
+@import "~@/_variables.scss";
+
+.search-btn {
+  
+  &:focus,
+  &:active {
+    color: $audibleOrange;
+  }
+  
+  .float {
+    position: absolute;
+    top: -46px;
+    cursor: pointer;
+    @extend .center-contents;
+    border-radius: 999999px;
+    width:  32px;
+    height: 32px;
+    // @include themify($themes) {
+    //   background: rgba( themed(backColor), .25);
+    // }
+    &, svg { color: #fff; }
+    background: rgba( #292929, .90);
+    border: 1px solid rgba( #fff, 1);
+  }
+  
+}
+
+</style>

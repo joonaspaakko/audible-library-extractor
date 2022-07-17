@@ -120,7 +120,7 @@ export default {
       if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
     }
     
-    if ( this.$route.name === 'gallery' ) {
+    if ( this.$route.name === 'library' ) {
       this.pageTitle = 'Library';
       this.pageSubTitle = null;
     }
@@ -270,22 +270,26 @@ export default {
     addDomItems: _.throttle( function(e) {
       if ( this.$store.state.lazyScroll ) {
         
-        let bottomOffset = this.$store.state.sticky.viewMode === 'grid' ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
-        let container = this.$store.state.sticky.viewMode === 'grid' ? document.documentElement : this.scrollContainer;
+        const gridView = this.$store.state.sticky.viewMode === 'grid';
+        let bottomOffset = gridView ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
+        let container = gridView ? document.documentElement : this.scrollContainer;
         let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
         
-        if ( atTheBottom ) {
-          this.$store.commit('chunkCollectionAdd');
-        }
+        // At the bottom of currently rendered chunk
+        if ( atTheBottom ) this.$store.commit('chunkCollectionAdd');
         
-        this.updateScrollDistance( container.scrollTop );
+        // Update scroll distance
+        // Don't update with book details open, because it takes precedence
+        // if ( !this.$route.query.book ) this.$updateQuery({ query: 'y', value: container.scrollTop });
+        this.$updateQuery({ query: 'y', value: container.scrollTop });
+        // this.updateScrollDistance( container.scrollTop );
         
       }
-    }, 500, { leading: false, trailing: true }),
+    }, 450, { leading: false, trailing: true }),
     
-    updateScrollDistance: _.debounce( function( scrollTop ) {
-      this.$updateQuery({ query: 'y', value: scrollTop });
-    }, 600, { leading: false, trailing: true }),
+    // updateScrollDistance: _.debounce( function( scrollTop ) {
+    //   this.$updateQuery({ query: 'y', value: scrollTop });
+    // }, 100, { leading: false, trailing: true }),
     
     toggleBookDetails: function(e) {
       if (!e.book) {

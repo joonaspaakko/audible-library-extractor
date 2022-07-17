@@ -31,16 +31,11 @@ export default {
   methods: {
     lightSwitchToggle: function(onLoad) {
       if (!onLoad) {
-        this.$store.commit("stickyProp", {
-          key: "lightSwitch",
-          value: this.$store.state.sticky.lightSwitch ? 0 : 1
-        });
+        
+        this.$store.commit("stickyProp", { key: "lightSwitch", value: this.$store.state.sticky.lightSwitch ? 0 : 1 });
 
-        if (!this.$store.state.sticky.lightSwitchSetByUser)
-          this.$store.commit("stickyProp", {
-            key: "lightSwitchSetByUser",
-            value: true
-          });
+        if (!this.$store.state.sticky.lightSwitchSetByUser) this.$store.commit("stickyProp", { key: "lightSwitchSetByUser", value: true });
+        
       } else {
         this.autoLightsOff();
       }

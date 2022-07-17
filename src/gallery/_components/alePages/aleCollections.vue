@@ -3,11 +3,17 @@
     
     <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
     
-    <div
+    <!-- 
+      Lazified this just in case some user is one of those people who make collections for every series.
+      I don't really see people having like over 50 collections otherwise.
+    -->
+    <lazy
+    :tag="collection.isSpecial ? 'span' : 'div'"
     class="single-box"
     v-for="(collection, index) in collections"
     :data-collection-id="collection.id"
     :key="collection.id"
+    :class="{ 'is-special': collection.isSpecial }"
     >
       <div class="sample-covers-square">
         <div
@@ -35,7 +41,7 @@
         <div v-html="collection.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this collection."></div>
       </router-link>
       
-    </div> <!-- .single-box -->
+    </lazy> <!-- .single-box -->
     
   </div>
 </template>
@@ -44,11 +50,14 @@
 import slugify from "@output-mixins/slugify";
 import makeCoverUrl from "@output-mixins/makeCoverUrl";
 import pageTitle from "@output-snippets/page-title.vue";
+import lazy from "@output-snippets/lazy.vue";
 
 export default {
   name: "aleCategories",
-  mixins: [slugify, makeCoverUrl],components: { 
+  mixins: [slugify, makeCoverUrl],
+  components: { 
     pageTitle,
+    lazy
   },
   data: function() {
     return {
@@ -70,6 +79,7 @@ export default {
       let newCollection = {
         id: collection.id,
         title: collection.title,
+        isSpecial: vue.isSpecial(collection),
       };
       
       newCollection.books = _.filter( vue.$store.state.library.books, function( book ) {
@@ -80,8 +90,17 @@ export default {
       
     });
     
-    // Make sure favorites are always at the top
-    this.collections = _.orderBy(collections, function( o ) { return o.title; }, "asc");
+    // "Special" Audible created collections bubble to the top.
+    // After that it's alphabetical sorting based on the title.
+    // TODO: Should've maybe split collections to 2 arrays so it'd be easier to handle the special boys.
+    this.collections = _.orderBy(collections, [
+      function( o ) { return vue.isSpecial(o) },
+      'title',
+    ], 
+    [
+      "desc",
+      "asc",
+    ]);
     
     this.$store.commit("prop", [
       { key: "pageCollection", value: [] }, 
@@ -93,7 +112,10 @@ export default {
   methods: {
     getRandomBooks: function(books, number) {
       return _.sampleSize(books, number);
-    }
+    },
+    isSpecial( obj ) {
+      return _.get(obj,'id','').indexOf('__') === 0;
+    },
   }
 };
 </script>
@@ -110,6 +132,7 @@ export default {
   padding: 0px !important;
   margin-top: 20px !important;
   &:first-child { margin-top: 0 !important; }
+  min-height: 82px;
 }
 
 .sample-covers-square {
@@ -151,5 +174,22 @@ export default {
 }
 
 .books-total { top: unset !important; }
+
+.single-box { position: relative; z-index: 0; };
+.is-special { display: flex; }
+span:last-of-type {
+  margin-bottom: 62px;
+  &:after {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    bottom: -33px;
+    height: 2px;
+    width: 100%;
+    @include themify($themes) {
+      background: rgba(themed(frontColor), .25);
+    }
+  }
+}
 
 </style>

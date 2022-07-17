@@ -72,17 +72,23 @@ export default {
 
   mounted: function() {
     this.setSpreadsheetOffset();
+    this.$root.$on('afterWindowResize', this.setSpreadsheetOffset);
+  },
+  beforeDestroy: function() {
+    this.$root.$off('afterWindowResize', this.setSpreadsheetOffset);
   },
 
   methods: {
     
     setSpreadsheetOffset: function() {
-      
-      const searchWrap = document.querySelector('#ale-search-wrap');
-      const searchOffset = window.pageYOffset + searchWrap.getBoundingClientRect().top;
-      const searchHeight = searchWrap.offsetHeight;
-      this.spreadsheetTop = searchOffset + searchHeight;
-    
+      this.$nextTick(function() {
+        
+        const searchWrap = document.querySelector('#ale-search-wrap');
+        const searchOffset = window.pageYOffset + searchWrap.getBoundingClientRect().top;
+        const searchHeight = searchWrap.offsetHeight;
+        this.spreadsheetTop = searchOffset + searchHeight;
+        
+      });
     },
     
   }

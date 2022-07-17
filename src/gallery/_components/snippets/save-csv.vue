@@ -1,4 +1,6 @@
 <template>
+<modal @closeModal="$emit('closeComp')">
+  
   <div class="export-group">
 
     <h2><font-awesome :icon="['fas', 'file-csv']" /> CSV (Spreadsheet)</h2>
@@ -11,16 +13,36 @@
 
     <div class="options">
       <label v-for="source in settings.dataSources" :key="source.key" v-tippy="{ allowHTML: true, maxWidth: 500 }" :content="source.tippy">
-        <input type="radio" name="dataSources" v-model="settings.dataSourcesChecked" :value="source.key" @change="inputChanged"> {{ source.key }}
+        <input type="radio" name="dataSources" v-model="settings.dataSourcesChecked" :value="source.key" @change="inputChanged"> 
+        <div class="visual-radiobutton">
+          <div class="icon">
+            <font-awesome :icon="['fas', 'circle']" />
+          </div>
+        </div>
+        <span>{{ source.key }}</span>
       </label>
+    </div>
+    
+    <div class="description" style="margin-top: 10px;">
+      Use <strong>current list</strong> to export csv file from any page with custom filtering and sorting.
     </div>
 
     <h3>Compatibility:</h3>
 
     <div class="options">
       <label v-for="item in settings.compatibility" :key="item.key" v-tippy="{ allowHTML: true, maxWidth: 500 }" :content="item.tippy">
-        <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> {{ item.label || item.key }}
+        <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> 
+        <div class="visual-radiobutton">
+          <div class="icon">
+            <font-awesome :icon="['fas', 'circle']" />
+          </div>
+        </div>
+        <span>{{ item.label || item.key }}</span>
       </label>
+    </div>
+    
+    <div class="description" style="margin-top: 10px;">
+      Use <strong>raw data</strong> to export a csv file from any page with any kind of custom filtering and sorting.
     </div>
 
     <div class="buttons-footer">
@@ -46,6 +68,8 @@
     </div>
     
   </div>
+  
+</modal>
 </template>
 
 <script>
@@ -56,10 +80,21 @@ import makeUrl from "@output-mixins/makeFullUrl";
 import prepareKeys from "@output-mixins/prepareKeys.js";
 import slugify from "@output-mixins/slugify";
 import makeGoodReadsUrl from "@output-mixins/goodReadsSearchUrl";
+import modal from '@output-snippets/modal.vue';
 
 export default {
   name: "saveCsv",
-  mixins: [stringifyArray, makeCoverUrl, makeUrl, prepareKeys, slugify, makeGoodReadsUrl],
+  mixins: [
+    stringifyArray, 
+    makeCoverUrl, 
+    makeUrl, 
+    prepareKeys, 
+    slugify, 
+    makeGoodReadsUrl
+  ],
+  components: {
+    modal,
+  },
   mounted: function() {
     
     if ( this.$store.state.sticky.exportSettingsCSVdataSources ) {
@@ -83,7 +118,7 @@ export default {
         compatibility: [
           { key: 'Raw data', label: 'Raw data', tippy: "This is the format that works with any CSV capable application, like Open Office, Excel, Numbers, Google Sheets (though the GS specific format is recommended)." },
           { key: 'Google Sheets', tippy: "<strong>Google Sheets compatible formulas:</strong> <ul><li>Cover image and store page hyperlink</li><li>Sample audio icon and hyperlink</li><li>Web player icon and hyperlink</li><li>Goodreads search icon and hyperlink</li><li>Title with a hyperlink to store page</li></ul>" },
-          { key: 'Goodreads', tippy: "Includes columns that are relevant to Goodreads and removes any books that don't have ISBNs because Goodreads won't import books without any. <br><br>Each book is imported in bookshelves as per their status: not started (to-read), started(currently-reading), finished (read). The categories are divided into shelves as well." },
+          { key: 'Goodreads', tippy: "This one has just the columns that are relevant to Goodreads and removes any books that don't have ISBNs because Goodreads won't import books without any. <br><br>Each book is imported in bookshelves as per their status: not started (to-read), started(currently-reading), finished (read). The categories are divided into shelves as well." },
         ] 
       },
       bundling: false,
@@ -108,7 +143,6 @@ export default {
       else if ( this.settings.dataSourcesChecked === 'Current list' ) {
         let pageTitle = this.$store.state.pageTitle ? this.slugify( this.$store.state.pageTitle ) : null;
         let routeName =  this.$route.name;
-        if ( routeName === 'gallery' ) routeName = 'library';
         suffix = pageTitle || routeName;
       }
       
@@ -531,3 +565,49 @@ export default {
   
 };
 </script>
+
+
+<style scoped lang="scss">
+.options {
+  display: flex;
+  flex-direction: row;  
+}
+
+.options label {
+  display: inline-flex !important;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  
+  input {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+  }
+  
+  .visual-radiobutton {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width:  15px;
+    height: 15px;
+    // border: 1px solid #fff;
+    background: #292929;
+    border-radius: 9999999999px;
+    margin-right: 5px;
+    .icon, svg {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      width: 7px;
+      height: 7px;
+      color: #00ed00;
+    }
+  }
+  
+  .visual-radiobutton .icon { opacity: 0;  }
+  input:checked ~ .visual-radiobutton .icon { opacity: 1; }
+}
+</style>

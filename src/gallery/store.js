@@ -32,7 +32,7 @@ export default new Vuex.Store({
       booksInSeriesAll: false,
       booksInSeriesFinished: true,
       booksInSeriesOpenInApp: true,
-      subPageSource: 'books',
+      subPageSource: 'library',
       bookDetailsCollapsedCover: false,
       bookDetailsCollapsedDetails: false,
       contextMenuReminder: true,
@@ -53,6 +53,7 @@ export default new Vuex.Store({
         plusCatalog: true,
         favorite: true,
         finished: true,
+        reverseDirection: false,
       },
     },
     // States that don't persist
@@ -95,6 +96,12 @@ export default new Vuex.Store({
       forward: [],
       back: [],
     },
+    modal: {
+      saveLocally: false,
+    },
+    blockScrolling: false,
+    playingAudio: false,
+    topNavOffset: 0,
   },
 
   mutations: {
