@@ -6,7 +6,9 @@
     
     <!-- <extension-gallery-toolbar /> -->
     
-    <router-view v-if="$route.name !== '404'" :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.viewRefresh"></router-view>
+    <div v-if="$route.name !== '404'">
+      <router-view :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.refreshView"></router-view>
+    </div>
     <div v-else id="nothing-here-404">
       <h3 v-if="$store.getters.searchIsActive && !$store.state.searchCollection.length">Search: no results</h3>
       <h3 v-else>404: There's nothing here</h3>
@@ -63,8 +65,6 @@ export default {
     
     this.$root.$on('refresh-page', this.refreshPage);
     
-    
-    
     this.$store.commit('prop', { key: 'siteOnline', value: navigator.onLine });
     window.addEventListener('offline', function() {
       vue.$store.commit('prop', { key: 'siteOnline', value: false });
@@ -92,12 +92,18 @@ export default {
   methods: {
     
     refreshPage: function( callback ) {
-      this.$store.commit('prop', { key: 'viewRefresh', value: 'refresh' });
+      const vue = this;
+      const timeStamp = new Date().getTime();
+      this.$store.commit('prop', { key: 'viewRefresh', value: timeStamp });
       this.$nextTick(function() {
-        this.$store.commit('prop', { key: 'viewRefresh', value: '' });
-        this.$nextTick(function() {
-          if ( typeof callback === 'function' ) callback( this );
-        });
+        
+        setTimeout(function() {
+          vue.$store.commit('prop', { key: 'viewRefresh', value: '' });
+          vue.$nextTick(function() {
+            if ( typeof callback === 'function' ) callback( vue );
+          });
+        }, 10);
+        
       });
     },
     

@@ -160,6 +160,8 @@ export default {
             break;
         }
       }
+      
+      console.log('%c' + 'sorted books!' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', books);
 
       return books;
     }

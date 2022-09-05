@@ -10,6 +10,10 @@
     
     <div class="settings-wrapper" v-if="showSettings">
       
+      <div class="settings-info">
+        Your browser will remember these settings!
+      </div>
+      
       <div class="setting" v-for="setting in settings" :key="setting.label" :class="{ disabled: !setting.enabled }">
         
         <div class="heading" v-if="setting.type === 'heading'">
@@ -32,7 +36,7 @@
           <font-awesome 
           class="more-info-icon" 
           v-if="setting.info" 
-          v-tippy="{ trigger: 'mouseenter focus click', hideOnClick: false, delay: 0, placement: 'right', flipBehavior: ['right', 'top', 'left', 'bottom'], allowHTML: true, }" 
+          v-tippy="{ trigger: 'mouseenter focus click', interactive: setting.interactiveTippy, hideOnClick: false, delay: 0, placement: 'right', flipBehavior: ['right', 'top', 'left', 'bottom'], allowHTML: true, }" 
           :content="setting.info" 
           :icon="['fas', 'question-circle']" 
           />
@@ -89,9 +93,40 @@ export default {
           type: 'checkbox', 
           label: 'Show sample play button', 
           info: '<img src="images/info/sample-play-button.jpg" class="tippy-info-image" />',
+          parent: 'sampleButton',
           value: sticky.bookDetailSettings.playButton,
           event: function( e ) {
-            vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.playButton', value: e.target.checked });
+            
+            // Makes sure cloud player button is never enabled at the same time
+            const update = [{ key: 'sticky.bookDetailSettings.playButton', value: e.target.checked }];
+            if ( sticky.bookDetailSettings.cloudPlayer ) {
+              update.push({ key: 'sticky.bookDetailSettings.cloudPlayer', value: !e.target.checked });
+              vue.mutateChildren( 'cloudButton', 'value', !e.target.checked );
+            }
+            vue.mutateChildren( 'sampleButton', 'value', e.target.checked );
+            vue.$store.commit('prop', update);
+            
+          },
+        },
+        { 
+          enabled: true,
+          type: 'checkbox', 
+          label: 'Show cloud player button', 
+          parent: 'cloudButton',
+          info: 'You have to be logged in. Try opening <a targer="_blank" href="'+ store.urlOrigin +'/library">your library</a> first before opening the cloud player.<br>If you can open your library, you can also open the cloud player through the ALE gallery.<br><br><img src="images/info/book-cover-cloud-player-button.jpg" class="tippy-info-image" />',
+          interactiveTippy: true,
+          value: sticky.bookDetailSettings.cloudPlayer,
+          event: function( e ) {
+
+            // Makes sure sample play button is never enabled at the same time 
+            const update = [{ key: 'sticky.bookDetailSettings.cloudPlayer', value: e.target.checked }];
+            if ( sticky.bookDetailSettings.playButton ) {
+              update.push({ key: 'sticky.bookDetailSettings.playButton', value: !e.target.checked });
+              vue.mutateChildren( 'sampleButton', 'value', !e.target.checked );
+            }
+            vue.mutateChildren( 'cloudButton', 'value', e.target.checked );
+            vue.$store.commit('prop', update);
+            
           },
         },
         { 
@@ -151,7 +186,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Prefer short title', 
-          info: "Short title is used if available (newly extracted data since v.0.2.9). Subtitle is shown below with a smaller font similar to Audible store pages. <br/><br/><strong>In case subtitle is not available, the full title is shown below instead, so you always get to see the full title either way.</strong><br/><br/><img src='images/info/prefer-short-title.jpg' class='tippy-info-image' />",
+          info: "This makes the title a little more readable without actually removing anything from the title, just diplaying it differently. Short title is used if available (for newly extracted data since v.0.2.9). Subtitle is shown below with a smaller font similar to Audible store pages. <br/><br/><strong>In case subtitle is not available, the full title is shown below instead, so you always get to see the full title either way.</strong><br/><br/><img src='images/info/prefer-short-title.jpg' class='tippy-info-image' />",
           value: sticky.bookDetailSettings.titleShort,
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.titleShort', value: e.target.checked });
@@ -522,6 +557,18 @@ table {
         text-align: left;
       }
     }
+  }
+}
+
+.settings-info {
+  @include themify($themes) {
+    display: inline-block;
+    padding: 6px 15px;
+    border-radius: 5px;
+    color: rgba(themed(frontColor),.8);
+    background: themed(backColor);
+    border: 1px solid rgba(themed(frontColor),.5);
+    box-shadow: themed(shadowMedium);
   }
 }
 

@@ -20,602 +20,35 @@ Vue.config.productionTip = false;
 
 // VUE SHORTKEY
 Vue.use(require("vue-shortkey"));
-
 // VUE ROUTER
 import VueRouter from "vue-router";
 Vue.use(VueRouter);
-import aleLibraryView from "./_components/aleLibraryView";
-
-let routesPrep = function( libraryData ) {
-  if ( libraryData ) {
-    
-    let routes = [];
-    
-    // Home page redirect
-    if ( libraryData.books ) {
-      routes.push({ path: "/", redirect: "/library" },);
-    }
-    else if ( libraryData.wishlist ) {
-      routes.push({ path: "/", redirect: "/wishlist" },);
-    }
-    
-    const aleGallery = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "./_components/alePages/aleGallery");
-    
-    // LIBRARY
-    if ( libraryData.books ) {
-      routes.push({ name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: [ 'fas', 'book' ] } });
-    }
-    
-    // SUB PAGES
-    var subPages = {
-      categories: {
-        path: "/categories",
-        meta: {
-          icon: [ 'fas', 'indent' ],
-          nestedGroup: 'subPages',
-        },
-        component: aleLibraryView,
-        children: [
-          { name: "categories", path: "", component: () => import( /* webpackChunkName: "categories" */ "./_components/alePages/subPages/aleCategories"), meta: { subPage: true, title: 'Categories' } },
-          { name: "category", path: ":parent/:child?", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Categories' } }
-        ],
-      },
-      series: {
-        path: "/series",
-        component: aleLibraryView,
-        meta: {
-          icon: [ 'fas', 'list-ol' ],
-          nestedGroup: 'subPages',
-        },
-        children: [
-          { name: "all-series", path: "", component: () => import( /* webpackChunkName: "series" */ "./_components/alePages/subPages/aleSeries"), meta: { subPage: true, title: 'Series' } },
-          { name: "series", path: ":series", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Series' } }
-        ],
-      },
-      authors: {
-        path: "/authors",
-        component: aleLibraryView,
-        meta: {
-          icon: [ 'fas', 'user-friends' ],
-          nestedGroup: 'subPages',
-        },
-        children: [
-          { name: "authors", path: "", component: () => import( /* webpackChunkName: "authors" */ "./_components/alePages/subPages/aleAuthors"), meta: { subPage: true, title: 'Authors' } },
-          { name: "author", path: ":author", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Authors' } }
-        ],
-      },
-      narrators: {
-        path: "/narrators",
-        component: aleLibraryView,
-        meta: {
-          icon: [ 'fas', 'users' ],
-          nestedGroup: 'subPages',
-        },
-        children: [
-          { name: "narrators", path: "", component: () => import( /* webpackChunkName: "narrators" */ "./_components/alePages/subPages/aleNarrators"), meta: { subPage: true, title: 'Narrators' } },
-          { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
-        ],
-      },
-      publishers: {
-        path: "/publishers",
-        component: aleLibraryView,
-        meta: {
-          icon: [ 'fas', 'book' ],
-          nestedGroup: 'subPages',
-        },
-        children: [
-          { name: "publishers", path: "", component: () => import( /* webpackChunkName: "publishers" */ "./_components/alePages/subPages/alePublishers"), meta: { subPage: true, title: 'Publishers' } },
-          { name: "publisher", path: ":publisher", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Publishers' } }
-        ],
-      },
-    };
-    
-    // Standalone-gallery SUBPAGES
-    let subPageStates = _.get( libraryData, 'extras.subPageStates' );
-    if ( subPageStates ) {
-      _.each(subPageStates, function( item ) {
-        if ( item.enabled ) routes.push( subPages[ item.key ] );
-      });
-    }
-    // Extension-gallery SUBPAGES
-    else if ( libraryData.books || libraryData.wishlist ) {
-      _.each(subPages, function( subPage ) {
-        routes.push( subPage );
-      });
-    }
-    
-    // COLLECTIONS
-    if ( libraryData.collections ) {
-      routes.push({
-        path: "/collections",
-        component: aleLibraryView,
-        meta: {
-          icon: [ 'fas', 'folder-open' ],
-        },
-        children: [
-          { name: "collections", path: "", component: () => import( /* webpackChunkName: "collections" */ "./_components/alePages/aleCollections"), meta: { title: 'Collections' } },
-          { name: "collection", path: ":collection", component: aleGallery, meta: { gallery: true, title: 'Collections' } }
-        ]
-      });
-    }
-    
-    // WISHLIST
-    if ( libraryData.wishlist ) {
-      routes.push({
-        path: "/wishlist",
-        component: aleLibraryView,
-        meta: {
-          icon: [ 'fas', 'bookmark' ],
-        },
-        children: [
-          { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
-        ]
-      });
-    }
-    
-    routes.push({
-      path: '*',
-      name:'404', 
-      component: aleLibraryView
-    });
-
-    const router = new VueRouter({
-      routes,
-      scrollBehavior(to, from, savedPosition) {
-        if (savedPosition ) {
-          return savedPosition;
-        } else {
-          if (from && to.name === from.name && _.isEqual(to.params, from.params)) {
-            return;
-          } else {
-            return { x: 0, y: 0 };
-          }
-        }
-      }
-    });
-    
-    // Tries to load relevant JSON data from a file before each route change on the standalone site
-    if ( standalone ) {
-      
-      function loadScript(file) {
-        return new Promise(function(resolve, reject) {
-          let script = document.createElement('script');
-          script.src = (file.prefix || "data/") + file.name +"."+ libraryData.extras.cacheID +".js";
-          script.type = "text/javascript";
-          script.onload = function() {
-            resolve(file);
-            script = null;
-          };
-          script.onerror = function() {
-            reject(file);
-            script = null;
-          };
-          document.body.appendChild(script);
-        });
-      }
-      
-      let getJSON = function( next, files, afterError ) {
-        
-        // Exclude JSON that's already been loaded
-        files = _.filter( files, function( file ){ return window[file.name+'JSON'] !== true; });
-        
-        // save all Promises as array
-        let promises = [];
-        files.forEach(function(file) {
-          promises.push(loadScript(file));
-        });
-        
-        Promise.all(promises).catch(function() {
-          if ( !afterError ) {
-            setTimeout(function() {
-              getJSON( next, files, 'afterError' );
-            }, 1000);
-          }
-        }).finally(function() {
-          
-          let storageArray = _.map( files, function( file ) { 
-            return {
-              key: (file.keyOverride || file.name),
-              value: window[file.name+'JSON'],
-            }; 
-          });
-          store.commit("buildStandaloneData", storageArray);
-          _.each( files, function( file ) { window[file.name+'JSON'] = true; });
-          next();
-          
-        });
-        
-      };
-      
-      
-      router.beforeEach((to, from, next) => {
-                
-        if ( 
-          to.name && (
-            from.name !== to.name || 
-            _.get(from, 'query.book') !== _.get(to, 'query.book') || 
-            from.query.subPageSource !== to.query.subPageSource 
-          )
-        ) {
-          
-          const loaderArray = [];
-          const openingWishlist = to.name === 'wishlist' || 
-                                  to.query.subPageSource === 'wishlist' || 
-                                  to.meta.subPage && !to.query.subPageSource && store.state.sticky.subPageSource === 'wishlist';
-          
-          if ( libraryData.wishlist && openingWishlist ) {
-            loaderArray.push({name: 'wishlist'}); 
-          }
-          else if ( libraryData.books ) {
-            loaderArray.push({name: 'library', keyOverride: 'books'}); 
-          }
-          
-          if ( libraryData.series      ) loaderArray.push({name: 'series'});
-          if ( libraryData.collections ) loaderArray.push({name: 'collections'}); 
-          
-          getJSON( next, loaderArray);
-        
-        }
-        else { next(); }
-      });
-      
-    }
-    
-    router.afterEach((to, from, next) => {
-      if ( from.name !== to.name ) {
-        
-        const navForward = store.state.navHistory.forward;
-        const navBack = store.state.navHistory.back;
-        
-        if ( 
-          from.name && from.name !== navForward[ navForward.length-1]  && from.name !== navBack[ navBack.length-1 ] 
-        ) {
-          store.commit('navHistory', { key: 'back', value: from.name, pushOnly: true });
-        }
-        
-        if ( !store.state.navHistory.btnNavigation ) store.commit('prop', { key: 'navHistory.forward', value: [] });
-        store.commit('prop', { key: 'navHistory.btnNavigation', value: false });
-        
-      }
-    });
-    
-    return router;
-  
-  }
-};
-
-
-
-// FONT AWESOME
-import { library } from "@fortawesome/fontawesome-svg-core";
-import {
-  faShoppingBag,
-  faFolderOpen,
-  faIndent,
-  faListOl,
-  faBookmark,
-  faChevronDown,
-  faChevronLeft,
-  faChevronRight,
-  faChevronUp,
-  faArchive,
-  // faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
-  faBars,
-  faBook,
-  faBookReader,
-  faCheck,
-  faInfoCircle,
-  faCircle,
-  // faCheckCircle, faExclamationTriangle, faExclamationCircle,
-  // faDotCircle,
-  // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
-  // faFileCsv,
-  faFilter,
-  faHeart,
-  faHome,
-  faList,
-  faLock,
-  faMicroscope,
-  faMoon,
-  faPlay,
-  faPlayCircle,
-  faPauseCircle,
-  faPause,
-  // faPlus,
-  faPlusCircle,
-  // faRandom,
-  faSave,
-  faSearch,
-  faSort,
-  faSortDown,
-  faSortUp,
-  faSpinner,
-  faSquare,
-  faSun,
-  faTable,
-  faTh,
-  faTimesCircle,
-  faUnlockAlt,
-  faUsers,
-  faUserFriends,
-  faRedoAlt,
-  faUndoAlt,
-  faTimes,
-  faDownload,
-  faFileCsv,
-  faShareSquare,
-  faBan,
-  faMinusCircle,
-  faHeadphonesAlt,
-  faImages,
-  faGraduationCap,
-  faRandom,
-  faCog,
-  faQuestionCircle,
-  faCrosshairs,
-  faMusic,
-  faRetweet,
-  faGrip,
-  faLink,
-} from "@fortawesome/free-solid-svg-icons";
-import {
-  faGithub,
-  faGoodreads,
-} from "@fortawesome/free-brands-svg-icons";
-
-library.add(
-  faShoppingBag,
-  faFolderOpen,
-  faIndent,
-  faListOl,
-  faBookmark,
-  faChevronDown,
-  faChevronLeft,
-  faChevronRight,
-  faChevronUp,
-  faArchive,
-  // faArrowUp, faAngleRight, faAngleLeft, faAngleDown,
-  faBars,
-  faBook,
-  faBookReader,
-  faCheck,
-  faInfoCircle,
-  faCircle,
-  // faCheckCircle, faExclamationTriangle, faExclamationCircle,
-  // faDotCircle,
-  // faEye, faEyeSlash, faCaretDown, faCaretUp, faUpload,
-  // faFileCsv,
-  faFilter,
-  faHeart,
-  faHome,
-  faList,
-  faLock,
-  faMicroscope,
-  faMoon,
-  faPlay,
-  faPlayCircle,
-  faPauseCircle,
-  faPause,
-  // faPlus,
-  faPlusCircle,
-  // faRandom,
-  faSave,
-  faSearch,
-  faSort,
-  faSortDown,
-  faSortUp,
-  faSpinner,
-  faSquare,
-  faSun,
-  faTable,
-  faTh,
-  faTimesCircle,
-  faUnlockAlt,
-  faUsers,
-  faUserFriends,
-  faRedoAlt,
-  faUndoAlt,
-  faTimes,
-  faDownload,
-  faGithub,
-  faFileCsv,
-  faShareSquare,
-  faGoodreads,
-  faBan,
-  faMinusCircle,
-  faHeadphonesAlt,
-  faImages,
-  faGraduationCap,
-  faRandom,
-  faCog,
-  faQuestionCircle,
-  faCrosshairs,
-  faMusic,
-  faRetweet,
-  faGrip,
-  faLink,
-);
-import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
-Vue.component("font-awesome", FontAwesomeIcon);
-
+import loadRoutes from '@output-modules/load-routes.js';
+// UPDATING VUEX QUERIES
+import updateRouterQueries from './_plugins/update-router-query.js';
+Vue.use( updateRouterQueries );
+// VUEX store
+import store from "@output-modules/store/index.js";
 // VUE TIPPY
 import VueTippy, { TippyComponent } from "vue-tippy";
-Vue.use(VueTippy, {
-  placement: "top",
-  arrow: true,
-  theme: "dark",
-  maxWidth: 650,
-  delay: [500,0],
-  a11y: false,
-  onShow: options => {
-    return !!options.props.content;
-  },
-  boundary: "viewport",
-  flipDuration: 0
-});
+import tippySettings from './_plugins/tippy-settings.js';
+Vue.use(VueTippy, tippySettings);
 Vue.component("tippy", TippyComponent);
 import "tippy.js/themes/light-border.css";
+// FONT AWESOME
+import fontawesomeWrapper from './_plugins/font-awesome-wrapper.js';
+Vue.component("font-awesome", fontawesomeWrapper);
+// LONG PRESS
+import longPress from './_plugins/long-press.js';
+Vue.directive('longpress', longPress);
+// GLOBAL METHODS
+import setListRenderingOptions from './_plugins/set-list-rendering-options.js'
+Vue.use( setListRenderingOptions );
 
+// HELPER METHODS (from content script)
 import helpers from "@contscript-mixins/misc/helpers.js";
 
-// VUEX store
-import store from "./store.js";
-
-// UPDATING VUEX QUERIES
-const updateVuexQuery = {};
-updateVuexQuery.install = function (Vue) {
-  Vue.prototype.$updateQuery = function( config ) {
-    
-    config      = config || {};
-    let query   = config.query;
-    let value   = config.value;
-    let history = config.history;
-    let queries = config.queries || this.$route.query;
-    
-    let queryClone = JSON.parse( JSON.stringify( queries ) );
-    
-    // Toggle
-    if ( value === undefined ) {
-      if ( queryClone[ query ] ) delete queryClone[ query ];  
-      else queryClone[ query ] = true;
-    }
-    // Truthy value adds the value
-    // Falsy value removes the query
-    else {
-      if ( !value ) delete queryClone[ query ]; 
-      else queryClone[ query ] = value;
-    }
-    
-    // push() writes a history state...
-    if ( history ) {
-      this.$router.push({ query: queryClone }).catch(() => {}); 
-    }
-    // replace() doesn't...
-    else {
-      this.$router.replace({ query: queryClone }).catch(() => {}); 
-    }
-    
-  };
-}
-Vue.use( updateVuexQuery );
-
-// Long press
-// https://www.vuesnippets.com/posts/long-press/
-const longpress_timeout = 700;
-Vue.directive('longpress', {
-  bind: function (el, { value }, vNode) {
-    if (typeof value !== 'function') {
-      console.warn(`Expect a function, got ${value}`)
-      return
-    }
-
-    let pressTimer = null
-
-    const start = e => {
-      
-      if ( e.type === 'touchstart' ) e.preventDefault();
-      
-      if (e.type === 'click' && e.button !== 0) return;
-      if (pressTimer === null) pressTimer = setTimeout(() => value(e), longpress_timeout)
-      
-    }
-
-    const cancel = () => {
-      if (pressTimer !== null) {
-        clearTimeout(pressTimer)
-        pressTimer = null
-      }
-    }
-
-    ;['mousedown', 'touchstart'].forEach(e => el.addEventListener(e, start, { passive: true }))
-    ;['click', 'mouseout', 'touchend', 'touchcancel'].forEach(e => el.addEventListener(e, cancel, { passive: true }))
-  }
-});
-
-// GLOBAL METHODS
-const globalMethods = {};
-globalMethods.install = function (Vue) {
-  Vue.prototype.$setListRenderingOpts = function( list ) {
-    
-    if ( this.$route.query.sortValues ) {
-      const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });
-      list.sort[ sortValuesIndex ].active = this.$route.query.sortValues;
-    }
-    
-    if ( this.$route.query.sort ) {
-      let currentSorter = _.find( list.sort, { current: true });
-      currentSorter.current = false;
-      const sortIndex = _.findIndex( list.sort, { key: this.$route.query.sort });
-      if ( sortIndex > -1 ) {
-        list.sort[ sortIndex ].current = true;
-        list.sort[ sortIndex ].active = this.$route.query.sortDir === 'desc' ? true : false;
-      }
-    }
-    
-    if ( this.$route.query.filter ) {
-      
-      let paramFilters = decodeURIComponent(this.$route.query.filter).split(',');
-      
-      _.each( _.filter(list.filter, { type: 'filter' }), function( filter ) {
-        filter.active = false;
-        _.each( paramFilters, function( paramFilter ) {
-          if ( filter.key === paramFilter ) filter.active = true;
-        });
-      });
-      
-    }
-    
-    if ( this.$route.query.filterExtras ) {
-      
-      let paramFilterExtras = this.$route.query.filterExtras.split(',');
-      paramFilterExtras = _.map( paramFilterExtras, function( param ) { return decodeURIComponent(param); });
-      
-      _.each( paramFilterExtras, function( key ) {
-        
-        let splitColon = key.split(':');
-        let targetKey = splitColon[0];
-        let targetItem = _.find(list.filter, { type: 'filterExtras', key: targetKey });
-        
-        if ( targetItem ) {
-          targetItem.active = true;
-          if ( splitColon.length > 1 ) {
-            
-            if ( targetItem.dropdownOpts ) {
-              targetItem.value = splitColon[1].split('|');
-            }
-            else if ( targetItem.range ) {
-              let splitDash = splitColon[1].split('-');
-              let min = parseFloat( splitDash[0] );
-              let max = parseFloat( splitDash[1] );
-              targetItem.range = [min, max];
-            }
-          }
-        }
-        
-      });
-      
-    }
-    
-    if ( this.$route.query.scope ) {
-      
-      let paramScope = decodeURIComponent(this.$route.query.scope).split(',');
-      
-      _.each( list.scope, function( scope ) {
-        scope.active = false;
-        _.each( paramScope, function( paramScope ) {
-          if ( scope.key === paramScope ) scope.active = true;
-        });
-      });
-      
-    }
-    
-    this.$store.commit("prop", { key: "listRenderingOpts", value: list });
-    
-  };
-}
-Vue.use( globalMethods );
-
-// APP prep
+// APP PREP
 // For testing side loading JSON
 var sideLoadJSON = false;
 // var sideLoadJSON = require('./test-data.json');
@@ -641,7 +74,6 @@ else if (!standalone) {
 // As a standalone website...
 else {
   
-  let vue = this;
   loadJSON();
   function loadJSON( afterError ) {
     let scrpt = document.createElement("script");
@@ -669,46 +101,7 @@ else {
   
 }
 
-function vuexPrep( libraryData ) {
-  
-  // window.localStorage.clear();
-
-  // Overwrite sticky defaults with local storage values
-  store.commit("fromLocalStorage");
-  // Listen for sticky commits and push them to local storage
-  store.subscribe(function(mutation, state) {
-    
-    if ( mutation.type === "stickyProp" ) {
-      localStorage.setItem("aleSettings", JSON.stringify( state.sticky ));
-    }
-    else if ( mutation.type === "prop" ) {
-      _.each( _.isArray(mutation.payload) ? mutation.payload : [mutation.payload], function( payload ) {
-        const mutationKey = _.get(payload, 'key', '');
-        const arrayFirstItem_sticky = _.get(mutationKey, '0') === 'sticky';
-        const startsWith_sticky = arrayFirstItem_sticky || !!mutationKey.match(/^sticky\./i);
-        if ( startsWith_sticky ) localStorage.setItem("aleSettings", JSON.stringify(state.sticky));
-      });
-    }
-  });
-  
-  
-  store.commit("prop", [
-    { key: "library", value: libraryData, freeze: standalone ? false : true },
-    { key: "standalone", value: !!standalone },
-    { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches },
-    { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] },
-    { key: "extractSettings", value: libraryData.config },
-  ]);
-  
-       if ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'library'  });
-  else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
-  
-  if ( !libraryData.books && libraryData.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
-  
-  const { version } = require('../../package.json');
-  store.commit("prop", { key: "version", value: version });
-
-}
+import vuexPrep from '@output-modules/vuex-prep.js';
 
 function startVue( libraryData ) {
   
@@ -716,14 +109,22 @@ function startVue( libraryData ) {
   libraryData.extras.pages = libraryData.extras.pages || {};
   if ( standalone ) {
     standaloneRouteData = JSON.parse(JSON.stringify(libraryData));
-    if ( libraryData.books       === true ) { delete libraryData.books;       libraryData.extras.pages.books = true;       }
-    if ( libraryData.series      === true ) { delete libraryData.series;      libraryData.extras.pages.series = true;      }
-    if ( libraryData.collections === true ) { delete libraryData.collections; libraryData.extras.pages.collections = true; }
-    if ( libraryData.wishlist    === true ) { delete libraryData.wishlist;    libraryData.extras.pages.wishlist = true;    }
+    var cleanUp = ['books', 'series', 'collections', 'wishlist'];
+    _.each(cleanUp, function( key ) {
+      if ( _.get(libraryData, key) === true ) {
+        delete libraryData[ key ];
+        _.set( libraryData, 'extras.pages.books', true );
+        libraryData.extras.pages.books = true;
+      }
+    });
+    // if ( libraryData.books       === true ) { delete libraryData.books;       libraryData.extras.pages.books = true;       }
+    // if ( libraryData.series      === true ) { delete libraryData.series;      libraryData.extras.pages.series = true;      }
+    // if ( libraryData.collections === true ) { delete libraryData.collections; libraryData.extras.pages.collections = true; }
+    // if ( libraryData.wishlist    === true ) { delete libraryData.wishlist;    libraryData.extras.pages.wishlist = true;    }
   }
   
   vuexPrep( libraryData );
-  let router = routesPrep( standaloneRouteData || libraryData );
+  let router = loadRoutes( standaloneRouteData || libraryData );
   
   new Vue({
     router,

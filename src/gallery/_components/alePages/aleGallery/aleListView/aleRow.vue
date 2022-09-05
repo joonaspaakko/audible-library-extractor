@@ -1,5 +1,5 @@
 <template>
-  <tr class="ale-row-inner" @click="$root.$emit('book-clicked', { book })">
+  <tr class="ale-row-inner" @click="$root.$emit('book-clicked', book.asin)">
     
     <!-- 
       Note to self: 
@@ -34,7 +34,10 @@
         
         <span v-if="col.key === 'title'" class="icons-n-stuff">
           <span class="info-icon"><font-awesome fas icon="chevron-down" class="pointer"/></span>
-          <sampleButton :book="book" :index="rowIndex" :size="16"></sampleButton>
+          <sampleButton v-if="sticky.bookDetailSettings.playButton" :book="book" :index="rowIndex" :size="16"></sampleButton>
+          <div class="cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
+            <open-web-player :size="20" :book="book" :icon="true" :tooltip="false" :noBG="true" />
+          </div>
           <div class="thumbnail-wrapper">
             <img crossorigin="anonymous" v-if="!imageLoading" :src="coverUrl27" alt="">
           </div>
@@ -55,6 +58,7 @@ import makeFullUrl from "@output-mixins/makeFullUrl";
 
 import lazy from "@output-snippets/lazy.vue";
 import sampleButton from "@output-comps/snippets/sampleButton";
+import openWebPlayer from "@output-comps/snippets/openWebPlayer.vue";
 
 export default {
   name: "aleListItem",
@@ -63,9 +67,11 @@ export default {
   components: {
     lazy,
     sampleButton,
+    openWebPlayer,
   },
   data: function() {
     return {
+      sticky: this.$store.state.sticky,
       // bookUrl: "",
       coverUrl: "",
       coverUrl27: "",
@@ -80,7 +86,7 @@ export default {
     
     // this.bookUrl = this.makeFullUrl(this.book.url);
     this.coverUrl = this.makeCoverUrl(this.book.cover);
-    if (this.coverUrl) this.coverUrl27 = this.coverUrl.replace("_SL500_", "_SL27_");
+    if (this.coverUrl) this.coverUrl27 = this.coverUrl.replace("_SL500_", "_SL54_");
     this.bookTitle = this.book.title || this.book.titleShort;
     this.columns = this.prepareColumns();
     

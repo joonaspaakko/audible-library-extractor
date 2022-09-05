@@ -3,7 +3,7 @@
     
     <div class="inner-wrap">
       <div class="book" v-if="title" @click="openBook">
-        <strong>sample&nbsp;|&nbsp;</strong>
+        <strong v-if="sample">sample&nbsp;|&nbsp;</strong>
         <span>{{ title }}</span>
       </div>
       
@@ -11,7 +11,12 @@
         
         <div class="time-display" v-if="timeDisplay">{{ timeDisplay }}</div>
 
-        <input class="scrubber" type="range" min="0" :value="progress" max="100" @mousedown="scrubberPause" @touchstart="scrubberPause" @input="clearPause" @change="scrubber">  
+        <div class="scrubber-wrapper">
+          <input class="scrubber" ref="timeline" type="range" step="0.1" min="0" :value="progress" max="100" @mousedown="scrubberPause" @touchstart="scrubberPause" @input="clearPause" @change="userScrubbed">  
+          <div class="progress-filler">
+            <div :style="progressFillerStyle"></div>
+          </div>
+        </div>
 
         <div class="player-buttons">
           <div class="play" v-if="!(howler && howler.playing())" @click="play"><font-awesome :icon="['fas', 'play']" /></div>
@@ -40,6 +45,7 @@ export default {
       howler: null,
       timeDisplay: '00:00',
       progress: 0,
+      sample: true,
     };
   },
   
@@ -51,10 +57,20 @@ export default {
       return this.book.title || this.book.titleShort;
     },
     audioSource() {
-      return _.get( this.book, 'sample');
+      const source = _.get( this.book, 'sample');
+      var url  = new Url( source );
+      if ( window.location.protocol === 'http:' ) url.protocol = 'http';
+      return url.toString();
     },
     route() {
       return _.get( this.audio, 'route', {});
+    },
+    progressFillerStyle() {
+      const style = {};
+      // if ( this.progress ) style.width = Math.floor(this.progress)+'%';
+      if ( this.progress ) style.width = this.progress+'%';
+      // if ( this.progress ) style.width = this.progress+'%';
+      return style;
     },
   },
   
@@ -67,6 +83,7 @@ export default {
   beforeDestroy() {
     
     this.$root.$off("play-audio", this.initPlayer);
+    this.destroyHowler();
     
   },
 
@@ -79,51 +96,6 @@ export default {
       
     },
     
-    // playerMounted() {
-    //   console.log( 'test!!!!!', this.$refs.audioPlayer )
-    //   this.player = this.$refs.audioPlayer;
-    //   this.addingPlayerElements();
-    //   this.startPlaying();
-      
-    // },
-    
-    // startPlaying() {
-      
-    //   console.log( this.player );
-    //   this.player.play();
-    //   this.$store.commit('prop', { key: 'playingAudio', value: true });
-      
-    // },
-    
-    // samplePlayerClose() {
-      
-    //   this.$store.commit('prop', { key: 'playingAudio', value: false });
-    //   this.player.stop();
-    //   this.audio = null;
-      
-    // },
-    
-    // addingPlayerElements() {
-      
-    //   const playerEl = this.player.$el;
-    //   const iconsWrapper = playerEl.querySelector('.operate');
-      
-    //   // Close button after stop button
-    //   let children = iconsWrapper.querySelectorAll('span');
-    //   let oldestChild = children[ children.length-1 ];
-    //   oldestChild.insertAdjacentElement('beforebegin', this.$refs.closeBtn);
-      
-    //   // Scrubber to the front
-    //   children = iconsWrapper.querySelectorAll('span');
-    //   oldestChild = children[ children.length-1 ];
-    //   const scrubber = playerEl.querySelector('.slider');
-    //   iconsWrapper.insertBefore(scrubber, iconsWrapper.firstChild);
-      
-    //   // Time indicator to the front
-    //   iconsWrapper.insertBefore(oldestChild, iconsWrapper.firstChild);
-      
-    // },
-    
     openBook() {
       
       const bookASIN  = this.book.asin;
@@ -135,55 +107,61 @@ export default {
       // Open book details if needed
       if ( !queryASIN || (bookASIN && queryASIN !== bookASIN) ) {
         this.$nextTick(function() {
-          this.$root.$emit('book-clicked', { book: this.book });
+          this.$root.$emit('book-clicked', this.book.asin);
         });
       }
     },
     
-    
-    stripHttp( url ) {
-      
-      const has_http = url.match(/^https?:\/\//);
-      if ( has_http ) return url.replace( has_http[0], '//' );
-      
-    },
-    
     play: function() {
-
+      
       let vue = this;
+      
+      this.destroyHowler('keepAudio'); // Just in case...
       
       this.$store.commit('prop', { key: 'playingAudio', value: true });
       
-      if ( this.howler ) this.howler.unload();
-      
       this.howler = new Howl({
-        src: [ this.audioSource ],
+        src: this.audioSource,
         autoplay: true,
         loop: false,
         volume: 1,
+        // rate: 1.5,
         onplayerror: function() {
           vue.howler.once('unlock', function() {
             vue.howler.play();
           });
+        },
+        onloaderror: function( e ) {
+          
+        },
+        onstop: function( e ) {
+          conosle.log( e )
+          if ( this.howler ) {
+            // this.howler.duration()
+          }
         }
       });
-
+      
+      this.seekToCachedPosition();
 
       this.howler.customSeek = function( config ) {
 
         config = config || {};
         config.value = config.value || 30;
-
+        const audioLength = vue.howler.duration();
+        
+        let seekValue;
         if ( config.direction === 'forward' ) {
-          vue.howler.seek( (vue.howler.current.time+config.value) >= vue.howler.duration() ? vue.howler.duration() : vue.howler.current.time+config.value );
+          seekValue = vue.howler.current.time+config.value;
+          vue.howler.seek( seekValue >= audioLength ? audioLength : seekValue );
+          // if ( seekValue >= audioLength ) vue.progress = 100; // matches GUI
         }
         else if ( config.direction === 'back' ) {
-          vue.howler.seek( (vue.howler.current.time-config.value) <= 0 ? 0 : vue.howler.current.time-config.value );
+          seekValue = vue.howler.current.time-config.value;
+          vue.howler.seek( seekValue <= 0 ? 0 : seekValue );
         }
 
       };
-      
-      if ( this.howler.current ) clearInterval( this.howler.current.timer );
       
       this.howler.current = { 
         timer: null,
@@ -192,37 +170,43 @@ export default {
         percentage: null,
       };
       
-      const formatTime = function(secs) {
-        
-        const timeArray = [];
-        const addToArray = function( number ) { timeArray.push( (number < 10 ? '0' : '') + number ) };
-        
-        let hours   = Math.floor(secs / 3600); addToArray(hours);
-        let minutes = Math.floor(secs / 60) || 0; addToArray(minutes);
-        let seconds = (secs - minutes * 60) || 0; addToArray(seconds);
-        
-        timeArray.shift();
-        
-        return timeArray.join(':');
-        
-      };
-      
       this.howler.current.timer = setInterval(function() {
         
         if ( vue.howler.playing() ) {
-          var seek = vue.howler.seek() || 0;
-          vue.howler.current.time = seek;
-          vue.howler.current.timeDisplay = formatTime(Math.round(seek));
-          vue.howler.current.percentage = ((seek / vue.howler.duration()) * 100) || 0;
-          
-          vue.timeDisplay = vue.howler.current.timeDisplay;
-          vue.progress = vue.howler.current.percentage;
+          vue.updateCurrent();
+          vue.$refs.timeline.blur();  
         }
-
-        //if ( !vue.howler.playing() ) clearInterval( vue.howler.current.timer );
+        vue.updateBookProgress();
 
       }, 500);
 
+    },
+    
+    formatTime(secs) {
+      
+      const timeArray = [];
+      const addToArray = function( number ) { timeArray.push( (number < 10 ? '0' : '') + number ) };
+      
+      let hours   = Math.floor(secs / 3600); addToArray(hours);
+      let minutes = Math.floor(secs / 60) || 0; addToArray(minutes);
+      let seconds = (secs - minutes * 60) || 0; addToArray(seconds);
+      
+      timeArray.shift();
+      
+      return timeArray.join(':');
+      
+    },
+    
+    updateCurrent() {
+      
+      var seek = this.howler.seek() || 0;
+      this.howler.current.time = seek;
+      this.howler.current.timeDisplay = this.formatTime(Math.round(seek));
+      this.howler.current.percentage = ((seek / this.howler.duration()) * 100) || 0;
+      
+      this.timeDisplay = this.howler.current.timeDisplay;
+      this.progress = this.howler.current.percentage.toFixed(1);
+      
     },
     
     pause: function( e ) {
@@ -235,10 +219,10 @@ export default {
     
     scrubberPause: function( e ) {
       
+      let vue = this;
       if ( this.howler && this.howler.playing() ) {
         this.howler.pause();
-        clearTimeout( this.howler.pauseTimer );
-        let vue = this;
+        this.clearPause();
         // Restarts playback if user doesn't move the srubber.
         this.howler.pauseTimer = setTimeout(function() {
           vue.howler.play();
@@ -251,17 +235,12 @@ export default {
       if ( this.howler ) clearTimeout( this.howler.pauseTimer );
     },
     
+    // The traditional stop button doesn't exist. 
+    // This stops the entire player.
     stop: function() {
-
       
-      if ( this.howler ) {
-        clearInterval( this.howler.current.timer );
-        this.howler.unload();
-      }
+      this.destroyHowler();
       
-      this.$store.commit('prop', { key: 'playingAudio', value: false });
-      this.audio = null;
-
     },
     
     seekBack: function() {
@@ -276,10 +255,10 @@ export default {
 
     },
     
-    scrubber: function( scrubber ) {
+    userScrubbed: function( scrubber ) {
       
       if ( this.howler ) {
-        clearTimeout( this.howler.pauseTimer );
+        this.clearPause();
         var targetTime = (scrubber.target.value / 100) * this.howler.duration();
         this.progress = scrubber.target.value;
         this.howler.seek( targetTime );
@@ -288,11 +267,43 @@ export default {
 
     },
     
+    destroyHowler( keepAudio ) {
+      
+      if ( !this.howler ) {
+        this.clearPause();
+        if ( _.get(this.howler, 'current.timer') )clearInterval( this.howler.current.timer );
+        if ( _.get(this.howler, 'unload') ) this.howler.unload();
+        this.howler = null;
+      }
+      
+      if ( !keepAudio ) this.audio = null;
+      this.$store.commit('prop', { key: 'playingAudio', value: false });
+      
+    },
+    
+    updateBookProgress: _.throttle(function() {
+      
+      if ( this.sample ) return; // Don't remember sample position....
+      
+      this.$store.commit('updatePlayerProgress', {
+        asin: this.book.asin,
+        progress: this.howler.current.time,
+      });
+      
+    }, 3000, {'leading': false, 'trailing': true }),
+    
+    seekToCachedPosition() {
+      
+      const cached = _.find( this.$store.state.sticky.player.books, { asin: this.book.asin });
+      if ( cached ) this.howler.seek( cached.progress );
+      
+    },
+    
   }
 };
 </script>
 
-<style lang="scss">
+<style lang="scss" scoped>
 @import "~@/_variables.scss";
 
 #audio-player {
@@ -383,99 +394,126 @@ export default {
       }
     }
     
-    input[type=range] {
+    
+    
+    $trackBackground: rgba(themed(frontColor), .3);
+    $thumbBackground: themed(audibleOrange);
+    
+    /*********** Baseline, reset styles ***********/
+    input[type="range"] {
       -webkit-appearance: none;
-      margin: 6px 0;
-      width: 100%;
-      min-width: 80px;
+      appearance: none;
       background: transparent;
+      cursor: pointer;
+      width: 100%;
+      position: relative;
+      z-index: 10;
     }
-    input[type=range]:focus {
+
+    /* Removes default focus */
+    input[type="range"]:focus {
       outline: none;
     }
-    $trackBackground: rgba(themed(frontColor), .3);
-    input[type=range]::-webkit-slider-runnable-track {
-      width: 100%;
-      height: 10px;
-      cursor: pointer;
-      animate: 0.2s;
-      box-shadow: none;
-      background: $trackBackground;
-      border-radius: 50px !important;
-      border: 0px solid #000000;
+
+    /******** Chrome, Safari, Opera and Edge Chromium styles ********/
+    /* slider track */
+    input[type="range"]::-webkit-slider-runnable-track {
+      border: 9px solid darken( themed(elementColor), 5);
+      border-left: none;
+      border-right: none;
+      background-color: $trackBackground;
+      border-radius: 10px;
+      height: 20px;
     }
-    input[type=range]::-webkit-slider-thumb {
-      box-shadow: none;
-      border: 0px solid #000000;
-      height: 16px;
-      width: 30px;
-      border-radius: 50px;
-      background: #f69919;
-      cursor: pointer;
-      -webkit-appearance: none;
-      margin-top: -3px;
-    }
-    input[type=range]:focus::-webkit-slider-runnable-track {
-      background: $trackBackground;
-    }
-    input[type=range]::-moz-range-track {
-      width: 100%;
-      height: 10px;
-      cursor: pointer;
-      animate: 0.2s;
-      box-shadow: none;
-      background: $trackBackground;
-      border-radius: 50px;
-      border: 0px solid #000000;
-    }
-    input[type=range]::-moz-range-thumb {
-      box-shadow: none;
-      border: 0px solid #000000;
-      height: 16px;
-      width: 30px;
-      border-radius: 50px;
-      background: #f69919;
-      cursor: pointer;
-    }
-    input[type=range]::-ms-track {
-      width: 100%;
-      height: 10px;
-      cursor: pointer;
-      animate: 0.2s;
-      background: transparent;
-      border-color: transparent;
-      color: transparent;
-    }
-    input[type=range]::-ms-fill-lower {
-      background: $trackBackground;
-      border: 0px solid #000000;
+
+    /* slider thumb */
+    input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none; /* Override default look */
+      appearance: none;
+      margin-top: -7px; /* Centers thumb on the track */
+      background-color: $thumbBackground;
       border-radius: 100px;
-      box-shadow: none;
+      height: 10px;
+      width: 10px;
+      position: relative;
+      top: 3px;
+      transition: outline 150ms;
     }
-    input[type=range]::-ms-fill-upper {
-      background: $trackBackground;
-      border: 0px solid #000000;
+
+    input[type="range"]:focus::-webkit-slider-thumb {
+      outline: 2px solid $thumbBackground;
+      // outline-offset: 0.125rem;
+    }
+
+    /*********** Firefox styles ***********/
+    /* slider track */
+    input[type="range"]::-moz-range-track {
+      border: 9px solid darken( themed(elementColor), 5);
+      border-left: none;
+      border-right: none;
+      background-color: $trackBackground;
+      border-radius: 10px;
+      height: 20px;
+    }
+
+    /* slider thumb */
+    input[type="range"]::-moz-range-thumb {
+      background-color: $thumbBackground;
+      border: none; /*Removes extra border that FF applies*/
       border-radius: 100px;
-      box-shadow: none;
+      height: 10px;
+      width: 10px;
+      position: relative;
+      top: 3px;
+      transition: outline 300ms cubic-bezier(.64,-0.7,.31,1.65);
     }
-    input[type=range]::-ms-thumb {
-      box-shadow: 0px 0px 1px #ffffff;
-      border: 0px solid #000000;
-      height: 16px;
-      width: 30px;
-      border-radius: 50px;
-      background: #f69919;
-      cursor: pointer;
+
+    input[type="range"]:focus::-moz-range-thumb{
+      outline: 2px solid $thumbBackground;
+      // outline-offset: 0.125rem;
     }
-    input[type=range]:focus::-ms-fill-lower {
-      background: $trackBackground;
-    }
-    input[type=range]:focus::-ms-fill-upper {
-      background: $trackBackground;
+     
+  }
+}
+
+.scrubber-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: row;
+  justify-items: center;
+  align-items: center;
+  position: relative;
+  z-index: 0;
+}
+
+.progress-filler {
+  position: absolute;
+  z-index: 5;
+  padding-left: 0px;
+  padding-right: 9px;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  flex-direction: row;
+  justify-items: center;
+  align-items: center;
+  div {
+    position: relative;
+    left: 1px;
+    padding-right: 4px;
+    height: 5px;
+    @include themify($themes) {
+      background: themed(audibleOrange);
     }
   }
-
 }
+
+</style>
+
+<style lang="scss">
+@import "~@/_variables.scss";
 
 .mobile-nav-open #audio-player {
   @include themify($themes) {
@@ -530,27 +568,5 @@ export default {
   }
 }
 
-// #nav-outer-wrapper.mobile-nav #audio-player {
-//   .vueAudioBetter {
-//     span {
-//       font-size: 15px !important;
-//     }
-//     .iconfont {
-//       font-size: 25px !important;
-//     }
-//     .operate .close,
-//     .operate .close svg {
-//       width: 25px;
-//       height: 25px;
-//     }
-//   }
-// }
-
-
-// .mobile-nav-open .vueAudioBetter {
-//   .iconfont, .close {
-//     font-size: 27px !important;
-//   }
-// }
-
 </style>
+

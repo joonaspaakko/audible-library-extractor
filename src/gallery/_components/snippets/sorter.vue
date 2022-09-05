@@ -325,7 +325,7 @@ export default {
       
       this.saveOptions( value, specialBoy);
       
-      if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", { book: null });
+      if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", null);
     
       if ( this.listName === "scope" ) {
         this.$root.$emit("start-scope");

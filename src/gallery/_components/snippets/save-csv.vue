@@ -54,11 +54,11 @@
         </button>
         
         <div>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export#import-to-google-sheets"> 
+          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/google-sheets-import"> 
             <span>Google Sheets import</span>
             <font-awesome :icon="['fas', 'share-square']" />
           </a>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export#import-to-goodreads"> 
+          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/goodreads-import"> 
             <span>Goodreads import</span>
             <font-awesome :icon="['fas', 'share-square']" />
           </a>

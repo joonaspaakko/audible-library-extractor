@@ -2,9 +2,10 @@
   <div
   id="ale-bookdetails"
   ref="bookDetails"
+  v-if="book"
   v-shortkey.once="['esc']"
   @shortkey="closeBookDetails"
-  :class="{ 'spreadsheet-details': sticky.viewMode === 'spreadsheet' }"
+  :class="{ 'spreadsheet-details': sticky.viewMode === 'spreadsheet', 'mobile-width': mobileWidth }"
   > 
     
     <div v-if="sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
@@ -17,15 +18,16 @@
     
       <div class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
         
+        <details-first-hider v-if="mobileWidth" />
         <sidebar-flipper />
         <font-awesome class="book-details-info" :icon="['fas', 'cog']" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
         <book-details-settings v-if="store.bookDetailSettingsOpen" />
         
         <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">
-          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show">
+          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
             
             <div class="collapse-btn" 
-            v-if="store.windowWidth > 688"
+            v-if="!mobileWidth"
             v-tippy :content="(!sticky.bookDetailsCollapsedCover ? 'Collapse' : 'Expand') + ' cover image.'"
             :style="{ top: '5px' }"
             @click="collapseBtnClicked('bookDetailsCollapsedCover')">
@@ -42,7 +44,7 @@
                 <img 
                   crossorigin="anonymous"
                   class="cover"
-                  v-if="!sticky.bookDetailsCollapsedCover && book.cover && store.windowWidth > 688"
+                  v-if="!sticky.bookDetailsCollapsedCover && book.cover && !mobileWidth"
                   :src="makeCoverUrl(book.cover)"
                 />
               </a>
@@ -67,11 +69,11 @@
             <books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
-          <book-summary :book="book" :bookSummary="bookSummaryJSON"></book-summary>
+          <book-summary v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="bookSummaryJSON" :mobileWidth="mobileWidth"></book-summary>
         </div>
 
         <div class="carousel-wrap">
-          <carousel v-if="sticky.bookDetailSettings.carousel && !loading && (peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :books="peopleAlsoBought" :key="maxWidth">
+          <carousel v-if="sticky.bookDetailSettings.carousel && !loading && (peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :book="book" :books="peopleAlsoBought" :key="maxWidth" :mobileWidth="mobileWidth">
             <!-- People who bought this also bought: -->
             <!-- Name changed: -->
             Listeners also enjoyed
@@ -104,6 +106,7 @@ import bookSummary from "./bookDetails/bookSummary";
 import collectionsDrawer from "./bookDetails/collectionsDrawer.vue";
 import bookDetailsSettings from "./bookDetails/book-details-settings.vue";
 import sidebarFlipper from "./bookDetails/sidebar-flipper.vue";
+import detailsFirstHider from "./bookDetails/details-first-hider.vue";
 
 import makeUrl from "@output-mixins/makeFullUrl";
 
@@ -115,6 +118,7 @@ import arrayToHTML from "@output-comps/snippets/arrayToHTML";
 
 export default {
   name: "bookDetails",
+  props: ['asin'],
   components: {
     bookBasicInfo,
     bookInfoToolbar,
@@ -125,6 +129,7 @@ export default {
     collectionsDrawer,
     bookDetailsSettings,
     sidebarFlipper,
+    detailsFirstHider,
   },
   mixins: [
     // sortBookNumbers,
@@ -134,7 +139,6 @@ export default {
     makeCoverUrl,
     makeUrl
   ],
-  props: ["booksWrapper"],
   data: function() {
     return {
       store: this.$store.state,
@@ -142,39 +146,45 @@ export default {
       book: null,
       index: null,
       maxWidth: "unset",
-      scrollTop: 0,
       loading: true,
       clickedBook: null,
       peopleAlsoBoughtJSON: null,
       bookSummaryJSON: null,
+      scrpt: null,
     };
   },
 
   created: function() {
     
-    this.book = this.store.bookDetails.book;
-    this.index = this.store.bookDetails.index;
+    this.index = _.findIndex( this.$store.state.chunkCollection, { asin: this.asin });
+    this.book = this.$store.state.chunkCollection[this.index];
     
     this.loadJSON();
-    
-    this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
-    this.resetScroll();
-    
-    this.scrollTop = window.pageYOffset;
-    this.$root.$on("afterWindowResize", this.onWindowResize);
-    
     
   },
   
   mounted: function() {
     
-    this.maxWidth = this.repositionBookDetails() + "px";
-    this.$updateQuery({ query: 'book', value: this.book.asin });
-    this.loading = false;
+    this.$nextTick(function() {
+      this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
+      this.resetScroll();
+      
+      this.maxWidth = this.repositionBookDetails() + "px";
+      this.$updateQuery({ query: 'book', value: this.book.asin });
+      this.$store.commit('prop', { key: 'timeStamp', value: new Date().getTime() });
+      this.$root.$on("afterWindowResize", this.onWindowResize);
+      this.loading = false;
+    });
     
   },
 
   beforeDestroy: function() {
+    
+    if ( this.scrpt ) {
+      console.log( this.scrpt )
+      this.scrpt.remove();
+      this.scrpt = null;
+    }
     
     this.$root.$off("afterWindowResize", this.onWindowResize);
     this.peopleAlsoBoughtJSON = null;
@@ -185,6 +195,8 @@ export default {
       { key: 'bookDetails.index', value: -1 },
     ]);
     // if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+    
+    this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
     
   },
 
@@ -200,7 +212,9 @@ export default {
         return window.innerWidth > 800 ? this.maxWidth : "800px";
       }
     },
-    
+    mobileWidth() {
+       return this.store.windowWidth <= 688;
+    },
   },
   methods: {
     
@@ -214,9 +228,10 @@ export default {
     loadJSON: function( afterError )  {
       
       if ( this.store.standalone ) {
-        
         let vue = this;
+        
         let scrpt = document.createElement("script");
+        this.scrpt = scrpt;
         scrpt.src = "data/split-book-data/"+ vue.book.asin +"."+ this.store.library.extras.cacheID +".js";
         scrpt.type="text/javascript";
         scrpt.onload = function() {
@@ -269,6 +284,7 @@ export default {
     },
 
     repositionBookDetails: function() {
+      
       const gridView = document.querySelector(".ale-books");
       const domBooks = gridView.querySelector(".ale-book") ? gridView.querySelectorAll(".ale-book") : gridView.querySelector('table tbody').querySelectorAll(".ale-row");
 
@@ -370,11 +386,11 @@ export default {
         if ( !prev && (nextIndex > this.store.chunkCollection.length-2) ) {
           this.$store.commit('chunkCollectionAdd');
           this.$nextTick(function() {
-            this.$root.$emit("book-clicked", { book: nextBook });
+            this.$root.$emit("book-clicked", nextBook.asin);
           });
         }
         else {
-          this.$root.$emit("book-clicked", { book: nextBook });
+          this.$root.$emit("book-clicked", nextBook.asin);
         }
       }
       
@@ -426,11 +442,11 @@ export default {
       if ( e.srcKey === 'down' && (nextIndex > vue.store.chunkCollection.length-2) ) {
         this.$store.commit('chunkCollectionAdd');
         this.$nextTick(function() {
-          this.$root.$emit("book-clicked", { book: nextBook });
+          this.$root.$emit("book-clicked", nextBook.asin);
         });
       }
       else {
-        this.$root.$emit("book-clicked", { book: nextBook });
+        this.$root.$emit("book-clicked", nextBook.asin);
       }
       
     },
@@ -752,26 +768,24 @@ export default {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#e615171b', endColorstr='#15171b',GradientType=0 );
 }
 
-@media (max-width: 688px) {
-  #ale-bookdetails {
-    .inner-wrap {
-      .top {
-        display: flex;
-        flex-direction: column;
-        &.reverse-direction {
-          flex-direction: column-reverse;
-          .information {
-            margin-left: 0;
-            margin-top: 20px;
-          }
-        }
+#ale-bookdetails.mobile-width {
+  .inner-wrap {
+    .top {
+      display: flex;
+      flex-direction: column;
+      &.reverse-direction {
+        flex-direction: column-reverse;
         .information {
-          max-width: none;
-          width: 100%;
-          margin-right: 0;
-          margin-bottom: 40px;
-          flex: auto;
+          margin-left: 0;
+          margin-top: 20px;
         }
+      }
+      .information {
+        max-width: none;
+        width: 100%;
+        margin-right: 0;
+        margin-bottom: 40px;
+        flex: auto;
       }
     }
   }

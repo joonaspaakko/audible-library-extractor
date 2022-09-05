@@ -43,7 +43,7 @@
             <span>Upload instructions</span>
             <font-awesome :icon="['fab', 'github']" />
           </a>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/updating-gallery-in-github">
+          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github/updating-gallery-in-github">
             <span>Update instructions</span>
             <font-awesome :icon="['fab', 'github']" />
           </a>
@@ -78,19 +78,20 @@ export default {
         "gallery.js.LICENSE.txt",
         "gallery.css",
         
-        "images/info/blurb-hover-corner.jpg",
-        "images/info/carousel.jpg",
-        "images/info/cover-favorite-finished-indicators.jpg",
-        "images/info/cover-plus-calatog-indicator.jpg",
-        "images/info/cover-whispersync-indicator.jpg",
-        "images/info/prefer-short-title.jpg",
-        "images/info/sample-play-button.jpg",
-        "images/info/sidebar-collections-list.jpg",
-        "images/info/sidebar-cover.jpg",
-        "images/info/sidebar-main-info.jpg",
-        "images/info/sidebar-series-list.jpg",
-        "images/info/sidebar-toolbar.jpg",
-        "images/info/sidebar.jpg",
+        "images/info/book-cover-cloud-player-button.jpg", 
+        "images/info/sidebar.jpg", 
+        "images/info/sidebar-toolbar.jpg", 
+        "images/info/sidebar-series-list.jpg", 
+        "images/info/sidebar-main-info.jpg", 
+        "images/info/sidebar-cover.jpg", 
+        "images/info/sidebar-collections-list.jpg", 
+        "images/info/sample-play-button.jpg", 
+        "images/info/prefer-short-title.jpg", 
+        "images/info/cover-whispersync-indicator.jpg", 
+        "images/info/cover-plus-calatog-indicator.jpg", 
+        "images/info/cover-favorite-finished-indicators.jpg", 
+        "images/info/carousel.jpg", 
+        "images/info/blurb-hover-corner.jpg", 
         
         "fonts/inconsolata-v21-latin-regular.woff",
         "fonts/inconsolata-v21-latin-regular.woff2",

@@ -1,5 +1,5 @@
 <template>
-<div class="action-reverse-direction" :class="{ flip: this.detailSettings.reverseDirection }">
+<div class="action-reverse-direction" :class="{ flip: detailSettings.reverseDirection }">
   
   <font-awesome :icon="['fas', 'retweet']"  @click="flip" />
 <!--   

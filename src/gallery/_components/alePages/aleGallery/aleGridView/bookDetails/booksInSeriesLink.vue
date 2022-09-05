@@ -8,7 +8,7 @@
       <span class="title">{{ book.titleShort || book.title  }}</span>
     </a>
     <router-link v-else 
-    class="clickety-click" :class="{ 'link-disabled': linkDisabled }"
+    class="clickety-click" :class="{ 'link-disabled': linkDisabled, 'same-series': sameSeries }"
     :event="linkDisabled ? '' : 'click'" 
     @click.native="linkDisabled && openBook($event)" 
     :to="linkDisabled ? '' : routerLink"
@@ -36,6 +36,7 @@ export default {
       routerLink: null,
       title: null,
       linkDisabled: false,
+      sameSeries: null,
     };
   },
   
@@ -51,7 +52,7 @@ export default {
     this.routerLink = { 
       name: 'series', 
       params: { series: this.series.asin }, 
-      query: { subPageSource: 'library' }, 
+      query: { subPageSource: 'library', refresh: true }, 
     };
     
     if ( this.seriesName ) {
@@ -60,8 +61,10 @@ export default {
     else {
       this.routerLink.query.book = this.book.asin;
     }
-    
-    this.linkDisabled = this.book.notInLibrary || this.seriesPage && this.$route.params.series === this.series.asin;
+        
+    const sameSeries = this.seriesPage && this.$route.params.series === this.series.asin;
+    this.linkDisabled = this.book.notInLibrary || sameSeries;
+    this.sameSeries = sameSeries;
     
   },
 
@@ -70,7 +73,7 @@ export default {
     openBook: function( e ) {
       e.preventDefault();
       if ( this.book && !this.book.notInLibrary && this.book.asin !== this.$route.query.book ) {
-        this.$root.$emit('book-clicked', { book: this.book.obj });
+        this.$root.$emit('book-clicked', this.book.obj.asin);
       }
     },
     
@@ -81,6 +84,8 @@ export default {
 <style lang="scss" scoped>
 @import "~@/_variables.scss";
 
+.same-series { cursor: pointer !important; }
+  
 .linky {
   white-space: nowrap;
   overflow: hidden;

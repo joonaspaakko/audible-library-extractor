@@ -5,11 +5,6 @@ ref="listView"
 :style="{ top: spreadsheetTop + 'px' }"
 >
 
-  <book-details
-  v-if="!!$store.state.bookDetails.book && $store.state.bookDetails.index > -1"
-  :booksWrapper="$refs.booksWrapper"
-  />
-  
   <div class="list-view-inner-wrap">
     <table>
       <thead>

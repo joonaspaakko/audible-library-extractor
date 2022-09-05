@@ -21,24 +21,19 @@
           </a>
         </h2>
         
-        <div class="additional-long-book-title" v-if="showSubtitle">
+        <div class="subblementary-book-title" v-if="showSubtitle">
           {{ book.subtitle || book.title }}
         </div>
         
-        <div class="categories" v-if="book.categories" style="margin-top: 4px;">
+        <div class="categories" v-if="book.categories">
           <arrayToHTML v-if="book.categories" label="categories" :noLabel="true" :array="book.categories" :chevron="true"></arrayToHTML>
         </div>
         
-        <book-tags v-if="book.tags" :book="book"></book-tags>
-        
         <div class="inline-children smoll-text">
           
-          <div class="release-date" v-if="book.releaseDate" style="margin-right: 5px;">
-            <span class="strong-label">Released:</span>
-            <span>{{ book.releaseDate }}</span>
-          </div>
+          <book-tags v-if="book.tags" :book="book"></book-tags>
           
-          <div>
+          <div class="info-tags">
             <div class="info-tag store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why some data is unavailable.">
               <font-awesome :icon="['fas', 'shopping-bag']" />
               changed
@@ -59,6 +54,11 @@
             </div>
           </div>
           
+          <div class="release-date" v-if="book.releaseDate">
+            <span class="strong-label">Released:</span>
+            <span>{{ book.releaseDate }}</span>
+          </div>
+          
         </div>
         
         <div class="meta-padding"></div>
@@ -68,18 +68,18 @@
       <div class="summary-inner-wrap" ref="summaryInnerWrap" v-if="summaryHTML" v-html="summaryHTML"></div>
       
     </div>
-
+    
     <div
     class="summary-read-more"
     ref="readMoreBtn"
     @click="summaryReadMoreclick"
-    v-if="summary.maxHeightTemp && (summary.fullHeight > summary.maxHeightTemp)"
+    v-if="showReadMore"
     >
-    <!-- 
-      FIXME: doesn't always show up on mobile. Flipping the phone sideways and then back to portrait I'm guessing readoes the math and this is able to show up
-      // This is the summary I noticed the issue with...
-      // https://joonaspaakko.github.io/ale-test-new/#/library?book=B01B8AN3SQ
-    -->
+      <!-- 
+        FIXME: doesn't always show up on mobile. Flipping the phone sideways and then back to portrait I'm guessing readoes the math and this is able to show up
+        // This is the summary I noticed the issue with...
+        // https://joonaspaakko.github.io/ale-test-new/#/library?book=B01B8AN3SQ
+      -->
       <span>{{ summary.readmore.toggle ? "Read less" : "Read more" }}</span>
       <font-awesome fas :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'" />
     </div>
@@ -93,7 +93,7 @@ import bookTags from "./bookTags";
 
 export default {
   name: "bookSummary",
-  props: ["book", "bookSummary"],
+  props: ["book", "bookSummary", "mobileWidth"],
   mixins: [makeUrl],
   components: { 
     arrayToHTML, 
@@ -106,13 +106,21 @@ export default {
           toggle: false,  
           exists: false
         },
-        minHeight: null,
         maxHeight: null,
         maxHeightTemp: null,
-        height: null,
         fullHeight: null,
       }
     };
+  },
+  
+  watch: {
+    summaryHTML( fetched ) {
+      if ( fetched ) {
+        console.log( 'calculate.....' )
+        
+        this.getSummaryMaxHeight();
+      }
+    },
   },
 
   computed: {
@@ -127,108 +135,96 @@ export default {
     },
     summaryHTML: function() {
       return this.book.summary || this.bookSummary || this.book.blurb;
-    }
+    },
+    showReadMore: function() {
+      const summary = this.summary;
+      console.log( 'showReadmore - Has maxHeightTemp: ', summary.maxHeightTemp, 'summary.fullHeight > summary.maxHeightTemp', (summary.fullHeight > summary.maxHeightTemp) )
+      if (  !summary.maxHeightTemp ) return;
+      return summary.fullHeight > summary.maxHeightTemp;
+    },
   },
 
   mounted: function() {
-    
-    this.$nextTick(function() {
-      this.getSummaryMaxHeight();
-    });
+    // this.getSummaryMaxHeight();
   },
 
   created: function() {
-    this.$root.$on("afterWindowResize", this.getSummaryMaxHeight);
+    this.$root.$on("afterWindowResize", this.windowResized);
     this.$root.$on("resizeSummary", this.getSummaryMaxHeight);
   },
 
   beforeDestroy: function() {
-    this.$root.$off("afterWindowResize", this.getSummaryMaxHeight);
+    this.$root.$off("afterWindowResize", this.windowResized);
     this.$root.$off("resizeSummary", this.getSummaryMaxHeight);
   },
 
   methods: {
+    
     getSummaryMaxHeight: function() {
-      
+
       if ( !this.summaryHTML ) return;
-      
-      const minHeight = _.get(this.$refs, 'summaryMetaTop.offsetHeight', 0);
-      const minHeightExtra = minHeight + 300;
-      this.summary.minHeight = minHeight;
-      const summaryHeight = _.get(this.$refs, 'summaryInnerWrap.offsetHeight', 0);
-      this.summary.height = summaryHeight;
-      const summaryFullHeight = _.get(this.$refs, 'summary.offsetHeight', 0);
-      this.summary.fullHeight = summaryFullHeight;
-      let maxHeight = minHeight + summaryHeight;
-      
-      // MOBILE SIZE
-      if ( window.innerWidth <= 688 ) {
-        if ( summaryHeight > 300 ) maxHeight = minHeightExtra; 
+      this.$nextTick(function() {
+          
+        const minHeight = _.get(this.$refs, 'summaryMetaTop.offsetHeight', 0);
+        const minHeightExtra = minHeight + 300;
+        const summaryFullHeight = _.get(this.$refs, 'summary.offsetHeight', 0);
+        // const summaryFullHeight = _.get(this.$refs, 'summary.scrollHeight', 0);
+        this.summary.fullHeight = summaryFullHeight;
+        
+        // const wrapper = document.querySelector('#ale-bookdetails .details-wrap');
+        const sidebar = document.querySelector('#ale-bookdetails .information');
+        let maxHeight =  _.get( sidebar, 'offsetHeight', 0 );
+        
+        // MOBILE SIZE
+        if ( this.mobileWidth && summaryFullHeight > minHeightExtra ) maxHeight = minHeightExtra; 
         this.summary.maxHeight = maxHeight;
-        this.summary.maxHeightTemp = this.summary.maxHeight;
-      } 
-      // ANY OLD DESKTOP WIDTH
-      else {
+        this.summary.maxHeightTemp = maxHeight;
         
-        const information = this.$parent.$el.querySelector('.information');
-        const informationH = _.get(information, 'offsetHeight', 0);
-        if ( informationH < minHeightExtra ) {
-          this.summary.maxHeight = minHeightExtra;
-          this.summary.maxHeightTemp = minHeightExtra;
-        }
-        else {
-          const summaryTooSwoll = summaryFullHeight > informationH;
-          this.summary.maxHeight = summaryTooSwoll ? informationH : null;
-          this.summary.maxHeightTemp = informationH;
-        }
+        console.log('%c' + ' ' + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;', _.clone(this.summary));
         
-      }
+      });
       
+    },
+    
+    windowResized() {
+      this.getSummaryMaxHeight();
     },
 
     summaryReadMoreclick: function() {
       
-      const btnOffset = this.$refs.readMoreBtn.getBoundingClientRect().top;
       this.summary.readmore.toggle = !this.summary.readmore.toggle ? true : false;
       this.summary.maxHeight = this.summary.readmore.toggle ? "none" : this.summary.maxHeightTemp;
       
+      // Scrolls up in an attempt to retain the scroll position in relation to the readmore button
       if ( !this.summary.readmore.toggle ) {
+        const btnOffset = this.$refs.readMoreBtn.getBoundingClientRect().top;
         this.$nextTick(function() {
           scroll({
-            top:
+            top: (
               this.$refs.readMoreBtn.getBoundingClientRect().top +
               window.pageYOffset -
               btnOffset
-            // behavior: 'smooth',
+            ),
           });
-          // this.$refs.readMoreBtn.scrollIntoView({ behavior: 'smooth' });
-          // this.$refs.summaryWrapper.scrollTop = 0;
         });
       }
       
-    }
-
-    // onWindowResize: function() {
-    // 	// if ( !this.gallery.details.readmore.toggle ) {
-    //     this.$nextTick(function() {
-    //       this.getSummaryMaxHeight();
-    //     console.log('%c' + 'getSummaryMaxHeight' + '', 'background: #dbff00; color: #000; padding: 2px 5px; border-radius: 8px;');
-    //     });
-    //   // }
-    // },
+    },
+    
   }
 };
 </script>
 
-<style lang="scss" scoped>
+<style lang="scss">
 @import "~@/_variables.scss";
 
-.summary-meta-top .meta-padding {
+.book-summary-wrapper .summary-meta-top .meta-padding {
   width: 100%;
-  height: 20px;
+  height: 5px;
 }
 
 .book-summary-wrapper {
+  flex: 1;
   // transition: all 200ms linear;
   max-height: none;
   padding-bottom: 0px;
@@ -262,13 +258,21 @@ export default {
     }
   }
   
+  .inline-children > * { display: inline-block; }
+  
+  .release-date {
+    padding-top: 5px;
+  }
+  
   .info-tag {
     outline: none;
     cursor: default;
     border-radius: 999999px;
-    margin-left: 5px;
-    &:first-of-type { margin-left: 0; }
-    padding: 1px 6px 1px 4px;
+    // margin-left: 5px;
+    // &:first-of-type { margin-left: 0; }
+    // padding: 1px 6px 1px 4px;
+    padding: 3px 5px;
+    margin: 6px 6px 0 0;
     color: #fff;
     svg { display: inline-block; padding-right: 3px; }
     display: inline-flex !important; 
@@ -278,6 +282,7 @@ export default {
     align-items: center;
     align-content: center;
     font-size: .9em;
+    white-space: nowrap;
     
     &.store-page-changed {
       background: #bd3f00;
@@ -332,17 +337,19 @@ export default {
     }
   }
   
-}
-
-// Normalizes the top margin in the summary area.
-.summary-inner-wrap {
-  p {
+  .summary-inner-wrap {
     margin-top: 1em;
+  }
+  
+  // Normalizes the top margin in the summary area.
+  .summary-inner-wrap p {
+    margin-top: 1em;  
     margin-bottom: 1em;
+    &:first-child {
+      margin-top: 0;
+    }
   }
-  p:first-child {
-    margin-top: 0;
-  }
+  
 }
 
 .theme-light #ale-bookdetails .summary-read-more:after {
@@ -388,7 +395,7 @@ export default {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#0015171b', endColorstr='#15171b',GradientType=0 );
 }
 
-.book-summary {
+.book-summary-wrapper .book-summary {
   position: relative;
   z-index: 0;
   // overflow: hidden;
@@ -403,7 +410,7 @@ export default {
     font-size: 1.8em;
     line-height: 1.1em;
     margin: 0;
-    padding-bottom: 10px;
+    padding-bottom: 3px;
     a {
       white-space: normal;
       text-decoration: none;
@@ -415,21 +422,18 @@ export default {
       }
     }
   }
-  .additional-long-book-title {
-    margin-top: -2px;
+  
+  .subblementary-book-title {
+    // margin-top: -2px;
     position: relative;
-    top: -2px;
-    font-size: .9em;
-    line-height: 1.28em;
+    //top: -3px;
+    font-size: 1.15em;
+    line-height: 1.45em;
+    font-weight: 400;
   }
   .categories {
     line-height: 1.2em;
-  }
-  .inline-children {
-    margin-top: 6px;
-    > * {
-      display: inline-block;
-    }
+    margin-top: 4px;
   }
   .smoll-text {
     font-size: 0.8em;

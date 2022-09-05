@@ -18,13 +18,17 @@
         <strong class="strong-label">Format:</strong>
         <span>{{ book.format }}</span>
       </div>
+      <div class="format" v-if="book.releaseDate">
+        <strong class="strong-label">Release date:</strong>
+        <span>{{ book.releaseDate }}</span>
+      </div>
       <div class="rating" v-if="book.rating">
-        <strong class="strong-label">Rating:</strong>
+        <strong class="strong-label" v-tippy="ratingTippyOpts" :content="ratingLegend">Rating:</strong>
         <!-- <span>{{ book.rating }} ({{ book.ratings }} ratings)</span> -->
         <star-rating :size="12" :rating="book.rating" number="true" :ratings="book.ratings"></star-rating>
       </div>
       <div class="own-rating" v-if="book.myRating">
-        <strong class="strong-label" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'left', 'bottom'], allowHTML: true }" content="<ul><li>1 = Not for me</li><li>2 = It’s okay</li><li>3 = Pretty good</li><li>4 = It’s great</li><li>5 = I love it</li></ul>" >My rating: </strong>
+        <strong class="strong-label" v-tippy="ratingTippyOpts" :content="ratingLegend">My rating: </strong>
         <star-rating :size="12" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom']  }" :content="myRatingLabel( book.myRating )" :rating="book.myRating" number="true"></star-rating>
       </div>
     </div>
@@ -44,6 +48,34 @@ export default {
     goodReadsLink,
     arrayToHTML,
     starRating,
+  },
+  
+  data: function() {
+    return {
+      ratingTippyOpts: { 
+        placement: 'top', 
+        flipBehavior: ['top', 'right', 'left', 'bottom'], 
+        allowHTML: true,
+      },
+      ratingLegend: `
+        <style>
+        .ratings-tippy {
+          margin: 0; 
+          padding: 20px 13px 20px 27px;
+        }
+        .ratings-tippy li {
+          padding-bottom: 5px;
+        }
+        </style>
+        <ol class="ratings-tippy">
+          <li>Not for me</li>
+          <li>It’s okay</li>
+          <li>Pretty good</li>
+          <li>It’s great</li>
+          <li>I love it</li>
+        </ol>
+      `,
+    };
   },
   
   methods: {

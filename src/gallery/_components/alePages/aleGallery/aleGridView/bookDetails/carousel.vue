@@ -1,40 +1,42 @@
 <template>
-  <div class="ale-carousel">
-		<h3 class="ale-heading">
-			<slot></slot>
-		</h3>
-				
-		<splide :options="options" ref="splide" v-if="loaded">
-			<splide-slide class="ale-carousel-item" v-for="(book, index) in books" :key="index">
-				
-					<a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener noreferrer" v-tippy :content="sliderTippyContent( book )">
-						<img crossorigin="anonymous" class="cover" :data-splide-lazy="makeCoverUrl(book.cover, 150)" alt="">
-					</a>
-					
-			</splide-slide>
-		</splide>
-		
-  </div>
+<div class="ale-carousel" :data-scrolling="scrolling">
+	
+	<!-- CAROUSEL HEADING -->
+	<h3 class="ale-heading">
+		<slot></slot>
+	</h3>
+	
+	<!-- CAROUSEL -->
+	<lazy :offset="-60" class="lazyboy">
+		<TippyGroup>	
+			<splide :options="options" ref="splide" v-if="loaded">
+					<!-- CAROUSEL "SLIDEs" -->
+					<splide-slide class="ale-carousel-item" v-for="(carouselBook, index) in books" :key="index">
+						<slide :detailsBook="book" :book="carouselBook" :index="index"  :mobileWidth="mobileWidth"></slide>
+					</splide-slide>
+			</splide>
+		</TippyGroup>
+	</lazy>
+	
+</div>
 </template>
 
 <script>
 // import { Splide, SplideSlide } from '@splidejs/vue-splide';
 import '@splidejs/splide/dist/css/themes/splide-sea-green.min.css';
-
-import makeFullUrl from '@output-mixins/makeFullUrl';
-import makeCoverUrl from '@output-mixins/makeCoverUrl';
+import slide from './carousel-slide.vue';
+import lazy from "@output-snippets/lazy.vue";
+import TippyGroup from "@output-snippets/TippyGroup.vue";
 
 export default {
   name: 'carousel',
-  props: ['books', 'width'],
-  mixins: [
-    makeFullUrl,
-    makeCoverUrl,
-	],
-	
+  props: [ 'book', 'books', 'width', 'mobileWidth'],
 	components: {
-		'splide': () => import( /* webpackChunkName: "splide" */'@splidejs/vue-splide').then(({ Splide }) => Splide),
-		'splide-slide': () => import( /* webpackChunkName: "splide" */'@splidejs/vue-splide').then(({ SplideSlide }) => SplideSlide),
+		'splide': () => import( /* webpackChunkName: "splide" */ '@splidejs/vue-splide').then(({ Splide }) => Splide),
+		'splide-slide': () => import( /* webpackChunkName: "splide" */ '@splidejs/vue-splide').then(({ SplideSlide }) => SplideSlide),
+		slide,
+		lazy,
+		TippyGroup,
   },
 	
 	data: function() {
@@ -52,6 +54,7 @@ export default {
 				perPage     : 5,
 			},
 			coverSize: 127,
+			scrolling: false,
 		}
 	},
 	
@@ -69,25 +72,33 @@ export default {
 			
 			this.options.perPage = Math.floor(carouselWidth / this.coverSize);
 			this.loaded = true;
+			
+			// const scrollContainer = document.querySelector('.list-view-inner-wrap') || window;
+			// scrollContainer.addEventListener('scroll', this.windowScrollStarted, { passive: true });
+			// scrollContainer.addEventListener('scroll', this.windowScrollEnded, { passive: true });
+			
 		});
 		
+	},
+	
+	beforeDestroy: function() {
 		
+		// scrollContainer.removeEventListener('scroll', this.windowScrollStarted, { passive: true });
+		// scrollContainer.removeEventListener('scroll', this.windowScrollEnded, { passive: true });
+			
 	},
 	
 	methods: {
 		
-		sliderTippyContent: function( book ) {
-			const html =
-				'<div style="font-weight: normal; text-align: left; padding: 10px; font-size: 13px; line-height: 17px">' +
-					(book.title 		 ? '<div><h3 style="font-size: 1.2em; font-weight: bold; margin: 0 0 3px 0;">'+ book.title +'</h3>' : '') +
-					(book.subHeading ? '<div><h2 style="font-size: 1.1em; font-weight: normal; margin: 0 0 3px 0;">'+ book.subHeading +'</h2>' : '') +
-					(book.authors 	 ? '<div><strong>Authors: </strong>'+ book.authors +'</div>' : '') +
-					(book.narrators  ? '<div><strong>Narrators: </strong>'+ book.narrators +'</div>' : '') +
-					(book.length 		 ? '<div><strong>Length: </strong>'+ book.length +'</div>' : '') +
-				'</div>';
-			return html;
-		},
-			
+		// These two are used to prevent unnecessary tooltip activations...
+		// The "data-scrolling" attribute is used to add an overlay on top of the slider when scrolling, preventing any interaction with the slider while scrolling...
+		// windowScrollStarted() {
+		// 	if ( !this.scrolling ) this.scrolling = true;
+		// },
+		// windowScrollEnded: _.debounce(function() {
+		// 	if ( this.scrolling ) this.scrolling = false;
+		// }, 300, {'leading': false, 'trailing': true }),
+		
 	},
 	
 }
@@ -95,18 +106,24 @@ export default {
 
 <style lang="scss">
 @import '~@/_variables.scss';
+.tippy-popper .tippy-tooltip .tippy-content a.carousel-gallery-link { text-decoration: none !important; }
 
 .ale-carousel {
+	position: relative;
+	z-index: 0;
 	display: block;
 	border-radius: 20px;
 	width: 100%;
 	margin-top: 20px;
+	
+	> * { position: relative; z-index: 0; }
+	
 	&:first-child { margin-top: 0 !important; }
 	
 	.ale-heading {
 		text-align: center;
-		margin: 0px;
-		margin-top: 20px;
+		margin: 0;
+		padding: 25px 0;
 	}
 	
 	.ale-slider {
@@ -115,6 +132,8 @@ export default {
 	.tooltip {
 		display: none;
 	}
+	
+	.lazyboy { min-height: 138px; }
 
 	.ale-carousel-item {
 		display: inline-block;
@@ -129,11 +148,10 @@ export default {
 			height: 125px !important;
 			@include themify($themes) { border: 1px solid rgba( themed(outerColor), .5); }
 		}
-		
 	}
 	
 	.splide {
-		padding-top: 25px !important;
+		padding-top: 0px !important;
 		padding-bottom: 25px !important;
 	}
 	.splide__pagination {
@@ -163,6 +181,17 @@ export default {
 		@include themify($themes) { background: themed(audibleOrange) !important; }
 	}
 	
+	&[data-scrolling]:before {
+		content: '';
+		position: absolute;
+		z-index: 1;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background: rgba(red, .4);
+	}
+	
 }
 
 
@@ -183,6 +212,8 @@ export default {
 
   .ale-carousel {
   	
+		.lazyboy { min-height: 113px; }
+		
 		.ale-carousel-item {
 			&, .cover {
 				width: 100px !important;
@@ -201,7 +232,7 @@ export default {
 				padding-right: 1px;
 			}
 	  }
-		
+			
   } // .ale-carousel
   
 	.splide__pagination__page { width: 10px !important; }
@@ -211,6 +242,9 @@ export default {
 @media ( max-width: 415px ) {
 
   .ale-carousel {
+		
+		.lazyboy { min-height: 83px; }
+		
 		.ale-carousel-item {
 			&, .cover {
 				width: 70px !important;

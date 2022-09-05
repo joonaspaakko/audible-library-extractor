@@ -119,9 +119,9 @@ export default {
       useAutocomplete: false,
     };
   },
-
-  mounted: function() {
   
+  mounted: function() {
+    
     if ( this.$route.query.search ) {
       const searchQuery = decodeURIComponent(this.$route.query.search);
       this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
@@ -188,7 +188,8 @@ export default {
     },
     
     scope: function() {
-      this.$root.$emit("book-clicked", { book: null });
+      
+      this.$root.$emit("book-clicked", null);
       // No need to shuffle anything when there's no active search
       if ( this.$store.getters.searchIsActive ) {
         this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
@@ -197,10 +198,11 @@ export default {
           this.search();
         // });
       } 
+      
     },
     filter: function() {
       
-      this.$root.$emit("book-clicked", { book: null });
+      this.$root.$emit("book-clicked", null)
       
       this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
       
@@ -214,7 +216,7 @@ export default {
     },
     sort: function() {
       
-      this.$root.$emit("book-clicked", { book: null });
+      this.$root.$emit("book-clicked", null);
       this.$store.commit("prop", { key: ( this.$store.getters.searchIsActive ? 'searchCollection' : 'mutatingCollection'), value: this.sortBooks( this.$store.getters.collection ) });
       
     },
@@ -223,14 +225,17 @@ export default {
       
       // Reset 
       const searchQuery = decodeURIComponent(this.$route.query.search);
-      if ( !onLoad ) this.$root.$emit("book-clicked", { book: null });
+      if ( !onLoad ) {
+        this.$root.$emit("book-clicked", null);
+        this.$updateQuery({ query: 'book', value: null, src: '.......below book clicked emit' });
+      }
       
       const triggeredByEvent = e;
       if ( triggeredByEvent ) {
         
         this.fuseOptions.shouldSort = true;
         this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
-        this.$updateQuery({ query: 'search', value: encodeURIComponent(e.target.value) });
+        this.$updateQuery({ queries: this.$route.query, query: 'search', value: encodeURIComponent(e.target.value), src: 'search triggered by event' });
         
         if ( e.target.value.trim() !== "" ) {
           if ( this.$route.query.sort ) {
@@ -265,7 +270,6 @@ export default {
               return o.item;
             });
           }
-          
           vue.$store.commit("prop", { key: 'searchCollection', value: result });
           
         });
@@ -275,6 +279,7 @@ export default {
       else {
         this.$store.commit("prop", { key: 'searchCollection', value: [] });
       }
+      
       
     }, 270, { leading: false, trailing: true }),
     

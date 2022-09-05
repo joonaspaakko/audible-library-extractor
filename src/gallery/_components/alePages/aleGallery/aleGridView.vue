@@ -1,15 +1,10 @@
 <template>
   <div class="ale-books grid-view" :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ) }" ref="booksWrapper">
     
-    <book-details
-    v-if="!!$store.state.bookDetails.book && $store.state.bookDetails.index > -1"
-    :booksWrapper="$refs.booksWrapper"
-    />
-    
     <lazy
     v-for="(book, index) in $store.state.chunkCollection"
     class="ale-book"
-    :class="{ 'details-open': $store.state.bookDetails.book && $store.state.bookDetails.book.asin === book.asin }"
+    :class="{ 'details-open': $route.query.book === book.asin }"
     :data-asin="book.asin"
     :key="'book:'+book.asin"
     v-if="book.asin"
@@ -28,7 +23,6 @@ import lazy from "@output-snippets/lazy.vue";
 export default {
   name: "aleBooks",
   components: {
-    bookDetails: () => import( /* webpackPrefetch: true */ /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
     book: () => import( /* webpackChunkName: "book" */ "./aleGridView/book"),
     lazy,
   },

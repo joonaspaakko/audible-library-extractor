@@ -16,11 +16,10 @@
     :class="[ route.meta.groupName, subItemActive(route), (route.disabled || (route.condition ? !route.condition() : null)) ? 'disabled' : '' ]"
     v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'], maxWidth: 400 }"
     :content="typeof route.tippy === 'function' ? route.tippy() : route.tippy"
-    @click.native="additionalClick(route)"
     @click="route.click ? route.click( route ) : null"
     >
         
-      <div class="menu-item-inner">
+      <div class="menu-item-inner" @click="additionalClick(route)">
         <span class="menu-item-icon">
           <font-awesome :icon="route.meta.icon" />
         </span>
@@ -105,8 +104,11 @@ export default {
     
     getRoutePath( route ) {
       const path = _.get(route, 'path');
-      const href = _.get(route, 'href');
-      return path || href;
+      return !!path ? { 
+        name: _.get(route, 'name') || _.get(route, 'children[0].name'),
+        query: { refresh: true  },
+      } :
+      _.get(route, 'href');
     },
     
     getRouteName( route ) {
@@ -139,9 +141,9 @@ export default {
         this.$emit('closeMenu');
       }
       
-      let name = _.get(route, 'children[0].name') || route.name || '';
-          name = name.toLowerCase();
-      if ( this.$route.name === name && !!name ) this.$root.$emit('refresh-page');
+      // let name = _.get(route, 'children[0].name') || route.name || '';
+      //     name = name.toLowerCase();
+      // if ( this.$route.name === name && !!name ) this.$root.$emit('refresh-page');
       
     },
     
@@ -178,7 +180,6 @@ export default {
 }
 
 .menu-item {
-  padding: 10px 12px;
   position: relative;
   white-space: nowrap;
   text-align: left;
@@ -187,6 +188,10 @@ export default {
     cursor: default !important;
     opacity: .4;
   }
+}
+
+.menu-item-inner {
+  padding: 10px 12px;
 }
 
 .menu-item,
@@ -268,6 +273,12 @@ export default {
     border: 2px solid themed(audibleOrange);
     background: rgba(themed(audibleOrange), .1);
     color: themed(front_color);
+  }
+}
+
+.extension-tools > .sub-menu .menu-item:active {
+  @include themify($themes) {
+    background: themed(audibleOrange);
   }
 }
 

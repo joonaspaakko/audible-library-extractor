@@ -8,17 +8,28 @@
 
 export default {
   name: "lazy",
-  props: ['tag'],
+  props: ['tag', 'offset'],
   data: function() {
     return {
       observer: null, 
       intersected: false,
     };
   },
-  mounted: function() {
+  mounted() {
     this.$nextTick(function() {
-      const vue = this;
+      this.observe();
+    });
+  },
+  
+  destroyed() {
+    if ( this.observer ) this.observer.disconnect();
+  },
+  
+  methods: {
+    
+    observe() {
       
+      const vue = this;
       this.observer = new IntersectionObserver(function( entries ) {
         if ( entries[0].isIntersecting ) {
           vue.intersected = true;
@@ -26,16 +37,13 @@ export default {
         }
       }, {
         threshold: 0,
-        rootMargin: '100px',
+        rootMargin: (this.offset || 100) + 'px',
       });
       
       this.observer.observe(this.$el);
       
-    });
-  },
-  
-  destroyed: function() {
-    if ( this.observer ) this.observer.disconnect();
+    },
+    
   },
   
 };

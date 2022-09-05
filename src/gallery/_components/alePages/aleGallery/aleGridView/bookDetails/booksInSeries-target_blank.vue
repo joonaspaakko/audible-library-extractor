@@ -134,7 +134,7 @@ export default {
     
     goToBookInSeries: function( series, book ) {
       if ( book ) {
-        
+        // FIXME: make sure this works
         this.$root.$emit('book-clicked', { book: book });
         
       }

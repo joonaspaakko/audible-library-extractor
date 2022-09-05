@@ -38,11 +38,14 @@ const config = {
   resolve: {
     extensions: ['.js', '.vue'],
     alias: {
+      '@root': __dirname,
       'node_modules': path.join(__dirname, '/node_modules'),
       '@': path.join(__dirname, '/src/gallery'),
       '@output-images': path.join(__dirname, '/src/gallery/images'),
       '@output-page': path.join(__dirname, '/src/gallery'),
       '@output-comps': path.join(__dirname, '/src/gallery/_components'),
+      '@output-modules': path.join(__dirname, '/src/gallery/_modules'),
+      '@output-pages': path.join(__dirname, '/src/gallery/_components/alePages'),
       '@output-snippets': path.join(__dirname, '/src/gallery/_components/snippets'),
       '@output-mixins': path.join(__dirname, '/src/gallery/_mixins'),
       '@contscript-mixins': path.join(__dirname, '/src/content-script/_components/_mixins'),

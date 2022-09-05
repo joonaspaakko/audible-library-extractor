@@ -2,7 +2,7 @@
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation" ref="navigation">
     
-    <desktop-menu :routes="routes" :mobileMenuOpen.sync="mobileMenuOpen" :inRoot="true" />
+    <navigation-looper :routes="routes" :mobileMenuOpen.sync="mobileMenuOpen" :inRoot="true" />
     
     <!-- Component opened by one of the menu items -->
     <div class="floater-components" v-if="!mobileThreshold">
@@ -14,12 +14,15 @@
   
   <mobile-menu-floaters v-if="mobileThreshold" :mobileMenuOpen.sync="mobileMenuOpen" @startSearching="startSearching" />
   
+  <!-- When gallery is saved to the home screen on a Tablet -->
+  <back-forward-btns v-if="$store.state.displayMode && !mobileThreshold" :viewportFloat="true" />
+  
 </div>
 </template>
 
 <script>
 import backForwardBtns from "@output-snippets/back-forward-btns.vue";
-import desktopMenu from "@output-comps/aleNavigation-looper.vue";
+import navigationLooper from "@output-comps/aleNavigation-looper.vue";
 import mobileMenuFloaters from "@output-comps/mobile-menu-floaters.vue";
 // import aleSaveLocally from "@output-comps/aleSaveLocally.vue";
 // import mobileMenu from "@output-comps/aleNavigation-mobile.vue";
@@ -27,7 +30,7 @@ import mobileMenuFloaters from "@output-comps/mobile-menu-floaters.vue";
 export default {
   name: "aleMenuActions",
   components: {
-    desktopMenu,
+    navigationLooper,
     mobileMenuFloaters,
     backForwardBtns,
     // aleSaveLocally,

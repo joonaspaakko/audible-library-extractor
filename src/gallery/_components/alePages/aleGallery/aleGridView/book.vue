@@ -8,10 +8,13 @@
       <div class="ale-play-sample" v-if="book.sample && sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
         <div><font-awesome fas icon="play" /></div>
       </div>
+      <div class="ale-play-sample cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
+        <open-web-player :size="20" :book="book" :icon="true" :tooltip="false" :noBG="true" />
+      </div>
 
       <div
         class="ale-click-wrap"
-        @click="$root.$emit('book-clicked', { book, index })"
+        @click="$root.$emit('book-clicked', book.asin)"
       >
         
         <div class="blurb-tooltip" v-if="book.blurb && sticky.bookDetailSettings.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
@@ -67,14 +70,16 @@
 </template>
 
 <script>
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
+import openWebPlayer from "@output-comps/snippets/openWebPlayer.vue";
 
 export default {
   name: "book",
   props: ["book", "index", "sortValuesEnabled"],
-  mixins: [makeCoverUrl],
+  mixins: [ makeCoverUrl ],
   components: {
     'sort-values': () => import( /* webpackChunkName: "sort-values" */ './aleSortValues.vue'),
+    openWebPlayer,
   },
   data: function() {
     return {
@@ -84,6 +89,7 @@ export default {
     };
   },
   methods: {
+    
     // imageAlt: function(book, index) {
     //   return book.authors[0].name + " - " + book.title;
     // },
@@ -409,7 +415,8 @@ export default {
   padding: 6px;
   border-radius: 999999px;
   cursor: default;
-  > div {
+  > div,
+  > a {
     font-size: 8px;
     width: 20px;
     height: 20px;
@@ -425,6 +432,13 @@ export default {
     align-content: center;
     justify-items: center;
     align-items: center;
+  }
+  > div {
+    font-size: 0.8em;
+    > svg {
+      position: relative;
+      left: 1px;
+    }
   }
 }
 

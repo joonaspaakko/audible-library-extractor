@@ -18,14 +18,14 @@ export default {
             const numberOfRatings = _.get( o, 'ratings', 0 );
             return Number(numberOfRatings);
           });
-          directionArray.push('desc');
+          directionArray.push( params.direction );
           break;
         case 'ratings':
           sortArray.push( function(o) {
             const rating = _.get( o, 'rating', 0 );
             return Number(rating);
           });
-          directionArray.push('desc');
+          directionArray.push( params.direction );
           break;
       }
       

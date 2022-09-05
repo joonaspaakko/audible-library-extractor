@@ -1,5 +1,5 @@
 <template>
-<div class="list-filter-wrapper" :style="{ top: $store.state.topNavOffset + 'px' }">
+<div class="list-filter-wrapper" :style="{ top: store.viewMode === 'grid' ? $store.state.topNavOffset + 'px' : '31px' }">
   <div class="row">
     
     <div class="show-all-toggle" v-if="showAllToggle" @click="$store.commit('stickyProp', { key: 'booksInSeriesAll', value: !$store.state.sticky.booksInSeriesAll })">
@@ -48,6 +48,7 @@ export default {
   props: ['series'],
   data: function() {
     return {
+      store: this.$store.state,
       showAllToggle: false,
       showFinishedToggle: false,
       count: {

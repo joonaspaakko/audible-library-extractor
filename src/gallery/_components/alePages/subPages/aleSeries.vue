@@ -180,11 +180,11 @@ export default {
       let vue = this;
       let list = {
         scope: [
-          {active: true, key: 'name', tippy: 'Search series by name'},
-          {active: true, key: 'books', tippy: 'Search series by book titles'},
-          { active: true,  key: 'authors.name', tippy: 'Search series by authors' },
-          { active: true,  key: 'narrators.name', tippy: 'Search series by narrators' },
-          { active: true,  key: 'publishers.name', tippy: 'Search series by publishers' },
+          {active: true, key: 'name', tippy: 'Search series by name', weight: 2 },
+          {active: true, key: 'books', tippy: 'Search series by book titles', weight: 1 },
+          { active: true,  key: 'authors.name', tippy: 'Search series by authors', weight: 1 },
+          { active: true,  key: 'narrators.name', tippy: 'Search series by narrators', weight: 1 },
+          { active: true,  key: 'publishers.name', tippy: 'Search series by publishers', weight: 1 },
         ],
         filter: [
           {

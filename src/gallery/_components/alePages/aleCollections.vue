@@ -3,45 +3,56 @@
     
     <page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></page-title>
     
-    <!-- 
-      Lazified this just in case some user is one of those people who make collections for every series.
-      I don't really see people having like over 50 collections otherwise.
-    -->
-    <lazy
-    :tag="collection.isSpecial ? 'span' : 'div'"
-    class="single-box"
-    v-for="(collection, index) in collections"
-    :data-collection-id="collection.id"
-    :key="collection.id"
-    :class="{ 'is-special': collection.isSpecial }"
-    >
-      <div class="sample-covers-square">
-        <div
-        class="sample-cover"
-        v-for="(book, index) in getRandomBooks(collection.books, 4)"
-        :key="book.asin"
-        >
-          <router-link :to="{ 
-          name: 'collection', 
-          params: { collection: collection.id },
-          query: { book: book.asin }
-          }">
-            <img crossorigin="anonymous" :src="makeCoverUrl(book.cover)" alt="" />
-          </router-link>
-        </div>
+    <div class="hide-premade-btn-wrapper">
+      <div @click="$store.commit('prop', { key: 'sticky.collectionsHidePremade', value: !$store.state.sticky.collectionsHidePremade })">
+        {{ $store.state.sticky.collectionsHidePremade ? 'show' : 'hide' }} premade collections
       </div>
+    </div>
     
-      <router-link class="collection-title" :to="{ name: 'collection', params: { collection: collection.id } }">
-        <h2>
-            {{ collection.title }}
-        </h2>
-      </router-link>
-
-      <router-link v-if="collection.books && collection.books.length" class="books-total" :to="{ name: 'collection', params: { collection: collection.id } }" >
-        <div v-html="collection.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this collection."></div>
-      </router-link>
+    <div v-for="chunk in filteredCollections" :key="chunk.key" :class="[ chunk.key + '-collection' ]">
       
-    </lazy> <!-- .single-box -->
+      <!-- 
+        Lazified this just in case some user is one of those people who make collections for every series.
+        I don't really see people having like over 50 collections otherwise.
+      -->
+      <lazy
+      :tag="collection.isSpecial ? 'span' : 'div'"
+      class="single-box"
+      v-for="(collection, index) in chunk.items"
+      :data-collection-id="collection.id"
+      :key="collection.id"
+      :class="{ 'is-special': collection.isSpecial }"
+      >
+        <div class="sample-covers-square">
+          <div
+          class="sample-cover"
+          v-for="book in getRandomBooks(collection.books, 4)"
+          :key="book.asin"
+          >
+            <router-link :to="{ 
+            name: 'collection', 
+            params: { collection: collection.id },
+            query: { book: book.asin }
+            }">
+              <img crossorigin="anonymous" :src="makeCoverUrl(book.cover)" alt="" />
+            </router-link>
+          </div>
+        </div>
+      
+        <router-link class="collection-title" :to="{ name: 'collection', params: { collection: collection.id } }">
+          <h2>
+              {{ collection.title }}
+          </h2>
+        </router-link>
+
+        <router-link v-if="collection.books && collection.books.length" class="books-total" :to="{ name: 'collection', params: { collection: collection.id } }" >
+          <div v-html="collection.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this collection."></div>
+        </router-link>
+        
+      </lazy> <!-- .single-box -->
+      
+    </div>
+    
     
   </div>
 </template>
@@ -65,6 +76,23 @@ export default {
       pageTitle: null,
       pageSubTitle: null,
     };
+  },
+  
+  computed: {
+    
+    filteredCollections() {
+      const vue = this;
+      const array = _.filter( this.collections, function( chunk ) {
+        if ( chunk.key === 'audible' ) {
+          return !vue.$store.state.sticky.collectionsHidePremade
+        }
+        else {
+          return true;
+        }
+      });
+      return array;
+    },
+    
   },
   
   created: function() {
@@ -93,7 +121,7 @@ export default {
     // "Special" Audible created collections bubble to the top.
     // After that it's alphabetical sorting based on the title.
     // TODO: Should've maybe split collections to 2 arrays so it'd be easier to handle the special boys.
-    this.collections = _.orderBy(collections, [
+    collections = _.orderBy(collections, [
       function( o ) { return vue.isSpecial(o) },
       'title',
     ], 
@@ -101,6 +129,8 @@ export default {
       "desc",
       "asc",
     ]);
+    
+    this.collections = this.chunkify(collections);
     
     this.$store.commit("prop", [
       { key: "pageCollection", value: [] }, 
@@ -110,12 +140,33 @@ export default {
   },
 
   methods: {
+    
     getRandomBooks: function(books, number) {
       return _.sampleSize(books, number);
     },
+    
     isSpecial( obj ) {
       return _.get(obj,'id','').indexOf('__') === 0;
     },
+    
+    chunkify( collections ) {
+      
+      const specialBoysLength = _.filter( collections, { isSpecial: true }).length;
+      const specialBoysChunk = collections.splice(0, specialBoysLength);
+      
+      return [
+        {
+          key: 'audible',
+          items: specialBoysChunk,
+        },
+        {
+          key: 'user',
+          items: collections,
+        },
+      ];
+      
+    },
+    
   }
 };
 </script>
@@ -177,19 +228,60 @@ export default {
 
 .single-box { position: relative; z-index: 0; };
 .is-special { display: flex; }
-span:last-of-type {
+.audible-collection {
+  position: relative;
   margin-bottom: 62px;
   &:after {
     content: '';
     position: absolute;
     z-index: 0;
+    right: 0;
     bottom: -33px;
+    left: 0;
     height: 2px;
-    width: 100%;
     @include themify($themes) {
       background: rgba(themed(frontColor), .25);
     }
   }
+}
+
+.hide-premade-btn-wrapper {
+  @include themify($themes) {
+    // position: relative;
+    // z-index: 0;
+    // height: 10px;
+    text-align: right;
+    > div {
+      // position: absolute;
+      // top: -30px;
+      // right: 0px;
+      display: inline-block;
+      @extend .no-selection;
+      cursor: pointer;
+      background: themed(backColor);
+      color: themed(frontColor);
+      padding: 4px 12px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      border: 1px solid rgba( themed(frontColor), .3);
+      font-weight: bold;
+    }
+  }
+}
+
+
+
+.theme-dark .hide-premade-btn-wrapper > div {
+  background: lighten(rgba( #121517, .98 ), 5);
+  box-shadow: $shadowMedium rgba(0,0,0,0.45);
+  color: $darkFrontColor;
+  border: 1px solid rgba( lighten( $darkBackColor, 62), .25 );
+}
+.theme-light .hide-premade-btn-wrapper > div {
+  background: rgba( lighten( $lightBackColor, 5), .98 );
+  box-shadow: $shadowSmall  rgba(0,0,0,0.2), $shadowMedium  rgba(0,0,0,0.2);
+  color: $lightFrontColor;
+  border: 1px solid rgba( $lightFrontColor, .25 );
 }
 
 </style>

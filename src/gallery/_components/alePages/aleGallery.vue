@@ -5,7 +5,7 @@
     
     <context-menu-reminder v-if="!$store.state.standalone && $store.state.sticky.contextMenuReminder" />
     
-    <ale-search v-if="prepsCompleted" :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></ale-search>
+    <ale-search v-if="prepsCompleted" :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle" @hook:mounted="searchMounted" />
     
     <div v-if="collapseView" class="collection-expanded-btn" @click="expandView">
       <div>
@@ -15,9 +15,12 @@
       </div>
     </div>
     
-    <div v-if="$store.getters.collection && $store.getters.collection.length > 0" :style="galleryStyle">
-      <ale-grid-view @hook:mounted="gridViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-if="$store.state.sticky.viewMode === 'grid'" />
-      <ale-list-view @hook:mounted="listViewMounted" @hook-beforeDestroy="viewsBeforeDestroy" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+    <div v-if="!loading && $store.getters.collection && $store.getters.collection.length > 0">
+      <div :style="galleryStyle">
+        <ale-grid-view @hook:mounted="gridViewMounted" @hook:beforeDestroy="viewsBeforeDestroy" v-if="$store.state.sticky.viewMode === 'grid'" />
+        <ale-list-view @hook:mounted="listViewMounted" @hook:beforeDestroy="viewsBeforeDestroy" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+        <book-details v-if="mountedChildren && $route.query.book" :key="$route.query.book" :asin="$route.query.book" />
+      </div>
     </div>
     <div v-else-if="errorMessage" id="nothing-here-404">
       <h3 v-if="$store.getters.searchIsActive && !$store.state.searchCollection.length">Search: no results</h3>
@@ -52,6 +55,7 @@ export default {
   components: {
     contextMenuReminder,
     aleSearch,
+    bookDetails: () => import( /* webpackPrefetch: true */ /* webpackChunkName: "book-Details" */ "./aleGallery/aleGridView/bookDetails"),
     aleGridView: () => import( /* webpackChunkName: "grid-view" */ "./aleGallery/aleGridView"),
     aleListView: () => import( /* webpackChunkName: "spreadsheet-view" */ "./aleGallery/aleListView"),
     // aleBreadcrumbs,
@@ -71,6 +75,7 @@ export default {
   
   data: function() {
     return {
+      loading: true,
       collectionSource: 'library.books',
       pageTitle: null,
       pageSubTitle: null,
@@ -79,6 +84,7 @@ export default {
       realLength: 0,
       prepsCompleted: false,
       errorMessage: false,
+      mountedChildren: false,
     };
   },
   
@@ -110,16 +116,6 @@ export default {
   
   created: function() {
     
-    // If book details are open but url param is empty, clear book details so it doesn't try to render... 
-    if ( this.$store.state.bookDetails.book && !this.$route.query.book || this.$route.query.closeBookDetails ) {
-      this.$updateQuery({ query: 'closeBookDetails', value: false });
-      this.$store.commit('prop', [
-        { key: 'bookDetails.book', value: null },
-        { key: 'bookDetails.index', value: -1 },
-      ]);
-      if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
-    }
-    
     if ( this.$route.name === 'library' ) {
       this.pageTitle = 'Library';
       this.pageSubTitle = null;
@@ -150,9 +146,18 @@ export default {
     this.$root.$on("book-clicked", this.toggleBookDetails);
     
   },
-
+  
+  mounted() {
+    console.log('%c' + 'GALLERY.vue MOUNTED' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    this.$nextTick(function() {
+      this.errorMessage = true;
+    });
+  },
+  
   beforeDestroy: function() {
     this.$root.$off("book-clicked", this.toggleBookDetails);
+    console.log('DESTROYED')
+    this.errorMessage = false;
   },
   
   watch: {
@@ -168,11 +173,33 @@ export default {
       // }
       
     },
+    '$route.query.book': function( bookParam ) {
+      
+      // This is mostly in place because I didn't make certain things work in a reactive way
+      // When you back or forward navigate to the same route (by name) this refresh the view
+      console.log( '!this.$store.state.bookClicked', !this.$store.state.bookClicked )
+      if ( !this.$store.state.bookClicked ) this.$updateQuery({ query: 'refresh', value: true });
+      else this.$store.commit('prop', { key: 'bookClicked', value: false });
+      
+      // console.log('');
+      // console.log('');
+      // console.log( 'test', JSON.parse(JSON.stringify(this.$store.state.bookDetails)) )
+      // console.log( 'bookParam', bookParam );
+      
+      // this.toggleBookDetails({ book: { asin: bookParam } });
+      
+      // const bookParam = _.get(query, 'book');
+      // if ( bookParam && this.$store.state.bookDetails.index === -1 ) {
+      //   this.toggleBookDetails( bookParam ? { book: bookParam } : null );
+      // }
+      
+    },
   },
   
   methods: {
     
     childrenMounted: function() {
+      console.log('%c' + 'CHILDREN MOUNTED YO' + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;');
       this.$nextTick(function() {
         
         const scrollPosition = this.$route.query.y ? parseFloat(this.$route.query.y) : 0;
@@ -202,12 +229,13 @@ export default {
             //   this.$store.commit("prop", { key: 'mutatingCollection', value: [book] });
           // }
           
-          this.$nextTick(function() {
-            this.$root.$emit("book-clicked", { book: this.$store.state.chunkCollection[bookIndex], index: bookIndex, force: true });
-          });
+          // this.$nextTick(function() {
+          //   this.$root.$emit("book-clicked", { book: this.$store.state.chunkCollection[bookIndex], index: bookIndex, force: true });
+          // });
           
         }
         else if ( scrollPosition ) {
+          
           let wrapper = document.querySelector(".ale-books");
           let wrapperOffset = wrapper.offsetTop;
           let grid = this.$store.state.sticky.viewMode === 'grid';
@@ -218,11 +246,9 @@ export default {
           let cols = Math.floor(wrapperMax / bookHeight) || 1;
           let visibleBooks = grid ? maxItems*cols : cols;
           let factor = Math.ceil(visibleBooks / this.$store.state.chunkDistance) || 1;
-          if ( factor > 1 ) {
-            this.$store.commit("chunkCollectionAdd", { chunkDistance: this.$store.state.chunkDistance * factor });
-          }
+          if ( factor > 1 ) this.$store.commit("chunkCollectionAdd", { chunkDistance: this.$store.state.chunkDistance * factor });
           
-          this.$nextTick(function () {
+          this.$nextTick(function() {
             if (this.$store.state.sticky.viewMode === 'grid') {
               scroll({
                 top: scrollPosition
@@ -233,9 +259,12 @@ export default {
               });
             }
           });
+          
         }
         
-        this.errorMessage = true;
+        this.$nextTick(function() {
+          this.mountedChildren = true;
+        });
         
       });
     },
@@ -264,7 +293,11 @@ export default {
       
     },
     viewsBeforeDestroy: function() {
+      
       this.scrollContainer.removeEventListener('scroll', this.addDomItems);
+      this.mountedChildren = false;
+      console.log( 'DESTROYING VIEWS' )
+      
     },
     
     addDomItems: _.throttle( function(e) {
@@ -287,47 +320,39 @@ export default {
       }
     }, 450, { leading: false, trailing: true }),
     
+    searchMounted() {
+      
+      const vue = this;
+      this.$nextTick(function() {
+        setTimeout(function() {
+          vue.loading = false;
+        }, 10);
+      });
+      
+    },
+    
     // updateScrollDistance: _.debounce( function( scrollTop ) {
     //   this.$updateQuery({ query: 'y', value: scrollTop });
     // }, 100, { leading: false, trailing: true }),
     
-    toggleBookDetails: function(e) {
-      if (!e.book) {
-        // this.$store.state.bookDetails.book
-        
-        this.$store.commit('prop', [
-          { key: 'bookDetails.book', value: null },
-          { key: 'bookDetails.index', value: -1 },
-        ]);
-        
-        // this.detailsBook = null;
-        // this.detailsBookIndex = -1;
-        if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+    toggleBookDetails: function( asin ) {
       
-      } 
-      else {
-        
-        if (!e.index) e.index = _.findIndex( this.$store.state.chunkCollection, { asin: e.book.asin });
-        const sameBook = _.get(this.$store.state.bookDetails.book, "asin") === e.book.asin;
-        
-        this.$store.commit('prop', [
-          { key: 'bookDetails.book', value: null },
-          { key: 'bookDetails.index', value: -1 },
-        ]);
-        
-        if ( !sameBook || e.force ) {
-          this.$nextTick(function() {
-            this.$store.commit('prop', [
-              { key: 'bookDetails.book', value: e.book },
-              { key: 'bookDetails.index', value: e.index },
-            ]);
-          });
-        }
-        else {
-          this.$updateQuery({ query: 'book', value: null });
-        }
-        
-      }
+      this.$store.commit('prop', { key: 'bookClicked', value: true });
+      
+      const clicked = {
+        asin: asin,
+      };
+      
+      const query = {
+        asin: _.get(this.$route, 'query.book'),
+        newValue: clicked.asin,
+      };
+      
+      // Active book clicked: close bookdetails
+      if ( clicked.asin === query.asin ) query.newValue = null;
+      console.log( 'updateQuery!! - ', !query.newValue ? null : query.newValue );
+      this.$updateQuery({ query: 'book', value: !query.newValue ? null : query.newValue, src: 'triggered at the top of the search toggle bookdetails' });
+      
     },
     
   },
