@@ -19,7 +19,6 @@ export default {
     // not sure if nextTick is needed
     this.$nextTick(() => {
       
-      console.log('group MOUNTED')
       const tippyComponents = [
         ...this.$el.querySelectorAll("[data-tippy-component-trigger]"),
       ].map((el) => el._tippy);

@@ -181,7 +181,6 @@ export default {
   beforeDestroy: function() {
     
     if ( this.scrpt ) {
-      console.log( this.scrpt )
       this.scrpt.remove();
       this.scrpt = null;
     }

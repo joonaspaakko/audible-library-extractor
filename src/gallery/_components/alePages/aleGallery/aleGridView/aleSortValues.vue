@@ -196,8 +196,6 @@ export default {
     
     progress: function(book) {
       
-      // if ( book.asin === "B00B5HZGUG" ) console.log( book )
-      
       if (book.progress && book.length) {
         if (book.progress.toLowerCase().trim() === "finished") {
           const length = this.timeStringToSeconds(book.length);

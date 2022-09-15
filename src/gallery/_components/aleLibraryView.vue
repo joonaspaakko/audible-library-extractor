@@ -12,7 +12,7 @@
 export default {
   name: "aleLibraryView",
   mounted() {
-    console.log('%c' + 'LIBRARY VIEW MOUNTED' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    // console.log('%c' + 'LIBRARY VIEW MOUNTED' + '', 'background: #ff8d00; color: #fff; padding: 2px 5px; border-radius: 8px;');
   },
 };
 </script>

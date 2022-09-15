@@ -1,7 +1,7 @@
 export default {
   methods: {
     makeFullUrl: function(inputURL) {
-      const url = new Url(this.$store.state.urlOrigin + inputURL);
+      const url = new domurl(this.$store.state.urlOrigin + inputURL);
       url.query.ipRedirectOverride = true;
       url.query.overrideBaseCountry = true;
       return url.toString();
@@ -37,7 +37,7 @@ export default {
       if (!newUrl) {
         return "";
       } else {
-        let url = new Url(newUrl);
+        let url = new domurl(newUrl);
         url.query.ipRedirectOverride = true;
         url.query.overrideBaseCountry = true;
         return url.toString();

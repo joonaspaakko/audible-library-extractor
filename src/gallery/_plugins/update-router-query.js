@@ -9,7 +9,7 @@ updateRouterQuery.install = function (Vue) {
     let history = config.history;
     let queries = config.queries || this.$route.query;
     
-    let queryClone = JSON.parse( JSON.stringify( queries ) );
+    let queryClone = JSON.parse(JSON.stringify( queries ));
     
     // Toggle
     if ( value === undefined ) {
@@ -23,10 +23,27 @@ updateRouterQuery.install = function (Vue) {
       else queryClone[ query ] = value;
     }
     
-    console.log( '' );
-    console.log('msg:', config.src );
-    console.log( config.queries, this.$route.query );
-    console.log('queryClone:', queryClone);
+    // push() writes a history state...
+    if ( history ) {
+      this.$router.push({ query: queryClone }).catch(() => {}); 
+    }
+    // replace() doesn't...
+    else {
+      this.$router.replace({ query: queryClone }).catch(() => {}); 
+    }
+    
+  };
+  
+  Vue.prototype.$updateQueries = function( queries, config ) {
+    
+    config      = config || {};
+    let history = config.history;
+    let queryClone = JSON.parse( JSON.stringify( config.queries || this.$route.query ) );
+    
+    _.merge(queryClone, queries);
+    _.each( queryClone, function( value, key ) {
+      if ( value === null || value === undefined ) delete queryClone[ key ];
+    });
     
     // push() writes a history state...
     if ( history ) {

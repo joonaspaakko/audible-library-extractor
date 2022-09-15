@@ -58,7 +58,7 @@ export default {
     },
     audioSource() {
       const source = _.get( this.book, 'sample');
-      var url  = new Url( source );
+      var url  = new domurl( source );
       if ( window.location.protocol === 'http:' ) url.protocol = 'http';
       return url.toString();
     },

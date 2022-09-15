@@ -161,7 +161,7 @@ export default {
         }
       }
       
-      console.log('%c' + 'sorted books!' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', books);
+      // console.log('%c' + 'sorted books!' + '', 'background: #7d0091; color: #fff; padding: 2px 5px; border-radius: 8px;', _.clone(books));
 
       return books;
     }

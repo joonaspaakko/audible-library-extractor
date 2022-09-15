@@ -3,8 +3,6 @@ import store from "@output-modules/store/index.js";
 
 import allRoutes from '@output-modules/routes.js';
 
-console.log( 'allRoutes: ', allRoutes )
-
 export default function( libraryData ) {
   if ( libraryData ) {
     
@@ -70,7 +68,6 @@ export default function( libraryData ) {
     // Tries to load relevant JSON data from a file before each route change on the standalone site
     const standalone = document.querySelector("html.standalone-gallery");
     if ( standalone ) {
-      console.log('STANDALONE!!!')
       
       function loadScript(file) {
         return new Promise(function(resolve, reject) {

@@ -115,9 +115,7 @@ export default {
   
   watch: {
     summaryHTML( fetched ) {
-      if ( fetched ) {
-        console.log( 'calculate.....' )
-        
+      if ( fetched ) {        
         this.getSummaryMaxHeight();
       }
     },

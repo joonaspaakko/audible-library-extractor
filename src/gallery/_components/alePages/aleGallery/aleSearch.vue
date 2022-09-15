@@ -224,10 +224,12 @@ export default {
     search: _.debounce( function( e, onLoad ) {
       
       // Reset 
+      const newQueries = {};
       const searchQuery = decodeURIComponent(this.$route.query.search);
       if ( !onLoad ) {
         this.$root.$emit("book-clicked", null);
-        this.$updateQuery({ query: 'book', value: null, src: '.......below book clicked emit' });
+        // this.$updateQuery({ query: 'book', value: undefined, src: '.......below book clicked emit' });
+        newQueries.book = null;
       }
       
       const triggeredByEvent = e;
@@ -235,21 +237,29 @@ export default {
         
         this.fuseOptions.shouldSort = true;
         this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
-        this.$updateQuery({ queries: this.$route.query, query: 'search', value: encodeURIComponent(e.target.value), src: 'search triggered by event' });
+        // this.$updateQuery({ queries: this.$route.query, query: 'search', value: encodeURIComponent(e.target.value), src: 'search triggered by event' });
+        newQueries.search = encodeURIComponent(e.target.value);
         
         if ( e.target.value.trim() !== "" ) {
           if ( this.$route.query.sort ) {
-            this.$updateQuery({ query: 'sort', value: null });
-            this.$updateQuery({ query: 'sortDir', value: null }); 
+            newQueries.sort = null;
+            newQueries.sortDir = null;
+            // this.$updateQuery({ query: 'sort', value: null });
+            // this.$updateQuery({ query: 'sortDir', value: null }); 
           }
         }
         else {
           var activeSorter = _.find( this.$store.state.listRenderingOpts.sort, 'current');
-          this.$updateQuery({ query: 'sort', value: activeSorter.key });
-          this.$updateQuery({ query: 'sortDir', value: activeSorter.active ? "desc" : "asc" });
+          // this.$updateQuery({ query: 'sort', value: activeSorter.key });
+          // this.$updateQuery({ query: 'sortDir', value: activeSorter.active ? "desc" : "asc" });
+            newQueries.sort = activeSorter.key;
+            newQueries.sortDir = activeSorter.active ? "desc" : "asc";
         }
         
+        
       }
+      
+      this.$updateQueries( newQueries );
       
       // Start searching
       if (this.$store.getters.searchIsActive) {
@@ -264,12 +274,13 @@ export default {
           let result = vue.fuse.search(query);
           
           if ( vue.useAutocomplete ) vue.autocomplete( result );
-          
           if (result.length > 0) {
+            // FIXME: maybe I should get rid of this map and just find the data inside result[0].item?
             result = _.map(result, function(o) {
               return o.item;
             });
           }
+          
           vue.$store.commit("prop", { key: 'searchCollection', value: result });
           
         });
@@ -320,7 +331,7 @@ export default {
       sections = _.compact( sections );
       if ( sections.length ) sections[0].active = true;
       
-      console.log('serctions', sections);
+      console.log('sections', sections);
       
       // sections = _.orderBy( sections, function( sect ) {
       //   return _.minBy( sect.books, 'score' ).score;

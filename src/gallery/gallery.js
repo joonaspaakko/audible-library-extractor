@@ -6,7 +6,7 @@ import VueCompositionAPI from '@vue/composition-api';
 Vue.use(VueCompositionAPI);
 
 // DOMURL
-global.Url = require("domurl");
+global.domurl = require("domurl");
 
 // LODASH
 import _ from "lodash";

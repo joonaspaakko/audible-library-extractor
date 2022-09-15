@@ -148,7 +148,7 @@ export default {
   },
   
   mounted() {
-    console.log('%c' + 'GALLERY.vue MOUNTED' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
+    // console.log('%c' + 'GALLERY.vue MOUNTED' + '', 'background: green; color: #fff; padding: 2px 5px; border-radius: 8px;');
     this.$nextTick(function() {
       this.errorMessage = true;
     });
@@ -156,7 +156,7 @@ export default {
   
   beforeDestroy: function() {
     this.$root.$off("book-clicked", this.toggleBookDetails);
-    console.log('DESTROYED')
+    // console.log('%c' + 'GALLERY.vue DESTROYED' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
     this.errorMessage = false;
   },
   
@@ -177,21 +177,8 @@ export default {
       
       // This is mostly in place because I didn't make certain things work in a reactive way
       // When you back or forward navigate to the same route (by name) this refresh the view
-      console.log( '!this.$store.state.bookClicked', !this.$store.state.bookClicked )
       if ( !this.$store.state.bookClicked ) this.$updateQuery({ query: 'refresh', value: true });
       else this.$store.commit('prop', { key: 'bookClicked', value: false });
-      
-      // console.log('');
-      // console.log('');
-      // console.log( 'test', JSON.parse(JSON.stringify(this.$store.state.bookDetails)) )
-      // console.log( 'bookParam', bookParam );
-      
-      // this.toggleBookDetails({ book: { asin: bookParam } });
-      
-      // const bookParam = _.get(query, 'book');
-      // if ( bookParam && this.$store.state.bookDetails.index === -1 ) {
-      //   this.toggleBookDetails( bookParam ? { book: bookParam } : null );
-      // }
       
     },
   },
@@ -199,7 +186,7 @@ export default {
   methods: {
     
     childrenMounted: function() {
-      console.log('%c' + 'CHILDREN MOUNTED YO' + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;');
+      
       this.$nextTick(function() {
         
         const scrollPosition = this.$route.query.y ? parseFloat(this.$route.query.y) : 0;
@@ -296,7 +283,6 @@ export default {
       
       this.scrollContainer.removeEventListener('scroll', this.addDomItems);
       this.mountedChildren = false;
-      console.log( 'DESTROYING VIEWS' )
       
     },
     
@@ -350,8 +336,7 @@ export default {
       
       // Active book clicked: close bookdetails
       if ( clicked.asin === query.asin ) query.newValue = null;
-      console.log( 'updateQuery!! - ', !query.newValue ? null : query.newValue );
-      this.$updateQuery({ query: 'book', value: !query.newValue ? null : query.newValue, src: 'triggered at the top of the search toggle bookdetails' });
+      this.$updateQuery({ query: 'book', value: !query.newValue ? undefined : query.newValue, src: 'triggered at the top of the search toggle bookdetails' });
       
     },
     
