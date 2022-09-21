@@ -48,9 +48,8 @@
 						refresh: true,
 					} 
 				}"
-				@click.native="refreshPage"
 				>
-					in my library
+					book in library
 				</router-link>
 				
 				<!-- LINK TO BOOK IN SERIES -->
@@ -68,12 +67,27 @@
 						refresh: true,
 					} 
 				}"
-				@click.native="refreshPage"
 				>
 					series in library 
 					<span v-if="inSeries.ownedBooksLength">
 						({{ inSeries.ownedBooksLength }}<span v-if="inSeries.obj.allBooks">/{{ inSeries.obj.allBooks.length }}</span>)
 					</span>
+				</router-link>
+				
+				<!-- LINK TO BOOK IN WISHLIST -->
+				<router-link 
+				v-if="inWishlist"
+				style="background: #dd7100;" 
+				class="carousel-gallery-link" 
+				:to="{ 
+					name: 'wishlist', 
+					query: { 
+						book: book.asin, 
+						refresh: true,
+					} 
+				}"
+				>
+					book in wishlist 
 				</router-link>
 				
 			</div>
@@ -107,7 +121,8 @@ export default {
 				ownedBooksLength: null,
 			},
 			inSameSeries: null,
-			timeStamp: null,
+			inWishlist: null,
+			// timeStamp: null,
 			storePageURL: null,
 			scrollContainer: null,
 			tippy: null,
@@ -131,7 +146,8 @@ export default {
 				this.findBookFromLibrary();
 				this.findBookFromSeries();
 				this.findSameSeries();
-				this.timeStamp = new Date().getTime();
+				this.findInWishlist();
+				// this.timeStamp = new Date().getTime();
 				this.storePageURL = this.makeUrl('book', this.book.asin);
 				this.prepworkDone = true;
 			}
@@ -196,16 +212,13 @@ export default {
 			}
 		},
 		
-		
-		refreshPage() {
+		findInWishlist() {
 			
-			// this.$root.$emit('refresh-page');
-			// this.$router.go();
+			const carouselBookAsin = this.book.asin;
+			const wishlist = this.$store.state.library.wishlist;
+			this.inWishlist = _.find( wishlist, { asin: carouselBookAsin });
+			if ( this.inWishlist ) console.log( this.book.asin, this.book.title )
 			
-			// this.$nextTick(function() { 
-			// 	// this.$root.$emit('refresh-page');
-			// 	this.$router.go();
-			// });
 		},
 			
 	},
