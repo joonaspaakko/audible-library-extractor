@@ -136,14 +136,14 @@ export default {
     },
     showReadMore: function() {
       const summary = this.summary;
-      console.log( 'showReadmore - Has maxHeightTemp: ', summary.maxHeightTemp, 'summary.fullHeight > summary.maxHeightTemp', (summary.fullHeight > summary.maxHeightTemp) )
+      // console.log( 'showReadmore - Has maxHeightTemp: ', summary.maxHeightTemp, 'summary.fullHeight > summary.maxHeightTemp', (summary.fullHeight > summary.maxHeightTemp) )
       if (  !summary.maxHeightTemp ) return;
       return summary.fullHeight > summary.maxHeightTemp;
     },
   },
 
   mounted: function() {
-    // this.getSummaryMaxHeight();
+    this.getSummaryMaxHeight();
   },
 
   created: function() {
@@ -158,7 +158,7 @@ export default {
 
   methods: {
     
-    getSummaryMaxHeight: function() {
+    getSummaryMaxHeight() {
 
       if ( !this.summaryHTML ) return;
       this.$nextTick(function() {
@@ -171,14 +171,15 @@ export default {
         
         // const wrapper = document.querySelector('#ale-bookdetails .details-wrap');
         const sidebar = document.querySelector('#ale-bookdetails .information');
-        let maxHeight =  _.get( sidebar, 'offsetHeight', 0 );
+        const sidebarHeight = _.get( sidebar, 'offsetHeight', 0 );
         
-        // MOBILE SIZE
-        if ( this.mobileWidth && summaryFullHeight > minHeightExtra ) maxHeight = minHeightExtra; 
+        let maxHeight = sidebarHeight;
+        if ( summaryFullHeight > minHeightExtra && minHeightExtra > sidebarHeight ) maxHeight = minHeightExtra; 
+        
         this.summary.maxHeight = maxHeight;
         this.summary.maxHeightTemp = maxHeight;
-        
-        console.log('%c' + ' ' + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;', _.clone(this.summary));
+        // console.log( minHeightExtra )
+        // console.log('%c' + ' ' + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;', _.clone(this.summary));
         
       });
       
