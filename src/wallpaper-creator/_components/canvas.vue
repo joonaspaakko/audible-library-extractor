@@ -3,9 +3,12 @@
   v-dragscroll="dragscrollEnabled"
   v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
   >
+    
+    <tier-list-toolbar v-if="store.tierListMode" />
+    
     <div class="show-blank-canvas" v-show="store.saving"></div>
     <div class="floating-alerts" v-if="!store.animatedWallpaperMode || true">
-      <gb-toast :closable="false" color="red" width="200" v-show="panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
+      <gb-toast :closable="false" color="red" width="200" v-show="store.panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
       <gb-toast :closable="false" color="blue" width="200" v-show="$store.getters.textElementActive">You can also move text using arrow keys. Shift modifier increases the step to 10px.</gb-toast>
       <gb-toast :closable="false" color="red" width="200" v-show="store.awpOverlayColorEnabled">Overlay option is enabled, which by default adds a darker overlay on top of the covers.</gb-toast>
     </div>
@@ -60,41 +63,17 @@
             :editorCanvasPaddingBottom="store.canvas.padding.bottom"
             />
             
-            <draggable v-else v-model="usedCovers" group="covers" @end="draggingEnded" :style="canvasAlignment">
-              <div 
-              class="cover"
-              v-for="(book, index) in usedCovers" :key="book.asin"
-              @mouseover="coverHover"
-              @mouseleave="coverHover"
-              >
+            <div v-else style="width: 100%; height: 100%;"> 
               
-                <div v-if="!store.saving" class="cover-padding-preview"></div>
-                
-                <div v-if="store.showAuthorAndTitle && !book.placeholderCover && (book.author || book.title)" class="author-and-title" :style="{ width: store.coverSize + 'px', color: store.authorAndTitleColor }">
-                  <div class="author" :style="{ fontSize: store.authorAndTitleSize + 'px', 'line-height': (store.authorAndTitleSize + 4) + 'px' }"><strong>{{ book.author }}</strong></div>
-                  <div class="title" :style="{ fontSize: store.authorAndTitleSize + 'px', 'line-height': (store.authorAndTitleSize + 4) + 'px' }">{{ book.title }}</div>
-                </div>
-                
-                <div v-if="book.placeholderCover" ref="coverImages" class="placeholder"></div>
-                <div v-else style="position: relative; display: inline-block;">
-                  
-                  <img ref="coverImages" class="cover-img" :src="book.cover" alt="" draggable="false" data-no-dragscroll 
-                  :style="{ filter: (store.awpGrayscale) ? 'grayscale(1) contrast('+ store.awpGrayscaleContrast +')' : null }"
-                  />
-                  
-                  <div v-if="!store.animatedWallpaperMode && store.showFavorites && book.favorite" class="cover-heart-icon">
-                    <gb-icon size="13px" name="favorite"></gb-icon>
-                  </div>
-                  <div v-if="!store.animatedWallpaperMode && store.showMyRating && book.myRating" class="cover-star-icons">
-                    <gb-icon size="13px" name="star" v-for="number in book.myRating" :key="number"></gb-icon>
-                  </div>
-                  
-                </div>
-                
-                
-              </div>
+              <tier-list v-if="store.tierListMode" />
               
-            </draggable>
+              <draggable v-if="$store.getters.containerTierVisible" v-model="draggableCovers" group="covers" @end="draggingEnded" 
+                :style="store.tierListMode ? { marginTop: (store.coverSize/8)+'px', minHeight: store.coverSize+'px' } : canvasAlignment">
+                <cover v-for="book in usedCovers" :key="book.asin" :book="book"></cover>
+              </draggable>
+              
+            </div>
+            
             <component v-if="!store.animatedWallpaperMode" is="style">
               .grid-inner-wrap .cover {
                 padding: {{ ( paddingSizeNumber > -1 ?  store.paddingSize : 0) }}px !important;
@@ -136,17 +115,29 @@ import centerCanvas from "@editor-mixins/centerCanvas.js";
 import zoomToFit from "@editor-mixins/zoomToFit.js";
 import textElement from "@editor-comps/canvas/text-element.vue";
 import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
-
 import animatedWallpaper from "../animated-wallpaper/animated-wallpaper-app.vue";
+import tierList from "@editor-comps/canvas/tier-list.vue";
+import tierListToolbar from "@editor-comps/canvas/tier-list-toolbar.vue";
+import cover from '@editor-comps/canvas/cover.vue';
 
 export default {
   name: "editorCanvas",
-  mixins: [centerCanvas, zoomToFit, calculateCoverSize],
-  components: { draggable, textElement, animatedWallpaper },
+  mixins: [
+    centerCanvas, 
+    zoomToFit, 
+    calculateCoverSize, 
+  ],
+  components: { 
+    draggable, 
+    textElement, 
+    animatedWallpaper,
+    tierList,
+    tierListToolbar,
+    cover,
+  },
   data: function () {
     return {
       store: this.$store.state,
-      panningAlert: false,
       dragscrollEnabled: false,
     };
   },
@@ -161,9 +152,9 @@ export default {
     this.$store.commit('update', { key: 'coverSize', value: coverSize });
     
     this.$nextTick(function() {
-      this.zoomToFit();
       let vue = this;
       setTimeout(function() {
+        vue.zoomToFit();
         vue.centerCanvas();
         vue.dragscrollEnabled = true;
         vue.moveableControlsHide();
@@ -192,9 +183,20 @@ export default {
       
     },
     
+    draggableCovers: {
+      get() {
+        let covers = this.store.covers;
+            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;        
+        return covers.slice(0, this.store.coverAmount);
+      },
+      set(value) {
+        this.$store.commit('update', { key: 'covers', value: value  });
+      }
+    },
     usedCovers: {
       get() {
-        let covers = this.store.excludeArchived ? _.filter(this.store.covers, function(o) { return !o.inArchive; }) : this.store.covers;
+        let covers = this.store.covers;
+            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;        
         return covers.slice(0, this.store.coverAmount);
       },
       set(value) {
@@ -357,17 +359,10 @@ export default {
     // Since only the visible covers are sorted, this mutates the source array "covers" to include the same sorting
     draggingEnded: function( e ) {
       
-      let allCovers = JSON.parse(JSON.stringify(this.store.covers));
-      allCovers.splice(0, this.store.usedCovers.length ); // Remove visible covers
-      allCovers = this.store.usedCovers.concat( allCovers ); // merge used covers with remaining covers
-      this.$store.commit('update', { key: 'covers', value: allCovers  });
-      
-    },
-    
-    coverHover: function( e ) {
-      
-      const hover = (e.type === 'mouseover');
-      this.panningAlert = hover;
+      // let allCovers = JSON.parse(JSON.stringify(this.store.covers));
+      // allCovers.splice(0, this.store.usedCovers.length ); // Remove visible covers
+      // allCovers = this.store.usedCovers.concat( allCovers ); // merge used covers with remaining covers
+      // this.$store.commit('update', { key: 'covers', value: allCovers  });
       
     },
     
@@ -520,26 +515,9 @@ export default {
     }
   }
   
-  .cover {
-    position: relative;
-    display: inline-block;
-    font-size: 0;
-    line-height: 0;
-  }
-
-  .cover .placeholder,
-  .cover img {
-    position: relative;
-    z-index: 5;
-    display: block;
-    width: 0px;
-    height: 0px;
-    cursor: move !important;
-  }
-  
 }
 
-.grid-inner-wrap.hide-author-and-title .author-and-title { display: none !important; }
+// .grid-inner-wrap.hide-author-and-title .author-and-title { display: none !important; }
 
 // .author-and-title {
 //   text-align: center;
@@ -556,19 +534,6 @@ export default {
   border-style: solid !important;
   border-color: rgba(#ff394f, .45) !important;
 }
-
-.cover-padding-preview {
-  display: none;
-  position: absolute;
-  z-index: 1;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  left: 0;
-  flex: 1;
-  background: rgba(#ff394f, .45) !important;
-}
-.show-cover-padding-preview .cover-padding-preview { display: block; }
 
 .text-elements {
   position: absolute; 
@@ -606,23 +571,6 @@ export default {
 
 .hide-overlay-on-hover:hover #awp-overlay {
   display: none;
-}
-
-.cover-star-icons,
-.cover-heart-icon {
-  position: absolute;
-  z-index: 50;
-  i { color: #ff0000; }
-}
-.cover-star-icons {
-  left: 0px;
-  right: 0px;
-  bottom: 0px;
-  // background: #333;
-  border-radius: 2px;
-  // border-radius: 999999px;
-  text-align: center;
-  i { color: #f8991c; }
 }
 
 </style>

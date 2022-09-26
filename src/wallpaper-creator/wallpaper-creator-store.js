@@ -59,6 +59,7 @@ const store = new Vuex.Store({
       canvasPanning: true,
     },
     animatedWallpaperMode: false,
+    tierListMode: false,
     excludeArchived: false,
     archived: 0,
     animationPreset: null,
@@ -195,6 +196,17 @@ const store = new Vuex.Store({
         }
       },
     ],
+    panningAlert: false,
+    tiers: [
+      { visible: true, key: 'S', color: '#ff7f7e', list: [] }, 
+      { visible: true, key: 'A', color: '#ffbf7e', list: [] }, 
+      { visible: true, key: 'B', color: '#eff077', list: [] }, 
+      { visible: true, key: 'C', color: '#7dff7f', list: [] }, 
+      { visible: true, key: 'D', color: '#78f2f2', list: [] }, 
+      { visible: true, key: 'E', color: '#9c9bff', list: [] }, 
+      { visible: true, key: 'F', color: '#ff93fd', list: [] },
+      { visible: true, key: 'container',  list: [] },
+    ],
   },
   mutations: {
     
@@ -329,6 +341,46 @@ const store = new Vuex.Store({
       
     // },
     
+    tierConcat: function( state, config ) {
+      
+      const tier = _.find(state.tiers, { key: config.key });
+      if ( 
+        !tier.list.length && config.ifEmpty ||
+        tier.list.length && !config.ifEmpty
+      ) {
+        tier.list = tier.list.concat( config.list );
+      }
+      
+    },
+    
+    clearTiers: function( state, config ) {
+      
+      _.each( state.tiers, function( tier ) {
+        tier.visible = true;
+        tier.list = [];
+      });
+      
+    },
+    
+    resetTiers: function( state, config ) {
+      
+      let covers = [];
+      
+      _.each( state.tiers, function( tier ) {
+        covers = covers.concat( tier.list );
+      });
+      
+      state.covers = covers.concat( state.covers );
+      
+    },
+    
+    toggleTier: function( state, tier ) {
+      
+      const stateTier = _.find(state.tiers, { key: tier.key });
+      stateTier.visible = !stateTier.visible;
+      
+    },
+    
   },
   getters: {
     
@@ -338,6 +390,10 @@ const store = new Vuex.Store({
     
     textElementActive: function( state ) {
       return !!_.find( state.textElements, 'active');
+    },
+    
+    containerTierVisible: function( state ) {
+      return _.find(state.tiers, { key: 'container' }).visible;
     },
     
   }
@@ -350,15 +406,10 @@ store.commit("fromLocalStorage");
 store.subscribe( _.debounce(function(mutation, state) {
   
   if ( !state.resetting ) {
-    let stateDolly = JSON.parse(JSON.stringify( state ));
-    
-    delete stateDolly.covers;
-    delete stateDolly.usedCovers;
-    
-    localStorage.setItem("aleImageEditorSettings", JSON.stringify( stateDolly ));
+    localStorage.setItem("aleImageEditorSettings", JSON.stringify( state ));
   }
   
-}, 550, { leading: false, trailing: true }) );
+}, 250, { leading: false, trailing: true }) );
 
 
 

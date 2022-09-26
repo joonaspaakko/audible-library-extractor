@@ -88,7 +88,9 @@ export default {
   
   watch: {
     'store.usedCovers': function() {
-      this.setElementGuidelines();
+      this.$nextTick(function() {
+        this.setElementGuidelines();
+      });
     },
   },
   
@@ -180,8 +182,9 @@ export default {
     
     setElementGuidelines: function() {
       
-      const guidelinesFirstRow = this.$parent.$refs.coverImages.slice( 0, this.store.coversPerRow );
-      const guidelinesLastRow = this.$parent.$refs.coverImages.slice( this.$parent.$refs.coverImages.length - this.store.coversPerRow, this.$parent.$refs.coverImages.length );
+      const coverImages = document.querySelectorAll('[data-coverImages]');
+      const guidelinesFirstRow = coverImages.slice( 0, this.store.coversPerRow );
+      const guidelinesLastRow = coverImages.slice( coverImages.length - this.store.coversPerRow, coverImages.length );
       this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesFirstRow );
       this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesLastRow );
       this.moveableOpts.elementGuidelines.push( document.querySelector(".canvas-bounds") );

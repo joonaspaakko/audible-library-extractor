@@ -16,6 +16,22 @@ export default {
       
       let vue = this;
       
+      // Clear certain parts of the data when coming in from the gallery
+      if ( window.location.href.indexOf('src=gallery') > -1 ) {
+        this.$store.commit('clearTiers');
+        this.$store.commit('update', [{ key: 'covers', value: null }, { key: 'usedCovers', value: null }]);
+        // Remove URL param
+        var newURL = location.href.split("?")[0];
+        window.history.pushState({}, document.title, newURL);
+      }
+      else {
+        
+        if ( this.$store.state.covers.length ) { vue.dataReady = true; }
+        else { vue.noCovers = true; }
+        return;
+        
+      }
+    
       try {
         browser.storage.local.get([
           'imageEditorChunks', 

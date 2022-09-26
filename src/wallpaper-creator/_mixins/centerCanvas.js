@@ -111,7 +111,7 @@ export default {
       }
     },
 
-    centerCanvas: _.throttle( function() {
+    centerCanvas: _.debounce( function() {
       
       let workingArea = document.querySelector("#editor-canvas-left");
       let content = workingArea.querySelector("#editor-canvas-content");
@@ -180,7 +180,7 @@ export default {
       }
       
     
-    }, 20, { leading: true, trailing: true }),
+    }, 200, { leading: true, trailing: true }),
     
   }
 };

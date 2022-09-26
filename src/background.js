@@ -83,7 +83,7 @@ browser.runtime.onMessage.addListener( async (message, sender) => {
     
     // Open the output page
     browser.tabs.create({
-      url: "./wallpaper-creator/index.html",
+      url: "./wallpaper-creator/index.html?src=gallery",
       active: true,
       index: sender.tab.index + 1,
     });

@@ -25,6 +25,7 @@
     </div>
     
     <div class="zoom-container" v-show="!store.saving">
+      
       <input
         class="zoom-zoom"
         type="range"
@@ -58,11 +59,21 @@
     <div class="mode-switcher" v-if="!store.saving">
       
       <gb-toggle
-      size="default"
+      size="mini"
       :value="store.animatedWallpaperMode"
-      @change="editorModeChanged"
+      @change="editorModeChanged('animatedWallpaperMode', $event)"
       label="Animated wallpaper mode"
       status="error"
+      :full-width="true"
+      ></gb-toggle>
+      
+      <gb-toggle
+      size="mini"
+      :value="store.tierListMode"
+      @change="editorModeChanged('tierListMode', $event)"
+      label="Tier list mode"
+      status="warning"
+      :full-width="true"
       ></gb-toggle>
       
     </div>
@@ -1120,7 +1131,7 @@ export default {
     
     randomizeCovers: function() {
       
-      let randomCovers = _.shuffle(this.$store.state.covers);
+      let randomCovers = _.shuffle(this.store.covers);
       
       this.$store.commit("update", [
         { key: "covers", value: randomCovers },
@@ -1178,13 +1189,35 @@ export default {
       
     },
     
-    editorModeChanged: function( value ) {
+    editorModeChanged: function( modeName, value ) {
       
-      if ( this.store.canvasPreset !== 'wallpaper' ) this.changeCanvasPreset('wallpaper');
+      if ( modeName === 'animatedWallpaperMode' && value && this.store.canvasPreset !== 'wallpaper' ) {
+        this.changeCanvasPreset('wallpaper');
+      }
+      else if ( modeName === 'tierListMode' ) {
+        if ( value && this.store.canvasPreset !== 'card' ) {
+          this.changeCanvasPreset('card');
+          this.$store.commit('update', [
+            { key: 'canvas.width', value: 3500 },
+            { key: 'canvas.height', value: 0 },
+            { key: 'coversPerRow', value: 12 },
+          ]);
+        }
+        
+        if ( !value ) {
+          this.$store.commit('resetTiers');
+          this.$store.commit('clearTiers');
+        }
+        
+      }
+      
+      this.$store.commit('update', [
+        { key: modeName, value: value },
+        { key: modeName === 'animatedWallpaperMode' ? 'tierListMode' : 'animatedWallpaperMode', value: false },
+      ]);
       
       this.$nextTick(function() {
         this.zoomToFit();
-        this.$store.commit('update', { key: 'animatedWallpaperMode', value: value });
       });
       
       
@@ -1316,7 +1349,7 @@ $toolbar-text: #8eabc5;
 
 .toolbar-inner {
   overflow: auto;
-  padding: 50px 65px;
+  padding: 80px 65px 50px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
@@ -1542,13 +1575,18 @@ $toolbar-text: #8eabc5;
 
 .mode-switcher {
   border-radius: 4px;
-  padding: 10px 15px;
+  padding: 10px 50px;
   position: absolute;
   z-index: 50;
   top: 0;
   right: 0;
   left: 0;
   text-align: center;
+  
+  > div {
+    padding-top: 15px;
+    &:first-child { padding-top: 0; }
+  }
   
   &:before {
     content: '';
