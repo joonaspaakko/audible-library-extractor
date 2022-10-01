@@ -12,7 +12,7 @@ export default {
     exportSettingsGallery: null,
     exportSettingsCSVdataSources: null,
     exportSettingsCSVcompatibility: null,
-    booksInSeriesAll: false,
+    booksInSeriesAll: true,
     booksInSeriesFinished: true,
     booksInSeriesOpenInApp: true,
     subPageSource: 'library',

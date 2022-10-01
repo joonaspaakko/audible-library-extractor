@@ -1150,6 +1150,9 @@ body > .notices {
   .remove-individual-sections-icon {
     // color: #959595;
     color: #666;
+    svg {
+      width: 14px;
+    }
   } 
   
 }

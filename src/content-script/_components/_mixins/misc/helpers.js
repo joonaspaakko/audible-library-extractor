@@ -98,10 +98,13 @@ export default {
         var string = html.trimAll().trimToColon();
         string = $.parseHTML(string);
         
+        const strings = _.filter(string, function( object ) {
+          var str = object.textContent.trim().replace(/^,/, "") || "";
+          if ( str ) return object;
+        });
         
-        $.each(string, function(index, object) {
+        $.each(strings, function(index, object) {
           var string = object.textContent.trim().replace(/^,/, "").trimAll() || "";
-
           var titleRow = (index + 1) % 2;
           var numberRow = !titleRow;
           if (titleRow) {
@@ -114,16 +117,14 @@ export default {
             });
             
           } 
-          else if (numberRow) {
-            if ( string.match(/\d/) ) {
-              // Trims text from the front: ("Book ", removes trailing comma, and splits numbers separated by commas
-              var numbers = string.replace(/^[^0-9]*/, "").replace(/,$/, "").replace(/;$/, "").trim().split(",");
-              // Numbers are added to the previous item
-              var lastItem = series[series.length - 1];
-              lastItem.bookNumbers = $.map(numbers, function(n) {
-                return "" + n; // Every number is handled as a string to avoid issues with book ranges
-              });
-            }
+          else if (numberRow && string.match(/\d/)) {
+            // Trims text from the front: ("Book ", removes trailing comma, and splits numbers separated by commas
+            var numbers = string.replace(/^[^0-9]*/, "").replace(/,$/, "").replace(/;$/, "").trim().split(",");
+            // Numbers are added to the previous item
+            var lastItem = series[series.length - 1];
+            lastItem.bookNumbers = $.map(numbers, function(n) {
+              return "" + n; // Every number is handled as a string to avoid issues with book ranges
+            });
           }
         });
       }
