@@ -1,6 +1,6 @@
 <template>
   <component :is="tag">
-    <slot @hook:mounted="slotMounted" />
+    <slot />
   </component>
 </template>
 
@@ -12,7 +12,7 @@ export default {
     tag: {
       default: () => "div",
     },
-    delay: {},
+    delay: 0,
   },
 
   mounted() {

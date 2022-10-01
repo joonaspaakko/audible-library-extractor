@@ -220,6 +220,10 @@ export default {
           //   this.$root.$emit("book-clicked", { book: this.$store.state.chunkCollection[bookIndex], index: bookIndex, force: true });
           // });
           
+          this.$nextTick(function() {
+            this.mountedChildren = true;
+          });
+          
         }
         else if ( scrollPosition ) {
           
@@ -235,6 +239,8 @@ export default {
           let factor = Math.ceil(visibleBooks / this.$store.state.chunkDistance) || 1;
           if ( factor > 1 ) this.$store.commit("chunkCollectionAdd", { chunkDistance: this.$store.state.chunkDistance * factor });
           
+          console.log( 'gallery scroll pos:', scrollPosition );
+          
           this.$nextTick(function() {
             if (this.$store.state.sticky.viewMode === 'grid') {
               scroll({
@@ -245,19 +251,25 @@ export default {
                 top: scrollPosition
               });
             }
+            
+            this.$nextTick(function() {
+              this.mountedChildren = true;
+            });
+            
           });
           
         }
-        
-        this.$nextTick(function() {
-          this.mountedChildren = true;
-        });
+        else {
+          this.$nextTick(function() {
+            this.mountedChildren = true;
+          });
+        }
         
       });
     },
     
     expandView: function() {
-      this.$updateQuery({ query: 'book', value: false, history: true });
+      this.$updateQuery({ query: 'book', value: null, history: true });
       this.$root.$emit('refresh-page');
     },
     
@@ -299,9 +311,7 @@ export default {
         
         // Update scroll distance
         // Don't update with book details open, because it takes precedence
-        // if ( !this.$route.query.book ) this.$updateQuery({ query: 'y', value: container.scrollTop });
-        this.$updateQuery({ query: 'y', value: container.scrollTop });
-        // this.updateScrollDistance( container.scrollTop );
+			  this.$updateQueries({ y: container.scrollTop });
         
       }
     }, 450, { leading: false, trailing: true }),
@@ -334,9 +344,14 @@ export default {
         newValue: clicked.asin,
       };
       
-      // Active book clicked: close bookdetails
+      
+      // Already open, so close it
       if ( clicked.asin === query.asin ) query.newValue = null;
-      this.$updateQuery({ query: 'book', value: !query.newValue ? undefined : query.newValue, src: 'triggered at the top of the search toggle bookdetails' });
+      // nullify false
+      if ( !query.newValue ) query.newValue = null;
+      
+      // Active book clicked: close bookdetails
+      this.$updateQuery({ query: 'book', value: query.newValue, src: 'triggered at the top of the search toggle bookdetails' });
       
     },
     

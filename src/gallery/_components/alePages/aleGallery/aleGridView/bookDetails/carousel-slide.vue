@@ -30,7 +30,7 @@
 				<!-- BOOK PART OF SAME SERIES AS THE ONE USER IS LOOKING AT -->
 				<div 
 				v-if="inSameSeries"
-				style="background: #007844;" 
+				style="background: #047844;" 
 				class="carousel-gallery-link not-link" 
 				>
 					from this series
@@ -154,6 +154,8 @@ export default {
 			
 			this.scrollContainer = document.querySelector('.list-view-inner-wrap') || window;
 			this.scrollContainer.addEventListener('scroll', this.scrollHide, { passive: true });
+			
+      this.$updateQueries({ carousel: true });
 			
 			return !!tippy.props.content;
 			

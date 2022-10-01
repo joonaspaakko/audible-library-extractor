@@ -67,7 +67,7 @@ export default {
   audioPlayerVisible: false,
   chunkCollection: [],
   chunkDistance: 40,
-  refreshView: null,
+  refreshView: new Date().getTime(),
   pageTitle: null,
   pageSubTitle: null,
   version: null,

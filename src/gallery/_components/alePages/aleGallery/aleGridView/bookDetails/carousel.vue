@@ -7,12 +7,12 @@
 	</h3>
 	
 	<!-- CAROUSEL -->
-	<lazy :offset="-60" class="lazyboy">
+	<lazy :offset="-60" :delay="10" class="lazyboy">
 		<TippyGroup>	
-			<splide :options="options" ref="splide" v-if="loaded">
+			<splide :options="options" ref="splide">
 					<!-- CAROUSEL "SLIDEs" -->
 					<splide-slide class="ale-carousel-item" v-for="(carouselBook, index) in books" :key="index">
-						<slide :detailsBook="book" :book="carouselBook" :index="index"  :mobileWidth="mobileWidth"></slide>
+						<slide :detailsBook="book" :book="carouselBook" :index="index" :mobileWidth="mobileWidth"></slide>
 					</splide-slide>
 			</splide>
 		</TippyGroup>
@@ -41,7 +41,6 @@ export default {
 	
 	data: function() {
 		return {
-			loaded: false,
 			options: {
 				type        : 'loop',
 				rewind      : true,
@@ -55,49 +54,41 @@ export default {
 			},
 			coverSize: 127,
 			scrolling: false,
+			scrollContainer: null,
 		}
 	},
 	
 	mounted: function() {
 		
-		this.$nextTick(function() {	
-			
-			const winWidth = window.innerWidth;
-			const windowMobile = winWidth <= '716';
-			this.options.width = windowMobile ? winWidth : this.$el.offsetWidth;
-			const carouselWidth = windowMobile ? winWidth - (42*2) : this.$el.offsetWidth - (42*2);
-			
-			if ( winWidth <= '500' ) this.coverSize = 102;
-			if ( winWidth <= '415' ) this.coverSize = 72;
-			
-			this.options.perPage = Math.floor(carouselWidth / this.coverSize);
-			this.loaded = true;
-			
-			// const scrollContainer = document.querySelector('.list-view-inner-wrap') || window;
-			// scrollContainer.addEventListener('scroll', this.windowScrollStarted, { passive: true });
-			// scrollContainer.addEventListener('scroll', this.windowScrollEnded, { passive: true });
-			
-		});
+		const winWidth = window.innerWidth;
+		const windowMobile = winWidth <= '716';
+		this.options.width = windowMobile ? winWidth : this.$el.offsetWidth;
+		const carouselWidth = windowMobile ? winWidth - (42*2) : this.$el.offsetWidth - (42*2);
 		
+		if ( winWidth <= '500' ) this.coverSize = 102;
+		if ( winWidth <= '415' ) this.coverSize = 72;
+		
+		this.options.perPage = Math.floor(carouselWidth / this.coverSize);
+		
+		this.scrollContainer = document.querySelector('.list-view-inner-wrap') || window;
+		this.scrollContainer.addEventListener('scroll', this.windowScrollStarted, { passive: true });
+		
+			
 	},
 	
 	beforeDestroy: function() {
 		
-		// scrollContainer.removeEventListener('scroll', this.windowScrollStarted, { passive: true });
-		// scrollContainer.removeEventListener('scroll', this.windowScrollEnded, { passive: true });
+		this.scrollContainer.removeEventListener('scroll', this.windowScrollStarted, { passive: true });
 			
 	},
 	
 	methods: {
 		
-		// These two are used to prevent unnecessary tooltip activations...
-		// The "data-scrolling" attribute is used to add an overlay on top of the slider when scrolling, preventing any interaction with the slider while scrolling...
-		// windowScrollStarted() {
-		// 	if ( !this.scrolling ) this.scrolling = true;
-		// },
-		// windowScrollEnded: _.debounce(function() {
-		// 	if ( this.scrolling ) this.scrolling = false;
-		// }, 300, {'leading': false, 'trailing': true }),
+		windowScrollStarted() {
+			
+			if ( this.$route.query.carousel )  this.$updateQueries({ carousel: null });
+			
+		},
 		
 	},
 	
@@ -151,6 +142,7 @@ export default {
 	}
 	
 	.splide {
+    padding: 42px !important;
 		padding-top: 0px !important;
 		padding-bottom: 25px !important;
 	}

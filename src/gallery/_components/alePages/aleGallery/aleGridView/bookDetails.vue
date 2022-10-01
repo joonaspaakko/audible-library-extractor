@@ -72,8 +72,8 @@
           <book-summary v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="bookSummaryJSON" :mobileWidth="mobileWidth"></book-summary>
         </div>
 
-        <div class="carousel-wrap">
-          <carousel v-if="sticky.bookDetailSettings.carousel && !loading && (peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :book="book" :books="peopleAlsoBought" :key="maxWidth" :mobileWidth="mobileWidth">
+        <div class="carousel-wrap" v-if="sticky.bookDetailSettings.carousel && !loading">
+          <carousel v-if="(peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :book="book" :books="peopleAlsoBought" :key="maxWidth" :mobileWidth="mobileWidth">
             <!-- People who bought this also bought: -->
             <!-- Name changed: -->
             Listeners also enjoyed
@@ -164,8 +164,8 @@ export default {
   },
   
   mounted: function() {
-    
     this.$nextTick(function() {
+      
       this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
       this.resetScroll();
       
@@ -174,8 +174,10 @@ export default {
       this.$store.commit('prop', { key: 'timeStamp', value: new Date().getTime() });
       this.$root.$on("afterWindowResize", this.onWindowResize);
       this.loading = false;
+      
+      this.scrollToCarousel();
+      
     });
-    
   },
 
   beforeDestroy: function() {
@@ -257,8 +259,8 @@ export default {
     },
     
     onWindowResize: function( msg ) {
-      this.maxWidth = this.repositionBookDetails() + "px";
       if ( msg.widthChanged ) { 
+        this.maxWidth = this.repositionBookDetails() + "px";
         this.resetScroll(); 
       }
     },
@@ -271,6 +273,7 @@ export default {
 
     resetScroll: function() {
       this.$nextTick(function() {
+      
         if ( this.sticky.viewMode === 'grid' ) {
           const topNav = document.querySelector('#ale-navigation');
           const navigationHeight = topNav ? topNav.offsetHeight : 0;
@@ -279,6 +282,26 @@ export default {
         else {
           document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 45 });
         }
+        
+      });
+    },
+
+    scrollToCarousel: function() {
+      
+      if ( !this.$route.query.carousel ) return;
+      this.$updateQueries({ carousel: null });
+      
+      this.$nextTick(function() {
+      
+        const scrollPosition = parseFloat(this.$route.query.y);
+        if ( this.sticky.viewMode === 'grid' ) {
+          scroll({ top: scrollPosition });
+        }
+        else {
+          const listInnerWrap = document.querySelector('.list-view-inner-wrap');
+          listInnerWrap.scroll({ top: scrollPosition });
+        }
+        
       });
     },
 

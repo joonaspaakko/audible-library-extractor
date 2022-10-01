@@ -8,7 +8,7 @@
 
 export default {
   name: "lazy",
-  props: ['tag', 'offset'],
+  props: ['tag', 'offset', 'delay'],
   data: function() {
     return {
       observer: null, 
@@ -32,8 +32,12 @@ export default {
       const vue = this;
       this.observer = new IntersectionObserver(function( entries ) {
         if ( entries[0].isIntersecting ) {
-          vue.intersected = true;
-          vue.observer.disconnect();
+          setTimeout(function() {
+            
+            vue.intersected = true;
+            vue.observer.disconnect();
+            
+          }, vue.delay || 0);
         }
       }, {
         threshold: 0,
