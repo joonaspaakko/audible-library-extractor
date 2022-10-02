@@ -21,6 +21,12 @@ export default function( libraryData ) {
       routes.push( allRoutes.library );
     }
     
+    // WISHLIST
+    // If library data is not fetched put wishlish before sub pages menu item
+    if ( !libraryData.books && libraryData.wishlist ) {
+      routes.push( allRoutes.wishlist );
+    }
+    
     // SUB PAGES
     var subPages = allRoutes.subPages;
     
@@ -44,7 +50,8 @@ export default function( libraryData ) {
     }
     
     // WISHLIST
-    if ( libraryData.wishlist ) {
+    // If library is also extracted, push wishlist as the last menu item
+    if ( libraryData.books && libraryData.wishlist ) {
       routes.push( allRoutes.wishlist );
     }
     

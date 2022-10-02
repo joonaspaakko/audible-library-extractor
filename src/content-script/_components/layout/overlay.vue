@@ -116,7 +116,7 @@ html.ale-overlay-open body {
     padding: 20px;
     color: #b5b5b5;
     font-size: 20px;
-    position: absolute;
+    position: fixed;
     top: 0;
     right: 0;
     cursor: pointer;

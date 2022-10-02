@@ -45,8 +45,9 @@ export default {
                 returnAfterFirstCall: true,
                 done: function(prep) {
                   const audible = $($.parseHTML(prep.response.data)).find("div.adbl-main")[0];
-                  const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector("#wishlist-content-main > div > h1.bc-heading").nextElementSibling.textContent.match(/\d+/)[0]) );
+                  const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector(".adbl-library-refinement-section > div.bc-col-responsive.bc-col-2 > span").textContent.match(/\d+/)[0]) );
                   delete prep.response;
+                  console.log( 'titlesLength', titlesLength )
 
                   // if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
                   //   max: titlesLength
@@ -102,41 +103,58 @@ export default {
       response.data = null;
       const wishlist = [];
     
-      const wishlistRows = audible.querySelectorAll('#wishlist-content-main tr[id^="lib-item-row-"');
+      const wishlistRows = audible.querySelectorAll('#adbl-library-content-main .productListItem');
+      console.log( 'ROWS', wishlistRows.length )
       $(wishlistRows).each(function() {
         const _thisRow = this;
         
-        let titleLink = _thisRow.querySelector('[id^="title-"]');
-        let bookASIN = DOMPurify.sanitize( titleLink.getAttribute("id").replace("title-", "") );
+        let asin  = _thisRow.querySelector('[data-asin]');
+            asin  = asin.getAttribute("data-asin");
+            asin  = DOMPurify.sanitize( asin );
         
-        let carryOnMyWaywardPines = hotpotato.books ? !_.find( hotpotato.books, { asin: bookASIN }) : true;
+        let carryOnMyWaywardPines = hotpotato.books ? !_.find( hotpotato.books, { asin: asin }) : true;
         if ( carryOnMyWaywardPines ) {
           
-          let bookInMemory = _.find(hotpotato.wishlist, ["asin",  bookASIN]);
+          let bookInMemory = _.find(hotpotato.wishlist, ["asin",  asin]);
           let fullScan_ALL_partialScan_NEW = (vue.storageHasData.wishlist && !bookInMemory) || !vue.storageHasData.wishlist;
           let book = vue.storageHasData.wishlist && bookInMemory ? bookInMemory : {};
           
-          book.asin = DOMPurify.sanitize( titleLink.getAttribute("id").replace("title-", "") );
+          book.asin = asin;
           
-          if ( titleLink ) {
-            let storePageUrl = new Url( window.location.origin + DOMPurify.sanitize(titleLink.getAttribute("href")) );
+          let title = _thisRow.querySelector(":scope > div:nth-child(1) > div > div > div > div > div > span > ul > li:nth-child(1) > a");
+          if ( title ) {
+            let bookAddress = title.getAttribute("href");
+                bookAddress = DOMPurify.sanitize(bookAddress);
+            let storePageUrl = new Url( window.location.origin + bookAddress );
             storePageUrl.clearQuery();
             book.storePageRequestUrl = storePageUrl.toString();
           }
           
           if ( fullScan_ALL_partialScan_NEW ) {
             
-            // TITLE
-            if (titleLink) book.title = DOMPurify.sanitize( titleLink.textContent.trimAll() );
+            // SUBTITLE
+            const subtitle = _thisRow.querySelector(":scope > div:nth-child(1) > div > div > div > div > div > span > ul > li:nth-child(2) > span.bc-color-secondary");
+            if ( subtitle ) book.subtitle = DOMPurify.sanitize( subtitle.textContent.trimAll() );
+            // SHORT TITLE
+            if ( title ) {
+              title = title.textContent.trimAll();
+              book.titleShort = DOMPurify.sanitize( title );
+              // FULL TITLE
+              book.title = book.subtitle ? (title +': '+ book.subtitle) : title;
+            }
             
             // COVER
-            let getCover = _thisRow.querySelector("img[data-lazy]");
-            if ( !getCover ) getCover = _thisRow.querySelector("picture > img");
-            if ( getCover ) {
-              getCover = DOMPurify.sanitize( getCover.getAttribute("src") );
-              if ( getCover && getCover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
-                const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
-                if (coverId && coverId[1]) book.cover = coverId[1];
+            const coverWrapper = _thisRow.querySelector('[data-trigger^="product-list-flyout"]');
+            if ( coverWrapper ) {
+              const coverLink = coverWrapper.querySelector(':scope > a');
+              if ( coverLink ) {
+                let coverUrl = coverLink.getAttribute('src');
+                    coverUrl = DOMPurify.sanitize( coverUrl );
+                if ( coverUrl.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
+                  let coverId = coverUrl.match(/\/images\/I\/(.*)._SL/);
+                      coverId = _.get( coverId, '[1]');
+                  if ( coverId ) book.cover = coverId;
+                }
               }
             }
             
@@ -145,48 +163,45 @@ export default {
             if (sample) book.sample = DOMPurify.sanitize( sample.getAttribute("data-mp3") );
             
             // SERIES
-            const series = _thisRow.querySelector(":scope > td:nth-child(2) > div > span > span > ul > li:nth-child(2) > div");
-            if (series) book.series = vue.getSeries(series, 'reverseOutput');
+            const series = _thisRow.querySelector(".seriesLabel > span");
+            if ( series ) book.series = vue.getSeries( series );
+            // if ( series ) book.series = vue.getSeries( series, 'reverseOutput');
             
             // LENGTH
-            const length = _thisRow.querySelector(":scope > td:nth-child(2) > div > span > span > ul > li:nth-child(3) > span");
+            const length = _thisRow.querySelector(".runtimeLabel > span");
             if (length) book.length = vue.shortenLength( length.textContent );
             
             // RELEASE DATE
-            const releaseDate = _thisRow.querySelector(":scope > td:nth-child(2) > div > span > span > ul > li:nth-child(4) > span");
+            const releaseDate = _thisRow.querySelector(".releaseDateLabel > span");
             if (releaseDate) book.releaseDate = vue.fixDates( releaseDate );
             
             // AUTHORS
-            const authors = _thisRow.querySelectorAll(":scope > td:nth-child(3) > div > span > div > a");
+            const authors = _thisRow.querySelectorAll(".authorLabel");
             if (authors.length > 0) book.authors = vue.getArray(authors);
             
             // NARRATORS
-            const narrators = _thisRow.querySelectorAll(":scope > td:nth-child(4) > div > span > div > a");
+            const narrators = _thisRow.querySelectorAll(".narratorLabel");
             if (narrators.length > 0) book.narrators = vue.getArray(narrators);
             
-            // DATE ADDED
-            const dateAdded = _thisRow.querySelector(":scope > td:nth-child(5) > div > span > div > div > span");
-            if (dateAdded) book.dateAdded = vue.fixDates( dateAdded );
+            const language = _thisRow.querySelector(".languageLabel");
+            if ( language ) book.language = DOMPurify.sanitize(language.textContent.trimToColon());
             
           }
           
-          const stars = _thisRow.querySelector(".bc-review-stars");
-          if (stars) {
+          const ratingsWrappers = _thisRow.querySelector(".ratingsLabel");
+          if ( ratingsWrappers ) {
+            const starsWrapper = _thisRow.querySelector(".bc-review-stars");
+            const ratingSpan   = starsWrapper.nextElementSibling;
+            const ratingsSpan  = ratingSpan.nextElementSibling;
             // RATING
-            const ratingSpan = stars.nextElementSibling;
             book.rating = Number( DOMPurify.sanitize(ratingSpan.textContent.match(/^\d\.?(\d)?/g)) ); // returns the first number
-            const ratingsParent = ratingSpan.parentNode;
-            ratingSpan.remove();
             // RATINGS
-            book.ratings = parseFloat(
-              DOMPurify.sanitize(ratingsParent.textContent.match(/\d/g).join(""))
-            ); // returns all numbers merged into one
+            book.ratings = parseFloat( DOMPurify.sanitize(ratingsSpan.textContent.match(/\d/g).join("")) ); // returns all numbers merged into one
           }
           
           // From plus catalog
           const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button');
           if (fromPlusCatalog) book.fromPlusCatalog = true;
-          
           
           book = _.omitBy(book, _.isNull);
           

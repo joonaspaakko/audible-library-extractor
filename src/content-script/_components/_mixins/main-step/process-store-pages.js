@@ -83,7 +83,17 @@ export default {
         delete book.storePageRequestUrl;
       });
       
-      return vue.storageHasData[ getStorePages ] && !hotpotato.config.test ? _.filter(hotpotato[ getStorePages ], "isNewThisRound") : hotpotato[ getStorePages ];
+      let result = [];
+      
+      if ( vue.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
+        result = _.filter(hotpotato[ getStorePages ], "isNewThisRound");
+      }
+      else {
+        result = hotpotato[ getStorePages ] || [];
+      }
+      
+      console.log( 'result', result )
+      return result;
       
     },
     
@@ -113,12 +123,19 @@ export default {
         book.storePageMissing = false;
         
         if ( !book.cover ) {
-          const regularCover = audible.querySelector('#center-1 > div > div > div > div.bc-col-responsive.bc-col-3 > div > div:nth-child(1) > img');
-          const heroPageCover = audible.querySelector('#center-1 > div.bc-container > div > div:nth-child(1) > img');
-          const getCover = DOMPurify.sanitize( ( regularCover || heroPageCover ).getAttribute("src") );
-          if ( getCover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
-            const coverId = getCover.match(/\/images\/I\/(.*)._SL/);
-            if (coverId && coverId[1]) book.cover = coverId[1];
+          const regularCover  = audible.querySelector('#center-1 > div > div > div > div > div > div:nth-child(1) > img');
+          const heroPageCover = audible.querySelector('#center-1 > div > div > div:nth-child(1) > img') || 
+                                audible.querySelector('#center-1 > div > div > div > div:nth-child(1) > img');
+                                
+          let cover = regularCover || heroPageCover;
+          if ( cover ) {
+            cover = cover.getAttribute("src");
+            cover = DOMPurify.sanitize( cover );
+            if ( cover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
+              let coverId = cover.match(/\/images\/I\/(.*)._SL/);
+                  coverId = _.get( coverId, '[1]');
+              if ( coverId ) book.cover = coverId;
+            }
           }
         }
         
