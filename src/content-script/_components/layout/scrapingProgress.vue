@@ -174,5 +174,18 @@ export default {
   bottom: 0;
   color: #999;
   z-index: 10;
+  background: #fff;
+  &:before {
+    content: '';
+    position: absolute;
+    top: -10px;
+    right: 0;
+    left: 0;
+    z-index: 0;
+    height: 10px;
+    width: 100%;
+    background: rgb(255,255,255);
+    background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
+  }
 }
 </style>

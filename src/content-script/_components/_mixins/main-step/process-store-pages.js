@@ -92,7 +92,6 @@ export default {
         result = hotpotato[ getStorePages ] || [];
       }
       
-      console.log( 'result', result )
       return result;
       
     },
@@ -118,14 +117,16 @@ export default {
       }
       
       // This "#sample-player..." selector tries to weed out missing store pages
-      if ( isTest || audible && audible.querySelector("#sample-player-" + book.asin + " > button") ) {
+      const foundSample = audible && audible.querySelector("#sample-player-" + book.asin + " > button");
+      const foundPlay = audible && audible.querySelector("#adbl-buy-box-play-now-button");
+      
+      if ( isTest || foundSample || foundPlay ) {
         
         book.storePageMissing = false;
         
         if ( !book.cover ) {
-          const regularCover  = audible.querySelector('#center-1 > div > div > div > div > div > div:nth-child(1) > img');
-          const heroPageCover = audible.querySelector('#center-1 > div > div > div:nth-child(1) > img') || 
-                                audible.querySelector('#center-1 > div > div > div > div:nth-child(1) > img');
+          const regularCover  = audible.querySelector('#center-1 > div > div > div > div.bc-col-responsive > div > div:nth-child(1) > img');
+          const heroPageCover = audible.querySelector('#center-1 > div > div.bc-container > div > div:nth-child(1) > img');
                                 
           let cover = regularCover || heroPageCover;
           if ( cover ) {
@@ -146,14 +147,15 @@ export default {
         if ( ratingsLink ) book.ratings = parseFloat( DOMPurify.sanitize(ratingsLink.textContent.match(/\d/g).join("")) );
         const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
         if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
-        book.summary = DOMPurify.sanitize(bookData.description) || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6 > span" ) );
+        book.summary = DOMPurify.sanitize(bookData.description) || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6" ) );
         book.releaseDate = DOMPurify.sanitize(bookData.datePublished) ? DOMPurify.sanitize(bookData.datePublished) : vue.fixDates( audible.querySelector(".releaseDateLabel") ); 
         book.publishers = vue.getArray( audible.querySelectorAll(".publisherLabel > a") );
-        book.length = book.length || vue.shortenLength( audible.querySelector(".runtimeLabel").textContent.trimToColon() );
+        const length = audible.querySelector(".runtimeLabel");
+        book.length = book.length || (length ? vue.shortenLength(length.textContent.trimToColon()) : 0);
         book.categories = vue.getArray( audible.querySelector(".categoriesLabel") ? audible.querySelectorAll(".categoriesLabel > a") : audible.querySelectorAll(".bc-breadcrumb > a") );
-        book.sample = isTest ? null : DOMPurify.sanitize(audible.querySelector("#sample-player-" + book.asin + " > button").getAttribute("data-mp3"));
+        book.sample = (isTest || !foundSample) ? null : DOMPurify.sanitize( foundSample.getAttribute("data-mp3") );
         book.language = bookData.inLanguage ? DOMPurify.sanitize(_.startCase(bookData.inLanguage)) : DOMPurify.sanitize(audible.querySelector(".languageLabel").textContent.trimToColon());
-        book.format = DOMPurify.sanitize(audible.querySelector(".format").textContent.trimAll());
+        book.format = DOMPurify.sanitize((audible.querySelector(".format") || "").textContent.trimAll());
         
         // Decided against this for now since this would never get updated... It's better if I can do this from the lbirary page....
         // Also couldn't get any results in my test...

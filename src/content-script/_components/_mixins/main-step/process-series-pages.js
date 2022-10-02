@@ -128,7 +128,7 @@ export default {
       }
       
       function moveOn() {
-        console.log('%c' + 'SERIES FETCHED' + '', 'border: 1px dashed #f41b1b; color: #f41b1b; padding: 2px 5px; border-radius: 8px;');
+        
         resetProgress();
         vue.$nextTick(function() {
           seriesFetched(null, hotpotato);
