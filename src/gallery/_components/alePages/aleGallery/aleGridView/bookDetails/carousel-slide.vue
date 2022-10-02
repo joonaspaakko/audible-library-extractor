@@ -32,6 +32,7 @@
 				v-if="inSameSeries"
 				style="background: #047844;" 
 				class="carousel-gallery-link not-link" 
+				v-tippy="{ maxWidth: 300 }" :content="'This carousel book is in the same series as the one you have book details open on right now: <strong>' + detailsBook.title || detailsBook.titleShort + '</strong>'"
 				>
 					from this series
 				</div>

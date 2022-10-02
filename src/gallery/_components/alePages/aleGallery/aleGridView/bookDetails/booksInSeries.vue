@@ -174,7 +174,10 @@ export default {
                 }
                 else {
                   book.notInLibrary = true;
-                  book.obj = {};
+                  book.obj = {
+                    authors: vue.book.authors,
+                    notInLibrary: true,
+                  };
                   return book;
                 }
               })

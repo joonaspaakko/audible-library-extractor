@@ -9,7 +9,7 @@
       {{ book.length }}
     </div>
 
-    <div class="line-it-up">
+    <!-- <div class="line-it-up"> -->
       <div class="language" v-if="book.language">
         <strong class="strong-label">Language:</strong>
         <span>{{ book.language }}</span>
@@ -18,7 +18,7 @@
         <strong class="strong-label">Format:</strong>
         <span>{{ book.format }}</span>
       </div>
-      <div class="format" v-if="book.releaseDate">
+      <div class="format" v-if="book.releaseDate" v-tippy content="YYYY-MM-DD">
         <strong class="strong-label">Release date:</strong>
         <span>{{ book.releaseDate }}</span>
       </div>
@@ -31,7 +31,7 @@
         <strong class="strong-label" v-tippy="ratingTippyOpts" :content="ratingLegend">My rating: </strong>
         <star-rating :size="12" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom']  }" :content="myRatingLabel( book.myRating )" :rating="book.myRating" number="true"></star-rating>
       </div>
-    </div>
+    <!-- </div> -->
     <!-- <good-reads-link v-if="goodreads" :book="book"></good-reads-link> -->
   </div>
 </template>

@@ -54,7 +54,7 @@
             </div>
           </div>
           
-          <div class="release-date" v-if="book.releaseDate">
+          <div class="release-date" v-if="book.releaseDate" v-tippy content="YYYY-MM-DD">
             <span class="strong-label">Released:</span>
             <span>{{ book.releaseDate }}</span>
           </div>
@@ -174,7 +174,7 @@ export default {
         const sidebarHeight = _.get( sidebar, 'offsetHeight', 0 );
         
         let maxHeight = sidebarHeight;
-        if ( summaryFullHeight > minHeightExtra && minHeightExtra > sidebarHeight ) maxHeight = minHeightExtra; 
+        if ( this.mobileWidth || summaryFullHeight > minHeightExtra && minHeightExtra > sidebarHeight ) maxHeight = minHeightExtra; 
         
         this.summary.maxHeight = maxHeight;
         this.summary.maxHeightTemp = maxHeight;

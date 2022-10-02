@@ -3,10 +3,18 @@
   
   <div class="export-group">
 
-    <h2><font-awesome fas icon="th" /> Stand-alone gallery</h2>
+    
+    <div class="top-wrapper">
+      <div class="icon-wrapper" :style="{ fontSize: iconSize/1.2  + 'px', lineHeight: iconSize/1.2  + 'px', paddingRight: iconSize / 2.5 + 'px' }">
+        <font-awesome :icon="['fas', 'grip-vertical']" />
+      </div>
+      <div class="text-wrapper" ref="textWrapper">
+        <h2>Stand-alone gallery</h2>
 
-    <div class="description">
-      This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web browser.
+        <div class="description">
+          This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web browser.
+        </div>
+      </div>
     </div>
     
     <h3>Include:</h3>
@@ -128,6 +136,7 @@ export default {
       bundling: false,
       saveBtnEnabled: true,
       progressWidth: null,
+      iconSize: 20,
     };
   },
 
@@ -162,6 +171,8 @@ export default {
   mounted: function() {
 
     let vue = this;
+    
+    this.iconSize = this.$refs.textWrapper.offsetHeight;
 
     if ( vue.$store.getters.saveStandaloneAfter ) {
       this.$nextTick(function() {
@@ -700,6 +711,16 @@ export default {
   .visual-checkbox .icon {
     color: inherit;
   }
+}
+
+.top-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding-bottom: 35px;
+  border-bottom: 2px solid rgba(#000, .15);
+  margin-bottom: 5px;
 }
 
 </style>

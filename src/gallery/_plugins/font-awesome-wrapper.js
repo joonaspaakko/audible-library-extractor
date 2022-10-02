@@ -71,6 +71,7 @@ import {
   faLink,
   faEye,
   faEyeSlash,
+  faGripVertical,
 } from "@fortawesome/free-solid-svg-icons";
 import {
   faGithub,
@@ -150,6 +151,7 @@ library.add(
   faLink,
   faEye,
   faEyeSlash,
+  faGripVertical,
 );
 import { FontAwesomeIcon } from "@fortawesome/vue-fontawesome";
 

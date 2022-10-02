@@ -1,5 +1,5 @@
 <template>
-<div class="list-filter-wrapper" :style="{ top: store.viewMode === 'grid' ? $store.state.topNavOffset + 'px' : '31px' }">
+<div class="list-filter-wrapper" :style="{ top: $store.state.sticky.viewMode === 'grid' ? $store.state.topNavOffset + 'px' : '31px' }">
   <div class="row">
     
     <div class="show-all-toggle" v-if="showAllToggle" @click="clickedShowAll">

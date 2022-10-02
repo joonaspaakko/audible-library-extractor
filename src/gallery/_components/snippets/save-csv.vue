@@ -3,10 +3,17 @@
   
   <div class="export-group">
 
-    <h2><font-awesome :icon="['fas', 'file-csv']" /> CSV (Spreadsheet)</h2>
+    <div class="top-wrapper">
+      <div class="icon-wrapper" :style="{ fontSize: iconSize/1.2  + 'px', lineHeight: iconSize/1.2  + 'px', paddingRight: iconSize / 2.5 + 'px' }">
+        <font-awesome :icon="['fas', 'file-csv']" />
+      </div>
+      <div class="text-wrapper" ref="textWrapper">
+        <h2> CSV (Spreadsheet)</h2>
 
-    <div class="description">
-      CSV is a generic file format for tabular data that is supported by any proper spreadsheet application. 
+        <div class="description">
+          CSV is a generic file format for tabular data that is supported by any proper spreadsheet application. 
+        </div>
+      </div>
     </div>
 
     <h3>Data source:</h3>
@@ -95,16 +102,7 @@ export default {
   components: {
     modal,
   },
-  mounted: function() {
-    
-    if ( this.$store.state.sticky.exportSettingsCSVdataSources ) {
-      this.settings.dataSourcesChecked = this.$store.state.sticky.exportSettingsCSVdataSources;
-    }
-    if ( this.$store.state.sticky.exportSettingsCSVcompatibility ) {
-      this.settings.compatibilityChecked = this.$store.state.sticky.exportSettingsCSVcompatibility;
-    }
-    
-  },
+  
   data: function() {
     return {
       settings: {
@@ -122,7 +120,21 @@ export default {
         ] 
       },
       bundling: false,
+      iconSize: 20,
     };
+  },
+  
+  mounted: function() {
+    
+    if ( this.$store.state.sticky.exportSettingsCSVdataSources ) {
+      this.settings.dataSourcesChecked = this.$store.state.sticky.exportSettingsCSVdataSources;
+    }
+    if ( this.$store.state.sticky.exportSettingsCSVcompatibility ) {
+      this.settings.compatibilityChecked = this.$store.state.sticky.exportSettingsCSVcompatibility;
+    }
+    
+    this.iconSize = this.$refs.textWrapper.offsetHeight;
+    
   },
   
   computed: {
@@ -610,4 +622,15 @@ export default {
   .visual-radiobutton .icon { opacity: 0;  }
   input:checked ~ .visual-radiobutton .icon { opacity: 1; }
 }
+
+.top-wrapper {
+  display: flex;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding-bottom: 35px;
+  border-bottom: 2px solid rgba(#000, .15);
+  margin-bottom: 5px;
+}
+
 </style>

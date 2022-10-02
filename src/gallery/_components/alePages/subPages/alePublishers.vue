@@ -137,7 +137,7 @@ export default {
       let vue = this;
       const list = {
         scope: [
-          { active: true,  key: 'name', tippy: 'Search publishers by name', weight: 2 },
+          { active: true,  key: 'name', tippy: 'Search publishers by name', weight: 5 },
           { active: true,  key: 'books', tippy: 'Search publishers by book titles', weight: 1 },
           { active: true,  key: 'authors.name', tippy: 'Search publishers by authors', weight: 1 },
           { active: true,  key: 'narrators.name', tippy: 'Search publishers by narrators', weight: 1 },
