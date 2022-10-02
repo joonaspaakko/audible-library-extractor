@@ -1,5 +1,5 @@
 <template>
-  <div v-if="inSeries">
+  <div v-if="inSeries" data-scroll-to-url-param="&scrollToSeries=true">
     <div
     class="label hidden-section-label my-books-in-series-label"
     @click="booksInSeriesLabelClick"

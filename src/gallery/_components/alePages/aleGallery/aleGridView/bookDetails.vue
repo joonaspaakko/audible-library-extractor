@@ -176,6 +176,7 @@ export default {
       this.loading = false;
       
       this.scrollToCarousel();
+      this.scrollToMyBooksInTheSeries();
       
     });
   },
@@ -300,6 +301,35 @@ export default {
         else {
           const listInnerWrap = document.querySelector('.list-view-inner-wrap');
           listInnerWrap.scroll({ top: scrollPosition });
+        }
+        
+      });
+    },
+    
+    scrollToMyBooksInTheSeries: function() {
+      
+      if ( !this.$route.query.scrollToSeries ) return;
+      this.$updateQueries({ scrollToSeries: null });
+      this.$store.commit('stickyProp', { key: 'booksInSeriesToggle', value: true });
+      
+      this.$nextTick(function() {
+        
+        const targetEl = this.$el.querySelector('.my-books-in-series-label');
+        if ( targetEl ) {
+          
+          let scrollPosition = targetEl.getBoundingClientRect().top + window.scrollY;
+          const topNav = document.querySelector('#ale-navigation');
+          const navigationHeight = topNav ? topNav.offsetHeight : 0;
+          scrollPosition = scrollPosition - navigationHeight - 25;
+          
+          if ( this.sticky.viewMode === 'grid' ) {
+            scroll({ top: scrollPosition, behavior: 'smooth' });
+          }
+          else {
+            const listInnerWrap = document.querySelector('.list-view-inner-wrap');
+            listInnerWrap.scroll({ top: scrollPosition, behavior: 'smooth' });
+          }
+          
         }
         
       });
