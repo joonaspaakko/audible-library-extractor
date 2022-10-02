@@ -13,7 +13,14 @@
     v-bind:[getHrefAttr(route)]="getRoutePath(route)" 
     :target="route.href ? '_blank' : null"
     class="menu-item"
-    :class="[ route.meta.groupName, subItemActive(route), (route.disabled || (route.condition ? !route.condition() : null)) ? 'disabled' : '' ]"
+    :class="[ 
+      route.meta.groupName, 
+      itemActive(route), 
+      subItemActive(route), 
+      (route.disabled || (route.condition ? 
+        !route.condition() : null)
+      ) ? 'disabled' : '' 
+    ]"
     v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'], maxWidth: 400 }"
     :content="typeof route.tippy === 'function' ? route.tippy() : route.tippy"
     @click="route.click ? route.click( route ) : null"
@@ -92,13 +99,21 @@ export default {
       return route.tag === 'a' ? 'href' : 'to';
     },
     
+    itemActive( route ) {
+      
+      const currentRoute = this.$route.name;
+      const linkActive = currentRoute === route.name || _.find(route.children, { name: currentRoute });
+      return linkActive ? 'router-link-active' : null;
+      
+    },
+    
     subItemActive( route ) {
       
       const currentRoute = this.$route.name;
-      const test = _.find(route.childItems, function( route ) {
+      const linkActive = _.find(route.childItems, function( route ) {
         return currentRoute === route.name || _.find(route.children, { name: currentRoute });
       });
-      return test ? 'router-link-active' : null;
+      return linkActive ? 'router-link-active' : null;
       
     },
     
