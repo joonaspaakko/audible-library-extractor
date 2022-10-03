@@ -12,6 +12,7 @@
       <gb-toast :closable="false" color="blue" width="200" v-show="$store.getters.textElementActive">You can also move text using arrow keys. Shift modifier increases the step to 10px.</gb-toast>
       <gb-toast :closable="false" color="red" width="200" v-show="store.awpOverlayColorEnabled">Overlay option is enabled, which by default adds a darker overlay on top of the covers.</gb-toast>
     </div>
+    
     <div class="grid" ref="grid"  
     v-shortkey="store.events.textNudge ? {upShift: ['shift','arrowup'], up: ['arrowup'], rightShift: ['shift','arrowright'], right: ['arrowright'], downShift: ['shift','arrowdown'], down: ['arrowdown'], leftShift: ['shift','arrowleft'], left: ['arrowleft']} : null" 
     @shortkey="store.events.textNudge ? arrowNudge($event) : null"
@@ -65,10 +66,10 @@
             
             <div v-else style="width: 100%; height: 100%;"> 
               
-              <tier-list v-if="store.tierListMode" />
+              <tier-list v-if="store.tierListMode" @choose="draggingStarted" @end="draggingEnded" />
               
-              <draggable v-if="$store.getters.containerTierVisible" v-model="draggableCovers" group="covers" @end="draggingEnded" 
-                :style="store.tierListMode ? { marginTop: (store.coverSize/8)+'px', minHeight: store.coverSize+'px' } : canvasAlignment">
+              <draggable class="drag-container" v-if="$store.getters.containerTierVisible" v-model="draggableCovers" group="covers" @choose="draggingStarted" @end="draggingEnded" 
+                :style="store.tierListMode ? { marginTop: (store.paddingSize*10)+'px', minHeight: store.coverSize+'px' } : canvasAlignment">
                 <cover v-for="book in usedCovers" :key="book.asin" :book="book"></cover>
               </draggable>
               
@@ -357,12 +358,22 @@ export default {
     },
     
     // Since only the visible covers are sorted, this mutates the source array "covers" to include the same sorting
+    draggingStarted: function( e ) {
+      
+      const dragContainers = document.querySelectorAll('.drag-container');
+      _.each( dragContainers, function( container ) {
+        container.style.height = container.offsetHeight + 'px';
+      });
+      
+    },
+    
     draggingEnded: function( e ) {
       
-      // let allCovers = JSON.parse(JSON.stringify(this.store.covers));
-      // allCovers.splice(0, this.store.usedCovers.length ); // Remove visible covers
-      // allCovers = this.store.usedCovers.concat( allCovers ); // merge used covers with remaining covers
-      // this.$store.commit('update', { key: 'covers', value: allCovers  });
+      const dragContainers = document.querySelectorAll('.drag-container');
+      _.each( dragContainers, function( container ) {
+        container.style.height = null;
+      });
+      this.centerCanvas();
       
     },
     

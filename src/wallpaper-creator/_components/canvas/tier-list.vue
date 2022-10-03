@@ -3,7 +3,7 @@
     
     <div v-for="tier in visibleTiers" :key="tier.key" class="row"
     :style="{
-      marginTop: (store.coverSize/8)+'px',
+      marginTop: (store.paddingSize*6)+'px',
       minHeight: store.coverSize+'px',
     }">
       
@@ -19,7 +19,7 @@
       }"
       >{{ tier.key }}</div>
       
-      <draggable class="drag-container" v-model="tier.list" group="covers" @end="$emit('draggingEnded')">
+      <draggable class="drag-container" v-model="tier.list" group="covers"  @choose="$emit('choose', $event)" @end="$emit('end', $event)">
         <cover v-for="book in tier.list" :key="book.asin" :book="book"></cover>
       </draggable>
       
@@ -72,7 +72,8 @@ export default {
 }
 
 .drag-container {
-  flex: 1;  
+  flex: 1;
+  overflow: hidden;
 }
 
 .label {

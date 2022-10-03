@@ -1200,7 +1200,7 @@ export default {
           this.$store.commit('update', [
             { key: 'canvas.width', value: 3500 },
             { key: 'canvas.height', value: 0 },
-            { key: 'coversPerRow', value: 12 },
+            { key: 'coversPerRow', value: 14 },
           ]);
         }
         
