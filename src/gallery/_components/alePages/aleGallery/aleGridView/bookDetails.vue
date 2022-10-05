@@ -274,16 +274,16 @@ export default {
 
     resetScroll: function() {
       this.$nextTick(function() {
-      
-        if ( this.sticky.viewMode === 'grid' ) {
-          const topNav = document.querySelector('#ale-navigation');
-          const navigationHeight = topNav ? topNav.offsetHeight : 0;
-          scroll({ top: this.clickedBook.offsetTop - navigationHeight - 25, behavior: 'auto' });
-        }
-        else {
-          document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 45 });
-        }
-        
+        this.$nextTick(function() {
+          
+          if ( this.sticky.viewMode === 'grid' ) {
+            scroll({ top: this.clickedBook.offsetTop - this.store.topNavOffset - 25, behavior: 'auto' });
+          }
+          else {
+            document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 45 });
+          }
+          
+        });
       });
     },
 
@@ -318,9 +318,7 @@ export default {
         if ( targetEl ) {
           
           let scrollPosition = targetEl.getBoundingClientRect().top + window.scrollY;
-          const topNav = document.querySelector('#ale-navigation');
-          const navigationHeight = topNav ? topNav.offsetHeight : 0;
-          scrollPosition = scrollPosition - navigationHeight - 25;
+          scrollPosition = scrollPosition - $store.state.topNavOffset - 25;
           
           if ( this.sticky.viewMode === 'grid' ) {
             scroll({ top: scrollPosition, behavior: 'smooth' });

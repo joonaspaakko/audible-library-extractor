@@ -92,7 +92,6 @@ browser.runtime.onMessage.addListener( async (message, sender) => {
   else if (message.action === "changeGalleryUrl") {
     
     galleryUrl = message.url;
-    console.log('galleryUrl', galleryUrl);
     makeContextMenu();
     
   }

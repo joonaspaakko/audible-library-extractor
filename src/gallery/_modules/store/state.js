@@ -64,7 +64,6 @@ export default {
   listRenderingOpts: null,
   windowWidth: window.innerWidth,
   showBackground: false,
-  audioPlayerVisible: false,
   chunkCollection: [],
   chunkDistance: 40,
   refreshView: new Date().getTime(),

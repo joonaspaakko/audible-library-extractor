@@ -135,10 +135,9 @@ export default {
           
         },
         onstop: function( e ) {
-          conosle.log( e )
-          if ( this.howler ) {
-            // this.howler.duration()
-          }
+          // if ( this.howler ) {
+          //   this.howler.duration()
+          // }
         }
       });
       
@@ -150,15 +149,38 @@ export default {
         config.value = config.value || 30;
         const audioLength = vue.howler.duration();
         
-        let seekValue;
-        if ( config.direction === 'forward' ) {
-          seekValue = vue.howler.current.time+config.value;
-          vue.howler.seek( seekValue >= audioLength ? audioLength : seekValue );
-          // if ( seekValue >= audioLength ) vue.progress = 100; // matches GUI
+        const seek = {
+          going: {
+            forward:  config.direction === 'forward',
+            backward: config.direction === 'backward',
+          },
+          at: {
+            end:   false,
+            start: false,
+          },
+          value: null,
+        };
+        
+        const mathMethod = seek.going.forward ? 'add' : 'subtract';
+        seek.value    = _[ mathMethod ]( vue.howler.current.time, config.value ); // Add of subtract from the current time
+        seek.at.end   = seek.value >= audioLength;
+        seek.at.start = seek.value >= audioLength;
+        // Safeguard so seek never goes past start or end:
+        seek.value    = seek.going.forward ? 
+                        seek.at.end ? audioLength : seek.value : 
+                        seek.at.start ? 0 : seek.value; 
+        
+        // Commands the player to seek...
+        vue.howler.seek( seek.value );
+        
+        // Update player position
+        if ( seek.at.start || seek.at.end ) {
+          vue.updateCurrent();
         }
-        else if ( config.direction === 'back' ) {
-          seekValue = vue.howler.current.time-config.value;
-          vue.howler.seek( seekValue <= 0 ? 0 : seekValue );
+        // Mostly for seeking backwards when at the end.
+        // Also if the player is paused, this will make it continue playing.
+        else if ( !vue.howler.playing() ) {
+          vue.howler.play();
         }
 
       };
@@ -174,7 +196,7 @@ export default {
         
         if ( vue.howler.playing() ) {
           vue.updateCurrent();
-          vue.$refs.timeline.blur();  
+          vue.$refs.timeline.blur();
         }
         vue.updateBookProgress();
 
@@ -245,13 +267,13 @@ export default {
     
     seekBack: function() {
       
-      if ( this.howler && this.howler.playing() ) this.howler.customSeek({ direction: 'back' });
+      if ( this.howler ) this.howler.customSeek({ direction: 'backward' });
 
     },
     
     seekForward: function() {
       
-      if ( this.howler && this.howler.playing() ) this.howler.customSeek({ direction: 'forward' });
+      if ( this.howler ) this.howler.customSeek({ direction: 'forward' });
 
     },
     

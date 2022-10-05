@@ -1,5 +1,5 @@
 <template>
-  <div id="ale-gallery" :data-audio-player-visible="$store.state.audioPlayerVisible">
+  <div id="ale-gallery">
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     
@@ -373,12 +373,6 @@ export default {
     display: block;
     height: 0;
     clear: both;
-  }
-  
-  @media ( min-width: 630px ) {
-    &[data-audio-player-visible="true"] {
-      padding-top: 64px;
-    }
   }
   
   .collection-expanded-btn {

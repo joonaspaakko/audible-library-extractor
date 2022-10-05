@@ -65,7 +65,7 @@ export default {
   },
   
   watch: {
-    '$store.state.audioPlayerVisible': function() {
+    '$store.state.playingAudio': function() {
       this.globalTopNavHeight( this.mobileSize );
     },
     mobileThreshold( mobileSize ) {
