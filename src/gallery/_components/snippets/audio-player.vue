@@ -116,7 +116,7 @@ export default {
       
       let vue = this;
       
-      this.destroyHowler('keepAudio'); // Just in case...
+      this.destroyHowler('keepAudioData'); // Just in case...
       
       this.$store.commit('prop', { key: 'playingAudio', value: true });
       
@@ -267,16 +267,16 @@ export default {
 
     },
     
-    destroyHowler( keepAudio ) {
+    destroyHowler( keepAudioData ) {
       
-      if ( !this.howler ) {
+      if ( this.howler ) {
         this.clearPause();
-        if ( _.get(this.howler, 'current.timer') )clearInterval( this.howler.current.timer );
+        if ( _.get(this.howler, 'current.timer') ) clearInterval( this.howler.current.timer );
         if ( _.get(this.howler, 'unload') ) this.howler.unload();
         this.howler = null;
       }
       
-      if ( !keepAudio ) this.audio = null;
+      if ( !keepAudioData ) this.audio = null;
       this.$store.commit('prop', { key: 'playingAudio', value: false });
       
     },
