@@ -7,12 +7,12 @@
     "node": ">=10"
   },
   "scripts": {
-    "watch:dev": "cross-env HMR=true npm run build:dev -- --watch",
+    "watch": "npm run build -- --watch",
     "build": "cross-env NODE_ENV=production webpack",
     "build:zip": "node scripts/build-zip.js",
     "---": "",
-    "build:dev": "cross-env NODE_ENV=development webpack",
-    "watch": "npm run build -- --watch"
+    "watch:dev": "cross-env HMR=true npm run build -- --watch",
+    "build:dev": "cross-env NODE_ENV=development webpack"
   },
   "dependencies": {
     "@fortawesome/fontawesome-svg-core": "^6.1.1",

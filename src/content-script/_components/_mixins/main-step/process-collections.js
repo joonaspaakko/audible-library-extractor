@@ -261,7 +261,6 @@ export default {
       
       vue.amapxios({
         requests: collections,
-        rateLimit: 20,
         step: function(response, stepCallback, request) {
           
           vue.scrapingPrep({

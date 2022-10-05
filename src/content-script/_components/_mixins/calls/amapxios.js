@@ -10,7 +10,7 @@ export default {
     amapxios: function(options) {
       
       const vue = this;
-      const limiter = options.rateLimit || 50;
+      const limiter = options.rateLimit || 100;
       const maxTimeout = this.minutesToMilliseconds(1);
       
       // AXIOS
@@ -18,7 +18,7 @@ export default {
       // AXIOS RETRY
       axiosRetry(cAxios, {
         retries: 1,
-        retryDelay: function(retryCount) { return 3000 * retryCount; },
+        retryDelay: function(retryCount) { return 1000 * retryCount; },
         retryCondition: function(error) {
           return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.code === 'ECONNABORTED';
         },

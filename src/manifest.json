@@ -1,13 +1,14 @@
 {
+  "manifest_version": 3,
   "name": "Audible Library Extractor",
   "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
-  "manifest_version": 2,
+  "author": "Joonas Pääkkö",
   "icons": {
     "16": "assets/icons/16.png",
     "48": "assets/icons/48.png",
     "128": "assets/icons/128.png"
   },
-  "page_action": {
+  "action": {
     "default_icon": {
       "16": "assets/icons/16.png",
       "48": "assets/icons/48.png",
@@ -17,48 +18,57 @@
   "permissions": [
     "storage",
     "unlimitedStorage",
+    "contextMenus"
+  ],
+  "host_permissions": [
     "https://www.googleapis.com/*",
-    "contextMenus",
     "https://m.media-amazon.com/*"
   ],
   "web_accessible_resources": [
-    "assets/images/audible-library-extractor-logo.svg",
-    "assets/images/loader-64px.gif",
-		"assets/icons/16.png",
-    "assets/css/fontawesome-webfonts/fa-brands-400.eot",
-    "assets/css/fontawesome-webfonts/fa-brands-400.svg",
-    "assets/css/fontawesome-webfonts/fa-brands-400.ttf",
-    "assets/css/fontawesome-webfonts/fa-brands-400.woff",
-    "assets/css/fontawesome-webfonts/fa-brands-400.woff2",
-    "assets/css/fontawesome-webfonts/fa-regular-400.eot",
-    "assets/css/fontawesome-webfonts/fa-regular-400.svg",
-    "assets/css/fontawesome-webfonts/fa-regular-400.ttf",
-    "assets/css/fontawesome-webfonts/fa-regular-400.woff",
-    "assets/css/fontawesome-webfonts/fa-regular-400.woff2",
-    "assets/css/fontawesome-webfonts/fa-solid-900.eot",
-    "assets/css/fontawesome-webfonts/fa-solid-900.svg",
-    "assets/css/fontawesome-webfonts/fa-solid-900.ttf",
-    "assets/css/fontawesome-webfonts/fa-solid-900.woff",
-    "assets/css/fontawesome-webfonts/fa-solid-900.woff2"
+    {
+      "resources": [
+        "assets/images/audible-library-extractor-logo.svg",
+        "assets/images/loader-64px.gif",
+        "assets/icons/16.png",
+        "assets/css/fontawesome-webfonts/fa-brands-400.eot",
+        "assets/css/fontawesome-webfonts/fa-brands-400.svg",
+        "assets/css/fontawesome-webfonts/fa-brands-400.ttf",
+        "assets/css/fontawesome-webfonts/fa-brands-400.woff",
+        "assets/css/fontawesome-webfonts/fa-brands-400.woff2",
+        "assets/css/fontawesome-webfonts/fa-regular-400.eot",
+        "assets/css/fontawesome-webfonts/fa-regular-400.svg",
+        "assets/css/fontawesome-webfonts/fa-regular-400.ttf",
+        "assets/css/fontawesome-webfonts/fa-regular-400.woff",
+        "assets/css/fontawesome-webfonts/fa-regular-400.woff2",
+        "assets/css/fontawesome-webfonts/fa-solid-900.eot",
+        "assets/css/fontawesome-webfonts/fa-solid-900.svg",
+        "assets/css/fontawesome-webfonts/fa-solid-900.ttf",
+        "assets/css/fontawesome-webfonts/fa-solid-900.woff",
+        "assets/css/fontawesome-webfonts/fa-solid-900.woff2"
+      ],
+      "matches": ["<all_urls>"]
+    }
   ],
   "background": {
-    "scripts": ["background.js"],
-    "persistent": false
+    "service_worker": "background.js"
   },
 	"content_scripts": [{
   	"run_at": "document_idle",
       "matches": [
-        "*://www.audible.com/library*",
-        "*://www.audible.ca/library*",
-        "*://www.audible.co.uk/library*",
-        "*://www.audible.de/library*",
-        "*://www.audible.it/library*",
-        "*://www.audible.com.au/library*",
-        "*://www.audible.in/library*",
-        "*://www.audible.co.jp/library*",
-        "*://www.audible.fr/library*"
+        "*://*.audible.com/library/*",
+        "*://*.audible.ca/library/*",
+        "*://*.audible.co.uk/library/*",
+        "*://*.audible.de/library/*",
+        "*://*.audible.it/library/*",
+        "*://*.audible.com.au/library/*",
+        "*://*.audible.in/library/*",
+        "*://*.audible.co.jp/library/*",
+        "*://*.audible.fr/library/*"
       ],
     "js": ["gallery/extension-js/FileSaver.min.js", "content-script/audible-library-extractor-content-script.js"],
     "css": ["content-script/audible-library-extractor-content-script.css"]
-  }]
+  }],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
 }

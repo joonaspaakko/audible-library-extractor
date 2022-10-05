@@ -47,7 +47,6 @@ export default {
                   const audible = $($.parseHTML(prep.response.data)).find("div.adbl-main")[0];
                   const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector(".adbl-library-refinement-section > div.bc-col-responsive.bc-col-2 > span").textContent.match(/\d+/)[0]) );
                   delete prep.response;
-                  console.log( 'titlesLength', titlesLength )
 
                   // if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
                   //   max: titlesLength
@@ -104,7 +103,6 @@ export default {
       const wishlist = [];
     
       const wishlistRows = audible.querySelectorAll('#adbl-library-content-main .productListItem');
-      console.log( 'ROWS', wishlistRows.length )
       $(wishlistRows).each(function() {
         const _thisRow = this;
         

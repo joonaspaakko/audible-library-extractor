@@ -2,7 +2,7 @@ const webpack = require('webpack');
 const ejs = require('ejs');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const ExtensionReloader = require('webpack-extension-reloader');
+// const ExtensionReloader = require('webpack-extension-reloader');
 const { VueLoaderPlugin } = require('vue-loader');
 const { version } = require('./package.json');
 const path = require('path');
@@ -160,7 +160,12 @@ var copyPluginArray = { patterns: [
       jsonContent.version = version;
 
       if (config.mode === 'development') {
-        jsonContent['content_security_policy'] = "script-src 'self' 'unsafe-eval' http://localhost:8098; object-src 'self'";
+        // jsonContent['content_security_policy'] = { 
+        //   extension_pages: "script-src 'self' 'unsafe-eval' http://localhost:8098; object-src 'self'"
+        // };
+        // jsonContent['content_security_policy'] = "{\n" + 
+        //   "extension_pages: " + "script-src 'self' 'unsafe-eval' object-src 'self'" + "\n" +
+        // "}";
       }
 
       return JSON.stringify(jsonContent, null, 2);
@@ -196,13 +201,13 @@ else {
 
 config.plugins.push( new CopyPlugin(copyPluginArray) );
 
-if (process.env.HMR === 'true') {
-  config.plugins = (config.plugins || []).concat([
-    new ExtensionReloader({
-      manifest: __dirname + '/src/manifest.json',
-    }),
-  ]);
-}
+// if (process.env.HMR === 'true') {
+//   config.plugins = (config.plugins || []).concat([
+//     new ExtensionReloader({
+//       manifest: __dirname + '/src/manifest.json',
+//     }),
+//   ]);
+// }
 
 function transformHtml(content) {
   return ejs.render(content.toString(), {

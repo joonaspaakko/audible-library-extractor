@@ -138,6 +138,7 @@ export default {
         // { storePageRequestUrl: "https://www.audible.com/pd/B0B6QBNK4J" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJPL532" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJLSSMQ" },
+        { storePageRequestUrl: "https://www.audible.com/pd/1721336850" },
       ],
       doSeriesTest: [
         // { series: [{asin: 'B006XE41AC'}] },
@@ -162,8 +163,8 @@ export default {
     
     
     // vue.init_purchaseHistoryTest();
-    if ( this.doStorePageTest && this.doStorePageTest.length > 0 ) vue.init_storePageTest();
-    if ( this.doSeriesTest && this.doSeriesTest.length > 0 ) vue.init_seriesPageTest();
+    if ( _.get( this.doStorePageTest, 'length', 0 ) > 0 ) vue.init_storePageTest();
+    if ( _.get( this.doSeriesTest,    'length', 0 ) > 0 ) vue.init_seriesPageTest();
     
     // this.scrapingPrep(this.libraryUrl, function(prep) {
     //   console.log('PREP?', prep)
