@@ -88,9 +88,13 @@ export default {
   
   watch: {
     'store.usedCovers': function() {
-      this.$nextTick(function() {
+      this.setElementGuidelines();
+    },
+    'store.tiers': {
+      handler: function (val, oldVal) {
         this.setElementGuidelines();
-      });
+      },
+      deep: true
     },
   },
   
@@ -181,14 +185,19 @@ export default {
     },
     
     setElementGuidelines: function() {
+      this.$nextTick(function() {
+        
+        let coverImages = document.querySelectorAll('[data-coverImages], [data-tier-list-label]');
+        if ( !coverImages ) return;
+            coverImages = [...coverImages];
+        console.log( coverImages );
+        const guidelinesFirstRow = coverImages.slice( 0, this.store.coversPerRow );
+        const guidelinesLastRow = coverImages.slice( coverImages.length - this.store.coversPerRow, coverImages.length );
+        this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesFirstRow );
+        this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesLastRow );
+        this.moveableOpts.elementGuidelines.push( document.querySelector(".canvas-bounds") );
       
-      const coverImages = document.querySelectorAll('[data-coverImages]');
-      const guidelinesFirstRow = coverImages.slice( 0, this.store.coversPerRow );
-      const guidelinesLastRow = coverImages.slice( coverImages.length - this.store.coversPerRow, coverImages.length );
-      this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesFirstRow );
-      this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesLastRow );
-      this.moveableOpts.elementGuidelines.push( document.querySelector(".canvas-bounds") );
-      
+      });
     },
     
     moveableRotate({ target, dist, transform }) {

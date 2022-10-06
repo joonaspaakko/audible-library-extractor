@@ -74,6 +74,7 @@
       label="Tier list mode"
       status="warning"
       :full-width="true"
+      v-tippy :content=" store.tierListMode ? `Disabling the tier list mode will reset any changes </br>you've made to the tier list so far!` : null"
       ></gb-toggle>
       
     </div>

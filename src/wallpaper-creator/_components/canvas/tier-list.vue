@@ -9,6 +9,7 @@
       
       <div 
       v-if="tier.key !== 'container'"
+      data-tier-list-label
       class="label" 
       :style="{ 
         background: tier.color, 
