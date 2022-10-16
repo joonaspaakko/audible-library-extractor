@@ -31,7 +31,7 @@ export default {
 
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .gallery-title-wrapper {
   margin-bottom: 20px;

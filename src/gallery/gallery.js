@@ -1,7 +1,12 @@
 const standalone = document.querySelector("html.standalone-gallery");
+console.log('asdfaffas')
 
 // VUE 
-import Vue from "vue";
+import { createApp } from "vue";
+import App from "./gallery-app.vue";
+const app = createApp(App);
+
+/*
 import VueCompositionAPI from '@vue/composition-api';
 Vue.use(VueCompositionAPI);
 
@@ -9,10 +14,9 @@ Vue.use(VueCompositionAPI);
 global.domurl = require("domurl");
 
 // LODASH
-import _ from "lodash";
-global._ = _;
+// // import _ from "lodash";
+// global._ = _;
 
-import App from "./gallery-app.vue";
 import "normalize.css/normalize.css";
 
 Vue.config.devtools = false;
@@ -34,7 +38,7 @@ import VueTippy, { TippyComponent } from "vue-tippy";
 import tippySettings from './_plugins/tippy-settings.js';
 Vue.use(VueTippy, tippySettings);
 Vue.component("tippy", TippyComponent);
-import "tippy.js/themes/light-border.css";
+import 'tippy.js/dist/tippy.css';
 // FONT AWESOME
 import fontawesomeWrapper from './_plugins/font-awesome-wrapper.js';
 Vue.component("font-awesome", fontawesomeWrapper);
@@ -47,6 +51,7 @@ Vue.use( setListRenderingOptions );
 
 // HELPER METHODS (from content script)
 import helpers from "@contscript-mixins/misc/helpers.js";
+
 
 // APP PREP
 // For testing side loading JSON
@@ -140,3 +145,7 @@ function startVue( libraryData ) {
   });
   
 }
+
+*/
+
+app.mount('#audible-library-extractor');

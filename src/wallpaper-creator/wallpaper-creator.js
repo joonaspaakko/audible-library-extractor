@@ -35,7 +35,7 @@ Vue.use(VueTippy, {
   flipDuration: 0
 });
 Vue.component("tippy", TippyComponent);
-import "tippy.js/themes/light-border.css";
+import 'tippy.js/dist/tippy.css';
 
 import vueDragscroll from "vue-dragscroll";
 Vue.use(vueDragscroll);

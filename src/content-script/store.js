@@ -3,17 +3,6 @@ import Vue from "vue";
 import Vuex from "vuex";
 Vue.use(Vuex);
 
-import {
-  get,
-  map,
-  filter,
-  findIndex,
-  find,
-  each,
-  isArray,
-  assign,
-} from "lodash";
-
 export default new Vuex.Store({
   state: {
     canceledRequests: [],

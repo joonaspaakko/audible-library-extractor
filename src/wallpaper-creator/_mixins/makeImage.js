@@ -1,7 +1,7 @@
 
 // import JSZip from 'jszip';
 // import JSZipUtils from 'jszip-utils';
-import _ from 'lodash';
+// import _ from 'lodash';
 
 import * as htmlToImage from 'html-to-image';
 import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';

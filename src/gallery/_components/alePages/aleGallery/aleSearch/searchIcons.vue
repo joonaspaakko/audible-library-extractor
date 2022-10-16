@@ -117,7 +117,7 @@ export default {
 
 
 <style lang="scss" scoped>
-  @import "~@/_variables.scss";
+  
   
   .book-in-selection {
     -webkit-touch-callout: none; 

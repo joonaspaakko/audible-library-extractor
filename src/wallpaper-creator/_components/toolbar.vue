@@ -931,7 +931,7 @@ import makeImage from "@editor-mixins/makeImage.js";
 
 import spacer from "@editor-comps/toolbar/spacer.vue";
 import textElements from "@editor-comps/toolbar/textElements.vue";
-import _ from "lodash";
+// import _ from "lodash";
 
 import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
 

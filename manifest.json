@@ -1,0 +1,59 @@
+{
+  "manifest_version": 3,
+  "version": "0.2.9",
+  "name": "Audible Library Extractor",
+  "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
+  "author": "Joonas Pääkkö",
+  "icons": {
+    "16": "assets/icons/16.png",
+    "48": "assets/icons/48.png",
+    "128": "assets/icons/128.png"
+  },
+  "action": {
+    "default_icon": {
+      "16": "assets/icons/16.png",
+      "48": "assets/icons/48.png",
+      "128": "assets/icons/128.png"
+    }
+  },
+  "permissions": [
+    "storage",
+    "unlimitedStorage",
+    "contextMenus"
+  ],
+  "host_permissions": [
+    "https://www.googleapis.com/*",
+    "https://m.media-amazon.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": [
+        "assets/images/audible-library-extractor-logo.svg",
+        "assets/images/loader-64px.gif",
+        "assets/icons/16.png",
+        "assets/css/fontawesome-webfonts/fa-brands-400.eot",
+        "assets/css/fontawesome-webfonts/fa-brands-400.svg",
+        "assets/css/fontawesome-webfonts/fa-brands-400.ttf",
+        "assets/css/fontawesome-webfonts/fa-brands-400.woff",
+        "assets/css/fontawesome-webfonts/fa-brands-400.woff2",
+        "assets/css/fontawesome-webfonts/fa-regular-400.eot",
+        "assets/css/fontawesome-webfonts/fa-regular-400.svg",
+        "assets/css/fontawesome-webfonts/fa-regular-400.ttf",
+        "assets/css/fontawesome-webfonts/fa-regular-400.woff",
+        "assets/css/fontawesome-webfonts/fa-regular-400.woff2",
+        "assets/css/fontawesome-webfonts/fa-solid-900.eot",
+        "assets/css/fontawesome-webfonts/fa-solid-900.svg",
+        "assets/css/fontawesome-webfonts/fa-solid-900.ttf",
+        "assets/css/fontawesome-webfonts/fa-solid-900.woff",
+        "assets/css/fontawesome-webfonts/fa-solid-900.woff2"
+      ],
+      "matches": ["<all_urls>"]
+    }
+  ],
+  "background": {
+    "service_worker": "src/background.js"
+  },
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

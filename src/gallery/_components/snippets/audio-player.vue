@@ -326,7 +326,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 #audio-player {
   @include themify($themes) {
@@ -535,7 +535,7 @@ export default {
 </style>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .mobile-nav-open #audio-player {
   @include themify($themes) {

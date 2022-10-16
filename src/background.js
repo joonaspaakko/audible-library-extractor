@@ -9,7 +9,7 @@ import {
 var domainExtension = false;
 var activeIcons = [];
 var galleryUrl;
-
+console.log( browser );
 browser.storage.local.get(['extras']).then(data => {
   galleryUrl = _.get(data, 'extras.galleryUrl');
 });

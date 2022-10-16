@@ -215,7 +215,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .book-summary-wrapper .summary-meta-top .meta-padding {
   width: 100%;

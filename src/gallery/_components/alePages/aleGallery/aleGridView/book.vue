@@ -108,7 +108,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 .details-inner-wrap {
   // max-width: $thumbnailSize+2;
   margin: 5px;

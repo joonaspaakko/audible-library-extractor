@@ -1,4 +1,4 @@
-import _ from "lodash";
+// import _ from "lodash";
 import fillCanvasWithCovers from './fillCanvasWithCovers.js';
 
 export default {

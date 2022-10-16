@@ -187,7 +187,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .ale-row-inner {
   .icons-n-stuff .thumbnail-wrapper {

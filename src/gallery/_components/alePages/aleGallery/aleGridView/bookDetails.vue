@@ -561,7 +561,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .book-details-info {
   position: absolute;

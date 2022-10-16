@@ -276,7 +276,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .my-books-in-series {
   position: relative;

@@ -367,7 +367,7 @@ export default {
 </style>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .settings-outer-wrapper {
   overflow: auto;

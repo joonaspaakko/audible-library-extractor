@@ -1,7 +1,7 @@
 import Vue from "vue";
 import App from "./animated-wallpaper-app.vue";
 
-import _ from "lodash";
+// import _ from "lodash";
 
 Vue.config.productionTip = false;
 

@@ -3,7 +3,7 @@ import Vue from "vue";
 import Vuex from "vuex";
 Vue.use(Vuex);
 
-import _ from "lodash";
+// import _ from "lodash";
 
 const store = new Vuex.Store({
   state: {

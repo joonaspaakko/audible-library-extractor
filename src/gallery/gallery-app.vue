@@ -18,19 +18,8 @@
 </template>
 
 <script>
-import aleNavigation from "./_components/aleNavigation";
-import aleBackground from "./_components/aleBackground";
-// import extensionGalleryToolbar from "./_components/extension-gallery-toolbar.vue";
-// import aleBreadcrumbs from "./_components/aleBreadcrumbs";
 
 export default {
-  components: {
-    // aleBackground: () => import('./_components/aleBackground'),
-    aleBackground,
-    aleNavigation,
-    // extensionGalleryToolbar,
-    // aleBreadcrumbs
-  },
   data: function() {
     return {
       general: {
@@ -185,7 +174,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 /* inconsolata-regular - latin */
 @font-face {

@@ -13,7 +13,7 @@
 <script>
 
 export default {
-  name: "viewModeSwitcher",
+  name: "ViewModeSwitcher",
   props: ['justIcon'],
   data: function() {
     return {
@@ -48,7 +48,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .view-mode-switcher {
   cursor: pointer;

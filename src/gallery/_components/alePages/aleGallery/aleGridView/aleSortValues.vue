@@ -222,7 +222,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .ale-book .sort-values-container {
   -webkit-user-select: text !important; 

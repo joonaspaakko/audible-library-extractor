@@ -28,7 +28,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import "~@/_variables.scss";
+
 
 .mobile-back-btns-wrapper {
   @extend .center-contents;

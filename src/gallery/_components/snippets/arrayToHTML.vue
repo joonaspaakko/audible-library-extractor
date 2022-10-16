@@ -55,7 +55,7 @@ export default {
 </script>
 
 <style scoped lang="scss">
-@import "~@/_variables.scss";
+
 .chevron {
   @include themify($themes) { color: rgba(themed(frontColor), .7); };
   font-size: 9px;

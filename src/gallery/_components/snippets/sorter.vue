@@ -391,7 +391,7 @@ export default {
 </script>
 
 <style lang="scss">
-  @import "~@/_variables.scss";
+  
   .multiselect {
     max-width: 300px;
     outline: none !important;
@@ -508,7 +508,7 @@ export default {
 </style>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .sorter-button-wrapper {
   width: 100%;

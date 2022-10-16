@@ -1,7 +1,7 @@
 
 import JSZip from 'jszip';
 import JSZipUtils from 'jszip-utils';
-import _ from 'lodash';
+// import _ from 'lodash';
 import { saveAs } from "file-saver";
 
 export default {

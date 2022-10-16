@@ -42,7 +42,7 @@ export default {
 
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .gr-icon {
   background: #e6e1c4 !important;

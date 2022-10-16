@@ -17,15 +17,9 @@
 </template>
 
 <script>
-import saveGallery from "@output-snippets/save-gallery.vue";
-import saveCsv from "@output-snippets/save-csv.vue";
 export default {
   name: "aleSaveLocally",
   props: [ 'toggled' ],
-  components: {
-    saveGallery,
-    saveCsv,
-  },
   data: function() {
     return {
       modalOpen: true,
@@ -61,7 +55,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 #save-locally-overlay {
   width: 100%;

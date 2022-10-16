@@ -363,7 +363,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 #ale-gallery {
   padding: 0 20px;

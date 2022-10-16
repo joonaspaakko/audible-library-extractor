@@ -152,7 +152,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 #search-options {
   display: inline-block;

@@ -72,20 +72,9 @@
 
 let getFuse = () => import( /* webpackPrefetch: true */ /* webpackChunkName: "fuse-search" */ "fuse.js");
 import filterAndSort from '@output-mixins/filter-and-sort.js';
-import searchIcons from "./aleSearch/searchIcons";
-import searchOptions from "./aleSearch/searchOptions";
-import pageTitle from "@output-snippets/page-title.vue";
-import libraryWishlistSwitcher from "@output-snippets/library-wishlist-switcher.vue";
 
 export default {
   name: "aleSearch",
-  components: {
-    searchIcons,
-    searchOptions,
-    viewModeSwitcher: () => import( /* webpackChunkName: "view-mode-switcher" */ "@output-snippets/viewModeSwitcher"),
-    pageTitle,
-    libraryWishlistSwitcher,
-  },
   mixins: [filterAndSort],
   props: ['collectionSource', 'pageTitle', 'pageSubTitle'],
   data: function() {
@@ -449,7 +438,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 #ale-search-wrap {
   display: flex;

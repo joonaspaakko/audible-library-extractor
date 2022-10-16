@@ -36,7 +36,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .gr-icon.audible-cloudplayer-link {
   border-radius: 999999px;

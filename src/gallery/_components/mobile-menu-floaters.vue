@@ -43,7 +43,7 @@ export default {
 </script>
 
 <style lang="scss" scope>
-@import "~@/_variables.scss";
+
 
 
 #mobile-menu-floaters {

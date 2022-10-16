@@ -1,19 +1,18 @@
 <template>
-  <overlay>
-    <menu-screen
-    v-if="ui === 'menu-screen'"
+  <cont-overlay>
+    <cont-menu-screen v-if="ui === 'menu-screen'"
     :storageHasData.sync="storageHasData"
     :storageConfig.sync="storageConfig"
     :dataVersion.sync="dataVersion"
     :domainExtension="domainExtension"
     :wishlistUrl="wishlistUrl"
-    ></menu-screen>
-    <scraping-progress v-else-if="ui === 'scraping'"></scraping-progress>
-  </overlay>
+    ></cont-menu-screen>
+    <cont-scraping-progress v-else-if="ui === 'scraping'"></cont-scraping-progress>
+  </cont-overlay>
 </template>
 
 <script>
-import _ from "lodash";
+// // import _ from "lodash";
 import $ from "jquery";
 import axios from "axios";
 import { exponentialDelay, isNetworkOrIdempotentRequestError } from 'axios-retry';
@@ -62,11 +61,6 @@ window.each = function( array, callback ) {
   }
 };
 
-// Components
-import overlay from "./_components/layout/overlay";
-import menuScreen from "./_components/layout/menuScreen";
-import scrapingProgress from "./_components/layout/scrapingProgress";
-
 // Calls
 import amapxios from "./_components/_mixins/calls/amapxios.js";
 import scrapingPrep from "./_components/_mixins/calls/scrapingPrep.js";
@@ -95,11 +89,6 @@ import secondsToTimeString from "@output-mixins/secondsToTimeString.js";
 // import erudaDom from "eruda-dom";
 
 export default {
-  components: {
-    overlay,
-    menuScreen,
-    scrapingProgress
-  },
   mixins: [
     timeStringToSeconds,
     secondsToTimeString,

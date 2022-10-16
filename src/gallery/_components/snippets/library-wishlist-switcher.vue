@@ -50,7 +50,7 @@ export default {
 
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 #library-wishlist-switcher {
   text-align: center;

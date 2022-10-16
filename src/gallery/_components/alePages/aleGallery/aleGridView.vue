@@ -35,7 +35,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .ale-books.grid-view {
   max-width: 728px;

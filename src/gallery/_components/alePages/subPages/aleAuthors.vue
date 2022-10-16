@@ -188,7 +188,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 @import "~@/box-layout.scss";
 .single-box {
   min-height: 35px !important;

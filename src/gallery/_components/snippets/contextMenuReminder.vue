@@ -22,7 +22,7 @@ export default {
 </script>
  
 <style scoped lang='scss'>
-@import "~@/_variables.scss";
+
 
 img, span { display: inline-block; }
 

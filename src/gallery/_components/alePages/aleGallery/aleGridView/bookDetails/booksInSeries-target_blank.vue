@@ -231,7 +231,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .my-books-in-series {
   .numbers-list-item {

@@ -73,7 +73,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .col-resizer {
   width: 8px;

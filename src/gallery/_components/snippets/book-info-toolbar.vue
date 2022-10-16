@@ -38,7 +38,7 @@ export default {
 </script>
 
 <style lang="scss">
-@import "~@/_variables.scss";
+
 
 .book-info-toolbar {
   display: flex;

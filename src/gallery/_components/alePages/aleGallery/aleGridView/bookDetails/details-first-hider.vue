@@ -34,7 +34,7 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import "~@/_variables.scss";
+
 
 .details-first-hider {
   @extend .no-selection;
