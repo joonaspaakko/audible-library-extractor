@@ -5,7 +5,6 @@ export default {
       if ( !_.find(hotpotato.config.steps, { name: "collections" }) ) {
         
         this.$store.commit('resetProgress');
-        // this.$root.$emit("reset-progress");
         collectionsFetched(null, hotpotato);
         
       } else {
@@ -18,17 +17,6 @@ export default {
           { key: 'progress.max', value: 0 },
           { key: 'progress.bar', value: true },
         ]);
-        
-        // this.$root.$emit("update-big-step", {
-        //   title: "Collections",
-        //   stepAdd: 1
-        // });
-        // this.$root.$emit("update-progress", {
-        //   text: "Fetching collections...",
-        //   step: 0,
-        //   max: 0,
-        //   bar: true
-        // });
 
         const vue = this;
         waterfall(
@@ -88,7 +76,6 @@ export default {
             vue.$store.commit('resetProgress');
             
             vue.$nextTick(function() {
-              // vue.$root.$emit("reset-progress");
               collectionsFetched(null, hotpotato);
             });
             
@@ -122,7 +109,6 @@ export default {
               books: [],
             };
             collections.push( collection );
-            // vue.$root.$emit("update-progress-max");
             vue.$store.commit('update', { key: 'progress.max', add: 1 });
           }
           
@@ -156,7 +142,6 @@ export default {
           if ( description ) description = description.textContent;
           if ( description ) request.description = description;
           
-          // vue.$root.$emit("update-progress-step");
           vue.$store.commit('update', { key: 'progress.step', add: 1 });
           
           stepCallback( request );
@@ -180,13 +165,6 @@ export default {
     getFirstLevelCollectionData: function(requests, callback) {
       
       const vue = this; 
-      
-      // vue.$root.$emit("update-progress", {
-      //   text: "Fetching collections...",
-      //   step: 0,
-      //   max: 0,
-      //   bar: true
-      // });
       
       vue.$store.commit('update', [
         { key: 'progress.text', value: 'Fetching collections...' },
@@ -243,7 +221,6 @@ export default {
           
         }
         
-        // vue.$root.$emit("update-progress-max");
         vue.$store.commit('update', { key: 'progress.max', add: 1 });
         
       });
@@ -269,7 +246,6 @@ export default {
             response: response,
             done: function(prep) {
               
-              // vue.$root.$emit("update-progress-max");
               vue.$store.commit('update', { key: 'progress.max', add: 1 });
               
               request.pageNumbers = prep.pageNumbers;
@@ -370,8 +346,7 @@ function getBooks(vue, request, parentStepCallback) {
     },
     flatten: true,
     done: function(collections) {
-      // vue.$root.$emit("update-progress-step"); // Counting collections, not books
-      vue.$store.commit('update', { key: 'progress.step', add: 1 });
+      vue.$store.commit('update', { key: 'progress.step', add: 1 }); // Counting collections, not books
       parentStepCallback(null, collections);
     }
   });

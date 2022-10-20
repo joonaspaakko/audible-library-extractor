@@ -3,34 +3,17 @@ export default {
     getDataFromWishlist: function(hotpotato, wishlistFetched) {
       if ( !_.find(hotpotato.config.steps, { name: "wishlist" }) ) {
         
-        // this.$root.$emit("reset-progress");
         this.$store.commit("resetProgress");
         wishlistFetched(null, hotpotato);
         
       } else {
-        
-        // this.$root.$emit("update-big-step", {
-        //   title: "Wishlist",
-        //   stepAdd: 1
-        // });
-        
-        // this.$root.$emit("update-sub-step", {
-        //   step: 1,
-        //   max: 2,
-        // });
-
-        // this.$root.$emit("update-progress", {
-        //   text: this.storageHasData.wishlist ? "Updating old books and adding new books..." : "Scanning wishlist for books...",
-        //   step: 0,
-        //   max: 0,
-        // });
         
         this.$store.commit('update', [
           { key: 'bigStep.title', value: 'Wishlist' },
           { key: 'bigStep.step', add: 1 },
           { key: 'subStep.step', value: 1 },
           { key: 'subStep.max', value: 2 },
-          { key: 'progress.text', value: this.storageHasData.wishlist ? "Updating old books and adding new books..." : "Scanning wishlist for books..." },
+          { key: 'progress.text', value: this.$store.state.storageHasData.wishlist ? "Updating old books and adding new books..." : "Scanning wishlist for books..." },
           { key: 'progress.step', value: 0 },
           { key: 'progress.max', value: 0 },
         ]);
@@ -47,11 +30,7 @@ export default {
                   const audible = $($.parseHTML(prep.response.data)).find("div.adbl-main")[0];
                   const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector(".adbl-library-refinement-section > div.bc-col-responsive.bc-col-2 > span").textContent.match(/\d+/)[0]) );
                   delete prep.response;
-
-                  // if ( !vue.storageHasData.wishlist ) vue.$root.$emit("update-progress", {
-                  //   max: titlesLength
-                  // });
-
+                  
                   // Forcing smaller pageSize...
                   // - Wishlist pages load a bit faster with less items. I had hopes loading pages with fewer items in parallel would be faster, but it wasn't really in my test.
                   // prep.pageSize = 20;
@@ -114,8 +93,8 @@ export default {
         if ( carryOnMyWaywardPines ) {
           
           let bookInMemory = _.find(hotpotato.wishlist, ["asin",  asin]);
-          let fullScan_ALL_partialScan_NEW = (vue.storageHasData.wishlist && !bookInMemory) || !vue.storageHasData.wishlist;
-          let book = vue.storageHasData.wishlist && bookInMemory ? bookInMemory : {};
+          let fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.wishlist && !bookInMemory) || !vue.$store.state.storageHasData.wishlist;
+          let book = vue.$store.state.storageHasData.wishlist && bookInMemory ? bookInMemory : {};
           
           book.asin = asin;
           
@@ -205,7 +184,7 @@ export default {
           
           // - - - - - - -
           
-          if ( vue.storageHasData.books ) {
+          if ( vue.$store.state.storageHasData.books ) {
             let newAddition = !bookInMemory;
             let newFromStorage = bookInMemory && bookInMemory.isNew;
             if ( newAddition || newFromStorage ) book.isNew = true;
@@ -213,7 +192,6 @@ export default {
           
           if (fullScan_ALL_partialScan_NEW) {
             book.isNewThisRound = true;
-            // vue.$root.$emit("update-progress-max");
             vue.$store.commit('update', { key: 'progress.max', add: 1 });
           }
           

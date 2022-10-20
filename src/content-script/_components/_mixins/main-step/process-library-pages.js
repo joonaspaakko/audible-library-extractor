@@ -14,7 +14,7 @@ export default {
           { key: 'subStep.max', value: 5 },
           { key: 'progress.step', value: 0 },
           { key: 'progress.max', value: 0 },
-          { key: 'progress.text', value: this.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..." },
+          { key: 'progress.text', value: this.$store.state.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..." },
         ]);
         
         vue.scrapingPrep({
@@ -119,8 +119,8 @@ export default {
             bookASIN = DOMPurify.sanitize( bookASIN );
         
         const bookInMemory = _.find(hotpotato.books, ["asin", bookASIN]);
-        const fullScan_ALL_partialScan_NEW = (vue.storageHasData.books && !bookInMemory) || !vue.storageHasData.books;
-        let book = vue.storageHasData.books && bookInMemory ? bookInMemory : {};
+        const fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.books && !bookInMemory) || !vue.$store.state.storageHasData.books;
+        let book = vue.$store.state.storageHasData.books && bookInMemory ? bookInMemory : {};
         
         // Always pass over old ISBNs
         if ( bookInMemory && bookInMemory.isbns ) book.isbns = bookInMemory.isbns;
@@ -254,7 +254,7 @@ export default {
   
         // - - - - - - -
         
-        if ( vue.storageHasData.books ) {
+        if ( vue.$store.state.storageHasData.books ) {
           let newAddition = !bookInMemory;
           let newFromStorage = bookInMemory && bookInMemory.isNew;
           if ( newAddition || newFromStorage ) book.isNew = true;

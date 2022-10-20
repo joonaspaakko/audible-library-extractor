@@ -2,7 +2,7 @@
   <div id="audible-library-extractor">
     <div class="inner-wrap">
       <div class="close-btn" @click="closeOverlay()">
-        <font-awesome :icon="['fas', 'times']" />
+        <humbleicons-times-circle/>
       </div>
 
       <div id="the-adbl-logo" :class="{ 'fade-in-fwd': showLogo }">
@@ -115,7 +115,7 @@ html.ale-overlay-open body {
     display: inline-block;
     padding: 20px;
     color: #b5b5b5;
-    font-size: 20px;
+    font-size: 25px;
     position: fixed;
     top: 0;
     right: 0;
@@ -126,6 +126,10 @@ html.ale-overlay-open body {
     -moz-user-select: none;
     -ms-user-select: none;
     user-select: none;
+    transition: color 500ms ease;
+    &:hover {
+      color: #222;
+    }
   }
 }
 

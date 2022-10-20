@@ -1,9 +1,6 @@
 <template>
   <cont-overlay>
     <cont-menu-screen v-if="ui === 'menu-screen'"
-    :storageHasData.sync="storageHasData"
-    :storageConfig.sync="storageConfig"
-    :dataVersion.sync="dataVersion"
     :domainExtension="domainExtension"
     :wishlistUrl="wishlistUrl"
     ></cont-menu-screen>
@@ -12,54 +9,6 @@
 </template>
 
 <script>
-// // import _ from "lodash";
-import $ from "jquery";
-import axios from "axios";
-import { exponentialDelay, isNetworkOrIdempotentRequestError } from 'axios-retry';
-import axiosRetry from 'axios-retry';
-import browser from "webextension-polyfill";
-import { format as dateFormat } from "date-fns";
-import DOMPurify from "dompurify";
-import map from "async-es/map";
-import mapLimit from "async-es/mapLimit";
-import waterfall from "async-es/waterfall";
-import Url from "domurl";
-
-global._ = _;
-global.$ = $;
-global.axios = axios;
-global.axiosRetry = axiosRetry;
-global.exponentialDelay = exponentialDelay;
-global.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
-global.browser = browser;
-global.dateFormat = dateFormat;
-global.DOMPurify = DOMPurify;
-global.Url = Url;
-global.asyncMapLimit = mapLimit;
-global.asyncMap = map;
-global.waterfall = waterfall;
-
-String.prototype.trimAll = function() {
-  if (this) {
-    return this.trim().replace(/\s+/g, " ");
-  } else {
-    return null;
-  }
-};
-String.prototype.trimToColon = function() {
-  if (this) {
-    return this.substring(this.indexOf(":") + 1).trim();
-  } else {
-    return null;
-  }
-};
-
-window.each = function( array, callback ) {
-  if ( !array ) return null;
-  for (var i = 0; i < array.length; i++) {
-    callback( array[i], i );
-  }
-};
 
 // Calls
 import amapxios from "./_components/_mixins/calls/amapxios.js";
@@ -105,11 +54,9 @@ export default {
     getDataFromPurchaseHistory,
     helpers,
   ],
-  props: ["storageHasDataInit", "storageConfigInit", "dataVersionInit"],
   data: function() {
     return {
-      storageHasData: {},
-      storageConfig: {},
+      store: this.$store.state,
       libraryUrl: window.location.origin + "/library/titles",
       libraryUrlFin: window.location.origin + "/library/titles?isFinished=true",
       seriesUrl: window.location.origin + "/series",
@@ -127,7 +74,7 @@ export default {
         // { storePageRequestUrl: "https://www.audible.com/pd/B0B6QBNK4J" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJPL532" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJLSSMQ" },
-        { storePageRequestUrl: "https://www.audible.com/pd/1721336850" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/1721336850" },
       ],
       doSeriesTest: [
         // { series: [{asin: 'B006XE41AC'}] },
@@ -135,25 +82,18 @@ export default {
     };
   },
   
-  created: function() {
-    
-    this.storageHasData = JSON.parse(JSON.stringify(this.storageHasDataInit));
-    this.storageConfig = JSON.parse(JSON.stringify(this.storageConfigInit));
-    this.dataVersion = JSON.parse(JSON.stringify(this.dataVersionInit));
-    
-  },
-  
   beforeMount: function() {
+    
     const vue = this;
-
-    vue.$root.$on("do-next-step", function(o) {
+    
+    this.$compEmitter.on("do-next-step", function(o) {
       vue["init_step_" + o.step](o.config);
     });
     
     
     // vue.init_purchaseHistoryTest();
-    if ( _.get( this.doStorePageTest, 'length', 0 ) > 0 ) vue.init_storePageTest();
-    if ( _.get( this.doSeriesTest,    'length', 0 ) > 0 ) vue.init_seriesPageTest();
+    if ( _.get( this.doStorePageTest, 'length', 0 ) > 0 ) this.init_storePageTest();
+    if ( _.get( this.doSeriesTest,    'length', 0 ) > 0 ) this.init_seriesPageTest();
     
     // this.scrapingPrep(this.libraryUrl, function(prep) {
     //   console.log('PREP?', prep)
@@ -196,13 +136,6 @@ export default {
           
           const maxSteps = config.steps ? _.filter(config.steps, function(o) { return o.value; }).length : waterfallArray.length - 1 // First function is just a kind of a failsafe and doesn't count
           vue.$store.commit('update', { key: 'bigStep.max', value: maxSteps });
-          
-          // vue.$root.$emit("update-big-step", {
-          //   max: config.steps ? _.filter(config.steps, function(o) {
-          //       return o.value;
-          //     }).length
-          //     : waterfallArray.length - 1 // First function is just a kind of a failsafe and doesn't count
-          // });
 
           waterfall(waterfallArray, function(err, hotpotato) {
             
@@ -214,17 +147,7 @@ export default {
               { key: 'subStep.step', value: 0 },
               { key: 'subStep.max', value: 0 },
             ]);
-            // vue.$root.$emit("reset-progress");
-            // vue.$root.$emit("update-big-step", {
-            //   title: "Opening the gallery after packing up the data...",
-            //   step: 0,
-            //   max: 0
-            // });
-            // vue.$root.$emit("update-sub-step", {
-            //   step: 0,
-            //   max: 0,
-            // });
-
+            
             // const configISBN = _.find(hotpotato.config.steps, { name: "isbn" });
             // const foundISBNs = _.filter(hotpotato.books, 'isbns');
             // if (configISBN && configISBN.value ||foundISBNs.length > 0 ) {
@@ -339,7 +262,7 @@ export default {
       
       if ( !_.isObject( hotpotato.version ) ) hotpotato.version = {};
       
-      let hasData = this.storageHasData;
+      let hasData = this.store.storageHasData;
       let version = browser.runtime.getManifest().version;
       
       // If a step was just extracted and there was no existing data update data version...
@@ -348,34 +271,6 @@ export default {
       if ( _.find( hotpotato.config.steps, { name: 'wishlist', value: true })    && !hasData.wishlist    ) hotpotato.version.wishlist    = version;
       
     },
-    
-    // erudaOpenStayInAudible: function() {
-      
-    //   let erudaIsOpen = false;
-      
-    //   if ( !!eruda ) {
-    //     let erudaStatus = eruda.get();
-    //     if ( erudaStatus )erudaIsOpen = erudaStatus._isShow; 
-    //   }
-      
-    //   if ( erudaIsOpen ) {
-            
-    //     this.$root.$emit("reset-progress");
-    //     this.$root.$emit("update-big-step", {
-    //       title: "Data has been saved, but since the console window is open, gallery won't be opened automatically.",
-    //       step: 0,
-    //       max: 0
-    //     });
-    //     this.$root.$emit("update-progress", {
-    //       text: "You can still open the gallery manually without the need to do a new extract...",
-    //       step: 0,
-    //       max: 0
-    //     });
-        
-    //   }
-      
-    //   return erudaIsOpen;
-    // },
     
     init_purchaseHistoryTest: function() {
       
@@ -396,26 +291,20 @@ export default {
     init_storePageTest: function() {
       
       const vue = this;
-      
+      console.log('%c' + 'asdfasdf' + '', 'background: green; color: #fff; padding: 2px 5px; border-radius: 8px;', this.doStorePageTest);
       const hotpotato = {
         config: { test: true, getStorePages: 'books', seriesTest: true },
         books: this.doStorePageTest,
       };
       
-      // vue.getDataFromStorePages(hotpotato, function(nullBoy, result) {
-      //   console.log(
-      //     "%c" + "Store page test" + "",
-      //     "background: #00bb1e; color: #fff; padding: 2px 5px; border-radius: 8px;",
-      //     result
-      //   );
-      // });
-      
+      console.log('%c' + 'asdfasdf' + '', 'background: orange; color: #fff; padding: 2px 5px; border-radius: 8px;', hotpotato);
       const waterfallArray = [
         function(callback) { callback(null, hotpotato); },
         vue.getDataFromStorePages,      // Requires library page data
         vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
       ];
       
+      console.log('waterfall', 'waterfall');
       waterfall(waterfallArray, function(err, hotpotato) {
         
         vue.$store.commit('resetProgress');
@@ -424,12 +313,6 @@ export default {
           { key: 'bigStep.step', value: 0 },
           { key: 'bigStep.max', value: 0 },
         ]);
-        // vue.$root.$emit("reset-progress");
-        // vue.$root.$emit("update-big-step", {
-        //   title: "Opening the gallery after packing up the data...",
-        //   step: 0,
-        //   max: 0
-        // });
 
         console.log(
           "%c" + "Store page test" + "",

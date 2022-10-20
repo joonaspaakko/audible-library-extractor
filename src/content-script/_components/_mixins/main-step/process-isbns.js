@@ -6,24 +6,11 @@ export default {
     getISBNsFromGoogleBooks: function(hotpotato, isbnsFetched) {
       if ( !_.find(hotpotato.config.steps, { name: "isbn" }) ) {
         
-        // this.$root.$emit("reset-progress");
         this.$store.commit("resetProgress");
         isbnsFetched(null, hotpotato);
         
       } 
       else {
-        // this.$root.$emit("update-big-step", {
-        //   title: "International Standard Book Number (ISBN)",
-        //   stepAdd: 1
-        // });
-
-        // this.$root.$emit("update-progress", {
-        //   text2: "(The matching process is relatively loose: beware of false matches)",
-        //   text: "Fetching ISBNs from Google Books API...",
-        //   step: 0,
-        //   max: 0,
-        //   bar: true
-        // });
         
         this.$store.commit('update', [
           { key: 'bigStep.title', value: 'International Standard Book Number (ISBN)' },
@@ -63,8 +50,7 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
       });
     }
   });
-
-  // vue.$root.$emit("update-progress", { max: requestUrls.length });
+  
   vue.$store.commit('update', { key: 'progress.max', add: requestUrls.length });
   
   const letMeAxiosAQuestion = axios.create();
@@ -151,7 +137,6 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
             );
           }
 
-          // vue.$root.$emit("update-progress-step");
           vue.$store.commit('update', { key: 'progress.step', add: 1 });
           stepCallback(null);
         })
@@ -161,7 +146,6 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
             "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;",
             e.respone
           );
-          // vue.$root.$emit("update-progress-step");
           vue.$store.commit('update', { key: 'progress.step', add: 1 });
           stepCallback(null);
         });
@@ -169,7 +153,6 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
     function(err, result) {
       if (!err) {
         vue.$nextTick(function() {
-          // vue.$root.$emit("reset-progress");
           vue.$store.commit('resetProgress');
           isbnsFetched(null, hotpotato);
         });

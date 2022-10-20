@@ -12,9 +12,11 @@ import { chromeExtension } from "vite-plugin-chrome-extension";
 
 const src = function( path, prefix ) {
   prefix = prefix || './src';
+  path = path || '';
   return fileURLToPath(new URL( prefix+'/'+path, import.meta.url ));
 };
 const dist = function( path ) { return src(path, './dist'); };
+const root = function( path ) { return src(path, './'); };
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -41,7 +43,18 @@ export default defineConfig({
     },
   },
   optimizeDeps: {
-    include: ['lodash'],
+    include: [
+      'lodash',
+      'jquery',
+      'axios',
+      'axios-retry',
+      'date-fns',
+      'dompurify',
+      'async-es/map',
+      'async-es/mapLimit',
+      'async-es/waterfall',
+      'domurl',
+    ],
   },
   // Basically string replacements. You can think of as a global immutable variable.
   define: {
@@ -99,7 +112,8 @@ export default defineConfig({
       '@fonts'            : src('fonts'),
       '@assets'           : src('assets'),
       '@gallery'          : src('gallery'),
-      'node_modules'      : fileURLToPath(new URL('./node_modules', import.meta.url)),
+      '@node'             : root('node_modules'),
+      'node_modules'      : root('node_modules'),
       '@output-page'      : src('gallery'),
       '@output-images'    : src('gallery/images'),
       '@output-mixins'    : src('gallery/_mixins'),

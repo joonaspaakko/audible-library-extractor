@@ -5,9 +5,9 @@ export default {
       
       if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
           
-        this.$root.$emit("update-progress", {
-          text: 'Double checking book status...'
-        });
+        // this.$root.$emit("update-progress", {
+        //   text: 'Double checking book status...'
+        // });
         
         vue.scrapingPrep({
           url: vue.libraryUrlFin, 

@@ -23,7 +23,6 @@ export default {
           { key: 'progress.text', value: "Fetching additional data from store pages..." },
         ]);
         
-        
         vue.amapxios({
           requests: requests,
           returnCatch: true, // Returns failed steps in the step() callback in order to mark missing sote page data
@@ -34,7 +33,8 @@ export default {
             
             if ( response && response.status >= 200 &&response.status < 400 ) {
               vue.getStorePageData(response, book, hotpotato.config.test);
-            } else if ( !!book ) {
+            } 
+            else if ( !!book ) {
               book.storePageMissing = true;
             }
             if (!hotpotato.config.test) vue.$store.commit('update', { key: 'progress.step', add: 1 });
@@ -66,9 +66,9 @@ export default {
     prepStorePages: function(hotpotato, getStorePages) {
       
       let vue = this;
-      
       _.each( hotpotato[ getStorePages ], function( book ) { 
-        if ( vue.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
+        
+        if ( vue.$store.state.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
           if ( book.isNewThisRound ) book.requestUrl = book.storePageRequestUrl;
         }
         else {
@@ -85,7 +85,7 @@ export default {
       
       let result = [];
       
-      if ( vue.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
+      if ( vue.$store.state.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
         result = _.filter(hotpotato[ getStorePages ], "isNewThisRound");
       }
       else {

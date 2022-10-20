@@ -96,7 +96,7 @@ export default {
             
             // IF SERIES HAVE BEEN EXTRACTED, MERGE FETCHED SERIES WITH THOSE
             const potatoSeries = _.get(hotpotato, 'series', []);
-            if ( vue.storageHasData.books && potatoSeries.length ) {
+            if ( vue.$store.state.storageHasData.books && potatoSeries.length ) {
               _.each( requests, function( series ) {
                 const seriesExists = _.find(potatoSeries, { asin: series.asin });
                 if ( seriesExists ) _.merge( seriesExists, series );

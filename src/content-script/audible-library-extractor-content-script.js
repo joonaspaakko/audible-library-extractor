@@ -1,29 +1,76 @@
 // browser.storage.local.clear(); console.log( 'Chrome storage CLEARED' );
 
+import browser from "webextension-polyfill"; window.browser = browser;
+browser.runtime.sendMessage({ pageAction: true });
+
+import $ from "jquery"; window.$ = $;
+import _ from "lodash"; window._ = _;
+import axios from "axios"; window.axios = axios;
+import { exponentialDelay, isNetworkOrIdempotentRequestError } from 'axios-retry'; window.exponentialDelay = exponentialDelay; window.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
+import axiosRetry from 'axios-retry'; window.axiosRetry = axiosRetry;
+import { format as dateFormat } from "date-fns"; window.dateFormat = dateFormat;
+import DOMPurify from "dompurify"; window.DOMPurify = DOMPurify;
+import map from "async-es/map"; window.asyncMap = map;
+import mapLimit from "async-es/mapLimit"; window.asyncMapLimit = mapLimit;
+import waterfall from "async-es/waterfall"; window.waterfall = waterfall;
+import Url from "domurl"; window.Url = Url;
+
+String.prototype.trimAll = function() {
+  if (this) {
+    return this.trim().replace(/\s+/g, " ");
+  } else {
+    return null;
+  }
+};
+String.prototype.trimToColon = function() {
+  if (this) {
+    return this.substring(this.indexOf(":") + 1).trim();
+  } else {
+    return null;
+  }
+};
+
+window.each = function( array, callback ) {
+  if ( !array ) return null;
+  for (var i = 0; i < array.length; i++) {
+    callback( array[i], i );
+  }
+};
+
 import { createApp } from 'vue';
 import App from "@contscript/content-script-app.vue";
 import store from "./store.js";
 
-const app = createApp(App)
+const app = createApp(App);
+
+// For emitting custom events between components
+import mitt from 'mitt';
+app.config.globalProperties.$compEmitter = new mitt();
 
 // VUE-TIPPY
-import VueTippy, { TippyComponent } from "vue-tippy";
+import VueTippy from "vue-tippy";
 app.use(VueTippy, {
-  arrow: true,
-  placement: "top",
-  trigger: "mouseenter focus",
-  theme: "light-border",
-  zIndex: 9999999991,
-  delay: [500,0],
-  a11y: false,
-  maxWidth: 670,
-  onShow: options => {
-    return !!options.props.content;
-  },
-  boundary: "viewport",
-  flipDuration: 0
+	directive: 'tippy', // => v-tippy
+	component: 'tippy', // => <tippy/>
+	componentSingleton: 'tippy-singleton', // => <tippy-singleton/>,
+	defaultProps: {
+		placement: 'auto-end',
+		allowHTML: true,
+		arrow: true,
+		placement: "top",
+		trigger: "mouseenter focus",
+		theme: "light-border",
+		zIndex: 9999999991,
+		delay: [500,0],
+		a11y: false,
+		maxWidth: 670,
+		onShow: options => {
+			return !!options.props.content;
+		},
+		boundary: "viewport",
+		flipDuration: 0
+	}, // => Global default options * see all props
 });
-app.component("tippy", TippyComponent);
 import 'tippy.js/dist/tippy.css';
 
 // import Buefy from "buefy";
@@ -35,8 +82,6 @@ import 'tippy.js/dist/tippy.css';
 
 app.config.productionTip = false;
 app.config.devtools = false;
-
-browser.runtime.sendMessage({ pageAction: true });
 
 let overlayBtnLink = $('<a>', {
   id: 'audible-library-extractor-btn',
@@ -129,22 +174,22 @@ function audibleLibraryExtractor(data) {
   const dataChunks = _.get(data, 'chunks', []);
   const storageHasData = dataChunks.length > 0;
   
+	if ( storageHasData ) {
+		store.commit('update', [
+			{ key: 'storageHasData.books', 			 value: dataChunks.indexOf('books') > -1 },
+			{ key: 'storageHasData.isbn', 			 value: dataChunks.indexOf('books') > -1 ? checkISBNs( data ) : false },
+			{ key: 'storageHasData.wishlist', 	 value: dataChunks.indexOf('wishlist') > -1 },
+			{ key: 'storageHasData.collections', value: dataChunks.indexOf('books') > -1 },
+			{ key: 'storageConfig', value: data.config || {} },
+			{ key: 'dataVersion', value: data.version || {} },
+		]);
+	}
+
   app.directive("visible", function(el, binding) {
     el.style.visibility = !!binding.value ? "visible" : "hidden";
   });
-  
-  // props: {
-  //   storageHasDataInit: storageHasData ? ({ 
-  //     books: dataChunks.indexOf('books') > -1, 
-  //     isbn: dataChunks.indexOf('books') > -1 ? checkISBNs( data ) : false,
-  //     wishlist: dataChunks.indexOf('wishlist') > -1,
-  //     collections: dataChunks.indexOf('collections') > -1,
-  //   }) : {},
-  //   storageConfigInit: data.config || {},
-  //   dataVersionInit: data.version || {},
-  // }
-  
-  app.use( store );
+
+  app.use( store );	
   
   app.mount('#audible-library-extractor');
 

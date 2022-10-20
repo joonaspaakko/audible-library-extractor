@@ -7,16 +7,16 @@ export default {
     getDataFromPurchaseHistory: function(hotpotato, libraryPagesFetched) {
       const vue = this;
       
-      this.$root.$emit("update-big-step", {
-        title: "Library",
-        stepAdd: 1
-      });
+      // this.$root.$emit("update-big-step", {
+      //   title: "Library",
+      //   stepAdd: 1
+      // });
       
-      this.$root.$emit("update-progress", {
-        step: 0,
-        max: 0,
-        text: this.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..."
-      });
+      // this.$root.$emit("update-progress", {
+      //   step: 0,
+      //   max: 0,
+      //   text: this.$store.state.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..."
+      // });
       
       vue.scrapingPrep({
         url: vue.purchaseHistoryUrl, 

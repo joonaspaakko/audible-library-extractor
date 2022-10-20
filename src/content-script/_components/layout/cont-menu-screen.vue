@@ -1,129 +1,156 @@
 <template>
 <div>
   <div id="ale-menu-screen" v-if="!loading && extractSettings" :class="{ 'show-delete-btns': showDeleteBtns, 'show-partial-extraction': showPartialExtraction }">
-    <b-collapse animation="slide" class="panel" :open="settingsOpen">
+    <div class="box panel" animation="slide" :open="settingsOpen">
       <div class="extract-settings">
         <div class="settings-heading">
           <span class="title is-4">Extraction Settings</span>
         </div>
         
+        
         <!-- <div style="font-size: 12px; line-height: 13px; margin: 6px 0 0 0; color: #888;">
           Previously extracted data is retained as long as you don't overwrite it with new data.
         </div> -->
         
-        <b-field grouped group-multiline class="setting-checkboxes">
-          <span v-for="( setting, index) in mainSteps" :key="setting.name" :class="{ 'partial-extraction': (hasData.books && setting.name == 'library') || (hasData.wishlist && setting.name === 'wishlist') || (hasData.isbn && setting.name === 'isbn') }">
+        <div class="columns is-0 setting-checkboxes">
+          <div 
+            v-for="( setting, index) in mainSteps" 
+            :key="setting.name" 
+            class="column" 
+            :class="{ 
+              'partial-extraction': (hasData.books && setting.name == 'library') || (hasData.wishlist && setting.name === 'wishlist') || (hasData.isbn && setting.name === 'isbn'),
+              checked: setting.value,
+              unchecked: !setting.value,
+            }"
+          >
             
-            <b-field style="margin: 5px;" v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy">
-              <p class="control">
-                <b-button size="is-default" :disabled="true" style="cursor: default;">
-                  {{ ++index }}
-                </b-button>  
-              </p>
-              <p class="control" v-tippy :content="setting.tippy">
-                <b-button size="is-default" class="checkbox-btn">
-                  <b-checkbox v-model="setting.value" :disabled="setting.disabled" :type="setting.type" @input="settingChanged($event, setting.name)" >
-                    {{ setting.label }}
-                  </b-checkbox>
-                </b-button>  
-              </p>
-              <p class="control delete-btn" v-if="setting.trash" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
-                <b-button size="is-default" @click="deleteData( setting )" class="remove-individual-sections-icon">
-                  <b-icon pack="far" icon="trash-alt" size="is-small"></b-icon>
-                </b-button>  
-              </p>
-            </b-field>
+          <div class="field has-addons" style="margin: 5px;" v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy">
+            <p class="control">
+              <button class="checbox-wrapper button is-small">
+                <div class="button" :class="[ setting.value ? setting.type : null ]" :disabled="setting.disabled">
+                  <zondicons-checkmark v-if="setting.value" />
+                  <span v-else class="step-number">{{ ++index }}</span>
+                </div>
+              </button>  
+            </p>
+            <p class="control full-width" v-tippy :content="setting.tippy">
+              <button class="button checkbox-btn is-small">
+                <label class="checkbox">
+                  <input style="position: absolute; top: 0; left: 0; z-index: -1; width: 1px; height: 1px; overflow: hidden; opacity: 0;" type="checkbox" v-model="setting.value" :disabled="setting.disabled" @input="settingChanged($event, setting.name)">
+                  {{ setting.label }}
+                </label>
+              </button>  
+            </p>
+            <p class="control delete-btn" v-if="setting.trash" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
+              <button class="button is-small remove-individual-sections-icon" @click="deleteData( setting )">
+                <span class="icon is-small">
+                  <bi-trash3/>
+                </span>
+              </button>  
+            </p>
+          </div>
             
-          </span>
-        </b-field>
-          
-        <b-checkbox v-model="saveStandaloneAfter.value" size="is-small" type="is-dark">
-          {{ saveStandaloneAfter.label }}
-        </b-checkbox>
+          </div>
+        </div> <!-- setting-checkboxes -->
         
-        <b-message class="description">
+        <label class="checkbox is-small is-dark">
+          <input type="checkbox" v-model="saveStandaloneAfter.value">
+          {{ saveStandaloneAfter.label }}
+        </label>
+        
+        <div class="description">
           <!-- You can fetch <b-tag type="is-warning">collections</b-tag> and <b-tag type="is-warning">wishlist</b-tag> now and discard them later when saving the gallery as a stand-alone website. <b-tag type="is-warning">ISBNs</b-tag> are merged with the library books and can't be removed later, not that there should be any need to do that. -->
           
           <div class="linky-links">
-            <b-button size="is-small" @click="unselectAll">unselect all</b-button>
-            <b-button size="is-small" @click="selectAll">select all</b-button>
-            <b-button size="is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is only ever reset automatically when you clear library data or press this button.</div>'>reset new books</b-button>
-            <b-button size="is-small" @click="exportRawData" :type="exportRawDataDisabled ? 'is-warning' : null" :disabled="exportRawDataDisabled">Export raw data</b-button>
-            <b-button size="is-small">
+            <button class="button is-small" @click="unselectAll">unselect all</button>
+            <button class="button is-small" @click="selectAll">select all</button>
+            <button class="button is-small" @click="resetNewTitles" v-tippy="{ maxWidth: 400 }" content='<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is only ever reset automatically when you clear library data or press this button.</div>'>reset new books</button>
+            <button class="button is-small" :class="[ exportRawDataDisabled ? 'is-warning' : null ]" @click="exportRawData" :disabled="exportRawDataDisabled">Export raw data</button>
+            <button class="button is-small">
               <label>
                 Import raw data
                 <input accept=".json" type="file" @change="importRawData" style="display:none">
               </label>
-            </b-button>
-            <b-button class="delete-btn" size="is-small" @click="clearStoredData">Remove all extracted data</b-button>
+            </button>
+            <button class="button is-small delete-btn" @click="clearStoredData">Remove all extracted data</button>
           </div>
 
-        </b-message>
+        </div>
       </div>
-    </b-collapse>
+    </div>
     
   
-    <b-message v-if="dataVersionMismatch.length > 0" type="is-danger">
-      You should <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">remove</span> <strong>{{ dataVersionMismatch.join(', ') }}</strong> data and re-extract to get the most out of the new version.
-    </b-message>
+    <article v-if="dataVersionMismatch.length > 0" class="message is-danger">
+      <div class="message-body">
+        You should <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">remove</span> <strong>{{ dataVersionMismatch.join(', ') }}</strong> data and re-extract to get the most out of the new version.
+      </div>
+    </article>
     
-    <b-message v-if="hasData.books || hasData.wishlist || hasData.isbn" type="is-info">
-      <strong>Previously extracted data detected: <span style="color: #f7991c;">a faster <span v-tippy="{ allowHTML: true }" content="<div style='display: block; text-align: left;'><ol style='margin-left: 15px;'><li>Updates stored data that is likely to change</li><li>Does a full extract on newly added books</li><li>Clears data of removed books</li></ol><span style='display: inline-block; margin-top: 6px; color: #157df0;'>In the case of ISBN extraction, books that already have ISBNs are ignored. A large amount of books (+100) without the numbers will still take quite a while to extract.</span></div>" style="cursor: default; text-decoration: underline">partial extraction</span> is used</span> <span class="init-show-partial-extraction" style="color: #f7991c;" @mouseover="showPartialExtraction = true" @mouseleave="showPartialExtraction = false">where applicable.</span></strong> 
-      <br>
-      If you need to do a <span v-tippy="{ maxWidth: 310 }" content="The data structure may change from version to version, in which case a full extraction is needed or at least preferred. <br><br>You need to remove extracted data in order to do a full extraction." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
-    </b-message>
+    
+    <article v-if="hasData.books || hasData.wishlist || hasData.isbn" class="message is-info">
+      <div class="message-body">
+        <strong>Previously extracted data detected: <span style="color: #f7991c;">a faster <span v-tippy="{ allowHTML: true }" content="<div style='display: block; text-align: left;'><ol style='margin-left: 15px;'><li>Updates stored data that is likely to change</li><li>Does a full extract on newly added books</li><li>Clears data of removed books</li></ol><span style='display: inline-block; margin-top: 6px; color: #157df0;'>In the case of ISBN extraction, books that already have ISBNs are ignored. A large amount of books (+100) without the numbers will still take quite a while to extract.</span></div>" style="cursor: default; text-decoration: underline">partial extraction</span> is used</span> <span class="init-show-partial-extraction" style="color: #f7991c;" @mouseover="showPartialExtraction = true" @mouseleave="showPartialExtraction = false">where applicable.</span></strong> 
+        <br>
+        If you need to do a <span v-tippy="{ maxWidth: 310 }" content="The data structure may change from version to version, in which case a full extraction is needed or at least preferred. <br><br>You need to remove extracted data in order to do a full extraction." style="cursor: default; text-decoration: underline">full extraction</span>, you can remove stored data using <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">these buttons</span>.
+      </div>
+    </article>
     
     <div>
       <div class="extract-wrapper">
         <div v-if="cannotAccessWishlist">
-           <b-message type="is-warning">
-            Try to open your
-            <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
-            After that try  to redo the extraction. <strong>The link will open in a new tab!</strong>
-          </b-message>
+          
+          <article class="message is-warning">
+            <div class="message-body">
+              Try to open your
+              <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
+              After that try  to redo the extraction. <strong>The link will open in a new tab!</strong>
+            </div>
+          </article>
         </div>
         <div v-else-if="extractBtnDisabled">
-          <b-progress style="min-width: 288px;" size="is-large" type="is-warning" show-value>
+          
+          <div class="progress-wrapper">
+            <progress class="progress is-warning is-large" max="100" style="min-width: 288px;">75%</progress>
             <small style="font-size: 12px;">Checking for wishlist access...</small>
-          </b-progress>
-        </div>
-        <b-field class="extract-btn" v-show="!extractionButtonDisabled && !loading" v-else>
-          <b-button @click="extract" type="is-info" class="extract control" expanded size="is-large" >
-            Extract selected items
-          </b-button>
-          <div class="control">
-            <b-button @click="extract" type="is-dark" icon-right="arrow-alt-circle-down" icon-pack="far" size="is-large" ></b-button>
           </div>
-        </b-field>
+          
+        </div>
+        
+        <div class="field has-addons extract-btn" v-show="!extractionButtonDisabled && !loading" v-else>
+          <p class="control">
+            <button class="button is-info extract is-large" @click="extract" expanded>
+              Extract selected items
+            </button>
+          </p>
+          <p class="control">
+            <button class="button is-dark is-large" @click="extract">
+              <mdi-arrow-down-circle/>
+            </button>
+          </p>
+        </div>
 
-        <b-field class="other-btns">
-          <b-button
-          tag="a"
-          href="https://joonaspaakko.gitbook.io/audible-library-extractor/"
-          target="_blank"
-          class="control" size="is-small"
-          icon-pack="fas" icon-right="share-square"
+        <div class="field has-addons other-btns">
+          <a
+            class="button control is-small"
+            tag="a"
+            href="https://joonaspaakko.gitbook.io/audible-library-extractor/"
+            target="_blank"
           >
-            Documentation
-          </b-button>
-          <b-button
-          :disabled="outputPageDisabled"
-          @click="takeNextStep('output')"
-          class="control" size="is-small"
-          icon-pack="fas" icon-right="share-square"
+            Documentation <ri-external-link-line/>
+          </a>
+          <a
+            class="button control is-small"
+            :disabled="outputPageDisabled"
+            @click="takeNextStep('output')"
           >
-            Open gallery
-          </b-button>
-        </b-field>
+            Open gallery <ri-external-link-line/>
+          </a>
+        </div>
       </div>
     </div>
 
-    <b-button
-    class="settings-btn"
-    size="is-small"
-    type="is-text"
-    icon-left="code"
-    icon-pack="fas"
+    <button
+    class="button is-small is-text settings-btn"
     v-tippy="{ 
       allowHTML: true, 
       trigger: 'click',
@@ -131,8 +158,8 @@
     }"
     :content="getChangelog()"
     >
-      Changelog
-    </b-button>
+      <ph-code-bold/> Changelog
+    </button>
 
 
     <div id="footer" class="is-small has-text-grey-light">
@@ -174,11 +201,7 @@
     </div>
   </div>
   <div v-else class="extraction-loading">
-    <b-icon
-      pack="fas"
-      icon="sync-alt"
-      custom-class="fa-spin">
-    </b-icon>
+    <gg-spinner class="spin" />
   </div>
   
 </div>
@@ -190,7 +213,7 @@ import changelog from "@output-mixins/changelog.js";
 
 export default {
   name: "menuScreen",
-  props: ["storageHasData", "storageConfig", "domainExtension", "wishlistUrl", "dataVersion"],
+  props: ["domainExtension", "wishlistUrl"],
   mixins: [ changelog, helpers ],
   data() {
     return {
@@ -217,7 +240,7 @@ export default {
     dataVersionMismatch: function() {
       
       const extensionVersion = this.extensionVersion;
-      const dataVersions = this.dataVersion;
+      const dataVersions = this.$store.state.dataVersion;
       const hasData = this.hasData;
     
       let mismatch = [];
@@ -255,8 +278,8 @@ export default {
   
   created: function() {
     
-    this.hasData = this.storageHasData;
-    this.hasConfig = this.storageConfig;
+    this.hasData = this.$store.state.storageHasData;
+    this.hasConfig = this.$store.state.storageConfig;
     this.updateSettings();
     
     this.checkBrowser();
@@ -425,9 +448,16 @@ export default {
       this.hasConfig = data.config || {};
       
       // Fixme: could've gotten rid of hasData, but didn't feel like cleaning up the code so I just added this so the code gets updated in the parent component.
-      this.$emit('update:storageHasData', JSON.parse(JSON.stringify(this.hasData)));
-      this.$emit('update:storageConfig', JSON.parse(JSON.stringify(this.hasConfig)));
-      this.$emit('update:dataVersion', data.version);
+      // this.$emit('update:storageHasData', JSON.parse(JSON.stringify(this.hasData)));
+      // this.$emit('update:storageConfig', JSON.parse(JSON.stringify(this.hasConfig)));
+      // this.$emit('update:dataVersion', data.version);
+      
+      this.$store.commit('update', [
+        { key: 'storageHasData', value: JSON.parse(JSON.stringify(this.hasData)) },
+        { key: 'storageConfig',  value: JSON.parse(JSON.stringify(this.hasConfig)) },
+        { key: 'dataVersion',    value: data.version },
+      ]);
+      
       
       let vue = this;
       this.updateSettings(function() {
@@ -751,7 +781,7 @@ export default {
         return { name: o.name, value: o.value, deactivated: false };
       });
       
-      this.$root.$emit("do-next-step", {
+      this.$compEmitter.emit("do-next-step", {
         step: step,
         config: config
       });
@@ -868,7 +898,10 @@ export default {
 };
 </script>
 
+<style scoped src="@node/bulma/css/bulma.css"></style>
+
 <style lang="scss">
+// @use '@node/bulma/css/bulma.css';
 
 body > .notices {
   z-index: 9999999999 !important;
@@ -1013,7 +1046,8 @@ body > .notices {
       }
       // margin-right: 46px;
       button {
-        padding: 10px 12px 9px;
+        padding: 8px;
+        min-width: 34px;
         font-size: 13.5px;
         line-height: 13.5px;
         // .b-checkbox { margin-top: 2px; }
@@ -1036,6 +1070,45 @@ body > .notices {
         }
       }
       
+      .full-width {
+        flex: 1;
+        > .button {
+          width: 100%;
+          display: flex;
+          justify-content: stretch;
+          align-items: stretch;
+          > label {
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+          }
+        }
+      }
+      
+      .checbox-wrapper {
+        cursor: default;
+        border: 1px solid #dbdbdb !important;
+        outline: none !important;
+        box-shadow: none !important;
+        padding: 4px;
+        > .button {
+          border: none !important;
+          outline: none !important;
+          box-shadow: none !important;
+          font-size: 0.7em;
+          cursor: default;
+          padding: 0px;
+          width: 20px;
+          height: 20px;
+          border-radius: 999px;
+        }
+      }
+      
+      & > .unchecked .checbox-wrapper > .button {
+        padding: 0;
+        font-size: 1em;
+      }
     }
   }
 
@@ -1049,6 +1122,15 @@ body > .notices {
       padding-top: 9px;
       padding-bottom: 9px;
       flex-grow: 1;
+      font-size: 13px;
+      line-height: 13px;
+    }
+    svg { 
+      margin-left: 6px; 
+      font-size: 17px;
+      line-height: 17px;
+      position: relative;
+      top: -2px;
     }
   }
 
@@ -1089,7 +1171,8 @@ body > .notices {
   }
   
   .linky-links {
-    // margin-bottom: 15px;
+    margin-top: 10px;
+    background: #f4f5f6;
     font-size: 13px;
     span { 
       margin-left: 6px; &:first-child { margin-left: 0 }
@@ -1097,6 +1180,7 @@ body > .notices {
     .divider { color: #444; }
     a { color: #666; }
     button {
+      margin: 5px 2px;
       label { cursor: pointer; }
       span { font-size: 11px !important; line-height: 11px !important; }
       height: auto !important;
@@ -1152,6 +1236,13 @@ body > .notices {
 .extraction-loading .icon {
   font-size: 40px;
   color: #f79a32;
+  .spin {
+    animation: rotating .5s linear infinite;
+    @keyframes rotating {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+  }
 }
 
 .show-partial-extraction .partial-extraction,

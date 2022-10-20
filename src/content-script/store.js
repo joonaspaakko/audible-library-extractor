@@ -1,9 +1,8 @@
 
-import Vue from "vue";
-import Vuex from "vuex";
-Vue.use(Vuex);
+// import _ from "lodash";
+import { createStore } from 'vuex';
 
-export default new Vuex.Store({
+export default createStore({
   state: {
     canceledRequests: [],
     progress: {
@@ -23,7 +22,15 @@ export default new Vuex.Store({
     subStep: {
       step: 0,
       max: 0
-    }
+    },
+    storageHasData: {
+      books: null,
+      isbn: null,
+      wishlist: null,
+      collections: null,
+    },
+    storageConfig: {},
+    dataVersion: {},
   },
 
   mutations: {
