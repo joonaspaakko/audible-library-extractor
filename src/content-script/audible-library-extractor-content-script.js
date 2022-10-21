@@ -47,6 +47,9 @@ const app = createApp(App);
 import mitt from 'mitt';
 app.config.globalProperties.$compEmitter = new mitt();
 
+import Toaster from "@meforma/vue-toaster";
+app.use(Toaster);
+
 // VUE-TIPPY
 import VueTippy from "vue-tippy";
 app.use(VueTippy, {
@@ -188,7 +191,7 @@ function audibleLibraryExtractor(data) {
   app.directive("visible", function(el, binding) {
     el.style.visibility = !!binding.value ? "visible" : "hidden";
   });
-
+  
   app.use( store );	
   
   app.mount('#audible-library-extractor');
