@@ -82,8 +82,8 @@ html.ale-overlay-open body {
     text-align: center;
     margin-top: 0px;
     margin-bottom: 20px;
-    width: 290px;
-    height: 99.89px;
+    width: 270px;
+    height: auto;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;

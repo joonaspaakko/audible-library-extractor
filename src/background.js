@@ -1,15 +1,12 @@
 var window = window ?? self;
+import browser from "webextension-polyfill";
 
-global.browser = require("webextension-polyfill");
-
-import {
-  get,
-} from "lodash";
+import _ from "lodash";
 
 var domainExtension = false;
 var activeIcons = [];
 var galleryUrl;
-console.log( browser );
+
 browser.storage.local.get(['extras']).then(data => {
   galleryUrl = _.get(data, 'extras.galleryUrl');
 });
@@ -73,7 +70,7 @@ browser.runtime.onMessage.addListener( async (message, sender) => {
     
     // Open the output page
     browser.tabs.create({
-      url: galleryUrl || "./gallery/index.html",
+      url: galleryUrl || "./gallery.html",
       active: true,
       index: sender.tab.index + 1,
     });
@@ -107,6 +104,7 @@ browser.tabs.onActivated.addListener((activeInfo) => {
       // browser.action.show(tabId);
     }
     else {
+      console.log( 'trying to set gray icon' )
       browser.action.setIcon({
         tabId: activeInfo.tabId,
         path: 'assets/icons-gray/16.png'
@@ -216,7 +214,7 @@ function contextEvents( info, tab ) {
     }
   }
   else if ( info.menuItemId === 'ale-to-gallery' ) {
-    newTab.url = galleryUrl || "./gallery/index.html";
+    newTab.url = galleryUrl || "./gallery.html";
     browser.tabs.create(newTab);
   }
   else if ( info.menuItemId === 'ale-to-docs' ) {

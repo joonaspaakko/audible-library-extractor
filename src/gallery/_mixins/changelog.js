@@ -7,6 +7,16 @@ export default {
       
       changeLog: [
         {
+          version: 'v.0.2.9',
+          highlights: `Full extraction recommended.`,
+          changes: [
+            {
+              description: `Up to this version the extension used to add global CSS styling that slightly modified the CSS in the library. It added very small unnoticable changes, like shifting text a little bit, but now it's fixed.`,
+              class: 'fixed',
+            },
+          ],
+        },
+        {
           version: 'v.0.2.8',
           highlights: `The "Audible Library Extractor" button in Audible's website now looks like a button and was moved above the search input, because Audible continually made small changes and it could no longer fit where it used to be.`,
           changes: [

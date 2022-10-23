@@ -7,7 +7,7 @@ export default {
       
       const config = _.get(hotpotato, 'config');
       const step = {
-        library: _.find(_.get(config, 'steps'), { name: "library" }),
+        library: _.find(_.get(config, 'steps'), { name: "books" }),
         test: _.get(config, 'seriesTest'),
       };
       
@@ -190,6 +190,7 @@ export default {
       vue.amapxios({
         requests: requestUrls,
         step: function(response, stepCallback, request) {
+                    
           const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
           response.data = null;
     

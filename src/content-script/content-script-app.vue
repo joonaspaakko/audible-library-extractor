@@ -86,10 +86,9 @@ export default {
     
     const vue = this;
     
-    this.$compEmitter.on("do-next-step", function(o) {
-      vue["init_step_" + o.step](o.config);
+    this.$compEmitter.on("start-extraction", (o) => {
+      this["init_step_" + o.step](o.config);
     });
-    
     
     // vue.init_purchaseHistoryTest();
     if ( _.get( this.doStorePageTest, 'length', 0 ) > 0 ) this.init_storePageTest();
@@ -101,11 +100,11 @@ export default {
     
   },
   
-  mounted: function() {
-    this.$nextTick(function() {
-      // this.startConsole();
-    });
-  },
+  // mounted: function() {
+  //   this.$nextTick(function() {
+  //     // this.startConsole();
+  //   });
+  // },
   
   methods: {
     init_step_extract: function( config ) {
@@ -136,7 +135,7 @@ export default {
           
           const maxSteps = config.steps ? _.filter(config.steps, function(o) { return o.value; }).length : waterfallArray.length - 1 // First function is just a kind of a failsafe and doesn't count
           vue.$store.commit('update', { key: 'bigStep.max', value: maxSteps });
-
+          
           waterfall(waterfallArray, function(err, hotpotato) {
             
             vue.$store.commit('resetProgress');
@@ -157,7 +156,9 @@ export default {
             //     max: 0
             //   });
             // }
+            
             vue.goToOutputPage(hotpotato);
+            
           });
         });
         

@@ -3,7 +3,7 @@ export default {
     getDataFromLibraryPagesFin: function(hotpotato, libraryPagesFetched) {
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "books" }) ) {
           
         // this.$root.$emit("update-progress", {
         //   text: 'Double checking book status...'

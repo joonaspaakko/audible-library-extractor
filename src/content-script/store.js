@@ -4,6 +4,8 @@ import { createStore } from 'vuex';
 
 export default createStore({
   state: {
+    appVersion: $version,
+    localStorageName: 'ale-content-script-settings',
     canceledRequests: [],
     progress: {
       text: null,
@@ -29,8 +31,14 @@ export default createStore({
       wishlist: null,
       collections: null,
     },
+    toastOpts: {
+      position: 'top',
+      duration: 4000,
+    },
     storageConfig: {},
-    dataVersion: {},
+    dataVersion: null,
+    extractBtnDisabled: false,
+    extractionButtonDisabled: false,
     extractSettings: [
       {
         label: "Library",
@@ -41,6 +49,8 @@ export default createStore({
         tippy: "Library is required in order to extract collections and isbn.",
         trashTippy: 'This will also remove Collections and ISBN data.',
         kind: 'main',
+        deleteChunks: ['books', 'series', 'collections'],
+        partialData: true,
       },
       {
         label: "Collections",
@@ -48,9 +58,10 @@ export default createStore({
         parent: 'books',
         value: true,
         disabled: false,
-        type: "is-info",
-        tippy: "Super quick extraction that just needs to check the first <br>page of each collection to find out the title and description",
+        type: "is-success",
+        tippy: "Very quick extraction that just needs to check the first page of each collection to find out the title and description",
         kind: 'main',
+        partialData: true,
       },
       {
         label: "ISBN",
@@ -58,9 +69,10 @@ export default createStore({
         parent: 'books',
         value: false,
         disabled: false,
-        type: "is-danger",
-        tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. <br>ISBNs are fetched for library books and not for books in the wishlist. Very slow extraction.",
+        type: "is-success",
+        tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. ISBNs are fetched for library books only. Very slow extraction time.",
         kind: 'main',
+        partialData: true,
       },
       {
         label: "Wishlist",
@@ -68,8 +80,9 @@ export default createStore({
         value: false,
         disabled: false,
         type: "is-success",
-        tippy: "Similar to library extraction but series order is not fetched. Books that also exist in your library are dropped <br>off as long as you also extract library data.",
+        tippy: "Similar to library extraction but series order is not fetched. Books that also exist in your library are dropped off as long as you also extract library data.",
         kind: 'main',
+        partialData: true,
         // cannotAccessTippy: this.cannotAccessWishlist ? '<a href="https://audible.com/login">audible.com/login</a>' : null,
       },
       {
@@ -84,8 +97,19 @@ export default createStore({
   mutations: {
 
     fromLocalStorage: function(state) {
-      const lsState = JSON.parse(localStorage.getItem("ale-content-script"));
-      if (lsState) _.merge( state.sticky, lsState );
+      let lsState = localStorage.getItem( state.localStorageName );
+      if ( lsState && lsState != "undefined" ) {
+        lsState = JSON.parse( lsState );
+        const settings = _.map( lsState, function(o) {
+          return { 
+            disabled: o.disabled,
+            value: o.value,
+          };
+        });
+        
+        _.merge( state.extractSettings, settings );
+        
+      }
     },
 
     update(state, config) {
@@ -115,13 +139,13 @@ export default createStore({
     
     resetProgress: function( state ) {
       
-      state.progress.text = null;
+      state.progress.text       = null;
       state.progress.textSuffix = null;
-      state.progress.text2 = null;
-      state.progress.step = 0;
-      state.progress.max = 0;
-      state.progress.bar = false;
-      state.progress.thumbnail = null;
+      state.progress.text2      = null;
+      state.progress.step       = 0;
+      state.progress.max        = 0;
+      state.progress.bar        = false;
+      state.progress.thumbnail  = null;
       
     },
     
@@ -156,6 +180,45 @@ export default createStore({
     
     mainDataExists: function( state ) {
       return state.storageHasData.books || state.storageHasData.wishlist;
+    },
+    
+    
+    setting: ( state ) => ( settingName ) => {
+      return _.find(state.extractSettings, { name: settingName });
+    },
+    
+    partialDataSettings( state, getters ) {
+      
+      const partalData_Settings = _.filter( getters.settings_mainSteps, { partialData: true });
+      const keys = _.map( partalData_Settings, 'name');
+      
+      
+      // hasData.books || hasData.wishlist || hasData.isbn
+      // console.log( keys );
+      
+      const mainStepsData = _.map( keys, ( settingKey ) =>  {
+        return _.get( state.storageHasData, settingKey );
+      });
+      
+      return _.every( mainStepsData, true );
+      
+    },
+    
+    partialDataSettings( state, getters ) {
+      
+      const partalData_Settings = _.filter( getters.settings_mainSteps, { partialData: true });
+      const keys = _.map( partalData_Settings, 'name');
+      
+      return _.map( keys, ( settingKey ) =>  {
+        return _.get( state.storageHasData, settingKey );
+      });
+      
+    },
+    partialDataSettings_all( state, getters ) {
+      return _.every( getters.partialDataSettings, true );
+    },
+    partialDataSettings_any( state, getters ) {
+      return _.includes( getters.partialDataSettings, true );
     },
     
   }

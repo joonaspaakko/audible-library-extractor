@@ -47,6 +47,45 @@ const app = createApp(App);
 import mitt from 'mitt';
 app.config.globalProperties.$compEmitter = new mitt();
 
+
+app.config.globalProperties.$dataChecker = function( data, store ) {
+  
+  store = this.$store || store;
+  
+  // Storage data is dropped immediately. I just want to know if the data exists
+  // in load so I can enable/disable things based on that info.
+  // Later it's fetched again if needed.
+  const dataChunks = _.get(data, 'chunks', []);
+  const storageHasData = dataChunks.length > 0;
+  store.commit('update', [
+    { key: 'storageHasData.books', 			 value: dataChunks.indexOf('books') > -1 },
+    { key: 'storageHasData.isbn', 			 value: dataChunks.indexOf('isbn') > -1 ? checkISBNs( data ) : false },
+    { key: 'storageHasData.wishlist', 	 value: dataChunks.indexOf('wishlist') > -1 },
+    { key: 'storageHasData.collections', value: dataChunks.indexOf('collections') > -1 },
+    { key: 'storageConfig', value: data.config || {} },
+    { key: 'dataVersion', value: data.version || null },
+  ]);
+  
+  function checkISBNs( data ) {
+    
+    let foundISBNs = false;
+    _.each( _.range( 0, data['books-chunk-length'] ), function( index ) {
+      
+      const booksChunk = data['books-chunk-'+index];
+      const isbns = _.find( booksChunk, 'isbns' );
+      if ( isbns ) {
+        foundISBNs = true;
+        return false;
+      }
+      
+    });
+    
+    return foundISBNs;
+    
+  }
+  
+};
+
 import Toaster from "@meforma/vue-toaster";
 app.use(Toaster);
 
@@ -167,27 +206,18 @@ browser.runtime.onMessage.addListener(message => {
 
 function audibleLibraryExtractor(data) {
   
+  // Get local storage settings on load
   store.commit("fromLocalStorage");
+  // Set settings to local storage on mutate
+  store.subscribe(function(mutation, state) {
+    localStorage.setItem( state.localStorageName, JSON.stringify( state.extractSettings ));
+  });
   
   $('<div>', { id: 'audible-library-extractor'}).prependTo("body");
   
-  // Storage data is dropped immediately. I just want to know if the data exists
-  // in load so I can enable/disable things based on that info.
-  // Later it's fetched again if needed.
-  const dataChunks = _.get(data, 'chunks', []);
-  const storageHasData = dataChunks.length > 0;
   
-	if ( storageHasData ) {
-		store.commit('update', [
-			{ key: 'storageHasData.books', 			 value: dataChunks.indexOf('books') > -1 },
-			{ key: 'storageHasData.isbn', 			 value: dataChunks.indexOf('books') > -1 ? checkISBNs( data ) : false },
-			{ key: 'storageHasData.wishlist', 	 value: dataChunks.indexOf('wishlist') > -1 },
-			{ key: 'storageHasData.collections', value: dataChunks.indexOf('books') > -1 },
-			{ key: 'storageConfig', value: data.config || {} },
-			{ key: 'dataVersion', value: data.version || {} },
-		]);
-	}
-
+  app.config.globalProperties.$dataChecker( data, store );
+  
   app.directive("visible", function(el, binding) {
     el.style.visibility = !!binding.value ? "visible" : "hidden";
   });
@@ -215,23 +245,6 @@ function audibleLibraryExtractor(data) {
   //   }
   // });
   
-  function checkISBNs( data ) {
-    
-    let foundISBNs = false;
-    _.each( _.range( 0, data['books-chunk-length'] ), function( index ) {
-      
-      const booksChunk = data['books-chunk-'+index];
-      const isbns = _.find( booksChunk, 'isbns' );
-      if ( isbns ) {
-        foundISBNs = true;
-        return false;
-      }
-      
-    });
-    
-    return foundISBNs;
-    
-  }
 }
 
 

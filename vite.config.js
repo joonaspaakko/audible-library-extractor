@@ -29,8 +29,8 @@ export default defineConfig({
     chunkSizeWarningLimit: 800, // KB
     rollupOptions: {
       input: {
-        'content-script': src('content-script/audible-library-extractor-content-script.js'),
-        'gallery': './gallery.html',
+        // 'content-script': src('content-script/audible-library-extractor-content-script.js'),
+        gallery: 'gallery.html',
         // 'wallpaper-creator': fileURLToPath(new URL('./resources/auth/index.html', import.meta.url)),
       },
       output: {
@@ -54,6 +54,7 @@ export default defineConfig({
       'async-es/mapLimit',
       'async-es/waterfall',
       'domurl',
+      'file-saver',
     ],
   },
   // Basically string replacements. You can think of as a global immutable variable.

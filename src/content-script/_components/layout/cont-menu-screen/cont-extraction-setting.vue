@@ -1,8 +1,12 @@
 <template>
-	<div class="field has-addons" style="margin: 5px;" v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy">
+	<div 
+		class="field has-addons" 
+		style="margin: 5px;" 
+		v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy"
+	>
 		<!-- NUMBER -->
 		<p class="control pointer">
-			<button class="setting-numbers-wrapper button is-small" @click="settingChanged()">
+			<button class="setting-numbers-wrapper button is-small" @click="settingChanged()" :disabled="settingDisabled">
 				<div class="button">
 					<span class="step-number">{{ index+1 }}</span>
 				</div>
@@ -10,8 +14,8 @@
 		</p>
 		<!-- CHECKBOX -->
 		<p class="control pointer">
-			<button class="checbox-wrapper button is-small" @click="settingChanged()">
-				<div class="button" :class="[ setting.value ? setting.type : null ]" :disabled="setting.disabled === false ? null : true">
+			<button class="checbox-wrapper button is-small" @click="settingChanged()" :disabled="settingDisabled">
+				<div class="button" :class="[ setting.value ? setting.type : null ]">
 					<zondicons-checkmark v-if="setting.value" />
 					<ic-outline-circle v-else style="opacity: .7;"/>
 				</div>
@@ -19,18 +23,18 @@
 		</p>
 		<!-- LABEL -->
 		<p class="control full-width pointer" v-tippy :content="setting.tippy">
-			<button class="button checkbox-btn is-small">
+			<button class="button checkbox-btn is-small" :disabled="settingDisabled" @click="settingChanged()">
 				<label class="checkbox">
-					<input type="checkbox" :disabled="setting.disabled" :value="setting.value" @change="settingChanged()">
 					{{ setting.label }}
 				</label>
 			</button>  
 		</p>
 		<!-- REMOVE -->
 		<p class="control delete-btn" v-if="settingHasData" v-tippy :content="'Remove previously extracted data.' + ( setting.trashTippy ? '<br>' + setting.trashTippy : '' ) ">
-			<button class="button is-small remove-individual-sections-icon" @click="deleteData( setting )">
+			<button class="button is-small remove-individual-sections-icon" @click="deleteChunkData( setting.deleteChunks || [setting.name] )">
 				<span class="icon is-small">
 					<bi-trash3/>
+					<!-- <heroicons-outline-trash/> -->
 				</span>
 			</button>  
 		</p>
@@ -48,7 +52,10 @@ export default {
 	
 	computed: {
 		settingHasData() {
-			return _.get(this.store.storageHasData, this.setting.name );
+			return _.get(this.$store.state.storageHasData, this.setting.name );
+		},
+		settingDisabled() {
+			return this.setting.disabled === false ? null : true;
 		},
 	},
 	
@@ -90,11 +97,88 @@ export default {
 				
 			}
 			
-			console.log('update', update)
-			
 			this.$store.commit('updateSetting', update);
 			
 		},
+    
+    deleteChunkData: function( deleteArray, onSuccess ) {
+      
+      let vue = this; 
+      vue.loading = true; 
+      
+      let confirmation = window.confirm('Delete "'+ this.setting.label +'" data?');
+      if ( !confirmation ) return;
+			
+      let keysString = deleteArray.join(', ').replace('books', 'library');
+      let errorMsg = "Failed to remove data for: <strong>" + keysString + "</strong>";
+      let successMsg = "Successfully removed data for: <strong>" + keysString + "</strong>";
+      
+      let errorNotification = function( e ) {
+        vue.loading = false; 
+        vue.$toast.error( errorMsg + ' ('+ e +')', vue.toastOpts);
+      };
+      
+      browser.storage.local.get(null).then(data => {
+        
+        _.each( deleteArray, function( deleteKey ) {
+          
+          let realKey;
+          if ( deleteKey === 'isbn' ) {
+            deleteKey = 'books';
+            realKey = 'isbn';
+          }
+          
+          // REMOVE CHUNK ARRAYS
+          _.each( _.range( 0, data[ deleteKey + '-chunk-length'] ), function( index ) { 
+            if ( realKey === 'isbn' ) {
+              _.each( data[ 'books-chunk-'+index ], function( book ) {
+                if ( book.isbns ) delete book.isbns;
+              });
+            }
+            else {
+              delete data[ deleteKey + '-chunk-'+index ];
+            }
+          });
+          
+          if ( deleteKey !== 'books' || deleteKey === 'books' && realKey !== 'isbn' ) {
+            // REMOVE CHUNK LENGTH
+            delete data[deleteKey + '-chunk-length'];
+            
+            // REMOVE FROM CHUNKS ARRAY (basically array of data point keys)
+            _.remove( data.chunks, function( value ) {
+              return value === deleteKey;
+            });
+          }
+          
+          if ( deleteKey === 'books') {
+            _.remove( data.chunks, function( value ) {
+              return value === 'isbn';
+            });
+          }
+          
+          delete data.version[ deleteKey === 'books' ? 'library' : deleteKey ];
+          
+          if ( data.config && data.config.steps ) delete data.config.steps;
+          
+        });
+        
+        if ( data.chunks.length < 1 ) delete data.chunks;
+        
+        browser.storage.local.clear().then(() => {
+          browser.storage.local.set(data).then(() => {
+            
+            if ( onSuccess ) onSuccess( data );
+          
+            vue.$toast.success( successMsg, vue.store.toastOpts );
+            
+						vue.$dataChecker( data );
+            
+          }).catch( errorNotification );
+        }).catch( errorNotification );
+        
+      }).catch( errorNotification );
+      
+    },
 		
 	}
 }
@@ -109,7 +193,7 @@ export default {
 	}
 	
 	.checkbox {
-		padding: 0 17px;
+		padding: 0px 15px;
 	}
 	
 	.checkbox input {

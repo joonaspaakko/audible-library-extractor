@@ -5,7 +5,7 @@ export default {
     getDataFromLibraryPages: function(hotpotato, libraryPagesFetched) {
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "books" }) ) {
         
         this.$store.commit('update', [
           { key: 'bigStep.title', value: 'Library' },

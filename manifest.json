@@ -11,9 +11,9 @@
   },
   "action": {
     "default_icon": {
-      "16": "assets/icons/16.png",
-      "48": "assets/icons/48.png",
-      "128": "assets/icons/128.png"
+      "16": "assets/icons-gray/16.png",
+      "48": "assets/icons-gray/48.png",
+      "128": "assets/icons-gray/128.png"
     }
   },
   "permissions": [
@@ -66,7 +66,8 @@
     "js": ["src/content-script/audible-library-extractor-content-script.js"]
   }],
   "background": {
-    "service_worker": "src/background.js"
+    "service_worker": "src/background.js",
+    "type": "module"
   },
   "content_security_policy": {
     "extension_pages": "script-src 'self'; object-src 'self'"

@@ -6,13 +6,13 @@
     <cont-extraction-settings />
   
     <!-- INLINE MESSAGES -->
-    <article v-if="dataVersionMismatch.length > 0" class="message is-danger">
+    <!-- <article v-if="dataVersionMismatch.length > 0" class="message is-danger">
       <div class="message-body">
         You should <span class="init-show-detele-btns" @mouseover="showDeleteBtns = true" @mouseleave="showDeleteBtns = false">remove</span> <strong>{{ dataVersionMismatch.join(', ') }}</strong> data and re-extract to get the most out of the new version.
       </div>
-    </article>
+    </article> -->
     
-    <article v-if="hasData.books || hasData.wishlist || hasData.isbn" class="message is-info">
+    <article v-if="$store.getters.partialDataSettings_any" class="message is-info">
       <div class="message-body">
         <strong>Previously extracted data detected: <span style="color: #f7991c;">a faster <span v-tippy="{ allowHTML: true }" content="<div style='display: block; text-align: left;'><ol style='margin-left: 15px;'><li>Updates stored data that is likely to change</li><li>Does a full extract on newly added books</li><li>Clears data of removed books</li></ol><span style='display: inline-block; margin-top: 6px; color: #157df0;'>In the case of ISBN extraction, books that already have ISBNs are ignored. A large amount of books (+100) without the numbers will still take quite a while to extract.</span></div>" style="cursor: default; text-decoration: underline">partial extraction</span> is used</span> <span class="init-show-partial-extraction" style="color: #f7991c;" @mouseover="showPartialExtraction = true" @mouseleave="showPartialExtraction = false">where applicable.</span></strong> 
         <br>
@@ -28,12 +28,12 @@
           <article class="message is-warning">
             <div class="message-body">
               Try to open your
-              <a @click="cannotAccessWishlist = false; extractionButtonDisabled = false;" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
+              <a target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
               After that try  to redo the extraction. <strong>The link will open in a new tab!</strong>
             </div>
           </article>
         </div>
-        <div v-else-if="extractBtnDisabled">
+        <div v-else-if="store.extractBtnDisabled">
           
           <div class="progress-wrapper">
             <progress class="progress is-warning is-large" max="100" style="min-width: 288px;">75%</progress>
@@ -42,7 +42,7 @@
           
         </div>
         
-        <div class="field has-addons extract-btn" v-show="!extractionButtonDisabled && !loading" v-else>
+        <div class="field has-addons extract-btn" v-show="!store.extractionButtonDisabled && !loading" v-else>
           <p class="control">
             <button class="button is-info extract is-large" @click="extract" expanded>
               Extract selected items
@@ -50,7 +50,7 @@
           </p>
           <p class="control">
             <button class="button is-dark is-large" @click="extract">
-              <mdi-arrow-down-circle/>
+              <ph-arrow-circle-right-bold/>
             </button>
           </p>
         </div>
@@ -66,7 +66,7 @@
           </a>
           <a
             class="button control is-small"
-            :disabled="outputPageDisabled"
+            :disabled="!$store.getters.settings_mainSteps ? true : null"
             @click="takeNextStep('output')"
           >
             Open gallery <ri-external-link-line/>
@@ -75,17 +75,7 @@
       </div>
     </div>
 
-    <button
-    class="button is-small is-text settings-btn"
-    v-tippy="{ 
-      allowHTML: true, 
-      trigger: 'click',
-      interactive: true,
-    }"
-    :content="getChangelog()"
-    >
-      <ph-code-bold/> Changelog
-    </button>
+    <cont-changelog></cont-changelog>
 
 
     <div id="footer" class="is-small has-text-grey-light">
@@ -119,9 +109,9 @@
         <img src="https://img.shields.io/amo/v/audible-library-extractor?label=latest%20release (Firefox)" alt="">
       </a>
       
-      <div v-if="extensionVersion" style="margin-top: 10px;">
+      <div style="margin-top: 10px;">
         <span style="border: 1px dashed #e1e1e1; padding: 10px 15px; display: inline-block;">
-          You're currently using <strong>version {{ extensionVersion }}</strong>.
+          You're currently using <strong>version {{ store.appVersion }}</strong>.
         </span>
       </div>
     </div>
@@ -135,20 +125,17 @@
 
 <script>
 import helpers from "@contscript-mixins/misc/helpers.js";
-import changelog from "@output-mixins/changelog.js";
 
 export default {
   name: "menuScreen",
   props: ["domainExtension", "wishlistUrl"],
-  mixins: [ changelog, helpers ],
+  mixins: [ helpers ],
   data() {
     return {
+      store: this.$store.state,
       hasData: null,
       hasConfig: null,
-      extractionButtonDisabled: false,
-      outputPageDisabled: false,
       settingsOpen: true,
-      extractSettings: null,
       loading: true,
       isFirefox: false,
       isChrome: false,
@@ -157,7 +144,6 @@ export default {
       showPartialExtraction: false,
       exportRawDataDisabled: false,
       cannotAccessWishlist: false,
-      extractBtnDisabled: false,
     };
   },
   
@@ -165,7 +151,7 @@ export default {
     
     dataVersionMismatch: function() {
       
-      // const extensionVersion = this.extensionVersion;
+      // const extensionVersion = this.store.appVersion;
       // const dataVersions = this.$store.state.dataVersion;
       // const hasData = this.hasData;
     
@@ -198,43 +184,17 @@ export default {
     
     this.checkBrowser();
     this.makeReleaseURLs();
-    this.getCurrentVersion();
     
   },
 
   mounted: function() {
-    
-    const vue = this;    
+      
     // Just to make sure that accidental clicks don't do anything when the overlay is opened
     // - If the button that opens the overlay was perfectly aligned with any of the buttons in this component, a double click would start doing things prematurely
     this.$nextTick(function() {
-      
-      this.loading = false; 
-      
-      // // Updates default values from browser storage
-      // if ( this.hasConfig.steps) {
-      //   _.each(this.extractSettings, function(step) {
-      //     step.value = false; // Reset steps
-      //   });
-      //   _.each(this.hasConfig.steps, function(step) {
-      //     let foundOriginalDolly = _.find(vue.extractSettings, { name: step.name });
-      //     if ( foundOriginalDolly ) foundOriginalDolly.value = step.value;
-      //   });
-        
-      // }
-      // if ( this.hasConfig.extraSettings ) {
-      //   _.each( this.hasConfig.extraSettings, function( setting ) {
-      //     let original = _.find( vue.extractSettings, { name: setting.name });
-      //     if ( original ) original.value = setting.value;
-      //   });
-      // }
-      
-      // this.updateSettings(function() {
-      //   setTimeout(function() {
-      //     vue.loading = false;          
-      //   }, 100);
-      // });
-      
+      setTimeout(() => {
+        this.loading = false;          
+      }, 300);
     });
 
   },
@@ -257,249 +217,24 @@ export default {
       
     },
     
-    
-    checkISBNs: function( data ) {
-      
-      let foundISBNs = false;
-      _.each( _.range( 0, data['books-chunk-length'] ), function( index ) {
-        
-        const booksChunk = data['books-chunk-'+index];
-        const isbns = _.find( booksChunk, 'isbns' );
-        if ( isbns ) {
-          foundISBNs = true;
-          return false;
-        }
-        
-      });
-      
-      return foundISBNs;
-      
-    },
-    
-    
-    getCurrentVersion: function() {
-      this.extensionVersion = browser.runtime.getManifest().version;
+    checkBrowser: function() {
+      this.isFirefox = browser.runtime.getURL('').startsWith('moz-extension://');
+      this.isChrome = browser.runtime.getURL('').startsWith('chrome-extension://');
     },
     
     makeReleaseURLs: function() {
       this.releaseURL = this.isFirefox ? 'https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall' : 'https://addons.mozilla.org/firefox/addon/audible-library-extractor/';
     },
     
-    checkBrowser: function() {
-      this.isFirefox = browser.runtime.getURL('').startsWith('moz-extension://');
-      this.isChrome = browser.runtime.getURL('').startsWith('chrome-extension://');
-    },
-    
-    unselectAll: function() {
-      _.each( this.extractSettings, function( setting ) {
-        if ( !setting.extra ) setting.value = false;
-      });
-      this.extractionButtonDisabled = true;
-    },
-    selectAll: function() {
-      _.each( this.extractSettings, function( setting ) {
-        if ( !setting.extra ) setting.value = true;
-      });
-      this.extractionButtonDisabled = false;
-    },
-    
-    clearStoredData: function() {
-      let vue = this;
-      let confirmation = window.confirm('Are you sure you want to remove all extracted data?');
-      if ( confirmation ) {
-        let errorNotification = function() {
-          vue.loading = false; 
-          vue.$buefy.notification.open({
-            duration: 4000,
-            message: 'Data clear failed',
-            type: 'is-danger',
-            position: 'is-top',
-            closable: false,
-          });
-        };
-        
-        browser.storage.local.clear().then(function() {
-          browser.storage.local.get(null).then(data => {
-            vue.updateViewData(data);
-        
-            vue.$buefy.notification.open({
-              duration: 4000,
-              message: 'Data removed succesfully',
-              type: 'is-success',
-              position: 'is-top',
-              closable: false,
-            });
-            
-          }).catch( errorNotification );
-        }).catch( errorNotification );
-      };
-    },
-    
-    exportRawData: function() {
-      let vue = this;
-      
-      vue.exportRawDataDisabled = true;
-      browser.storage.local.get(null).then(data => {
-        
-        if ( data.chunks ) vue.glueFriesBackTogether( data );
-        
-        delete data.imageEditorPageTitle;
-        delete data.imageEditorPageSubTitle;
-        delete data.imageEditorTimeCode;
-        delete data.imageEditorChunksLength;
-        delete data.imageEditorChunks;
-        
-        saveAs(new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"}), 'Audible Library Extractor Data.json');
-        
-        vue.exportRawDataDisabled = false;
-        
-        vue.$buefy.notification.open({
-          duration: 4000,
-          message: 'Data exported succesfully',
-          type: 'is-success',
-          position: 'is-top',
-          closable: false,
-        });
-      
-      }).catch(function( err ) {
-        
-        vue.exportRawDataDisabled = false;
-        vue.$buefy.notification.open({
-          duration: 4000,
-          message: 'Data export failed. Reload the page and try again.',
-          type: 'is-danger',
-          position: 'is-top',
-          closable: false,
-        });
-        
-      });
-    },
-    
-    deleteData: function( setting ) {
-      
-      let vue = this;
-      switch( setting.name ) {
-        case 'library':
-          vue.deleteChunkData(['books', 'series', 'collections']);
-          break;
-        case 'isbn':
-          vue.deleteChunkData(['isbn']);
-          break;
-        default:
-          vue.deleteChunkData([ setting.name ]);
-          break;
-      }
-      
-    },
-    
-    deleteChunkData: function( deleteArray, onSuccess ) {
-      
-      let vue = this; 
-      vue.loading = true; 
-      
-      let keysString = deleteArray.join(', ').replace('books', 'library');
-      let errorMsg = "Failed to remove data for: <strong>" + keysString + "</strong>";
-      let successMsg = "Successfully removed data for: <strong>" + keysString + "</strong>";
-      
-      let errorNotification = function() {
-        vue.loading = false; 
-        vue.$buefy.notification.open({
-          duration: 4000,
-          message: errorMsg,
-          type: 'is-danger',
-          position: 'is-top',
-          closable: false,
-        });
-      };
-      
-      browser.storage.local.get(null).then(data => {
-        
-        _.each( deleteArray, function( deleteKey ) {
-          
-          let realKey;
-          if ( deleteKey === 'isbn' ) {
-            deleteKey = 'books';
-            realKey = 'isbn';
-          }
-          
-          // REMOVE CHUNK ARRAYS
-          _.each( _.range( 0, data[ deleteKey + '-chunk-length'] ), function( index ) { 
-            if ( realKey === 'isbn' ) {
-              _.each( data[ 'books-chunk-'+index ], function( book ) {
-                if ( book.isbns ) delete book.isbns;
-              });
-            }
-            else {
-              delete data[ deleteKey + '-chunk-'+index ];
-            }
-          });
-          
-          if ( deleteKey !== 'books' || deleteKey === 'books' && realKey !== 'isbn' ) {
-            // REMOVE CHUNK LENGTH
-            delete data[deleteKey + '-chunk-length'];
-            
-            // REMOVE FROM CHUNKS ARRAY (basically array of data point keys)
-            _.remove( data.chunks, function( value ) {
-              return value === deleteKey;
-            });
-          }
-          
-          if ( deleteKey === 'books') {
-            _.remove( data.chunks, function( value ) {
-              return value === 'isbn';
-            });
-          }
-          
-          delete data.version[ deleteKey === 'books' ? 'library' : deleteKey ];
-          
-          if ( data.config && data.config.steps ) delete data.config.steps;
-          
-        });
-        
-        if ( data.chunks.length < 1 ) delete data.chunks;
-        
-        browser.storage.local.clear().then(() => {
-          browser.storage.local.set(data).then(() => {
-            
-            if ( onSuccess ) onSuccess( data );
-          
-            vue.$buefy.notification.open({
-              duration: 4000,
-              message: successMsg,
-              type: 'is-success',
-              position: 'is-top',
-              closable: false,
-            });
-            
-            vue.updateViewData( data );
-            
-          }).catch( errorNotification );
-        }).catch( errorNotification );
-        
-      }).catch( errorNotification );
-      
-    },
-    
-    partialExtraction: function( setting ) {
-      
-      const library = _.filter( this.extractSettings, { name: 'library' });
-      
-      this.takeNextStep('update', {
-        steps: _.map( library, function(o) {
-          return { name: o.name, value: o.value };
-        })
-      });
-      
-    },
-    
     extract: function() {
       
       let vue = this;
       
-      if ( this.settingWishlist.value ) {
+      // Going to extract wishlist...?
+      if ( this.$store.getters.setting('wishlist').value ) {
         
-        vue.extractBtnDisabled = true;
-        vue.extractionButtonDisabled = true;
+        this.$store.commit('update', {  key: 'extractBtnDisabled', value: true });
+        this.$store.commit('update', {  key: 'extractionButtonDisabled', value: true });
         
         // I don't know the full logic, but Audible tends to require a login to certain pages after you haven't in a while. 
         // I think it might just do that for any page you haven't visited after a while. The only evidence I have is that I visit
@@ -513,7 +248,7 @@ export default {
             vue.cannotAccessWishlist = true;
           },
           finally: function() {
-            vue.extractBtnDisabled = false;
+            vue.$store.commit('update', {  key: 'extractBtnDisabled', value: false });
           },
         });
       }
@@ -525,107 +260,22 @@ export default {
     
     takeNextStep: function(step, config) {
       
-      
       if ( !config ) {
         config = {
-          steps: _.map( _.filter( this.extractSettings, function( o ) { return o.value && !o.extra }), function(o) {
+          steps: _.map( _.filter( this.store.extractSettings, function( o ) { return o.value && !o.extra }), function(o) {
             return { name: o.name, value: o.value };
           })
         };  
       }
       
-      config.extraSettings = _.map( _.filter( this.extractSettings, 'extra'), function(o) {
+      config.extraSettings = _.map( _.filter( this.store.extractSettings, 'extra'), function(o) {
         return { name: o.name, value: o.value, deactivated: false };
       });
       
-      this.$compEmitter.emit("do-next-step", {
+      this.$compEmitter.emit("start-extraction", {
         step: step,
         config: config
       });
-      
-    },
-    
-    resetNewTitles: function() {
-      
-      let confirmation = window.confirm('Are you sure you want to clear new book status?');
-      if ( confirmation ) {
-        
-        let vue = this;
-        let errorNotification = function() {
-          vue.loading = false; 
-          vue.$buefy.notification.open({
-            duration: 4000,
-            message: 'Failed to remove "new" status from books',
-            type: 'is-danger',
-            position: 'is-top',
-            closable: false,
-          });
-        };
-        
-        browser.storage.local.get(null).then(data => {
-          
-          _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
-            
-            let booksChunk = data[ 'books-chunk-'+index ];
-            _.each( booksChunk, function( book ) { if (book.isNew) delete book.isNew; });
-            
-          });
-          
-          _.each( _.range( 0, data[ 'wishlist-chunk-length'] ), function( index ) { 
-            
-            let wishlistChunk = data[ 'wishlist-chunk-'+index ];
-            _.each( wishlistChunk, function( book ) { if (book.isNew) delete book.isNew; });
-            
-          });
-          
-          browser.storage.local.clear().then(() => {
-            browser.storage.local.set(data).then(() => {
-            
-              vue.$buefy.notification.open({
-                message: 'All "new" books succesfully reset',
-                type: 'is-success',
-                position: 'is-top',
-                closable: false,
-              });
-              
-            }).catch( errorNotification );
-          }).catch( errorNotification );
-          
-        }).catch( errorNotification );
-        
-      }
-      
-    },
-    
-    getChangelog: function() {
-      
-      
-      let changelogInnerHTML = '';
-      
-      _.each( this.changeLog, function( versionBlock ) {
-        
-        changelogInnerHTML += '<strong style="display: inline-block; width: 100%; font-size: 16px;">'+ versionBlock.version +'</strong>';
-        changelogInnerHTML += versionBlock.highlights ? '<div style="padding: 6px; margin: 6px 0 7px; color: rgb(128 93 54); background: rgb(246, 153, 50, .06); border: 1px solid rgb(246, 153, 50, .2);">'+ versionBlock.highlights +'</div>' : '';
-        changelogInnerHTML += '<ul class="changelog-list" style="display: inline-block; width: 100%; box-sizing: border-box;">';
-        _.each( versionBlock.changes, function( change ) {
-          if ( change.divider ) {
-            changelogInnerHTML += '<li style="height: 0px; border: 1px dashed #f1f1f1; margin: 5px 0; width: 100%;"></li>';
-          }
-          else {
-            let linkText;
-            if ( change.link ) linkText = change.highlight ? ('<strong>' + change.link.text + '</strong>') : change.link.text;
-            changelogInnerHTML += '<li class="'+ (change.class || '') +'">'+
-              (change.link ? '<a target="_blank" rel="noopener noreferrer" href="'+ change.link.href +'">'+ linkText +'</a>: ' : '') + 
-              (change.description || '')
-            +'</li>';
-          }
-        });
-        changelogInnerHTML += '</ul>';
-        changelogInnerHTML += '<br><br>';
-      });
-      
-      let changelogHTML = '<div style="text-align: left; max-height: 350px; overflow: scroll; padding: 20px;">'+ changelogInnerHTML +'</div>';
-      return changelogHTML;
       
     },
     
@@ -687,10 +337,29 @@ body > .notices {
       color: darken(#b5b5b5, 10);
     }
   }
+  
+  .progress-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    .progress { margin-bottom: 0 !important; }
+    small {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 5;
+    }
+  }
 
   .extract-wrapper {
     display: inline-block;
-    margin: 35px auto 0;
+    margin: 20px auto 0;
     .field-body { width: 100%; }
   }
 
@@ -701,6 +370,10 @@ body > .notices {
     button.extract {
       padding: 5px 15px 4px !important;
       border-radius: 4px 0 0 4px;
+      background: #1b7dd1 !important;
+    }
+    button.is-dark {
+      background: #555 !important;
     }
   }
 
@@ -708,7 +381,7 @@ body > .notices {
     position: relative;
     z-index: 1;
     padding-top: 10px;
-    margin: 20px auto 20px auto;
+    margin: 0px auto 20px auto;
     border: 1px solid #e1e1e1;
     border-radius: 6px;
 
@@ -772,10 +445,21 @@ body > .notices {
     }
 
     .setting-checkboxes {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      padding: 6px;
+      display: block;
+      padding: 20px 6px;
+      > div {
+        display: inline-block;
+			  padding-left: 11px;
+        &:first-child { padding-left: 0; }
+      }
+      @media ( max-width: 798px ) {
+        
+        padding: 20px;
+        > div {
+			    padding-left: 0px;
+          display: block;
+        }
+      }
       &, .field {
         margin: 0 !important;
       }
@@ -806,6 +490,10 @@ body > .notices {
           margin: 0; 
           .control-label { margin-top: -1px; }
         }
+        &:disabled {
+          opacity: 1;
+          border: 1px solid #ededed;
+        }
       }
       
       .full-width {
@@ -824,12 +512,17 @@ body > .notices {
         }
       }
       
-      .setting-numbers-wrapper,
-      .checbox-wrapper {
-        cursor: default;
-        border: 1px solid #dbdbdb !important;
+      button {
         outline: none !important;
         box-shadow: none !important;
+        border-color: #dbdbdb !important;
+        &:active { border-color: #4a4a4a !important; }
+      }
+      
+      .setting-numbers-wrapper,
+      .checbox-wrapper {
+        // cursor: default;
+        // border: 1px solid #dbdbdb !important;
         padding: 6px;
         > .button {
           border: none !important;
@@ -871,8 +564,8 @@ body > .notices {
     }
     svg { 
       margin-left: 6px; 
-      font-size: 17px;
-      line-height: 17px;
+      font-size: 15px;
+      line-height: 15px;
       position: relative;
       top: -2px;
     }
@@ -885,6 +578,9 @@ body > .notices {
     padding-top: 20px;
     padding-bottom: 60px;
     a, img { display: inline-block; }
+    a {
+      margin: 2px;
+    }
     &, * {
       transition: all 200ms ease;
       color: rgba(181, 181, 181, .5) !important;
@@ -957,25 +653,6 @@ body > .notices {
   }
 }
 
-.changelog-list {
-  li { position: relative; z-index: 1; }
-  li:before {
-    content: '';
-    position: absolute;
-    z-index: 4;
-    top: 5px;
-    height: 6px;
-    width: 6px;
-    left: -12px;
-    display: none;
-    border-radius: 9999999px;
-    background: red;
-  }
-  li.fixed:before    { background: #f25954; display: block; }
-  li.improved:before { background: #ba23ca; display: block; }
-  li.added:before    { background: #10c064; display: block; }
-}
-
 .extraction-loading,
 .extraction-loading .icon {
   font-size: 40px;
@@ -987,6 +664,10 @@ body > .notices {
       to { transform: rotate(360deg); }
     }
   }
+}
+
+.delete-btn svg {
+  color: red;
 }
 
 .show-partial-extraction .partial-extraction,
@@ -1018,23 +699,36 @@ body > .notices {
 .show-partial-extraction .partial-extraction:before {
   background: rgba(#47c78e, .25);
   outline: 2px solid rgba(#47c78e, .8);
-  top: 5px;
-  right: 5px;
-  bottom: 5px;
-  left: 5px;
 }
 
 
-.tippy-tooltip {
-  box-shadow: 0 10px 25px rgba(#000, .15), 0 5px 10px rgba(#000, .4) !important;
+.tippy-box {
+  box-shadow: 0 10px 25px rgba(#000, .2) !important;
+}
+.tippy-arrow {
+  color: #e1e1e1 !important;
 }
 .tippy-content {
   padding: 7px !important; 
+  background: #fff !important;
+  border: 1px solid #e1e1e1;
+  color: #151515 !important;
 }
 
 
 div.c-toast-container {
   z-index: 9999999999 !important;
+}
+
+.no-selection {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 
