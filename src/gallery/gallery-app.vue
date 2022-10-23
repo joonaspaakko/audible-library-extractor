@@ -72,7 +72,7 @@ export default {
     
   },
   
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     
     this.$root.$off('refresh-page', this.refreshPage);
 

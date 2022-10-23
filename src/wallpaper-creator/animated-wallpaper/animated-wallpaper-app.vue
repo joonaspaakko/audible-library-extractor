@@ -183,7 +183,7 @@ export default {
     
   },
   
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     
     window.removeEventListener('resize', this.windowResized);
     clearInterval( this.cycleInterval );

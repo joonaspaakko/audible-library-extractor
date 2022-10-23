@@ -23,7 +23,7 @@ export default {
       this.$root.$on('get-animation', this.sendAnimation);
     }
   },
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     if ( this.editorCovers ) {
       this.$root.$off('get-animation', this.sendAnimation);
     }

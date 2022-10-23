@@ -151,7 +151,7 @@ export default {
     this.$root.$on("resizeSummary", this.getSummaryMaxHeight);
   },
 
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     this.$root.$off("afterWindowResize", this.windowResized);
     this.$root.$off("resizeSummary", this.getSummaryMaxHeight);
   },

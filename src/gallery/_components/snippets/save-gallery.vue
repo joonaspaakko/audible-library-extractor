@@ -193,7 +193,7 @@ export default {
 
   },
 
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     this.zip = null;
     this.cacheBuster = null;
   },

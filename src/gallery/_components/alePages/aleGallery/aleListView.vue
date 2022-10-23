@@ -69,7 +69,7 @@ export default {
     this.setSpreadsheetOffset();
     this.$root.$on('afterWindowResize', this.setSpreadsheetOffset);
   },
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     this.$root.$off('afterWindowResize', this.setSpreadsheetOffset);
   },
 

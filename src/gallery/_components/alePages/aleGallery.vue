@@ -17,8 +17,8 @@
     
     <div v-if="!loading && $store.getters.collection && $store.getters.collection.length > 0">
       <div :style="galleryStyle">
-        <ale-grid-view @hook:mounted="gridViewMounted" @hook:beforeDestroy="viewsBeforeDestroy" v-if="$store.state.sticky.viewMode === 'grid'" />
-        <ale-list-view @hook:mounted="listViewMounted" @hook:beforeDestroy="viewsBeforeDestroy" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+        <ale-grid-view @hook:mounted="gridViewMounted" @hook:beforeUnmount="viewsbeforeUnmount" v-if="$store.state.sticky.viewMode === 'grid'" />
+        <ale-list-view @hook:mounted="listViewMounted" @hook:beforeUnmount="viewsbeforeUnmount" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
         <book-details v-if="mountedChildren && $route.query.book" :key="$route.query.book" :asin="$route.query.book" />
       </div>
     </div>
@@ -154,7 +154,7 @@ export default {
     });
   },
   
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     this.$root.$off("book-clicked", this.toggleBookDetails);
     // console.log('%c' + 'GALLERY.vue DESTROYED' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
     this.errorMessage = false;
@@ -291,7 +291,7 @@ export default {
       this.childrenMounted();
       
     },
-    viewsBeforeDestroy: function() {
+    viewsbeforeUnmount: function() {
       
       this.scrollContainer.removeEventListener('scroll', this.addDomItems);
       this.mountedChildren = false;

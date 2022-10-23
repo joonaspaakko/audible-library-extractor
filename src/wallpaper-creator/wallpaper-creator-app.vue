@@ -50,7 +50,7 @@ export default {
     
   },
 
-  beforeDestroy: function () {
+  beforeUnmount: function () {
     
     window.removeEventListener("mouseup", this.stopSlidingAround);
     window.removeEventListener('resize', this.windowResized);

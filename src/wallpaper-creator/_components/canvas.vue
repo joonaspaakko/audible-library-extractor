@@ -164,7 +164,7 @@ export default {
     
   },
 
-  beforeDestroy: function () {
+  beforeUnmount: function () {
     document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.moveableControlsHide);
     this.$root.$off('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);

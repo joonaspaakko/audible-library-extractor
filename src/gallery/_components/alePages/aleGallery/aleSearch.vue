@@ -145,7 +145,7 @@ export default {
     
   },
 
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     
     this.$store.commit("prop", { key: "searchQuery", value: '' });
     this.$refs.aleSearch.removeEventListener( "touchstart", this.iosAutozoomDisable);

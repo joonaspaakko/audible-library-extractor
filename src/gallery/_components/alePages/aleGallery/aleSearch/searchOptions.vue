@@ -76,7 +76,7 @@ export default {
 
   },
 
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     
     this.$root.$off("repositionSearchOpts", this.repositionSearchOptions);
     this.$root.$off("afterWindowResize", this.repositionSearchOptions);

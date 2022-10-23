@@ -76,7 +76,7 @@ export default {
 			
 	},
 	
-	beforeDestroy: function() {
+	beforeUnmount: function() {
 		
 		this.scrollContainer.removeEventListener('scroll', this.windowScrollStarted, { passive: true });
 			

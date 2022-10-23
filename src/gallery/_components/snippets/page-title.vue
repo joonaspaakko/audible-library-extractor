@@ -22,7 +22,7 @@ export default {
     
   },
   
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     this.$store.commit('prop', { key: 'pageTitle', value: null });
   },
   

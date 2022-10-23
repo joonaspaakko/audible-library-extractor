@@ -112,7 +112,7 @@ export default {
     this.$root.$on('nudge-left', this.nudgeLeft);
   },
 
-  beforeDestroy: function () {
+  beforeUnmount: function () {
     this.$root.$off('update-moveable-handles', this.updateHandles);
     this.$root.$off('nudge-up', this.nudgeUp);
     this.$root.$off('nudge-right', this.nudgeRight);

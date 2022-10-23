@@ -80,7 +80,7 @@ export default {
     
   },
   
-  beforeDestroy() {
+  beforeUnmount() {
     
     this.$root.$off("play-audio", this.initPlayer);
     this.destroyHowler();

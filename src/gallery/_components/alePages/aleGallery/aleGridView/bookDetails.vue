@@ -181,7 +181,7 @@ export default {
     });
   },
 
-  beforeDestroy: function() {
+  beforeUnmount: function() {
     
     if ( this.scrpt ) {
       this.scrpt.remove();

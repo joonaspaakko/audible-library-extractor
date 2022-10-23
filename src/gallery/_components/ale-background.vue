@@ -41,7 +41,7 @@ export default {
 
     this.$root.$on("afterWindowResize", this.onWindowResize);
   },
-  beforeDestroyed: function() {
+  beforeUnmounted: function() {
     this.$root.$off("afterWindowResize", this.onWindowResize);
     clearInterval(this.timer1);
     clearInterval(this.timer2);
