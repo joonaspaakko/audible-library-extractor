@@ -20,7 +20,7 @@
         
         <details-first-hider v-if="mobileWidth" />
         <sidebar-flipper />
-        <font-awesome class="book-details-info" :icon="['fas', 'cog']" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
+        <fa6-solid-gear class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
         <book-details-settings v-if="store.bookDetailSettingsOpen" />
         
         <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">
@@ -31,7 +31,7 @@
             v-tippy :content="(!sticky.bookDetailsCollapsedCover ? 'Collapse' : 'Expand') + ' cover image.'"
             :style="{ top: '5px' }"
             @click="collapseBtnClicked('bookDetailsCollapsedCover')">
-              <font-awesome fas :icon="!sticky.bookDetailsCollapsedCover ? 'chevron-up' : 'chevron-down'" />
+              <vertical-chevron :up="!sticky.bookDetailsCollapsedCover" />
             </div>
             
             <div class="cover-wrap">
@@ -57,7 +57,7 @@
               v-tippy :content="(!sticky.bookDetailsCollapsedDetails ? 'Collapse' : 'Expand') + ' book details.'"
               :style="{ top: !sticky.bookDetailsCollapsedDetails ? '25px' : '-10px' }" 
               @click="collapseBtnClicked('bookDetailsCollapsedDetails')">
-                <font-awesome fas :icon="!sticky.bookDetailsCollapsedDetails ? 'chevron-up' : 'chevron-down'" />
+                <vertical-chevron :up="!sticky.bookDetailsCollapsedDetails" />
               </div>
               
               <book-info-toolbar :book="book" v-if="sticky.bookDetailSettings.sidebar.iconToolbar"></book-info-toolbar>
@@ -95,42 +95,15 @@
 
 <script>
 // import sortBookNumbers from '@output-mixins/sort/bookNumbers';
-import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
-import secondsToTimeString from "@output-mixins/secondsToTimeString";
-import progressbarWidth from "@output-mixins/progressbarWidth";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
-
-import carousel from "./bookDetails/carousel";
-import booksInSeries from "./bookDetails/booksInSeries";
-import bookSummary from "./bookDetails/bookSummary";
-import collectionsDrawer from "./bookDetails/collectionsDrawer.vue";
-import bookDetailsSettings from "./bookDetails/book-details-settings.vue";
-import sidebarFlipper from "./bookDetails/sidebar-flipper.vue";
-import detailsFirstHider from "./bookDetails/details-first-hider.vue";
-
-import makeUrl from "@output-mixins/makeFullUrl";
-
-import bookBasicInfo from "@output-comps/snippets/book-basic-info";
-import bookInfoToolbar from "@output-comps/snippets/book-info-toolbar";
-import arrayToHTML from "@output-comps/snippets/arrayToHTML";
-
-
+import timeStringToSeconds from "@output-mixins/timeStringToSeconds.js";
+import secondsToTimeString from "@output-mixins/secondsToTimeString.js";
+import progressbarWidth from "@output-mixins/progressbarWidth.js";
+import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
+import makeUrl from "@output-mixins/makeFullUrl.js";
 
 export default {
   name: "bookDetails",
   props: ['asin'],
-  components: {
-    bookBasicInfo,
-    bookInfoToolbar,
-    carousel,
-    booksInSeries,
-    arrayToHTML,
-    bookSummary,
-    collectionsDrawer,
-    bookDetailsSettings,
-    sidebarFlipper,
-    detailsFirstHider,
-  },
   mixins: [
     // sortBookNumbers,
     timeStringToSeconds,
@@ -172,7 +145,7 @@ export default {
       this.maxWidth = this.repositionBookDetails() + "px";
       this.$updateQuery({ query: 'book', value: this.book.asin });
       this.$store.commit('prop', { key: 'timeStamp', value: new Date().getTime() });
-      this.$root.$on("afterWindowResize", this.onWindowResize);
+      this.$compEmitter.on("afterWindowResize", this.onWindowResize);
       this.loading = false;
       
       this.scrollToCarousel();
@@ -188,7 +161,7 @@ export default {
       this.scrpt = null;
     }
     
-    this.$root.$off("afterWindowResize", this.onWindowResize);
+    this.$compEmitter.off("afterWindowResize", this.onWindowResize);
     this.peopleAlsoBoughtJSON = null;
     this.bookSummaryJSON = null;
     
@@ -199,6 +172,8 @@ export default {
     // if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
     
     this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
+    
+    document.querySelector('#ale-bookdetails').remove();
     
   },
 
@@ -223,7 +198,7 @@ export default {
     collapseBtnClicked: function( key ) {
       this.$store.commit('stickyProp', { key: key, value: !this.sticky[ key ] });
       this.$nextTick(() => {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     },
     
@@ -436,11 +411,11 @@ export default {
         if ( !prev && (nextIndex > this.store.chunkCollection.length-2) ) {
           this.$store.commit('chunkCollectionAdd');
           this.$nextTick(function() {
-            this.$root.$emit("book-clicked", nextBook.asin);
+            this.$compEmitter.emit("book-clicked", nextBook.asin);
           });
         }
         else {
-          this.$root.$emit("book-clicked", nextBook.asin);
+          this.$compEmitter.emit("book-clicked", nextBook.asin);
         }
       }
       
@@ -492,11 +467,11 @@ export default {
       if ( e.srcKey === 'down' && (nextIndex > vue.store.chunkCollection.length-2) ) {
         this.$store.commit('chunkCollectionAdd');
         this.$nextTick(function() {
-          this.$root.$emit("book-clicked", nextBook.asin);
+          this.$compEmitter.emit("book-clicked", nextBook.asin);
         });
       }
       else {
-        this.$root.$emit("book-clicked", nextBook.asin);
+        this.$compEmitter.emit("book-clicked", nextBook.asin);
       }
       
     },

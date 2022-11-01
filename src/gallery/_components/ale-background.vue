@@ -39,10 +39,10 @@ export default {
     this.books = this.getBooks();
     this.flipAnimationRandomizer();
 
-    this.$root.$on("afterWindowResize", this.onWindowResize);
+    this.$compEmitter.on("afterWindowResize", this.onWindowResize);
   },
   beforeUnmounted: function() {
-    this.$root.$off("afterWindowResize", this.onWindowResize);
+    this.$compEmitter.off("afterWindowResize", this.onWindowResize);
     clearInterval(this.timer1);
     clearInterval(this.timer2);
   },

@@ -25,11 +25,11 @@
       <div class="rating" v-if="book.rating">
         <strong class="strong-label" v-tippy="ratingTippyOpts" :content="ratingLegend">Rating:</strong>
         <!-- <span>{{ book.rating }} ({{ book.ratings }} ratings)</span> -->
-        <star-rating :size="12" :rating="book.rating" number="true" :ratings="book.ratings"></star-rating>
+        <star-ratings :size="12" :rating="book.rating" number="true" :ratings="book.ratings"></star-ratings>
       </div>
       <div class="own-rating" v-if="book.myRating">
         <strong class="strong-label" v-tippy="ratingTippyOpts" :content="ratingLegend">My rating: </strong>
-        <star-rating :size="12" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom']  }" :content="myRatingLabel( book.myRating )" :rating="book.myRating" number="true"></star-rating>
+        <star-ratings :size="12" v-tippy="{ placement: 'right', flipBehavior: ['right', 'top', 'bottom']  }" :content="myRatingLabel( book.myRating )" :rating="book.myRating" number="true"></star-ratings>
       </div>
     <!-- </div> -->
     <!-- <good-reads-link v-if="goodreads" :book="book"></good-reads-link> -->
@@ -37,19 +37,9 @@
 </template>
 
 <script>
-import arrayToHTML from "./arrayToHTML";
-import goodReadsLink from "./goodReadsLink";
-import starRating from '@output-comps/snippets/starRatings';
-
 export default {
   name: "aleBookBasicInfo",
   props: ["book", "goodreads"],
-  components: {
-    goodReadsLink,
-    arrayToHTML,
-    starRating,
-  },
-  
   data: function() {
     return {
       ratingTippyOpts: { 

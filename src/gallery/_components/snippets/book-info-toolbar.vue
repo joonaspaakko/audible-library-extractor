@@ -4,7 +4,7 @@
                note: it's also visible in the spreadsheet tooltip book details
     -->
     <favorite-book   :size="size" :book="book" v-if="book.favorite" />
-    <sampleButton    :size="size" :book="book" />
+    <sample-button    :size="size" :book="book" />
     <!-- <sampleButton    :size="size" :book="book" :index="rowIndex" /> -->
     <good-reads-link :size="size" :book="book" :icon="true" />
     <open-in-app     :size="size" :book="book" />
@@ -13,22 +13,9 @@
 </template>
 
 <script>
-import goodReadsLink from "@output-comps/snippets/goodReadsLink";
-import favoriteBook from "@output-comps/snippets/favoriteBook";
-import sampleButton from "@output-comps/snippets/sampleButton";
-import openInApp from "@output-comps/snippets/openInApp";
-import openWebPlayer from "@output-comps/snippets/openWebPlayer";
-
 export default {
   name: "book-info-toolbar",
   props: ["book"],
-  components: {
-    goodReadsLink,
-    favoriteBook,
-    sampleButton,
-    openInApp,
-    openWebPlayer,
-  },
   data: function() {
     return {
       size: 20,

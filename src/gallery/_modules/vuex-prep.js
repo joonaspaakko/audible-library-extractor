@@ -38,8 +38,5 @@ export default function ( libraryData ) {
   else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
   
   if ( !libraryData.books && libraryData.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
-  
-  const { version } = require('@root/package.json');
-  store.commit("prop", { key: "version", value: version });
 
 };

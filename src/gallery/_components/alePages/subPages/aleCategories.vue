@@ -10,7 +10,6 @@
     :data-category="parent.name"
     v-for="(parent, index) in categories"
     :key="parent.name"
-    v-if="parent && parent.name"
     >
     
       <h2>
@@ -26,7 +25,7 @@
       <div v-else-if="parent.books" v-html="parent.books.length" v-tippy="{ placement: 'right' }" content="Total number of books in this category."></div>
       
       <div class="child-categories" v-if="parent.sub">
-        <div v-for="(child, index) in parent.sub" :key="child.name" v-if="child && child.name">
+        <div v-for="(child, index) in parent.sub" :key="child.name">
           <router-link v-if="(parent && parent.slug) && (child && child.slug)" :to="{ name: 'category', params: { parent: parent.slug, child: child.slug }, query: { subPageSource: subPageSource.name } }">
             {{ child.name }}
           </router-link>
@@ -61,20 +60,13 @@
 </template>
 
 <script>
-import slugify from "@output-mixins/slugify";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
-import pageTitle from "@output-snippets/page-title.vue";
-import libraryWishlistSwitcher from "@output-snippets/library-wishlist-switcher.vue";
+import slugify from "@output-mixins/slugify.js";
+import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
   name: "aleCategories",
-  mixins: [slugify, makeCoverUrl, findSubPageSource],
-  components: { 
-    pageTitle,
-    libraryWishlistSwitcher,
-  },
-  
+  mixins: [slugify, makeCoverUrl, findSubPageSource],  
   data: function() {
     return {
       categories: null,
@@ -99,9 +91,9 @@ export default {
       categories.parent = [];
       _.each( vue.subPageSource.collection, function(book, index) {
         
-        if (book.categories) {
+        if ( book.categories ) {
           // Parent categories...
-          const parentCategory = book.categories[0].name;
+          const parentCategory = _.get( book, 'categories[0].name');
           // If parent category object doesn't exist, make it
           let parentObj = _.find(categories.parent, ["name", parentCategory]);
           if (!parentObj) {
@@ -116,9 +108,11 @@ export default {
           parentObj.books.push(book);
 
           // Child categories...
-          if (book.categories[1]) {
-            if (!parentObj.sub) parentObj.sub = [];
-            const childCategory = book.categories[1].name;
+          const childCategory = _.get( book, 'categories[1].name');
+          if ( childCategory ) {
+            
+            if ( !parentObj.sub ) parentObj.sub = [];
+            
             // If child category object doesn't exist, make it
             let childObj = _.find(parentObj.sub, ["name", childCategory]);
             if (!childObj) {
@@ -131,6 +125,7 @@ export default {
             childObj = _.find(parentObj.sub, ["name", childCategory]);
             // Push books to array
             childObj.books.push(book);
+            
           }
         }
       });
@@ -155,7 +150,7 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "~@/box-layout.scss";
+@import "@gallery/box-layout.scss";
 
 .box-layout-wrapper .single-box .sample-covers img { 
   width: 100%; 

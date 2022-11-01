@@ -1,5 +1,5 @@
 <template>
-  <div id="audible-library-extractor" :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }" :data-block-scrolling="$store.state.blockScrolling">
+  <div :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }" :data-block-scrolling="$store.state.blockScrolling">
     
     <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
     <ale-navigation></ale-navigation>
@@ -52,7 +52,7 @@ export default {
       document.querySelector('body').classList.add('is-ios');
     }
     
-    this.$root.$on('refresh-page', this.refreshPage);
+    this.$compEmitter.on('refresh-page', this.refreshPage);
     
     this.$store.commit('prop', { key: 'siteOnline', value: navigator.onLine });
     window.addEventListener('offline', function() {
@@ -74,7 +74,7 @@ export default {
   
   beforeUnmount: function() {
     
-    this.$root.$off('refresh-page', this.refreshPage);
+    this.$compEmitter.off('refresh-page', this.refreshPage);
 
   },
 
@@ -132,7 +132,7 @@ export default {
         
         if ( widthChanged ) this.$store.commit('prop', { key: 'windowWidth', value: currentWidth});
         
-        this.$root.$emit("afterWindowResize", {
+        this.$compEmitter.emit("afterWindowResize", {
           from: "app",
           width: currentWidth,
           widthChanged: widthChanged,
@@ -375,9 +375,19 @@ body {
   @include themify($themes) {
     color: themed(frontColor);
   }
+  .error404 {
+    animation-name: fade-in;
+    animation-duration: 2s;
+    animation-delay: 2s;
+    opacity: 0;
+    @keyframes fade-in {
+      from { opacity: 0; }
+      to   { opacity: 1; }
+    }
+  }
 }
 
-div[data-block-scrolling] {
+div[data-block-scrolling="true"] {
   height: 100vh !important;
   width:  100vw !important;
   overflow: hidden !important;

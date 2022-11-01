@@ -230,7 +230,6 @@ export default {
 </script>
 
 <style lang="scss" scoped>
-@import '~@/_variables.scss';
 
 .cover-wrapper {
 	display: inline-block;

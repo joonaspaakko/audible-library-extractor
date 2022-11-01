@@ -5,26 +5,26 @@
     
     <context-menu-reminder v-if="!$store.state.standalone && $store.state.sticky.contextMenuReminder" />
     
-    <ale-search v-if="prepsCompleted" :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle" @hook:mounted="searchMounted" />
+    <ale-search v-if="prepsCompleted" :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle" @vue:mounted="searchMounted" />
     
     <div v-if="collapseView" class="collection-expanded-btn" @click="expandView">
       <div>
         <span>Expand view</span>
         <span v-if="realLength">( {{ realLength }} )</span>
-        <font-awesome :icon="['fas', 'unlock-alt']" />
+        <fa6-solid-lock-open/>
       </div>
     </div>
     
     <div v-if="!loading && $store.getters.collection && $store.getters.collection.length > 0">
       <div :style="galleryStyle">
-        <ale-grid-view @hook:mounted="gridViewMounted" @hook:beforeUnmount="viewsbeforeUnmount" v-if="$store.state.sticky.viewMode === 'grid'" />
-        <ale-list-view @hook:mounted="listViewMounted" @hook:beforeUnmount="viewsbeforeUnmount" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+        <ale-grid-view @vue:mounted="gridViewMounted" @vue:beforeUnmount="viewsbeforeUnmount" v-if="$store.state.sticky.viewMode === 'grid'" />
+        <ale-list-view @vue:mounted="listViewMounted" @vue:beforeUnmount="viewsbeforeUnmount" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
         <book-details v-if="mountedChildren && $route.query.book" :key="$route.query.book" :asin="$route.query.book" />
       </div>
     </div>
     <div v-else-if="errorMessage" id="nothing-here-404">
       <h3 v-if="$store.getters.searchIsActive && !$store.state.searchCollection.length">Search: no results</h3>
-      <h3 v-else>404: There's nothing here</h3>
+      <h3 v-else class="error404">404: There's nothing here</h3>
     </div>
     
   </div>
@@ -38,28 +38,14 @@ import prepNarratorsSubPage from "@output-mixins/prepNarratorsSubPage.js";
 import prepAuthorsSubPage from "@output-mixins/prepAuthorsSubPage.js";
 import prepPublishersSubPage from "@output-mixins/prepPublishersSubPage.js";
 import prepWishlist from "@output-mixins/prepWishlist.js";
-
-import timeStringToSeconds from "@output-mixins/timeStringToSeconds";
+import timeStringToSeconds from "@output-mixins/timeStringToSeconds.js";
 import galleryListRenderingOpts from "@output-mixins/gallery-list-rendering-opts.js";
 import smoothscroll from "smoothscroll-polyfill";
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 smoothscroll.polyfill();
 
-// import aleBreadcrumbs from '../aleBreadcrumbs'
-
-import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
-import contextMenuReminder from "@output-snippets/contextMenuReminder.vue";
-
 export default {
   name: "aleGallery",
-  components: {
-    contextMenuReminder,
-    aleSearch,
-    bookDetails: () => import( /* webpackPrefetch: true */ /* webpackChunkName: "book-Details" */ "./aleGallery/aleGridView/bookDetails"),
-    aleGridView: () => import( /* webpackChunkName: "grid-view" */ "./aleGallery/aleGridView"),
-    aleListView: () => import( /* webpackChunkName: "spreadsheet-view" */ "./aleGallery/aleListView"),
-    // aleBreadcrumbs,
-  },
   mixins: [
     prepCategoriesSubPage, 
     prepCollectionsSubPage, 
@@ -143,7 +129,7 @@ export default {
     // Makes it so just the book with book details open with open on page load
     // this.collapseView = this.pageLoadBook && this.$route.name !== 'series';
     
-    this.$root.$on("book-clicked", this.toggleBookDetails);
+    this.$compEmitter.on("book-clicked", this.toggleBookDetails);
     
   },
   
@@ -155,7 +141,7 @@ export default {
   },
   
   beforeUnmount: function() {
-    this.$root.$off("book-clicked", this.toggleBookDetails);
+    this.$compEmitter.off("book-clicked", this.toggleBookDetails);
     // console.log('%c' + 'GALLERY.vue DESTROYED' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
     this.errorMessage = false;
   },
@@ -217,7 +203,7 @@ export default {
           // }
           
           // this.$nextTick(function() {
-          //   this.$root.$emit("book-clicked", { book: this.$store.state.chunkCollection[bookIndex], index: bookIndex, force: true });
+          //   this.$compEmitter.emit("book-clicked", { book: this.$store.state.chunkCollection[bookIndex], index: bookIndex, force: true });
           // });
           
           this.$nextTick(function() {
@@ -238,8 +224,6 @@ export default {
           let visibleBooks = grid ? maxItems*cols : cols;
           let factor = Math.ceil(visibleBooks / this.$store.state.chunkDistance) || 1;
           if ( factor > 1 ) this.$store.commit("chunkCollectionAdd", { chunkDistance: this.$store.state.chunkDistance * factor });
-          
-          console.log( 'gallery scroll pos:', scrollPosition );
           
           this.$nextTick(function() {
             if (this.$store.state.sticky.viewMode === 'grid') {
@@ -270,7 +254,7 @@ export default {
     
     expandView: function() {
       this.$updateQuery({ query: 'book', value: null, history: true });
-      this.$root.$emit('refresh-page');
+      this.$compEmitter.emit('refresh-page');
     },
     
     gridViewMounted: function() {

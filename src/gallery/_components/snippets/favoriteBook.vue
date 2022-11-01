@@ -1,7 +1,6 @@
 <template>
-  <font-awesome 
+  <fa6-solid-heart
   class="favorite" :class="{ 'top-right': topRight }"
-  fas icon="heart"
   v-tippy content="This book is one of my favorites!"
   :style="{ width: (size || 30) + 'px', height: 'auto' }"
   />

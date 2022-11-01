@@ -19,11 +19,11 @@
         </div>
 
         <div class="player-buttons">
-          <div class="play" v-if="!(howler && howler.playing())" @click="play"><font-awesome :icon="['fas', 'play']" /></div>
-          <div class="pause" v-else @click="pause"> <font-awesome :icon="['fas', 'pause']" /></div>
-          <div class="stop" @click="stop">          <font-awesome :icon="['fas', 'times']" /></div>
-          <div class="back" @click="seekBack">      <font-awesome :icon="['fas', 'undo-alt']" /></div>
-          <div class="forward" @click="seekForward"><font-awesome :icon="['fas', 'redo-alt']" /></div>
+          <div class="play" v-if="!(howler && howler.playing())" @click="play"><fa6-solid-play/></div>
+          <div class="pause" v-else @click="pause"> <fa6-solid-pause/></div>
+          <div class="stop" @click="stop">          <fa-solid-times/></div>
+          <div class="back" @click="seekBack">      <fa-solid-undo-alt/></div>
+          <div class="forward" @click="seekForward"><fa-solid-redo-alt/></div>
         </div>
         
       </div>
@@ -34,8 +34,9 @@
 </template>
 
 <script>
-
+import domurl from 'domurl';
 import {Howl, Howler} from 'howler';
+import _ from 'lodash';
 
 export default {
   name: "audioPlayer",
@@ -76,13 +77,13 @@ export default {
   
   mounted() {
     
-    this.$root.$on("play-audio", this.initPlayer);
+    this.$compEmitter.on("play-audio", this.initPlayer);
     
   },
   
   beforeUnmount() {
     
-    this.$root.$off("play-audio", this.initPlayer);
+    this.$compEmitter.off("play-audio", this.initPlayer);
     this.destroyHowler();
     
   },
@@ -107,7 +108,7 @@ export default {
       // Open book details if needed
       if ( !queryASIN || (bookASIN && queryASIN !== bookASIN) ) {
         this.$nextTick(function() {
-          this.$root.$emit('book-clicked', this.book.asin);
+          this.$compEmitter.emit('book-clicked', this.book.asin);
         });
       }
     },

@@ -3,9 +3,9 @@
   v-tippy="{ allowHTML: true, }"
   :content="'Change to <strong>' + (sticky.viewMode === 'grid' ? 'spreadsheet' : 'grid')  + '</strong> view'"
   >
-    
-    <font-awesome class="icon" v-if="sticky.viewMode === 'grid'"             :icon="['fas', 'list']" />
-    <font-awesome class="icon" v-else-if="sticky.viewMode === 'spreadsheet'" :icon="['fas', 'grip']"    />
+  
+    <mdi-table-large class="icon" v-if="sticky.viewMode === 'grid'" />
+    <ep-grid class="icon" v-else-if="sticky.viewMode === 'spreadsheet'" />
     
   </div>
 </template>

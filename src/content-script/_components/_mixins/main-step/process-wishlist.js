@@ -153,11 +153,11 @@ export default {
             if (releaseDate) book.releaseDate = vue.fixDates( releaseDate );
             
             // AUTHORS
-            const authors = _thisRow.querySelectorAll(".authorLabel");
+            const authors = _thisRow.querySelectorAll(".authorLabel > a");
             if (authors.length > 0) book.authors = vue.getArray(authors);
             
             // NARRATORS
-            const narrators = _thisRow.querySelectorAll(".narratorLabel");
+            const narrators = _thisRow.querySelectorAll(".narratorLabel > a");
             if (narrators.length > 0) book.narrators = vue.getArray(narrators);
             
             const language = _thisRow.querySelector(".languageLabel");

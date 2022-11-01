@@ -19,13 +19,12 @@ ref="listView"
         :data-asin="book.asin"
         :key="'book:'+book.asin"
         ref="domBooks"
-        v-if="book.asin"
         >
-          <ale-list-row
+          <ale-row
             :book="book"
             :rowIndex="index"
             :keys="keys"
-          ></ale-list-row>
+          ></ale-row>
         </lazy>
         
       </tbody>
@@ -36,22 +35,11 @@ ref="listView"
 </template>
 
 <script>
-// import slugify from '../../../_mixins/slugify';
-// import makeCoverUrl from '../../../_mixins/makeCoverUrl';
-import aleHeader from "./aleListView/aleHeader";
-import aleListRow from "./aleListView/aleRow";
-import lazy from "@output-snippets/lazy.vue";
-import stringifyArray from "@output-mixins/stringifyArray";
+import stringifyArray from "@output-mixins/stringifyArray.js";
 import prepareKeys from "@output-mixins/prepareKeys.js";
 
 export default {
   name: "aleBooks",
-  components: {
-    lazy,
-    aleHeader,
-    aleListRow,
-    bookDetails: () => import( /* webpackPrefetch: true */ /* webpackChunkName: "book-Details" */ "./aleGridView/bookDetails"),
-  },
   mixins: [stringifyArray, prepareKeys],
   data: function() {
     return {
@@ -67,10 +55,10 @@ export default {
 
   mounted: function() {
     this.setSpreadsheetOffset();
-    this.$root.$on('afterWindowResize', this.setSpreadsheetOffset);
+    this.$compEmitter.on('afterWindowResize', this.setSpreadsheetOffset);
   },
   beforeUnmount: function() {
-    this.$root.$off('afterWindowResize', this.setSpreadsheetOffset);
+    this.$compEmitter.off('afterWindowResize', this.setSpreadsheetOffset);
   },
 
   methods: {

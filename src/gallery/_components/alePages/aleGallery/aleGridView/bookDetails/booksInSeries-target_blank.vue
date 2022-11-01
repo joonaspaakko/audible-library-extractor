@@ -9,7 +9,7 @@
       <!-- <span class="heading">Books I own in the series</span> -->
       <span class="heading">My books in the series</span>
       <span class="count">{{ series.count }}</span>
-      <font-awesome fas :icon="series.toggle ? 'chevron-up' : 'chevron-down'" />
+      <vertical-chevron :up="series.toggle" />
     </div>
 
     <div class="hidden-section my-books-in-series" v-if="series.toggle">
@@ -54,7 +54,7 @@
         }" target="_blank" rel="noopener noreferrer">
           
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
-            <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
+            <i :class="booksInSeriesIcon(seriesBook)"></i>
           </span>
           
           <span>
@@ -135,12 +135,12 @@ export default {
     goToBookInSeries: function( series, book ) {
       if ( book ) {
         // FIXME: make sure this works
-        this.$root.$emit('book-clicked', { book: book });
+        this.$compEmitter.emit('book-clicked', { book: book });
         
       }
       else if ( series ) {
         
-        this.$root.$emit('book-clicked', { book: null });
+        this.$compEmitter.emit('book-clicked', { book: null });
         scroll({ top: 0 });
         
       }
@@ -187,7 +187,7 @@ export default {
     booksInSeriesLabelClick: function() {
       this.series.toggle = !this.series.toggle;
       this.$nextTick(() => {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     },
 
@@ -218,11 +218,11 @@ export default {
       const classes = this.numbersClass(book);
       var iconClass = "";
       if (classes.finished) {
-        iconClass = "archive";
+        iconClass = "fa-solid fa-box-archive";
       } else if (classes.unfinished) {
-        iconClass = "book";
+        iconClass = "fa-solid fa-book";
       } else if (classes.reading) {
-        iconClass = "book-reader";
+        iconClass = "fa-solid fa-book-open-reader";
       }
       return iconClass;
     }

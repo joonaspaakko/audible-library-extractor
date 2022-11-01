@@ -7,7 +7,7 @@
         <slot />
         
         <div class="close-btn" @click="close" v-shortkey.once="['esc']" @shortkey="close">
-          <font-awesome fas icon="times" />
+          <fa-solid-times/>
         </div>
         
       </div>
@@ -16,17 +16,9 @@
 </template>
 
 <script>
-
-// import saveGallery from "@output-snippets/save-gallery.vue";
-// import saveCsv from "@output-snippets/save-csv.vue";
-
 export default {
   name: "modal",
   props: [ 'toggled' ],
-  // components: {
-  //   saveGallery,
-  //   saveCsv,
-  // },
   data: function() {
     return {
       modalOpen: true,

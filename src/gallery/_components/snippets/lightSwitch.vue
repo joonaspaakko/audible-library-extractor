@@ -4,7 +4,10 @@
       class="icon"
       @click="lightSwitchToggle(false)"
     >
-      <font-awesome fas :icon="lightSwitchIcon" />
+      
+      <fa6-solid-sun v-if="$store.state.sticky.lightSwitch" />
+      <fa6-solid-moon v-else />
+      
     </div>
   </div>
 </template>
@@ -20,12 +23,6 @@ export default {
 
   created: function() {      
     this.lightSwitchToggle(true);
-  },
-
-  computed: {
-    lightSwitchIcon: function() {
-      return this.$store.state.sticky.lightSwitch ? "sun" : "moon";
-    }
   },
 
   methods: {

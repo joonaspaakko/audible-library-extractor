@@ -631,6 +631,9 @@ export default {
                 case 5:
                   return val+' (I love it)';
                   break;
+                default: 
+                  return 0;
+                break;
               }
             },
           },

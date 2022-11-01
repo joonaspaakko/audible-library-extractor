@@ -4,7 +4,7 @@
     
     <div class="show-all-toggle" v-if="showAllToggle" @click="clickedShowAll">
       <div>
-        <font-awesome style="padding-right: 4px;" :icon="['fas', 'ban']" :class="{ active: $store.state.sticky.booksInSeriesAll}" />
+        <fa6-solid-ban style="padding-right: 4px;" :class="{ active: $store.state.sticky.booksInSeriesAll}" />
         <span v-if="!showFinishedToggle">Not in library:</span>
         <span>{{ count.notInLibrary }}</span>
       </div>
@@ -12,7 +12,7 @@
     
     <div class="show-finished" v-if="showFinishedToggle" @click="clickedShowFinished">
       <div>
-        <font-awesome style="padding-right: 4px;" :icon="['fas', 'archive']" :class="{ active: $store.state.sticky.booksInSeriesFinished}" />
+        <fa6-solid-box-archive style="padding-right: 4px;" :class="{ active: $store.state.sticky.booksInSeriesFinished}" />
         <span v-if="!showAllToggle">Finished books:</span>
         <span>{{ count.finished }}</span>
       </div>
@@ -106,14 +106,14 @@ export default {
     clickedShowAll() {
       this.$store.commit('stickyProp', { key: 'booksInSeriesAll', value: !this.$store.state.sticky.booksInSeriesAll });
       this.$nextTick(function() {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     },
     
     clickedShowFinished() {
       this.$store.commit('stickyProp', { key: 'booksInSeriesFinished', value: !this.$store.state.sticky.booksInSeriesFinished });
       this.$nextTick(function() {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     },
 

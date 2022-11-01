@@ -1,7 +1,7 @@
 // UPDATING VUEX QUERIES
 const updateRouterQuery = {};
-updateRouterQuery.install = function (Vue) {
-  Vue.prototype.$updateQuery = function( config ) {
+updateRouterQuery.install = function (app, options) {
+  app.config.globalProperties.$updateQuery = function( config ) {
     
     config      = config || {};
     let query   = config.query;
@@ -34,7 +34,7 @@ updateRouterQuery.install = function (Vue) {
     
   };
   
-  Vue.prototype.$updateQueries = function( queries, config ) {
+  app.config.globalProperties.$updateQueries = function( queries, config ) {
     
     config      = config || {};
     let history = config.history;

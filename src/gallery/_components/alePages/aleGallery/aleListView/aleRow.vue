@@ -1,5 +1,5 @@
 <template>
-  <tr class="ale-row-inner" @click="$root.$emit('book-clicked', book.asin)">
+  <tr class="ale-row-inner" @click="$compEmitter.emit('book-clicked', book.asin)">
     
     <!-- 
       Note to self: 
@@ -33,8 +33,8 @@
       <div class="ale-col-inner">
         
         <span v-if="col.key === 'title'" class="icons-n-stuff">
-          <span class="info-icon"><font-awesome fas icon="chevron-down" class="pointer"/></span>
-          <sampleButton v-if="sticky.bookDetailSettings.playButton" :book="book" :index="rowIndex" :size="16"></sampleButton>
+          <span class="info-icon"><fa-solid-chevron-down class="pointer" /></span>
+          <sample-button v-if="sticky.bookDetailSettings.playButton" :book="book" :index="rowIndex" :size="16" />
           <div class="cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
             <open-web-player :size="20" :book="book" :icon="true" :tooltip="false" :noBG="true" />
           </div>
@@ -52,23 +52,14 @@
 </template>
 
 <script>
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
-import stringifyArray from "@output-mixins/stringifyArray";
-import makeFullUrl from "@output-mixins/makeFullUrl";
-
-import lazy from "@output-snippets/lazy.vue";
-import sampleButton from "@output-comps/snippets/sampleButton";
-import openWebPlayer from "@output-comps/snippets/openWebPlayer.vue";
+import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
+import stringifyArray from "@output-mixins/stringifyArray.js";
+import makeFullUrl from "@output-mixins/makeFullUrl.js";
 
 export default {
   name: "aleListItem",
   props: ["book", "rowIndex", "keys"],
   mixins: [stringifyArray, makeCoverUrl, makeFullUrl],
-  components: {
-    lazy,
-    sampleButton,
-    openWebPlayer,
-  },
   data: function() {
     return {
       sticky: this.$store.state.sticky,

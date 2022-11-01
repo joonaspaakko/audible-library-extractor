@@ -2,7 +2,8 @@
   <div class="extension-toolbar">
     <div class="item" v-for="item in items" :key="item.label">
       <span class="icon">
-        <font-awesome :icon="item.icon" />
+        <!-- <component :is="item.icon"> -->
+        {{ item.icon }}
       </span>
       <span class="label">
         {{ item.label }}
@@ -19,19 +20,19 @@ export default {
       items: [
         { 
           label: 'Save CSV',
-          icon: ['fas', 'file-csv']
+          icon: 'fa6-solid-file-csv',
         },
         { 
           label: 'Save gallery locally',
-          icon: ['fas', 'save']
+          icon: 'fa-solid-save',
         },
         { 
           label: 'Wallpaper creator',
-          icon: ['fas', 'images']
+          icon: 'fa6-regular-images',
         },
         { 
           label: 'Documentation',
-          icon: ['fas', 'graduation-cap']
+          icon: 'fa-solid-graduation-cap'
         },
       ],
     }

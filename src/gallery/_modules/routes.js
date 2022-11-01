@@ -1,23 +1,23 @@
 
-import aleLibraryView from "@output-comps/aleLibraryView";
-const aleGallery     = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "@output-pages/aleGallery");
-const aleCollections = () => import( /* webpackChunkName: "collections" */ "@output-pages/aleCollections");
-const aleCategories  = () => import( /* webpackChunkName: "categories" */ "@output-pages/subPages/aleCategories");
-const aleSeries      = () => import( /* webpackChunkName: "series" */ "@output-pages/subPages/aleSeries");
-const aleAuthors     = () => import( /* webpackChunkName: "authors" */ "@output-pages/subPages/aleAuthors");
-const aleNarrators   = () => import( /* webpackChunkName: "narrators" */ "@output-pages/subPages/aleNarrators");
-const alePublishers  = () => import( /* webpackChunkName: "publishers" */ "@output-pages/subPages/alePublishers");
+import aleLibraryView from "@output-comps/aleLibraryView.vue";
+const aleGallery     = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "@output-pages/aleGallery.vue");
+const aleCollections = () => import( /* webpackChunkName: "collections" */ "@output-pages/aleCollections.vue");
+const aleCategories  = () => import( /* webpackChunkName: "categories" */ "@output-pages/subPages/aleCategories.vue");
+const aleSeries      = () => import( /* webpackChunkName: "series" */ "@output-pages/subPages/aleSeries.vue");
+const aleAuthors     = () => import( /* webpackChunkName: "authors" */ "@output-pages/subPages/aleAuthors.vue");
+const aleNarrators   = () => import( /* webpackChunkName: "narrators" */ "@output-pages/subPages/aleNarrators.vue");
+const alePublishers  = () => import( /* webpackChunkName: "publishers" */ "@output-pages/subPages/alePublishers.vue");
 
 export default {
   library: { 
-    name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: [ 'fas', 'book' ] } 
+    name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: 'fa-solid fa-book' } 
   },
   
   collections: {
     path: "/collections",
     component: aleLibraryView,
     meta: {
-      icon: [ 'fas', 'folder-open' ],
+      icon: 'fa-regular fa-folder-open',
     },
     children: [
       { name: "collections", path: "", component: aleCollections, meta: { title: 'Collections' } },
@@ -29,7 +29,7 @@ export default {
     path: "/wishlist",
     component: aleLibraryView,
     meta: {
-      icon: [ 'fas', 'bookmark' ],
+      icon: 'fa-solid fa-bookmark',
     },
     children: [
       { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
@@ -40,7 +40,7 @@ export default {
     categories: {
       path: "/categories",
       meta: {
-        icon: [ 'fas', 'indent' ],
+        icon: 'fa-solid fa-indent',
         nestedGroup: 'subPages',
       },
       component: aleLibraryView,
@@ -53,7 +53,7 @@ export default {
       path: "/series",
       component: aleLibraryView,
       meta: {
-        icon: [ 'fas', 'list-ol' ],
+        icon: 'fa-solid fa-list-ol',
         nestedGroup: 'subPages',
       },
       children: [
@@ -65,7 +65,7 @@ export default {
       path: "/authors",
       component: aleLibraryView,
       meta: { 
-        icon: [ 'fas', 'user-friends' ],
+        icon: 'fa-solid fa-user-group',
         nestedGroup: 'subPages',
       },
       children: [
@@ -77,7 +77,7 @@ export default {
       path: "/narrators",
       component: aleLibraryView,
       meta: {
-        icon: [ 'fas', 'users' ],
+        icon: 'fa-solid fa-users',
         nestedGroup: 'subPages',
       },
       children: [
@@ -89,7 +89,7 @@ export default {
       path: "/publishers",
       component: aleLibraryView,
       meta: {
-        icon: [ 'fas', 'book' ],
+        icon: 'fa-solid fa-book',
         nestedGroup: 'subPages',
       },
       children: [
@@ -100,8 +100,9 @@ export default {
   },
   
   fallback: {
-    path: '*',
+    path: '/:pathMatch(.*)*',
     name:'404', 
     component: aleLibraryView,
+    meta: {},
   }
 };

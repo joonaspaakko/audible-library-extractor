@@ -11,7 +11,7 @@
       here
     </a>.'
   >
-    <font-awesome :icon="['fas', 'search']" />
+    <fa-solid-search/>
   </div>
 </template>
 
@@ -21,8 +21,8 @@ export default {
   methods: {
     
     startSearching() {
-      this.$root.$emit("ios-auto-zoom-disable");
-      this.$root.$emit('search-focus');
+      this.$compEmitter.emit("ios-auto-zoom-disable");
+      this.$compEmitter.emit('search-focus');
     },
     
   }

@@ -27,8 +27,8 @@
     >
         
       <div class="menu-item-inner" @click="additionalClick(route)">
-        <span class="menu-item-icon">
-          <font-awesome :icon="route.meta.icon" />
+        <span class="menu-item-icon" v-if="route.meta.icon">
+          <i :class="route.meta.icon"></i>
         </span>
         <span class="menu-item-text" v-html="getRouteName(route)"></span>
       </div>
@@ -52,12 +52,11 @@
         <view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted" />
       </div>
       <div v-if="mobileMenuOpen">
-        <font-awesome 
+        <fa6-solid-link
         class="icon" 
         @click="copyToClipboard()"
         v-tippy="{ trigger: 'manual' }"
         content="Page URL copied to clipboard!"
-        :icon="['fas', 'link']" 
         ref="copyToClipboard"
         />
       </div>
@@ -148,17 +147,17 @@ export default {
       
       // let name = _.get(route, 'children[0].name') || route.name || '';
       //     name = name.toLowerCase();
-      // if ( this.$route.name === name && !!name ) this.$root.$emit('refresh-page');
+      // if ( this.$route.name === name && !!name ) this.$compEmitter.emit('refresh-page');
       
     },
     
     copyToClipboard() {
       
-      const vue = this;
       navigator.clipboard.writeText( window.location.href );
-      vue.$refs.copyToClipboard._tippy.show();
-      setTimeout(function() {
-        vue.$refs.copyToClipboard._tippy.hide();
+      const iconEl = _.get( this.$refs, 'copyToClipboard.$el' ) || _.get( this.$refs, 'copyToClipboard.$el' );
+      iconEl._tippy.show();
+      setTimeout(() => {
+        iconEl._tippy.hide();
       }, 2000);
       
     },
@@ -314,6 +313,9 @@ export default {
   flex-direction: column-reverse !important;
   justify-content: stretch;
   align-items: stretch;
+  .menu-item-inner {
+    flex: 1;
+  }
 }
 .mobileMenu > div {
   display: flex;

@@ -6,7 +6,7 @@
     
     <div class="top-wrapper">
       <div class="icon-wrapper" :style="{ fontSize: iconSize/1.2  + 'px', lineHeight: iconSize/1.2  + 'px', paddingRight: iconSize / 2.5 + 'px' }">
-        <font-awesome :icon="['fas', 'grip-vertical']" />
+        <ep-grid/>
       </div>
       <div class="text-wrapper" ref="textWrapper">
         <h2>Stand-alone gallery</h2>
@@ -25,7 +25,7 @@
           <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)"> 
           <div class="visual-checkbox">
             <span class="icon">
-              <font-awesome :icon="['fas', 'check']" />
+              <fa-solid-check/>
             </span>
           </div>
           <span>{{ item.key }}</span>
@@ -41,19 +41,19 @@
         </div>
         <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
           <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
-            <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
-            <font-awesome v-else :icon="['fas', 'download']" />
+            <fa6-solid-circle-notch v-if="bundling" spin />
+            <fa6-solid-download v-else />
             <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
             <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
         </button>
         <div>
           <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github">
             <span>Upload instructions</span>
-            <font-awesome :icon="['fab', 'github']" />
+            <octicon-mark-github-16/>
           </a>
           <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github/updating-gallery-in-github">
             <span>Update instructions</span>
-            <font-awesome :icon="['fab', 'github']" />
+            <octicon-mark-github-16/>
           </a>
         </div>
         <!--

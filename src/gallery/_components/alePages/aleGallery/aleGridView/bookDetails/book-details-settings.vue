@@ -33,12 +33,11 @@
             </div>
           </label>
           
-          <font-awesome 
+          <fa6-solid-circle-question
           class="more-info-icon" 
           v-if="setting.info" 
           v-tippy="{ trigger: 'mouseenter focus click', interactive: setting.interactiveTippy, hideOnClick: false, delay: 0, placement: 'right', flipBehavior: ['right', 'top', 'left', 'bottom'], allowHTML: true, }" 
           :content="setting.info" 
-          :icon="['fas', 'question-circle']" 
           />
         </div>
         
@@ -191,7 +190,7 @@ export default {
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.titleShort', value: e.target.checked });
             vue.$nextTick(() => {
-              vue.$root.$emit("resizeSummary");
+              vue.$compEmitter.emit("resizeSummary");
             });
           }
         },
@@ -208,7 +207,7 @@ export default {
             const checked = e.target.checked;
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.sidebar.show', value: checked });
             vue.$nextTick(() => {
-              vue.$root.$emit("resizeSummary");
+              vue.$compEmitter.emit("resizeSummary");
             });
             
             vue.mutateChildren( 'sidebar', 'enabled', checked );
@@ -228,7 +227,7 @@ export default {
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailsCollapsedCover', value: !e.target.checked });
             vue.$nextTick(() => {
-              vue.$root.$emit("resizeSummary");
+              vue.$compEmitter.emit("resizeSummary");
             });
           },
         },
@@ -242,7 +241,7 @@ export default {
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.sidebar.iconToolbar', value: e.target.checked });
             vue.$nextTick(() => {
-              vue.$root.$emit("resizeSummary");
+              vue.$compEmitter.emit("resizeSummary");
             });
           },
         },
@@ -256,7 +255,7 @@ export default {
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailsCollapsedDetails', value: !e.target.checked });
             vue.$nextTick(() => {
-              vue.$root.$emit("resizeSummary");
+              vue.$compEmitter.emit("resizeSummary");
             });
           },
         },
@@ -270,7 +269,7 @@ export default {
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.sidebar.collectionsList', value: e.target.checked });
             vue.$nextTick(() => {
-              vue.$root.$emit("resizeSummary");
+              vue.$compEmitter.emit("resizeSummary");
             });
           },
         },
@@ -284,7 +283,7 @@ export default {
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.sidebar.seriesList', value: e.target.checked });
             vue.$nextTick(() => {
-              vue.$root.$emit("resizeSummary");
+              vue.$compEmitter.emit("resizeSummary");
             });
           },
         },

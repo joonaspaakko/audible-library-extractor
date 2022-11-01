@@ -1,7 +1,5 @@
 <template>
-  <font-awesome
-    fas
-    icon="play-circle"
+  <fa6-solid-circle-play
     class="pointer"
     @click="playSample(book, rowIndex)"
     :class="{ 'top-right': topRight }"
@@ -16,7 +14,7 @@ export default {
   props: ["book", "index", "topRight", "size"],
   methods: {
     playSample: function(book, index) {
-      this.$root.$emit("play-audio", {
+      this.$compEmitter.emit("play-audio", {
         from: "sampleButton",
         route: this.$route,
         book: book,

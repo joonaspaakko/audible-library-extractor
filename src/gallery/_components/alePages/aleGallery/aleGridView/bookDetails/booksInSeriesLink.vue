@@ -73,7 +73,7 @@ export default {
     openBook: function( e ) {
       e.preventDefault();
       if ( this.book && !this.book.notInLibrary && this.book.asin !== this.$route.query.book ) {
-        this.$root.$emit('book-clicked', this.book.obj.asin);
+        this.$compEmitter.emit('book-clicked', this.book.obj.asin);
       }
     },
     

@@ -27,17 +27,11 @@
 
 <script>
 
-import lazy from "@output-snippets/lazy.vue";
-import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
-import slugify from "@output-mixins/slugify";
+import slugify from "@output-mixins/slugify.js";
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
 
 export default {
   name: "aleAuthors",
-  components: {
-    aleSearch,
-    lazy,
-  },
   mixins: [slugify, findSubPageSource],
   data: function() {
     return {
@@ -189,7 +183,7 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "~@/box-layout.scss";
+@import "@gallery/box-layout.scss";
 .single-box {
   min-height: 35px !important;
   display: flex !important;

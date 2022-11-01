@@ -7,7 +7,6 @@
     :class="{ 'details-open': $route.query.book === book.asin }"
     :data-asin="book.asin"
     :key="'book:'+book.asin"
-    v-if="book.asin"
     >
       <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
     </lazy>
@@ -18,14 +17,9 @@
 <script>
 
 import slugify from "@output-mixins/slugify.js";
-import lazy from "@output-snippets/lazy.vue";
 
 export default {
   name: "aleBooks",
-  components: {
-    book: () => import( /* webpackChunkName: "book" */ "./aleGridView/book"),
-    lazy,
-  },
   mixins: [slugify],
   data: function() {
     return {

@@ -35,21 +35,21 @@
           
           <div class="info-tags">
             <div class="info-tag store-page-changed" v-if="book.storePageChanged" v-tippy="{ maxWidth: 300 }" content="There is a store page for the book, but it's for a different version of the book. <br><br>This is the reason why some data is unavailable.">
-              <font-awesome :icon="['fas', 'shopping-bag']" />
+              <fa6-solid-basket-shopping/>
               changed
             </div>
             <div class="info-tag store-page-missing" v-else-if="book.storePageMissing" v-tippy="{ maxWidth: 300 }" content="Store page was possibly removed or it became unavailable in your region since it was added. In some cases there may still be a store page for a different version of the book. <br><br>This is the reason why some data is unavailable.">
-              <font-awesome :icon="['fas', 'shopping-bag']" />
+              <fa6-solid-basket-shopping/>
               missing
             </div>
             
             <div class="info-tag plus-catalog" :class="{ 'plus-catalog-unavailable': book.unavailable }" v-if="book.fromPlusCatalog" v-tippy="{ maxWidth: 300 }" :content="book.unavailable ? 'Used to be in the plus catalog but you no longer have access to it' : 'In the plus catalog'">
-              <font-awesome fas :icon="['fas', 'plus-circle']" />
+              <fa6-solid-circle-plus/>
               Plus catalog
             </div>
             
             <div class="info-tag whispersync" :class="{ owned: book.whispersync === 'owned' }" v-if="book.whispersync" v-tippy="{ maxWidth: 300 }" :content="book.whispersync === 'owned' ? 'I own the Kindle version' : 'Kindle book available for purchase...'">
-              <font-awesome :icon="['fas', 'headphones-alt']" />
+              <fa6-solid-headphones-simple/>
               whispersync
             </div>
           </div>
@@ -81,24 +81,18 @@
         // https://joonaspaakko.github.io/ale-test-new/#/library?book=B01B8AN3SQ
       -->
       <span>{{ summary.readmore.toggle ? "Read less" : "Read more" }}</span>
-      <font-awesome fas :icon="summary.readmore.toggle ? 'chevron-up' : 'chevron-down'" />
+      <vertical-chevron :up="summary.readmore.toggle" />
     </div>
   </div>
 </template>
 
 <script>
-import makeUrl from "@output-mixins/makeFullUrl";
-import arrayToHTML from "@output-comps/snippets/arrayToHTML";
-import bookTags from "./bookTags";
+import makeUrl from "@output-mixins/makeFullUrl.js";
 
 export default {
   name: "bookSummary",
   props: ["book", "bookSummary", "mobileWidth"],
   mixins: [makeUrl],
-  components: { 
-    arrayToHTML, 
-    bookTags, 
-  },
   data: function() {
     return {
       summary: {
@@ -147,13 +141,13 @@ export default {
   },
 
   created: function() {
-    this.$root.$on("afterWindowResize", this.windowResized);
-    this.$root.$on("resizeSummary", this.getSummaryMaxHeight);
+    this.$compEmitter.on("afterWindowResize", this.windowResized);
+    this.$compEmitter.on("resizeSummary", this.getSummaryMaxHeight);
   },
 
   beforeUnmount: function() {
-    this.$root.$off("afterWindowResize", this.windowResized);
-    this.$root.$off("resizeSummary", this.getSummaryMaxHeight);
+    this.$compEmitter.off("afterWindowResize", this.windowResized);
+    this.$compEmitter.off("resizeSummary", this.getSummaryMaxHeight);
   },
 
   methods: {

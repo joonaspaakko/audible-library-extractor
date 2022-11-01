@@ -5,7 +5,7 @@
 
     <div class="top-wrapper">
       <div class="icon-wrapper" :style="{ fontSize: iconSize/1.2  + 'px', lineHeight: iconSize/1.2  + 'px', paddingRight: iconSize / 2.5 + 'px' }">
-        <font-awesome :icon="['fas', 'file-csv']" />
+        <fa6-solid-file-csv/>
       </div>
       <div class="text-wrapper" ref="textWrapper">
         <h2> CSV (Spreadsheet)</h2>
@@ -23,7 +23,7 @@
         <input type="radio" name="dataSources" v-model="settings.dataSourcesChecked" :value="source.key" @change="inputChanged"> 
         <div class="visual-radiobutton">
           <div class="icon">
-            <font-awesome :icon="['fas', 'circle']" />
+            <fa-regular-circle/>
           </div>
         </div>
         <span>{{ source.key }}</span>
@@ -41,7 +41,7 @@
         <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> 
         <div class="visual-radiobutton">
           <div class="icon">
-            <font-awesome :icon="['fas', 'circle']" />
+            <fa-regular-circle/>
           </div>
         </div>
         <span>{{ item.label || item.key }}</span>
@@ -56,18 +56,18 @@
       <div class="btn-wrapper">
         <button class="save-btn save-csv" @click="saveButtonClicked"  :class="{ saving: bundling }" :disabled="bundling || !saveBtnEnabled">
           <span>{{ filename}}</span>
-          <font-awesome v-if="bundling" :icon="['fas', 'spinner']" spin />
-          <font-awesome v-else :icon="['fas', 'download']" />
+          <fa6-solid-circle-notch v-if="bundling" spin />
+          <fa6-solid-download v-else />
         </button>
         
         <div>
           <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/google-sheets-import"> 
             <span>Google Sheets import</span>
-            <font-awesome :icon="['fas', 'share-square']" />
+            <fa6-solid-share-from-square/>
           </a>
           <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/goodreads-import"> 
             <span>Goodreads import</span>
-            <font-awesome :icon="['fas', 'share-square']" />
+            <fa6-solid-share-from-square/>
           </a>
         </div>
         
@@ -80,13 +80,12 @@
 </template>
 
 <script>
-
-import stringifyArray from "@output-mixins/stringifyArray";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
-import makeUrl from "@output-mixins/makeFullUrl";
+import stringifyArray from "@output-mixins/stringifyArray.js";
+import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
+import makeUrl from "@output-mixins/makeFullUrl.js";
 import prepareKeys from "@output-mixins/prepareKeys.js";
-import slugify from "@output-mixins/slugify";
-import makeGoodReadsUrl from "@output-mixins/goodReadsSearchUrl";
+import slugify from "@output-mixins/slugify.js";
+import makeGoodReadsUrl from "@output-mixins/goodReadsSearchUrl.js";
 import modal from '@output-snippets/modal.vue';
 
 export default {
@@ -102,7 +101,6 @@ export default {
   components: {
     modal,
   },
-  
   data: function() {
     return {
       settings: {

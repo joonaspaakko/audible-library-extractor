@@ -31,11 +31,8 @@
           />
         </div>
         
-        <search-icons :list-name.sync="listName"></search-icons> 
-        <search-options
-          :list-name.sync="listName"
-          v-if="listName"
-        ></search-options>
+        <search-icons v-model:list-name="listName" /> 
+        <search-options v-model:list-name="listName" v-if="listName" />
       </div> <!-- #ale-search -->
       
       <view-mode-switcher v-if="$route.meta.gallery && $store.state.windowWidth >= 450" />
@@ -136,11 +133,11 @@ export default {
     }
     
     this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable, { passive: true });
-    this.$root.$on("ios-auto-zoom-disable", this.iosAutozoomDisable);
-    this.$root.$on("start-scope", this.scope);
-    this.$root.$on("start-sort", this.sort);
-    this.$root.$on("start-filter", this.filter);
-    this.$root.$on("search-focus", this.focusOnSearch);
+    this.$compEmitter.on("ios-auto-zoom-disable", this.iosAutozoomDisable);
+    this.$compEmitter.on("start-scope", this.scope);
+    this.$compEmitter.on("start-sort", this.sort);
+    this.$compEmitter.on("start-filter", this.filter);
+    this.$compEmitter.on("search-focus", this.focusOnSearch);
     this.$store.commit('prop', { key: 'searchMounted', value: true });
     
   },
@@ -149,11 +146,11 @@ export default {
     
     this.$store.commit("prop", { key: "searchQuery", value: '' });
     this.$refs.aleSearch.removeEventListener( "touchstart", this.iosAutozoomDisable);
-    this.$root.$off("ios-auto-zoom-disable", this.iosAutozoomDisable);
-    this.$root.$off("start-scope", this.scope);
-    this.$root.$off("start-sort", this.sort);
-    this.$root.$off("start-filter", this.filter);
-    this.$root.$off("search-focus", this.focusOnSearch);
+    this.$compEmitter.off("ios-auto-zoom-disable", this.iosAutozoomDisable);
+    this.$compEmitter.off("start-scope", this.scope);
+    this.$compEmitter.off("start-sort", this.sort);
+    this.$compEmitter.off("start-filter", this.filter);
+    this.$compEmitter.off("search-focus", this.focusOnSearch);
     this.$store.commit('prop', { key: 'searchMounted', value: false });
     
   },
@@ -178,7 +175,7 @@ export default {
     
     scope: function() {
       
-      this.$root.$emit("book-clicked", null);
+      this.$compEmitter.emit("book-clicked", null);
       // No need to shuffle anything when there's no active search
       if ( this.$store.getters.searchIsActive ) {
         this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
@@ -191,7 +188,7 @@ export default {
     },
     filter: function() {
       
-      this.$root.$emit("book-clicked", null)
+      this.$compEmitter.emit("book-clicked", null)
       
       this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
       
@@ -205,7 +202,7 @@ export default {
     },
     sort: function() {
       
-      this.$root.$emit("book-clicked", null);
+      this.$compEmitter.emit("book-clicked", null);
       this.$store.commit("prop", { key: ( this.$store.getters.searchIsActive ? 'searchCollection' : 'mutatingCollection'), value: this.sortBooks( this.$store.getters.collection ) });
       
     },
@@ -216,7 +213,7 @@ export default {
       const newQueries = {};
       const searchQuery = decodeURIComponent(this.$route.query.search);
       if ( !onLoad ) {
-        this.$root.$emit("book-clicked", null);
+        this.$compEmitter.emit("book-clicked", null);
         // this.$updateQuery({ query: 'book', value: undefined, src: '.......below book clicked emit' });
         newQueries.book = null;
       }

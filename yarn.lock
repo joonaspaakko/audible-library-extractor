@@ -287,6 +287,11 @@
   resolved "https://registry.yarnpkg.com/@esbuild/linux-loong64/-/linux-loong64-0.14.54.tgz#de2a4be678bd4d0d1ffbb86e6de779cde5999028"
   integrity sha512-bZBrLAIX1kpWelV0XemxBZllyRmM6vgFQQG2GdNb+r3Fkp0FOh1NJSvekXDs7jq70k4euu1cryLMfU+mTXlEpw==
 
+"@fortawesome/fontawesome-free@^6.2.0":
+  version "6.2.0"
+  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-6.2.0.tgz#ba3510825b332816fe7190f28827f8cb33a298b5"
+  integrity sha512-CNR7qRIfCwWHNN7FnKUniva94edPdyQzil/zCwk3v6k4R6rR2Fr8i4s3PM7n/lyfPA6Zfko9z5WDzFxG9SW1uQ==
+
 "@iconify/json@^2.1.122":
   version "2.1.122"
   resolved "https://registry.yarnpkg.com/@iconify/json/-/json-2.1.122.tgz#a550a47ed5a44b18a27f3a0d7f67c1a8af3f38c1"
@@ -393,6 +398,18 @@
   dependencies:
     estree-walker "^2.0.1"
     picomatch "^2.2.2"
+
+"@splidejs/splide@^4.1.3":
+  version "4.1.3"
+  resolved "https://registry.yarnpkg.com/@splidejs/splide/-/splide-4.1.3.tgz#79cdc861c20262702e7bfdebac53db70873d0e5a"
+  integrity sha512-nmexLBzGy2vLR25uDSnFMk54dFMkSalmIdKY7fNkJZY8MO/x0n8PS9SW6VajiNTTV8Yo1IXsNCBczc2uj7kzBA==
+
+"@splidejs/vue-splide@^0.6.12":
+  version "0.6.12"
+  resolved "https://registry.yarnpkg.com/@splidejs/vue-splide/-/vue-splide-0.6.12.tgz#063731cf8ec2d1f9a14ffacbe3a315db63ab6ff2"
+  integrity sha512-eQb8pnGMN8Tr0FVaQo1PUMZlMHl8fSqHNXPTx79eeE2dkZqbsvq6jRzXoT9ZF7hFkxdOEmB6qYNp93SUwV684g==
+  dependencies:
+    "@splidejs/splide" "^4.1.3"
 
 "@types/parse-json@^4.0.0":
   version "4.0.0"
@@ -511,6 +528,11 @@
   version "3.2.40"
   resolved "https://registry.yarnpkg.com/@vue/shared/-/shared-3.2.40.tgz#e57799da2a930b975321981fcee3d1e90ed257ae"
   integrity sha512-0PLQ6RUtZM0vO3teRfzGi4ltLUO5aO+kLgwh4Um3THSR03rpQWLTuRCkuO5A41ITzwdWeKdPHtSARuPkoo5pCQ==
+
+"@vueform/multiselect@^2.5.6":
+  version "2.5.6"
+  resolved "https://registry.yarnpkg.com/@vueform/multiselect/-/multiselect-2.5.6.tgz#0d7b9b9c935e7d2202a8eea6699fc99e7a165158"
+  integrity sha512-pmGwd/6d4dzdi1mp0uqizmpdkakSXZuYIG+aIEs/9UcaDB+6NlnhvFwrlQ8enSIo0kiCERC48WyfVZ7CscHSYQ==
 
 "@webcomponents/custom-elements@^1.5.0":
   version "1.5.0"
@@ -834,6 +856,11 @@ csstype@^2.6.8:
   resolved "https://registry.yarnpkg.com/csstype/-/csstype-2.6.21.tgz#2efb85b7cc55c80017c66a5ad7cbd931fda3a90e"
   integrity sha512-Z1PhmomIfypOpoMjRQB70jfvy/wxT50qW08YXO5lMIJkrdq4yOTR+AW7FqutScmB9NkLwxo+jU+kZLbofZZq/w==
 
+custom-event-polyfill@^1.0.7:
+  version "1.0.7"
+  resolved "https://registry.yarnpkg.com/custom-event-polyfill/-/custom-event-polyfill-1.0.7.tgz#9bc993ddda937c1a30ccd335614c6c58c4f87aee"
+  integrity sha512-TDDkd5DkaZxZFM8p+1I3yAlvM3rSr1wbrOliG4yJiwinMZN8z/iGL7BTlDkrJcYTmgUSb4ywVCc3ZaUtOtC76w==
+
 date-fns@^2.29.3:
   version "2.29.3"
   resolved "https://registry.yarnpkg.com/date-fns/-/date-fns-2.29.3.tgz#27402d2fc67eb442b511b70bbdf98e6411cd68a8"
@@ -914,6 +941,11 @@ electron-to-chromium@^1.4.251:
   version "1.4.279"
   resolved "https://registry.yarnpkg.com/electron-to-chromium/-/electron-to-chromium-1.4.279.tgz#84267fec806a8b1c5a1daebf726c4e296e5bcdf9"
   integrity sha512-xs7vEuSZ84+JsHSTFqqG0TE3i8EAivHomRQZhhcRvsmnjsh5C2KdhwNKf4ZRYtzq75wojpFyqb62m32Oam57wA==
+
+element-matches@^0.1.2:
+  version "0.1.2"
+  resolved "https://registry.yarnpkg.com/element-matches/-/element-matches-0.1.2.tgz#7345cb71e965bd2b12f725e524591c102198361a"
+  integrity sha512-yWh1otcs3OKUWDvu/IxyI36ZI3WNaRZlI0uG/DK6fu0pap0VYZ0J5pEGTk1zakme+hT0OKHwhlHc0N5TJhY6yQ==
 
 emojis-list@^3.0.0:
   version "3.0.0"
@@ -1099,7 +1131,7 @@ fast-deep-equal@^3.1.1:
   resolved "https://registry.yarnpkg.com/fast-deep-equal/-/fast-deep-equal-3.1.3.tgz#3a7d56b559d6cbc3eb512325244e619a65c6c525"
   integrity sha512-f3qQ9oQy9j2AhBe/H9VC91wLmKBCCU/gDOnKNAYG5hswO7BLKj09Hc5HYNz9cGI++xlpDCIgDaitVs03ATR84Q==
 
-fast-glob@^3.2.11, fast-glob@^3.2.12:
+fast-glob@^3.2.11, fast-glob@^3.2.12, fast-glob@~3.2.11:
   version "3.2.12"
   resolved "https://registry.yarnpkg.com/fast-glob/-/fast-glob-3.2.12.tgz#7f39ec99c2e6ab030337142da9e0c18f37afae80"
   integrity sha512-DVj4CQIYYow0BlaelwK1pHl5n5cRSJfM60UA0zK891sVInoPri2Ekj7+e1CT3/3qxXenpI+nBBmQAcJPJgaj4w==
@@ -1589,6 +1621,11 @@ normalize-path@^3.0.0, normalize-path@~3.0.0:
   resolved "https://registry.yarnpkg.com/normalize-path/-/normalize-path-3.0.0.tgz#0dcd69ff23a1c9b11fd0978316644a0388216a65"
   integrity sha512-6eZs5Ls3WtCisHWp9S2GUy8dqkpGi4BVSz3GaqiE6ezub0512ESztXUwUB6C6IKbQkY2Pnb/mD4WYojCRwcwLA==
 
+normalize.css@^8.0.1:
+  version "8.0.1"
+  resolved "https://registry.yarnpkg.com/normalize.css/-/normalize.css-8.0.1.tgz#9b98a208738b9cc2634caacbc42d131c97487bf3"
+  integrity sha512-qizSNPO93t1YUuUhP22btGOo3chcvDFqFaj2TRybP0DMxkHOCTYwp3n34fel4a31ORXy4m1Xq0Gyqpb5m33qIg==
+
 npm-run-path@^4.0.1:
   version "4.0.1"
   resolved "https://registry.yarnpkg.com/npm-run-path/-/npm-run-path-4.0.1.tgz#b7ecd1e5ed53da8e37a55e1c2269e0b97ed748ea"
@@ -1872,6 +1909,11 @@ slash@^3.0.0:
   resolved "https://registry.yarnpkg.com/slash/-/slash-3.0.0.tgz#6539be870c165adbd5240220dbe361f1bc4d4634"
   integrity sha512-g9Q1haeby36OSStwb4ntCGGGaKsaVSjQ68fBxoQcutl5fS1vuY18H3wSt3jFyFtrkx+Kz0V1G85A4MyAdDMi2Q==
 
+smoothscroll-polyfill@^0.4.4:
+  version "0.4.4"
+  resolved "https://registry.yarnpkg.com/smoothscroll-polyfill/-/smoothscroll-polyfill-0.4.4.tgz#3a259131dc6930e6ca80003e1cb03b603b69abf8"
+  integrity sha512-TK5ZA9U5RqCwMpfoMq/l1mrH0JAR7y7KRvOBx0n2869aLxch+gT9GhN3yUfjiw+d/DiF1mKo14+hd62JyMmoBg==
+
 "source-map-js@>=0.6.2 <2.0.0", source-map-js@^1.0.2:
   version "1.0.2"
   resolved "https://registry.yarnpkg.com/source-map-js/-/source-map-js-1.0.2.tgz#adbc361d9c62df380125e7f161f71c826f1e490c"
@@ -2077,6 +2119,13 @@ vite-plugin-chrome-extension@^0.0.7:
     vite "^2.2.0"
     webextension-polyfill "^0.6.0"
 
+vite-plugin-dynamic-import@^1.2.3:
+  version "1.2.3"
+  resolved "https://registry.yarnpkg.com/vite-plugin-dynamic-import/-/vite-plugin-dynamic-import-1.2.3.tgz#c041124a25d705ad28d16ca8c13160158a16dca9"
+  integrity sha512-+TBAF9f8aYHkYnA53A/mWm4Fe+xgVYebF6eNm3ILx2w9fVz7intqsP+PFPnVg7jzM9SJxUx5q31HLdA7YGTw+Q==
+  dependencies:
+    fast-glob "~3.2.11"
+
 vite-plugin-static-copy@^0.9.0:
   version "0.9.0"
   resolved "https://registry.yarnpkg.com/vite-plugin-static-copy/-/vite-plugin-static-copy-0.9.0.tgz#68a39b02d4fb7ca1d33d9e28b6a6b988abf6fab4"
@@ -2111,12 +2160,25 @@ vue-router@^4.1.5:
   dependencies:
     "@vue/devtools-api" "^6.1.4"
 
+vue-slider-component@^4.1.0-beta.4:
+  version "4.1.0-beta.4"
+  resolved "https://registry.yarnpkg.com/vue-slider-component/-/vue-slider-component-4.1.0-beta.4.tgz#56a1e7aac1cca0637a9310298705e4b96d4444f1"
+  integrity sha512-vgUTa1uy3aY5bgfw61DIaMRHFKD4kuzZA4BYbkX8AnFpN3MPZEzjzurIOTnvfKYzgxD1bJGkGLLEGVfx2p+LZw==
+
 vue-tippy@^6.0.0-alpha.65:
   version "6.0.0-alpha.65"
   resolved "https://registry.yarnpkg.com/vue-tippy/-/vue-tippy-6.0.0-alpha.65.tgz#8a55ae4db9ab26e67c3f728fa0df12ab4461f163"
   integrity sha512-AmPNcyrOillysYFDbpgBkdv0UDziAg4mubD1LiyiNgcmLux0Gb2dXvkDDiLoPpbu9CxFzAMAQZOdOTEaOJDb0Q==
   dependencies:
     tippy.js "^6.3.7"
+
+vue3-shortkey@^4.0.0:
+  version "4.0.0"
+  resolved "https://registry.yarnpkg.com/vue3-shortkey/-/vue3-shortkey-4.0.0.tgz#63ab7bfbe6f0f80158ae8a22b44c16e566b7bd83"
+  integrity sha512-pXb/K7aw3ViqzWL9jz/IL4wOk7M7FQ87ekYxk5J7uKTNEfOVBYtILGjvCBJD3/zEUipcLQJEg7TjE1xYnVYV/w==
+  dependencies:
+    custom-event-polyfill "^1.0.7"
+    element-matches "^0.1.2"
 
 vue@^3.2.38:
   version "3.2.40"

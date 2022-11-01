@@ -225,26 +225,7 @@ function audibleLibraryExtractor(data) {
   app.use( store );	
   
   app.mount('#audible-library-extractor');
-
-  // new Vue({
-  //   el: "#audible-library-extractor",
-  //   store,
-  //   render: h => {
-  //     return h(App, {
-  //       props: {
-  //         storageHasDataInit: storageHasData ? ({ 
-  //           books: dataChunks.indexOf('books') > -1, 
-  //           isbn: dataChunks.indexOf('books') > -1 ? checkISBNs( data ) : false,
-  //           wishlist: dataChunks.indexOf('wishlist') > -1,
-  //           collections: dataChunks.indexOf('collections') > -1,
-  //         }) : {},
-  //         storageConfigInit: data.config || {},
-  //         dataVersionInit: data.version || {},
-  //       }
-  //     });
-  //   }
-  // });
-  
+    
 }
 
 

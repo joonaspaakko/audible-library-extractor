@@ -1,3 +1,5 @@
+import domurl from 'domurl';
+
 export default {
   methods: {
     makeFullUrl: function(inputURL) {

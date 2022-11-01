@@ -1,7 +1,7 @@
 <template>
 <div class="action-reverse-direction" :class="{ flip: detailSettings.reverseDirection }">
   
-  <font-awesome :icon="['fas', 'retweet']"  @click="flip" />
+  <fa6-solid-retweet @click="flip" />
 <!--   
   <div
   v-for="item in settings" :key="item.label"

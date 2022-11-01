@@ -3,7 +3,7 @@
 const longpress_timeout = 700;
 
 export default {
-  bind: function (el, { value }, vNode) {
+  created: function (el, { value }, vNode) {
     if (typeof value !== 'function') {
       console.warn(`Expect a function, got ${value}`)
       return
@@ -29,5 +29,11 @@ export default {
 
     ;['mousedown', 'touchstart'].forEach(e => el.addEventListener(e, start, { passive: true }))
     ;['click', 'mouseout', 'touchend', 'touchcancel'].forEach(e => el.addEventListener(e, cancel, { passive: true }))
-  }
+  },
+  unmounted: function( el, binding ) {
+    
+    ;['mousedown', 'touchstart'].forEach(e => el.removeEventListener(e, start, { passive: true }))
+    ;['click', 'mouseout', 'touchend', 'touchcancel'].forEach(e => el.removeEventListener(e, cancel, { passive: true }))
+    
+  },
 };

@@ -9,21 +9,20 @@
     </div>
 
     <div
-      v-for="item in items"
+      v-for="item in filteredItems"
       :key="item.name"
       class="icon-wrap"
       :class="{ disabled: !item.on }"
       v-tippy
       :content="item.tooltip"
       @click="openSearchOptions(item, $event)"
-      v-if="showIcon(item)"
     >
       <div
         class="search-opt-btn"
         :data-option="item.name"
         :class="{ active: listName === item.name, 'active-filters': item.name === 'filter' && filtersActive }"
       >
-        <font-awesome fas :icon="item.icon" />
+        <i :class="item.icon"></i>
       </div>
     </div>
   </div>
@@ -40,21 +39,21 @@ export default {
           name: "scope",
           on: true,
           active: false,
-          icon: "microscope",
+          icon: "fa-solid fa-microscope",
           tooltip: "Change the search scope for more accurate results"
         },
         {
           name: "filter",
           on: true,
           active: false,
-          icon: "filter",
+          icon: "fa-solid fa-filter",
           tooltip: "Filter books"
         },
         {
           name: "sort",
           on: true,
           active: false,
-          icon: "sort",
+          icon: "fa-solid fa-sort",
           tooltip: "Sort books"
         }
       ]
@@ -69,7 +68,14 @@ export default {
       return this.$store.getters.filterExtrasKeys || (this.$store.getters.filterKeys !== 'notStarted,started,finished' && this.$store.getters.filterKeysLength );
     },
     
+    filteredItems() {
+      return _.filter( this.items, (item) => {
+        return this.showIcon( item );
+      });
+    },
+    
   },
+  
   methods: {
     
     openSearchOptions: function(clickedOption, e) {
@@ -83,6 +89,7 @@ export default {
     },
     
     showIcon: function( item ) {
+      if ( !item ) return;
       switch ( item.name ) {
         case 'scope':
           return this.$store.state.listRenderingOpts[ item.name ].length > 0;

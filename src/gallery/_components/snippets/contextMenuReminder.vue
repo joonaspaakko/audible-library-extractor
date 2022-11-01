@@ -4,7 +4,7 @@
   <div >
     <img src="@output-images/context-menu.png" alt="">
   </div>
-  <font-awesome class="hide" @click="hide" :icon="['fas', 'times']" />
+  <fa-solid-times class="hide" @click="hide" />
 </div>
 </template>
 

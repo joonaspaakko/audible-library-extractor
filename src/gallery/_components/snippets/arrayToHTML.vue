@@ -5,7 +5,7 @@
       <span>
         <span v-if="index !== 0">
           <span v-if="chevron" class="chevron">
-            <font-awesome fas icon="chevron-right" />
+            <fa-solid-chevron-right/>
           </span>
           <span v-else>{{ delim || ", " }}</span>
         </span>

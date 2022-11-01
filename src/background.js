@@ -104,7 +104,6 @@ browser.tabs.onActivated.addListener((activeInfo) => {
       // browser.action.show(tabId);
     }
     else {
-      console.log( 'trying to set gray icon' )
       browser.action.setIcon({
         tabId: activeInfo.tabId,
         path: 'assets/icons-gray/16.png'

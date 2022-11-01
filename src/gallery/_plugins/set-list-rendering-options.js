@@ -1,7 +1,7 @@
 
 const setListRenderingOpts = {};
-setListRenderingOpts.install = function (Vue) {
-  Vue.prototype.$setListRenderingOpts = function( list ) {
+setListRenderingOpts.install = function (app, options) {
+  app.config.globalProperties.$setListRenderingOpts = function( list ) {
     
     if ( this.$route.query.sortValues ) {
       const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });

@@ -1,4 +1,4 @@
-import VueRouter from "vue-router";
+import { createRouter, createWebHashHistory } from 'vue-router';
 import store from "@output-modules/store/index.js";
 
 import allRoutes from '@output-modules/routes.js';
@@ -57,7 +57,8 @@ export default function( libraryData ) {
     
     routes.push( allRoutes.fallback );
 
-    const router = new VueRouter({
+    const router = createRouter({
+      history: createWebHashHistory(import.meta.env.BASE_URL),
       routes,
       scrollBehavior(to, from, savedPosition) {
         if (savedPosition ) {

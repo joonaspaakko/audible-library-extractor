@@ -10,7 +10,7 @@
       ''
     "
     >
-      <star-rating :prioritizeRatingsText="$store.getters.sortBy === 'ratings'" :size="10" :rating="sortContents()" :number="true" :ratingsText="false" :ratings="($store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && book.ratings ? book.ratings : null"></star-rating>
+      <star-ratings :prioritizeRatingsText="$store.getters.sortBy === 'ratings'" :size="10" :rating="sortContents()" :number="true" :ratingsText="false" :ratings="($store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && book.ratings ? book.ratings : null"></star-ratings>
     </div>
     <div v-else-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContents()"
     v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
@@ -19,7 +19,7 @@
       ''
     "></div>
     <div v-else :class="'sort-'+$store.getters.sortBy">
-      <font-awesome v-if="book.favorite" :icon="['fas', 'heart']" />
+      <fa6-solid-heart v-if="book.favorite" />
       <span v-else>&nbsp;</span>
     </div>
     
@@ -27,19 +27,14 @@
 </template>
 
 <script>
-import timeStringToSeconds from "../../../../_mixins/timeStringToSeconds";
-import secondsToTimeString from "../../../../_mixins/secondsToTimeString";
-import progressbarWidth from "../../../../_mixins/progressbarWidth";
-import starRating from '@output-comps/snippets/starRatings';
+import timeStringToSeconds from "../../../../_mixins/timeStringToSeconds.js";
+import secondsToTimeString from "../../../../_mixins/secondsToTimeString.js";
+import progressbarWidth from "../../../../_mixins/progressbarWidth.js";
 
 export default {
   name: "sortValues",
   props: ["book"],
   mixins: [timeStringToSeconds, secondsToTimeString, progressbarWidth],
-  components: {
-    starRating,
-  },
-  
   data: function() {
     return {
       // notAvailable: "N/A"

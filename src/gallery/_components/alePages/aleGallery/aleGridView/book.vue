@@ -1,12 +1,12 @@
 <template>
   <div class="details-inner-wrap">
     
-    <sort-values v-if="sortValuesEnabled" :book="book"></sort-values>
+    <ale-sort-values v-if="sortValuesEnabled" :book="book" />
     
     <div class="ale-cover">
       
       <div class="ale-play-sample" v-if="book.sample && sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
-        <div><font-awesome fas icon="play" /></div>
+        <div><fa6-solid-play/></div>
       </div>
       <div class="ale-play-sample cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
         <open-web-player :size="20" :book="book" :icon="true" :tooltip="false" :noBG="true" />
@@ -14,7 +14,7 @@
 
       <div
         class="ale-click-wrap"
-        @click="$root.$emit('book-clicked', book.asin)"
+        @click="$compEmitter.emit('book-clicked', book.asin)"
       >
         
         <div class="blurb-tooltip" v-if="book.blurb && sticky.bookDetailSettings.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
@@ -22,27 +22,27 @@
         <div class="info-icons-wrapper">
           <!-- FAVORITE -->
           <div class="favorite-marker" v-if="book.favorite && sticky.bookDetailSettings.favorite">
-            <span><font-awesome fas icon="heart" /></span>
+            <span><fa6-solid-heart/></span>
             <span>favorite</span>
           </div>
 
           <!-- BOOK IS FINISHED -->
           <div class="finished-marker" v-if="book.progress === 'Finished' && sticky.bookDetailSettings.finished">
-            <span><font-awesome fas icon="check" /></span>
+            <span><fa6-solid-check/></span>
             <span>finished</span>
           </div>
 
           <!-- FROM PLUS CATALOG -->
           <div class="plus-catalog-marker" v-if="book.fromPlusCatalog && sticky.bookDetailSettings.plusCatalog">
-            <span v-if="book.unavailable"><font-awesome fas icon="lock" /></span>
-            <span v-else><font-awesome fas icon="plus-circle" /></span>
+            <span v-if="book.unavailable"><fa6-solid-unlock-keyhole/></span>
+            <span v-else><fa6-solid-circle-plus/></span>
             <span>catalog</span>
           </div>
           
           <!-- IN KINDLE -->
           <div class="kindle-marker" v-if="book.whispersync === 'owned' && sticky.bookDetailSettings.whispersync">
             
-            <span><font-awesome :icon="['fas', 'headphones-alt']" /></span>
+            <span><fa6-solid-headphones-simple/></span>
             <span>In my kindle</span>
             <!-- <span v-if="book.whispersync !== 'owned'"><font-awesome fas icon="lock" /></span>
             <span v-else><font-awesome :icon="['fab', 'amazon']" /></span>
@@ -52,7 +52,7 @@
         </div>
       
         <div class="ale-info-indicator">
-          <div><font-awesome fas icon="book" /></div>
+          <div><fa6-solid-book/></div>
         </div>
         
         <div v-if="!book.cover || false" class="placeholder-cover">
@@ -71,16 +71,11 @@
 
 <script>
 import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
-import openWebPlayer from "@output-comps/snippets/openWebPlayer.vue";
 
 export default {
   name: "book",
   props: ["book", "index", "sortValuesEnabled"],
   mixins: [ makeCoverUrl ],
-  components: {
-    'sort-values': () => import( /* webpackChunkName: "sort-values" */ './aleSortValues.vue'),
-    openWebPlayer,
-  },
   data: function() {
     return {
       store: this.$store.state,
@@ -95,7 +90,7 @@ export default {
     // },
 
     playSample: function(book, index) {
-      this.$root.$emit("play-audio", {
+      this.$compEmitter.emit("play-audio", {
         from: "book",
         route: this.$route,
         book: book,

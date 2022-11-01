@@ -6,7 +6,7 @@
     >
       <span class="heading">This book in collections</span>
       <span class="count">{{ collections.length }}</span>
-      <font-awesome fas :icon="$store.state.sticky.collectionsDrawerToggle ? 'chevron-up' : 'chevron-down'" />
+      <vertical-chevron :up="$store.state.sticky.collectionsDrawerToggle" />
     </div>
     <div class="hidden-section" v-if="$store.state.sticky.collectionsDrawerToggle">
       <router-link class="collection-link" v-for="collection in collections" :key="collection.id" :to="{ 
@@ -43,7 +43,7 @@ export default {
     
     if ( this.$store.state.sticky.collectionsDrawerToggle ) {
       this.$nextTick(() => {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     }
     
@@ -66,7 +66,7 @@ export default {
     labelClick: function() {
       this.$store.commit('stickyProp', { key: 'collectionsDrawerToggle', value: !this.$store.state.sticky.collectionsDrawerToggle });
       this.$nextTick(() => {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     },
     

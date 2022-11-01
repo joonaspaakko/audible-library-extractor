@@ -8,15 +8,15 @@
     <div class="second-row">
       
       <div v-if="$store.state.searchMounted && !mobileMenuOpen" class="search-btn" @click="$emit('startSearching')">
-        <font-awesome :icon="['fas', 'search']" />
+        <fa-solid-search/>
       </div>
       
       <back-forward-btns v-if="$store.state.displayMode && !mobileMenuOpen" />
       
       <div class="burger-menu" @click="$emit('update:mobileMenuOpen', !mobileMenuOpen)">
-        <font-awesome class="brgr-btn" :icon="['fas', 'bars']" />
+        <fa-solid-bars class="brgr-btn" />
         <div class="player-open-indicator" v-if="$store.state.playingAudio">
-          <font-awesome class="brgr-btn" :icon="['fas', 'music']" />
+          <fa-solid-music class="brgr-btn" />
         </div>
       </div>
       
@@ -26,13 +26,8 @@
 </template>
 
 <script>
-import backForwardBtns from "@output-snippets/back-forward-btns.vue";
-
 export default {
   name: "mobileMenuFloaters",
-  components: {
-    backForwardBtns,
-  },
   props: ['mobileMenuOpen'],
   data: function() {
     return {

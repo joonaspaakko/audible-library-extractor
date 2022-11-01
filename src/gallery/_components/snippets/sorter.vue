@@ -24,19 +24,19 @@
         
         <!-- SORT ARROWS -->
         <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
-          <font-awesome fas icon="sort-down" />
-          <font-awesome fas icon="sort-up" />
+          <fa6-solid-sort-down data-icon="sort-down" />
+          <fa6-solid-sort-up data-icon="sort-up" />
         </span>
-        
         <!-- RADIOBUTTONS -->
         <span v-else-if="item.radiobutton" class="radiobutton">
-          <font-awesome fas icon="circle" />
-          <font-awesome fas icon="circle" />
+          <fa-regular-circle data-icon="circle" />
+          <fa-regular-dot-circle data-icon="circle" />
         </span>
         <!-- CHECKBOXES -->
         <span v-else class="checkbox">
-          <font-awesome fas icon="square" />
-          <font-awesome fas icon="check" />
+          <ic-round-square data-icon="square" />
+          <fa-solid-check data-icon="check"/>
+          <!-- <ion-checkmark-round data-icon="check"/> -->
         </span>
         <!-- LABEL in the back -->
         <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem }">
@@ -56,6 +56,7 @@
       
       <div class="range-slider" v-if="item.range">
         <span style="font-size: 13px; line-height: 13px; cursor: w-resize;" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
+        
         <vue-slider 
         :disabled="range.disabled"
         :dragOnClick="true" 
@@ -104,17 +105,19 @@
 </template>
 
 <script>
-import 'vue-slider-component/theme/default.css';
+import 'vue-slider-component/theme/antd.css';
 import '@vueform/multiselect/themes/default.css';
-import slugify from "@output-mixins/slugify";
+import slugify from "@output-mixins/slugify.js";
+import VueSlider from 'vue-slider-component';
+import Multiselect from '@vueform/multiselect'
 
 export default {
   name: "sorter",
   props: [ "label", "currentList", "listName", "item", "index", "tippyTop" ],
   mixins: [slugify],
   components: {
-    VueSlider: () => import( /* webpackChunkName: "rangeslider-and-multiselect" */ "vue-slider-component"),
-    Multiselect: () => import( /* webpackChunkName: "rangeslider-and-multiselect" */ "@vueform/multiselect/dist/multiselect.vue2.js"),
+    VueSlider,
+    Multiselect,
   },
   data: function() {
     return {
@@ -170,7 +173,7 @@ export default {
     
     filterAmounts: function( ) {
       
-      this.$root.$emit('repositionSearchOpts'); // potentially changes the width of the container...
+      this.$compEmitter.emit('repositionSearchOpts'); // potentially changes the width of the container...
       
       let isRegularFilter = !(this.item.range || this.item.dropdownOpts); 
       let specialFilterIsActive = (!isRegularFilter && this.item.active === true);
@@ -254,7 +257,7 @@ export default {
   methods: {
     
     tooltipFormatter: function( val ) {
-      return val+this.item.rangeSuffix;
+      return val + this.item.rangeSuffix;
     },
     
     dropdownChanged: function( value ) {
@@ -325,19 +328,19 @@ export default {
       
       this.saveOptions( value, specialBoy);
       
-      if ( this.item.key === "sortValues" ) this.$root.$emit("book-clicked", null);
+      if ( this.item.key === "sortValues" ) this.$compEmitter.emit("book-clicked", null);
     
       if ( this.listName === "scope" ) {
-        this.$root.$emit("start-scope");
+        this.$compEmitter.emit("start-scope");
       }
       else if (
         ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive ) 
         && this.item.key !== "sortValues"
       ) {
         this.$store.commit("prop", { 'key': 'searchSort', value: false });
-        this.$root.$emit("start-sort");
+        this.$compEmitter.emit("start-sort");
       } else if ( this.listName === "filter" ) {
-        this.$root.$emit("start-filter");
+        this.$compEmitter.emit("start-filter");
       } 
         
     },

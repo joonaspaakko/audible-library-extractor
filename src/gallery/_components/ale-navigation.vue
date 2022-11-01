@@ -2,7 +2,7 @@
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation" ref="navigation">
     
-    <ale-navigation-looper :routes="routes" :mobileMenuOpen.sync="mobileMenuOpen" :inRoot="true" />
+    <ale-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" />
     
     <!-- Component opened by one of the menu items -->
     <div class="floater-components" v-if="!mobileThreshold">
@@ -12,7 +12,7 @@
     
   </div>
   
-  <mobile-menu-floaters v-if="mobileThreshold" :mobileMenuOpen.sync="mobileMenuOpen" @startSearching="startSearching" />
+  <mobile-menu-floaters v-if="mobileThreshold" v-model:mobileMenuOpen="mobileMenuOpen" @startSearching="startSearching" />
   
   <!-- When gallery is saved to the home screen on a Tablet -->
   <back-forward-btns v-if="$store.state.displayMode && !mobileThreshold" :viewportFloat="true" />
@@ -77,21 +77,21 @@ export default {
     this.loading = false;
     this.globalTopNavHeight( this.mobileSize );
     // document.addEventListener("mousedown", this.outsideClick, { passive: true });
-    // this.$root.$on("afterWindowResize", this.onWindowResize);
+    // this.$compEmitter.on("afterWindowResize", this.onWindowResize);
     
   },
 
   beforeUnmount: function() {
     // document.removeEventListener("mousedown", this.outsideClick);
-    // this.$root.$off("afterWindowResize", this.onWindowResize);
+    // this.$compEmitter.off("afterWindowResize", this.onWindowResize);
   },
   
   methods: {
     
     
     startSearching() {
-      this.$root.$emit("ios-auto-zoom-disable");
-      this.$root.$emit('search-focus');
+      this.$compEmitter.emit("ios-auto-zoom-disable");
+      this.$compEmitter.emit('search-focus');
     },
     
     getRoutes() {
@@ -136,7 +136,7 @@ export default {
         name: key,
         meta: {
           groupName: routeGroup[0].meta.nestedGroup,
-          icon: ['fas', 'chevron-down'],
+          icon: 'fa-solid fa-chevron-down',
         },
         tag: 'div',
         childItems: routeGroup,
@@ -210,7 +210,7 @@ export default {
             name: 'Extension documentation',
             disabled: false,
             meta: {
-              icon: ['fas', 'graduation-cap'],
+              icon: 'fa-solid fa-graduation-cap',
               nestedGroup: 'extension-tools'
             },
           },
@@ -220,7 +220,7 @@ export default {
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: ['fas', 'save'],
+              icon: 'fa-solid fa-floppy-disk',
               nestedGroup: 'extension-tools',
               // component: () => import( /* webpackChunkName: "save-locally" */ "@output-comps/aleSaveLocally.vue"),
               component: () => import( /* webpackChunkName: "save-locally" */ "@output-snippets/save-gallery.vue"),
@@ -232,7 +232,7 @@ export default {
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: ['fas', 'file-csv'],
+              icon: 'fa-solid fa-file-csv',
               nestedGroup: 'extension-tools',
               component: () => import( /* webpackChunkName: "save-locally" */ "@output-snippets/save-csv.vue"),
             },
@@ -279,7 +279,7 @@ export default {
               return txt;
             },
             meta: {
-              icon: ['fas', 'th'],
+              icon: 'fa-solid fa-table-cells-large',
               nestedGroup: 'extension-tools'
             },
           },
@@ -308,7 +308,7 @@ export default {
               } catch(e) {}
             },
             meta: {
-              icon: ['fas', 'crosshairs'],
+              icon: 'fa-solid fa-crosshairs',
               nestedGroup: 'extension-tools'
             },
           },
@@ -335,7 +335,7 @@ export default {
               } catch(e) {}
             },
             meta: {
-              icon: ['fas', 'home'],
+              icon: 'fa-solid fa-house',
               nestedGroup: 'extension-tools'
             },
           },

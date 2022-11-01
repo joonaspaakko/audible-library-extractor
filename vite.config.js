@@ -8,7 +8,7 @@ import { viteStaticCopy } from 'vite-plugin-static-copy';
 import Icons from 'unplugin-icons/vite';
 import IconsResolver from 'unplugin-icons/resolver';
 import Components from 'unplugin-vue-components/vite';
-import { chromeExtension } from "vite-plugin-chrome-extension";
+import dynamicImport from 'vite-plugin-dynamic-import';
 
 const src = function( path, prefix ) {
   prefix = prefix || './src';
@@ -29,7 +29,7 @@ export default defineConfig({
     chunkSizeWarningLimit: 800, // KB
     rollupOptions: {
       input: {
-        // 'content-script': src('content-script/audible-library-extractor-content-script.js'),
+        'content-script': src('content-script/audible-library-extractor-content-script.js'),
         gallery: 'gallery.html',
         // 'wallpaper-creator': fileURLToPath(new URL('./resources/auth/index.html', import.meta.url)),
       },
@@ -41,6 +41,9 @@ export default defineConfig({
 				manualChunks: undefined,
       },
     },
+    commonjsOptions: {
+       esmExternals: true,
+    }, 
   },
   optimizeDeps: {
     include: [
@@ -77,15 +80,13 @@ export default defineConfig({
     crx({
       manifest
     }),
-    // chromeExtension(),
     viteStaticCopy({
       targets: [
-        { src: src('extension-js'), dest: dist('assets') },
-        { src: src('assets/js'), dest: dist('assets') },
-        // { src: 'background.js', dest: dist('') },
-        // { src: 'assets', dest: dist('') },
+        { src: src('extension-js'), dest: 'assets' },
+        { src: src('assets/js'), dest: 'assets' },
       ]
     }),
+    dynamicImport(),
     {
       name: 'file-paths.json',
       generateBundle(opts, bundle, isWrite) {

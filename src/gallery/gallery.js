@@ -1,68 +1,57 @@
 const standalone = document.querySelector("html.standalone-gallery");
-console.log('asdfaffas')
 
 // VUE 
 import { createApp } from "vue";
 import App from "./gallery-app.vue";
 const app = createApp(App);
 
-/*
-import VueCompositionAPI from '@vue/composition-api';
-Vue.use(VueCompositionAPI);
-
-// DOMURL
-global.domurl = require("domurl");
-
-// LODASH
-// // import _ from "lodash";
-// global._ = _;
-
 import "normalize.css/normalize.css";
 
-Vue.config.devtools = false;
-Vue.config.productionTip = false;
+app.config.devtools = false;
+app.config.productionTip = false;
 
 // VUE SHORTKEY
-Vue.use(require("vue-shortkey"));
+import shortkey from 'vue3-shortkey';
+app.use(shortkey);
 // VUE ROUTER
-import VueRouter from "vue-router";
-Vue.use(VueRouter);
 import loadRoutes from '@output-modules/load-routes.js';
 // UPDATING VUEX QUERIES
 import updateRouterQueries from './_plugins/update-router-query.js';
-Vue.use( updateRouterQueries );
+app.use( updateRouterQueries );
+// For emitting custom events between components
+import mitt from 'mitt';
+app.config.globalProperties.$compEmitter = new mitt();
 // VUEX store
 import store from "@output-modules/store/index.js";
+app.use(store);
 // VUE TIPPY
-import VueTippy, { TippyComponent } from "vue-tippy";
+import VueTippy from "vue-tippy";
 import tippySettings from './_plugins/tippy-settings.js';
-Vue.use(VueTippy, tippySettings);
-Vue.component("tippy", TippyComponent);
+app.use(VueTippy, tippySettings);
 import 'tippy.js/dist/tippy.css';
-// FONT AWESOME
-import fontawesomeWrapper from './_plugins/font-awesome-wrapper.js';
-Vue.component("font-awesome", fontawesomeWrapper);
+// FONTAWESOME
+import '@fortawesome/fontawesome-free/css/all.css';
 // LONG PRESS
 import longPress from './_plugins/long-press.js';
-Vue.directive('longpress', longPress);
+app.directive('longpress', longPress);
+
 // GLOBAL METHODS
 import setListRenderingOptions from './_plugins/set-list-rendering-options.js'
-Vue.use( setListRenderingOptions );
+app.use( setListRenderingOptions );
 
 // HELPER METHODS (from content script)
 import helpers from "@contscript-mixins/misc/helpers.js";
 
-
 // APP PREP
 // For testing side loading JSON
 var sideLoadJSON = false;
-// var sideLoadJSON = require('./test-data.json');
-// var sideLoadJSON = require('./test-data-2.json');
+// import sideLoadJSON from './test-data.json';
+// import sideLoadJSON from './test-data-2.json';
 if ( sideLoadJSON ) {
   startVue( sideLoadJSON );
 }
 // In the extension environment...
-else if (!standalone) {
+else if ( !standalone ) {
   try {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
@@ -131,21 +120,7 @@ function startVue( libraryData ) {
   vuexPrep( libraryData );
   let router = loadRoutes( standaloneRouteData || libraryData );
   
-  new Vue({
-    router,
-    el: "#audible-library-extractor",
-    store: store,
-    render: h => {
-      return h(App, {
-        // props: {
-        //   version: version
-        // }
-      });
-    }
-  });
+  app.use( router );
+  app.mount('#audible-library-extractor');
   
 }
-
-*/
-
-app.mount('#audible-library-extractor');

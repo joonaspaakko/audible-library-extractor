@@ -8,11 +8,11 @@
       <!-- <span class="heading">Books I own in the series</span> -->
       <span class="heading">My books in the series</span>
       <span class="count">{{ series.count }}</span>
-      <font-awesome fas :icon="$store.state.sticky.booksInSeriesToggle ? 'chevron-up' : 'chevron-down'" />
+      <vertical-chevron :up="$store.state.sticky.booksInSeriesToggle" />
     </div>
     <div class="hidden-section my-books-in-series" v-if="$store.state.sticky.booksInSeriesToggle">
       
-      <filters :series="series"></filters>
+      <books-in-series-filters :series="series" />
       
       <div
       class="series-section"
@@ -44,7 +44,7 @@
           <good-reads-link v-else :size="14" :book="seriesBook" :icon="true" :muted="true"  />
           
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
-            <font-awesome fas :icon="booksInSeriesIcon(seriesBook)" />
+            <i :class="booksInSeriesIcon(seriesBook)"></i>
           </span>
           
           <books-in-series-link :series="series" :book="seriesBook" :index="index" />
@@ -58,22 +58,12 @@
 </template>
 
 <script>
-import openInApp from "@output-comps/snippets/openInApp";
-import goodReadsLink from "@output-comps/snippets/goodReadsLink";
-import booksInSeriesLink from "./booksInSeriesLink.vue";
-import filters from "./booksInSeriesFilters.vue";
-import makeUrl from "@output-mixins/makeFullUrl";
+import makeUrl from "@output-mixins/makeFullUrl.js";
 
 export default {
   name: "booksInSeries",
   props: ["book"],
   mixins: [makeUrl],
-  components: {
-    openInApp,
-    goodReadsLink,
-    booksInSeriesLink,
-    filters,
-  },
   data: function() {
     return {
       inSeries: false,
@@ -110,7 +100,7 @@ export default {
     
     if ( this.$store.state.sticky.booksInSeriesToggle ) {
       this.$nextTick(() => {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     }
     
@@ -209,7 +199,7 @@ export default {
     booksInSeriesLabelClick: function() {
       this.$store.commit('stickyProp', { key: 'booksInSeriesToggle', value: !this.$store.state.sticky.booksInSeriesToggle });
       this.$nextTick(() => {
-        this.$root.$emit("resizeSummary");
+        this.$compEmitter.emit("resizeSummary");
       });
     },
 
@@ -250,13 +240,13 @@ export default {
 
     booksInSeriesIcon: function(book) {
       if ( book.free && book.notInLibrary ) {
-        return 'minus-circle';
+        return 'fa-solid fa-circle-minus';
       }
       else if ( book.plus && book.notInLibrary ) {
-        return 'plus-circle';
+        return 'fa-solid fa-circle-plus';
       }
       else if ( book.notInLibrary ) {
-        return 'ban';
+        return 'fa-solid fa-ban';
       }
       else {
         const classes = this.numbersClass(book);

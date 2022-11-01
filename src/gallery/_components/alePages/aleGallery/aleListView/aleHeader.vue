@@ -29,15 +29,9 @@
 </template>
 
 <script>
-import colResizer from "./colResizer";
-
 export default {
   name: "aleHeader",
   props: ["keys"],
-  components: {
-    colResizer,
-    sorter: () => import( /* webpackChunkName: "sorter" */ "@output-snippets/sorter.vue"),
-  },
   data: function() {
     return {
       listName: 'sort',

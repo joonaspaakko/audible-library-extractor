@@ -3,20 +3,19 @@
     <div class="search-options-inner-wrap">
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
-      
+      test
       <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="{ top: $store.state.topNavOffset + 'px' }">
         <li class="reset-filters" @click="resetFilters" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
-          <font-awesome fas icon="redo-alt" />
+          <fa-solid-redo-alt/>
         </li>
         <li class="total"><span :class="{ difference: $store.getters.collection.length !== $store.getters.collectionTotal }">{{ $store.getters.collection.length }}</span> / {{ $store.getters.collectionTotal }}</li>
         <li class="search-option" 
-        v-for="(item, index) in optionsList" :key="item.key"
-        v-if="$route.name === 'wishlist' ? item.type === 'filter' && !item.excludeFromWishlist : item.type === 'filter'"
+        v-for="(item, index) in mainfilters" :key="item.key"
         >
           <sorter 
           :label="item.label" :item="item" :index="index" 
           :currentList="optionsList" :listName="listName"
-          @hook:mounted="sortersMounted"
+          @vue:mounted="sortersMounted"
           ></sorter>
         </li>
       </ul>
@@ -24,14 +23,13 @@
       <ul>
         <li class="search-option" 
         :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }" 
-        v-for="(item, index) in optionsList" :key="item.key"
-        v-if="$route.name === 'wishlist' ? !item.excludeFromWishlist && !($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter' : !($store.state.sticky.viewMode !== 'grid' && item.key === 'sortValues') && item.type !== 'filter'"
+        v-for="(item, index) in filteredOptionsList" :key="item.key"
         >
           <sorter v-if="item.type !== 'divider'" 
           :label="item.label" :item="item" :index="index" 
           :currentList="optionsList" :listName="listName"
-          @hook:mounted="sortersMounted"
-          ></sorter>
+          @vue:mounted="sortersMounted"
+          />
         </li>
       </ul>
       
@@ -40,15 +38,9 @@
 </template>
 
 <script>
-
-import sorter from "@output-snippets/sorter.vue";
-
 export default {
   name: "searchOptions",
   props: ["listName"],
-  components: {
-    sorter,
-  },
   data: function() {
     return {
       css: {
@@ -56,6 +48,33 @@ export default {
         options: { right: "0px" },
       },
     };
+  },
+  
+  computed: {
+    
+    mainfilters() {
+      
+      const inWishlist = this.$route.name === 'wishlist';
+      
+      return _.filter( this.optionsList, ( item ) => {
+        return item.type === 'filter' && ( inWishlist ? !item.excludeFromWishlist : true );
+      });
+      
+    },
+    
+    filteredOptionsList() {
+      
+      const inWishlist   = this.$route.name === 'wishlist';
+      const viewModeGrid = this.$store.state.sticky.viewMode !== 'grid';
+      
+      return _.filter( this.optionsList, ( item ) => {
+        const sortValues = item.key === 'sortValues';
+        const notFilter  = item.type !== 'filter';
+        return !(viewModeGrid && sortValues) && notFilter && ( inWishlist ? !item.excludeFromWishlist : true );;
+      });
+      
+    },
+    
   },
 
   created: function() {
@@ -71,15 +90,15 @@ export default {
     
     // Reposition options list
     this.repositionSearchOptions();
-    this.$root.$on("repositionSearchOpts", this.repositionSearchOptions);
-    this.$root.$on("afterWindowResize", this.repositionSearchOptions);
+    this.$compEmitter.on("repositionSearchOpts", this.repositionSearchOptions);
+    this.$compEmitter.on("afterWindowResize", this.repositionSearchOptions);
 
   },
 
   beforeUnmount: function() {
     
-    this.$root.$off("repositionSearchOpts", this.repositionSearchOptions);
-    this.$root.$off("afterWindowResize", this.repositionSearchOptions);
+    this.$compEmitter.off("repositionSearchOpts", this.repositionSearchOptions);
+    this.$compEmitter.off("afterWindowResize", this.repositionSearchOptions);
     
     scroll({ top: 0, behavior: 'smooth' });
     
@@ -95,7 +114,7 @@ export default {
       this.$updateQuery({ query: 'filter', value: null });
       this.$updateQuery({ query: 'filterExtras', value: null });
       this.$store.commit("resetFilters");
-      this.$root.$emit("start-filter");
+      this.$compEmitter.emit("start-filter");
       
     },
     

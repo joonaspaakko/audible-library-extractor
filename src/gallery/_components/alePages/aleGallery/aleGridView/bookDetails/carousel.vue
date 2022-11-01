@@ -12,7 +12,7 @@
 			<splide :options="options" ref="splide">
 					<!-- CAROUSEL "SLIDEs" -->
 					<splide-slide class="ale-carousel-item" v-for="(carouselBook, index) in books" :key="index">
-						<slide :detailsBook="book" :book="carouselBook" :index="index" :mobileWidth="mobileWidth"></slide>
+						<carousel-slide :detailsBook="book" :book="carouselBook" :index="index" :mobileWidth="mobileWidth" />
 					</splide-slide>
 			</splide>
 		</TippyGroup>
@@ -22,21 +22,16 @@
 </template>
 
 <script>
-// import { Splide, SplideSlide } from '@splidejs/vue-splide';
-import '@splidejs/splide/dist/css/themes/splide-sea-green.min.css';
-import slide from './carousel-slide.vue';
-import lazy from "@output-snippets/lazy.vue";
-import TippyGroup from "@output-snippets/TippyGroup.vue";
+// import '@splidejs/vue-splide/css';
+import '@splidejs/vue-splide/css/sea-green';
+import { Splide, SplideSlide } from '@splidejs/vue-splide';
 
 export default {
   name: 'carousel',
   props: [ 'book', 'books', 'width', 'mobileWidth'],
 	components: {
-		'splide': () => import( /* webpackChunkName: "splide" */ '@splidejs/vue-splide').then(({ Splide }) => Splide),
-		'splide-slide': () => import( /* webpackChunkName: "splide" */ '@splidejs/vue-splide').then(({ SplideSlide }) => SplideSlide),
-		slide,
-		lazy,
-		TippyGroup,
+		Splide,
+    SplideSlide,
   },
 	
 	data: function() {
@@ -96,7 +91,6 @@ export default {
 </script>
 
 <style lang="scss">
-@import '~@/_variables.scss';
 .tippy-popper .tippy-tooltip .tippy-content a.carousel-gallery-link { text-decoration: none !important; }
 
 .ale-carousel {
@@ -173,7 +167,7 @@ export default {
 		@include themify($themes) { background: themed(audibleOrange) !important; }
 	}
 	
-	&[data-scrolling]:before {
+	&[data-scrolling="true"]:before {
 		content: '';
 		position: absolute;
 		z-index: 1;

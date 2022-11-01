@@ -7,8 +7,8 @@
 @click="flip"
 >
   
-  <font-awesome :icon="['fas', 'fa-eye-slash']" v-if="detailSettings.hideFirstSection"/>
-  <font-awesome :icon="['fas', 'fa-eye']" v-else />
+  <fa6-regular-eye-slash v-if="detailSettings.hideFirstSection"/>
+  <fa6-regular-eye v-else />
 
 </div>
 </template>

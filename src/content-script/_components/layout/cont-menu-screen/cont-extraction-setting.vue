@@ -18,6 +18,8 @@
 				<div class="button" :class="[ setting.value ? setting.type : null ]">
 					<zondicons-checkmark v-if="setting.value" />
 					<ic-outline-circle v-else style="opacity: .7;"/>
+					<!-- <material-symbols-check-box v-if="setting.value" />
+					<material-symbols-check-box-outline-blank v-else/> -->
 				</div>
 			</button>  
 		</p>

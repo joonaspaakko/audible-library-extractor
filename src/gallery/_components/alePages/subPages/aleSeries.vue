@@ -27,17 +27,10 @@
 </template>
 
 <script>
-
 import findSubPageSource from "@output-mixins/findSubPageSource.js";
-import lazy from "@output-snippets/lazy.vue";
-import aleSearch from "@output-comps/alePages/aleGallery/aleSearch.vue";
 
 export default {
   name: "aleSeries",
-  components: {
-    aleSearch,
-    lazy,
-  },
   mixins: [findSubPageSource],
   data: function () {
     return {
@@ -256,6 +249,9 @@ export default {
                 case 5:
                   return val+' (I love it)';
                   break;
+                default: 
+                  return 0;
+                break;
               }
             },
           },
@@ -425,7 +421,7 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "~@/box-layout.scss";
+@import "@gallery/box-layout.scss";
 
 .single-box {
   min-height: 35px !important;

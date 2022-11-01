@@ -58,18 +58,12 @@
 </template>
 
 <script>
-import slugify from "@output-mixins/slugify";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
-import pageTitle from "@output-snippets/page-title.vue";
-import lazy from "@output-snippets/lazy.vue";
+import slugify from "@output-mixins/slugify.js";
+import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
 
 export default {
   name: "aleCategories",
   mixins: [slugify, makeCoverUrl],
-  components: { 
-    pageTitle,
-    lazy
-  },
   data: function() {
     return {
       collections: null,
@@ -173,7 +167,7 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "~@/box-layout.scss";
+@import "@gallery/box-layout.scss";
 
 .single-box {
   display: flex;
