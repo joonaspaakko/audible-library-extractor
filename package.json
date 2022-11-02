@@ -30,7 +30,6 @@
     "pinia": "^2.0.21",
     "smoothscroll-polyfill": "^0.4.4",
     "vite-plugin-dynamic-import": "^1.2.3",
-    "vue": "^3.2.38",
     "vue-router": "^4.1.5",
     "vue-slider-component": "^4.1.0-beta.4",
     "vue-tippy": "^6.0.0-alpha.65",
@@ -47,6 +46,7 @@
     "unplugin-vue-components": "^0.22.8",
     "vite": "2.9.15",
     "vite-plugin-chrome-extension": "^0.0.7",
-    "vite-plugin-static-copy": "^0.9.0"
+    "vite-plugin-static-copy": "^0.9.0",
+    "vue": "3.2.38"
   }
 }

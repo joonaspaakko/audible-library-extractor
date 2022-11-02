@@ -165,11 +165,7 @@ export default {
     this.peopleAlsoBoughtJSON = null;
     this.bookSummaryJSON = null;
     
-    this.$store.commit('prop', [
-      { key: 'bookDetails.book', value: null },
-      { key: 'bookDetails.index', value: -1 },
-    ]);
-    // if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+    // this.closeBookDetails();
     
     this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
     
@@ -455,33 +451,31 @@ export default {
         
       };
       
-      this.$store.commit('prop', [
-        { key: 'bookDetails.book', value: null },
-        { key: 'bookDetails.index', value: -1 },
-      ]);
-      if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+      // this.closeBookDetails();
       
       const nextIndex = getVerticalIndex();
       const nextBook = vue.store.chunkCollection[ nextIndex ];
+      const lastIndex = this.store.chunkCollection.length-1;
+      const condition = e.srcKey === 'up' ? 
+                        !(vue.index === 0 && nextIndex == 0) : 
+                        !(vue.index === lastIndex && nextIndex === lastIndex);
       
-      if ( e.srcKey === 'down' && (nextIndex > vue.store.chunkCollection.length-2) ) {
-        this.$store.commit('chunkCollectionAdd');
-        this.$nextTick(function() {
+      if ( condition ) {
+        if ( e.srcKey === 'down' && (nextIndex > vue.store.chunkCollection.length-2) ) {
+          this.$store.commit('chunkCollectionAdd');
+          this.$nextTick(function() {
+            this.$compEmitter.emit("book-clicked", nextBook.asin);
+          });
+        }
+        else {
           this.$compEmitter.emit("book-clicked", nextBook.asin);
-        });
-      }
-      else {
-        this.$compEmitter.emit("book-clicked", nextBook.asin);
+        }
       }
       
     },
 
     closeBookDetails: function() {
       
-      this.$store.commit('prop', [
-        { key: 'bookDetails.book', value: null },
-        { key: 'bookDetails.index', value: -1 },
-      ]);
       if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
       
     },
