@@ -7,7 +7,6 @@
       v-for="(item, index) in $store.getters.collection"
       class="single-box"
       :data-name="item.name"
-      v-if="item.name"
       :key="'narrators:'+item.name"
       >
         <router-link :to="{ name: 'narrator', params: { narrator: item.url }, query: { subPageSource: subPageSource.name } }">
@@ -83,38 +82,39 @@ export default {
       
       // Processed in reverse order so that the "added" order is based on the first book added to the library of each narrator.
       _.eachRight(vue.subPageSource.collection, function(book) {
-        
         if (book.narrators) {
           
           _.each(book.narrators, function(narrator) {
-            
-            let narratorsAdded = _.find(narratorsCollection, { name: narrator.name });
-            
-            // Narrator not in the collection so add it with the book...
-            if ( !narratorsAdded ) {
-              const newSeries = {
-                name: narrator.name,
-                url: vue.slugify(narrator.name),
-                added: addedCounter,
-                books: [ book.title || book.shortTitle ],
-                authors: book.authors,
-                publishers: book.publishers,
-                series: book.series,
-              };
+            if ( narrator.name ) {
               
-              narratorsCollection.push( newSeries );
-              ++addedCounter;
+              let narratorsAdded = _.find(narratorsCollection, { name: narrator.name });
+              
+              // Narrator not in the collection so add it with the book...
+              if ( !narratorsAdded ) {
+                const newSeries = {
+                  name: narrator.name,
+                  url: vue.slugify(narrator.name),
+                  added: addedCounter,
+                  books: [ book.title || book.shortTitle ],
+                  authors: book.authors,
+                  publishers: book.publishers,
+                  series: book.series,
+                };
+                
+                narratorsCollection.push( newSeries );
+                ++addedCounter;
+                
+              }
+              // Series already exists in the collection so just add the book...
+              else {
+                narratorsAdded.books.push( book.title || book.shortTitle );
+                return false;
+              }
               
             }
-            // Series already exists in the collection so just add the book...
-            else {
-              narratorsAdded.books.push( book.title || book.shortTitle );
-              return false;
-            }
-            
           });
+          
         }
-        
       });
       
       _.reverse( narratorsCollection );

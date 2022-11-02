@@ -7,7 +7,6 @@
       v-for="(item, index) in $store.getters.collection"
       class="single-box"
       :data-name="item.name"
-      v-if="item.name"
       :key="'authors:'+item.name"
       >
         <router-link :to="{ name: 'author', params: { author: item.url }, query: { subPageSource: subPageSource.name } }">
@@ -87,7 +86,7 @@ export default {
         if ( book.authors ) {
           
           _.each(book.authors, function(author) {
-            if ( author.name ) {
+            if ( author.name && author.url ) {
               
               let authorsAdded = _.find(authorsCollection, { name: author.name });
               

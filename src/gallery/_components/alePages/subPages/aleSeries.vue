@@ -8,7 +8,6 @@
       v-for="(item, index) in $store.getters.collection"
       class="single-box"
       :data-asin="item.asin"
-      v-if="item.asin"
       :key="'series:'+item.asin"
       >
         <router-link :to="{ name: 'series', params: { series: item.asin }, query: { subPageSource: subPageSource.name } }">
@@ -159,7 +158,7 @@ export default {
           });
         }
       });
-
+      
       _.reverse(seriesCollection);
       
       this.$store.commit("prop", {key: "pageCollection", value: seriesCollection});
