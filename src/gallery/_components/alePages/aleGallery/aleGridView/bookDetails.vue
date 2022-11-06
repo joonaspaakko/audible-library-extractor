@@ -41,12 +41,18 @@
                     <!-- <div class="progress-tooltip" v-if="book.progress && book.length" :content="progressTooltip( book )" v-tippy="{ placement: 'top',  arrow: true, theme: general.tippyTheme, showOnInit: true, trigger: 'manual', hideOnClick: false, boundary: progressToolTipBoundaryEl() }"></div> -->
                   </div>
                 </div>
-                <img 
-                  crossorigin="anonymous"
-                  class="cover"
-                  v-if="!sticky.bookDetailsCollapsedCover && book.cover && !mobileWidth"
-                  :src="makeCoverUrl(book.cover)"
-                />
+                
+                <transition name="fade">
+                  <img 
+                    v-if="!sticky.bookDetailsCollapsedCover && book.cover && !mobileWidth"
+                    v-show="imageLoaded"
+                    @load="imageLoaded = true"
+                    crossorigin="anonymous"
+                    class="cover"
+                    :class="{ loaded: imageLoaded }"
+                    :src="makeCoverUrl(book.cover)"
+                  />
+                </transition>
               </a>
             </div>
             <div class="progress-info" v-html="progressInfo(book)"></div>
@@ -124,6 +130,7 @@ export default {
       peopleAlsoBoughtJSON: null,
       bookSummaryJSON: null,
       scrpt: null,
+      imageLoaded: false,
     };
   },
 
@@ -667,11 +674,23 @@ export default {
       padding: 0;
       overflow: hidden;
       margin-bottom: 0px !important;
+      width: 280px;
+      height: 280px;
+        
       img {
         display: block;
         width: 280px;
         height: 280px;
         object-fit: contain;
+        
+        &.fade-enter-active, &.fade-leave-active {
+          transition: opacity .5s ease;
+        }
+        
+        &.fade-enter-from, &.fade-leave-to {
+          opacity: 0;
+        }
+        
       }
       .progressbar {
         position: absolute;

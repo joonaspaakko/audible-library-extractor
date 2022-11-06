@@ -4,11 +4,11 @@
     <lazy
     v-for="(book, index) in $store.state.chunkCollection"
     class="ale-book"
-    :class="{ 'details-open': $route.query.book === book.asin }"
+    :class="{ 'details-open': $route.query.book === book.asin, 'image-loaded': imageLoaded }"
     :data-asin="book.asin"
     :key="'book:'+book.asin"
     >
-      <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues"></book>
+      <book :book="book" :index="index" :sortValuesEnabled="$store.getters.sortValues" v-model:imageLoaded="imageLoaded"></book>
     </lazy>
     
   </div>
@@ -23,6 +23,7 @@ export default {
   mixins: [slugify],
   data: function() {
     return {
+      imageLoaded: false,
     };
   },
 };
@@ -111,8 +112,8 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
     // Image set a few lines down...
   }
 
-  &.mounted:before,
-  &.mounted:after {
+  &.mounted.image-loaded:before,
+  &.mounted.image-loaded:after {
     display: none !important;
   }
 }

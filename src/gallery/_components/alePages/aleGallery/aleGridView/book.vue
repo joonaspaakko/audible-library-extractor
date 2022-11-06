@@ -62,7 +62,9 @@
           </div>
         </div>
         <div v-else class="cover-img-wrapper">
-          <img crossorigin="anonymous" class="ale-cover-image" draggable="false" @touchstart.prevent :src="makeCoverUrl(book.cover, 280)" alt="" />
+          <transition name="fade">
+            <img v-show="imageLoaded" @load="$emit('update:imageLoaded', true)" class="ale-cover-image" :class="{ loaded: imageLoaded }" crossorigin="anonymous" draggable="false" @touchstart.prevent :src="makeCoverUrl(book.cover, 280)" alt="" />
+          </transition>
         </div>
       </div>
     </div>
@@ -74,7 +76,7 @@ import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
 
 export default {
   name: "book",
-  props: ["book", "index", "sortValuesEnabled"],
+  props: ["book", "index", "sortValuesEnabled", "imageLoaded"],
   mixins: [ makeCoverUrl ],
   data: function() {
     return {
@@ -231,24 +233,15 @@ export default {
     user-drag: none;
     pointer-events: none;
     -webkit-touch-callout: none;
-    @-webkit-keyframes showImage {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
+    
+    &.fade-enter-active, &.fade-leave-active {
+      transition: opacity .5s ease;
     }
-    @keyframes showImage {
-      0% {
-        opacity: 0;
-      }
-      100% {
-        opacity: 1;
-      }
+    
+    &.fade-enter-from, &.fade-leave-to {
+      opacity: 0;
     }
-    -webkit-animation: 300ms showImage;
-    animation: 300ms showImage;
+    
   }
   
   .cover-img-wrapper {
