@@ -8,9 +8,9 @@
     
     <div class="show-blank-canvas" v-show="store.saving"></div>
     <div class="floating-alerts" v-if="!store.animatedWallpaperMode || true">
-      <gb-toast :closable="false" color="red" width="200" v-show="store.panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
+      <!-- <gb-toast :closable="false" color="red" width="200" v-show="store.panningAlert">Sort covers manually by dragging <strong>or</strong> hold space bar while dragging to move the canvas</gb-toast>
       <gb-toast :closable="false" color="blue" width="200" v-show="$store.getters.textElementActive">You can also move text using arrow keys. Shift modifier increases the step to 10px.</gb-toast>
-      <gb-toast :closable="false" color="black" width="200" v-show="store.awpOverlayColorEnabled">"Color Overlay" setting is enabled! By default adds a darker overlay on top of the canvas.</gb-toast>
+      <gb-toast :closable="false" color="black" width="200" v-show="store.awpOverlayColorEnabled">"Color Overlay" setting is enabled! By default adds a darker overlay on top of the canvas.</gb-toast> -->
     </div>
     
     <div class="grid" ref="grid"  
@@ -52,25 +52,35 @@
           <div class="grid-inner-wrap" :style="canvasAlignmentVertical">
             
             <animatedWallpaper v-if="store.animatedWallpaperMode" style="cursor: grab;"
-            :editorCovers="store.covers"
-            :editorCoverPadding="store.paddingSize"
-            :editorCoverSize="store.coverSize"
-            :editorCoversPerRow="store.coversPerRow"
-            :editorCanvasWidth="store.canvas.width"
-            :editorCanvasHeight="store.canvas.height"
-            :editorCanvasPaddingLeft="store.canvas.padding.left"
-            :editorCanvasPaddingTop="store.canvas.padding.top"
-            :editorCanvasPaddingRight="store.canvas.padding.right"
-            :editorCanvasPaddingBottom="store.canvas.padding.bottom"
+              :editorCovers="store.covers"
+              :editorCoverPadding="store.paddingSize"
+              :editorCoverSize="store.coverSize"
+              :editorCoversPerRow="store.coversPerRow"
+              :editorCanvasWidth="store.canvas.width"
+              :editorCanvasHeight="store.canvas.height"
+              :editorCanvasPaddingLeft="store.canvas.padding.left"
+              :editorCanvasPaddingTop="store.canvas.padding.top"
+              :editorCanvasPaddingRight="store.canvas.padding.right"
+              :editorCanvasPaddingBottom="store.canvas.padding.bottom"
             />
             
             <div v-else style="width: 100%; height: 100%;"> 
               
               <tier-list v-if="store.tierListMode" @choose="draggingStarted" @end="draggingEnded" />
               
-              <draggable class="drag-container" v-if="$store.getters.containerTierVisible" v-model="draggableCovers" group="covers" @choose="draggingStarted" @end="draggingEnded" 
-                :style="store.tierListMode ? { marginTop: (store.paddingSize*10)+'px', minHeight: store.coverSize+'px' } : canvasAlignment">
-                <cover v-for="book in usedCovers" :key="book.asin" :book="book"></cover>
+              <draggable 
+                v-if="$store.getters.containerTierVisible" 
+                class="drag-container" 
+                v-model="draggableCovers" 
+                item-key="asin"
+                group="covers" 
+                @choose="draggingStarted" 
+                @end="draggingEnded" 
+                :style="store.tierListMode ? { marginTop: (store.paddingSize*10)+'px', minHeight: store.coverSize+'px' } : canvasAlignment"
+              >
+                <template #item="{element}">
+                  <cover :key="element.asin" :book="element"></cover>
+                </template>
               </draggable>
               
             </div>
@@ -146,7 +156,7 @@ export default {
   mounted: function() {
     
     document.querySelector('#editor-canvas-left').addEventListener("mousedown", this.moveableControlsHide);
-    this.$root.$on('hide-moveable-controls', this.moveableControlsHide);
+    this.$compEmitter.on('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').addEventListener("scroll", this.panningCanvas);
     
     let coverSize = this.calculateCoverSize({ coversPerRow: this.store.coversPerRow });
@@ -166,7 +176,7 @@ export default {
 
   beforeUnmount: function () {
     document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.moveableControlsHide);
-    this.$root.$off('hide-moveable-controls', this.moveableControlsHide);
+    this.$compEmitter.off('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
   },
 
@@ -309,28 +319,28 @@ export default {
         case 'up':
         case 'upShift':
           // console.log('up');
-          this.$root.$emit('nudge-up', distance);
+          this.$compEmitter.emit('nudge-up', distance);
           break
         case 'right':
         case 'rightShift':
           // console.log('right');
-          this.$root.$emit('nudge-right', distance);
+          this.$compEmitter.emit('nudge-right', distance);
           break
         case 'down':
         case 'downShift':
           // console.log('down');
-          this.$root.$emit('nudge-down', distance);
+          this.$compEmitter.emit('nudge-down', distance);
           break
         case 'left':
         case 'leftShift':
           // console.log('left');
-          this.$root.$emit('nudge-left', distance);
+          this.$compEmitter.emit('nudge-left', distance);
           break
       }
     },
     
     panningCanvas: function() {
-      this.$root.$emit('update-moveable-handles');
+      this.$compEmitter.emit('update-moveable-handles');
     },
     
     removeTextElement: function() {
@@ -454,6 +464,11 @@ export default {
   user-select: none;
   margin: 0 auto;
   font-size: 0;
+  height: 100%;
+  width: 100%;
+  // display: flex;
+  // justify-content: center;
+  // align-items: center;
   
   .editor-canvas { 
     box-shadow: 2px 2px 25px rgba(#000, .4);

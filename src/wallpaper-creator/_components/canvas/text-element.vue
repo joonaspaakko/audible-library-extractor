@@ -34,7 +34,7 @@
 </template>
 
 <script>
-import Moveable from 'vue-moveable';
+import Moveable from "vue3-moveable";
 
 export default {
   name: "textElement",
@@ -105,19 +105,19 @@ export default {
     if ( this.textObj.transform ) this.$refs.moveable.$el.style.transform = this.textObj.transform;
     
     this.setElementGuidelines();
-    this.$root.$on('update-moveable-handles', this.updateHandles);
-    this.$root.$on('nudge-up', this.nudgeUp);
-    this.$root.$on('nudge-right', this.nudgeRight);
-    this.$root.$on('nudge-down', this.nudgeDown);
-    this.$root.$on('nudge-left', this.nudgeLeft);
+    this.$compEmitter.on('update-moveable-handles', this.updateHandles);
+    this.$compEmitter.on('nudge-up', this.nudgeUp);
+    this.$compEmitter.on('nudge-right', this.nudgeRight);
+    this.$compEmitter.on('nudge-down', this.nudgeDown);
+    this.$compEmitter.on('nudge-left', this.nudgeLeft);
   },
 
   beforeUnmount: function () {
-    this.$root.$off('update-moveable-handles', this.updateHandles);
-    this.$root.$off('nudge-up', this.nudgeUp);
-    this.$root.$off('nudge-right', this.nudgeRight);
-    this.$root.$off('nudge-down', this.nudgeDown);
-    this.$root.$off('nudge-left', this.nudgeLeft);
+    this.$compEmitter.off('update-moveable-handles', this.updateHandles);
+    this.$compEmitter.off('nudge-up', this.nudgeUp);
+    this.$compEmitter.off('nudge-right', this.nudgeRight);
+    this.$compEmitter.off('nudge-down', this.nudgeDown);
+    this.$compEmitter.off('nudge-left', this.nudgeLeft);
   },
 
   methods: {

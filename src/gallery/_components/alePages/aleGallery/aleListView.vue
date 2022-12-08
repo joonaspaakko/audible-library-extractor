@@ -434,7 +434,7 @@ export default {
 }
 
 @media ( min-width: 920px ) {
-  #ale-bookdetails .summary-read-more {
+  .list-view #ale-bookdetails .summary-read-more {
     text-align: left !important;
   }
 }

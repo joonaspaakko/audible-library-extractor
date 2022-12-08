@@ -32,12 +32,17 @@
         </label>
       </div>
     </div>
+    
+    <h3>Output:</h3>
+    
+    <div>Hosted online</div>
+    <div v-tippy content="Only use this option if you wish to view the gallery locally on your computer. Don't upload this online, unless you're really into slow load times.">Local viewing</div>
 
     <div class="buttons-footer">
       <div class="btn-wrapper">
         
         <div v-if="$store.state.devMode" style="color: #999; font-weight: bold; margin-bottom: 5px;">
-          Saving the standalone gallery is only possible <br> in "production" builds (<code>npm run build</code>)
+          Saving the standalone gallery is only possible <br> in "production" builds (<code>yarn vite build</code>)
         </div>
         <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
           <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
@@ -82,42 +87,42 @@ export default {
   data: function() {
     return {
       files: [
-        "gallery.js",
-        "gallery.js.LICENSE.txt",
-        "gallery.css",
+        // "gallery.js",
+        // "gallery.js.LICENSE.txt",
+        // "gallery.css",
         
-        "images/info/book-cover-cloud-player-button.jpg", 
-        "images/info/sidebar.jpg", 
-        "images/info/sidebar-toolbar.jpg", 
-        "images/info/sidebar-series-list.jpg", 
-        "images/info/sidebar-main-info.jpg", 
-        "images/info/sidebar-cover.jpg", 
-        "images/info/sidebar-collections-list.jpg", 
-        "images/info/sample-play-button.jpg", 
-        "images/info/prefer-short-title.jpg", 
-        "images/info/cover-whispersync-indicator.jpg", 
-        "images/info/cover-plus-calatog-indicator.jpg", 
-        "images/info/cover-favorite-finished-indicators.jpg", 
-        "images/info/carousel.jpg", 
-        "images/info/blurb-hover-corner.jpg", 
+        // "images/info/book-cover-cloud-player-button.jpg", 
+        // "images/info/sidebar.jpg", 
+        // "images/info/sidebar-toolbar.jpg", 
+        // "images/info/sidebar-series-list.jpg", 
+        // "images/info/sidebar-main-info.jpg", 
+        // "images/info/sidebar-cover.jpg", 
+        // "images/info/sidebar-collections-list.jpg", 
+        // "images/info/sample-play-button.jpg", 
+        // "images/info/prefer-short-title.jpg", 
+        // "images/info/cover-whispersync-indicator.jpg", 
+        // "images/info/cover-plus-calatog-indicator.jpg", 
+        // "images/info/cover-favorite-finished-indicators.jpg", 
+        // "images/info/carousel.jpg", 
+        // "images/info/blurb-hover-corner.jpg", 
         
-        "fonts/inconsolata-v21-latin-regular.woff",
-        "fonts/inconsolata-v21-latin-regular.woff2",
-        "fonts/roboto-v29-latin-700.woff",
-        "fonts/roboto-v29-latin-700.woff2",
-        "fonts/roboto-v29-latin-regular.woff",
-        "fonts/roboto-v29-latin-regular.woff2",
+        // "fonts/inconsolata-v21-latin-regular.woff",
+        // "fonts/inconsolata-v21-latin-regular.woff2",
+        // "fonts/roboto-v29-latin-700.woff",
+        // "fonts/roboto-v29-latin-700.woff2",
+        // "fonts/roboto-v29-latin-regular.woff",
+        // "fonts/roboto-v29-latin-regular.woff2",
         
-        "favicons/android-chrome-192x192.png",
-        "favicons/android-chrome-512x512.png",
-        "favicons/apple-touch-icon.png",
-        "favicons/browserconfig.xml",
-        "favicons/favicon-16x16.png",
-        "favicons/favicon-32x32.png",
-        "favicons/favicon.ico",
-        "favicons/mstile-150x150.png",
-        "favicons/safari-pinned-tab.svg",
-        "app.webmanifest"
+        // "favicons/android-chrome-192x192.png",
+        // "favicons/android-chrome-512x512.png",
+        // "favicons/apple-touch-icon.png",
+        // "favicons/browserconfig.xml",
+        // "favicons/favicon-16x16.png",
+        // "favicons/favicon-32x32.png",
+        // "favicons/favicon.ico",
+        // "favicons/mstile-150x150.png",
+        // "favicons/safari-pinned-tab.svg",
+        // "app.webmanifest"
       ],
       dataSources: [
         { checked: true, disabled: false, key: 'Library' },
@@ -272,6 +277,12 @@ export default {
         const useServiceWorker = false;
         loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker +'<\/script>' : '';
         
+        const getFile = function( name, ext ) {
+          let regex = "^assets\\/"+ name +"\\..+\\."+ (ext || "js") +"$";
+          regex = new RegExp(regex);
+          return _.find(vue.files, file => file.match(regex));
+        };
+        
         const indexHTML =
           "<!DOCTYPE html>" +
           '<html lang="en" class="theme-dark standalone-gallery" style="background: #171717; min-height: 100%;">' +
@@ -295,12 +306,14 @@ export default {
             '<meta name="theme-color" content="#f29a33">' +
             "<title>My Audible Library</title>" +
             loadServiceWorker +
-            '<link id="ale-css" rel="stylesheet" href="gallery.' + vue.cacheBuster + '.css">' +
+            '<link id="ale-css" rel="stylesheet" href="'+ getFile('gallery', 'css') +'">' +
           "</head>" +
           "<body>" +
           
             '<div id="audible-library-extractor" data-version="'+ this.$store.state.version +'" data-cache-id="'+ vue.cacheBuster +'"></div>' +
-            '<script id="ale-js" src="gallery.' + vue.cacheBuster +'.js"><\/script>' +
+            '<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"><\/script>' +
+            // '<script type="module" src="'+ lodashJS +'"><\/script>' +
+            '<script id="ale-js" src="'+ getFile('gallery', 'js') +'" type="module"><\/script>' +
             "<noscript>This library requires javascript to work!</noscript>" +
             
           "</body>" +
@@ -350,25 +363,18 @@ export default {
             "chunks/save-locally.js",
           ], file);
         });
+        
+        console.log( vue.files )
 
         // Service worker file
         // if ( useServiceWorker ) {
         //   zip.file( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
         // }
         
+        
         for (let url of vue.files) {
           
           const data = await JSZipUtils.getBinaryContent(url);
-
-          if ( url === "gallery.js" ) {
-            url = url.replace(".js", "." + vue.cacheBuster + ".js");
-          } else if ( url === "gallery.css" ) {
-            url = url.replace(".css", "." + vue.cacheBuster + ".css");
-          }
-          // else if ( url.match(/\.woff2?$/) ) {
-          //   url = url.replace(/^\.\.\//, '');
-          // }
-
           zip.file(url, data, {binary: true});
           
         }
@@ -692,6 +698,7 @@ export default {
   width:  17px;
   height: 17px;
   background: #292929;
+  // border: 1px solid #666;
   border-radius: 4px;
   margin-right: 5px;
 }
@@ -699,10 +706,15 @@ export default {
 .opt-group .visual-checkbox .icon {
   display: none;
   color: #00ed00;
+  svg {
+    width: 80%;
+  }
 }
 
 .opt-group label input:checked ~ .visual-checkbox .icon {
-  display: inline-block;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .opt-group > .disabled {

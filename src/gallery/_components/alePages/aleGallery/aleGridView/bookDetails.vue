@@ -79,7 +79,7 @@
         </div>
 
         <div class="carousel-wrap" v-if="sticky.bookDetailSettings.carousel && !loading">
-          <carousel v-if="(peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :book="book" :books="peopleAlsoBought" :key="maxWidth" :mobileWidth="mobileWidth">
+          <carousel v-if="(peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :detailsBook="book" :books="peopleAlsoBought" :key="maxWidth" :mobileWidth="mobileWidth">
             <!-- People who bought this also bought: -->
             <!-- Name changed: -->
             Listeners also enjoyed

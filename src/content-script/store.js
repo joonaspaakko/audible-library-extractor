@@ -4,7 +4,7 @@ import { createStore } from 'vuex';
 
 export default createStore({
   state: {
-    appVersion: $version,
+    appVersion: import.meta.env.PACKAGE_VERSION,
     localStorageName: 'ale-content-script-settings',
     canceledRequests: [],
     progress: {

@@ -1,16 +1,13 @@
-
-import Vue from "vue";
-import Vuex from "vuex";
-Vue.use(Vuex);
+import { createStore } from 'vuex';
 
 // import _ from "lodash";
 
-const store = new Vuex.Store({
+const store = createStore({
   state: {
     timeCode: null,
     resetting: false,
     visibleAnimatedCovers: null,
-    covers: null,
+    covers: [],
     coverAmount: 300,
     coverSize: 160,
     paddingSize: 0,

@@ -1,27 +1,23 @@
 <template>
-  <div class="right toolbar">
-
+  <n-config-provider :theme="darkTheme" class="right toolbar">
+    
     <div class="button-container">
-      <gb-button style="width: 48px;" v-if="store.animatedWallpaperMode"
+      <button v-if="store.animatedWallpaperMode"
         class="save-btn"
-        :circular="true"
         :disabled="store.saving"
         @click="makeWallpaper"
-        color="blue"
-        size="large"
-        left-icon="ondemand_video"
         v-tippy="{ allowHTML: true }" content="<strong>Save animated wallpaper as a .zip file.</strong> <br>You need to then unpack the zip and point the animated wallpaper application to the index.html file inside the folder."
-      ></gb-button>
-      <gb-button style="width: 48px;" v-else 
+      >
+        <material-symbols-play-arrow-rounded/>
+      </button>
+      <button v-else 
         class="save-btn"
-        :circular="true"
         :disabled="store.saving"
         @click="makeImage"
-        color="blue"
-        size="large"
-        left-icon="camera_alt"
         v-tippy :content="'Save image as a' + (store.compressImage ? '.jpg' : '.png' + ' file.')"
-      ></gb-button>
+      >
+        <ic-baseline-camera-alt/>
+      </button>
     </div>
     
     <div class="zoom-container" v-show="!store.saving">
@@ -35,47 +31,51 @@
         step=".01"
         @dblclick="$store.commit('update', { key: 'canvas.zoom', value: 1 })"
       />
-      <gb-heading
+      <div
         v-tippy content="Click to reset to 100% zoom"
         class="zoom-text"
         :class="{ highlight: store.canvas.zoom != 1 }"
-        tag="h6"
-        :uppercase="true"
         @click="$store.commit('update', { key: 'canvas.zoom', value: 1 })"
       >
         {{ zoomPercentage }}%
-      </gb-heading>
+      </div>
       
       <div class="zoom-to-fit" @click="zoomToFit('and-center')" v-tippy content="Fit canvas inside the viewport">
-        <gb-icon size="16px" name="zoom_out_map"></gb-icon>
+        <majesticons-arrows-expand-line/>
       </div>
       
       <div class="reset-settings" v-tippy content="<strong>Reset settings to defaults.</strong> Keeps imported covers but resets everything else." @mousedown="resetSettings">
-        <gb-icon size="16px" name="delete_forever"></gb-icon>
+        <typcn-times/>
       </div>
       
     </div>
 
     <div class="mode-switcher" v-if="!store.saving">
       
-      <gb-toggle
-      size="mini"
-      :value="store.animatedWallpaperMode"
-      @change="editorModeChanged('animatedWallpaperMode', $event)"
-      label="Animated wallpaper mode"
-      status="error"
-      :full-width="true"
-      ></gb-toggle>
+      <div>
+        <n-switch 
+          size="medium"
+          :value="store.animatedWallpaperMode"
+          @update:value="editorModeChanged('animatedWallpaperMode', $event)"
+        />
+        
+        Animated wallpaper mode
+      </div>
       
-      <gb-toggle
-      size="mini"
-      :value="store.tierListMode"
-      @change="editorModeChanged('tierListMode', $event)"
-      label="Tier list mode"
-      status="warning"
-      :full-width="true"
-      v-tippy :content=" store.tierListMode ? `Disabling the tier list mode will reset any changes </br>you've made to the tier list so far!` : null"
-      ></gb-toggle>
+      <spacer size="medium" :line="true" />
+      
+      <div>
+        <n-switch
+          size="medium"
+          :value="store.tierListMode"
+          @update:value="editorModeChanged('tierListMode', $event)"
+          v-tippy :content=" store.tierListMode ? `Disabling the tier list mode will reset any changes </br>you've made to the tier list so far!` : null"
+        />
+        
+        {{ store.tierListMode }}
+        
+        Tier list mode
+      </div>
       
     </div>
     
@@ -130,7 +130,7 @@
           
           <spacer size="small" :line="false" />
         
-          <Multiselect
+          <!-- <Multiselect
           v-model="awpAnimations" 
           placeholder="Animations"
           :options="store.awpAnimations" 
@@ -142,7 +142,7 @@
           :closeOnSelect="false"
           :multiple="true"
           :taggable="true"
-          />
+          /> -->
         
           <spacer size="small" :line="false" />
           
@@ -255,7 +255,7 @@
         <!-- 
           The idea was that if you really wanted to, you could add empty "covers" to make room for text.
           It's just that the sorting is kinda terrible...
-         -->
+        -->
         <div v-if="false">
           
           <gb-heading tag="h6" :uppercase="true">
@@ -276,12 +276,17 @@
         </div>
         
         <div v-if="!store.animatedWallpaperMode && store.canvasPresets" style="position: relative; z-index: 10;">
-          <gb-heading tag="h6" :uppercase="true">
+          <!-- <gb-heading tag="h6" :uppercase="true">
             <span>Canvas preset</span>
             <gb-select size="mini" style="padding-left: 20px; flex: 1; position: relative; z-index: 1;" v-model="canvasPreset" :options="store.canvasPresets" />
-          </gb-heading>
+          </gb-heading> -->
+          
+          <h4>Canvas preset</h4>
+          <n-select v-model:value="canvasPreset" size="large" :options="store.canvasPresets" />
+          
           <spacer size="default" :line="false" />
         </div>
+        
         
         <div>
           <gb-heading tag="h6" :uppercase="true">Covers per row (columns)</gb-heading>
@@ -782,7 +787,7 @@
           <spacer size="medium" :line="false" />
           
         </div>
- -->
+-->
         
         <div v-if="!store.animatedWallpaperMode">
           
@@ -918,11 +923,23 @@
         </div>
         
       </div>
-    </div>
-  </div>
+    </div> 
+  
+  </n-config-provider>
 </template>
 
 <script>
+
+import { 
+  NConfigProvider, 
+  darkTheme, 
+  NButton,
+  NSwitch, 
+  NDivider,
+  NSelect,
+  NH5,
+} from 'naive-ui';
+
 import zoomToFit from "@editor-mixins/zoomToFit.js";
 import centerCanvas from "@editor-mixins/centerCanvas.js";
 import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
@@ -937,13 +954,23 @@ import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
 
 export default {
   name: "toolbar",
-  components: { spacer, textElements, Multiselect },
+  components: { 
+    spacer, 
+    textElements, 
+    Multiselect,
+    NConfigProvider,
+    NButton,
+    NSwitch,
+    NDivider, 
+    NSelect,
+  },
   mixins: [zoomToFit, centerCanvas, calculateCoverSize, makeWallpaper, makeImage],
   data: function () {
     return {
       store: this.$store.state,
       slidingTimer: null,
       saveProgressWidth: -1,
+      darkTheme: darkTheme,
     };
   },
   
@@ -1050,10 +1077,11 @@ export default {
     
     canvasPreset: {
       get: function () {
+        console.log( this.store.canvasPreset )
         return this.store.canvasPreset;
       },
       set: function ( preset ) {
-        
+        console.log( 'preset', preset )
         this.changeCanvasPreset( preset );
         
       },
@@ -1192,6 +1220,7 @@ export default {
     
     editorModeChanged: function( modeName, value ) {
       
+      console.log( modeName, value )
       if ( modeName === 'animatedWallpaperMode' && value && this.store.canvasPreset !== 'wallpaper' ) {
         this.changeCanvasPreset('wallpaper');
       }
@@ -1343,7 +1372,7 @@ $toolbar-text: #8eabc5;
   color: $toolbar-text;
   min-width: 380px;
   max-width: 380px;
-  z-index: 3001 !important;
+  z-index: 50 !important;
   ::-moz-selection { background: #0093ee !important; color: lighten( #0093ee, 30 ); }
   ::selection { background: #0093ee !important; color: lighten( #0093ee, 45 ); }
 }
@@ -1464,6 +1493,19 @@ $toolbar-text: #8eabc5;
 .toolbar .button-container {
   box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20), 2px 2px 9px darken( rgba($toolbar-bg, .4), 20);
   border-bottom: 1px solid #171e29;
+  .save-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 9999999px;
+    border: none;
+    background: #0798f1;
+    color: #fff;
+    padding: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.5em;
+  }
 }
 
 .toolbar .zoom-container {
@@ -1480,7 +1522,9 @@ $toolbar-text: #8eabc5;
   align-items: center;
   align-content: center;
   .zoom-text {
-    display: inline;
+    display: flex;
+    justify-content: center;
+    align-items: center;
     width: 30px;
     height: 30px;  
     transform: rotate(-90deg);
@@ -1506,7 +1550,10 @@ $toolbar-text: #8eabc5;
     transform-origin: center center;
   }
   .zoom-to-fit {
-    display: inline;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 1.3em;
     cursor: pointer;
     position: relative;
     i { display: block !important; }
@@ -1531,6 +1578,7 @@ $toolbar-text: #8eabc5;
     -ms-user-select: none; 
     user-select: none; 
     cursor: pointer;
+    font-size: 1.1em;
     &:before {
       content: '';
       position: absolute;
@@ -1585,8 +1633,8 @@ $toolbar-text: #8eabc5;
   text-align: center;
   
   > div {
-    padding-top: 15px;
-    &:first-child { padding-top: 0; }
+    // padding-top: 15px;
+    // &:first-child { padding-top: 0; }
   }
   
   &:before {
@@ -2035,4 +2083,8 @@ input[type=number] {
   line-height: 12px;
 }
 
+
+h1, h2, h3, h4, h5, h6 {
+  text-transform: uppercase;
+}
 </style>

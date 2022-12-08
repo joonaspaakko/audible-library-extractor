@@ -4,7 +4,7 @@
 // import _ from 'lodash';
 
 import * as htmlToImage from 'html-to-image';
-import { toPng, toJpeg, toBlob, toPixelData, toSvg } from 'html-to-image';
+import { toPng, toJpeg } from 'html-to-image';
 import download from "downloadjs";
 
 export default {
@@ -21,7 +21,7 @@ export default {
       if (!vue.store.saving) {
         
         this.setCoverLimitToVisible();
-        vue.$root.$emit('hide-moveable-controls');
+        vue.$compEmitter.emit('hide-moveable-controls');
         vue.$store.commit("update", { key: "saving", value: true });
 
         vue.$nextTick(function () {

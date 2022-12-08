@@ -8,14 +8,37 @@
 	
 	<!-- CAROUSEL -->
 	<lazy :offset="-60" :delay="10" class="lazyboy">
-		<TippyGroup>	
+		<tippy-singleton 
+			move-transition="transform 0.2s ease-out" 
+			placement="top"
+			:appendTo="appendTo"
+			:interactive="true" 
+			:interactiveDebounce="75"
+			:interactiveBorder="30"
+			:allowHTML="true" 
+			:delay="520" 
+      @trigger="onShow" 
+			@untrigger="onHide"
+		>
 			<splide :options="options" ref="splide">
-					<!-- CAROUSEL "SLIDEs" -->
-					<splide-slide class="ale-carousel-item" v-for="(carouselBook, index) in books" :key="index">
-						<carousel-slide :detailsBook="book" :book="carouselBook" :index="index" :mobileWidth="mobileWidth" />
-					</splide-slide>
+				
+				<!-- CAROUSEL "SLIDEs" -->
+				<splide-slide class="ale-carousel-item" v-for="(carouselBook, index) in books" :key="index">
+					<carousel-slide 
+						:detailsBook="detailsBook" 
+						:book="carouselBook" 
+						:index="index" 
+						:mobileWidth="mobileWidth" 
+						:inLibrary="inLibrary"
+						:inSeries="inSeries"
+						:inSameSeries="inSameSeries"
+						:inWishlist="inWishlist"
+						:storePageURL="storePageURL"
+					/>
+				</splide-slide>
+				
 			</splide>
-		</TippyGroup>
+    </tippy-singleton>
 	</lazy>
 	
 </div>
@@ -25,14 +48,18 @@
 // import '@splidejs/vue-splide/css';
 import '@splidejs/vue-splide/css/sea-green';
 import { Splide, SplideSlide } from '@splidejs/vue-splide';
+import makeFullUrl from '@output-mixins/makeFullUrl';
 
 export default {
   name: 'carousel',
-  props: [ 'book', 'books', 'width', 'mobileWidth'],
+  props: [ 'detailsBook', 'books', 'width', 'mobileWidth'],
 	components: {
 		Splide,
     SplideSlide,
   },
+	mixins: [
+    makeFullUrl,
+	],
 	
 	data: function() {
 		return {
@@ -50,6 +77,21 @@ export default {
 			coverSize: 127,
 			scrolling: false,
 			scrollContainer: null,
+			// prepworkDone: false,
+			inLibrary: null,
+			inSeries: { 
+				asin: null, 
+				obj: null,
+				ownedBooksLength: null,
+			},
+			inSameSeries: null,
+			inWishlist: null,
+			// timeStamp: null,
+			storePageURL: null,
+			scrollContainer: null,
+			tippy: null,
+      prevIndex: null,
+			book: null,
 		}
 	},
 	
@@ -79,9 +121,150 @@ export default {
 	
 	methods: {
 		
+		appendTo() {
+			return document.body;
+		},
+		
 		windowScrollStarted() {
 			
 			if ( this.$route.query.carousel )  this.$updateQueries({ carousel: null });
+			
+		},
+		
+		tippyMount( t ) {
+			
+			console.log( 'after update', t );
+		},
+		
+		// Process the heavy stuff on first hover
+		onShow( t, e ) {
+			
+      const index = e.target.getAttribute('data-book-index');
+
+      // Mouseenter was a bit trigger happy when interacting with tooltip
+      if ( this.prevIndex === index ) return;
+      this.prevIndex = index;
+
+      // Reset
+      // this.repositionTooltip(t);
+      this.additionalData = null;
+			this.inLibrary = null;
+			this.inSeries.asin = null;
+			this.inSeries.obj = null;
+			this.inSeries.ownedBooksLength = null;
+			this.inSameSeries = null;
+			this.inWishlist = null;
+
+      // In real world the item data has a much bigger role in fetching the additional data...
+      this.book = this.books[ index ];
+
+      // Get additional item data and render in the tooltip
+			
+			// this.tippy = tippy;
+			
+			// if ( !this.prepworkDone ) {
+			this.findBookFromLibrary();
+			this.findBookFromSeries();
+			this.findSameSeries();
+			this.findInWishlist();
+			// this.timeStamp = new Date().getTime();
+			this.storePageURL = this.makeUrl('book', this.book.asin);
+				// this.prepworkDone = true;
+			// }
+			
+			// this.scrollContainer = document.querySelector('.list-view-inner-wrap') || window;
+			// this.scrollContainer.addEventListener('scroll', this.scrollHide, { passive: true });
+			
+      this.$updateQueries({ carousel: true });
+			
+			// return !!tippy.props.content;
+			
+			// This somehow causes the next tooltip to disappear
+			this.repositionTooltip( t, e );
+			
+		},
+		
+		onHide( t, e ) {
+			
+			// if ( !this.scrollContainer ) this.scrollContainer = document.querySelector('.list-view-inner-wrap') || window;
+			// this.scrollContainer.addEventListener('scroll', this.scrollHide, { passive: true });
+			t.clearDelayTimeouts();
+			
+		},
+		
+		scrollHide() {
+			
+			const tippy = this.tippy;
+			if ( tippy && tippy.state.isVisible ) {
+				tippy.hide();
+				tippy.reference.blur();
+			}
+			
+		},
+		
+    // Repositions tooltip after a possible height change...
+    repositionTooltip( t, e ) {
+			
+			
+			t.popperInstance.then(( p ) => {
+				console.log( t )
+				p.update();
+			})
+      // t.hide();
+      // this.$nextTick(() => {
+			// 	t.show();
+			// 	setTimeout(() => {
+			// 		t.show();
+			// 	}, 100);
+      // });
+			
+			
+			console.log('t', t );
+			
+    },
+		
+		
+		findBookFromLibrary() {
+			
+			const library = this.$store.state.library.books;
+			const inLibrary = _.find( library, { asin: this.book.asin });
+			if ( inLibrary ) this.inLibrary = true;
+			
+		},
+		
+		findBookFromSeries() {
+			
+			const carouselBookAsin = this.book.asin;
+			const series = this.$store.state.library.series;
+			const inSeries = _.find( series, function( seriesObj ) {
+				const allBooksInSeries = _.get(seriesObj, 'allBooks');
+				if ( allBooksInSeries ) return _.find( allBooksInSeries, { asin: carouselBookAsin });
+			});
+			
+			if ( inSeries ) {
+				this.inSeries.asin = inSeries.asin;
+				this.inSeries.obj = inSeries;
+				const allBooksInSeries = _.get(inSeries, 'allBooks');
+				if ( allBooksInSeries ) this.inSeries.ownedBooksLength = _.filter( allBooksInSeries, function( o ) { return !o.notInLibrary; }).length;
+			}
+			
+		},
+		
+		findSameSeries() {
+			if ( this.inSeries.obj ) {
+				
+				const allBooks = _.get(this.inSeries, 'obj.allBooks');
+				const inSameSeries = _.find( allBooks, { asin: this.detailsBook.asin });
+				this.inSameSeries = !!inSameSeries;	
+				
+			}
+		},
+		
+		findInWishlist() {
+			
+			const carouselBookAsin = this.book.asin;
+			const wishlist = this.$store.state.library.wishlist;
+			this.inWishlist = _.find( wishlist, { asin: carouselBookAsin });
 			
 		},
 		
@@ -91,7 +274,7 @@ export default {
 </script>
 
 <style lang="scss">
-.tippy-popper .tippy-tooltip .tippy-content a.carousel-gallery-link { text-decoration: none !important; }
+[data-tippy-root] .tippy-box .tippy-content a.carousel-gallery-link { text-decoration: none !important; }
 
 .ale-carousel {
 	position: relative;

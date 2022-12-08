@@ -81,7 +81,7 @@
         // https://joonaspaakko.github.io/ale-test-new/#/library?book=B01B8AN3SQ
       -->
       <span>{{ summary.readmore.toggle ? "Read less" : "Read more" }}</span>
-      <vertical-chevron :up="summary.readmore.toggle" />
+      <vertical-chevron class="read-more-icon" :up="summary.readmore.toggle" />
     </div>
   </div>
 </template>
@@ -441,4 +441,10 @@ export default {
 .expanded .summary-read-more:after {
   height: 30px;
 }
+.read-more-icon {
+  position: relative;
+  top: 3px;
+  padding-left: 5px;
+}
+
 </style>

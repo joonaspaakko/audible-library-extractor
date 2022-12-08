@@ -1,6 +1,7 @@
 <template>
 	<div 
-		class="field has-addons" 
+		class="field has-addons"
+		:class="{ disabled: setting.disabled }"
 		style="margin: 5px;" 
 		v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy"
 	>

@@ -113,7 +113,7 @@ export default {
     },
     
     checkFilter: function( book ) {
-      if ( book.notInLibrary ) {
+      if ( _.get(book, 'notInLibrary') ) {
         return this.$store.state.sticky.booksInSeriesAll;
       }
       else {

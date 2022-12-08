@@ -1,5 +1,6 @@
 // import _ from "lodash";
 import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import browser from "webextension-polyfill";
 
 export default {
   data: function() {
@@ -16,10 +17,11 @@ export default {
       
       let vue = this;
       
+      console.log('TEST 1234')
       // Clear certain parts of the data when coming in from the gallery
       if ( window.location.href.indexOf('src=gallery') > -1 ) {
         this.$store.commit('clearTiers');
-        this.$store.commit('update', [{ key: 'covers', value: null }, { key: 'usedCovers', value: null }]);
+        this.$store.commit('update', [{ key: 'covers', value: [] }, { key: 'usedCovers', value: [] }]);
         // Remove URL param
         var newURL = location.href.split("?")[0];
         window.history.pushState({}, document.title, newURL);
@@ -31,7 +33,7 @@ export default {
         return;
         
       }
-    
+      
       try {
         browser.storage.local.get([
           'imageEditorChunks', 
@@ -41,10 +43,9 @@ export default {
           'imageEditorPageSubTitle'
       ]).then(data => {
           // browser.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
-          
-          if ( data.imageEditorChunksLength ) {
+          console.log( 'data', data );
+          if ( _.get(data, 'imageEditorChunksLength', 0) > 0 ) {
             vue.fetchArchive(function( archive ) {  
-              
               // let coversArray = require('./getCovers.json');
               let coversArray = _.flatten( data.imageEditorChunks );
               coversArray = _.filter( coversArray, function( book ) { return book.cover; });
@@ -56,8 +57,8 @@ export default {
               ];
               
               // time code changes when wallpaper creator is opened through the gallery
-              if ( data.imageEditorTimeCode ) changes.push({ key: "timeCode", value: data.imageEditorTimeCode });
-              
+              if ( _.get(data, 'imageEditorTimeCode') ) changes.push({ key: "timeCode", value: data.imageEditorTimeCode });
+              console.log( coversArray );
               let coverAmount = vue.$store.state.canvasPreset === 'wallpaper' ? 300 : 50;
               const fromLocalstorage = data.imageEditorTimeCode === vue.$store.state.timeCode;
               if ( !fromLocalstorage ) {
@@ -126,28 +127,33 @@ export default {
       
       let archivedBooks = [];
       
-      browser.storage.local.get(['collections-chunk-length']).then(ccData => {
-        const ccLength = _.get(ccData, 'collections-chunk-length');
-        if ( ccLength ) {
-          
-          let collectionChunkKeys = _.map( _.range(0, ccLength), function( index ) {
-            return 'collections-chunk-'+index;
-          });
-          
-          browser.storage.local.get( collectionChunkKeys ).then(cData => {
+      try {
+        browser.storage.local.get(['collections-chunk-length']).then(ccData => {
+          const ccLength = _.get(ccData, 'collections-chunk-length');
+          if ( ccLength ) {
             
-            const collections = _.flatMap(cData);
-            const archive = _.find(collections, {id: '__ARCHIVE'});
-            archivedBooks = _.get( archive, 'books', []);
+            let collectionChunkKeys = _.map( _.range(0, ccLength), function( index ) {
+              return 'collections-chunk-'+index;
+            });
             
+            browser.storage.local.get( collectionChunkKeys ).then(cData => {
+              
+              const collections = _.flatMap(cData);
+              const archive = _.find(collections, {id: '__ARCHIVE'});
+              archivedBooks = _.get( archive, 'books', []);
+              
+              callback( archivedBooks );
+              
+            });
+            
+          } else {
             callback( archivedBooks );
-            
-          });
-          
-        } else {
-          callback( archivedBooks );
-        }
-      });
+          }
+        });
+      } catch( e ) {
+        console.log( e );
+        callback([])
+      }
       
     },
     

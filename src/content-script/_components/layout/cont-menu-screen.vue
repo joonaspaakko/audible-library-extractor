@@ -66,7 +66,7 @@
           </a>
           <a
             class="button control is-small"
-            :disabled="!$store.getters.settings_mainSteps ? true : null"
+            :disabled="!$store.getters.mainDataExists ? true : null"
             @click="takeNextStep('output')"
           >
             Open gallery <ri-external-link-line/>
@@ -177,6 +177,8 @@ export default {
   },
   
   created: function() {
+    
+    console.log( '$store.getters.settings_mainSteps', this.$store.getters.settings_mainSteps );
     
     this.hasData = this.$store.state.storageHasData;
     this.hasConfig = this.$store.state.storageConfig;
@@ -533,8 +535,12 @@ body > .notices {
           padding: 0px;
           width: 19px;
           height: 19px;
-          border-radius: 999px;
+          border-radius: 4px;
         }
+      }
+      
+      .disabled .checbox-wrapper > .button {
+        background: #000;
       }
       
       & > .unchecked .checbox-wrapper > .button {
@@ -546,6 +552,7 @@ body > .notices {
         font-size: 1em !important;
         padding: 0 !important;
       }
+      
     }
   }
 

@@ -132,7 +132,7 @@ export default {
       opts.canvas.padding.bottom = this.store.canvas.padding.bottom > -1 ? parseFloat(this.store.canvas.padding.bottom) : 0;
       opts.canvas.alignmentVertical = this.store.canvas.alignmentVertical;
       opts.prioritizeCoversPerRow = this.store.prioritizeCoversPerRow;
-      this.$root.$emit('get-animation');
+      this.$compEmitter.emit('get-animation');
       opts.animation = this.store.animation;
       
       return opts;

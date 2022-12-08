@@ -11,6 +11,7 @@
       v-if="tier.key !== 'container'"
       data-tier-list-label
       class="label" 
+      ref="label"
       :style="{ 
         background: tier.color, 
         fontSize: (store.coverSize/3)+'px', 
@@ -18,10 +19,21 @@
         lineHeight: store.coverSize+'px',
         margin: store.paddingSize+'px',
       }"
-      >{{ tier.key }}</div>
+      >
+        {{ tier.key }}
+      </div>
       
-      <draggable class="drag-container" v-model="tier.list" group="covers"  @choose="$emit('choose', $event)" @end="$emit('end', $event)">
-        <cover v-for="book in tier.list" :key="book.asin" :book="book"></cover>
+      <draggable 
+        v-model="tier.list" 
+        class="drag-container" 
+        item-key="asin"
+        group="covers" 
+        @choose="$emit('choose', $event)" 
+        @end="$emit('end', $event)"
+      >
+        <template #item="{element}">
+          <cover :key="element.asin" :book="element"></cover>
+        </template>
       </draggable>
       
     </div>
@@ -53,7 +65,7 @@ export default {
     // });
     
   },
-
+  
   computed: {
     visibleTiers: function() {
       return _.filter( this.store.tiers, function( o ){ return o.visible && o.key !== 'container' });

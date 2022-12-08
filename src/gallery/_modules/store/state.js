@@ -69,7 +69,7 @@ export default {
   refreshView: new Date().getTime(),
   pageTitle: null,
   pageSubTitle: null,
-  version: $version,
+  version: import.meta.env.PACKAGE_VERSION,
   extractSettings: null,
   siteOnline: true,
   searchOptCloseGuard: false,
@@ -79,7 +79,7 @@ export default {
     index: -1,
   },
   searchOptOpenHeight: null,
-  devMode: import.meta.env.MODE === 'dev',
+  devMode: import.meta.env.MODE === 'development',
   lazyScroll: true,
   navHistory: {
     btnNavigation: false,

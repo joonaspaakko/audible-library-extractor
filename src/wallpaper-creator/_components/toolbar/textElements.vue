@@ -191,7 +191,7 @@ export default {
       if ( e ) val = parseFloat(e.target.value);
       this.$store.commit('changeText', { index: index, key: key, value: val, });
       this.$nextTick(function() {
-        this.$root.$emit('update-moveable-handles');
+        this.$compEmitter.emit('update-moveable-handles');
       });
     }, 250, { leading: false, trailing: true }),
     
@@ -200,7 +200,7 @@ export default {
       if ( e ) val = parseFloat(e.target.value);
       this.$store.commit('changeText', { index: index, key: key, value: val, });
       this.$nextTick(function() {
-        this.$root.$emit('update-moveable-handles');
+        this.$compEmitter.emit('update-moveable-handles');
       });
     }, 20, { leading: true, trailing: true }),
     

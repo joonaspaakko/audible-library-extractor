@@ -20,12 +20,12 @@ export default {
   
   created: function() {
     if ( this.editorCovers ) {
-      this.$root.$on('get-animation', this.sendAnimation);
+      this.$compEmitter.on('get-animation', this.sendAnimation);
     }
   },
   beforeUnmount: function() {
     if ( this.editorCovers ) {
-      this.$root.$off('get-animation', this.sendAnimation);
+      this.$compEmitter.off('get-animation', this.sendAnimation);
     }
   },
   

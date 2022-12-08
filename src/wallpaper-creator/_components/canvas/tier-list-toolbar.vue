@@ -14,7 +14,9 @@
       <!-- BTN LABEL -->
       <span v-if="tier.visible">{{ tier.key }}</span>
       <!-- BTN ICON (hidden) -->
-      <span v-else><gb-icon name="remove_red_eye"></gb-icon></span>
+      <span v-else>
+        <mdi-eye-off/>
+      </span>
       
     </button>
   </div>

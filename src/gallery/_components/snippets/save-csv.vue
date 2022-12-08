@@ -23,7 +23,7 @@
         <input type="radio" name="dataSources" v-model="settings.dataSourcesChecked" :value="source.key" @change="inputChanged"> 
         <div class="visual-radiobutton">
           <div class="icon">
-            <fa-regular-circle/>
+            <ic-baseline-circle/>
           </div>
         </div>
         <span>{{ source.key }}</span>
@@ -41,13 +41,14 @@
         <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> 
         <div class="visual-radiobutton">
           <div class="icon">
-            <fa-regular-circle/>
+            <ic-baseline-circle/>
           </div>
         </div>
         <span>{{ item.label || item.key }}</span>
       </label>
     </div>
     
+    <!-- <div class="description" style="margin-top: 10px;" v-html="compatibilityActive.tippy"></div> -->
     <div class="description" style="margin-top: 10px;">
       Use <strong>raw data</strong> to export a csv file from any page with any kind of custom filtering and sorting.
     </div>
@@ -136,6 +137,13 @@ export default {
   },
   
   computed: {
+    
+    dataSourceActive() {
+      return _.find( this.settings.dataSources, { key: this.settings.dataSourcesChecked });
+    },
+    compatibilityActive() {
+      return _.find( this.settings.compatibility, { key: this.settings.compatibilityChecked });
+    },
     
     googleSheets: function() {
       return this.settings.compatibilityChecked === 'Google Sheets';
@@ -629,6 +637,13 @@ export default {
   padding-bottom: 35px;
   border-bottom: 2px solid rgba(#000, .15);
   margin-bottom: 5px;
+}
+
+.info-tooltip {
+  opacity: .5;
+  margin-left: 3px;
+  display: inline-block;
+  padding: 5px;
 }
 
 </style>

@@ -3,7 +3,6 @@
     <div class="search-options-inner-wrap">
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
-      test
       <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="{ top: $store.state.topNavOffset + 'px' }">
         <li class="reset-filters" @click="resetFilters" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
           <fa-solid-redo-alt/>
@@ -307,19 +306,21 @@ export default {
     }
     .checkbox,
     .sortbox {
-      display: inline-block;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
       position: relative;
       z-index: 0;
       top: 2.5px;
-      width: 14px;
-      height: 14px;
+      width: 16px;
+      height: 16px;
       svg {
         position: absolute;
         z-index: 1;
         top: 0;
         left: 0;
-        width: 14px;
-        height: 14px;
+        width: 16px;
+        height: 16px;
         @include themify($themes) {
           color: themed(frontColor);
         }
@@ -343,8 +344,8 @@ export default {
         [data-icon="check"] {
           opacity: 0;
           padding: 3px 0px 0px 3px;
-          width: 9px;
-          height: 9px;
+          width: 10px;
+          height: 10px;
           color: #fff;
         }
       }
@@ -386,6 +387,10 @@ export default {
   input[disabled="disabled"] ~ .input-label {
     text-decoration: line-through;
     opacity: 0.35;
+  }
+  
+  .input-label {
+    padding: 0 5px;
   }
   
   .regular-filters {

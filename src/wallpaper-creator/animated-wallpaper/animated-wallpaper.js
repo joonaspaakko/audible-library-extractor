@@ -1,12 +1,7 @@
-import Vue from "vue";
+import { createApp } from "vue";
 import App from "./animated-wallpaper-app.vue";
-
-// import _ from "lodash";
+const app = createApp(App);
 
 Vue.config.productionTip = false;
 
-let editorApp = new Vue({
-  el: "#animated-wallpaper",
-  render: (h) => h(App),
-});
-
+app.mount('#animated-wallpaper');

@@ -22,6 +22,9 @@
 
 <script>
 
+import saveGallery from '@output-snippets/save-gallery.vue';
+import saveCSV from '@output-snippets/save-csv.vue';
+
 export default {
   name: "aleMenuActions",
   data: function() {
@@ -40,7 +43,13 @@ export default {
   
   computed: {    
     clickedRouteComp() {
-      return _.get( this.clickedRoute, 'meta.component' );
+      
+      const component = _.get( this.clickedRoute, 'meta.component' );
+      if ( component ) {
+        console.log( component );
+        return {...component};
+      }
+      // return _.get( this.clickedRoute, 'meta.component' );
     },
     
     mobileThreshold() {
@@ -223,7 +232,7 @@ export default {
               icon: 'fa-solid fa-floppy-disk',
               nestedGroup: 'extension-tools',
               // component: () => import( /* webpackChunkName: "save-locally" */ "@output-comps/aleSaveLocally.vue"),
-              component: () => import( /* webpackChunkName: "save-locally" */ "@output-snippets/save-gallery.vue"),
+              component: saveGallery,
             },
           },
           {
@@ -234,12 +243,12 @@ export default {
             meta: {
               icon: 'fa-solid fa-file-csv',
               nestedGroup: 'extension-tools',
-              component: () => import( /* webpackChunkName: "save-locally" */ "@output-snippets/save-csv.vue"),
+              component: saveCSV,
             },
           },
           {
             tag: 'div',
-            name: 'Desktop wallpaper creator',
+            name: 'Wallpaper creator',
             disabled: false,
             click: function( route ) {
               
@@ -274,8 +283,8 @@ export default {
               let txt = "When you open wallpaper creator, books are imported from the current page with the active sorting. Search and filters also affect what gets imported.";
               const nobooks = !(vue.$route.meta.gallery && vue.$store.getters.collection && vue.$store.getters.collection.length);
               const booksWithCovers = _.filter( vue.$store.getters.collection, 'cover');
-              if ( nobooks ) txt += "<br><br> <strong style='color: #f79a1c; font-size: 19px;'>Disabled on pages that don't have any books</strong>";
-                        else txt += "<br><br> <strong style='color: #f79a1c;'>"+ booksWithCovers.length +" book covers to import from this page.</strong>";
+              if ( nobooks ) txt += "<br><br> <strong style='color: #f79a1c; font-size: 19px;'>Can't be opened on pages that don't have any books.</strong>";
+                        else txt += "<br><br> <strong style='color: #f79a1c;'>"+ booksWithCovers.length +" importable book covers on this page.</strong>";
               return txt;
             },
             meta: {

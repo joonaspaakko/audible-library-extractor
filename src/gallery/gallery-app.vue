@@ -212,10 +212,10 @@ html.theme-light {
   background-color: $lightBackColor !important;
 }
 
-// .is-ios .tippy-popper { display: none !important; }
+// .is-ios [data-tippy-root] { display: none !important; }
 
 // @media ( max-width: 630px ) {
-//   .tippy-popper { display: none !important; }
+//   [data-tippy-root] { display: none !important; }
 // }
 
 html {
@@ -292,7 +292,7 @@ body {
 //   }
 // }
 
-.tippy-popper .tippy-content { 
+[data-tippy-root] .tippy-content { 
   padding: 3px !important; 
   font-size: 13px !important;
   line-height: 19px !important;
@@ -302,12 +302,12 @@ body {
   }
 }
 
-.tippy-tooltip {
+.tippy-box {
   border-radius: 11px;
 }
 
-.theme-dark .tippy-popper {
-  .tippy-tooltip {
+.theme-dark [data-tippy-root] {
+  .tippy-box {
     background: lighten($darkBackColor, 15);
     border: 1px solid lighten($darkBackColor, 34);
     box-shadow: 2px 2px 10px rgba(#000, 0.95) !important;
@@ -318,6 +318,10 @@ body {
         color: $darkFrontColor;
       }
     }
+  }
+  
+  .tippy-arrow {
+    color: lighten($darkBackColor, 34) !important;
   }
 
   &[x-placement^="top"] .tippy-arrow {
@@ -337,8 +341,8 @@ body {
     right: -8px;
   }
 }
-.theme-light .tippy-popper {
-  .tippy-tooltip {
+.theme-light [data-tippy-root] {
+  .tippy-box {
     background: #fff;
     border: 1px solid darken($lightBackColor, 10);
     box-shadow: 2px 2px 10px rgba(#000, 0.35) !important;
@@ -350,6 +354,11 @@ body {
       }
     }
   }
+  
+  .tippy-arrow {
+    color: $lightBackColor !important;
+  }
+  
   &[x-placement^="top"] .tippy-arrow {
     border-top-color: $lightBackColor;
   }
@@ -403,5 +412,4 @@ div[data-block-scrolling="true"] {
     background: themed(audibleOrange) !important;
   }
 }
-
 </style>

@@ -3,6 +3,7 @@
   v-shortkey.push="store.events.canvasPanning ? ['space'] : null" 
   @shortkey="store.events.canvasPanning ? forcePanning($event) : null"
   >
+    <preset-modal />
     <editor-canvas />
     <toolbar />
   </div>
@@ -17,10 +18,12 @@ import editorCanvas from "@editor-comps/canvas.vue";
 import toolbar from "@editor-comps/toolbar.vue";
 import getCovers from "@editor-mixins/getCovers.js";
 import centerCanvas from "@editor-mixins/centerCanvas.js";
+import presetModal from '@editor-comps/preset-modal.vue';
 
 export default {
   name: "App",
   components: {
+    presetModal,
     editorCanvas,
     toolbar,
   },
@@ -92,7 +95,7 @@ export default {
     
     windowResized: _.debounce( function() {
       
-      this.$root.$emit('window-resized')
+      this.$compEmitter.emit('window-resized')
       this.centerCanvas();
       
     }, 400, { leading: false, trailing: true }),
@@ -176,13 +179,13 @@ body,
     align-items: flex-start;
     justify-content: center;
     justify-items: center;
-    height: 100%;
+    height: 100vh;
     position: relative;
     z-index: 0;
   }
 }
 
-.tippy-popper {
+[data-tippy-root] {
   z-index: 99999999999 !important;
 }
 
