@@ -1,44 +1,53 @@
 <template>
-  <Moveable 
-  ref="moveable"
-  class="text-element"
-  v-bind="moveableOpts" 
-  @drag="moveableDrag"
-  @resize="moveableResize"
-  @resizeStart="moveableResizeStart"
-  @rotate="moveableRotate"
-  @dblclick.native="doubleClick"
-  @mousedown.native="activateControls"
-  :style="{
-    fontFamily: textObj.fontFamily,
-    fontSize: textObj.fontSize + 'px',
-    lineHeight: textObj.fontSize + 'px',
-    fontWeight: textObj.bold ? 'bold' : 'normal',
-    textTransform: textObj.allCaps ? 'uppercase' : 'none',
-    justifyContent: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
-    justifyItems: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
-    alignContent: textObj.verticalAlignment === 'left' ? 'flex-start' : textObj.verticalAlignment === 'center' ? 'center' : textObj.verticalAlignment === 'right' ? 'flex-end' : null,
-    alignItems: textObj.verticalAlignment === 'left' ? 'flex-start' : textObj.alignmeverticalAlignmentnt === 'center' ? 'center' : textObj.verticalAlignment === 'right' ? 'flex-end' : null,
-    color: textObj.color,
-  }"
-  data-no-dragscroll
-  >
-    <contenteditable tag="span" :contenteditable="contenteditable" data-no-dragscroll
-    v-model="text" :noNL="true" :noHTML="true" 
-    @returned="moveableBlur" 
-    @blur.native="moveableBlur"
-    ref="contenteditable"
-    class="text-element-child"
+  <div>
+    <content-editable 
+      tag="span" 
+      :contenteditable="contentIsEditable" 
+      data-no-dragscroll
+      v-model="text" :noNL="true" :noHTML="true" 
+      @returned="moveableBlur" 
+      @blur.native="moveableBlur"
+      @dblclick.native="doubleClick"
+      @mousedown.native="activateControls"
+      ref="contenteditable"
+      class="text-element-child"
+      :class="[ textClass, 'panzoom-exclude']"
+      :style="{
+        fontFamily: textObj.fontFamily,
+        fontSize: textObj.fontSize + 'px',
+        lineHeight: textObj.fontSize + 'px',
+        fontWeight: textObj.bold ? 'bold' : 'normal',
+        textTransform: textObj.allCaps ? 'uppercase' : 'none',
+        justifyContent: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
+        justifyItems: textObj.alignment === 'left' ? 'flex-start' : textObj.alignment === 'center' ? 'center' : textObj.alignment === 'right' ? 'flex-end' : null,
+        alignContent: textObj.verticalAlignment === 'left' ? 'flex-start' : textObj.verticalAlignment === 'center' ? 'center' : textObj.verticalAlignment === 'right' ? 'flex-end' : null,
+        alignItems: textObj.verticalAlignment === 'left' ? 'flex-start' : textObj.alignmeverticalAlignmentnt === 'center' ? 'center' : textObj.verticalAlignment === 'right' ? 'flex-end' : null,
+        color: textObj.color,
+      }"
     />
-  </Moveable>
+    <Moveable 
+      :target="'.'+textClass"
+      ref="moveable"
+      class="panzoom-exclude"
+      v-bind="moveableOpts" 
+      @drag="moveableDrag"
+      @resize="moveableResize"
+      @resizeStart="moveableResizeStart"
+      @rotate="moveableRotate"
+      data-no-dragscroll
+      :zoom="1"
+      @vue:mounted="moveableMounted"
+    ></Moveable>
+  </div> 
 </template>
 
 <script>
 import Moveable from "vue3-moveable";
+import ContentEditable from 'vue-contenteditable';
 
 export default {
-  name: "textElement",
-  components: { Moveable },
+  name: "ToolbarTextElements",
+  components: { Moveable, ContentEditable },
   props: ['textObj', 'textIndex'],
   data: function () {
     return {
@@ -71,7 +80,7 @@ export default {
       frame: {
         translate: [0,0],
       },
-      contenteditable: false,
+      contentIsEditable: false,
     };
   },
   
@@ -83,6 +92,9 @@ export default {
       set: _.debounce( function(value) {
         this.$store.commit('changeText', { index: this.textIndex, key: 'text', value: value,  });
       }, 250, { leading: false, trailing: true }),
+    },
+    textClass() {
+      return 'text-element-' + this.textIndex;
     },
   },
   
@@ -105,19 +117,19 @@ export default {
     if ( this.textObj.transform ) this.$refs.moveable.$el.style.transform = this.textObj.transform;
     
     this.setElementGuidelines();
-    this.$compEmitter.on('update-moveable-handles', this.updateHandles);
-    this.$compEmitter.on('nudge-up', this.nudgeUp);
-    this.$compEmitter.on('nudge-right', this.nudgeRight);
-    this.$compEmitter.on('nudge-down', this.nudgeDown);
-    this.$compEmitter.on('nudge-left', this.nudgeLeft);
+    this.$emitter.on('update-moveable-handles', this.updateHandles);
+    this.$emitter.on('nudge-up', this.nudgeUp);
+    this.$emitter.on('nudge-right', this.nudgeRight);
+    this.$emitter.on('nudge-down', this.nudgeDown);
+    this.$emitter.on('nudge-left', this.nudgeLeft);
   },
 
   beforeUnmount: function () {
-    this.$compEmitter.off('update-moveable-handles', this.updateHandles);
-    this.$compEmitter.off('nudge-up', this.nudgeUp);
-    this.$compEmitter.off('nudge-right', this.nudgeRight);
-    this.$compEmitter.off('nudge-down', this.nudgeDown);
-    this.$compEmitter.off('nudge-left', this.nudgeLeft);
+    this.$emitter.off('update-moveable-handles', this.updateHandles);
+    this.$emitter.off('nudge-up', this.nudgeUp);
+    this.$emitter.off('nudge-right', this.nudgeRight);
+    this.$emitter.off('nudge-down', this.nudgeDown);
+    this.$emitter.off('nudge-left', this.nudgeLeft);
   },
 
   methods: {
@@ -164,8 +176,10 @@ export default {
     },
     
     activateControls: function() {
-      
+      console.log('activateControls')
       if ( document.activeElement ) document.activeElement.blur();
+      
+      this.updateHandles();
       
       let targetIndex = this.textIndex;
       this.$store.commit("activateText", targetIndex);
@@ -190,7 +204,7 @@ export default {
         let coverImages = document.querySelectorAll('[data-coverImages], [data-tier-list-label]');
         if ( !coverImages ) return;
             coverImages = [...coverImages];
-        console.log( coverImages );
+        // console.log( coverImages );
         const guidelinesFirstRow = coverImages.slice( 0, this.store.coversPerRow );
         const guidelinesLastRow = coverImages.slice( coverImages.length - this.store.coversPerRow, coverImages.length );
         this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesFirstRow );
@@ -201,6 +215,7 @@ export default {
     },
     
     moveableRotate({ target, dist, transform }) {
+      // console.log( transform )
       target.style.transform = transform;
       this.updateText({ key: 'transform', value: transform });
     },
@@ -262,7 +277,7 @@ export default {
       this.moveableOpts.draggable = false;
       this.moveableOpts.rotatable = false;
       this.moveableOpts.resizable = false;
-      this.contenteditable = true;
+      this.contentIsEditable = true;
       this.$store.commit('update', [
         { key: 'events.textNudge', value: false },
         { key: 'events.textRemove', value: false },
@@ -285,7 +300,7 @@ export default {
       this.moveableOpts.draggable = true;
       this.moveableOpts.rotatable = true;
       this.moveableOpts.resizable = true;
-      this.contenteditable = false;
+      this.contentIsEditable = false;
       this.$store.commit('update', [
         { key: 'events.textNudge', value: true },
         { key: 'events.textRemove', value: true },
@@ -297,10 +312,27 @@ export default {
 
     },
     
+    // So that moveable's controls don't scale wiht the canvas
+    moveableMounted( moveable ) {
+      
+      this.$nextTick(function() {
+        document.body.appendChild( moveable.el );
+        this.updateHandles();
+      });
+      
+    },
+    
   },
   
 };
 </script>
+
+<style>
+.moveable-control-box {
+  width: 0px !important;
+  height: 0px !important;
+}
+</style>
 
 <style scoped lang="scss">
 
@@ -402,7 +434,7 @@ export default {
 }
 
 
-.text-element {
+.text-element-child {
   white-space: nowrap;
   font-size: 30px;
   line-height: 35px;

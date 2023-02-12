@@ -409,6 +409,9 @@ export default {
   right: 0;
   left: 0;
   box-shadow: 0px 2px 13px rgba(#000, 0.4);
+  @include themify($themes) {
+    border-bottom: 1px solid rgba(themed(frontColor), .15);
+  }
   &,
   a {
     text-decoration: none;

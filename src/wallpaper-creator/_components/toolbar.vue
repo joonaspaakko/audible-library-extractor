@@ -1,5 +1,5 @@
 <template>
-  <n-config-provider :theme="darkTheme" class="right toolbar">
+  <n-config-provider :theme="darkTheme" class="right toolbar" :class="{ 'toolbar-collapsed': store.toolbarCollapsed }">
     
     <div class="button-container">
       <button v-if="store.animatedWallpaperMode"
@@ -8,7 +8,9 @@
         @click="makeWallpaper"
         v-tippy="{ allowHTML: true }" content="<strong>Save animated wallpaper as a .zip file.</strong> <br>You need to then unpack the zip and point the animated wallpaper application to the index.html file inside the folder."
       >
-        <material-symbols-play-arrow-rounded/>
+        <ph-monitor-play-bold/>
+        <!-- <material-symbols-video-library/> -->
+        <!-- <mdi-content-save-all/> -->
       </button>
       <button v-else 
         class="save-btn"
@@ -17,6 +19,7 @@
         v-tippy :content="'Save image as a' + (store.compressImage ? '.jpg' : '.png' + ' file.')"
       >
         <ic-baseline-camera-alt/>
+        <!-- <mdi-content-save-all/> -->
       </button>
     </div>
     
@@ -25,90 +28,136 @@
       <input
         class="zoom-zoom"
         type="range"
-        min="0.01"
-        max="6"
-        v-model="store.canvas.zoom"
+        min="0.1"
+        max="3"
+        :value="store.canvas.zoom"
+        @input="$emitter.emit('canvas-zoom', $event.target.value)"
         step=".01"
-        @dblclick="$store.commit('update', { key: 'canvas.zoom', value: 1 })"
+        @dblclick="$emitter.emit('canvas-reset-zoom')"
       />
       <div
         v-tippy content="Click to reset to 100% zoom"
         class="zoom-text"
         :class="{ highlight: store.canvas.zoom != 1 }"
-        @click="$store.commit('update', { key: 'canvas.zoom', value: 1 })"
+        @click="$emitter.emit('canvas-reset-zoom')"
       >
         {{ zoomPercentage }}%
       </div>
       
-      <div class="zoom-to-fit" @click="zoomToFit('and-center')" v-tippy content="Fit canvas inside the viewport">
-        <majesticons-arrows-expand-line/>
+      <div class="center-canvas" @click="$emitter.emit('canvas-center')" v-tippy content="Center canvas to the viewport">
+        <mdi-target/>
       </div>
       
-      <div class="reset-settings" v-tippy content="<strong>Reset settings to defaults.</strong> Keeps imported covers but resets everything else." @mousedown="resetSettings">
-        <typcn-times/>
+      <div class="zoom-to-fit" @click="$emitter.emit('canvas-fit')" v-tippy content="Fit canvas inside the viewport">
+        <fluent-arrow-expand-24-filled/>
+      </div>
+      
+      <div class="zoom-to-fit-width" @click="$emitter.emit('canvas-fit', 'width')" v-tippy content="Fit canvas width inside the viewport">
+        <fluent-auto-fit-height-20-regular/>
+      </div>
+      
+      <div class="collapse-toolbar" @click="$store.commit('update', { key: 'toolbarCollapsed', value: !store.toolbarCollapsed })">
+        <bx-bxs-chevrons-up v-if="!store.toolbarCollapsed" />
+        <bx-bxs-chevrons-down v-else />
       </div>
       
     </div>
 
     <div class="mode-switcher" v-if="!store.saving">
       
-      <div>
-        <n-switch 
-          size="medium"
-          :value="store.animatedWallpaperMode"
-          @update:value="editorModeChanged('animatedWallpaperMode', $event)"
-        />
-        
-        Animated wallpaper mode
-      </div>
-      
-      <spacer size="medium" :line="true" />
-      
-      <div>
-        <n-switch
-          size="medium"
-          :value="store.tierListMode"
-          @update:value="editorModeChanged('tierListMode', $event)"
-          v-tippy :content=" store.tierListMode ? `Disabling the tier list mode will reset any changes </br>you've made to the tier list so far!` : null"
-        />
-        
-        {{ store.tierListMode }}
-        
-        Tier list mode
-      </div>
+      <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
+        <ri-collage-fill/> &nbsp; Change preset
+      </n-button>
       
     </div>
     
     <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
-      <div v-if="!store.saving">
+      <n-space vertical :size="spaceGapSize" v-if="!store.saving">
         
         <div v-if="store.animatedWallpaperMode" style="text-align: center;">
-          <spacer size="largest" :line="false" />
-          <gb-button size="mini" :full-width="true" :rounded="true" left-icon="library_books" color="red" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers">Installation instructions</gb-button>
-          <spacer size="largest" :line="false" />          
-        </div>
-        <spacer v-else size="large" :line="false" />
-        
-        <div v-if="store.animatedWallpaperMode && store.animationPresets" style="position: relative; z-index: 10;">
-          <gb-heading tag="h6" :uppercase="true">
-            Animation settings
-          </gb-heading>
-          <spacer size="small" :line="false" />
-          <spacer size="mini" :line="false" />
           
-          <div style="height: 22px;">
-            <div class="label-row time-until-next-cycle" v-if="store.awpAnimationStarted">
-              <span class="covers-this-cycle" v-tippy content="Number of covers animated in one cycle.">{{ store.awpAnimatedCoversLength || 0 }}</span> 
+        <n-button 
+          type="error" style="border-radius: 999px;" 
+          @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
+        >
+          Wallpaper installation instructions
+        </n-button>
+        </div>
+        
+        <n-space vertical :size="spaceGapSize" v-if="store.animatedWallpaperMode && store.animationPresets" style="position: relative; z-index: 10;">
+          <h6>Animation settings</h6>
+          
+          <n-tabs type="line" animated>
+            <n-tab-pane name="presets" tab="Presets">
+              
+              <n-select v-model:value="store.animationPreset" :options="store.animationPresets" />
+              
+            </n-tab-pane>
+            <n-tab-pane name="animations" tab="Individual animations">
+              
+              
+              <div class="animation-names-container">
+                <n-select 
+                  v-model:value="store.awpAnimation" 
+                  :options="listify(store.awpAnimations)" 
+                  multiple :show-arrow="false" 
+                  placeholder="Pick animations"
+                />
+              </div>
+              
+              <n-button 
+                strong secondary round type="warning"
+                v-if="store.awpAnimation && store.awpAnimation.length"
+                style="margin-top: 10px;"
+                @click="$store.commit('update', { key: 'awpAnimation', value: [] })"
+              >
+                <fa-trash-o/> &nbsp; Clear all animations 
+              </n-button>
+              
+            </n-tab-pane>
+          </n-tabs>
+          
+        </n-space>
+        
+        <n-space vertical :size="12" v-if="store.animatedWallpaperMode">
+          
+          <div style="height: 22px; cursor: help;">
+            <div class="label-row time-until-next-cycle" v-if="store.awpAnimationStarted"
+            v-tippy="{ placement: 'top', allowHTML: true }" 
+            :content="`
+              <strong>Number:</strong> ${ !store.awpShowAnimationZone ? 0 : (store.awpAnimatedCoversLength || 0) } covers animated in this cycle. <br /> 
+              <strong style='color: #48c86d;'>GREEN (animation zone):</strong> animations happen in this section. <br />
+              <strong style='color: #ff2956;'>RED:</strong> time until next cycle begins.
+              <br /><br />
+              The line as a whole represents one full &#34;animation cycle&#34;
+            `"
+            >
+              <span class="covers-this-cycle">{{ !store.awpShowAnimationZone ? 0 : (store.awpAnimatedCoversLength || 0) }}</span> 
               <div class="progress-bar">
                 <div class="fill" :class="{ animate: store.awpCycleDelay }"></div>
+                <div class="fill-overlay"></div>
               </div>
-              <gb-icon style="padding-left: 10px;" name="info" size="16px" v-tippy="{ placement: 'top', allowHTML: true }" content="
-                <strong>Animation cycle indicator.</strong> Covers can animate from the beginning of the cycle up to the white dot. Depending one the animation settings, animations may trigger immediately, sequentially, or even randomly within this area.
-              "></gb-icon>
+              
+              <radix-icons-info-circled style="padding-left: 10px;" />
+              
               <component v-if="store.awpShowAnimationZone && store.awpAnimationZone > -1" is="style">
                 .time-until-next-cycle .progress-bar:after {
                   display: inline-block !important;
                   left: {{ store.awpAnimationZone }}% !important;
+                }
+                .time-until-next-cycle .progress-bar:before {
+                  display: inline-block !important;
+                  width: {{ store.awpAnimationZone }}% !important;
+                }
+                .fill-overlay {
+                  display: inline-block !important;
+                  left: {{ store.awpAnimationZone }}% !important;
+                }
+              </component>
+              <component v-if="!store.awpShowAnimationZone" is="style">
+                .fill-overlay {
+                  display: inline-block !important;
+                  left: 0 !important;
                 }
               </component>
               <component v-if="store.awpAnimationStarted && store.awpCycleDelay" is="style">
@@ -120,123 +169,52 @@
             </div>
           </div>
           
-          <spacer size="small" :line="false" />
-          <spacer size="mini" :line="false" />
-          
-          <div class="label-row">
-            <span>Presets</span>
-            <gb-select size="mini" style="position: relative; z-index: 2;" v-model="animationPreset" :options="store.animationPresets" />
-          </div>
-          
-          <spacer size="small" :line="false" />
-        
-          <!-- <Multiselect
-          v-model="awpAnimations" 
-          placeholder="Animations"
-          :options="store.awpAnimations" 
-          mode="tags" 
-          :searchable="true"
-          :hideSelected="true"
-          :clearOnSelect="false"
-          :canClear="true"
-          :closeOnSelect="false"
-          :multiple="true"
-          :taggable="true"
-          /> -->
-        
-          <spacer size="small" :line="false" />
-          
-        </div>
-        
-        <div v-if="store.animatedWallpaperMode">
           <div class="label-row">
             <span>Animate immediately on load</span>
-            <gb-toggle
-            style="display: flex; justify-content: flex-end;"
-            size="mini"
-            v-model="store.awpAnimateOnLoad"
-            ></gb-toggle>
+            <n-switch size="small" v-model:value="store.awpAnimateOnLoad" style="justify-content: flex-end;" />
           </div>
-          <spacer size="small" :line="false" />
           
           <div class="label-row">
-            <span>Animation Cycle (seconds) </span>
-            <gb-input
-              type="number"
-              :min="0"
-              :value="store.awpCycleDelay"
-              @input="inputChanged('awpCycleDelay', $event)"
-              size="mini"
-            ></gb-input>
+            <span>Animation Cycle (sec) </span>
+            <n-input-number size="small" v-model:value="store.awpCycleDelay" :min="0" :step="1" />
           </div>
-          
-          <spacer size="small" :line="false" />
           
           <div class="label-row" v-tippy content="A percentage of the animation cycle where covers are animated. Settings this to 0 animates covers immediately at the beginning of the cycle.">
             <span>Animation Zone (%) </span>
-            <gb-input
-              type="number"
-              :min="0"
-              :max="100"
-              :value="store.awpAnimationZone"
-              @input="inputChanged('awpAnimationZone', $event)"
-              size="mini"
-            ></gb-input>
+            <n-slider v-model:value="store.awpAnimationZone" :min="0" :max="100" :step="1" :tooltip="true" />
           </div>
-          <spacer size="small" :line="false" />
           
           <div class="label-row">
             <span>Covers per cycle</span>
-            <gb-input
-              type="text"
-              :min="1"
-              :value="store.awpCoversPerCycle"
-              @input="inputChanged('awpCoversPerCycle', $event)"
-              size="mini"
-            ></gb-input>
+            <n-input-number size="small" v-model:value="store.awpCoversPerCycle" :min="1" :step="1" />
           </div>
-          <spacer size="small" :line="false" />
           
-          <div class="label-row" 
-          v-tippy content='Cover amount is randomized for every cycle. The setting above "Covers per cycle" defines the maximum amount.'
+          <div 
+            class="label-row" 
+            v-tippy content='Cover amount is randomized for every cycle. The setting above "Covers per cycle" defines the maximum amount.'
           >
             <span>Randomize covers <span v-if="store.awpRandomCovers">(1-{{ store.awpCoversPerCycle }})</span></span>
-            <gb-toggle
-            style="display: flex; justify-content: flex-end;"
-            size="mini"
-            v-model="store.awpRandomCovers"
-            ></gb-toggle>
+            <n-switch size="small" v-model:value="store.awpRandomCovers" style="justify-content: flex-end;" />
           </div>
-          <spacer size="small" :line="false" />
           
-          <div class="label-row" 
-          v-tippy content='<strong>Enabled:</strong> covers animate randomly within the animation zone. <br><strong>Disabled:</strong> cover animations are spread evenly across the animation zone.'
+          <div 
+            class="label-row" 
+            v-tippy content='<strong>Enabled:</strong> covers animate randomly within the animation zone. <br><strong>Disabled:</strong> cover animations are spread evenly across the animation zone.'
           >
             <span>Randomize cover delay</span>
-            <gb-toggle
-            style="display: flex; justify-content: flex-end;"
-            size="mini"
-            v-model="store.awpRandomDelay"
-            ></gb-toggle>
+            <n-switch size="small" v-model:value="store.awpRandomDelay" style="justify-content: flex-end;" />
           </div>
-          <spacer size="small" :line="false" />
           
-          <div class="label-row" 
-          v-tippy content='<strong>Enabled:</strong> covers animate in order starting from top left. <br><strong>Disabled:</strong> animated covers are picked randomly.'
+          <div 
+            class="label-row" 
+            v-tippy content='<strong>Enabled:</strong> covers animate in order starting from top left. <br><strong>Disabled:</strong> animated covers are picked randomly.'
           >
             <span>Sequential animation</span>
-            <gb-toggle
-            style="display: flex; justify-content: flex-end;"
-            size="mini"
-            v-model="store.awpSequential"
-            ></gb-toggle>
+            <n-switch size="small" v-model:value="store.awpSequential" style="justify-content: flex-end;" />
           </div>
-          <spacer size="small" :line="false" />
           
-
-          <spacer size="medium" :line="false" />
-        </div>
-        
+        </n-space>
+          
         
         <!-- <div v-if="store.animatedWallpaperMode">
           <spacer size="small" :line="false" />
@@ -256,7 +234,7 @@
           The idea was that if you really wanted to, you could add empty "covers" to make room for text.
           It's just that the sorting is kinda terrible...
         -->
-        <div v-if="false">
+        <!-- <div v-if="false">
           
           <gb-heading tag="h6" :uppercase="true">
             Placeholders
@@ -273,338 +251,245 @@
           
           <spacer size="large" :line="true" />
 
-        </div>
+        </div>  -->
         
-        <div v-if="!store.animatedWallpaperMode && store.canvasPresets" style="position: relative; z-index: 10;">
-          <!-- <gb-heading tag="h6" :uppercase="true">
-            <span>Canvas preset</span>
-            <gb-select size="mini" style="padding-left: 20px; flex: 1; position: relative; z-index: 1;" v-model="canvasPreset" :options="store.canvasPresets" />
-          </gb-heading> -->
+        <n-space vertical :size="spaceGapSize">
           
-          <h4>Canvas preset</h4>
-          <n-select v-model:value="canvasPreset" size="large" :options="store.canvasPresets" />
+          <h6>Covers per row (columns)</h6>
           
-          <spacer size="default" :line="false" />
-        </div>
-        
-        
-        <div>
-          <gb-heading tag="h6" :uppercase="true">Covers per row (columns)</gb-heading>
-          <spacer size="mini" :line="false" />
-          <spacer size="small" :line="false" />
+          <n-input-number v-model:value="store.coversPerRow" :min="1" :step="1" />
           
-          <div class="label-row no-padding">
-            <gb-input
-            style="max-width: 48px;"
-            type="number"
-            :min="1"
-            :value="parseFloat(store.coversPerRow)"
-            @input="inputChanged('coversPerRow', $event)"
-            size="mini"
-            ></gb-input>
-            <div style="padding-left: 10px;">
-              <input type="range" min="1" max="20" v-model="coversPerRow" step="1" />
-            </div>
-          </div>
-          <p v-if="store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
-            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. You can choose to ignore this, but otherwise you can try lowering canvas width or increasing covers per row.
-            <gb-input style="display: none;" warning="1"></gb-input>
-          </span></p>
+          <n-slider v-model:value="store.coversPerRow" :min="1" :max="25" :step="1" :tooltip="false"/>
           
-          <div v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length">
-            <spacer size="default" :line="false" />
-            <div class="warning-message">
-              <strong>{{ store.visibleAnimatedCovers - store.covers.length }}/{{ store.visibleAnimatedCovers }}</strong> visible covers have been duplicated in order for the animated wallpaper to function.
-              <br><br>
-              <span style="color: #fff;">This basically means that you should already see duplicate covers on load and it's not going to get any better when the covers start to animate. If you don't like what you see, try lowering the "Covers per row" setting or consider using another source for the cover images if possible.</span>
-              <br><br>
-              <span style="color: #fff;">Ideally the total number of covers would be visible covers x2 or more.</span>
-            </div>
-          </div>
+          <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning">
+            The more you upsize the more quality loss there will be. You can choose to ignore this, or you can try lowering canvas width or increasing covers per row.
+          </n-alert>
           
-          <div v-if="store.animatedWallpaperMode">
-            <spacer size="default" :line="false" />
+          <n-alert v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length" type="warning">
+            <strong>{{ store.visibleAnimatedCovers - store.covers.length }}/{{ store.visibleAnimatedCovers }}</strong> 
+            visible covers have been duplicated in order for the animated wallpaper to function.
+            <br><br>
+            This basically means that you should already see duplicate covers on load and it's not
+            going to get any better when the covers start to animate. If you don't like what you
+            see, try lowering the "Covers per row" setting or consider using another source for the
+            cover images if possible.
+            <br><br>
+            Ideally the total number of covers would be visible covers x3 or more.
+          </n-alert>
+          
+          <n-space vertical :size="spaceGapSize" v-if="store.animatedWallpaperMode ">
             
-            <gb-checkbox
-            size="mini"
-            v-model="prioritizeCoversPerRow"
-            label="Prioritize covers per row"
-            :info="!prioritizeCoversPerRow ? null : 'No matter what screen resolution you have, the wallpaper will always have ' + store.coversPerRow + ' columns.'"
-            :warning="prioritizeCoversPerRow ? null : 'Affects the output: current cover size is prioritized and columns will likely change.'"
-            ></gb-checkbox>
-          </div>
+            <n-checkbox v-model:checked="store.prioritizeCoversPerRow">
+              Prioritize covers per row
+            </n-checkbox>
+            
+            <n-alert type="default" v-if="store.prioritizeCoversPerRow">
+              <template #icon>
+                <fluent-checkmark-circle-24-regular style="color: #63e2b8; padding-top: 5px;"/>
+              </template>
+              No matter what screen resolution you have, the wallpaper will always have {{ store.coversPerRow }} columns.
+            </n-alert>
+            
+            <n-alert type="warning" v-else title="This will only affect the output">The current
+            cover size ~{{ Math.round(store.coverSize) }}px is prioritized over preferred "covers
+            per row" no matter what the screen resolution is.
+            </n-alert>
+            
+          </n-space>
           
-          <spacer size="medium" :line="false" />
-          
-        </div>
+        </n-space>
         
-        <div  v-if="!store.animatedWallpaperMode">
-          <gb-heading tag="h6" :uppercase="true" name="coverNumberTippy">
+        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
+          
+          <h6>
             <span :style="{ color: store.covers.length > store.coverAmount ? '#ffc02b' : null }">
               Limit covers 
             </span>
-            
-            <gb-input
-              style="width: 100px;"
-              type="number"
-              :min="1"
-              :max="store.covers.length"
-              :value="parseFloat(store.coverAmount)"
-              @input="inputChanged('coverAmount', $event)"
-              size="mini"
-              >
-            ></gb-input>
-          <span style="color: #8eabc3; text-transform: lowercase;"> of {{ store.covers.length }}</span>
-          </gb-heading>
+            <span>{{ store.coverAmount }}/{{ store.covers.length }}</span>
+          </h6>
           
+          <n-input-number v-model:value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" />
+          <!-- <spacer size="medium" :line="false" /> -->
+          <n-slider v-model:value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" :tooltip="false"/>
+          <n-alert type="info">
+            Excess covers are removed from the tail end.
+          </n-alert>
           
-          <tippy to="coverNumberTippy" placement="top" trigger="focus mouseenter">
-            Maximum amount of covers set to <strong>{{ store.coverAmount }}</strong>. Amount of covers available <strong>{{ store.covers.length }}</strong>. <br>Excess covers are removed from the tail end.
-          </tippy>
-          
-          <spacer size="default" :line="false" />
-        </div>
+        </n-space>
         
-        <div  v-if="!store.animatedWallpaperMode">
-          <gb-heading tag="h6" :uppercase="true">
+        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
+          <h6>
             Randomize covers 
-            <gb-button :rounded="true" size="mini" left-icon="shuffle" @click="randomizeCovers" 
-            v-tippy content="Randomizes all covers from the source data. You might want to use this before manual sorting."
-            >shuffle</gb-button>
-          </gb-heading>
+            
+            <n-button 
+              strong 
+              secondary 
+              type="info" 
+              @click="randomizeCovers"
+              v-tippy content="Randomizes all covers from the source data. You might want to use this before manual sorting."
+            >
+              <icomoon-free-shuffle/> &nbsp; shuffle
+            </n-button>
+          </h6>
           
-          <spacer size="default" :line="false" />
-        </div>
+        </n-space>
         
-        <div>
-          <gb-heading tag="h6" :uppercase="true">Canvas size</gb-heading>
-          <spacer size="mini" :line="false" />
-          <spacer size="small" :line="false" />
+        <n-space vertical :size="spaceGapSize">
+          
+          <h6>Canvas size</h6>
           
           <div class="label-row" style="padding-left: 58px">
-            <input
-              v-tippy content="The sliders have a maximum value, but the text inputs do not."
-              type="range"
-              min="1"
-              max="1920"
-              v-model="store.canvas.width"
-              step="1"
-            />
+            
+            <n-slider v-model:value="store.canvas.width" :min="1" :max="1920" :step="1" :tooltip="false"/>
+            
           </div>
           <div class="label-row" v-tippy content="Width is always required">
+            
             <span style="width: 50px">Width:</span>
-            <gb-input
-              type="number"
-              :min="1"
-              :value="parseFloat(store.canvas.width)"
-              @input="inputChanged('canvas.width', $event)"
-              size="mini"
-            ></gb-input>
+            <n-input-number v-model:value="store.canvas.width" :min="1" :step="1" />
+            
           </div>
-          <spacer size="mini" :line="false" />
           <div class="label-row" style="padding-left: 58px">
-            <input
-              v-tippy content="The sliders have a maximum value, but the text inputs do not."
-              type="range"
-              min="0"
-              max="1080"
-              v-model="store.canvas.height"
-              step="1"
-            />
+            
+            <n-slider v-model:value="store.canvas.height" :min="0" :max="1080" :step="1" :tooltip="false"/>
+            
           </div>
           <div class="label-row" v-tippy content="Set the height to 0 when you don't need to limit it to a certain height.">
-            <span :class="{ 'offset-height-text': store.canvas.height == 0 }">Height:</span>
-            <gb-input
-              type="number"
-              :min="0"
-              :value="parseFloat(store.canvas.height)"
-              @input="inputChanged('canvas.height', $event)"
-              size="mini"
-              :info="(store.canvas.height > 0) ? null : '0 = automatic height.' + (store.canvas.autoHeight > 0 ? '<br>Estimated height: ' + store.canvas.autoHeight + 'px' : ' ')"
-            ></gb-input>
-          </div>
-          
-          <div style="text-align: center;" v-if="!store.animatedWallpaperMode && store.canvas.height > 0">
-            <spacer size="default" :line="false" />
-          
-            <div class="label-row">
-              <gb-button
-                :disabled="store.showAuthorAndTitle"
-                :full-width="true"
-                color="blue"
-                size="mini"
-                @click="fillCanvasWithCovers('fit')"
-                :rounded="true"
-                v-tippy content="Sets visible cover amount based on how many covers <strong>fit</strong> inside the canvas."
-                left-icon="border_all"
-              >Covers Fit</gb-button>
-              
-              <div style="width: 10px; height: 100%;"></div>
-              
-              <gb-button
-                :disabled="store.showAuthorAndTitle"
-                :full-width="true"
-                color="blue"
-                size="mini"
-                @click="fillCanvasWithCovers"
-                :rounded="true"
-                v-tippy content="Sets visible cover amount based on how many covers <strong>fill</strong> inside the canvas."
-                left-icon="border_all"
-              >Covers Fill</gb-button>
-            </div>
             
+            <span style="width: 50px">Height:</span>
+            <n-input-number v-model:value="store.canvas.height" :min="0" :step="1" />
             
           </div>
           
-          <div v-if="!store.animatedWallpaperMode">
-            
-            <spacer size="small" :line="false" />
-            
-            <gb-button
-            :full-width="true"
-            color="blue"
-            size="mini"
-            @click="fitCanvasToContent"
-            :rounded="true"
-            left-icon="crop"
-            v-if="store.canvas.height > 0"
-            >Fit canvas size to covers</gb-button>
-          </div>
-          
-          <p v-if="store.animatedWallpaperMode" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i>
-            <span class="gb-field-message__message">
-              The animated wallaper fits itself to any screen size, canvas size is for preview purposes only.
+          <n-alert type="info" v-if="store.canvas.height == 0">
+            <!-- 0 = automatic height.
+            <span v-if="store.canvas.autoHeight > 0">
+              <br>
+              Estimated height: {{ store.canvas.autoHeight }} px
             </span>
-          </p>
-          <p v-if="store.coverSize > 500" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">
-            Cover size is upsized by <span style="color: #fff;"><strong>{{ Math.floor( (store.coverSize / 500) * 100 ) }}</strong>%</span>. The more you upsize the more quality loss there will be. You can choose to ignore this, but otherwise you can try lowering canvas width or increasing covers per row.
-            <gb-input style="display: none;" warning="1"></gb-input>
-          </span></p>
+              -->
+            0 height = content height ({{ store.canvas.autoHeight }}px)
+          </n-alert>
           
-          <spacer size="medium" :line="false" />
-        </div>
-        
-        <div v-if="store.animatedWallpaperMode">
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Remove overflowing row</span>
-            <gb-toggle
-            size="mini"
-            v-model="store.awpDropOverflowingRow"
-            ></gb-toggle>
-          </gb-heading>
-          
-          <spacer size="default" :line="false" />
-        </div>
-        
-        <div v-if="store.animatedWallpaperMode">
-          
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Covers alignment</span>
-            <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 85px; flex: unset;">
-              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-start' }" size="18px" name="vertical_align_top" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start', });"></gb-icon>
-              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'center' }" size="18px" name="vertical_align_center" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'center', });"></gb-icon>
-              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-end' }" size="18px" name="vertical_align_bottom" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-end', });"></gb-icon>
-            </div>
-          </gb-heading>            
-          <spacer size="default" :line="false" />
-        
-        </div>
-        
-        <div v-if="!store.animatedWallpaperMode">
-          
-          <gb-heading tag="h6" :uppercase="true" v-tippy content="Horizontal alignment aligns the last row if it's not full. If you want to offset horizontally, you can change left or right canvas padding. <br><br>Vertical alignment aligns the covers as a group, but only if the canvas height is set.">
-            <span>Covers alignment</span>
-          </gb-heading>
-          
-            <spacer size="default" :line="false" />
+          <n-space :size="spaceGapSize" style="text-align: center; flex-flow: row;" v-if="!store.animatedWallpaperMode && store.canvas.height > 0">
             
-            <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 145px; flex: unset; width: 100%;">
-              <gb-icon :class="{ active: store.canvas.alignment === 'left' }" size="18px" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });"></gb-icon>
-              <gb-icon :class="{ active: store.canvas.alignment === 'center' }" size="18px" name="format_align_center" @click="$store.commit('update', { key: 'canvas.alignment', value: 'center', });"></gb-icon>
-              <gb-icon :class="{ active: store.canvas.alignment === 'right' }" size="18px" name="format_align_right" @click="$store.commit('update', { key: 'canvas.alignment', value: 'right', });"></gb-icon>
-              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-start' }" size="18px" name="vertical_align_top" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start', });"></gb-icon>
-              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'center' }" size="18px" name="vertical_align_center" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'center', });"></gb-icon>
-              <gb-icon :class="{ active: store.canvas.alignmentVertical === 'flex-end' }" size="18px" name="vertical_align_bottom" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-end', });"></gb-icon>
-            </div>
+            <n-button strong type="info" style="box-sizing: border-box;"
+              @click="fillCanvasWithCovers('fit')"
+              v-tippy content="Sets visible cover amount based on how many covers <strong>fit</strong> inside the canvas."
+              :disabled="store.showAuthorAndTitle"
+            >
+              <teenyicons-border-bottom-outline/> &nbsp; Covers Fit
+            </n-button>
+              
+            <n-button strong type="info" style="box-sizing: border-box;"
+              @click="fillCanvasWithCovers"
+              v-tippy content="Sets visible cover amount based on how many covers <strong>fill</strong> inside the canvas."
+              :disabled="store.showAuthorAndTitle"
+            >
+              <bi-border-outer/> &nbsp; Covers Fill
+            </n-button>
             
-          <spacer size="default" :line="false" />
-        
-        </div>
-        
-        <div>
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Background color</span>
-            <color-picker
-              style="z-index: 10;"
-              class="color-picker-placeholder"
-              v-model="store.canvas.background"
-              :position="{ left: '-180px', top: '40px' }"
-            >
-            </color-picker>
-          </gb-heading>
+          </n-space>
           
-          <spacer size="default" :line="false" />
-        </div>
-        
-        <div>
-          <gb-heading tag="h6" :uppercase="true" v-tippy content="Overlay is recommended if you're making a desktop wallpaper and plan to have icons on top of it.">
-            <span :style="{ color: store.awpOverlayColorEnabled ? '#ffc02b' : null }">Color overlay</span>
-            <gb-toggle
-            size="mini"
-            v-model="store.awpOverlayColorEnabled"
-            ></gb-toggle>
-            <color-picker
-              style="z-index: 9;"
-              class="color-picker-placeholder"
-              v-model="store.awpOverlayColor"
-              :position="{ left: '-180px', top: '40px' }"
-            >
-            </color-picker>
-          </gb-heading>
+          <n-button strong type="info"
+            v-if="!store.animatedWallpaperMode && store.canvas.height > 0"
+            style="width: 100%;"
+            @click="fitCanvasToContent"
+            v-tippy content="Sets visible cover amount based on how many covers <strong>fit</strong> inside the canvas."
+            :disabled="store.showAuthorAndTitle"
+          >
+            <mdi-crop/> &nbsp; Fit canvas size to covers
+          </n-button>          
           
-          <spacer size="default" :line="false" />
-        </div>
-        
-        <div v-if="store.awpOverlayColorEnabled && store.awpBlendModes" style="position: relative; z-index: 2;">
-          <gb-heading tag="h6" :uppercase="true" v-tippy content="<strong>Blends the color overlay.</strong> You can adjust the blend mode strength by changing opacity in the color overlay setting. Opacity control is right below the horizontal color strip in the color picker. Lowering the opacity can make all the difference with certain blend modes.">
-            <span>Blend mode</span>
-            <gb-select size="mini" style="position: relative; z-index: 2; width: 133px; text-transform: none;" v-model="blendMode" :options="store.awpBlendModes"  />
-          </gb-heading>
-          <spacer size="default" :line="false" />
-        </div>
-        
-        <div v-if="store.overlayTextures" style="position: relative; z-index: 1;">
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Textures</span>
-            <gb-select size="mini" style="position: relative; z-index: 2; width: 160px;" v-model="overlayTexture" :options="store.overlayTextures" />
-          </gb-heading>
-          <spacer size="default" :line="false" />
-        </div>
-        
-        <div>
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Grayscale</span>
-            <input
-              v-if="store.awpGrayscale"
-              class="heading-range"
-              style="padding: 0 10px;"
-              type="range"
-              min=".15"
-              max="1"
-              v-model="store.awpGrayscaleContrast"
-              step=".05"
-            />
-            <gb-toggle
-            size="mini"
-            v-model="store.awpGrayscale"
-            ></gb-toggle>
-          </gb-heading>
+          <n-alert v-if="store.animatedWallpaperMode" type="info">
+            In this "animated wallpaper" mode the canvas size is for preview purposes only, as the animated wallpaper will fit itself to any screen size. 
+          </n-alert>
           
-          <spacer size="default" :line="false" />
+          <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning">
+            The more you upsize the more quality loss there will be. You can choose to ignore this, or you can try lowering canvas width or increasing covers per row.
+          </n-alert>
+          
+        </n-space>
+        
+        <h6 v-if="store.animatedWallpaperMode" v-tippy content="You might want to use this when adding padding around the canvas">
+          <span>Remove overflowing row</span>
+          <n-switch size="small" v-model:value="store.awpDropOverflowingRow" />
+        </h6>
+        
+        <h6 v-if="store.animatedWallpaperMode">
+          <span>Covers alignment</span>
+          <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 85px; flex: unset;">
+            <material-symbols-vertical-align-top style="font-size: 18px;" :class="{ active: store.canvas.alignmentVertical === 'flex-start' }" name="vertical_align_top" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start', });" />
+            <material-symbols-vertical-align-center style="font-size: 18px;" :class="{ active: store.canvas.alignmentVertical === 'center' }" name="vertical_align_center" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'center', });" />
+            <material-symbols-vertical-align-bottom style="font-size: 18px;" :class="{ active: store.canvas.alignmentVertical === 'flex-end' }" name="vertical_align_bottom" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-end', });" />
+          </div>
+        </h6> 
+        
+        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
+          
+          <h6 v-tippy content="Horizontal alignment aligns the last row if it's not full. If you want to offset horizontally, you can change left or right canvas padding. <br><br>Vertical alignment aligns the covers as a group, but only if the canvas height is set.">
+            <span>Covers alignment</span>
+          </h6>
+          
+          <div class="align-canvas label-row no-padding" style="padding-left: 0px; width: 145px; flex: unset; width: 100%;">
+            <akar-icons-align-left :class="{ active: store.canvas.alignment === 'left' }" style="font-size: 18px;" name="format_align_left" @click="$store.commit('update', { key: 'canvas.alignment', value: 'left', });" />
+            <akar-icons-align-horizontal-center :class="{ active: store.canvas.alignment === 'center' }" style="font-size: 18px;" name="format_align_center" @click="$store.commit('update', { key: 'canvas.alignment', value: 'center', });" />
+            <akar-icons-align-right :class="{ active: store.canvas.alignment === 'right' }" style="font-size: 18px;" name="format_align_right" @click="$store.commit('update', { key: 'canvas.alignment', value: 'right', });" />
+            <akar-icons-align-top :class="{ active: store.canvas.alignmentVertical === 'flex-start' }" style="font-size: 18px;" name="vertical_align_top" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start', });" />
+            <akar-icons-align-vertical-center :class="{ active: store.canvas.alignmentVertical === 'center' }" style="font-size: 18px;" name="vertical_align_center" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'center', });" />
+            <akar-icons-align-bottom :class="{ active: store.canvas.alignmentVertical === 'flex-end' }" style="font-size: 18px;" name="vertical_align_bottom" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-end', });" />
+          </div>
+          
+          <!-- 
+            Dragging broke with this one... 
+          -->
+          <!-- <div class="label-row">
+            <span style="flex: 1;">Reverse flow direction</span> <n-switch style="flex: 0;" size="small" v-model:value="store.reverseCoverFlow" /> 
+          </div> -->
+          
+        </n-space>
+        
+        <h6>
+          <span>Canvas background color</span>
+          <color-picker storeKey="canvas.background"></color-picker>
+        </h6>
+        
+        <h6 v-tippy content="Overlay is recommended if you're making a desktop wallpaper and plan to have icons on top of it.">
+          <span :style="{ color: store.awpOverlayColorEnabled ? '#ffc02b' : null }">Color overlay</span>
+          <n-switch size="small" v-model:value="store.awpOverlayColorEnabled" />
+          <color-picker storeKey="awpOverlayColor"></color-picker>
+        </h6>
+        <div 
+          class="label-row"
+          v-tippy content="You can adjust the strength of the effect by lowering the overlay color opacity. Opacity is controlled by the second slider in the color picker."
+        >
+          <span>Blend mode</span>
+          <n-select 
+            v-if="store.awpOverlayColorEnabled && store.awpBlendModes" 
+            v-model:value="store.awpBlendMode" 
+            :options="store.awpBlendModes" 
+            size="small" 
+          />
         </div>
         
-        <!-- Abbandoning for now... Just doesn't seem so necessary when there's the overlay? -->
-        <div v-if="!store.animatedWallpaperMode && store.coverOpacityEnabled">
+        <!-- <h6 v-if="true || store.overlayTextures" style="position: relative; z-index: 1;">
+          <span>Textures</span>
+          <n-select v-model:value="store.overlayTexture" :options="store.overlayTextures" size="small" />
+        </h6> -->
+        
+        <h6>
+          <span>Grayscale</span>
+          <n-slider 
+            v-if="store.awpGrayscale" 
+            v-model:value="store.awpGrayscaleContrast" 
+            :min=".15" :max="1" :step=".05" :tooltip="false" 
+            style="padding: 0 15px;"
+          />
+          <n-switch size="small" v-model:value="store.awpGrayscale" />
+        </h6>
+        
+        <!-- Abandoning for now... Just doesn't seem so necessary when there's the overlay? -->
+        <!-- <div v-if="!store.animatedWallpaperMode && store.coverOpacityEnabled">
           <gb-heading tag="h6" :uppercase="true">
             <span>Cover opacity</span>
             <input
@@ -624,145 +509,81 @@
           </gb-heading>
           
           <spacer size="default" :line="false" />
-        </div>
+        </div> -->
 
-        <div class="canvas-padding">
+        <n-space vertical :size="spaceGapSize">
           
-          <gb-heading tag="h6" :uppercase="true">Canvas padding</gb-heading>
-          <spacer size="mini" :line="false" />
-          <spacer size="small" :line="false" />
+          <h6>Canvas padding</h6>
           
-          <input
-            type="range"
-            min="0"
-            max="500"
-            v-model="canvasPadding"
-            step="1"
-            @input="slidingAround('canvas.padding.', $event)"
-          />
-          <div>
+          <n-slider v-model:value="canvasPadding" :min="0" :max="200" :step="1" :tooltip="false" />
+          
+          <n-space vertical :size="spaceGapSize">
             
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">left</span>
-              <gb-input
-                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
-                type="number"
-                :min="0"
-                :value="parseFloat(store.canvas.padding.left)"
-                @input="inputChanged('canvas.padding.left', $event)"
-                size="mini"
-              ></gb-input>
-              <input
-                style="flex: 1;"
-                type="range"
-                min="0"
-                max="500"
-                v-model="store.canvas.padding.left"
-                step="1"
-                @input="slidingAround('canvas.padding.left', $event)"
-              />
+              <n-input-number v-model:value="store.canvas.padding.left" :min="0" :step="1" size="tiny" />
+              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.left" :min="0" :max="200" :step="1" :tooltip="false" />
             </div>
             
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">top</span>
-              <gb-input
-                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
-                type="number"
-                :min="0"
-                :value="parseFloat(store.canvas.padding.top)"
-                @input="inputChanged('canvas.padding.top', $event)"
-                size="mini"
-              ></gb-input>
-              <input
-                style="flex: 1;"
-                type="range"
-                min="0"
-                max="500"
-                v-model="store.canvas.padding.top"
-                step="1"
-                @input="slidingAround('canvas.padding.top', $event)"
-              />
+              <n-input-number v-model:value="store.canvas.padding.top" :min="0" :step="1" size="tiny" />
+              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.top" :min="0" :max="200" :step="1" :tooltip="false" />
             </div>
             
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">right</span>
-              <gb-input
-                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
-                type="number"
-                :min="0"
-                :value="parseFloat(store.canvas.padding.right)"
-                @input="inputChanged('canvas.padding.right', $event)"
-                size="mini"
-              ></gb-input>
-              <input
-                style="flex: 1;"
-                type="range"
-                min="0"
-                max="500"
-                v-model="store.canvas.padding.right"
-                step="1"
-                @input="slidingAround('canvas.padding.right', $event)"
-              />
+              <n-input-number v-model:value="store.canvas.padding.right" :min="0" :step="1" size="tiny" />
+              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.right" :min="0" :max="200" :step="1" :tooltip="false" />
             </div>
             
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">bottom</span>
-              <gb-input
-                style="padding-left: 0px; width: 48px; flex: none; padding-right: 5px;"
-                type="number"
-                :min="0"
-                :value="parseFloat(store.canvas.padding.bottom)"
-                @input="inputChanged('canvas.padding.bottom', $event)"
-                size="mini"
-              ></gb-input>
-              <input
-                style="flex: 1;"
-                type="range"
-                min="0"
-                max="500"
-                v-model="store.canvas.padding.bottom"
-                step="1"
-                @input="slidingAround('canvas.padding.bottom', $event)"
-              />
+              <n-input-number v-model:value="store.canvas.padding.bottom" :min="0" :step="1" size="tiny" />
+              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.bottom" :min="0" :max="200" :step="1" :tooltip="false" />
             </div>
             
-          </div>
+          </n-space>
           
-          <spacer size="medium" :line="false" />
-          
+        </n-space>
+        
+        <h6>Cover padding</h6>
+        <div class="label-row no-padding">
+          <n-input-number v-model:value="store.paddingSize" :min="0" :step="1" size="tiny" />
+          <n-slider style="padding-left: 15px;" v-model:value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" />
         </div>
         
-        <div>
-          <gb-heading tag="h6" :uppercase="true">Cover padding</gb-heading>
-          <spacer size="mini" :line="false" />
-          <spacer size="small" :line="false" />
-          
+        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
+          <h6>Border radius</h6>
           <div class="label-row no-padding">
-            <gb-input
-              style="max-width: 48px;"
-              type="number"
-              :min="0"
-              :value="parseFloat(store.paddingSize)"
-              @input="inputChanged('paddingSize', $event)"
-              size="mini"
-            ></gb-input>
-            <div style="padding-left: 10px;">
-              <input
-                type="range"
-                min="0"
-                max="200"
-                v-model="coverPadding"
-                step="1"
-                @input="slidingAround('paddingSize', $event)"
-              />
-            </div>
+            <n-input-number v-model:value="store.borderRadius" :min="0" :step="0.01" :max=".5" size="tiny" />
+            <n-slider style="padding-left: 15px;" v-model:value="store.borderRadius" :min="0" :max=".5" :step="0.01" :tooltip="false" />
+          </div>
+        </n-space>
+        
+        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode" :class="{ 'disabled-settings-section': !$store.getters.rereadExist }">
+          <h6>
+            <span>Re-read label (relisten) </span>
+            <n-switch size="small" v-model:value="store.reread.label.show" />
+          </h6>
+          <h4 style="margin: 0 !important;">Offset:</h4>
+          <div class="label-row">
+            <span style="width: 45px;">Right</span>
+            <n-input-number v-model:value="store.reread.label.offset.right" :min="0" :step="1" size="tiny" :disabled="!$store.getters.rereadExist" />
+            <n-slider style="padding-left: 15px;" v-model:value="store.reread.label.offset.right" :min="0" :max="200" :step="1" :tooltip="false" :reverse="true" :disabled="!$store.getters.rereadExist" />
+          </div>
+          <div class="label-row">
+            <span style="width: 45px;">Bottom</span>
+            <n-input-number v-model:value="store.reread.label.offset.bottom" :min="0" :step="1" size="tiny" :disabled="!$store.getters.rereadExist" />
+            <n-slider style="padding-left: 15px;" v-model:value="store.reread.label.offset.bottom" :min="0" :max="200" :step="1" :tooltip="false" :reverse="true" :disabled="!$store.getters.rereadExist" />
           </div>
           
-          <spacer size="medium" :line="false" />
+          <n-alert type="warning" v-if="!$store.getters.rereadExist">
+            No books marked re-read! Click a cover and use the button that appears on the top right.
+          </n-alert>
+        </n-space>
         
-        </div>
-        
-        <text-elements v-if="!store.animatedWallpaperMode"></text-elements>
+        <toolbar-text-elements v-if="!store.animatedWallpaperMode" :spaceGapSize="spaceGapSize"></toolbar-text-elements>
         
 <!--         
         <div>
@@ -789,138 +610,139 @@
         </div>
 -->
         
-        <div v-if="!store.animatedWallpaperMode">
+        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
           
-          <gb-heading tag="h6" :uppercase="true">
+          <h6>
             <span>Show My Rating</span>
-            <gb-toggle
-            size="small"
-            v-model="store.showMyRating"
-            ></gb-toggle>
-          </gb-heading>
+            <n-switch size="small" v-model:value="store.showMyRating" />
+          </h6>
           
-          <spacer size="default" :line="false" />
-          <gb-heading tag="h6" :uppercase="true">
+          <h6>
             <span>Show Favorites</span>
-            <gb-toggle
-            size="small"
-            v-model="store.showFavorites"
-            ></gb-toggle>
-          </gb-heading>
+            <n-switch size="small" v-model:value="store.showFavorites" />
+          </h6>
           
-          <spacer size="default" :line="false" />
-          
-          <gb-heading tag="h6" :uppercase="true">
+          <h6>
             <span>Show author & title</span>
-            <gb-toggle
-            size="small"
-            v-model="store.showAuthorAndTitle"
-            ></gb-toggle>
-          </gb-heading>
+            <n-switch size="small" v-model:value="store.showAuthorAndTitle" />
+          </h6>
           
-          <spacer size="default" :line="false" />
-          
-          <div v-if="store.showAuthorAndTitle">
-            <gb-heading tag="h6" :uppercase="true">
-              <span>Author & title color</span>
-              <color-picker
-                class="color-picker-placeholder"
-                v-model="store.authorAndTitleColor"
-                :position="{ left: '-180px', top: '40px' }"
-              >
-              </color-picker>
-            </gb-heading>
-            
-            <spacer size="default" :line="false" />
+          <div v-if="store.showAuthorAndTitle" class="label-row">
+            <span>Author & title color</span>
+            <color-picker storeKey="authorAndTitleColor"></color-picker>
           </div>
           
-          <div v-if="store.showAuthorAndTitle">
-            <gb-heading tag="h6" :uppercase="true">
-              <span>Author & title size</span>
-              <gb-input
-                style="width: 90px;"
-                type="number"
-                :min="1"
-                :value="store.authorAndTitleSize"
-                @input="inputChanged('authorAndTitleSize', $event)"
-                size="mini"
-              ></gb-input>
-            </gb-heading>
+          <div v-if="store.showAuthorAndTitle" class="label-row">
+            <span>Author & title size</span>
             
-            <spacer size="default" :line="false" />
+            <n-input-number
+              size="small"
+              style="flex: 1; margin-left: 10px;" 
+              :min="1" :step="1" 
+              v-model:value="store.authorAndTitleSize"
+            />
+            <!-- <gb-input
+              style="width: 90px;"
+              type="number"
+              :min="1"
+              :value="store.authorAndTitleSize"
+              @input="inputChanged('authorAndTitleSize', $event)"
+              size="mini"
+            ></gb-input> -->
           </div>
           
-        </div>
+        </n-space>
         
-        <div v-if="store.archived">
-          <gb-heading tag="h6" :uppercase="true">
-            <span>Exclude archived ({{ store.archived }})</span>
-            <gb-toggle
-            size="small"
-            :value="store.excludeArchived"
-            @change="excludeArchivedChanged"
-            ></gb-toggle>
-          </gb-heading>
-          
-          <spacer size="default" :line="false" />
-        </div>
+        <h6 v-if="store.archived">
+          <span>Exclude archived ({{ store.archived }})</span>
+          <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged"/>
+        </h6>
         
-        <div v-if="!store.animatedWallpaperMode">
+        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
           
-          <gb-heading tag="h6" :uppercase="true">
-            Reduce file size
-          </gb-heading>
-          <spacer size="default" :line="false" />
+          <h6>Reduce file size</h6>
           
-          <gb-toggle
-          size="small"
-          v-model="store.compressImage"
-          label="Compress image"
-          ></gb-toggle>
-          <spacer size="mini" :line="false" />
+          <n-alert type="default">
+            <template #icon>
+              <fluent-checkmark-circle-24-regular style="padding-top: 5px;" :style="{
+                color: store.compressImage ? '#63e2b8' : '#ffc12c'
+              }" />
+            </template>
+            Compressed image is saved as a <span :style="{ color: store.compressImage ? '#63e2b8' : null }">jpeg</span>, which doesn't support transparency. <br /><br />
+            Disable compression in order to save the image as a <span :style="{ color: store.compressImage ? null : '#ffc12c' }">png</span> that does support a transparent background color.
+          </n-alert>
+          
+          <div class="label-row">
+            <span>Compress image</span>
+            <div style=" display: flex; justify-content: flex-end;">
+              <n-switch size="small" v-model:value="store.compressImage" />
+            </div>
+          </div>
           
           <div class="label-row" v-if="store.compressImage">
             <span class="compress-quality-text">Quality ({{ qualityPercentage }}%):</span>
-            <input
-              class="zoom-zoom"
-              type="range"
-              step=".01"
-              min="0.50"
-              max="0.99"
-              v-model="store.compressQuality"
-            />
+            <n-slider v-model:value="store.compressQuality" :min="0.50" :max="0.99" :step=".01" :tooltip="false" />
           </div>
-          <p v-if="store.compressImage && qualityPercentage < 80" class="gb-field-message gb-field-message--mini gb-field-message--warning gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 15px;">warning</i><span class="gb-field-message__message">Make sure to pay extra attention to the saved image quality when setting the quality below 80%.</span></p>
-          <p v-if="store.compressImage" class="gb-field-message gb-field-message--small gb-field-message--info gb-field-message--dark"><i aria-hidden="true" class="gb-field-message__icon gb-base-icon" style="font-size: 16px;">info</i><span class="gb-field-message__message">Compressed image is saved as a jpeg, which doesn't support transparency. Disable compression in order to save the image with a transparent background color.</span></p>
           
-          <spacer size="medium" :line="false" />
+          <n-alert v-if="store.compressImage && qualityPercentage < 80" type="warning">
+            Make sure to pay extra attention to the saved image quality when setting the quality below 80%.
+          </n-alert>
           
-        </div>
+          <h6>
+            <span>Scaled output</span>
+            <n-switch size="small" v-model:value="store.canvas.zoomOutputs" />
+          </h6>
+          
+          <n-space vertical :size="spaceGapSize" v-if="store.canvas.zoomOutputs">
+            <div class="label-row">
+              <span class="compress-quality-text">Scale ({{ scalePercentage }}%):</span>
+              <n-input-number size="small" v-model:value="store.canvas.outputScale" :min="0" :step="0.1" />
+            </div>
+            
+            <!-- <n-slider v-model:value="store.canvas.outputScale" :min="0.10" :max="5" :step=".01" :tooltip="false" /> -->
+            
+            <div style="display: flex; justify-content: center; align-items: center;">
+              <n-button-group size="small">
+                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: .5 })">
+                  .5x
+                </n-button>
+                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: .75 })">
+                  .75x
+                </n-button>
+                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: 1 })">
+                  1x
+                </n-button>
+                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: 1.5 })">
+                  1.5x
+                </n-button>
+                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: 2 })">
+                  2x
+                </n-button>
+                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: 3 })">
+                  3x
+                </n-button>
+              </n-button-group>
+            </div>
+            
+            <n-alert type="info">
+              Width: {{ $store.getters.scaledCanvasDimensions.width }}px <br>
+              Height: {{ $store.getters.scaledCanvasDimensions.height }}px
+            </n-alert>
+          </n-space>
+          
+        </n-space>
 
-        <div v-if="!store.animatedWallpaperMode">
-          
-          <gb-heading tag="h6" :uppercase="true">Scaled output</gb-heading>
-          <spacer size="default" :line="false" />
-          
-          <gb-toggle
-          size="small"
-          v-model="store.canvas.zoomOutputs"
-          label="Output with zoomed scale"
-          :warning="(store.canvas.zoom > 0 && store.canvas.zoom != 1) ? outputWidthZoomSize : null"
-          :info="(store.canvas.zoom === 1) ? outputWidthZoomSize : null"
-          ></gb-toggle>
-          
-          <spacer size="medium" :line="false" />
-          
-        </div>
-
-      </div>
+      </n-space>
       <div v-else class="saving-container">
         
-        <div class="saving-spnr"></div>
-        <div class="saving-progress" v-if="saveProgressWidth > -1">
-          <gb-progress-bar :progress="saveProgressWidth" />
-        </div>
+        <n-progress type="circle" :percentage="Math.round(saveProgressWidth)" v-if="saveProgressWidth > -1">
+          <div class="saving-spnr" style="width: 60px; height: 60px; background-size: 60px;"></div>
+        </n-progress>
+        <div class="saving-spnr" v-else></div>
+        
+        <!-- <div class="saving-progress" v-if="saveProgressWidth > -1">
+          <n-progress type="circle" :percentage="saveProgressWidth" />
+        </div> -->
         
       </div>
     </div> 
@@ -934,20 +756,27 @@ import {
   NConfigProvider, 
   darkTheme, 
   NButton,
+  NButtonGroup,
   NSwitch, 
   NDivider,
   NSelect,
-  NH5,
+  NAlert,
+  NInputNumber,
+  NSlider,
+  NSpace,
+  NCheckbox,
+  NCard,
+  NTabs,
+  NTabPane,
+  NProgress,
 } from 'naive-ui';
 
-import zoomToFit from "@editor-mixins/zoomToFit.js";
-import centerCanvas from "@editor-mixins/centerCanvas.js";
 import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
 import makeWallpaper from "@editor-mixins/makeWallpaper.js";
 import makeImage from "@editor-mixins/makeImage.js";
 
+import ToolbarTextElements from "@editor-comps/toolbar/toolbar-text-elements.vue";
 import spacer from "@editor-comps/toolbar/spacer.vue";
-import textElements from "@editor-comps/toolbar/textElements.vue";
 // import _ from "lodash";
 
 import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
@@ -955,48 +784,45 @@ import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
 export default {
   name: "toolbar",
   components: { 
+    ToolbarTextElements,
     spacer, 
-    textElements, 
     Multiselect,
     NConfigProvider,
     NButton,
+    NButtonGroup,
     NSwitch,
     NDivider, 
     NSelect,
+    NAlert,
+    NInputNumber,
+    NSlider,
+    NSpace,
+    NCheckbox,
+    NCard,
+    NTabs,
+    NTabPane,
+    NProgress,
   },
-  mixins: [zoomToFit, centerCanvas, calculateCoverSize, makeWallpaper, makeImage],
+  mixins: [calculateCoverSize, makeWallpaper, makeImage],
   data: function () {
     return {
       store: this.$store.state,
       slidingTimer: null,
       saveProgressWidth: -1,
       darkTheme: darkTheme,
+      spaceGapSize: 20,
     };
   },
   
   computed: {
     
     outputWidthZoomSize: function() {
-      if ( this.store.canvas.scaled.width || this.store.canvas.scaled.height ) {
-        if ( this.store.canvas.scaled.width && !this.store.canvas.scaled.height ) {
-          return 'Estimated width: ' + this.store.canvas.scaled.width + 'px';
-        }
-        else if ( this.store.canvas.scaled.width && this.store.canvas.scaled.height ) {
-          return 'Estimated size: ' + this.store.canvas.scaled.width +'x'+ this.store.canvas.scaled.height + 'px';
-        }
+      if ( this.store.canvas.scaled.width && !this.store.canvas.scaled.height ) {
+        return 'Estimated width: ' + this.store.canvas.scaled.width + 'px';
       }
-      else {
-        return null;
+      else if ( this.store.canvas.scaled.width && this.store.canvas.scaled.height ) {
+        return 'Estimated size: ' + this.store.canvas.scaled.width +'x'+ this.store.canvas.scaled.height + 'px';
       }
-    },
-    
-    awpAnimations: {
-      get: function () {
-        return this.store.awpAnimation;
-      },
-      set: _.debounce( function(animations) {
-        this.$store.commit("update", { key: "awpAnimation", value: animations });
-      }, 500, { leading: false, trailing: true }),
     },
     
     canvasWidth: {
@@ -1057,61 +883,8 @@ export default {
             { key: 'canvas.padding.right', value: padding },
             { key: 'canvas.padding.bottom', value: padding },
           ]);
-        }, 200, { leading: false, trailing: true }
+        }, 50, { leading: true, trailing: true }
       ),
-    },
-
-    coverPadding: {
-      get: function () {
-        return this.store.paddingSize;
-      },
-      set: _.throttle(
-        function (padding) {
-          this.$store.commit("update", { key: "paddingSize", value: padding });
-        },
-        200,
-        { leading: false, trailing: true }
-      ),
-    },
-    
-    
-    canvasPreset: {
-      get: function () {
-        console.log( this.store.canvasPreset )
-        return this.store.canvasPreset;
-      },
-      set: function ( preset ) {
-        console.log( 'preset', preset )
-        this.changeCanvasPreset( preset );
-        
-      },
-    },
-
-    animationPreset: {
-      get: function () {
-        return this.store.animationPreset;
-      },
-      set: function ( preset ) {
-        this.$store.commit("update", { key: "animationPreset", value:  preset  });
-      },
-    },
-    
-    blendMode: {
-      get: function () {
-        return this.store.awpBlendMode;
-      },
-      set: function ( blendmode ) {
-        this.$store.commit("update", { key: "awpBlendMode", value:  blendmode  });
-      },
-    },
-    
-    overlayTexture: {
-      get: function () {
-        return this.store.overlayTexture;
-      },
-      set: function ( texture ) {
-        this.$store.commit("update", { key: "overlayTexture", value:  texture  });
-      },
     },
     
     prioritizeCoversPerRow: {
@@ -1131,6 +904,10 @@ export default {
       let quality = parseFloat(this.store.compressQuality);
       return Math.floor(quality * 100);
     },
+    scalePercentage: function () {
+      let scale = parseFloat(this.store.canvas.outputScale);
+      return Math.floor(scale * 100);
+    },
   },
   
   watch: {
@@ -1145,15 +922,28 @@ export default {
     "store.canvas.padding.left": function( value ) {
       let coverSize = this.calculateCoverSize({ paddingLeft: value });
       this.$store.commit('update', { key: 'coverSize', value: coverSize });
+      if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: 'left' });
     },
     "store.canvas.padding.right": function( value ) {
       let coverSize = this.calculateCoverSize({ paddingRight: value });
       this.$store.commit('update', { key: 'coverSize', value: coverSize });
+      if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: 'right' });
+    },
+    "store.canvas.padding.top": function( value ) {
+      if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: 'top' });
+    },
+    "store.canvas.padding.bottom": function( value ) {
+      if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: 'bottom' });
     },
     "store.paddingSize": function( value ) {
+      if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: 'paddingSize' });
       let coverSize = this.calculateCoverSize({ paddingSize: value });
       this.$store.commit('update', { key: 'coverSize', value: coverSize });
     },
+    "store.slidingAround": _.debounce( function( value ) {
+      console.log('sliding', value)
+      if ( value ) this.$store.commit("update", { key: "slidingAround", value: null });
+    }, 1500, { leading: false, trailing: true }),
   },
   
   methods: {
@@ -1177,33 +967,6 @@ export default {
       return milliseconds / 1000;
     },
     
-    changeCanvasPreset: function( preset ) {
-    
-      this.$store.commit("update", { key: "canvasPreset", value:  preset  });
-      this.$store.commit('changePreset', preset);
-      this.$store.commit('update', { 
-        key: 'usedCovers', 
-        value: this.store.covers.slice(0, this.store.coverAmount)
-      });
-      
-      this.$nextTick(function() {
-        this.zoomToFit('and-center');
-      });
-      
-    },
-    
-    resetSettings: function() {
-      let confirmation = confirm("Are you sure you want to reset all editor settings?");
-      if ( confirmation ) {
-        this.$store.commit('update', { key: 'resetting', value: true });
-        localStorage.removeItem("aleImageEditorSettings");
-        window.location.reload();
-      }
-      else {
-        this.$store.commit('update', { key: 'resetting', value: false });
-      }
-    },
-    
     excludeArchivedChanged: function( value ) {
       
       this.$store.commit('update', { key: 'excludeArchived',  value: value });
@@ -1215,41 +978,6 @@ export default {
         { key: 'usedCovers', value: covers },
         // { key: 'coverAmount', value: covers.length },
       ]);
-      
-    },
-    
-    editorModeChanged: function( modeName, value ) {
-      
-      console.log( modeName, value )
-      if ( modeName === 'animatedWallpaperMode' && value && this.store.canvasPreset !== 'wallpaper' ) {
-        this.changeCanvasPreset('wallpaper');
-      }
-      else if ( modeName === 'tierListMode' ) {
-        if ( value && this.store.canvasPreset !== 'card' ) {
-          this.changeCanvasPreset('card');
-          this.$store.commit('update', [
-            { key: 'canvas.width', value: 3500 },
-            { key: 'canvas.height', value: 0 },
-            { key: 'coversPerRow', value: 14 },
-          ]);
-        }
-        
-        if ( !value ) {
-          this.$store.commit('resetTiers');
-          this.$store.commit('clearTiers');
-        }
-        
-      }
-      
-      this.$store.commit('update', [
-        { key: modeName, value: value },
-        { key: modeName === 'animatedWallpaperMode' ? 'tierListMode' : 'animatedWallpaperMode', value: false },
-      ]);
-      
-      this.$nextTick(function() {
-        this.zoomToFit();
-      });
-      
       
     },
     
@@ -1325,7 +1053,7 @@ export default {
           value: this.store.covers.slice(0, this.store.coverAmount)
         });
         this.$nextTick(function() {
-          this.zoomToFit('and-center');
+          // this.zoomToFit('and-center');
         });
       }
     },
@@ -1348,6 +1076,19 @@ export default {
           { key: "canvas.width", value: width },
           { key: "canvas.height", value: height },
         ]);
+      });
+    },
+    
+    openLink( address ) {
+      window.open( address, '_blank');
+    },
+    
+    listify( array ) {
+      return _.map( array, ( value ) => {
+        return {
+          value: value,
+          label: value,
+        };
       });
     },
   },
@@ -1375,6 +1116,14 @@ $toolbar-text: #8eabc5;
   z-index: 50 !important;
   ::-moz-selection { background: #0093ee !important; color: lighten( #0093ee, 30 ); }
   ::selection { background: #0093ee !important; color: lighten( #0093ee, 45 ); }
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  -khtml-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  user-drag: none;
 }
 
 .toolbar-inner {
@@ -1494,6 +1243,7 @@ $toolbar-text: #8eabc5;
   box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20), 2px 2px 9px darken( rgba($toolbar-bg, .4), 20);
   border-bottom: 1px solid #171e29;
   .save-btn {
+    cursor: pointer;
     width: 48px;
     height: 48px;
     border-radius: 9999999px;
@@ -1511,10 +1261,10 @@ $toolbar-text: #8eabc5;
 .toolbar .zoom-container {
   transform: rotate(90deg);
   transform-origin: top left;
-  z-index: 4;
+  z-index: 80;
   top: 56px;
   left: 24px;
-  padding: 9px 15px 9px 45px;
+  padding: 9px 25px 9px 45px;
   display: flex;
   flex-direction: row;
   justify-items: center;
@@ -1549,15 +1299,31 @@ $toolbar-text: #8eabc5;
     transform: rotate(180deg);
     transform-origin: center center;
   }
-  .zoom-to-fit {
+  .zoom-to-fit, .center-canvas, .zoom-to-fit-width, .collapse-toolbar {
     display: inline-flex;
     justify-content: center;
     align-items: center;
     font-size: 1.3em;
     cursor: pointer;
     position: relative;
-    i { display: block !important; }
+    svg { display: block !important; }
+    margin-left: 15px;
   }
+  
+  .collapse-toolbar {
+    position: relative;
+    z-index: 0;
+    padding: 5px;
+    &:before {
+      content: '';
+      position: absolute; 
+      border: 1px solid #303d4f;
+      border-radius: 50%;
+      width: 100%;
+      padding-bottom: 100%;
+    }
+  }
+  
   .reset-settings {
     margin-left: 35px;
     transform: rotate(-90deg);
@@ -1624,13 +1390,28 @@ $toolbar-text: #8eabc5;
 
 .mode-switcher {
   border-radius: 4px;
-  padding: 10px 50px;
   position: absolute;
   z-index: 50;
   top: 0;
   right: 0;
   left: 0;
   text-align: center;
+  
+  button {
+    flex: 1;
+    text-align: center !important;
+    display: flex !important;
+    justify-content: center !important;
+    align-items: center !important;
+    width: 100%;
+    height: 100%;
+    border-radius: 0 !important;
+    padding: 10px 50px;
+    .n-button__content {
+      display: flex;
+      flex: 1;
+    }
+  }
   
   > div {
     // padding-top: 15px;
@@ -1669,7 +1450,7 @@ $toolbar-text: #8eabc5;
     flex-direction: row;
     justify-content: space-between;
     align-items: center;
-    i {
+    svg {
       cursor: pointer;
       -webkit-touch-callout: none; 
       -webkit-user-select: none; 
@@ -1694,7 +1475,7 @@ $toolbar-text: #8eabc5;
 }
 
 .toolbar-inner {
-  h6.gb-base-heading {
+  h6 {
     white-space: nowrap;
     font-size: 14px;
     line-height: 19px;
@@ -1702,13 +1483,13 @@ $toolbar-text: #8eabc5;
     color: #fff !important;
     padding: 7px 0px;  
     position: relative;
-    margin-left: -5px;
+    margin: 20px 0 0px -5px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     min-height: 33px;
   }
-  h6.gb-base-heading:before {
+  h6:before {
     content: '';
     position: absolute;
     top: 0px;
@@ -1722,6 +1503,17 @@ $toolbar-text: #8eabc5;
     border: 1px solid #313d4f;
     border-right: none;
   }
+  
+  .disabled-settings-section {
+    h6 {
+      color: darken(#fff, 30) !important;
+    }
+    > * {
+      opacity: .6;
+    }
+  }
+  
+  
 }
 
 .toolbar {
@@ -1822,6 +1614,25 @@ $toolbar-text: #8eabc5;
   input[type="range"]:focus::-ms-fill-upper {
     background: #313d4f;
   }
+  
+  
+  & {
+    transition: all 300ms ease-in-out;
+  }
+  .mode-switcher,
+  .toolbar-inner {
+    transition: all 200ms ease;
+  }
+  
+  &.toolbar-collapsed {
+    width: 50px !important;
+    min-width: 50px !important;
+    flex: 0 !important;
+    .mode-switcher,
+    .toolbar-inner {
+      opacity: 0;
+    }
+  }
 }
 
 .heading-range {
@@ -1906,9 +1717,35 @@ $toolbar-text: #8eabc5;
     top: -3px;
     width: 6px;
     height: 6px;
-    background: #fff;
+    background: #48c86d;
     border: 3px solid #171e29;
     border-radius: 999999px;
+  }
+  &:before {
+    display: none;
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    left: 0px;
+    width: 6px;
+    height: 6px;
+    background: #48c86d;
+    border-radius: 999999px;
+    mix-blend-mode: color;
+  }
+  .fill-overlay {
+    display: none;
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top: 0;
+    right: 0px;
+    width: auto;
+    height: 6px;
+    background: #cd5b73;
+    border-radius: 999999px;
+    mix-blend-mode: color;
   }
 }
 
@@ -1952,43 +1789,6 @@ a.gb-base-button {
   -moz-user-select: none;
   -ms-user-select: none;
   user-select: none;
-}
-
-.color-picker-placeholder .color-block {
-  position: relative;
-  top: 0;
-  margin-left: 15px;
-}
-.color-picker-placeholder .color-block > div {
-  border-radius: 999999999999px;
-  overflow: hidden;
-  border: 2px solid #323d4f;
-  box-sizing: border-box;
-}
-.color-picker-placeholder .color-block,
-.color-picker-placeholder .color-block > div {
-  width: 27px;
-  height: 27px;
-}
-
-.text-color-picker-placeholder  {
-  flex: 0 !important;
-  padding-left: 0 !important;
-}
-.text-color-picker-placeholder .color-block {
-  position: relative;
-  top: 0;
-  margin: 0px;
-  width: 13px;
-  height: 13px;
-}
-.text-color-picker-placeholder .color-block > div {
-  border-radius: 999999999999px;
-  overflow: hidden;
-  border: 1px solid #323d4f;
-  width: 13px;
-  height: 13px;
-  box-sizing: border-box;
 }
 
 input::-webkit-outer-spin-button,
@@ -2087,4 +1887,15 @@ input[type=number] {
 h1, h2, h3, h4, h5, h6 {
   text-transform: uppercase;
 }
+
+.animation-names-container .n-base-selection-tags {
+  overflow-y: auto;
+  max-height: 200px;
+  padding-top: 12px !important;
+  padding-bottom: 11px !important;
+  background: transparent !important;
+  border: 1px solid #5a6f81;
+  border-radius: 10px;
+}
+
 </style>

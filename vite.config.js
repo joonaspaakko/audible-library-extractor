@@ -7,10 +7,11 @@
 // re-install the extension from the dist folder.
 
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig } from 'vite';
+import { defineConfig, splitVendorChunkPlugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { crx } from '@crxjs/vite-plugin';
-import manifest from './manifest.json';
+import manifest from './manifest.json'; 
+// import manifest from './manifest.json' assert { type: 'json' } // Node >=17
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import copy from 'rollup-plugin-copy';
 import Icons from 'unplugin-icons/vite';
@@ -30,23 +31,31 @@ const src = function( path, prefix ) {
 const dist = function( path ) { return src(path, './dist'); };
 const root = function( path ) { return src(path, './'); };
 
-const buildSingleFile = process.env.buildSingleFile;
+const gallerySingleFile = process.env.gallerySingleFile;
+const wallpaperSingleFile = process.env.wallpaperSingleFile;
+const buildSingleFile = gallerySingleFile || wallpaperSingleFile;
 
-const copyFilesBefore = [];
+const copyFilesBefore = [
+  // { src: src('assets/js'),    dest: 'assets' },
+];
 const copyFilesAfter = [
   { src: src('extension-js'), dest: 'assets' },
   { src: src('assets/js'),    dest: 'assets' },
 ];
 
-const inputs = {
-  gallery: 'gallery.html',
-  wallpaperCreator: 'wallpaper-creator.html',
-};
+const inputs = {};
 
-// vite-plugin-singlefile does not accept multiple inputs.
-if ( !buildSingleFile ) {
-  // inputs['content-script'] = src('content-script/audible-library-extractor-content-script.js');
-  // inputs['wallpaper-creator'] = src('content-script/audible-library-extractor-content-script.js');
+if ( gallerySingleFile ) {
+  inputs['gallery'] = 'gallery.html';
+}
+else if ( wallpaperSingleFile ) {
+  inputs['animated-wallpaper'] = 'animated-wallpaper.html';
+}
+else {
+  inputs['gallery'] = 'gallery.html';
+  inputs['content-script'] = 'audible-library-extractor-content-script.js';
+  inputs['wallpaper-creator'] = 'wallpaper-creator.html';
+  inputs['animated-wallpaper'] = 'animated-wallpaper.html';
 }
 
 // https://vitejs.dev/config/
@@ -67,7 +76,6 @@ export default defineConfig({
 				entryFileNames: 'assets/[name].[hash].js',
 				assetFileNames: 'assets/[name].[hash].[ext]',
 				chunkFileNames: 'assets/[name].[hash].js',
-				manualChunks: undefined,
       },
     },
     commonjsOptions: {
@@ -130,6 +138,7 @@ export default defineConfig({
     }),
     customFilePathsJSON,
     customSingleFileGallery,
+    buildSingleFile ? null : splitVendorChunkPlugin(),
   ],
   resolve: {
     alias: {

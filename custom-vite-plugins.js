@@ -1,6 +1,8 @@
 import fs from 'fs';
 
-const buildSingleFile = process.env.buildSingleFile;
+const gallerySingleFile = process.env.gallerySingleFile;
+const wallpaperSingleFile = process.env.wallpaperSingleFile;
+const buildSingleFile = gallerySingleFile || wallpaperSingleFile;
 
 export const customFilePathsJSON = {
 	name: 'Custom file paths json',
@@ -26,10 +28,20 @@ export const customSingleFileGallery = {
 	// After build
 	writeBundle(opts, bundle) {
 		if ( buildSingleFile ) {
-			fs.renameSync('./dist/gallery.html', './single-file-gallery.html');
+			try {
+				fs.renameSync('./dist/gallery.html', './single-file-gallery.html');
+			} catch(e) {}
+			try {
+				fs.renameSync('./dist/animated-wallpaper.html', './single-file-animated-wallpaper.html');
+			} catch(e) {}
 		}
 		else {
-			fs.renameSync('./single-file-gallery.html', './dist/single-file-gallery.html' );
+			try {
+				fs.renameSync('./single-file-gallery.html', './dist/single-file-gallery.html' );
+			} catch(e) {}
+			try {
+				fs.renameSync('./single-file-animated-wallpaper.html', './dist/single-file-animated-wallpaper.html' );
+			} catch(e) {}
 		}
 	}
 };

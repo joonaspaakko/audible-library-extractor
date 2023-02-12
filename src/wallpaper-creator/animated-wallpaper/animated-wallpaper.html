@@ -5,16 +5,13 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>ALE • Animated Wallpaper</title>
-  <link rel="stylesheet" href="animated-wallpaper.css">
-  <% if (NODE_ENV === 'development') { %>
-		<script src="http://localhost:8098"></script>
-  <% } %>
-  
+  <script src="options.js"></script>
 </head>
 <body>
   
   <div id="animated-wallpaper"></div>
-  <script src="animated-wallpaper.js"></script>
+  <script type="module" src="./src/wallpaper-creator/animated-wallpaper/animated-wallpaper.js"></script>
+  
 	
 </body>
 </html>

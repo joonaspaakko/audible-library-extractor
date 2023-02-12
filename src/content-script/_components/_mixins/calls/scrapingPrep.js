@@ -12,22 +12,30 @@ export default {
       
       const vue = this;
       config = config || {};
-            
+      
+      let url = new Url(DOMPurify.sanitize(config.url));
+      
+      const urlAlreadyFailed = _.includes(vue.$store.state.failedRequests, url);
+      if (urlAlreadyFailed) {
+        config.done(null);
+        return;
+      }
+      
       const letMeAxiosAQuestion = axios.create();
-      axiosRetry(letMeAxiosAQuestion, {
-        retries: 2,
-        retryDelay: function(retryCount) { return 1000 * retryCount; },
-        retryCondition: function(error) {
-          return axiosRetry.isNetworkOrIdempotentRequestError(error) || error && error.response && error.response.status == "500";
-        }
-      });
-      const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 15 });
+      // axiosRetry(letMeAxiosAQuestion, {
+      //   retries: 2,
+      //   retryDelay: function(retryCount) { return 1000 * retryCount; },
+      //   retryCondition: function(error) {
+      //     return axiosRetry.isNetworkOrIdempotentRequestError(error) || error && error.response && error.response.status == "500";
+      //   }
+      // });
+      // const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 15 });
+      const axiosLimited = rateLimit(letMeAxiosAQuestion, this.$store.state.axiosRateLimit);
       
       waterfall(
         [
           // GET MAX PAGE SIZE (how many items per page)
           function(callback) {
-            let url = new Url( DOMPurify.sanitize(config.url) );
             url.query.ale = true;
             url.query.bp_ua = 'yes';
             let obj = {};
@@ -39,6 +47,12 @@ export default {
             else {
               axiosLimited.get(url.toString()).then(function(response) {
                 vue.getMaxPageSize( obj, config, response, callback);
+              }).catch(function( e ) {
+                
+                const status = _.get(e, 'response.status');
+                if (status == 404) vue.$store.commit('pushToFailedRequests', requestURL);
+                waterfallback(true, null);
+                
               });
             }
             
@@ -53,7 +67,7 @@ export default {
               o.pageNumbers = _.range(1, pagesLength + 1);
               o.pageSize = o.urlObj.query.pageSize || null;
               callback(null, o);
-            });
+            })
           }
         ],
         function(err, obj) {

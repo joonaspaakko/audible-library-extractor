@@ -1,4 +1,5 @@
 import { createStore } from 'vuex';
+import canvasPresets from './wallpaper-creator-canvas-presets.js';
 
 // import _ from "lodash";
 
@@ -13,6 +14,17 @@ const store = createStore({
     paddingSize: 0,
     coverPlaceholders: 0,
     coversPerRow: 14,
+    borderRadius: 0,
+    reverseCoverFlow: false,
+    reread: {
+      label: {
+        show: true,
+        offset: {
+          right: 0,
+          bottom: 0,
+        }
+      },
+    },
     canvas: {
       color: null,
       width: 1920,
@@ -22,6 +34,7 @@ const store = createStore({
       background: "#151515",
       zoom: 1,
       zoomOutputs: false,
+      outputScale: 2,
       fit: false,
       padding: {
         left: 0,
@@ -37,6 +50,7 @@ const store = createStore({
       alignment: 'center',
       alignmentVertical: 'flex-start',
     },
+    coverActions: null,
     saving: false,
     slidingAround: null,
     showHints: true,
@@ -99,24 +113,25 @@ const store = createStore({
       { label: 'Luminosity' , value: 'luminosity' },
     ],
     awpDropOverflowingRow: false,
-    overlayTexture: 'none',
-    overlayTextures: false, // A little too ambitious/unnecessary for now... Would need its own element opacity and blending mode options
-    // overlayTextures: [
-    //   { label: 'None'            , value: 'none' },
-    //   { label: 'Grunge'          , value: 'grunge' },
-    //   { label: 'Wreath'          , value: 'wreath' },
-    //   { label: 'Floral'          , value: 'floral' },
-    //   { label: 'Gravel'          , value: 'gravel' },
-    //   { label: 'Waves'           , value: 'waves' },
-    //   { label: 'Diagonal squares', value: 'diagonal-squares' },
-    //   { label: 'Circuit'         , value: 'circuit' },
-    //   { label: 'Prism'           , value: 'prism' },
-    //   { label: 'Dark honeycomb'  , value: 'dark-honeycomb' },
-    //   { label: 'Light wood'      , value: 'light-wood' },
-    //   { label: 'Dark wood'       , value: 'dark-wood' },
-    //   { label: 'Concrete'        , value: 'concrete' },
-    //   { label: 'Canvas'          , value: 'canvas' },
-    // ],
+    // overlayTexture: 'none',
+    overlayTexture: '',
+    // Perhaps A little too ambitious/unnecessary for now... Would need its own element opacity and blending mode options
+    overlayTextures: [
+      { label: 'None'            , value: 'none' },
+      { label: 'Grunge'          , value: 'grunge' },
+      { label: 'Wreath'          , value: 'wreath' },
+      { label: 'Floral'          , value: 'floral' },
+      { label: 'Gravel'          , value: 'gravel' },
+      { label: 'Waves'           , value: 'waves' },
+      { label: 'Diagonal squares', value: 'diagonal-squares' },
+      { label: 'Circuit'         , value: 'circuit' },
+      { label: 'Prism'           , value: 'prism' },
+      { label: 'Dark honeycomb'  , value: 'dark-honeycomb' },
+      { label: 'Light wood'      , value: 'light-wood' },
+      { label: 'Dark wood'       , value: 'dark-wood' },
+      { label: 'Concrete'        , value: 'concrete' },
+      { label: 'Canvas'          , value: 'canvas' },
+    ],
     archivedLength: 0,
     gallery: {
       pageTitle: null,
@@ -136,73 +151,43 @@ const store = createStore({
     animation: null,
     showFavorites: false,
     showMyRating: false,
+    toolbarCollapsed: false,
     
     // PRESETS
     canvasPreset: 'wallpaper',
-    canvasPresets: [
-      {
-        label: 'Wallpaper',
-        value: 'wallpaper',
-        options: {
-          coversPerRow: 14,
-          coverAmount: 300,
-          paddingSize: 0,
-          awpOverlayColorEnabled: true,
-          awpOverlayColor: 'rgba(43,43,43, .64)',
-          awpBlendMode: 'normal',
-          showAuthorAndTitle: false,
-          awpGrayscale: false,
-          canvas: {
-            width: 1920,
-            height: 1080,
-            background: '#151515',
-            alignmentVertical: 'flex-start',
-            padding: {
-              top: 0,
-              right: 0,
-              bottom: 0,
-              left: 0,
-            },
-          },
-        }
-      },
-      {
-        label: 'Card',
-        value: 'card',
-        options: {
-          coversPerRow: 5,
-          coverAmount: 300,
-          paddingSize: 5,
-          awpOverlayColorEnabled: false,
-          showAuthorAndTitle: false,
-          awpGrayscale: false,
-          canvas: {
-            width: 1200,
-            height: 0,
-            background: '#fff',
-            alignmentVertical: 'flex-start',
-            padding: {
-              top: 32,
-              right: 32,
-              bottom: 32,
-              left: 32,
-            },
-          },
-          showFavorites: true,
-          showMyRating: true,
-        }
-      },
-    ],
+    canvasPresets: canvasPresets,
     panningAlert: false,
     tiers: [
-      { visible: true, key: 'S', color: '#ff7f7e', list: [] }, 
-      { visible: true, key: 'A', color: '#ffbf7e', list: [] }, 
-      { visible: true, key: 'B', color: '#eff077', list: [] }, 
-      { visible: true, key: 'C', color: '#7dff7f', list: [] }, 
-      { visible: true, key: 'D', color: '#78f2f2', list: [] }, 
-      { visible: true, key: 'E', color: '#9c9bff', list: [] }, 
-      { visible: true, key: 'F', color: '#ff93fd', list: [] },
+      { visible: true, key: 'S', color: '#ff7f7e', list: [], text: '' }, 
+      { visible: true, key: 'A', color: '#ffbf7e', list: [], text: '' }, 
+      { visible: true, key: 'B', color: '#eff077', list: [], text: '' }, 
+      { visible: true, key: 'C', color: '#7dff7f', list: [], text: '' }, 
+      { visible: true, key: 'D', color: '#78f2f2', list: [], text: '' }, 
+      { visible: true, key: 'E', color: '#9c9bff', list: [], text: '' }, 
+      { visible: true, key: 'F', color: '#ff93fd', list: [], text: '' },
       { visible: true, key: 'container',  list: [] },
+    ],
+    presetModalOpen: false,
+    colorPicker_swatches: [
+      '#001f3f',
+      '#0074D9',
+      '#7FDBFF',
+      '#39CCCC',
+      '#B10DC9',
+      '#F012BE',
+      '#85144b',
+      '#FF4136',
+      '#FF851B',
+      '#FFDC00',
+      '#3D9970',
+      '#2ECC40',
+      '#01FF70',
+      '#000000',
+      '#333333',
+      '#AAAAAA',
+      '#DDDDDD',
+      '#FFFFFF',
+      '#FFFFFF00', // FFFFFF00
     ],
   },
   mutations: {
@@ -229,6 +214,13 @@ const store = createStore({
       if ( lsState ) {
         lsState.resetting = false;
         lsState.saving = false;
+        delete lsState.canvasPresets;
+        delete lsState.events;
+        delete lsState.awpBlendModes;
+        delete lsState.overlayTextures;
+        delete lsState.colorPicker_swatches;
+        delete lsState.textElFonts;
+        delete lsState.coverActions;
         _.merge( state, lsState );
       }
     },
@@ -247,6 +239,8 @@ const store = createStore({
     },
     
     removeText( state, index ) {
+      console.log( state.textElements )
+      console.log( index )
       state.textElements.splice(index, 1);
     },
     
@@ -256,6 +250,10 @@ const store = createStore({
         config = config || {};
         let textObj = state.textElements[ config.index ];
         if ( config.key && textObj ) {
+          
+          console.log( textObj )
+          console.log( config.key, config.value )
+          
           _.set(textObj, config.key, config.value);
         }
       };
@@ -311,10 +309,35 @@ const store = createStore({
       
     },
     
+    updateTierlistLabel( state, config ) {
+      
+      let setValues = function (config) {
+        config = config || {};
+        let textObj = state.tiers[ config.index ];
+        console.log( config.index )
+        if ( config.key && textObj ) {
+          
+          console.log( textObj )
+          console.log( config.key, config.value )
+          
+          _.set(textObj, 'text', config.value);
+        }
+      };
+
+      if (_.isArray(config)) {
+        _.each(config, function(conf) {
+          setValues(conf);
+        });
+      } else {
+        setValues(config);
+      }
+      
+    },
+    
     changePreset: function( state, presetName ) {
       
       let preset = _.find( state.canvasPresets, { value: presetName });
-      console.dir( preset.options )
+      console.log( preset.options )
       if ( preset ) state = _.merge( state, preset.options );
       
     },
@@ -378,6 +401,59 @@ const store = createStore({
       
     },
     
+    updateBookCover( state, config ) {
+      
+      
+      const applyToAll = ( rootArray ) => {
+        _.each(rootArray, ( array, rootIndex ) => {
+          _.each(array, ( item, index ) => {
+            _.set( array, index+'.'+ config.key, config.value );
+          });
+        });
+      };
+      
+      if ( state.tierListMode ) {
+        
+        if ( config.all ) {
+          applyToAll([ state.tiers, state.covers ]);
+        }
+        else {
+          let found = false;
+          _.each(state.tiers, function( tier ) {
+           
+            const index = _.findIndex( tier.list, { asin: config.book.asin });
+            if ( index > -1 ) {
+              found = true;
+              _.set( tier.list, index+'.'+ config.key, config.value );
+              return false;
+            }
+            
+          });
+          if ( !found ) {
+            const index = _.findIndex( state.covers, { asin: config.book.asin });
+            if ( index > -1 ) _.set( state.covers, index+'.'+ config.key, config.value );
+          }
+        }
+        
+      }
+      else {
+        
+        if ( config.all ) {
+          applyToAll([ state.tiers, state.covers ]);
+        }
+        else {
+          const index = _.findIndex( state.covers, { asin: config.book.asin });
+          if ( index > -1 ) _.set( state.covers, index+'.'+ config.key, config.value );
+        }
+      }
+      
+      const timeout = config.value ? 350 : 100;
+      setTimeout(() => {
+        state.coverActions = null;
+      }, timeout);
+      
+    },
+    
   },
   getters: {
     
@@ -393,6 +469,51 @@ const store = createStore({
       return _.find(state.tiers, { key: 'container' }).visible;
     },
     
+    scaledCanvasDimensions( state, getters ) {
+      
+      let scale = function( size ) {
+        let scale = state.canvas.outputScale;
+        return (scale > 0 && scale != 1) ? size * scale : size;
+      };
+      
+      let content = document.querySelector("#editor-canvas-content");
+      const height = content ? content.clientHeight : null;
+      
+      return {
+        width:  Math.ceil(scale(state.canvas.width)),
+        height: Math.ceil(scale(state.canvas.height || height)),
+      };
+      
+    },
+    
+    rereadExist( state, getters ) {
+      
+      if ( state.tierListMode ) {
+        
+        let found = false;
+        
+        _.each(state.tiers, function( tier ) {
+         
+          if ( _.find(tier.list, 'reread') ) {
+            found = true;
+            return false;
+          }
+          
+        });
+        
+        if ( !found ) !!_.find(state.covers, 'reread');
+        
+        return found;
+        
+      }
+      else {
+        
+        return !!_.find(state.covers, 'reread');
+        
+      }
+      
+    },
+    
   }
 });
 
@@ -400,15 +521,13 @@ const store = createStore({
 // Overwrite sticky defaults with local storage values
 store.commit("fromLocalStorage");
 // Listen for sticky commits and push them to local storage
-store.subscribe( _.debounce(function(mutation, state) {
+store.subscribe( function(mutation, state) {
   
   if ( !state.resetting ) {
     localStorage.setItem("aleImageEditorSettings", JSON.stringify( state ));
   }
   
-}, 250, { leading: false, trailing: true }) );
-
-
+});
 
 export default store;
 

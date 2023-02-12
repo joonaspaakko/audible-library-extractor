@@ -155,8 +155,8 @@ export default {
           
           // book.url        = _thisRow.querySelector(':scope > div.bc-row-responsive > div.bc-col-responsive.bc-col-10 > div > div.bc-col-responsive.bc-col-9 > span > ul > li:nth-child(1) > a').getAttribute('href').split('?')[0];
           book.title     = DOMPurify.sanitize(_thisRow.querySelector(":scope > div > div > div > div > span > ul > li:nth-child(1)").textContent.trimAll());
-          book.authors   = vue.getArray( _thisRow.querySelectorAll(".authorLabel > a") );
-          book.narrators = vue.getArray( _thisRow.querySelectorAll(".narratorLabel > a") );
+          book.authors   = vue.getArray( _thisRow.querySelectorAll(".authorLabel a") );
+          book.narrators = vue.getArray( _thisRow.querySelectorAll(".narratorLabel a") );
           book.series    = vue.getSeries( _thisRow.querySelector(".seriesLabel > span") );
           book.blurb     = DOMPurify.sanitize(_thisRow.querySelector(".summaryLabel > span").textContent.trimAll());
           const fromPlusCatalog = _thisRow.querySelector('input[value="AudibleDiscovery"]');

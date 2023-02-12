@@ -91,7 +91,12 @@ export default createStore({
         label: "Start saving the standalone gallery immediately after extraction",
         kind: 'extra',
       }
-    ]
+    ],
+    axiosRateLimit: { 
+      maxRequests: 10, 
+      perMilliseconds: 1000,
+    },
+    failedRequests: [],
   },
 
   mutations: {
@@ -99,6 +104,7 @@ export default createStore({
     fromLocalStorage: function(state) {
       let lsState = localStorage.getItem( state.localStorageName );
       if ( lsState && lsState != "undefined" ) {
+        
         lsState = JSON.parse( lsState );
         const settings = _.map( lsState, function(o) {
           return { 
@@ -164,6 +170,10 @@ export default createStore({
         
       });
       
+    },
+
+    pushToFailedRequests(state, url) {
+      state.failedRequests.push(url);
     },
     
   },

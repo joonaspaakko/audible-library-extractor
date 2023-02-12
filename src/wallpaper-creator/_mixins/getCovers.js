@@ -17,7 +17,7 @@ export default {
       
       let vue = this;
       
-      console.log('TEST 1234')
+      // console.log('TEST 1234')
       // Clear certain parts of the data when coming in from the gallery
       if ( window.location.href.indexOf('src=gallery') > -1 ) {
         this.$store.commit('clearTiers');
@@ -43,7 +43,7 @@ export default {
           'imageEditorPageSubTitle'
       ]).then(data => {
           // browser.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
-          console.log( 'data', data );
+          // console.log( 'data', data );
           if ( _.get(data, 'imageEditorChunksLength', 0) > 0 ) {
             vue.fetchArchive(function( archive ) {  
               // let coversArray = require('./getCovers.json');
@@ -58,7 +58,7 @@ export default {
               
               // time code changes when wallpaper creator is opened through the gallery
               if ( _.get(data, 'imageEditorTimeCode') ) changes.push({ key: "timeCode", value: data.imageEditorTimeCode });
-              console.log( coversArray );
+              // console.log( coversArray );
               let coverAmount = vue.$store.state.canvasPreset === 'wallpaper' ? 300 : 50;
               const fromLocalstorage = data.imageEditorTimeCode === vue.$store.state.timeCode;
               if ( !fromLocalstorage ) {

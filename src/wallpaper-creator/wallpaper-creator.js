@@ -10,19 +10,12 @@ const app = createApp(App);
 import store from "./wallpaper-creator-store.js";
 app.use( store );
 
-// import VueDarkMode from "@growthbunker/vuedarkmode";
-// app.use(VueDarkMode);
-
-// import { ColorPicker, ColorPanel } from "one-colorpicker";
-// app.use(ColorPanel);
-// app.use(ColorPicker);
-
 // VUE SHORTKEY
 import shortkey from 'vue3-shortkey';
 app.use(shortkey);
 
-import contenteditable from 'vue-contenteditable';
-app.use(contenteditable);
+import vueClickOutsideElement from 'vue-click-outside-element';
+app.use(vueClickOutsideElement);
 
 // VUE-TIPPY
 import VueTippy from "vue-tippy";
@@ -56,7 +49,7 @@ app.use(vueDragscroll);
 
 // For emitting custom events between components
 import mitt from 'mitt';
-app.config.globalProperties.$compEmitter = new mitt();
+app.config.globalProperties.$emitter = new mitt();
 
 app.config.productionTip = false;
 

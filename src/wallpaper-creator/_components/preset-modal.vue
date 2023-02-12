@@ -1,7 +1,24 @@
 <template>
   <div v-if="showModal" class="modal-overlay">
     
+    <!-- <animated-wallpaper-app class="cover-bg"
+      :editorCovers="store.covers"
+      :editorCoverPadding="0"
+      :editorCoverSize="win.height / 2"
+      :editorCoversPerRow="14"
+      :editorCanvasWidth="win.width"
+      :editorCanvasHeight="win.height"
+      :editorCanvasPaddingLeft="0"
+      :editorCanvasPaddingTop="0"
+      :editorCanvasPaddingRight="0"
+      :editorCanvasPaddingBottom="0"
+    /> -->
+    
     <n-config-provider :theme="darkTheme" class="modal-content">
+      
+      <div class="close-btn" @click="$store.commit('update', { key: 'presetModalOpen', value: false })">
+        <ion-close-round/>
+      </div>
       
       <h2 class="heading">
         Select a starting point
@@ -9,49 +26,46 @@
       
       <div class="flex-row">
         
-        <div class="card">
-          <div class="image">
-            <img src="@editor-images/wallpaper.jpg" alt="">
+        <!-- LOOP CARDS -->
+        <div 
+          class="card"
+          v-for="card in cards" :key="card.key"
+          @mouseenter="card.enabled = true" 
+          @mouseleave="card.enabled = false"
+        >
+          <!-- IMAGE -->
+          <div class="image" v-if="card.images">
+            <img draggable="false" :src="card.images.extras" alt="" v-if="card.images.extras">
+            <img draggable="false" :src="card.images.regular" alt="" v-else>
           </div>
-          <div class="title">Desktop wallpaper</div>
-          <div class="desc">
-            Starts with a 1920x1080 canvas with a dark overlay so that icons can be seen on top of it.
-          </div>          
+          <!-- TITLE -->
+          <div class="title">{{ card.title }}</div>
+          <!-- DESCRIPTION -->
+          <div class="desc"> {{ card.desc }}</div> 
+          <!-- EXtRA SETTINGS -->
           <div class="additional-settings">
-            <n-checkbox v-model:checked="store.animatedWallpaperMode" size="large" label="Animated wallpaper" />
+            <n-checkbox 
+              size="large" 
+              v-for="extra in card.extras" :key="extra.label"
+              v-model:checked="extra.checked" 
+              :label="extra.label" 
+              :disabled="!card.enabled" 
+              @update:checked="extrasChecked( card, extra )"
+            />
           </div>
           <div class="additional-settings full-width">
-            <n-button type="primary">
-              Start
+            <n-button type="primary" :disabled="!card.enabled" @click="cardChosen( card )">
+              {{ card.startBtn || 'Start' }}
             </n-button>
           </div>
         </div>
         
-        <div class="card">
-          <div class="image">
-            <img src="@editor-images/card.jpg" alt="">
-          </div>
-          <div class="title">Card</div>
-          <div class="desc">
-            Great starting point for online posts and other generic images.
-          </div>
-          <div class="additional-settings">
-            <n-checkbox v-model:checked="store.tierListMode" size="large" label="Tier list" />
-          </div>
-          <div class="additional-settings full-width">
-            <n-button type="primary">
-              Start
-            </n-button>
-          </div>
-        </div>
-        
-      </div>    
+      </div> <!-- .flex-row -->
       
-      <div class="footer">
+      <!-- <div class="footer">
         <small>
-          These presets can be modified in the editor.
         </small>
-      </div>
+      </div> -->
       
     </n-config-provider> <!-- .modal-content -->
     
@@ -74,13 +88,81 @@
     NButton,
   } from 'naive-ui';
   
+  import image_wallpaper from '@editor-images/wallpaper.jpg';
+  import image_wallpaper_animated from '@editor-images/wallpaper-animated.gif';
+  import image_card from '@editor-images/card.jpg';
+  import image_card_tierlist from '@editor-images/card-tierlist.jpg';
+
   export default {
     data() {
+      
+      const store = this.$store;
+      
       return {
         store: this.$store.state,
         showModal: true,
         buttonGroupValue: null,
         darkTheme: darkTheme,
+        win: {
+          width: window.innerWidth,
+          height: window.innerHeight,
+        },
+        cards: [
+          {
+            key: 'wallpaper',
+            enabled: false,
+            images: {
+              regular: image_wallpaper,
+              extras: null,
+            },
+            title: "Desktop wallpaper",
+            desc: "Starts with a 1920x1080 canvas with a dark overlay so that icons can be seen on top of it.",
+            method: ( card, vue ) => {
+              
+              vue.changeCanvasPreset( card.key );
+              
+            },
+            extras: {
+              animated: { 
+                checked: false,
+                label: 'Animated wallpaper',
+                image: image_wallpaper_animated,
+                method: ( card, extra, vue ) => {
+                  
+                  vue.$store.commit('update', { key: 'animatedWallpaperMode', value: true });
+                  
+                },
+              },
+            }
+          },
+          {
+            key: 'card',
+            enabled: false,
+            images: {
+              regular: image_card,
+              extras: null,
+            },
+            title: "Card",
+            desc: "Great starting point for online posts and other generic images.",
+            method: ( card, vue ) => {
+              
+              this.changeCanvasPreset( card.key );
+              
+            },
+            extras: {
+              animated: { 
+                checked: false,
+                label: 'Tier list',
+                image: image_card_tierlist,
+                method: ( card, extra, vue ) => {
+                  
+                  vue.$store.commit('update', { key: 'tierListMode', value: true });
+                  
+                },
+              },
+            }
+          },
+        ],
       }
     },
     components: {
@@ -96,63 +178,43 @@
       NButton,
     },
     
-    computed: {
-      animatedWallpaperMode: {
-        get() {
-          return this.store.animatedWallpaperMode;
-        },
-        set( newValue ) {
-          this.$store.commit('update', { key: 'animatedWallpaperMode', value: newValue })
-        },
-      }
-    },
-    
-    created () {
-      console.log( darkTheme );
-    },
-    
     methods: {
+      
+      extrasChecked( card, extra ) {
         
-      editorModeChanged: function( modeName, value ) {
-        
-        console.log( modeName, value )
-        if ( modeName === 'animatedWallpaperMode' && value && this.store.canvasPreset !== 'wallpaper' ) {
-          this.changeCanvasPreset('wallpaper');
-        }
-        else if ( modeName === 'tierListMode' ) {
-          if ( value && this.store.canvasPreset !== 'card' ) {
-            this.changeCanvasPreset('card');
-            this.$store.commit('update', [
-              { key: 'canvas.width', value: 3500 },
-              { key: 'canvas.height', value: 0 },
-              { key: 'coversPerRow', value: 14 },
-            ]);
-          }
-          
-          if ( !value ) {
-            this.$store.commit('resetTiers');
-            this.$store.commit('clearTiers');
-          }
-          
-        }
-        
-        console.log('asdf', [
-          { key: modeName, value: value },
-          { key: modeName === 'animatedWallpaperMode' ? 'tierListMode' : 'animatedWallpaperMode', value: false },
-        ])
-        
-        this.$store.commit('update', [
-          { key: modeName, value: value },
-          { key: modeName === 'animatedWallpaperMode' ? 'tierListMode' : 'animatedWallpaperMode', value: false },
-        ]);
-        
-        // this.$nextTick(function() {
-        //   this.zoomToFit();
-        // });
-        
+        card.images.extras = extra.checked ? extra.image : null;
         
       },
-    
+      
+      cardChosen( card ) {
+        
+        this.reset();
+        
+        const checkedExtras = _.filter( card.extras, { checked: true });
+        if ( checkedExtras.length ) {
+          console.log( checkedExtras )
+          _.each( checkedExtras, ( extra ) => {
+            
+            if ( extra.method ) extra.method( card, extra, this );
+            
+          });
+        }
+        
+        if ( card.method ) card.method( card, this );
+        
+        this.$store.commit('update', { key: 'presetModalOpen', value: false });
+        
+        this.$nextTick(function() {
+          
+          
+          const coversMax = (this.store.covers|| []).length;
+          const currentAmount = this.store.coverAmount;
+          this.$store.commit('update', { key: 'coverAmount', value: currentAmount > coversMax ? coversMax : currentAmount });
+          
+        });
+        
+      },
+      
       changeCanvasPreset: function( preset ) {
         
         this.$store.commit("update", { key: "canvasPreset", value:  preset  });
@@ -161,12 +223,20 @@
           key: 'usedCovers', 
           value: this.store.covers.slice(0, this.store.coverAmount)
         });
-        
-        // this.$nextTick(function() {
-        //   this.zoomToFit('and-center');
-        // });
       
-    },
+      },
+    
+      reset() {
+        
+        this.$store.commit('resetTiers');
+        this.$store.commit('clearTiers');
+              
+        this.$store.commit('update', [
+          { key: 'tierListMode', value: false },
+          { key: 'animatedWallpaperMode', value: false },
+        ]);
+        
+      },
       
     }
   }
@@ -184,7 +254,8 @@
   right: 0;
   bottom: 0;
   left: 0;
-  background: rgba(#000, .6);
+  background: rgba(#000, .4);
+  backdrop-filter: blur(3px);
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -196,22 +267,24 @@
 }
 
 .modal-content {
+  position: relative;
   text-align: center;
   max-width: 800px;
-  background: #161e29;
   color: #fff;
-  padding: 25px 50px;
+  padding: 25px 50px 40px 50px;
   box-sizing: border-box;
-  box-shadow: 0 2px 30px rgba(#000, .5);
-  border: 1px solid rgba(#fff, .1);
   border-radius: 5px;
+  background: #161e29;
+  box-shadow: 0 2px 30px rgba(#000, .5);
+  border: 2px solid rgba(#fff, .1);
+  
 }
 
 .flex-row {
   display: flex;
   flex-direction: row;
   justify-content: space-around;
-  align-items: center;
+  align-items: stretch;
 }
 
 .card {
@@ -222,12 +295,20 @@
   box-sizing: border-box;
   padding: 15px;
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
   transition: all 200ms ease;
   
+  // background: rgba(#fff, .1);
+  // background: rgba(#171e29, .6);
+  // backdrop-filter: blur(5px);
+  box-shadow: 0 2px 30px rgba(#000, .2);
   
   &:hover {
     box-shadow: 0 2px 25px rgba(#000, 1);
-    background: rgba(#fff, .01);
+    // background: rgba(#fff, .01);
     transform: scale(1.05);
     border-color: #ffbf2c;
   }
@@ -236,8 +317,9 @@
     display: inline-flex;
     justify-content: center;
     align-items: center;
+    min-height: 100px;
+    margin-bottom: 25px;
     img {
-      margin-bottom: 25px;
       width: 100%;
       height: auto;
       max-width: 250px;
@@ -274,6 +356,8 @@
 
 .full-width {
   display: flex;
+  flex: 1;
+  width: 100%;
   justify-content: stretch;
   align-items: center;
   > * {
@@ -281,4 +365,24 @@
   }
 }
 
+.heading {
+  margin: 0 0 20px 0;
+}
+
+.close-btn {
+  cursor: pointer;
+  position: absolute;
+  z-index: 1;
+  top: 10px;
+  right: 10px;
+  font-size: 16px;
+  line-height: 16px;
+  padding: 10px;
+  transition: all 250ms ease;
+  color: rgba(#fff, .7);
+  &:hover {
+    transform: scale(1.4);
+    color: rgba(#fff, 1);
+  }
+}
 </style>

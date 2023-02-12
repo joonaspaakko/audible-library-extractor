@@ -146,7 +146,7 @@ export default {
       this.prevIndex = index;
 
       // Reset
-      // this.repositionTooltip(t);
+      this.repositionTooltip(t);
       this.additionalData = null;
 			this.inLibrary = null;
 			this.inSeries.asin = null;
@@ -180,7 +180,7 @@ export default {
 			// return !!tippy.props.content;
 			
 			// This somehow causes the next tooltip to disappear
-			this.repositionTooltip( t, e );
+			this.repositionTooltip(t);
 			
 		},
 		
@@ -203,24 +203,15 @@ export default {
 		},
 		
     // Repositions tooltip after a possible height change...
-    repositionTooltip( t, e ) {
-			
-			
-			t.popperInstance.then(( p ) => {
-				console.log( t )
-				p.update();
-			})
-      // t.hide();
-      // this.$nextTick(() => {
-			// 	t.show();
-			// 	setTimeout(() => {
-			// 		t.show();
-			// 	}, 100);
-      // });
-			
-			
-			console.log('t', t );
-			
+    repositionTooltip( t ) {
+      this.$nextTick(function() {
+				try {
+					t.popperInstance.update();
+					console.log('trigger (popper instance exists... I guess?)');
+				} catch (e) {
+					console.log('trigger update failed');
+				}
+			});
     },
 		
 		

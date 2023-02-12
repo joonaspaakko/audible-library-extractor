@@ -4,16 +4,17 @@
   "license": "MIT",
   "scripts": {
     "dev": "yarn vite",
-    "build": "buildSingleFile=true yarn vite build && yarn vite build",
+    "build": "gallerySingleFile=true yarn vite build && wallpaperSingleFile=true yarn vite build && yarn vite build && node zipper.js",
     "preview": "yarn vite preview --port 4173"
   },
   "dependencies": {
     "@fortawesome/fontawesome-free": "^6.2.0",
     "@meforma/vue-toaster": "^1.3.0",
+    "@panzoom/panzoom": "^4.5.1",
     "@splidejs/vue-splide": "^0.6.12",
     "@vueform/multiselect": "^2.5.6",
     "async-es": "^3.2.4",
-    "axios": "^1.1.2",
+    "axios": "^1.2.1",
     "axios-rate-limit": "^1.3.0",
     "axios-retry": "^3.3.1",
     "bulma": "^0.9.4",
@@ -22,9 +23,10 @@
     "domurl": "^2.3.4",
     "downloadjs": "^1.4.7",
     "file-saver": "^2.0.5",
+    "fitty": "^2.3.6",
     "fuse.js": "^6.6.2",
     "howler": "^2.2.3",
-    "html-to-image": "^1.10.10",
+    "html-to-image": "^1.11.4",
     "jquery": "^3.6.1",
     "jszip": "^3.10.1",
     "jszip-utils": "^0.1.0",
@@ -35,13 +37,14 @@
     "smoothscroll-polyfill": "^0.4.4",
     "vite-plugin-dynamic-import": "^1.2.3",
     "vite-plugin-package-version": "^1.0.2",
+    "vue-click-outside-element": "^3.1.2",
     "vue-contenteditable": "^4.1.0",
     "vue-dragscroll": "^4.0.5",
     "vue-router": "^4.1.5",
     "vue-slider-component": "^4.1.0-beta.4",
     "vue-tippy": "^6.0.0-alpha.65",
     "vue3-moveable": "^0.16.0",
-    "vue3-shortkey": "^4.0.0",
+    "vue3-shortkey": "https://github.com/BlazL/vue3-shortkey",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2",
     "webextension-polyfill": "^0.10.0"
@@ -51,6 +54,7 @@
     "@iconify/json": "^2.1.122",
     "@vitejs/plugin-vue": "2.3.2",
     "naive-ui": "^2.34.2",
+    "picocolors": "^1.0.0",
     "rollup-plugin-copy": "^3.4.0",
     "sass": "^1.55.0",
     "unplugin-icons": "^0.14.11",
@@ -61,6 +65,7 @@
     "vite-plugin-ejs": "^1.5.0",
     "vite-plugin-singlefile": "^0.12.3",
     "vite-plugin-static-copy": "^0.9.0",
-    "vue": "3.2.38"
+    "vue": "3.2.38",
+    "zip-folder": "^1.0.0"
   }
 }

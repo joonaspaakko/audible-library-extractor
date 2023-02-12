@@ -24,9 +24,12 @@ export default {
           var coversFolder = zip.folder("covers");
           
           let coversArray = this.coversArray();
-          let indexHTML = this.makeIndexHTML( coversArray.covers );
+          // let indexHTML = this.makeIndexHTML( coversArray.covers );
           
-          zip.file('index.html', indexHTML);
+          // zip.file('index.html', indexHTML);
+          console.log( coversArray ); 
+          zip.file('options.js', `window.wallpaperOptions = ${JSON.stringify( this.editorOptions( coversArray.covers ) )};`);
+          
           // var coversArray = _.map( books, function( book ) {
           //   return '          <li><a href="#"><img src="'+ ('covers/' + book.title + '.jpg') +'"/></a></li>';
           // });
@@ -34,11 +37,23 @@ export default {
           var filesArray = [];
           filesArray = filesArray.concat( coversArray.fetchCovers );
           
+          const filePaths = _.get(window, 'chunksFilePaths', []);
+          
           var dependencies = [
-            'animated-wallpaper/animated-wallpaper.js',
-            'animated-wallpaper/animated-wallpaper.css',
+            // 'animated-wallpaper/animated-wallpaper.js',
+            // 'animated-wallpaper/animated-wallpaper.css',
+            'single-file-animated-wallpaper.html',
           ];
+          
+          // _.each(filePaths, function( path ) {
+          //   const foundMatch = path.match(/animated-wallpaper.+\.(js|css)$/);
+          //   if ( foundMatch ) dependencies.push(path);
+          // });
+          
           filesArray = filesArray.concat( dependencies );
+          
+          // console.log( filesArray )
+          // return;
           
           let count = 0;
           _.each( filesArray , function(book) {
@@ -70,7 +85,7 @@ export default {
                     vue.$store.commit("update", { key: "saving", value: false });
                     vue.saveProgressWidth = -1; 
                     vue.$nextTick(function() {
-                      vue.centerCanvas();
+                      // vue.$emitter.emit('canvas-center');
                     });
                   }, 1000);
                   
@@ -79,7 +94,7 @@ export default {
                     vue.$store.commit("update", { key: "saving", value: false });
                     vue.saveProgressWidth = -1; 
                     vue.$nextTick(function() {
-                      vue.centerCanvas();
+                      // vue.$emitter.emit('canvas-center');
                     });
                   }, 1000);
                 });
@@ -132,7 +147,10 @@ export default {
       opts.canvas.padding.bottom = this.store.canvas.padding.bottom > -1 ? parseFloat(this.store.canvas.padding.bottom) : 0;
       opts.canvas.alignmentVertical = this.store.canvas.alignmentVertical;
       opts.prioritizeCoversPerRow = this.store.prioritizeCoversPerRow;
-      this.$compEmitter.emit('get-animation');
+      opts.awpOverlayColorEnabled = this.store.awpOverlayColorEnabled;
+      opts.awpBlendMode = this.store.awpBlendMode;
+      opts.awpOverlayColor = this.store.awpOverlayColor;
+      this.$emitter.emit('get-animation');
       opts.animation = this.store.animation;
       
       return opts;
@@ -191,7 +209,7 @@ export default {
         
         ${ this.store.awpOverlayColorEnabled ? '<div id="color-overlay"></div>' : '' }
         <div id="animated-wallpaper"></div>
-        <script src="animated-wallpaper.js"></script>
+        <script type="module" src="./assets/animated-wallpaper.js"></script>
         
       </body>
       </html>      

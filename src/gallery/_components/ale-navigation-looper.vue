@@ -237,6 +237,9 @@ export default {
     color: themed(frontColor);
     box-shadow: 0 5px 15px rgba( themed(outerColor), .7);
     border: 1px solid rgba( themed(frontColor), .2);
+    > .menu-items > div > .menu-item:hover {
+      background: rgba(themed(frontColor), .1);
+    }
   }
 }
 

@@ -21,7 +21,7 @@ export default {
       if (!vue.store.saving) {
         
         this.setCoverLimitToVisible();
-        vue.$compEmitter.emit('hide-moveable-controls');
+        vue.$emitter.emit('hide-moveable-controls');
         vue.$store.commit("update", { key: "saving", value: true });
 
         vue.$nextTick(function () {
@@ -31,20 +31,20 @@ export default {
           let quality = vue.store.compressImage ? parseFloat(vue.store.compressQuality) : null;
           let mimetype = vue.store.compressImage ? 'image/jpeg' : 'image/png';
           let extension = vue.store.compressImage ? '.jpg' : '.png';
-          let zoom = vue.store.canvas.zoomOutputs ? vue.store.canvas.zoom : 1;
+          let scale = vue.store.canvas.zoomOutputs ? vue.store.canvas.outputScale : 1;
           let canvas = document.querySelector(".editor-canvas");
           let filename = "ALE image"+extension;
           
           htmlToImage[ format ]( canvas, {
             quality: quality, 
-            pixelRatio: zoom,
+            pixelRatio: scale,
           }).then(function( dataUrl ) {
             
             download( dataUrl, filename );
             setTimeout(function () {
               vue.$store.commit("update", { key: "saving", value: false });
               vue.$nextTick(function() {
-                vue.centerCanvas();
+                // vue.$emitter.emit('canvas-center');
               });
             }, 500);
             

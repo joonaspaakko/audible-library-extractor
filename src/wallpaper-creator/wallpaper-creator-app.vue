@@ -1,10 +1,30 @@
 <template>
-  <div id="app" v-if="dataReady" v-show="mounted" 
-  v-shortkey.push="store.events.canvasPanning ? ['space'] : null" 
-  @shortkey="store.events.canvasPanning ? forcePanning($event) : null"
+  <div 
+    id="app" v-if="dataReady" v-show="mounted" 
+    v-shortkey.push="store.events.canvasPanning ? ['space'] : null" 
+    @shortkey="store.events.canvasPanning ? forcePanning($event) : null"
   >
-    <preset-modal />
-    <editor-canvas />
+  
+    <preset-modal v-if="store.presetModalOpen" />
+    <editor-canvas
+      :key="store.presetModalOpen"
+      v-shortkey="!store.events.canvasPanning ? null : {
+        fitCanvas: ['meta', '9'], 
+        resetZoom: ['meta', '0'], 
+        zoomIn:    ['meta', '+'],
+        zoomOut:   ['meta', '-'],
+        ctrlPanUp:     ['arrowup', 'meta'],
+        ctrlPanDown:   ['arrowdown', 'meta'],
+        ctrlPanLeft:   ['arrowleft', 'meta'],
+        ctrlPanRight:  ['arrowright', 'meta'],
+        shiftPanUp:     ['arrowup', 'shift', 'meta'],
+        shiftPanDown:   ['arrowdown', 'shift', 'meta'],
+        shiftPanLeft:   ['arrowleft', 'shift', 'meta'],
+        shiftPanRight:  ['arrowright', 'shift', 'meta'],
+      }"
+      @shortkey="!store.events.canvasPanning ? null : keyboardZoomies($event)"
+    />
+    
     <toolbar />
   </div>
   <div v-else-if="noCovers" class="error-msg">
@@ -17,7 +37,6 @@
 import editorCanvas from "@editor-comps/canvas.vue";
 import toolbar from "@editor-comps/toolbar.vue";
 import getCovers from "@editor-mixins/getCovers.js";
-import centerCanvas from "@editor-mixins/centerCanvas.js";
 import presetModal from '@editor-comps/preset-modal.vue';
 
 export default {
@@ -27,7 +46,9 @@ export default {
     editorCanvas,
     toolbar,
   },
-  mixins: [getCovers, centerCanvas],
+  mixins: [
+    getCovers, 
+  ],
   data: function () {
     return {
       store: this.$store.state,
@@ -38,6 +59,8 @@ export default {
     };
   },
   created: function () {
+    
+    this.$store.commit('update', { key: 'presetModalOpen', value: true });
     
     window.addEventListener("mouseup", this.stopSlidingAround);
     window.addEventListener('resize', this.windowResized);
@@ -73,7 +96,8 @@ export default {
     
     inputFocused: function({ target }) {
       let type = _.get(target, 'type');
-      if ( type === "text" || type === "number" || type === "range" ) {
+      let contentEditable = target.getAttribute('contenteditable');
+      if ( type === "text" || type === "number" || type === "range" || contentEditable ) {
         this.$store.commit('update', [
           { key: 'events.textNudge', value: false },
           { key: 'events.textRemove', value: false },
@@ -84,7 +108,8 @@ export default {
 
     inputBlurred: function({ target}) {
       let type = _.get(target, 'type');
-      if ( type === "text" || type === "number" || type === "range" ) {
+      let contentEditable = target.getAttribute('contenteditable');
+      if ( type === "text" || type === "number" || type === "range" || contentEditable ) {
         this.$store.commit('update', [
           { key: 'events.textNudge', value: true },
           { key: 'events.textRemove', value: true },
@@ -95,8 +120,8 @@ export default {
     
     windowResized: _.debounce( function() {
       
-      this.$compEmitter.emit('window-resized')
-      this.centerCanvas();
+      this.$emitter.emit('window-resized')
+      this.$emitter.emit('canvas-center');
       
     }, 400, { leading: false, trailing: true }),
     
@@ -110,13 +135,55 @@ export default {
     forcePanning: function( e ) {
       
       this.panningToggle = !this.panningToggle;
-      
       let keyDown = this.panningToggle;
+      
       if ( keyDown ) {
         this.$store.commit('update', { key: 'canvasPanning', value: true });
       }
       else {
         this.$store.commit('update', { key: 'canvasPanning', value: false });
+      }
+      
+    },
+    
+    keyboardZoomies( e ) {
+      
+      const shiftModifier = _.get(e, 'srcKey', '').indexOf('shift') > -1;
+      console.log( 'shiftModifier', shiftModifier )
+      const nudge = shiftModifier ? 200 : 25;
+      
+      switch ( e.srcKey) {
+        case 'fitCanvas':
+          this.$emitter.emit('canvas-fit');
+          break;
+        case 'resetZoom':
+          this.$emitter.emit('canvas-zoom', 1);
+          break;
+        case 'zoomIn':
+          const newZoomIn = this.store.canvas.zoom+0.1;
+          this.$emitter.emit('canvas-zoom', newZoomIn);
+          break;
+        case 'zoomOut':
+          console.log( 'canvas-zoom' )
+          const newZoomOut = this.store.canvas.zoom-0.1;
+          this.$emitter.emit('canvas-zoom', newZoomOut);
+          break;
+        case 'ctrlPanUp':
+        case 'shiftPanUp':
+          this.$emitter.emit('canvas-pan', [0,-nudge]);
+          break;
+        case 'ctrlPanDown':
+        case 'shiftPanDown':
+          this.$emitter.emit('canvas-pan', [0,nudge]);
+          break;
+        case 'ctrlPanLeft':
+        case 'shiftPanLeft':
+          this.$emitter.emit('canvas-pan', [-nudge,0]);
+          break;
+        case 'ctrlPanRight':
+        case 'shiftPanRight':
+          this.$emitter.emit('canvas-pan', [nudge,0]);
+          break;
       }
       
     },
@@ -157,12 +224,21 @@ body {
   overscroll-behavior: none;
 }
 
+#wallpaper-creator {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+}
+
 html,
 body,
 #app {
   margin: 0;
   padding: 0;
   height: 100%;
+  // background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
 
 #app {
@@ -175,10 +251,8 @@ body,
   > div {
     display: flex;
     flex-direction: column;
-    align-content: flex-start;
-    align-items: flex-start;
     justify-content: center;
-    justify-items: center;
+    align-items: center;
     height: 100vh;
     position: relative;
     z-index: 0;

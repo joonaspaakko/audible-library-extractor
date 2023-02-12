@@ -10,32 +10,40 @@ export default {
     amapxios: function(options) {
       
       const vue = this;
-      const limiter = options.rateLimit || 100;
+      const limiter = options.rateLimit || this.$store.state.axiosRateLimit;
       const maxTimeout = this.minutesToMilliseconds(1);
       
       // AXIOS
       let cAxios = axios.create();
       // AXIOS RETRY
-      axiosRetry(cAxios, {
-        retries: 1,
-        retryDelay: function(retryCount) { return 1000 * retryCount; },
-        retryCondition: function(error) {
-          return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.code === 'ECONNABORTED';
-        },
-        shouldResetTimeout: true,
-      });
+      // axiosRetry(cAxios, {
+      //   retries: 1,
+      //   retryDelay: function(retryCount) { return 1000 * retryCount; },
+      //   retryCondition: function(error) {
+      //     return axiosRetry.isNetworkOrIdempotentRequestError(error) || error.code === 'ECONNABORTED';
+      //   },
+      //   shouldResetTimeout: true,
+      // });
       // AXIOS RATE LIMIT
-      cAxios = rateLimit(cAxios, { maxRPS: limiter });
+      // cAxios = rateLimit(cAxios, { maxRPS: limiter });
+      cAxios = rateLimit(cAxios, limiter);
       
       // REQUEST LOOP
       asyncMapLimit(
         options.requests,
-        limiter, // ASYNC MAP LIMITER
+        limiter.maxRequests, // ASYNC MAP LIMITER
         function(request, stepCallback) {
           
           const axiosConfig = options.config || {};
           const requestURL = request.requestUrl || request.url || request;
           const controller = new AbortController();
+          
+          const urlAlreadyFailed = _.includes( vue.$store.state.failedRequests, requestURL);
+          console.log('urlAlreadyFailed', urlAlreadyFailed, JSON.parse(JSON.stringify(vue.$store.state.failedRequests)), requestURL);
+          if ( urlAlreadyFailed ) {
+            stepCallback(null, null);
+            return;
+          }
           
           axiosConfig.signal = controller.signal;
           axiosConfig.validateStatus = function (status) {
@@ -63,6 +71,8 @@ export default {
           // FAILURE
           .catch(function(e) {
             
+            const status = _.get(e, 'response.status');
+            if ( status == 404 ) vue.$store.commit('pushToFailedRequests', requestURL);
             
             console.log( "%c" + "axios caught an error (step)" + "", "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;", '\n\n', requestURL, '\n\n', e );
             

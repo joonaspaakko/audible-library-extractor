@@ -9,6 +9,12 @@
 }"
  :style="!editorCovers ? canvasStyle : null"
 >
+  
+  <div v-if="awpOverlayColorEnabled && !editorCovers" id="color-overlay" :style="{
+    background: awpOverlayColor, 
+    mixBlendMode: awpBlendMode !== 'normal' ? awpBlendMode : null,
+  }"></div>
+  
   <div id="awp-inner-wrap" v-if="afterMounted">
     <component is="style">
       {{ editorCovers ? '#awp' : '#awp-inner-wrap' }} {
@@ -24,6 +30,11 @@
         background-color: {{ canvas.background }};
         {{ canvas.grayscale ? 'filter: grayscale(1) contrast('+ canvas.grayscaleContrast +');' : '' }}
       }
+      
+      html, body, #awp {
+        overscroll-behavior: {{ !editorCovers ? 'none' : 'auto' }};
+        background-color: {{ !editorCovers ? canvas.background : 'transparent' }};
+      }
     </component>
     <div>
       <div class="cover" ref="cover" v-for="(cover, index) in covers.visible" :key="index">
@@ -37,6 +48,7 @@
 
 <script>
 
+import _ from "lodash";
 import utilities from '@wallpaper-mixins/utilities.js';
 import presets from '@wallpaper-mixins/presets.js';
 import fitCoversToViewport from '@wallpaper-mixins/fitCoversToViewport.js';
@@ -138,6 +150,9 @@ export default {
       cycleCounterTimer: null,
       shuffleCounter: 0,
       coverTimer: null,
+      awpOverlayColorEnabled: false,
+      awpBlendMode: '',
+      awpOverlayColor: '',
     };
   },
   
@@ -169,17 +184,15 @@ export default {
   
   created: function() {
     
-    this.prepareData();
+    this.prepareData(() => {
+      
+      debounceDelay = 0;
+      this.startAutoPlay();
+      
+    });
+    
     
     window.addEventListener('resize', this.windowResized);
-    
-  },
-  
-  mounted: function() {
-    
-    
-    debounceDelay = 0;
-    this.startAutoPlay();
     
   },
   
@@ -391,6 +404,24 @@ html, body, #awp {
     width: 100%;
     height: 100%;
   }
+}
+
+#color-overlay { 
+  will-change: transform;
+  position: fixed;
+  z-index: 99999;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  -webkit-touch-callout: none; 
+  -webkit-user-select: none; 
+  -khtml-user-select: none; 
+  -moz-user-select: none; 
+  -ms-user-select: none; 
+  user-select: none; 
 }
 
 @import "loader-bg.scss";

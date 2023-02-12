@@ -7,7 +7,7 @@ export default {
   methods: {
     
     zoomToFit: function( alsoCenter ) {
-      
+      return;
       let vue = this;
       let workingArea = document.querySelector("#editor-canvas-left");
       let content = workingArea.querySelector("#editor-canvas-content");

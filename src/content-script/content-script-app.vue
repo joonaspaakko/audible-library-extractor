@@ -75,6 +75,9 @@ export default {
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJPL532" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJLSSMQ" },
         // { storePageRequestUrl: "https://www.audible.com/pd/1721336850" },
+        { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
+        { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
+        { storePageRequestUrl: "https://www.audible.com/pd/B076QXRJCZ" },
       ],
       doSeriesTest: [
         // { series: [{asin: 'B006XE41AC'}] },
@@ -216,6 +219,7 @@ export default {
       removeStragglers('books'); // Library
       removeStragglers('wishlist'); 
       
+      const pageAddress = window.location.origin + window.location.pathname;
       // Make sure library books are excluded from the wishlist no matter hwhat...
       if ( hotpotato.books && hotpotato.books.length && hotpotato.wishlist && hotpotato.wishlist.length ) {
         _.remove( hotpotato.wishlist, function( book ) {
@@ -224,7 +228,7 @@ export default {
       }
       
       if ( hotpotato.useStorageData ) {
-        browser.runtime.sendMessage({ action: "openOutput" });
+        browser.runtime.sendMessage({ action: "openOutput", url: pageAddress });
       } else {
         
         if ( hotpotato.config ) {
@@ -251,7 +255,7 @@ export default {
             
             // If console is open don't open the gallery page....
             // if ( vue.erudaOpenStayInAudible() ) return;
-            browser.runtime.sendMessage({ action: "openOutput" });
+            browser.runtime.sendMessage({ action: "openOutput", url: pageAddress });
             
           });
         });

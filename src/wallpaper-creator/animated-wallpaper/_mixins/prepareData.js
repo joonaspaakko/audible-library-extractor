@@ -1,4 +1,4 @@
-// import _ from "lodash";
+import _ from "lodash";
 import makeCoverUrl from "@output-mixins/makeCoverUrl";
 
 export default {
@@ -20,12 +20,12 @@ export default {
   
   created: function() {
     if ( this.editorCovers ) {
-      this.$compEmitter.on('get-animation', this.sendAnimation);
+      this.$emitter.on('get-animation', this.sendAnimation);
     }
   },
   beforeUnmount: function() {
     if ( this.editorCovers ) {
-      this.$compEmitter.off('get-animation', this.sendAnimation);
+      this.$emitter.off('get-animation', this.sendAnimation);
     }
   },
   
@@ -135,36 +135,10 @@ export default {
   
     // FIXME: I don't know what the heck I was thinking structuring the data this way... 
     // I should've just mirrored the wallpaper data structure in vuex and merged stuff all at once...
-    prepareData: function() {
+    prepareData: function( callback ) {
       
       let vue = this;
-      
-      let standaloneOpts = document.querySelector('#optionsData');
-      if ( standaloneOpts ) {
-        
-        standaloneOpts = JSON.parse(standaloneOpts.textContent);
-        this.covers.size = standaloneOpts.covers.size;
-        this.covers.sizeOriginal = standaloneOpts.covers.size;
-        this.covers.perRow = standaloneOpts.covers.perRow;
-        this.covers.padding = standaloneOpts.covers.padding;
-        this.covers.dropOverflowingRow = standaloneOpts.covers.dropOverflowingRow;
-        this.canvas.width = standaloneOpts.canvas.width;
-        this.canvas.height = standaloneOpts.canvas.width;
-        this.canvas.padding.left = standaloneOpts.canvas.padding.left;
-        this.canvas.padding.top = standaloneOpts.canvas.padding.top;
-        this.canvas.padding.right = standaloneOpts.canvas.padding.right;
-        this.canvas.padding.bottom = standaloneOpts.canvas.padding.bottom;
-        this.covers.all = standaloneOpts.covers.all;
-        this.canvas.overlayColor = standaloneOpts.canvas.overlayColor;
-        this.canvas.grayscale = standaloneOpts.canvas.grayscale;
-        this.canvas.grayscaleContrast = standaloneOpts.canvas.grayscaleContrast;
-        this.canvas.background = standaloneOpts.canvas.background;
-        this.canvas.alignmentVertical = standaloneOpts.canvas.alignmentVertical;
-        this.prioritizeCoversPerRow = standaloneOpts.prioritizeCoversPerRow;
-        this.animation = standaloneOpts.animation;
-        
-      }
-      else if ( this.editorCovers ) {
+      if ( this.editorCovers ) {
         
         // Basically: override local storage presets to avoid issues when presets change... I could've handled this differently...
         let presetsArray = _.map(this.presets, function( p ) { return { label: _.lowerCase(p.name), value: p.name, description: p.description } });
@@ -191,6 +165,7 @@ export default {
         let covers = this.editorCovers;
         if ( this.$store.state.excludeArchived ) covers = _.filter(covers, function(o) { return !o.inArchive; });
         this.covers.all = this.mappy( covers );
+        this.covers.allOriginal = JSON.parse(JSON.stringify( this.covers.all )); 
         this.canvas.overlayColor = this.$store.state.awpOverlayColor; 
         this.prioritizeCoversPerRow = this.$store.state.prioritizeCoversPerRow; 
         this.canvas.grayscale = this.$store.state.awpGrayscale;
@@ -215,14 +190,51 @@ export default {
           let animationsArray = _.map( this.animations, 'class');
           this.$store.commit('update', { key: 'awpAnimations', value: animationsArray });
         }
+        
+        callback();
+        
       }
       else {
+        
+        this.loadJSON(( standaloneOpts ) => {
+          
+          this.covers.size = standaloneOpts.covers.size;
+          this.covers.sizeOriginal = standaloneOpts.covers.size;
+          this.covers.perRow = standaloneOpts.covers.perRow;
+          this.covers.padding = standaloneOpts.covers.padding;
+          this.covers.dropOverflowingRow = standaloneOpts.covers.dropOverflowingRow;
+          this.canvas.width = standaloneOpts.canvas.width;
+          this.canvas.height = standaloneOpts.canvas.width;
+          this.canvas.padding.left = standaloneOpts.canvas.padding.left;
+          this.canvas.padding.top = standaloneOpts.canvas.padding.top;
+          this.canvas.padding.right = standaloneOpts.canvas.padding.right;
+          this.canvas.padding.bottom = standaloneOpts.canvas.padding.bottom;
+          this.covers.all = standaloneOpts.covers.all;
+          this.covers.allOriginal = JSON.parse(JSON.stringify( this.covers.all )); 
+          this.canvas.overlayColor = standaloneOpts.canvas.overlayColor;
+          this.canvas.grayscale = standaloneOpts.canvas.grayscale;
+          this.canvas.grayscaleContrast = standaloneOpts.canvas.grayscaleContrast;
+          this.canvas.background = standaloneOpts.canvas.background;
+          this.canvas.alignmentVertical = standaloneOpts.canvas.alignmentVertical;
+          this.prioritizeCoversPerRow = standaloneOpts.prioritizeCoversPerRow;
+          this.awpOverlayColorEnabled = standaloneOpts.awpOverlayColorEnabled;
+          this.awpBlendMode = standaloneOpts.awpBlendMode;
+          this.awpOverlayColor = standaloneOpts.awpOverlayColor;
+          this.animation = standaloneOpts.animation;
+          
+          
+          if ( callback ) callback();
+          
+        });
+      
+      }
+      // else {
         // this.covers.all = require('../../_mixins/getCovers.json');
         // this.covers.all = this.mappy( this.covers.all );
         // this.loadAnimationPreset( 'piano-swipe-fade' );
-      }
-      
-      this.covers.allOriginal = JSON.parse(JSON.stringify( this.covers.all )); 
+        
+        // this.covers.allOriginal = JSON.parse(JSON.stringify( this.covers.all )); 
+      // }
       
     },
     
@@ -260,6 +272,33 @@ export default {
       ]);
       
     },
-  },
-  
+    
+    loadJSON: function( callback, afterError )  {
+      
+      let scrpt = document.createElement("script");
+      scrpt.src = "options.js";
+      scrpt.type="text/javascript";
+      scrpt.onload = () => {
+        
+        const standaloneOpts = window.wallpaperOptions; window.wallpaperOptions = null;
+        try { scrpt.remove(); } catch(e) {}
+        scrpt = null;
+        if ( callback ) callback( standaloneOpts );
+        
+      };
+      // Tries again if there's an error loading the files, but only once...
+      scrpt.onerror = () => {
+        scrpt = null;
+        setTimeout(() => {
+          if ( !afterError ) this.loadJSON( callback, 'afterError'); // Try twice...
+          else {
+            try { scrpt.remove(); } catch(e) {}
+          }
+        }, 1000);
+      };
+      document.head.appendChild(scrpt);
+      
+    },
+    
+  }
 };

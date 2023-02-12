@@ -1,8 +1,11 @@
 <template>
   <div 
-  class="cover"
-  @mouseover="coverHover"
-  @mouseleave="coverHover"
+    class="cover"
+    :class="{ active: selectedBook }"
+    @mouseover="coverHover"
+    @mouseleave="coverHover"
+    :style="{ transform: store.reverseCoverFlow ? 'rotate(180deg)' : null }"
+    @click="toggleCoverActions"
   >
   
     <div v-if="!store.saving" class="cover-padding-preview"></div>
@@ -15,19 +18,28 @@
     <div v-if="book.placeholderCover" data-coverImages class="placeholder"></div>
     <div v-else style="position: relative; display: inline-block;">
       
-      <img data-coverImages class="cover-img" :src="book.cover" alt="" draggable="false" data-no-dragscroll 
-      :style="{ filter: (store.awpGrayscale) ? 'grayscale(1) contrast('+ store.awpGrayscaleContrast +')' : null }"
+      <img 
+        data-coverImages class="cover-img panzoom-exclude" :src="book.cover" alt="" draggable="false" data-no-dragscroll 
+        :style="{ 
+          filter: (store.awpGrayscale) ? 'grayscale(1) contrast('+ store.awpGrayscaleContrast +')' : null,
+        }"
       />
       
       <div v-if="!store.animatedWallpaperMode && store.showFavorites && book.favorite" class="cover-heart-icon">
-        <gb-icon size="13px" name="favorite"></gb-icon>
+        <mdi-cards-heart />
       </div>
       <div v-if="!store.animatedWallpaperMode && store.showMyRating && book.myRating" class="cover-star-icons">
-        <gb-icon size="13px" name="star" v-for="number in book.myRating" :key="number"></gb-icon>
+        <material-symbols-star-rate-rounded v-for="number in book.myRating" :key="number" />
       </div>
       
+      <reread-marker v-if="book?.reread"></reread-marker>
+      
+      <div class="selected-cover" v-if="selectedBook" :style="{ 
+        borderRadius: (this.store.coverSize * store.borderRadius) + 'px',
+        border: (this.store.coverSize/30)+'px solid #222',
+      }"></div>
+      
     </div>
-    
   </div>  
 </template>
 
@@ -42,17 +54,30 @@ export default {
     };
   },
   
-  mounted: function() {
-    
+  computed: {
+    selectedBook() {
+      return (this.store.coverActions?.asin === this.book.asin) && this.book.asin; 
+    }
   },
 
   methods: {
-    coverHover: function( e ) {
+    coverHover( e ) {
       
       const hover = (e.type === 'mouseover');
       this.$store.commit('update', { key: 'panningAlert', value: hover });
       
     },
+    
+    toggleCoverActions() {
+      
+      const coverActionsAsin = _.get(this.store, 'coverActions.asin');
+      
+      this.$store.commit('update', { 
+        key: 'coverActions', 
+        value: coverActionsAsin === this.book.asin ? null : this.book,
+      });
+      
+    }
   },
   
 };
@@ -62,11 +87,15 @@ export default {
 
 .grid-inner-wrap.hide-author-and-title .author-and-title { display: none !important; }
 
+.author-and-title {
+  text-align: center;
+}
+
 .cover-star-icons,
 .cover-heart-icon {
   position: absolute;
   z-index: 50;
-  i { color: #ff0000; }
+  svg { color: #ff0000; }
 }
 .cover-star-icons {
   left: 0px;
@@ -76,7 +105,7 @@ export default {
   border-radius: 2px;
   // border-radius: 999999px;
   text-align: center;
-  i { color: #f8991c; }
+  svg { color: #f8991c; }
 }
 
 .cover-padding-preview {
@@ -97,6 +126,33 @@ export default {
   display: inline-block;
   font-size: 0;
   line-height: 0;
+  // &, .cover-img {
+  //   transition: all 300ms ease;
+  // }
+  &.active .cover-img {
+    filter: grayscale(1) invert(1) brightness(1.1);
+    // box-shadow: 0 0 4px 4px red !important;
+  }
+}
+
+.selected-cover {
+  position: absolute;
+  z-index: 5;
+  top   : 0;
+  right : 0;
+  bottom: 0;
+  left  : 0;
+  // border: 4px solid #63e2b8;
+  &:before {
+    // content: '';
+    // background: rgba(255,0,0,1);
+    // mix-blend-mode: color-burn;
+    // position: absolute;
+    // top: 0;
+    // right: 0;
+    // bottom: 0;
+    // left: 0;
+  }
 }
 
 .cover .placeholder,
@@ -108,4 +164,5 @@ export default {
   height: 0px;
   cursor: move !important;
 }
+
 </style>

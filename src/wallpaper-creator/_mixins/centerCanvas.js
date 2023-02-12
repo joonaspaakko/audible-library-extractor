@@ -113,6 +113,8 @@ export default {
 
     centerCanvas: _.debounce( function() {
       
+      return;
+      
       let workingArea = document.querySelector("#editor-canvas-left");
       let content = workingArea.querySelector("#editor-canvas-content");
 
