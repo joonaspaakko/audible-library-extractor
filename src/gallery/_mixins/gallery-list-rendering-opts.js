@@ -1316,6 +1316,51 @@ export default {
 
       this.$setListRenderingOpts( list );
       
+      this.addExcludeDropdowns( list );
+
+    },
+    
+    addExcludeDropdowns( list ) {
+      
+      let filters = list.filter;
+      
+      // Split the array in two
+      const firstDropdown_index = _.findIndex( filters, 'dropdownOpts');
+      filters =_.chunk( filters, firstDropdown_index-1 );
+      const dropdowns = filters[1];
+      
+      // Remove dividers for now...
+      _.remove( dropdowns, ( filter) => {
+        return filter.type === 'divider';
+      });
+      
+      const clonedDropdowns = _.cloneDeep( dropdowns );
+      
+      _.each( clonedDropdowns, ( dropdown ) => {
+        dropdown.conditionOriginal = dropdown.condition; 
+        dropdown.condition = function( book ) {
+          return !dropdown.conditionOriginal( book );
+        };
+        dropdown.placeholder = 'Exclude...';
+        dropdown.label       = dropdown.label + ' — Exclude';
+        dropdown.key         = dropdown.key + '-exclude';
+      });
+      
+      // const clonedFilters = _.clone( filters );
+      
+      let zipper = _.zip( dropdowns, clonedDropdowns );
+            
+      _.each( zipper, ( node, index ) => {
+        node.unshift({
+          type: 'divider',
+          key: 'divider-99999.' + index,
+        })
+      });
+      
+      zipper = _.flatten( zipper );
+      filters[ 1 ] = zipper;
+      list.filter = _.flatten( filters );
+      
     },
     
     removeArchived: function( list ) {

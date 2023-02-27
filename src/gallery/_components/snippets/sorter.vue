@@ -86,7 +86,7 @@
         <Multiselect
           ref="multiselect"
           :value="item.value" 
-        placeholder="Search..."
+          :placeholder="item.placeholder || 'Include...'"
           @change="dropdownChanged" 
           @open="dropdownOpened"
           :options="dropdownOptions" 
