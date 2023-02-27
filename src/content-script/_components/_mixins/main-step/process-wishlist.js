@@ -81,13 +81,17 @@ export default {
       response.data = null;
       const wishlist = [];
     
-      const wishlistRows = audible.querySelectorAll('#adbl-library-content-main .productListItem');
+      const wishlistRows = audible.querySelectorAll('#adbl-library-content-main li.productListItem');
       $(wishlistRows).each(function() {
         const _thisRow = this;
         
         let asin  = _thisRow.querySelector('[data-asin]');
-            asin  = asin.getAttribute("data-asin");
-            asin  = DOMPurify.sanitize( asin );
+        if (  asin ) asin = asin.getAttribute("data-asin");
+        if ( !asin ) {
+          asin = _thisRow.querySelector('[id^="product-list-flyout-"]');
+          if ( asin ) asin = asin.getAttribute('id').replace('product-list-flyout-', '');
+        }
+        asin  = DOMPurify.sanitize( asin );
         
         let carryOnMyWaywardPines = hotpotato.books ? !_.find( hotpotato.books, { asin: asin }) : true;
         if ( carryOnMyWaywardPines ) {
