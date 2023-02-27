@@ -37,6 +37,7 @@ const buildSingleFile = gallerySingleFile || wallpaperSingleFile;
 
 const copyFilesBefore = [
   // { src: src('assets/js'),    dest: 'assets' },
+  { src: src('gallery/images'),    dest: dist() },
 ];
 const copyFilesAfter = [
   { src: src('extension-js'), dest: 'assets' },
