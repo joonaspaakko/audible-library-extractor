@@ -40,7 +40,13 @@
         </span>
         <!-- LABEL in the back -->
         <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem }">
-          {{ item.label || item.key.replace(".name", "") }}
+          <span>
+            {{ item.label || item.key.replace(".name", "") }}
+            <span v-if="item.dropdownOpts" class="dropdown-label-suffix">
+              <span class="label-exclude" v-if="item.exclude">Exclude</span>
+              <span class="label-include" v-else>Include</span>
+            </span>
+          </span>
         </span>
         
         <!-- EXTRA suffix -->
@@ -403,6 +409,7 @@ export default {
     outline: none !important;
     box-shadow: none !important;
     min-height: 32px !important;
+    margin-bottom: 10px;
   }
   .multiselect-tag, .multiselect > *,
   .multiselect-option {
@@ -589,21 +596,29 @@ export default {
       transition: all 120ms ease-in-out;
     }
     &.sortbox [data-icon] {
-      opacity: 0.35;
+      @include themify($themes) {
+        color: rgba( themed(frontColor), 1);
+      }
     }
     &.sortbox.active {
       [data-icon="sort-up"] {
-        opacity: 1;
+        @include themify($themes) {
+          color: rgba( themed(frontColor), 1);
+        }
       }
       [data-icon="sort-down"] {
-        opacity: 0.35;
+        @include themify($themes) {
+          color: rgba( themed(frontColor), .35);
+        }
       }
     }
     &.radiobutton,
     &.checkbox {
       [data-icon="circle"]:first-child,
       [data-icon="square"] {
-        opacity: 0.2;
+        @include themify($themes) {
+          color: rgba( themed(frontColor), .2);
+        }
       }
       [data-icon="circle"]:last-child,
       [data-icon="check"] {
@@ -625,10 +640,14 @@ export default {
   input:checked + .sortbox {
     &.sortbox.active {
       [data-icon="sort-up"] {
-        opacity: 0.35;
+        @include themify($themes) {
+          color: rgba( themed(frontColor), .35);
+        }
       }
       [data-icon="sort-down"] {
-        opacity: 1;
+        @include themify($themes) {
+          color: rgba( themed(frontColor), 1);
+        }
       }
     }
     &.radiobutton, 
@@ -655,7 +674,9 @@ export default {
   &.faux-disabled .input-label,
   input[disabled="disabled"] ~ .input-label {
     text-decoration: line-through;
-    opacity: 0.35;
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .35);
+    }
   }
   
   &.faux-disabled {
@@ -692,14 +713,39 @@ export default {
   }
   
   .of-total {
-    opacity: .5;
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .5);
+    }
   }
   
   &.is-dropdown,
   &.ranged {
     display: inline-block !important;
     width: auto !important;
-  }
+  }  
   
-} // .sort-button
+} // .sorter-button
+
+
+.sorter-button .dropdown-label-suffix {
+  span { font-weight: bold; }
+}
+
+.theme-light .sorter-button {
+  .label-exclude {
+    color: #418616;
+  }
+  .label-include {
+    color: #c15726;
+  }
+}
+.theme-dark .sorter-button {
+  .label-exclude {
+    color: #65aa3a;
+  }
+  .label-include {
+    color: #ec8251;
+  }
+}
+
 </style>

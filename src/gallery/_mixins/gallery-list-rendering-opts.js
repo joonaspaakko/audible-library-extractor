@@ -1025,7 +1025,6 @@ export default {
               else { return []; }
             },
             value: [],
-            exclude: [],
             condition: function( book ) {
               
               const selectedTags = _.get(this, 'value') || [];
@@ -1342,8 +1341,9 @@ export default {
           return !dropdown.conditionOriginal( book );
         };
         dropdown.placeholder = 'Exclude...';
-        dropdown.label       = dropdown.label + ' — Exclude';
+        // dropdown.label       = dropdown.label + ' — Exclude';
         dropdown.key         = dropdown.key + '-exclude';
+        dropdown.exclude     = true;
       });
       
       // const clonedFilters = _.clone( filters );
@@ -1360,7 +1360,7 @@ export default {
       zipper = _.flatten( zipper );
       filters[ 1 ] = zipper;
       list.filter = _.flatten( filters );
-      
+      console.log( list.filter );
     },
     
     removeArchived: function( list ) {
