@@ -333,7 +333,6 @@ export default {
       if ( clicked.asin === query.asin ) query.newValue = null;
       // nullify false
       if ( !query.newValue ) query.newValue = null;
-      
       // Active book clicked: close bookdetails
       this.$updateQuery({ query: 'book', value: query.newValue, src: 'triggered at the top of the search toggle bookdetails' });
       

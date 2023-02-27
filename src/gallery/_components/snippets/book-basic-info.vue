@@ -5,8 +5,7 @@
     <arrayToHTML v-if="book.series" label="Series" :array="book.series" ></arrayToHTML>
     <arrayToHTML v-if="book.publishers" label="Publisher" :array="book.publishers" ></arrayToHTML>
     <div v-if="book.length">
-      <strong class="strong-label">Length:</strong>
-      {{ book.length }}
+      <strong class="strong-label">Length:</strong>{{ book.length }}
     </div>
 
     <!-- <div class="line-it-up"> -->
@@ -51,7 +50,7 @@ export default {
         <style>
         .ratings-tippy {
           margin: 0; 
-          padding: 20px 13px 20px 27px;
+          padding: 0px 0px 0px 15px;
         }
         .ratings-tippy li {
           padding-bottom: 5px;
@@ -96,6 +95,12 @@ export default {
 </script>
 
 <style lang="scss" scoped>
+
+
+:deep(.strong-label) {
+  padding-right: 5px;
+}
+
 .line-it-up {
   > * {
     display: inline-block;
