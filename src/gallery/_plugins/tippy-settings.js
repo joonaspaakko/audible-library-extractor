@@ -30,8 +30,9 @@ export default {
       
       tippyScrollContainer = document.querySelector('.list-view-inner-wrap') || window;
       tippyScrollContainer.addEventListener('scroll', tippyScrollHide, { passive: true });
-      
-      return !!tippy.props.content;
+      let content = tippy.props.content;
+      if ( !content || content === 'false' ) content = false;
+      return content;
     },
     onHide: tippy => {
       
