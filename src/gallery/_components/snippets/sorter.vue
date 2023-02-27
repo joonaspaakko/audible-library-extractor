@@ -1,16 +1,16 @@
 <template>
   <span class="sorter-button-wrapper">
     <span
-    v-if="item"
-    :class="item.key"
-    v-tippy="{ 
-      delay: 150,
-      maxWidth: 350, 
-      placement: (tippyTop ? 'top' : 'left'), 
-      flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']),
-      distance: listName ? 20 : 10,
-    }" 
-    :content="item.tippy ? item.tippy : false"
+      v-if="item"
+      :class="item.key"
+      v-tippy="{ 
+        delay: 150,
+        maxWidth: 350, 
+        placement: (tippyTop ? 'top' : 'left'), 
+        flipBehavior: (tippyTop ? ['top', 'bottom', 'left', 'right'] : ['left', 'top', 'bottom', 'right']),
+        distance: listName ? 20 : 10,
+      }" 
+      :content="item.tippy ? item.tippy : false"
     >
       <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts }">
         
@@ -65,8 +65,8 @@
         :hideLabel="true" 
         :included="!!(range.marks)" 
         :interval="range.min === range.max ? 1 : (item.rangeInterval || 1)" 
-        :marks="range.marks || Math.abs(range.min - range.max) <= 10" 
-        :value="range.value" 
+        :marks="range.marks" 
+        :modelValue="range.value" 
         :min="range.min" 
         :max="range.max" 
         :min-range="range.min === range.max ? 0 : (item.rangeMinDist || 0)" 
@@ -84,19 +84,22 @@
       
       <div v-if="!!item.dropdownOpts">
         <Multiselect
-        ref="multiselect"
-        :value="item.value" 
+          ref="multiselect"
+          :value="item.value" 
         placeholder="Search..."
-        @change="dropdownChanged" 
-        @open="dropdownOpened"
-        :options="dropdownOptions" 
-        mode="tags" 
-        :hideSelected="true"
-        :clearOnSelect="false"
-        :closeOnSelect="false"
-        :multiple="true"
-        :taggable="true"
-        :searchable="true" 
+          @change="dropdownChanged" 
+          @open="dropdownOpened"
+          :options="dropdownOptions" 
+          mode="tags" 
+          :hideSelected="true"
+          :clearOnSelect="false"
+          :closeOnSelect="false"
+          :multiple="true"
+          :taggable="true"
+          :searchable="true" 
+          :track-by="item.dropdownTrackBy"
+          :label="item.dropdownLabel"
+          :valueProp="item.dropdownValueProp"
         />
       </div>
 
@@ -156,7 +159,7 @@ export default {
       // if (  noRange ) range.disabled = true;
       // else range.disabled = false;
       
-      if ( this.item.rangeMarks ) range.marks = this.item.rangeMarks( range.max );
+      if ( this.item.rangeMarks ) range.marks = this.item.rangeMarks( range );
       
       this.range = range; 
       
@@ -185,7 +188,7 @@ export default {
         let conditionCheck = function( book ) {
           
           let filterExtrasConditions = _.map( filterExtraRules, function( filter ) {
-            return !!filter.condition( book );
+            return !!filter.condition( book, filter );
           });
           
           return !_.includes( filterExtrasConditions, false );
@@ -223,7 +226,7 @@ export default {
         
         let changes = {
           listName: this.listName,
-          index: this.index,
+          key: this.item.key,
           active: value,
         };
         
@@ -264,12 +267,12 @@ export default {
       
       let changes = {
         listName: this.listName,
-        index: this.index,
+        key: this.item.key,
         active: value.length > 0,
         value: value,
       };
       
-      if ( this.item.group ) changes.group = true;
+      if ( this.item.group   ) changes.group   = true;
       this.$store.commit("updateListRenderingOpts", changes);
       this.doTheThings( value, true );
       
@@ -288,7 +291,7 @@ export default {
       
       let changes = {
         listName: this.listName,
-        index: this.index,
+        key: this.item.key,
         range: value,
         active: true,
       };
@@ -303,7 +306,7 @@ export default {
       
       let changes = {
         listName: this.listName,
-        index: this.index,
+        key: this.item.key,
         active: true,
         range: [0,0],
       };
@@ -326,8 +329,6 @@ export default {
     
     doTheThings: function( value, specialBoy ) {
       
-      this.saveOptions( value, specialBoy);
-      
       if ( this.item.key === "sortValues" ) this.$compEmitter.emit("book-clicked", null);
     
       if ( this.listName === "scope" ) {
@@ -342,6 +343,8 @@ export default {
       } else if ( this.listName === "filter" ) {
         this.$compEmitter.emit("start-filter");
       } 
+      
+      this.saveOptions( value, specialBoy);
         
     },
     
@@ -484,11 +487,14 @@ export default {
     }
     .multiselect-tags-search { color: $darkFrontColor !important; }
     .multiselect-caret {
-      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z'/%3E%3C/svg%3E");
+      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M31.3 192h257.3c17.8 0 26.7 21.5 14.1 34.1L174.1 354.8c-7.8 7.8-20.5 7.8-28.3 0L17.2 226.1C4.6 213.5 13.5 192 31.3 192z'/%3E%3C/svg%3E") !important;
     }
     .multiselect-clear-icon {
-      background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'/%3E%3C/svg%3E");
+      background-color: white !important;
     }
+    // .multiselect-clear-icon {
+    //   background-image: url("data:image/svg+xml;charset=utf-8,%3Csvg viewBox='0 0 320 512' fill='white' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M207.6 256l107.72-107.72c6.23-6.23 6.23-16.34 0-22.58l-25.03-25.03c-6.23-6.23-16.34-6.23-22.58 0L160 208.4 52.28 100.68c-6.23-6.23-16.34-6.23-22.58 0L4.68 125.7c-6.23 6.23-6.23 16.34 0 22.58L112.4 256 4.68 363.72c-6.23 6.23-6.23 16.34 0 22.58l25.03 25.03c6.23 6.23 16.34 6.23 22.58 0L160 303.6l107.72 107.72c6.23 6.23 16.34 6.23 22.58 0l25.03-25.03c6.23-6.23 6.23-16.34 0-22.58L207.6 256z'/%3E%3C/svg%3E") !important;
+    // }
   }
   
   .vue-slider-dot-tooltip-inner,

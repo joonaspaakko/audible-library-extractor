@@ -3,6 +3,7 @@ export default {
   methods: {
 
     updateListRenderingOptions: function() {
+      
       const vue = this;
       let list = {
         scope: [{
@@ -261,7 +262,7 @@ export default {
             group: 'filterExtras',
             condition: function(book) {
               return _.find(book.narrators, function(narrator) {
-                return narrator.name.match('full cast');
+                return narrator.name.match(/full cast/im);
               });
             }
           },
@@ -273,7 +274,7 @@ export default {
             group: 'filterExtras',
             condition: function(book) {
               return !_.find(book.narrators, function(narrator) {
-                return narrator.name.match('full cast');
+                return narrator.name.match(/full cast/im);
               });
             }
           },
@@ -300,6 +301,17 @@ export default {
             group: 'filterExtras',
             condition: function(book) {
               return book.whispersync === 'available';
+            }
+          },
+          {
+            active: false,
+            excludeFromWishlist: true,
+            type: 'filterExtras',
+            label: 'Whisperync: available + owned',
+            key: 'whispersync-owned-or-available',
+            group: 'filterExtras',
+            condition: function(book) {
+              return book.whispersync;
             }
           },
           {
@@ -532,7 +544,7 @@ export default {
                 return rating >= min && rating <= max;
               }
             },
-            rangeInterval: .1
+            rangeInterval: .1,
           },
 
           {
@@ -592,6 +604,10 @@ export default {
             range: true,
             rangeMinDist: 0,
             rangeSuffix: '',
+            rangeInterval: 1,
+            rangeMarks: function( range ) {
+              return true;
+            }, 
             rangeMin: function() {
               let books = vue.$store.getters.collectionSource;
               let smallestRating = _.minBy(books, function(book) {
@@ -989,35 +1005,43 @@ export default {
             key: 'collections',
             group: 'filterExtras',
             excludeFromWishlist: true,
+            dropdownTrackBy: 'valueProp',
+            dropdownLabel: 'label',
+            dropdownValueProp: 'valueProp',
             dropdownOpts: function(type) {
+              console.log( 'vue.$store.state.library.collections', vue.$store.state.library.collections )
               if ( vue.$store.state.library.collections ) {
                 let allTags = _.map( vue.$store.state.library.collections, function( collection ) {
-                  return collection.title;
+                  return {
+                    label: collection.title,
+                    valueProp: collection.id,
+                  };
                 });
-                _.each(vue.$store.state.library.collections, function(book) {
-                  if (book.publishers) allTags.push(_.map(book.publishers, 'name'));
-                });
-                return allTags.sort();
+                // _.each(vue.$store.state.library.collections, function(book) {
+                //   if (book.publishers) allTags.push(_.map(book.publishers, 'name'));
+                // });
+                return _.sortBy(allTags, 'title');
               }
               else { return []; }
             },
             value: [],
-            condition: function(book) {
+            exclude: [],
+            condition: function( book ) {
               
-              let selectedTags = this.value;
-              if ( selectedTags.length && vue.$store.state.library.collections ) {
+              const selectedTags = _.get(this, 'value') || [];
+              const collectionIds = _.get(book, 'collectionIds', []);
+              const allCollections = _.get(vue.$store.state, 'library.collections', []);
+              if ( selectedTags.length && collectionIds.length && allCollections.length ) {
                 
-                let foundCollection = false;
-                _.each(vue.$store.state.library.collections, function( collection ) {
-                  if ( _.includes(collection.books, book.asin) ) {
-                    foundCollection = collection.title;
+                let ping = false;
+                _.each(selectedTags, ( selected ) => {
+                  if ( _.includes(book.collectionIds, selected) ) {
+                    ping = true;
                     return false;
                   }
                 });
                 
-                if ( foundCollection ) {
-                  return _.includes(selectedTags, foundCollection);
-                }
+                return ping;
                 
               }
             }
@@ -1290,8 +1314,8 @@ export default {
       // For example, sort by "Added" and show "Author" as the 'sort value'
       // this.addSortValueDropdown( list );
 
-      this.$setListRenderingOpts(list);
-
+      this.$setListRenderingOpts( list );
+      
     },
     
     removeArchived: function( list ) {
