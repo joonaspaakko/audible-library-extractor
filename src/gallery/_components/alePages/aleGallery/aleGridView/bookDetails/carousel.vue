@@ -203,14 +203,9 @@ export default {
 		},
 		
     // Repositions tooltip after a possible height change...
-    repositionTooltip( t ) {
-      this.$nextTick(function() {
-				try {
-					t.popperInstance.update();
-					console.log('trigger (popper instance exists... I guess?)');
-				} catch (e) {
-					console.log('trigger update failed');
-				}
+    repositionTooltip( tippy ) {
+			this.$nextTick(() => {
+				try { tippy.popperInstance.update(); } catch (e) {}
 			});
     },
 		
