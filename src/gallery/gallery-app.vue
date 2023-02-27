@@ -292,30 +292,31 @@ body {
 //   }
 // }
 
-[data-tippy-root] .tippy-content { 
+.tippy-content { 
   padding: 3px !important; 
   font-size: 13px !important;
   line-height: 19px !important;
-  text-align: left;
+  text-align: left !important;
   ul {
-    padding-left: 22px;
+    padding-left: 22px !important;
   }
 }
 
 .tippy-box {
-  border-radius: 11px;
+  border-radius: 11px !important;
+  padding: 15px !important;
 }
 
-.theme-dark [data-tippy-root] {
+.theme-dark {
   .tippy-box {
-    background: lighten($darkBackColor, 15);
-    border: 1px solid lighten($darkBackColor, 34);
+    background: lighten($darkBackColor, 15) !important;
+    border: 1px solid lighten($darkBackColor, 34) !important;
     box-shadow: 2px 2px 10px rgba(#000, 0.95) !important;
     .tippy-content {
-      color: $darkFrontColor;
+      color: $darkFrontColor !important;
       a {
         text-decoration: underline !important;
-        color: $darkFrontColor;
+        color: $darkFrontColor !important;
       }
     }
   }
@@ -325,32 +326,33 @@ body {
   }
 
   &[x-placement^="top"] .tippy-arrow {
-    border-top-color: lighten($darkBackColor, 34);
-    bottom: -8px;
+    border-top-color: lighten($darkBackColor, 34) !important;
+    bottom: -8px !important;
   }
   &[x-placement^="right"] .tippy-arrow {
-    border-right-color: lighten($darkBackColor, 34);
-    left: -8px;
+    border-right-color: lighten($darkBackColor, 34) !important;
+    left: -8px !important;
   }
   &[x-placement^="bottom"] .tippy-arrow {
-    border-bottom-color: lighten($darkBackColor, 34);
-    top: -8px;
+    border-bottom-color: lighten($darkBackColor, 34) !important;
+    top: -8px !important;
   }
   &[x-placement^="left"] .tippy-arrow {
-    border-left-color: lighten($darkBackColor, 34);
-    right: -8px;
+    border-left-color: lighten($darkBackColor, 34) !important;
+    right: -8px !important;
   }
 }
-.theme-light [data-tippy-root] {
+  
+.theme-light {
   .tippy-box {
-    background: #fff;
-    border: 1px solid darken($lightBackColor, 10);
+    background: #fff !important;
+    border: 1px solid darken($lightBackColor, 10) !important;
     box-shadow: 2px 2px 10px rgba(#000, 0.35) !important;
     .tippy-content {
-      color: $lightFrontColor;
+      color: $lightFrontColor !important;
       a {
         text-decoration: underline !important;
-        color: $lightFrontColor;
+        color: $lightFrontColor !important;
       }
     }
   }
@@ -360,16 +362,16 @@ body {
   }
   
   &[x-placement^="top"] .tippy-arrow {
-    border-top-color: $lightBackColor;
+    border-top-color: $lightBackColor !important;
   }
   &[x-placement^="right"] .tippy-arrow {
-    border-right-color: $lightBackColor;
+    border-right-color: $lightBackColor !important;
   }
   &[x-placement^="bottom"] .tippy-arrow {
-    border-bottom-color: $lightBackColor;
+    border-bottom-color: $lightBackColor !important;
   }
   &[x-placement^="left"] .tippy-arrow {
-    border-left-color: $lightBackColor;
+    border-left-color: $lightBackColor !important;
   }
 }
 
