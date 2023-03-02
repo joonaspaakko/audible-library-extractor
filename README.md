@@ -1,4 +1,6 @@
 # Audible Library Extractor browser extension ((metadata only)) <!-- omit in toc -->
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjoonaspaakko%2Faudible-library-extractor.svg?type=shield)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjoonaspaakko%2Faudible-library-extractor?ref=badge_shield)
+
 [![](https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20version)](https://github.com/joonaspaakko/audible-library-extractor/releases/latest)
 [![](https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20version)](https://github.com/joonaspaakko/audible-library-extractor/releases/latest)
 [![](https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug?label=known%20bugs)](https://github.com/joonaspaakko/audible-library-extractor/labels/bug)
@@ -73,3 +75,7 @@ I would not recommend installing these development releases. For one, you get to
 3. Locate and add the downloaded release `.zip` file.
 
 </details>
+
+
+## License
+[![FOSSA Status](https://app.fossa.com/api/projects/git%2Bgithub.com%2Fjoonaspaakko%2Faudible-library-extractor.svg?type=large)](https://app.fossa.com/projects/git%2Bgithub.com%2Fjoonaspaakko%2Faudible-library-extractor?ref=badge_large)
