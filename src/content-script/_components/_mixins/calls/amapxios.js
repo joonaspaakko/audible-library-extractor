@@ -28,6 +28,20 @@ export default {
       // cAxios = rateLimit(cAxios, { maxRPS: limiter });
       cAxios = rateLimit(cAxios, limiter);
       
+      const getRequestId = ( inputUrl ) => {
+        
+        let url = new Url( DOMPurify.sanitize(inputUrl) );
+        
+        if ( url.query.asin ) {
+          return url.query.asin;
+        }
+        else {
+          const splitPath = url.path.split('/');
+          return splitPath[splitPath.length-1];
+        }
+        
+      };
+      
       // REQUEST LOOP
       asyncMapLimit(
         options.requests,
@@ -35,10 +49,15 @@ export default {
         function(request, stepCallback) {
           
           const axiosConfig = options.config || {};
-          const requestURL = request.requestUrl || request.url || request;
-          const controller = new AbortController();
+          const requestURL  = request.requestUrl || request.url || request;
+          const requestId   = request.requestId || request.asin || getRequestId( requestURL );
+          const controller  = new AbortController();
           
-          const urlAlreadyFailed = _.includes( vue.$store.state.failedRequests, requestURL);
+          console.log('request', request)
+          console.log('requestURL', requestURL)
+          console.log('requestId', requestId)
+          
+          const urlAlreadyFailed = _.includes( vue.$store.state.failedRequests, requestId);
           console.log('urlAlreadyFailed', urlAlreadyFailed, JSON.parse(JSON.stringify(vue.$store.state.failedRequests)), requestURL);
           if ( urlAlreadyFailed ) {
             stepCallback(null, null);
@@ -72,7 +91,8 @@ export default {
           .catch(function(e) {
             
             const status = _.get(e, 'response.status');
-            if ( status == 404 ) vue.$store.commit('pushToFailedRequests', requestURL);
+            console.log( '4040 STATUS ', status == 404 );
+            if ( status == 404 ) vue.$store.commit('pushToFailedRequests', requestId);
             
             console.log( "%c" + "axios caught an error (step)" + "", "background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;", '\n\n', requestURL, '\n\n', e );
             

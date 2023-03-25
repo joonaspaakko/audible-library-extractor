@@ -106,7 +106,7 @@
               :editorCanvasPaddingBottom="store.canvas.padding.bottom"
             />
             
-            <div v-else style="width: 100%; height: 100%; display: flex; flex-direction: column;" :style="canvasAlignmentVertical"> 
+            <div v-else style="width: 100%; height: 100%; display: flex; flex-direction: row;" :style="canvasAlignmentVertical"> 
               
               <tier-list v-if="store.tierListMode" style="width: 100%;" @start="draggingStarted" @end="draggingEnded" @move="draggingMoved" />
               
@@ -617,6 +617,7 @@ export default {
     align-content: flex-start;
     width: 100%;
     height: 100%;
+    overflow: hidden;
     > div {
       cursor: default;
     }

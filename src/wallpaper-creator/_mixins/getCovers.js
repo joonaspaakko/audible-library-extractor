@@ -1,6 +1,5 @@
 // import _ from "lodash";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
-import browser from "webextension-polyfill";
+import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 
 export default {
   data: function() {
@@ -35,14 +34,14 @@ export default {
       }
       
       try {
-        browser.storage.local.get([
+        chrome.storage.local.get([
           'imageEditorChunks', 
           'imageEditorChunksLength', 
           'imageEditorTimeCode', 
           'imageEditorPageTitle', 
           'imageEditorPageSubTitle'
       ]).then(data => {
-          // browser.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
+          // chrome.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
           // console.log( 'data', data );
           if ( _.get(data, 'imageEditorChunksLength', 0) > 0 ) {
             vue.fetchArchive(function( archive ) {  
@@ -128,7 +127,7 @@ export default {
       let archivedBooks = [];
       
       try {
-        browser.storage.local.get(['collections-chunk-length']).then(ccData => {
+        chrome.storage.local.get(['collections-chunk-length']).then(ccData => {
           const ccLength = _.get(ccData, 'collections-chunk-length');
           if ( ccLength ) {
             
@@ -136,7 +135,7 @@ export default {
               return 'collections-chunk-'+index;
             });
             
-            browser.storage.local.get( collectionChunkKeys ).then(cData => {
+            chrome.storage.local.get( collectionChunkKeys ).then(cData => {
               
               const collections = _.flatMap(cData);
               const archive = _.find(collections, {id: '__ARCHIVE'});

@@ -8,7 +8,6 @@ export const customFilePathsJSON = {
 	name: 'Custom file paths json',
 	writeBundle(opts, bundle) {
 		if ( buildSingleFile ) return;
-		
 		const files = [];
 		for (const [key, o] of Object.entries(bundle)) {
 			files.push( o.fileName );
@@ -20,6 +19,9 @@ export const customFilePathsJSON = {
 	}
 };
 
+// Single file builds are done first and the regular build is done last. When a signle file build is
+// generated, it's moved to the project root with a different name. And during the regular build,
+// all single file html files are moved back in done last,
 export const customSingleFileGallery = {
 	name: 'Custom single file gallery',
 	// Before build
@@ -27,6 +29,7 @@ export const customSingleFileGallery = {
 	},
 	// After build
 	writeBundle(opts, bundle) {
+		// Preserving single file builds in the root folder until the entire build process finishes...
 		if ( buildSingleFile ) {
 			try {
 				fs.renameSync('./dist/gallery.html', './single-file-gallery.html');
@@ -35,6 +38,7 @@ export const customSingleFileGallery = {
 				fs.renameSync('./dist/animated-wallpaper.html', './single-file-animated-wallpaper.html');
 			} catch(e) {}
 		}
+		// Regular build → move single file builds back to the dist folder...
 		else {
 			try {
 				fs.renameSync('./single-file-gallery.html', './dist/single-file-gallery.html' );

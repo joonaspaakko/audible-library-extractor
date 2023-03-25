@@ -2,13 +2,14 @@
 <div class="reminder slide-in-blurred-top">
   <span>You can open this gallery page any time from <br>the browser context menu (right-click) </span>
   <div >
-    <img src="@output-images/context-menu.png" alt="">
+    <img :src="contextMenuImage" alt="">
   </div>
   <fa-solid-times class="hide" @click="hide" />
 </div>
 </template>
 
 <script>
+import contextMenuImage from './contextMenuReminder.png';
 
 export default {
   name: "contextMenuReminder",

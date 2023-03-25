@@ -1,10 +1,8 @@
 <template>
   <div :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }" :data-block-scrolling="$store.state.blockScrolling">
     
-    <ale-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></ale-background>
-    <ale-navigation></ale-navigation>
-    
-    <!-- <extension-gallery-toolbar /> -->
+    <gallery-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></gallery-background>
+    <gallery-navigation></gallery-navigation>
     
     <div v-if="$route.name !== '404'">
       <router-view :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.refreshView"></router-view>
@@ -292,6 +290,9 @@ body {
 //   }
 // }
 
+[data-tippy-root] {
+  z-index: 9999999999999999;
+}
 .tippy-content { 
   padding: 3px !important; 
   font-size: 13px !important;
@@ -304,13 +305,13 @@ body {
 
 .tippy-box {
   border-radius: 11px !important;
-  padding: 15px !important;
+  padding: 7px !important;
 }
 
 .theme-dark {
   .tippy-box {
     background: lighten($darkBackColor, 15) !important;
-    border: 1px solid lighten($darkBackColor, 34) !important;
+    border: 2px solid lighten($darkBackColor, 34) !important;
     box-shadow: 2px 2px 10px rgba(#000, 0.95) !important;
     .tippy-content {
       color: $darkFrontColor !important;
@@ -325,29 +326,31 @@ body {
     color: lighten($darkBackColor, 34) !important;
   }
 
-  &[x-placement^="top"] .tippy-arrow {
-    border-top-color: lighten($darkBackColor, 34) !important;
-    bottom: -8px !important;
-  }
-  &[x-placement^="right"] .tippy-arrow {
-    border-right-color: lighten($darkBackColor, 34) !important;
-    left: -8px !important;
-  }
-  &[x-placement^="bottom"] .tippy-arrow {
-    border-bottom-color: lighten($darkBackColor, 34) !important;
-    top: -8px !important;
-  }
-  &[x-placement^="left"] .tippy-arrow {
-    border-left-color: lighten($darkBackColor, 34) !important;
-    right: -8px !important;
+  .tippy-box {
+    &[data-placement^="top"] .tippy-arrow {
+      border-top-color: lighten($darkBackColor, 34) !important;
+      bottom: -1px !important;
+    }
+    &[data-placement^="right"] .tippy-arrow {
+      border-right-color: lighten($darkBackColor, 34) !important;
+      left: -1px !important;
+    }
+    &[data-placement^="bottom"] .tippy-arrow {
+      border-bottom-color: lighten($darkBackColor, 34) !important;
+      top: -1px !important;
+    }
+    &[data-placement^="left"] .tippy-arrow {
+      border-left-color: lighten($darkBackColor, 34) !important;
+      right: -1px !important;
+    }
   }
 }
   
 .theme-light {
   .tippy-box {
     background: #fff !important;
-    border: 1px solid darken($lightBackColor, 10) !important;
-    box-shadow: 2px 2px 10px rgba(#000, 0.35) !important;
+    border: 2px solid darken($lightBackColor, 10) !important;
+    box-shadow: 2px 2px 10px rgba(#000, 0.55), 0px 0px 25px rgba(#000, 0.35) !important;
     .tippy-content {
       color: $lightFrontColor !important;
       a {
@@ -361,17 +364,23 @@ body {
     color: $lightBackColor !important;
   }
   
-  &[x-placement^="top"] .tippy-arrow {
-    border-top-color: $lightBackColor !important;
-  }
-  &[x-placement^="right"] .tippy-arrow {
-    border-right-color: $lightBackColor !important;
-  }
-  &[x-placement^="bottom"] .tippy-arrow {
-    border-bottom-color: $lightBackColor !important;
-  }
-  &[x-placement^="left"] .tippy-arrow {
-    border-left-color: $lightBackColor !important;
+  .tippy-box {
+    &[data-placement^="top"] .tippy-arrow {
+      border-top-color: $lightBackColor !important;
+      bottom: -1px !important;
+    }
+    &[data-placement^="right"] .tippy-arrow {
+      border-right-color: $lightBackColor !important;
+      left: -1px !important;
+    }
+    &[data-placement^="bottom"] .tippy-arrow {
+      border-bottom-color: $lightBackColor !important;
+      top: -1px !important;
+    }
+    &[data-placement^="left"] .tippy-arrow {
+      border-left-color: $lightBackColor !important;
+      right: -1px !important;
+    }
   }
 }
 

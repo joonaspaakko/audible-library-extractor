@@ -121,7 +121,7 @@ export default {
         vue.$toast.error( errorMsg + ' ('+ e +')', vue.toastOpts);
       };
       
-      browser.storage.local.get(null).then(data => {
+      chrome.storage.local.get(null).then(data => {
         
         _.each( deleteArray, function( deleteKey ) {
           
@@ -167,8 +167,8 @@ export default {
         
         if ( data.chunks.length < 1 ) delete data.chunks;
         
-        browser.storage.local.clear().then(() => {
-          browser.storage.local.set(data).then(() => {
+        chrome.storage.local.clear().then(() => {
+          chrome.storage.local.set(data).then(() => {
             
             if ( onSuccess ) onSuccess( data );
           

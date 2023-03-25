@@ -1,6 +1,5 @@
-// browser.storage.local.clear(); console.log( 'Chrome storage CLEARED' );
-import browser from "webextension-polyfill"; window.browser = browser;
-browser.runtime.sendMessage({ pageAction: true });
+// chrome.storage.local.clear(); console.log( 'Chrome storage CLEARED' );
+chrome.runtime.sendMessage({ pageAction: true });
 
 import $ from "jquery"; window.$ = $;
 import _ from "lodash"; window._ = _;
@@ -198,7 +197,7 @@ $("#audible-library-extractor-btn").on("click", function(e) {
   
   // https://developer.chrome.com/apps/storage
   // Permission: "storage"
-  browser.storage.local.get(null).then(data => {
+  chrome.storage.local.get(null).then(data => {
     audibleLibraryExtractor(data);
   });
 });
@@ -207,11 +206,11 @@ $("#audible-library-extractor-btn").on("click", function(e) {
 // - Clicking the extension icon sends a message "iconClicked"
 // https://developer.chrome.com/apps/messaging#simple
 // https://developer.chrome.com/apps/runtime#event-onMessage
-browser.runtime.onMessage.addListener(message => {
+chrome.runtime.onMessage.addListener(message => {
   if (message.iconClicked) {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
-    browser.storage.local.get(null).then(data => {
+    chrome.storage.local.get(null).then(data => {
       audibleLibraryExtractor(data);
     });
   }
@@ -287,10 +286,10 @@ function audibleLibraryExtractor(data) {
 
 // getBookData();
 // function getBookData() {
-//   const helpers = require("@contscript-mixins/misc/helpers.js").default;
+//   const helpers = require("@contscript-mixins/misc/content-script-helpers.js").default;
 //   // https://developer.chrome.com/apps/storage
 //   // Permission: "storage"
-//   browser.storage.local.get(null).then(data => {
+//   chrome.storage.local.get(null).then(data => {
     
 //     console.log( 'data-1', data );
 //     if ( data.chunks ) helpers.methods.glueFriesBackTogether(data);

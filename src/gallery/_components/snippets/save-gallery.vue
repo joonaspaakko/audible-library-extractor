@@ -1,5 +1,5 @@
 <template>
-<modal @closeModal="$emit('closeComp')">
+<gallery-modal @closeModal="$emit('closeComp')">
   
   <div class="export-group">
 
@@ -12,7 +12,7 @@
         <h2>Stand-alone gallery</h2>
 
         <div class="description">
-          This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web browser.
+          This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web chrome.
         </div>
       </div>
     </div>
@@ -46,7 +46,7 @@
         </div>
         <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
           <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
-            <fa6-solid-circle-notch v-if="bundling" spin />
+            <line-md-downloading-loop v-if="bundling" />
             <fa6-solid-download v-else />
             <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
             <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
@@ -70,13 +70,13 @@
     </div>
   </div>
   
-</modal>
+</gallery-modal>
 </template>
 
 
 <script>
-import modal from '@output-snippets/modal.vue';
-// import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import modal from '@output-snippets/gallery-modal.vue';
+// import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 
 export default {
   name: "saveGallery",
@@ -86,44 +86,7 @@ export default {
   },
   data: function() {
     return {
-      files: [
-        // "gallery.js",
-        // "gallery.js.LICENSE.txt",
-        // "gallery.css",
-        
-        // "images/info/book-cover-cloud-player-button.jpg", 
-        // "images/info/sidebar.jpg", 
-        // "images/info/sidebar-toolbar.jpg", 
-        // "images/info/sidebar-series-list.jpg", 
-        // "images/info/sidebar-main-info.jpg", 
-        // "images/info/sidebar-cover.jpg", 
-        // "images/info/sidebar-collections-list.jpg", 
-        // "images/info/sample-play-button.jpg", 
-        // "images/info/prefer-short-title.jpg", 
-        // "images/info/cover-whispersync-indicator.jpg", 
-        // "images/info/cover-plus-calatog-indicator.jpg", 
-        // "images/info/cover-favorite-finished-indicators.jpg", 
-        // "images/info/carousel.jpg", 
-        // "images/info/blurb-hover-corner.jpg", 
-        
-        // "fonts/inconsolata-v21-latin-regular.woff",
-        // "fonts/inconsolata-v21-latin-regular.woff2",
-        // "fonts/roboto-v29-latin-700.woff",
-        // "fonts/roboto-v29-latin-700.woff2",
-        // "fonts/roboto-v29-latin-regular.woff",
-        // "fonts/roboto-v29-latin-regular.woff2",
-        
-        // "favicons/android-chrome-192x192.png",
-        // "favicons/android-chrome-512x512.png",
-        // "favicons/apple-touch-icon.png",
-        // "favicons/browserconfig.xml",
-        // "favicons/favicon-16x16.png",
-        // "favicons/favicon-32x32.png",
-        // "favicons/favicon.ico",
-        // "favicons/mstile-150x150.png",
-        // "favicons/safari-pinned-tab.svg",
-        // "app.webmanifest"
-      ],
+      files: [],
       dataSources: [
         { checked: true, disabled: false, key: 'Library' },
         { checked: true, disabled: false, key: 'Categories', parent: ['Library', 'Wishlist'], subPage: true },
@@ -147,7 +110,7 @@ export default {
 
   created: function() {
     
-    this.files = this.files.concat( window.chunksFilePaths );
+    this.files = window.chunksFilePaths;
     
     let vue = this;
 
@@ -188,7 +151,7 @@ export default {
           saveStandaloneAfter.deactivated = true;
 
           this.$store.commit('prop', { key: 'extractSettings', value: newConfig });
-          browser.storage.local.set({config: newConfig }).then(function() {
+          chrome.storage.local.set({config: newConfig }).then(function() {
             vue.saveButtonClicked();
           });
 
@@ -353,17 +316,43 @@ export default {
           zip.file("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
         }
         
-        // Make sure unnecessary files are excluded
+        console.log( _.cloneDeep( vue.files ) );
+        
+        // The files array has all kinds of irrelevant files to the gallery, This makes sure only
+        // the bare minimum is carried over to the standalone gallery.
         _.remove( vue.files, function( file ) {
-          return _.includes([
-            "chunks/save-csv.js",
-            "chunks/save-gallery.js",
-            "chunks/save-gallery.css",
-            "chunks/save-locally.css",
-            "chunks/save-locally.js",
-          ], file);
+          const filename = file.replace(/^assets\//, "");
+          if ( filename === 'gallery.html' ) return true;
+          const matches = [
+            !!filename.match(/^gallery/),
+            !!filename.match(/^content-script-helpers/),
+            !!filename.match(/^howler/),
+            !!filename.match(/^lodash/),
+            !!filename.match(/^tippy/),
+            !!filename.match(/^jquery/),
+            !!filename.match(/^fuse.esm/),
+            !!filename.match(/^index\..*\.js$/), 
+            !!filename.match(/^Roboto/i), 
+            !!filename.match(/^Inconsolata/i), 
+            !!filename.match(/^vue\.runtime\.esm-bundler/i), 
+            !!filename.match(/^fa-.+(woff2?|ttf)/), 
+          ];
+          return !_.includes( matches, true); // Include matches & exclude (rmove) everything else
         });
         
+        vue.files = vue.files.concat([
+          "favicons/android-chrome-192x192.png",
+          "favicons/android-chrome-512x512.png",
+          "favicons/apple-touch-icon.png",
+          "favicons/browserconfig.xml",
+          "favicons/favicon-16x16.png",
+          "favicons/favicon-32x32.png",
+          "favicons/favicon.ico",
+          "favicons/mstile-150x150.png",
+          "favicons/safari-pinned-tab.svg",
+          "app.webmanifest"
+        ]);
+        // vue.files.push('app.webmanifest');
         console.log( vue.files )
 
         // Service worker file

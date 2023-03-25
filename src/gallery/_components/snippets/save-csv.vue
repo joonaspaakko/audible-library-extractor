@@ -1,5 +1,5 @@
 <template>
-<modal @closeModal="$emit('closeComp')">
+<gallery-modal @closeModal="$emit('closeComp')">
   
   <div class="export-group">
 
@@ -77,17 +77,17 @@
     
   </div>
   
-</modal>
+</gallery-modal>
 </template>
 
 <script>
-import stringifyArray from "@output-mixins/stringifyArray.js";
-import makeCoverUrl from "@output-mixins/makeCoverUrl.js";
-import makeUrl from "@output-mixins/makeFullUrl.js";
-import prepareKeys from "@output-mixins/prepareKeys.js";
-import slugify from "@output-mixins/slugify.js";
-import makeGoodReadsUrl from "@output-mixins/goodReadsSearchUrl.js";
-import modal from '@output-snippets/modal.vue';
+import stringifyArray from "@output-mixins/gallery-stringifyArray.js";
+import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
+import makeUrl from "@output-mixins/gallery-makeFullUrl.js";
+import prepareKeys from "@output-mixins/gallery-prepareKeys.js";
+import slugify from "@output-mixins/gallery-slugify.js";
+import makeGoodReadsUrl from "@output-mixins/gallery-goodReadsSearchUrl.js";
+import modal from '@output-snippets/gallery-modal.vue';
 
 export default {
   name: "saveCsv",

@@ -166,6 +166,8 @@ export default {
               url.query.page = page;
               url.query.pageSize = request.pageSize;
               requestDolly.url = url.toString();
+              const splitPath = url.path.split('/');
+              requestDolly.requestId = splitPath[splitPath.length-1];
               requestUrls.push(requestDolly);
             });
           });
@@ -195,7 +197,8 @@ export default {
           response.data = null;
     
           let series = null;
-          const bookRows = audible.querySelectorAll(".adbl-impression-container > .productListItem");
+          const bookRows = audible.querySelectorAll(".adbl-impression-container li.productListItem");
+          
           if ( bookRows.length > 0 ) {
             
             series = {

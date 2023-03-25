@@ -68,8 +68,8 @@ export default {
 	methods: {
 		
     checkBrowser: function() {
-      this.isFirefox = browser.runtime.getURL('').startsWith('moz-extension://');
-      this.isChrome = browser.runtime.getURL('').startsWith('chrome-extension://');
+      this.isFirefox = chrome.runtime.getURL('').startsWith('moz-extension://');
+      this.isChrome = chrome.runtime.getURL('').startsWith('chrome-extension://');
     },
     
 	}

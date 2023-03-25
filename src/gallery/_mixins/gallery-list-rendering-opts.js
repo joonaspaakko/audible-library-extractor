@@ -1309,13 +1309,16 @@ export default {
       };
       
       this.removeArchived( list );
+      
       // FIXME: thinking about adding a dropdown that allows sorting with A and showing value from B
       // For example, sort by "Added" and show "Author" as the 'sort value'
       // this.addSortValueDropdown( list );
 
-      this.$setListRenderingOpts( list );
-      
       this.addExcludeDropdowns( list );
+      
+      
+      // This should always be last, because it executes filters etc from url parameters...
+      this.$setListRenderingOpts( list );
 
     },
     

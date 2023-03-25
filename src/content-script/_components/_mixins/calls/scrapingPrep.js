@@ -51,7 +51,7 @@ export default {
                 
                 const status = _.get(e, 'response.status');
                 if (status == 404) vue.$store.commit('pushToFailedRequests', requestURL);
-                waterfallback(true, null);
+                callback(true, null);
                 
               });
             }

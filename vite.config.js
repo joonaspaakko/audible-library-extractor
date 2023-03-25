@@ -37,14 +37,18 @@ const buildSingleFile = gallerySingleFile || wallpaperSingleFile;
 
 const copyFilesBefore = [
   // { src: src('assets/js'),    dest: 'assets' },
-  { src: src('gallery/images'),    dest: dist() },
+  { src: src('gallery/app.webmanifest'),    dest: dist() },
 ];
 const copyFilesAfter = [
   { src: src('extension-js'), dest: 'assets' },
   { src: src('assets/js'),    dest: 'assets' },
+  { src: src('gallery/app.webmanifest'),    dest: dist('') },
+  { src: src('gallery/images'),    dest: dist('assets') },
+  { src: src('gallery/favicons'),    dest: dist('') },
 ];
 
 const inputs = {};
+let manualChunks = null;
 
 if ( gallerySingleFile ) {
   inputs['gallery'] = 'gallery.html';
@@ -57,6 +61,12 @@ else {
   inputs['content-script'] = 'audible-library-extractor-content-script.js';
   inputs['wallpaper-creator'] = 'wallpaper-creator.html';
   inputs['animated-wallpaper'] = 'animated-wallpaper.html';
+  
+  manualChunks = {
+    jquery: ['jquery'],
+    jszip: ['jszip', 'jszip-utils'],
+    howler: ['howler'],
+  };
 }
 
 // https://vitejs.dev/config/
@@ -77,6 +87,7 @@ export default defineConfig({
 				entryFileNames: 'assets/[name].[hash].js',
 				assetFileNames: 'assets/[name].[hash].[ext]',
 				chunkFileNames: 'assets/[name].[hash].js',
+        manualChunks: manualChunks,
       },
     },
     commonjsOptions: {
@@ -86,7 +97,7 @@ export default defineConfig({
   optimizeDeps: {
     include: [
       'lodash',
-      'jquery',
+      // 'jquery',
       'axios',
       'axios-retry',
       'date-fns',

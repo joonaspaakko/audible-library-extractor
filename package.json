@@ -46,8 +46,7 @@
     "vue3-moveable": "^0.16.0",
     "vue3-shortkey": "https://github.com/BlazL/vue3-shortkey",
     "vuedraggable": "^4.1.0",
-    "vuex": "^4.0.2",
-    "webextension-polyfill": "^0.10.0"
+    "vuex": "^4.0.2"
   },
   "devDependencies": {
     "@crxjs/vite-plugin": "^1.0.14",
@@ -61,7 +60,6 @@
     "unplugin-vue-components": "^0.22.8",
     "vfonts": "^0.0.3",
     "vite": "2.9.15",
-    "vite-plugin-chrome-extension": "^0.0.7",
     "vite-plugin-ejs": "^1.5.0",
     "vite-plugin-singlefile": "^0.12.3",
     "vite-plugin-static-copy": "^0.9.0",

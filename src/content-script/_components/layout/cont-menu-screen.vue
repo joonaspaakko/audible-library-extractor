@@ -124,7 +124,7 @@
 </template>
 
 <script>
-import helpers from "@contscript-mixins/misc/helpers.js";
+import helpers from "@contscript-mixins/misc/content-script-helpers.js";
 
 export default {
   name: "menuScreen",
@@ -220,8 +220,8 @@ export default {
     },
     
     checkBrowser: function() {
-      this.isFirefox = browser.runtime.getURL('').startsWith('moz-extension://');
-      this.isChrome = browser.runtime.getURL('').startsWith('chrome-extension://');
+      this.isFirefox = chrome.runtime.getURL('').startsWith('moz-extension://');
+      this.isChrome = chrome.runtime.getURL('').startsWith('chrome-extension://');
     },
     
     makeReleaseURLs: function() {
@@ -644,7 +644,7 @@ body > .notices {
   
 }
 
-.udpate-tooltip {
+.update-tooltip {
   padding: 15px;
   
   ol, ul {

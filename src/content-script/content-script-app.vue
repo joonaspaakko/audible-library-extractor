@@ -17,7 +17,7 @@ import scrapingPrep from "./_components/_mixins/calls/scrapingPrep.js";
 // Misc
 import getDataFromCarousel from "./_components/_mixins/misc/fetch-store-page-carousel-data.js";
 // Misc - Helpers
-import helpers from "./_components/_mixins/misc/helpers.js";
+import helpers from "./_components/_mixins/misc/content-script-helpers.js";
 
 // Steps
 import getDataFromLibraryPages from "./_components/_mixins/main-step/process-library-pages.js";
@@ -30,8 +30,8 @@ import getDataFromWishlist from "./_components/_mixins/main-step/process-wishlis
 import getDataFromPurchaseHistory from "./_components/_mixins/main-step/process-purchase-history.js";
 
 // Outside
-import timeStringToSeconds from "@output-mixins/timeStringToSeconds.js";
-import secondsToTimeString from "@output-mixins/secondsToTimeString.js";
+import timeStringToSeconds from "@output-mixins/gallery-timeStringToSeconds.js";
+import secondsToTimeString from "@output-mixins/gallery-secondsToTimeString.js";
 
 // import eruda from "eruda";
 // import erudaMemory from "eruda-memory";
@@ -61,7 +61,7 @@ export default {
       libraryUrlFin: window.location.origin + "/library/titles?isFinished=true",
       seriesUrl: window.location.origin + "/series",
       collectionsUrl: window.location.origin + "/library/collections",
-      wishlistUrl: window.location.origin + "/wl",
+      wishlistUrl: window.location.origin + "/library/wishlist",
       purchaseHistoryUrl: window.location.origin + "/account/purchase-history", // tf=orders&df=2021
       domainExtension: window.location.hostname.replace('www.audible', ''),
       newBooks: [],
@@ -75,9 +75,12 @@ export default {
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJPL532" },
         // { storePageRequestUrl: "https://www.audible.com/pd/B08JJLSSMQ" },
         // { storePageRequestUrl: "https://www.audible.com/pd/1721336850" },
-        { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
-        { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
-        { storePageRequestUrl: "https://www.audible.com/pd/B076QXRJCZ" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B00VTQ8TO8" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B00D9171T0" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B076QXRJCZ" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B00IIS32NI" },
       ],
       doSeriesTest: [
         // { series: [{asin: 'B006XE41AC'}] },
@@ -113,7 +116,7 @@ export default {
     init_step_extract: function( config ) {
       
       const vue = this;
-      browser.storage.local.get(null).then(hotpotato => {
+      chrome.storage.local.get(null).then(hotpotato => {
         
         if ( hotpotato.chunks && hotpotato.chunks.length ) vue.glueFriesBackTogether(hotpotato);
         
@@ -179,7 +182,7 @@ export default {
     init_step_output: function( config ) {
       
       let newData = {config: config, extras: { 'domain-extension': this.domainExtension }};
-      browser.storage.local.set( newData ).then(() => {
+      chrome.storage.local.set( newData ).then(() => {
         this.goToOutputPage({ useStorageData: true });
       });
       
@@ -228,7 +231,7 @@ export default {
       }
       
       if ( hotpotato.useStorageData ) {
-        browser.runtime.sendMessage({ action: "openOutput", url: pageAddress });
+        chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
       } else {
         
         if ( hotpotato.config ) {
@@ -250,12 +253,12 @@ export default {
           this.makeFrenchFries(hotpotato);
         }
 
-        browser.storage.local.clear().then(() => {
-          browser.storage.local.set(hotpotato).then(() => {
+        chrome.storage.local.clear().then(() => {
+          chrome.storage.local.set(hotpotato).then(() => {
             
             // If console is open don't open the gallery page....
             // if ( vue.erudaOpenStayInAudible() ) return;
-            browser.runtime.sendMessage({ action: "openOutput", url: pageAddress });
+            chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
             
           });
         });
@@ -268,7 +271,7 @@ export default {
       if ( !_.isObject( hotpotato.version ) ) hotpotato.version = {};
       
       let hasData = this.store.storageHasData;
-      let version = browser.runtime.getManifest().version;
+      let version = chrome.runtime.getManifest().version;
       
       // If a step was just extracted and there was no existing data update data version...
       if ( _.find( hotpotato.config.steps, { name: 'library', value: true })     && !hasData.books       ) hotpotato.version.library     = version;

@@ -23,7 +23,7 @@
  
 <script>
 import { saveAs } from 'file-saver';
-import helpers from '@contscript-mixins/misc/helpers.js';
+import helpers from '@contscript-mixins/misc/content-script-helpers.js';
 export default {
 	
 	mixins: [ helpers ],
@@ -101,7 +101,7 @@ export default {
           });
         };
         
-        browser.storage.local.get(null).then(data => {
+        chrome.storage.local.get(null).then(data => {
           
           _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
             
@@ -117,8 +117,8 @@ export default {
             
           });
           
-          browser.storage.local.clear().then(() => {
-            browser.storage.local.set(data).then(() => {
+          chrome.storage.local.clear().then(() => {
+            chrome.storage.local.set(data).then(() => {
             
               vue.$toast.success('All "new" books succesfully reset', vue.store.toastOpts);
               
@@ -134,7 +134,7 @@ export default {
 		exportRawData: function() {
 			let vue = this;
 			vue.exportRawDataDisabled = true;
-			browser.storage.local.get(null).then(data => {
+			chrome.storage.local.get(null).then(data => {
 				
 				if ( data.chunks ) vue.glueFriesBackTogether( data );
 				
@@ -182,8 +182,8 @@ export default {
           let data = JSON.parse(e.target.result);
           vue.makeFrenchFries( data );
           
-          browser.storage.local.clear().then(() => {
-            browser.storage.local.set(data).then(function() {
+          chrome.storage.local.clear().then(() => {
+            chrome.storage.local.set(data).then(function() {
               
 							vue.$toast.success("Data imported succesfully!", vue.store.toastOpts);
               vue.loading = false;
@@ -208,8 +208,8 @@ export default {
           vue.$toast.error('Data clear failed: ' + e, vue.store.toastOpts);
         };
         
-        browser.storage.local.clear().then(function() {
-          browser.storage.local.get(null).then(data => {
+        chrome.storage.local.clear().then(function() {
+          chrome.storage.local.get(null).then(data => {
             
             vue.$dataChecker(data);
             

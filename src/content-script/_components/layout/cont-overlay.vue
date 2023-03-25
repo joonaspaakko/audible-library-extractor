@@ -20,7 +20,7 @@ export default {
     return {
       showLogo: false,
       imageSources: {
-        logo: browser.runtime.getURL(
+        logo: chrome.runtime.getURL(
           "assets/images/audible-library-extractor-logo.svg"
         )
       }

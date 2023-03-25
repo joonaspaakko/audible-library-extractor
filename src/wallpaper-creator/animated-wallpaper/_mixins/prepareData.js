@@ -1,5 +1,5 @@
 import _ from "lodash";
-import makeCoverUrl from "@output-mixins/makeCoverUrl";
+import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 
 export default {
   mixins: [

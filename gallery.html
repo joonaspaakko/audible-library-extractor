@@ -7,7 +7,6 @@
   <title>My Audible Library</title>
   
   <% if ( !singleFileMode ){ %>
-    <script src="assets/extension-js/browser-polyfill.min.js"></script>
     <script defer src="assets/js/lodash.min.js"></script>
     <script defer src="assets/extension-js/jszip.min.js"></script>
     <script defer src="assets/extension-js/jszip-utils.min.js"></script>
@@ -20,7 +19,7 @@
 <body>
   
   <div id="audible-library-extractor"></div>
-  <script type="module" src="./src/gallery/gallery.js"></script>
+  <script type="module" src="./src/gallery/gallery-main.js"></script>
 	
 </body>
 </html>

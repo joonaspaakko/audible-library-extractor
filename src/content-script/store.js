@@ -64,17 +64,6 @@ export default createStore({
         partialData: true,
       },
       {
-        label: "ISBN",
-        name: "isbn",
-        parent: 'books',
-        value: false,
-        disabled: false,
-        type: "is-success",
-        tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. ISBNs are fetched for library books only. Very slow extraction time.",
-        kind: 'main',
-        partialData: true,
-      },
-      {
         label: "Wishlist",
         name: "wishlist",
         value: false,
@@ -86,6 +75,17 @@ export default createStore({
         // cannotAccessTippy: this.cannotAccessWishlist ? '<a href="https://audible.com/login">audible.com/login</a>' : null,
       },
       {
+        label: "ISBN",
+        name: "isbn",
+        parent: 'books',
+        value: false,
+        disabled: false,
+        type: "is-danger",
+        tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. ISBNs are fetched for library books only. Very slow extraction time.",
+        kind: 'main',
+        partialData: true,
+      },
+      {
         name: "saveStandaloneAfter",
         value: false,
         label: "Start saving the standalone gallery immediately after extraction",
@@ -93,7 +93,7 @@ export default createStore({
       }
     ],
     axiosRateLimit: { 
-      maxRequests: 10, 
+      maxRequests: 20, 
       perMilliseconds: 1000,
     },
     failedRequests: [],

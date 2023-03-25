@@ -8,10 +8,17 @@
 
     <div class="ale-big-step" :class="{ 'sub-step-exists': store.subStep.max > 0 }" v-if="store.bigStep.title">
       <h2>
-        {{ store.bigStep.title }}
-        <span class="step" v-if="bigSteps">{{ bigSteps }}</span>
+        {{ store.bigStep.title }}&nbsp;
+        <!-- <span class="step" v-if="bigSteps">{{ bigSteps }}</span> -->
+        <small class="step" v-if="store.subStep.max > 0">({{ subSteps }})</small>
       </h2>
     </div>
+    
+    <!-- <div>
+      <div class="sub-step-wrapper" v-if="store.subStep.max > 0">
+        <small class="step" >{{ store.bigStep.title }} sub steps {{ subSteps }}</small>
+      </div>
+    </div> -->
 
     <div class="ale-progress" v-visible="store.progress.text">  
       <div>
@@ -20,26 +27,18 @@
             {{ store.progress.text2 }}
           </div>
           {{ store.progress.text }}
-          <transition name="fade" v-if="steps"
-            ><span>{{ steps }}</span></transition
-          >
+          <transition name="fade" v-if="steps"><span>{{ steps }}</span></transition>
           {{ store.progress.textsuffix }}
         </div>        
       </div>
     </div>
-
+    
     <div
       class="ale-bar"
       v-visible="store.progress.bar && store.progress.step && store.progress.max"
       :class="{ 'scale-in-hor-center': store.progress.bar }"
     >
       <div class="ale-step-line" :style="progressWidth"></div>
-    </div>
-    
-    <div>
-      <div class="sub-step-wrapper" v-if="store.subStep.max > 0">
-        <small class="step" >{{ store.bigStep.title }} sub steps {{ subSteps }}</small>
-      </div>
     </div>
     
     <div
@@ -63,8 +62,8 @@ export default {
     return {
       store: this.$store.state,
       imageSources: {
-        logo: browser.runtime.getURL("assets/images/audible-library-extractor-logo.svg"),
-        loader: browser.runtime.getURL("assets/images/loader-64px.gif")
+        logo: chrome.runtime.getURL("assets/images/audible-library-extractor-logo.svg"),
+        loader: chrome.runtime.getURL("assets/images/loader-64px.gif")
       },
     };
   },
