@@ -367,7 +367,7 @@ export default {
 
 <style lang="scss" scope>
 
-html, body, #awp {
+html, body, #animated-wallpaper, #awp {
   margin: 0px;
   width: 100%;
   height: 100%;

@@ -66,7 +66,7 @@
     <div class="mode-switcher" v-if="!store.saving">
       
       <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
-        <ri-collage-fill/> &nbsp; Change preset
+        <ri-collage-fill/> &nbsp; Change canvas preset
       </n-button>
       
     </div>
@@ -290,9 +290,9 @@
               No matter what screen resolution you have, the wallpaper will always have {{ store.coversPerRow }} columns.
             </n-alert>
             
-            <n-alert type="warning" v-else title="This will only affect the output">The current
-            cover size ~{{ Math.round(store.coverSize) }}px is prioritized over preferred "covers
-            per row" no matter what the screen resolution is.
+            <n-alert type="warning" v-else title="This will only affect the output">
+              The current cover size ~{{ Math.round(store.coverSize) }}px is prioritized over
+              "covers per row".
             </n-alert>
             
           </n-space>

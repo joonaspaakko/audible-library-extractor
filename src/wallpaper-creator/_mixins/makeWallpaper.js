@@ -67,6 +67,8 @@ export default {
               if ( data && !coverUrl ) {
                 var path = book;
                 var fileName = path.substring(path.lastIndexOf('/') + 1);
+                // Make sure the single file html output is index.html
+                fileName = fileName.replace('single-file-animated-wallpaper.html', 'index.html'); 
                 zip.file(fileName, data, { binary: true });
               }
               else if ( data ) {
