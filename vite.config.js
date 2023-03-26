@@ -111,6 +111,7 @@ export default defineConfig({
       '@splidejs/vue-splide', 
       'vue-slider-component', 
       '@vueform/multiselect',
+      'fitty',
     ],
   },
   // Basically string replacements. You can think of as a global immutable variable.

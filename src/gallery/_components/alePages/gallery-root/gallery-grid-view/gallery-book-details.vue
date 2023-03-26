@@ -35,7 +35,7 @@
               <gallery-vertical-chevron :up="!sticky.bookDetailsCollapsedCover" />
             </div>
             
-            <div class="cover-wrap">
+            <div class="cover-wrap" :class="{ 'cover-height': !sticky.bookDetailsCollapsedCover && book.cover && !mobileWidth }">
               <a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener noreferrer">
                 <div class="progressbar">
                   <div class="progress" :style="progressbarWidth(book)">
@@ -43,7 +43,14 @@
                   </div>
                 </div>
                 
-                <transition name="fade">
+                <!-- 
+                  Reasons for commenting out transition:
+                   - Caused an issue with calculating summary max height
+                   - The added "delay" to showing the image and pushing rest of the sidebar contents
+                     down didn't really look that great
+                     
+                -->
+                <!-- <transition name="fade"> -->
                   <img 
                     v-if="!sticky.bookDetailsCollapsedCover && book.cover && !mobileWidth"
                     v-show="imageLoaded"
@@ -53,7 +60,7 @@
                     :class="{ loaded: imageLoaded }"
                     :src="makeCoverUrl(book.cover)"
                   />
-                </transition>
+                <!-- </transition> -->
               </a>
             </div>
             <div class="progress-info" v-html="progressInfo(book)"></div>
@@ -638,6 +645,17 @@ export default {
   a {
     white-space: nowrap;
   }
+  
+  
+  .cover-wrap.cover-height {
+    width: 280px;
+    height: 280px;
+  }
+  &.mobile-width .cover-wrap {
+    width: auto;
+    height: auto;
+  }
+  
 
   .information {
     @include themify($themes) {
@@ -662,7 +680,7 @@ export default {
     > div {
       margin-bottom: 20px !important;
     }
-
+    
     .cover-wrap {
       -webkit-touch-callout: none; 
       -webkit-user-select: none; 
@@ -675,9 +693,7 @@ export default {
       padding: 0;
       overflow: hidden;
       margin-bottom: 0px !important;
-      // width: 280px;
-      // height: 280px;
-        
+      
       img {
         display: block;
         width: 280px;

@@ -65,7 +65,7 @@ export default {
     outline: none;
     padding: 5px 11px;
     border-radius: 3px;
-    border: 1px solid transparent;
+    border: 2px solid transparent;
     margin: 0 3px;
     @include themify($themes) {
       background: themed(elementColor);

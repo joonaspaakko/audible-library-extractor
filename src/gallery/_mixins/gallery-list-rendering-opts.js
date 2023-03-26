@@ -1009,7 +1009,6 @@ export default {
             dropdownLabel: 'label',
             dropdownValueProp: 'valueProp',
             dropdownOpts: function(type) {
-              console.log( 'vue.$store.state.library.collections', vue.$store.state.library.collections )
               if ( vue.$store.state.library.collections ) {
                 let allTags = _.map( vue.$store.state.library.collections, function( collection ) {
                   return {
@@ -1363,7 +1362,7 @@ export default {
       zipper = _.flatten( zipper );
       filters[ 1 ] = zipper;
       list.filter = _.flatten( filters );
-      console.log( list.filter );
+      
     },
     
     removeArchived: function( list ) {
