@@ -383,14 +383,17 @@ export default {
     // },
 
     modifyQuery: function(query) {
-      let newQuery = "";
-      const hasAmpersand = query.match(/&/);
-      const hasAnd = query.match(/ ?and ?/);
-      if (hasAmpersand) {
-        newQuery = query + "|" + query.replace("&", "");
-      } else {
-        newQuery = query;
+      let newQuery = query;
+      
+      if ( query.match(/&/i) || query.match(/ and /i) || query.match(/ a /i) || query.match(/ the /i) ) {
+        newQuery = query + "|" + 
+                   query.replace(/ & /ig, " ") + "|" + 
+                   query.replace(/ and /ig, " ") + "|" + 
+                   query.replace(/ a /ig, " ") + "|" + // For some reason titles with particles act kinda weird
+                   query.replace(/ an /ig, " ") + "|" + // For some reason titles with particles act kinda weird
+                   query.replace(/ the /ig, " "); // For some reason titles with particles act kinda weird
       }
+      
       return newQuery;
     },
 
