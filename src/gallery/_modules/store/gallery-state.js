@@ -67,6 +67,7 @@ export default {
   chunkCollection: [],
   chunkDistance: 40,
   refreshView: new Date().getTime(),
+  showRoute: true,
   pageTitle: null,
   pageSubTitle: null,
   version: import.meta.env.PACKAGE_VERSION,

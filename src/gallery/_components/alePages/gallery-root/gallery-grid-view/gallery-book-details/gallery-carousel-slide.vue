@@ -35,8 +35,7 @@
 					<!-- BOOK PART OF SAME SERIES AS THE ONE USER IS LOOKING AT -->
 					<div 
 						v-if="inSameSeries"
-						style="background: #047844;" 
-						class="carousel-gallery-link not-link" 
+						class="carousel-gallery-link not-link in-same-series" 
 						v-tippy="{ maxWidth: 300 }" :content="'This carousel book is in the same series as the one you have book details open on right now: <strong>' + detailsBook.title || detailsBook.titleShort + '</strong>'"
 					>
 						from this series
@@ -71,6 +70,7 @@
 							query: { 
 								subPageSource: 'library', 
 								refresh: true,
+								scrolltop: true,
 							} 
 						}"
 					>
@@ -158,6 +158,14 @@ a.carousel-gallery-link {
 		padding: 4px 7px;
 		margin: 10px 0px 0px 10px;
 		&:first-child { margin-left: 0; }
+	}
+}
+
+.in-same-series {
+	@include themify($themes) {
+		background: #047844; 
+		border: 2px dotted themed(backColor);
+		color: white !important;
 	}
 }
 </style>

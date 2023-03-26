@@ -211,8 +211,10 @@ export default {
           });
           
         }
-        else if ( scrollPosition ) {
+        else if ( scrollPosition || this.$route.query.scrolltop ) {
           
+          this.$updateQueries({ scrolltop: null });
+
           let wrapper = document.querySelector(".ale-books");
           let wrapperOffset = wrapper.offsetTop;
           let grid = this.$store.state.sticky.viewMode === 'grid';

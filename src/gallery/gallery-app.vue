@@ -79,19 +79,17 @@ export default {
   methods: {
     
     refreshPage: function( callback ) {
-      const vue = this;
-      const timeStamp = new Date().getTime();
-      this.$store.commit('prop', { key: 'viewRefresh', value: timeStamp });
+      
+      this.$store.commit('prop', { key: 'showRoute', value: false });
       this.$nextTick(function() {
-        
-        setTimeout(function() {
-          vue.$store.commit('prop', { key: 'viewRefresh', value: '' });
-          vue.$nextTick(function() {
-            if ( typeof callback === 'function' ) callback( vue );
+        // setTimeout(() => {
+          this.$store.commit('prop', { key: 'showRoute', value: true });
+          this.$nextTick(function() {
+            if ( typeof callback === 'function' ) callback( this );
           });
-        }, 10);
-        
+        // }, 10);
       });
+      
     },
     
     checkIf_iOS: function() {
@@ -165,7 +163,10 @@ export default {
         
       });
       
-    }
+    },
+    "$store.state.refreshView"() {
+      this.refreshPage();
+    },
   },
   
 };
