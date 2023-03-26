@@ -1,12 +1,12 @@
 <template>
   <div class="sRatings-wrapper" :data-rating="rating || 0" v-if="config.rating" :class="{ 'sRatings-block': block || opt.block, 'prioritize-ratings-text': prioritizeRatingsText }">
-    <div class="rating-count" v-if="ratings && prioritizeRatingsText">{{ratings}}<span v-if="ratingsText !== false"> ratings</span></div>
+    <div class="rating-count" v-if="ratings && prioritizeRatingsText"><span v-html="ratings"></span><span v-if="ratingsText !== false"> ratings</span></div>
     <div v-for="(star, index) in config.length" :key="index" :data-star="star" :data-whole="config.rating.whole === star" :data-fraction="config.rating.fraction && config.rating.whole === star-1" :style="{ width: ((config.rating.whole === star-1 && (noPlaceholder || opt.noPlaceholder) && config.rating.fraction) ? (((size || opt.size)*config.rating.originalFraction)+'px') : (size || opt.size)+'px'), height: (size || opt.size)+'px' }">
       <div class="sRatings-placeholder" v-if="config.rating.whole <= star && !(noPlaceholder || opt.noPlaceholder)" :style="{ left: (config.rating.fraction && config.rating.whole === star-1) ? config.rating.fraction+'%' : '0%', 'background-size': (size || opt.size)+'px', 'background-image': (image || placeholderImage || opt.placeholderImage) ? ('url('+ ((image && !placeholderImage) ? image : (placeholderImage || opt.placeholderImage)) +')') : false, opacity: (placeholderOpacity || opt.placeholderOpacity) }" :class="{ 'sRatings-show': config.rating.whole < star }"></div>
       <div class="sRatings-star" v-if="config.rating.whole >= star || (config.rating.fraction && config.rating.whole === star-1)" :style="{ width: (config.rating.whole >= star || (config.rating.whole === star-1 && (noPlaceholder || opt.noPlaceholder))) ? '100%' : config.rating.fraction+'%', 'background-size': (size || opt.size)+'px', 'background-image': (image || opt.image) ? 'url('+ (image || opt.image) +')' : false }"></div>
     </div>
-    <div class="text-label" :style="{ width: (numberOf || opt.numberOf) ? 'auto' : false, padding: (numberOf || opt.numberOf) ? '0 6px' : false }" v-if="number || opt.number">{{ (numberOf || opt.numberOf) ? (rating +'/'+ (stars || opt.stars)) : rating }}</div>
-    <div class="rating-count" v-if="ratings && !prioritizeRatingsText">({{ratings}}<span v-if="ratingsText !== false"> ratings</span>)</div>
+    <div class="text-label" :style="{ width: (numberOf || opt.numberOf) ? 'auto' : false, padding: (numberOf || opt.numberOf) ? '0 6px' : false }" v-if="number || opt.number" v-html="(numberOf || opt.numberOf) ? (rating +'/'+ (stars || opt.stars)) : rating"></div>
+    <div class="rating-count" v-if="ratings && !prioritizeRatingsText">(<span v-html="ratings"></span><span v-if="ratingsText !== false"> ratings</span>)</div>
   </div>
 </template>
 

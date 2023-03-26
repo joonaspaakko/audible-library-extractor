@@ -16,14 +16,12 @@
         
         <h2 class="book-title">
           <a :href="makeUrl('book', book.asin)" target="_blank" rel="noopener noreferrer">
-            <span v-if="!$store.state.sticky.bookDetailSettings.titleShort">{{ book.title || book.titleShort }}</span>
-            <span v-else>{{ book.titleShort || book.title }}</span>
+            <span v-if="!$store.state.sticky.bookDetailSettings.titleShort" v-html="book.title || book.titleShort"></span>
+            <span v-else v-html="book.titleShort || book.title"></span>
           </a>
         </h2>
         
-        <div class="subblementary-book-title" v-if="showSubtitle">
-          {{ book.subtitle || book.title }}
-        </div>
+        <div class="subblementary-book-title" v-if="showSubtitle" v-html="book.subtitle || book.title"></div>
         
         <div class="categories" v-if="book.categories">
           <gallery-array-to-html v-if="book.categories" label="categories" :noLabel="true" :array="book.categories" :chevron="true"></gallery-array-to-html>
