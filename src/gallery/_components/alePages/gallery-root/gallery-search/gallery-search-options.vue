@@ -81,7 +81,7 @@ export default {
   created: function() {
     
     this.$store.commit('prop', { key: 'lazyScroll', value: false });
-    this.$updateQuery({ query: 'y', value: null });
+    this.$updateQueries({ y: null });
     
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
     
@@ -112,8 +112,7 @@ export default {
     
     resetFilters: function() {
       
-      this.$updateQuery({ query: 'filter', value: null });
-      this.$updateQuery({ query: 'filterExtras', value: null });
+      this.$updateQueries({ filter: null, filterExtras: null });
       this.$store.commit("resetFilters");
       this.$compEmitter.emit("start-filter");
       

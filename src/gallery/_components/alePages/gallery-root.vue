@@ -163,7 +163,7 @@ export default {
       
       // This is mostly in place because I didn't make certain things work in a reactive way
       // When you back or forward navigate to the same route (by name) this refresh the view
-      if ( !this.$store.state.bookClicked ) this.$updateQuery({ query: 'refresh', value: true });
+      if ( !this.$store.state.bookClicked ) this.$updateQueries({ refresh: true });
       else this.$store.commit('prop', { key: 'bookClicked', value: false });
       
     },
@@ -253,7 +253,7 @@ export default {
     },
     
     expandView: function() {
-      this.$updateQuery({ query: 'book', value: null, history: true });
+      this.$updateQueries({ book: null }, { history: true });
       this.$compEmitter.emit('refresh-page');
     },
     
@@ -312,7 +312,7 @@ export default {
     },
     
     // updateScrollDistance: _.debounce( function( scrollTop ) {
-    //   this.$updateQuery({ query: 'y', value: scrollTop });
+    //   this.$updateQueries({ y: scrollTop });
     // }, 100, { leading: false, trailing: true }),
     
     toggleBookDetails: function( asin ) {
@@ -334,7 +334,7 @@ export default {
       // nullify false
       if ( !query.newValue ) query.newValue = null;
       // Active book clicked: close bookdetails
-      this.$updateQuery({ query: 'book', value: query.newValue, src: 'triggered at the top of the search toggle bookdetails' });
+      this.$updateQueries({ book: query.newValue });
       
     },
     

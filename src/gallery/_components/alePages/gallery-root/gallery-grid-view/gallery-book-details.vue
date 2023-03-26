@@ -151,7 +151,7 @@ export default {
       this.resetScroll();
       
       this.maxWidth = this.repositionBookDetails() + "px";
-      this.$updateQuery({ query: 'book', value: this.book.asin });
+      this.$updateQueries({ book: this.book.asin });
       this.$store.commit('prop', { key: 'timeStamp', value: new Date().getTime() });
       this.$compEmitter.on("afterWindowResize", this.onWindowResize);
       this.loading = false;
@@ -484,7 +484,7 @@ export default {
 
     closeBookDetails: function() {
       
-      if (_.get(this.$route, "query.book") !== undefined) this.$updateQuery({ query: 'book', value: null });
+      if (_.get(this.$route, "query.book") !== undefined) this.$updateQueries({ book: null });
       
     },
 

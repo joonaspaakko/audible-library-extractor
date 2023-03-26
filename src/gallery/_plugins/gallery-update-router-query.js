@@ -40,11 +40,11 @@ updateRouterQuery.install = function (app, options) {
     
     config      = config || {};
     let history = config.history;
-    let queryClone = JSON.parse( JSON.stringify( config.queries || this.$route.query ) );
+    let queryClone = JSON.parse(JSON.stringify( config.queries || this.$route.query ));
     
     _.merge(queryClone, queries);
     _.each( queryClone, function( value, key ) {
-      if ( value === null || value === undefined ) delete queryClone[ key ];
+      if ( _.isNil( value ) ) delete queryClone[ key ];
     });
     
     // push() writes a history state...

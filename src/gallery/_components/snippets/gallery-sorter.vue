@@ -357,19 +357,27 @@ export default {
     saveOptions: function( value, specialBoy ) {
       
       let vue = this;
+      const sortKey = this.item.key;
+      const sortType = this.item.type;
+      const queryObj = {};
       
-      if ( this.item.key === "sortValues" ) {
-        this.$updateQuery({ query: this.item.key, value: value });
+      if ( sortKey === "sortValues" ) {
+        queryObj[ sortKey ] = value;
       }
-      else if ( this.item.type === "sort" ) { 
-        this.$updateQuery({ query: this.item.type, value: this.item.key });
-        this.$updateQuery({ query: 'sortDir', value: value ? "desc" : "asc" });
+      else if ( sortType === "sort" ) { 
+        
+        queryObj[ sortType ] = sortKey;
+        queryObj.sortDir = value ? "desc" : "asc";
+        
       }
       else if ( this.listName === "filter" ) {
-        if ( this.item.type === 'filter') {
-          this.$updateQuery({ query: this.item.type, value: encodeURIComponent(this.$store.getters.filterKeys) });
+        if ( sortType === 'filter') {
+          
+          queryObj[ sortType ] = encodeURIComponent(this.$store.getters.filterKeys);
+          
         }
-        if ( this.item.type === 'filterExtras' ) {
+        if ( sortType === 'filterExtras' ) {
+          
           let vue = this;
           const filterExtrasKeys = vue.$store.getters.filterExtrasKeys;
           const queryKeysArray = !filterExtrasKeys ? false : _.map( filterExtrasKeys.split(','), function( key ) {
@@ -386,15 +394,18 @@ export default {
               return encodeURIComponent(key); 
             }
           });
-          this.$updateQuery({ query: this.item.type, value: queryKeysArray ? queryKeysArray.join(',') : false  });
+          
+          queryObj[ sortType ] = queryKeysArray ? queryKeysArray.join(',') : null;
+          
         }
       }
       else if ( this.listName === "scope" ) {
-        this.$updateQuery({ query: this.listName, value: encodeURIComponent(this.$store.getters.scopeKeys) });
+        
+        queryObj[ this.listName ] = encodeURIComponent(this.$store.getters.scopeKeys);
+        
       }
-      // else {
-      //   this.$updateQuery({ query: this.item.key, value: value });
-      // }
+      
+      this.$updateQueries( queryObj );
       
     },
     

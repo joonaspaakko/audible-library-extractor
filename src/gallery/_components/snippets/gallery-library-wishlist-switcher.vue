@@ -37,10 +37,13 @@ export default {
     
     switcher: function( key ) {
       
-      this.$updateQuery({ query: 'sort', value: null });
-      this.$updateQuery({ query: 'sortDir', value: null });
-      this.$updateQuery({ query: 'filterExtras', value: null });
-      this.$updateQuery({ query: 'subPageSource', value: key });
+      this.$updateQueries({
+        sort: null,
+        sortDir: null,
+        filterExtras: null,
+        subPageSource: key,
+      });
+      
       this.$store.commit('stickyProp', { key: 'subPageSource', value: key });
       
     },
