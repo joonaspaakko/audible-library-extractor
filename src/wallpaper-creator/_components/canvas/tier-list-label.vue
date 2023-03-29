@@ -30,12 +30,16 @@ export default {
   data: function () {
     return {
       store: this.$store.state,
-      labelSize: 0,
       focused: false,
+      fittyEl: null,
     };
   },
   
   computed: {
+    
+    labelSize() {
+      return (this.store.coverSize || 0) / 4;
+    },
     
     labelText: {
       get() {
@@ -64,17 +68,6 @@ export default {
       this.applyFitty('redraw');
       
     },
-    'store.coversPerRow'() {
-      
-      this.applyFitty('redraw');
-      
-    },
-  },
-  
-  mounted: function() {
-    
-    this.labelSize = (this.store.coverSize/4);
-
   },
   
   methods: {
@@ -87,12 +80,19 @@ export default {
       
       this.$nextTick(() => {
         
-        console.log( 'test', this.$refs.contedit.$el );
+        const fittyEl = this.$refs.contedit.$el;
+        fittyEl.style.fontSize = this.labelSize+'px';
         
-        this.$refs.contedit.$el.style.fontSize = this.labelSize+'px';
-        
-        fitty('[data-fitty-element="'+this.index+'"]', {
-          maxSize: this.labelSize,
+        if ( _.get(this.fittyEl, '0') ) {
+          // Using unsubscribe() instead of fit() in order to update maxSize
+          this.fittyEl[0].unsubscribe();
+        }
+        this.fittyEl = fitty('[data-fitty-element="'+this.index+'"]', {
+          maxSize: this.labelSize, 
+          // Necessary to make sure text doesn't overflow... Better to let user be the judge of how
+          // small is too small. They can always force a line break or reduce the amount of text to
+          // make legible.
+          minSize: 0,
         });
         
       });
@@ -131,6 +131,7 @@ export default {
 .fitty-element {
   display: inline-block !important;
   white-space: nowrap !important;
+  // white-space: normal !important;
   max-width: 100%;
   outline: none;
   direction: ltr;
