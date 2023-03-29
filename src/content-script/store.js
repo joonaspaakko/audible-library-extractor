@@ -93,7 +93,7 @@ export default createStore({
       }
     ],
     axiosRateLimit: { 
-      maxRequests: 20, 
+      maxRequests: 10, 
       perMilliseconds: 1000,
     },
     failedRequests: [],

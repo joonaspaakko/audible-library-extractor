@@ -45,7 +45,7 @@ export default {
       // REQUEST LOOP
       asyncMapLimit(
         options.requests,
-        limiter.maxRequests, // ASYNC MAP LIMITER
+        limiter.maxRequests*2, // ASYNC MAP LIMITER
         function(request, stepCallback) {
           
           const axiosConfig = options.config || {};
