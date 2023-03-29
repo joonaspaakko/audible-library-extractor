@@ -103,11 +103,11 @@ export default {
         const classes = this.numbersClass(book);
         var iconClass = "";
         if (classes.finished) {
-          iconClass = "archive";
+          iconClass = "fa-solid fa-archive";
         } else if (classes.unfinished) {
-          iconClass = "book";
+          iconClass = "fa-solid fa-book";
         } else if (classes.reading) {
-          iconClass = "book-reader";
+          iconClass = "fa-solid fa-book-reader";
         }
         return iconClass;
       }
