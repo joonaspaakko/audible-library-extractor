@@ -113,6 +113,7 @@
               <draggable 
                 class="drag-container"
                 :class="{ 'tier-container': store.tierListMode, 'tier-container-collapse': !$store.getters.containerTierVisible }" 
+                v-if="!store.tierListMode || store.tierListMode && !store.saving"
                 v-model="draggableCovers" 
                 item-key="asin"
                 group="covers" 

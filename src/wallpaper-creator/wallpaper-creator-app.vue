@@ -5,6 +5,10 @@
     @shortkey="store.events.canvasPanning ? forcePanning($event) : null"
   >
   
+    <!-- <div style="position: fixed; top: 0; left: 0; z-index: 99999999; background: red; color: white; width: auto; height: auto;">
+      <button @click="$store.commit('update', { key: 'saving', value: !store.saving })">Saving toggle ({{ store.saving }})</button>
+    </div> -->
+  
     <preset-modal v-if="store.presetModalOpen" />
     <editor-canvas
       :key="store.presetModalOpen"
