@@ -388,7 +388,7 @@ export default {
               return encodeURIComponent( key + ':' + range[0] +'-'+ (range[1]||range[0]) );
             }
             else if ( keyItem && keyItem.value && keyItem.value.length > 0 ) {
-              return encodeURIComponent(key + ':') + _.map( keyItem.value, function( val ) { return encodeURIComponent(val); }).join('|');
+              return encodeURIComponent(key + ':') + encodeURIComponent(_.map( keyItem.value, function( val ) { return val; }).join('|'));
             }
             else if ( key ) { 
               return encodeURIComponent(key); 
