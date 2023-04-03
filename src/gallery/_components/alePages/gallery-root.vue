@@ -330,6 +330,12 @@ export default {
         newValue: clicked.asin,
       };
       
+      // Abort if changing url param is unnecessary
+      // - This was causing issues when it was overlapping with other url param changes
+      if ( 
+        !query.newValue === !query.asin && !query.newValue // || // If false + identical value
+        //  query.newValue ===  query.asin && !!query.newValue  // If true + identical value
+      ) return;
       
       // Already open, so close it
       if ( clicked.asin === query.asin ) query.newValue = null;

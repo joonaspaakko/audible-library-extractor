@@ -188,7 +188,7 @@ export default {
     },
     filter: function() {
       
-      this.$compEmitter.emit("book-clicked", null)
+      this.$compEmitter.emit("book-clicked", null);
       
       this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
       
