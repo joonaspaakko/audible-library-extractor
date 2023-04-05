@@ -19,7 +19,7 @@
     <h3>Data source:</h3>
 
     <div class="options">
-      <label v-for="source in settings.dataSources" :key="source.key" v-tippy="{ allowHTML: true, maxWidth: 500 }" :content="source.tippy">
+      <label v-for="source in settings.dataSources" :key="source.key">
         <input type="radio" name="dataSources" v-model="settings.dataSourcesChecked" :value="source.key" @change="inputChanged"> 
         <div class="visual-radiobutton">
           <div class="icon">
@@ -31,13 +31,13 @@
     </div>
     
     <div class="description" style="margin-top: 10px;">
-      Use <strong>current list</strong> to export csv file from any page with custom filtering and sorting.
+      {{ dataSourceActive.description }}
     </div>
 
-    <h3>Compatibility:</h3>
+    <h3>Format:</h3>
 
     <div class="options">
-      <label v-for="item in settings.compatibility" :key="item.key" v-tippy="{ allowHTML: true, maxWidth: 500 }" :content="item.tippy">
+      <label v-for="item in settings.compatibility" :key="item.key">
         <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> 
         <div class="visual-radiobutton">
           <div class="icon">
@@ -48,9 +48,8 @@
       </label>
     </div>
     
-    <!-- <div class="description" style="margin-top: 10px;" v-html="compatibilityActive.tippy"></div> -->
     <div class="description" style="margin-top: 10px;">
-      Use <strong>raw data</strong> to export a csv file from any page with any kind of custom filtering and sorting.
+      {{ compatibilityActive.description }}
     </div>
 
     <div class="buttons-footer">
@@ -107,15 +106,15 @@ export default {
       settings: {
         dataSourcesChecked: 'Library',
         dataSources: [
-          { key: 'Library' },
-          { key: 'Wishlist' },
-          { key: 'Current list', tippy: 'What you see is what you get. For example, in a series sub page this option would export the entire series as listed, unless you modify it by adding filters or by searching. This option also exports with the current sorting, whereas the other two use the default descending sort by added. <strong>This data source only works on gallery pages with books.</strong>' },
+          { key: 'Library', description: 'Export library data as spreadsheet. Default sorting (added): new books at the top.'},
+          { key: 'Wishlist', description: 'Export wishlist data as spreadsheet.  Default sorting (added): new books at the top.'},
+          { key: 'Current page', description: 'Export contents from any page with books. Search, filtering, and sorting affect this source.' },
         ],
         compatibilityChecked: 'Google Sheets',
         compatibility: [
-          { key: 'Raw data', label: 'Raw data', tippy: "This is the format that works with any CSV capable application, like Open Office, Excel, Numbers, Google Sheets (though the GS specific format is recommended)." },
-          { key: 'Google Sheets', tippy: "<strong>Google Sheets compatible formulas:</strong> <ul><li>Cover image and store page hyperlink</li><li>Sample audio icon and hyperlink</li><li>Web player icon and hyperlink</li><li>Goodreads search icon and hyperlink</li><li>Title with a hyperlink to store page</li></ul>" },
-          { key: 'Goodreads', tippy: "This one has just the columns that are relevant to Goodreads and removes any books that don't have ISBNs because Goodreads won't import books without any. <br><br>Each book is imported in bookshelves as per their status: not started (to-read), started(currently-reading), finished (read). The categories are divided into shelves as well." },
+          { key: 'Raw data', label: 'Raw data', description: "Raw data with no special formulas, so it will work in any spreadsheet application." },
+          { key: 'Google Sheets', description: `Adds Google Sheets compatible formulas that add icons and links. If you don't like the formulas, you can use "raw data" instead.` },
+          { key: 'Goodreads', description: "This spreadsheet includes Goodreads relevant columns and removes any books that don't have ISBNs since Goodreads won't import books without them. Book status determines the bookshelve: not started (to-read), started(currently-reading), finished (read). Book categories are divided into shelves as well." },
         ] 
       },
       bundling: false,
@@ -158,7 +157,7 @@ export default {
       else if ( this.settings.dataSourcesChecked === 'Wishlist' ) {
         suffix = 'wishlist';
       }
-      else if ( this.settings.dataSourcesChecked === 'Current list' ) {
+      else if ( this.settings.dataSourcesChecked === 'Current page' ) {
         let pageTitle = this.$store.state.pageTitle ? this.slugify( this.$store.state.pageTitle ) : null;
         let routeName =  this.$route.name;
         suffix = pageTitle || routeName;
@@ -178,7 +177,7 @@ export default {
         case "Wishlist":
           return this.$store.state.library.wishlist;
           break;
-        case "Current list":
+        case "Current page":
           return this.$store.getters.collection;
           break;
       }
@@ -186,7 +185,7 @@ export default {
     },
     
     saveBtnEnabled: function() {
-      if ( this.settings.dataSourcesChecked === 'Current list' ) {
+      if ( this.settings.dataSourcesChecked === 'Current page' ) {
         if ( this.$route.meta.gallery ) return true;
       }
       else if ( this.settings.dataSourcesChecked === 'Wishlist' && this.settings.compatibilityChecked === 'Goodreads' ) {
