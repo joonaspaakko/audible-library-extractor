@@ -48,6 +48,9 @@
       <img :src="store.progress.thumbnail" alt="" style="max-height: 110px;" />
     </div>
     
+    <!-- <div v-if="store.taking_a_break"><iconoir-coffee-cup style="font-size: 20px;" /></div>
+    <div v-if="store.lastFailedRequestStatus">status: {{ store.lastFailedRequestStatus }}</div> -->
+    
     <div class="footnote">
       Keep this tab and the browser window on top until the extraction is completed.
     </div>

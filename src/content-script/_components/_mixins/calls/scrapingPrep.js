@@ -67,7 +67,7 @@ export default {
               o.pageNumbers = _.range(1, pagesLength + 1);
               o.pageSize = o.urlObj.query.pageSize || null;
               callback(null, o);
-            })
+            });
           }
         ],
         function(err, obj) {

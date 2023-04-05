@@ -27,7 +27,10 @@ export default {
                 returnResponse: true,
                 returnAfterFirstCall: true,
                 done: function(prep) {
-                  const audible = $($.parseHTML(prep.response.data)).find("div.adbl-main")[0];
+                  const html = _.get(prep, "response.data");
+                  if ( !html ) callback(null, prep);
+                  
+                  const audible = $($.parseHTML( html )).find("div.adbl-main")[0];
                   const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector(".adbl-library-refinement-section > div.bc-col-responsive.bc-col-2 > span").textContent.match(/\d+/)[0]) );
                   delete prep.response;
                   

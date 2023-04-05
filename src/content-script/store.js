@@ -97,6 +97,8 @@ export default createStore({
       perMilliseconds: 1000,
     },
     failedRequests: [],
+    lastFailedRequestStatus: null,
+    taking_a_break: false,
   },
 
   mutations: {
