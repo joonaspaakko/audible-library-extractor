@@ -8,6 +8,11 @@ export default {
       if ( _.find(hotpotato.config.steps, { name: "books" }) ) {
         
         this.$store.commit('update', [
+          { key: 'bigStep.step', value: 0 },
+          { key: 'subStep.step', value: 0 },
+        ]);
+        
+        this.$store.commit('update', [
           { key: 'bigStep.title', value: 'Library' },
           { key: 'bigStep.step', add: 1 },
           { key: 'subStep.step', add: 1 },

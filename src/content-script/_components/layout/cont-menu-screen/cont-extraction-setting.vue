@@ -6,13 +6,13 @@
 		v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy"
 	>
 		<!-- NUMBER -->
-		<p class="control pointer">
+		<!-- <p class="control pointer">
 			<button class="setting-numbers-wrapper button is-small" @click="settingChanged()" :disabled="settingDisabled">
 				<div class="button">
 					<span class="step-number">{{ index+1 }}</span>
 				</div>
 			</button>  
-		</p>
+		</p> -->
 		<!-- CHECKBOX -->
 		<p class="control pointer">
 			<button class="checbox-wrapper button is-small" @click="settingChanged()" :disabled="settingDisabled">

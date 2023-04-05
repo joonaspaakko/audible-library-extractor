@@ -129,13 +129,15 @@ export default {
           
           const waterfallArray = [
             function(callback) { callback(null, hotpotato); },
+            vue.getDataFromWishlist,        // Can be scraped alone
+            vue.getDataFromStorePages,      // Requires wishlist data
             vue.getDataFromLibraryPages,    // Can be scraped alone
             // vue.getDataFromLibraryPagesFin, // Requires library page data
             vue.getDataFromStorePages,      // Requires library page data
             vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
             vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
-            vue.getDataFromWishlist,        // Can be scraped alone
-            vue.getDataFromStorePages,      // Requires wishlist data
+            // vue.getDataFromWishlist,        // Can be scraped alone
+            // vue.getDataFromStorePages,      // Requires wishlist data
             vue.getISBNsFromGoogleBooks,    // Requires library page data
           ];
           

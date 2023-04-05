@@ -20,12 +20,12 @@
 			>
 				
 				<cont-extraction-setting 
-				:class="{ 
-					'partial-extraction': store.storageHasData[ setting.name ],
-				}"
-				:index="index" 
-				:settings="$store.getters.settings_mainSteps" 
-				:setting="setting" 
+					:class="{ 
+						'partial-extraction': store.storageHasData[ setting.name ],
+					}"
+					:index="index" 
+					:settings="$store.getters.settings_mainSteps" 
+					:setting="setting" 
 				/>
 				
 			</div>

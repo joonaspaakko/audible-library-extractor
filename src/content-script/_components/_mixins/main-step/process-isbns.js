@@ -13,6 +13,10 @@ export default {
       else {
         
         this.$store.commit('update', [
+          { key: 'bigStep.step', value: 0 },
+        ]);
+        
+        this.$store.commit('update', [
           { key: 'bigStep.title', value: 'International Standard Book Number (ISBN)' },
           { key: 'bigStep.step', add: 1 },
           { key: 'progress.text2', value: "(The matching process is relatively loose: beware of false matches)" },

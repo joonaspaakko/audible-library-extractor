@@ -8,6 +8,11 @@ export default {
         
       } else {
         
+        
+        this.$store.commit('update', [
+          { key: 'bigStep.step', value: 0 },
+        ]);
+        
         this.$store.commit('update', [
           { key: 'bigStep.title', value: 'Wishlist' },
           { key: 'bigStep.step', add: 1 },
