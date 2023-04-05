@@ -57,7 +57,6 @@ else if ( !standalone ) {
     // Permission: "storage"
     chrome.storage.local.get(null).then(data => {
       if (!_.isEmpty(data) && data.chunks) {
-        console.log('%c' + "If this page is empty and you're getting an error, try to reload a few times..."  + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;');
         helpers.methods.glueFriesBackTogether(data);
         startVue(data);
       } else {

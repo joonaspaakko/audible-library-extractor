@@ -285,9 +285,9 @@ export default {
               let txt = "When you open wallpaper creator, books are imported from the current page with the active sorting. Search and filters also affect what gets imported.";
               const nobooks = !(vue.$route.meta.gallery && vue.$store.getters.collection && vue.$store.getters.collection.length);
               const booksWithCovers = _.filter( vue.$store.getters.collection, 'cover');
-              if ( nobooks ) txt += "<br><br> <strong style='color: #f79a1c; font-size: 19px;'>Can't be opened on pages that don't have any books.</strong>";
-                        else txt += "<br><br> <strong style='color: #f79a1c;'>"+ booksWithCovers.length +" importable book covers on this page.</strong>";
-              return txt;
+              if ( nobooks ) txt += "<br><br> <strong style='color: #db7e00; font-size: 19px;'>Can't be opened on pages that don't have any books.</strong>";
+                        else txt += "<br><br> <strong style='color: #db7e00;'>Current selection of books "+ vue.$store.getters.collection.length +" / "+ vue.$store.getters.collectionTotal +". <br> Importable book covers: <span style='color: #50a900;'>"+ booksWithCovers.length +"</span></strong>";
+              return txt;  
             },
             meta: {
               icon: 'fa-solid fa-table-cells-large',
