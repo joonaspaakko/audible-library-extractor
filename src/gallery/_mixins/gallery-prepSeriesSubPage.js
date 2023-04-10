@@ -28,22 +28,46 @@ export default {
           });
         }
         
-        // Build series sub page array 
-        let books = _.filter( this.subPageSource.collection, function( book ) {
-          if ( seriesHasBooks ) {
-            return _.includes( series.books, book.asin );
-          }
-          else {
+        // Build series sub page array         
+        let books = [];
+        if ( seriesHasBooks ) {
+          
+          const allBooks = _.get(series, 'allBooks');
+          books = _.map(allBooks, ( book ) => {
+            if ( book.notInLibrary ) {
+              
+              return _.merge({
+                series: [
+                  {
+                    asin: series.asin,
+                    name: series.name,
+                    bookNumbers: book.bookNumbers,
+                  }
+                ]
+              }, book);
+            }
+            else {
+              return _.find( this.subPageSource.collection, { asin: book.asin });
+            }
+          });
+          
+          console.log( _.cloneDeep(books) );
+          // let books = _.filter( this.subPageSource.collection, function( book ) {
+          //   return _.includes( series.books, book.asin );
+          // });
+        }
+        else {
+          books = _.filter( this.subPageSource.collection, function( book ) {
             return _.find( book.series, { asin: seriesASIN });
-          }
-        });
+          });
+        }
         
         
         // Set page title
         if ( books.length > 0 ) {
-          const series = _.find( books[0].series, { asin: seriesASIN });
-          if ( series ) {
-            this.pageTitle = series.name;
+          const seriesAlt = _.find( _.get(books, '0.series'), { asin: seriesASIN });
+          if ( seriesAlt ) {
+            this.pageTitle = seriesAlt.name;
           }
           if ( !seriesHasBooks ) {
             this.pageSubTitle = "Couldn't find series order: using number sort";

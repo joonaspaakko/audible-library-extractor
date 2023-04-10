@@ -4,7 +4,7 @@
     <gallery-lazy
       v-for="(book, index) in $store.state.chunkCollection"
       class="ale-book"
-      :class="{ 'details-open': $route.query.book === book.asin, 'image-loaded': imageLoaded }"
+      :class="{ 'details-open': !!$route.query.book && $route.query.book === book.asin, 'image-loaded': imageLoaded }"
       :data-asin="book.asin"
       :key="'book:'+book.asin"
     >

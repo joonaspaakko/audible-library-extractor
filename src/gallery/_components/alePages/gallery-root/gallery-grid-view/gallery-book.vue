@@ -1,5 +1,5 @@
 <template>
-  <div class="details-inner-wrap">
+  <div class="details-inner-wrap" :class="{ 'not-in-library': book.notInLibrary }">
     
     <gallery-sort-values v-if="sortValuesEnabled" :book="book" />
     
@@ -14,7 +14,7 @@
 
       <div
         class="ale-click-wrap"
-        @click="$compEmitter.emit('book-clicked', book.asin)"
+        @click="book.notInLibrary ? null : $compEmitter.emit('book-clicked', book.asin)"
       >
         
         <div class="blurb-tooltip" v-if="book.blurb && sticky.bookDetailSettings.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
@@ -52,7 +52,10 @@
         </div>
       
         <div class="ale-info-indicator">
-          <div><fa6-solid-book/></div>
+          <div>
+            <fa6-solid-link v-if="book.notInLibrary" />
+            <fa6-solid-book v-else />
+          </div>
         </div>
         
         <div v-if="!book.cover || false" class="placeholder-cover">
@@ -477,6 +480,10 @@ body.is-ios .ale-click-wrap {
     }
   }
   
+}
+
+.not-in-library {
+  filter: grayscale(1);
 }
 
 </style>
