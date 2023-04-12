@@ -33,10 +33,15 @@ export default {
         if ( seriesHasBooks ) {
           
           const allBooks = _.get(series, 'allBooks');
+          let fakeAdded_counter = -1;
           books = _.map(allBooks, ( book ) => {
+            
+            ++fakeAdded_counter;
+            
             if ( book.notInLibrary ) {
               
-              return _.merge({
+              const notInLib_book = _.merge({
+                added: fakeAdded_counter,
                 series: [
                   {
                     asin: series.asin,
@@ -45,10 +50,21 @@ export default {
                   }
                 ]
               }, book);
+              
+              if ( !notInLib_book.asin ) notInLib_book.asin = series.asin + '-' + fakeAdded_counter + '-temp-asin';
+              
+              return notInLib_book;
             }
             else {
-              return _.find( this.subPageSource.collection, { asin: book.asin });
+              
+              let b =  _.find( this.subPageSource.collection, { asin: book.asin });
+                  b = _.cloneDeep( b );
+                  
+              b.added = fakeAdded_counter;
+              
+              return b;
             }
+            
           });
           
           console.log( _.cloneDeep(books) );

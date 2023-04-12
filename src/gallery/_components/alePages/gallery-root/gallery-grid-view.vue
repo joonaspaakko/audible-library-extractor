@@ -78,7 +78,16 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
       border-color: themed(audibleOrange);
       box-shadow: 0 0 0 3px themed(audibleOrange), 0 2px 10px rgba(#000, 0.7);
     }
+    .ale-info-indicator.not-in-library { display: none; }
+    .placeholder-cover, 
+    .ale-cover-image {
+      filter: unset !important;
+    }
+    .ale-info-indicator {
+      display: none !important;
+    }
   }
+  
 
   // Lazyload placeholder
   &:before {

@@ -14,7 +14,7 @@
 
       <div
         class="ale-click-wrap"
-        @click="book.notInLibrary ? null : $compEmitter.emit('book-clicked', book.asin)"
+        @click="!book.asin ? null : $compEmitter.emit('book-clicked', book.asin)"
       >
         
         <div class="blurb-tooltip" v-if="book.blurb && sticky.bookDetailSettings.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
@@ -53,8 +53,15 @@
       
         <div class="ale-info-indicator">
           <div>
-            <fa6-solid-link v-if="book.notInLibrary" />
-            <fa6-solid-book v-else />
+            <!-- <fa6-solid-link v-if="book.notInLibrary" />
+            <fa6-solid-book v-else /> -->
+            <fa6-solid-book />
+          </div>
+        </div>
+        
+        <div class="ale-info-indicator not-in-library" v-if="book.notInLibrary">
+          <div>
+            <fa6-solid-ban />
           </div>
         </div>
         
@@ -483,7 +490,42 @@ body.is-ios .ale-click-wrap {
 }
 
 .not-in-library {
-  filter: grayscale(1);
+  // border: 3px solid #ff404e;
+  // box-shadow: 0 0 0 3px #ff404e;
+  :deep(.sort-values-container > *) {
+    filter: grayscale(1);
+  }
+  
+  .ale-cover-image {
+    // filter: grayscale(1) contrast(.4) brightness(1.2);
+    filter: grayscale(1)
+  }
+  // .cover-img-wrapper:before {
+  //   content: '';
+  //   position: absolute;
+  //   z-index: 4;
+  //   top: 0;
+  //   right: 0;
+  //   bottom: 0;
+  //   left: 0;
+  //   background: rgba(#ff404e, 1);
+  //   mix-blend-mode: overlay;
+  // }
+  
+  
+  .ale-info-indicator.not-in-library {
+    display: flex;
+    div {
+      background: rgba(#000, .55);
+      width: 50%;
+      height: 50%;
+      font-size: 140%;
+    }
+  }
+}
+
+.ale-click-wrap:hover .ale-info-indicator.not-in-library {
+  display: none;
 }
 
 </style>

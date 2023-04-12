@@ -5,10 +5,20 @@ export default {
       
       const seriesAsin = this.$route.params.series;
       const seriesObj = _.find( this.$store.state.library.series, { asin: seriesAsin });
-      
+      console.log( 'TESTSSSSS:', seriesObj );
       return _.orderBy(
         params.books, 
-        function( book ) { return seriesObj.books.indexOf( book.asin ); },
+        function( book ) {
+          
+          return seriesObj.allBooks[ book.added ];
+          
+          // if ( !book.asin || book.asin.match(/temp-asin/i) ) {
+            
+          // }
+          // else {
+          //   return _.findIndex( seriesObj.allBooks, { asin: book.asin }); 
+          // }
+        },
         params.direction
       );
     },

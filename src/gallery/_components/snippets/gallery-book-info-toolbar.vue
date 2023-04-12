@@ -3,19 +3,19 @@
     <!-- TODO: not sure if favorite book icon makes sense here...
                note: it's also visible in the spreadsheet tooltip book details
     -->
-    <gallery-favorite-book   :size="size" :book="book" v-if="book.favorite" />
-    <gallery-sample-button   :size="size" :book="book" />
+    <!-- <gallery-favorite-book   :size="size" :book="book" v-if="book.favorite" /> -->
+    <gallery-sample-button   :size="size" :book="book" v-if="book.sample" />
     <!-- <sampleButton    :size="size" :book="book" :index="rowIndex" /> -->
     <gallery-goodreads-link  :size="size" :book="book" :icon="true" />
-    <gallery-open-in-app     :size="size" :book="book" />
-    <gallery-open-web-player :size="size" :book="book" :icon="true" />
+    <gallery-open-in-app     :size="size" :book="book" v-if="!tempAsin" />
+    <gallery-open-web-player :size="size" :book="book" :icon="true" v-if="!tempAsin && !book.notInLibrary" />
   </div>
 </template>
 
 <script>
 export default {
   name: "book-info-toolbar",
-  props: ["book"],
+  props: ["book", "tempAsin"],
   data: function() {
     return {
       size: 20,

@@ -16,7 +16,17 @@
       :class="{ 'book-detail-settings-open': store.bookDetailSettingsOpen }"
     >
     
-      <div class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
+      <!-- MISSING BOOK (not in library) -->
+      <div v-if="book.notInLibrary" class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
+        
+        <fa6-solid-ban style="font-size: 30px; color: #ff404e; margin-bottom: 20px;" /> 
+        
+        <gallery-book-details-title :book="book" :tempAsin="tempAsin" />
+        <gallery-book-info-toolbar style="margin-top: 15px;" :book="book" :tempAsin="tempAsin" v-if="sticky.bookDetailSettings.sidebar.iconToolbar"></gallery-book-info-toolbar>
+        
+      </div>
+      <!-- REGULAR BOOK (in library) -->
+      <div v-else class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
         
         <gallery-details-first-hider v-if="mobileWidth" />
         <gallery-sidebar-flipper />
@@ -202,6 +212,9 @@ export default {
     },
     mobileWidth() {
        return this.store.windowWidth <= 688;
+    },
+    tempAsin() {
+      return !!this.book.asin.match(/temp-asin/i);
     },
   },
   methods: {
