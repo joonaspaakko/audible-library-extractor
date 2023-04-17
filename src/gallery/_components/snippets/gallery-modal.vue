@@ -71,6 +71,7 @@ export default {
   left: 0;
   background: rgba(#888, 0.6);
   overflow: auto;
+  -webkit-backdrop-filter: blur(3px) grayscale(1);
   backdrop-filter: blur(3px) grayscale(1);
   -webkit-animation:puff-in-center .24s cubic-bezier(.47,0.000,.745,.715) both;
           animation:puff-in-center .24s cubic-bezier(.47,0.000,.745,.715) both;

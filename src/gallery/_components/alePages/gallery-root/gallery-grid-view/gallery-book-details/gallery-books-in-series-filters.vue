@@ -231,6 +231,7 @@ export default {
     color: rgba( $audibleOrange, 1) !important;
   }
   .img-icon {
+    -webkit-filter: invert(1);
     filter: invert(1);
   }
 }

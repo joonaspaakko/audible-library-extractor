@@ -81,6 +81,7 @@ body:not(.is-ios) .ale-book:hover .ale-play-sample {
     .ale-info-indicator.not-in-library { display: none; }
     .placeholder-cover, 
     .ale-cover-image {
+      -webkit-filter: unset !important;
       filter: unset !important;
     }
     .ale-info-indicator {

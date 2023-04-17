@@ -33,7 +33,7 @@ export default {
         if ( seriesHasBooks ) {
           
           const allBooks = _.get(series, 'allBooks');
-          let fakeAdded_counter = -1;
+          let fakeAdded_counter = 0;
           books = _.map(allBooks, ( book ) => {
             
             ++fakeAdded_counter;
@@ -67,7 +67,6 @@ export default {
             
           });
           
-          console.log( _.cloneDeep(books) );
           // let books = _.filter( this.subPageSource.collection, function( book ) {
           //   return _.includes( series.books, book.asin );
           // });
@@ -81,13 +80,25 @@ export default {
         
         // Set page title
         if ( books.length > 0 ) {
-          const seriesAlt = _.find( _.get(books, '0.series'), { asin: seriesASIN });
-          if ( seriesAlt ) {
-            this.pageTitle = seriesAlt.name;
-          }
-          if ( !seriesHasBooks ) {
-            this.pageSubTitle = "Couldn't find series order: using number sort";
-          }
+          
+          // This is a bit weird just because like why aren't I just fetching a property called
+          // series.title or series.name or something... But the point of this is to cater for
+          // multiple situations...
+          let title = null;
+          _.each( books, ( book ) => {
+            const titleSeries = _.find( _.get(book, 'series'), ( series ) => {
+              series = series || {};
+              return seriesASIN === series.asin && !!series.name;
+            });
+            if ( titleSeries ) {
+              title = titleSeries.name;
+              return false;
+            }
+          });
+          
+          if ( title ) this.pageTitle = title;
+          if ( !seriesHasBooks ) this.pageSubTitle = "Couldn't find series order: using number sort";
+          
         }
         
         // Init arrays

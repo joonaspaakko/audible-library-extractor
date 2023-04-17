@@ -3,21 +3,14 @@ export default {
     
     sortBookNumbers: function(params) {
       
-      const seriesAsin = this.$route.params.series;
-      const seriesObj = _.find( this.$store.state.library.series, { asin: seriesAsin });
-      console.log( 'TESTSSSSS:', seriesObj );
+      // const seriesAsin = this.$route.params.series;
+      // const seriesObj = _.find( this.$store.state.library.series, { asin: seriesAsin });
       return _.orderBy(
         params.books, 
         function( book ) {
           
-          return seriesObj.allBooks[ book.added ];
+          return book.added;
           
-          // if ( !book.asin || book.asin.match(/temp-asin/i) ) {
-            
-          // }
-          // else {
-          //   return _.findIndex( seriesObj.allBooks, { asin: book.asin }); 
-          // }
         },
         params.direction
       );

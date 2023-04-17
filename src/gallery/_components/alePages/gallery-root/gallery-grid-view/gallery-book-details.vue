@@ -935,6 +935,7 @@ export default {
   .details-wrap,
   .carousel-wrap {
     opacity: .2;
+    -webkit-filter: blur(3px) grayscale(1);
     filter: blur(3px) grayscale(1);
   }
 }

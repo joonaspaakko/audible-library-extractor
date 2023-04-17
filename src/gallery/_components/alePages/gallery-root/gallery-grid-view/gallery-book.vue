@@ -400,6 +400,7 @@ export default {
   
   .placeholder-cover,
   .ale-cover-image {
+    -webkit-filter: blur(1px) grayscale(30%);
     filter: blur(1px) grayscale(30%);
   }
 }
@@ -475,6 +476,7 @@ body.is-ios .ale-click-wrap {
   }
   .placeholder-cover,
   .ale-cover-image {
+    -webkit-filter: none !important;
     filter: none !important;
   }
 }
@@ -493,12 +495,14 @@ body.is-ios .ale-click-wrap {
   // border: 3px solid #ff404e;
   // box-shadow: 0 0 0 3px #ff404e;
   :deep(.sort-values-container > *) {
+    -webkit-filter: grayscale(1);
     filter: grayscale(1);
   }
   
   .ale-cover-image {
     // filter: grayscale(1) contrast(.4) brightness(1.2);
-    filter: grayscale(1)
+    -webkit-filter: grayscale(1);
+    filter: grayscale(1);
   }
   // .cover-img-wrapper:before {
   //   content: '';
