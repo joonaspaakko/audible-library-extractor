@@ -28,7 +28,7 @@
 
           <!-- BOOK IS FINISHED -->
           <div class="finished-marker" v-if="book.progress === 'Finished' && sticky.bookDetailSettings.finished">
-            <span><fa6-solid-check/></span>
+            <span><mdi-check-bold/></span>
             <span>finished</span>
           </div>
 
@@ -151,11 +151,11 @@ export default {
       width: 11px;
       height: 11px;
 
-      display: flex;
-      justify-content: center;
-      align-content: center;
-      justify-items: center;
-      align-items: center;
+      &, span {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
 
       // transition: all 150ms ease;
       overflow: hidden;
@@ -191,7 +191,7 @@ export default {
       font-weight: 700;
       > span {
         // transition-duration: 150ms;
-        display: inline-block;
+        display: flex;
         margin-left: 5px;
         &:first-child { margin-left: 0; }
       }

@@ -1,25 +1,30 @@
 <template>
-  <div :class="identifierClass" v-if="inputDataExists">
+  <div class="array-list-wrapper" :class="identifierClass" v-if="inputDataExists">
     <strong class="strong-label" v-if="!noLabel">{{ label }}:</strong>
-    <span v-for="(item, index) in array" :key="item.name + '(' + index + ')'">
+    <span clas="array-item" v-for="(item, index) in array" :key="item.name + '(' + index + ')'">
       <span>
+        
         <span v-if="index !== 0">
           <span v-if="chevron" class="chevron">
             <fa-solid-chevron-right/>
           </span>
           <span v-else>{{ delim || ", " }}</span>
         </span>
-        <a :href="makeUrl(label.toLowerCase(), item)" target="_blank" rel="noopener noreferrer">{{
-          item.name
-        }}</a
-        ><span v-if="item.bookNumbers" class="book-number">
+        
+        <a :href="makeUrl(label.toLowerCase(), item)" target="_blank" rel="noopener noreferrer">
+          {{ item.name }}
+        </a>
+        
+        <span v-if="item.bookNumbers" class="book-number">
           (book
-          <span v-for="(number, index) in item.bookNumbers"
-            ><span v-if="index !== 0">{{ "," }}</span
-            ><span>{{ number }}</span></span
-          >)</span
-        ></span
-      >
+            <span v-for="(number, index) in item.bookNumbers">
+              <span v-if="index !== 0">{{ "," }}</span>
+              <span>{{ number }}</span>
+            </span>
+          )
+        </span>
+        
+      </span>
     </span>
   </div>
 </template>
@@ -56,12 +61,17 @@ export default {
 
 <style scoped lang="scss">
 
+// .array-list-wrapper span {
+//   display: inline-flex;
+//   justify-content: center;
+//   align-items: center;
+// }
+
 .chevron {
   @include themify($themes) { color: rgba(themed(frontColor), .7); };
   font-size: 9px;
   line-height: 9px;
-  padding-left: 5px;
-  position: relative;
-  top: -1px;
+  padding: 0 5px;
 }
+
 </style>

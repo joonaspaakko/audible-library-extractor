@@ -68,7 +68,7 @@ h2.book-title {
   // margin-top: -2px;
   position: relative;
   //top: -3px;
-  font-size: 1.15em;
+  font-size: 1.25em;
   line-height: 1.45em;
   font-weight: 400;
 }
