@@ -4,10 +4,10 @@
     <gallery-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></gallery-background>
     <gallery-navigation></gallery-navigation>
     
-    <div v-if="$route.name !== '404'">
-      <router-view :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.refreshView"></router-view>
+    <div v-if="$route.name !== '404' && $store.state.showRoute">
+      <router-view :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.refreshViewTimeStamp"></router-view>
     </div>
-    <div v-else id="nothing-here-404">
+    <div v-else-if="$store.state.showRoute" id="nothing-here-404">
       <h3 v-if="$store.getters.searchIsActive && !$store.state.searchCollection.length">Search: no results</h3>
       <h3 v-else>404: There's nothing here</h3>
     </div>
@@ -80,14 +80,15 @@ export default {
     
     refreshPage: function( callback ) {
       
-      this.$store.commit('prop', { key: 'showRoute', value: false });
+      if ( this.$store.state.showRoute ) this.$store.commit('prop', { key: 'showRoute', value: false });
+      
       this.$nextTick(function() {
-        // setTimeout(() => {
+        setTimeout(() => {
           this.$store.commit('prop', { key: 'showRoute', value: true });
           this.$nextTick(function() {
             if ( typeof callback === 'function' ) callback( this );
           });
-        // }, 10);
+        }, 10);
       });
       
     },
@@ -164,8 +165,8 @@ export default {
       });
       
     },
-    "$store.state.refreshView"() {
-      this.refreshPage();
+    "$store.state.showRoute"( value ) {
+      if ( !value ) this.refreshPage();
     },
   },
   

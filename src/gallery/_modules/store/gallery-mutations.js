@@ -12,7 +12,6 @@ export default {
       config = config || {};
       if (config.key) {
         let newValue = config.freeze ? Object.freeze(config.value) : config.value;
-        if ( config.key === 'refreshView' ) newValue = new Date().getTime();
         _.set(state, config.key, newValue);
       }
     };

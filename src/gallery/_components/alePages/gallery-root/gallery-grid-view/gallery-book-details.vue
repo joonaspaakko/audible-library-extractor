@@ -504,7 +504,7 @@ export default {
 
     closeBookDetails: function() {
       
-      if ( _.get(this.$route, "query.book") ) this.$updateQueries({ book: null });
+      if ( _.get(this.$route, "query.book") ) this.$compEmitter.emit('book-clicked', null);
       
     },
 

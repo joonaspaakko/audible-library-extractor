@@ -193,12 +193,12 @@ export default function( libraryData ) {
 };
 
 function viewRefreshClean( to, from, next ) {
-  // console.log(' - - - - ')
-  // console.log( from );
-  // console.log( to );
-  if ( to.query.refresh ) {        
+  if ( to.query.refresh ) { 
     delete to.query.refresh;
-    store.commit('prop', { key: 'refreshView' });
+    store.commit('prop', [
+      { key: 'showRoute', value: false },
+      { key: 'refreshViewTimeStamp', value: new Date().getTime() },
+    ]);
     next(to);
   }
   else {

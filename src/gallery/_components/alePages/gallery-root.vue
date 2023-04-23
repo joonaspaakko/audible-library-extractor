@@ -255,8 +255,10 @@ export default {
     },
     
     expandView: function() {
+      
       this.$updateQueries({ book: null }, { history: true });
       this.$compEmitter.emit('refresh-page');
+      
     },
     
     gridViewMounted: function() {

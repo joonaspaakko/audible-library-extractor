@@ -1,7 +1,9 @@
 <template>
   <div class="gallery-title-wrapper" v-if="pageTitle || pageSubTitle">
     <h2 class="gallery-title" v-if="pageTitle">
-      {{ pageTitle }}
+      <router-link :to="pageLink">
+        {{ pageTitle }}
+      </router-link>
     </h2>
     <div class="divider"></div>
     <h3 class="gallery-sub-title" v-if="pageSubTitle">
@@ -11,19 +13,33 @@
 </template>
 
 <script>
+import domurl from 'domurl';
 
 export default {
   name: "pageTitle",
   props: ['pageTitle', 'pageSubTitle'],
+  data() {
+    return {
+      pageLink: '#',
+    }
+  },
   mounted: function() {
     
     if ( this.pageTitle ) this.$store.commit('prop', { key: 'pageTitle', value: this.pageTitle });
     if ( this.pageSubTitle ) this.$store.commit('prop', { key: 'pageSubTitle', value: this.pageSubTitle });
     
+    const routeDolly = _.cloneDeep(this.$route);
+    routeDolly.query = {
+      refresh: true,
+    };
+    this.pageLink = routeDolly;
+    
   },
   
   beforeUnmount: function() {
+    
     this.$store.commit('prop', { key: 'pageTitle', value: null });
+    
   },
   
 };
@@ -51,7 +67,9 @@ export default {
   font-weight: 700;
   margin: 0px;
   @include themify($themes) {
-    color: themed(frontColor);
+    &, & a { 
+      color: themed(frontColor) !important;
+    }
   }
 }
 

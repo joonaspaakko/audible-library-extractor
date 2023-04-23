@@ -66,7 +66,7 @@ export default {
   showBackground: false,
   chunkCollection: [],
   chunkDistance: 40,
-  refreshView: new Date().getTime(),
+  refreshViewTimeStamp: new Date().getTime(),
   showRoute: true,
   pageTitle: null,
   pageSubTitle: null,
