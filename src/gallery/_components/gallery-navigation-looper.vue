@@ -7,6 +7,7 @@
     
     <!-- Each individual menu item -->
     <component 
+      tabindex="0"
       v-for="route in routes"
       :key="route.path"
       :is="route.tag || 'router-link'" 
@@ -110,7 +111,7 @@ export default {
       const path = _.get(route, 'path');
       return !!path ? { 
         name: _.get(route, 'name') || _.get(route, 'children[0].name'),
-        query: { refresh: true  },
+        query: { refresh: true },
       } :
       _.get(route, 'href');
     },
@@ -237,12 +238,14 @@ export default {
     color: themed(frontColor);
     box-shadow: 0 5px 15px rgba( themed(outerColor), .7);
     border: 1px solid rgba( themed(frontColor), .2);
+    > .menu-items > div > .menu-item:focus,
     > .menu-items > div > .menu-item:hover {
       background: rgba(themed(frontColor), .1);
     }
   }
 }
 
+.menu-item:focus .sub-menu,
 .menu-item:hover .sub-menu {
   display: block;
   -webkit-animation:swing-in-top-fwd 300ms cubic-bezier(.175,.885,.32,1.275) both;
@@ -382,6 +385,7 @@ export default {
       border-top: 1px solid rgba( themed(frontColor), .1);
     }
   }
+  .menu-item:focus .menu-item-text,
   .menu-item:hover .menu-item-text {
     @include themify($themes) {
       color: themed(audibleOrange);

@@ -46,7 +46,7 @@
           </div>
           
           <div class="release-date" v-if="book.releaseDate" v-tippy content="YYYY-MM-DD">
-            <span class="strong-label">Released:</span>
+            <span class="strong-label">Released: </span>
             <span>{{ book.releaseDate }}</span>
           </div>
           
