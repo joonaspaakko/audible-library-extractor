@@ -16,8 +16,10 @@
 </template>
 
 <script>
+import audioPlayerGlobal from "@output-mixins/gallery-audio-player-global.js";
 
 export default {
+  mixins: [ audioPlayerGlobal, ],
   data: function() {
     return {
       general: {

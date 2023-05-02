@@ -18,6 +18,45 @@ export default {
             sortValues: true,
             splice: 3,
           });
+          
+          
+          this.$store.commit('addListRenderingOpts', { 
+            listName: 'filter', 
+            option: {
+              type: 'divider',
+              key: 'divider-series-filters'
+            },
+            splice: 3,
+          });
+          this.$store.commit('addListRenderingOpts', { 
+            listName: 'filter', 
+            option: {
+              active: true,
+              type: 'filterExtras',
+              label: 'Not In Library',
+              key: 'notInLibrary',
+              group: 'filterExtras',
+              condition: function(book) {
+                return _.get( book, 'notInLibrary');
+              }
+            },
+            splice: 3,
+          });
+          this.$store.commit('addListRenderingOpts', { 
+            listName: 'filter', 
+            option: {
+              active: true,
+              type: 'filterExtras',
+              label: 'In Library',
+              key: 'inLibrary',
+              group: 'filterExtras',
+              condition: function(book) {
+                return !_.get( book, 'notInLibrary');
+              }
+            },
+            splice: 3,
+          });
+          
         }
         else {
           this.$store.commit("updateListRenderingOpts", {

@@ -2,7 +2,21 @@
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation" ref="navigation">
     
-    <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" />
+    <gallery-navigation-looper v-if="!mobileMenuOpen" :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" :desktopMenu="true" />
+    
+    <manual-splider v-else-if="mobileMenuOpen">
+      <template #page-1>
+        
+        <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" />
+        
+      </template>
+      <template #page-2>
+        <!-- AUDIO PLAYER -->
+        <!-- <gallery-audio-player v-if="inRoot" /> -->
+        <gallery-audio-player-ui-desktop />
+          
+      </template>
+    </manual-splider>
     
     <!-- Component opened by one of the menu items -->
     <div class="floater-components" v-if="!mobileThreshold">

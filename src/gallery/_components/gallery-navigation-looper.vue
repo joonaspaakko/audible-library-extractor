@@ -1,7 +1,8 @@
 <template>
 <div class="menu-items" :class="{ 'has-sub-menu': childRoutes, mobileMenu: mobileMenuOpen }">
+    
   <div v-if="menuOpen">
-      
+    
     <div v-if="mobileMenuOpen" class="mobile-menu-top-filler" @click="$emit('update:mobileMenuOpen', !mobileMenuOpen)"></div>
     <div v-if="mobileMenuOpen" class="mobile-menu-top-spacer"></div>
     
@@ -67,7 +68,7 @@
   </div>
   
   <!-- AUDIO PLAYER -->
-  <gallery-audio-player v-if="inRoot" />
+  <gallery-audio-player-ui-desktop v-if="inRoot && desktopMenu"/>
   
 </div>
 </template>
@@ -75,7 +76,7 @@
 <script>
 export default {
   name: "menuLooper",
-  props: [ 'routes', 'childRoutes', 'mobileMenuOpen', 'inRoot' ],
+  props: [ 'routes', 'childRoutes', 'mobileMenuOpen', 'inRoot', 'desktopMenu' ],
   data: function() {
     return {
       menuOpen: true,
@@ -197,6 +198,10 @@ export default {
 
 .menu-item-inner {
   padding: 10px 12px;
+}
+
+.mobileMenu .menu-item-inner {
+  padding: 5px 12px !important;
 }
 
 .menu-item,
@@ -338,8 +343,8 @@ export default {
   flex: 1;
   min-height: 0;
   &, & svg, & div {
-    font-size: 21px !important;
-    line-height: 21px !important;
+    font-size: 19px !important;
+    line-height: 19px !important;
   }
   
   .menu-icon-toolbar { 

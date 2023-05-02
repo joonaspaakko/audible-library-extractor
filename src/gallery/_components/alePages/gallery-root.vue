@@ -57,6 +57,7 @@ export default {
     timeStringToSeconds,
     galleryListRenderingOpts,
     findSubPageSource,
+  
   ],
   
   data: function() {

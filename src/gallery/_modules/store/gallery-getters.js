@@ -54,4 +54,13 @@ export default {
     }
 
   },
+  
+  audioPlayerBook( state, getters ) {
+    return _.get( state.audioPlayer.audio, 'book', {});
+  },
+  audioPlayerTitle( state, getters ) {
+    const book = _.get( getters, 'audioPlayerBook', {});
+    return book.title || book.titleShort;
+  },
+  
 };

@@ -102,12 +102,21 @@ export default {
     // },
 
     playSample: function(book, index) {
-      this.$compEmitter.emit("play-audio", {
-        from: "book",
-        route: this.$route,
-        book: book,
-        index: index
+      this.$store.commit('prop', { 
+        key: 'audioPlayer.audio', 
+        value: {
+          from: "book",
+          route: this.$route,
+          book: book,
+          index: index
+        } 
       });
+      // this.$compEmitter.emit("play-audio", {
+      //   from: "book",
+      //   route: this.$route,
+      //   book: book,
+      //   index: index
+      // });
     },
     
   }
