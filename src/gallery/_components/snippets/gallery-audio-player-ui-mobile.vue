@@ -3,11 +3,15 @@
     
     <div class="inner-wrap">
       
-      <div class="player-innards">
+      <img class="book-cover" :src="makeCoverUrl($store.getters.audioPlayerBook.cover, 500)" alt="">
+      
+      <div class="book" v-if="$store.getters.audioPlayerTitle" @click="openBook">
+        <!-- <strong v-if="$store.state.audioPlayer.sample">sample&nbsp;|&nbsp;</strong> -->
+        <span>{{ $store.getters.audioPlayerTitle }}</span>
+      </div>
+      
+      <div class="player-timeline">
         
-        <img class="book-cover" :src="makeCoverUrl($store.getters.audioPlayerBook.cover, 280)" alt=""
-          v-tippy="{ placement: 'right', flipBehavior: ['right', 'bottom'] }" :content="($store.state.audioPlayer.sample ? '<strong>sample</strong> | ' : '') + $store.getters.audioPlayerTitle"
-        >
         
         <div class="time-display" v-if="store.audioPlayer.timeDisplay">{{ store.audioPlayer.timeDisplay }}</div>
 
@@ -21,16 +25,19 @@
             }"></div>
           </div>
         </div>
-
-        <div class="player-buttons">
-          <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')"><fa6-solid-play/></div>
-          <div class="pause" v-else @click="$compEmitter.emit('audio-player-pause')"> <fa6-solid-pause/></div>
-          <div class="stop" @click="$compEmitter.emit('audio-player-stop')">          <fa-solid-times/></div>
-          <div class="back" @click="$compEmitter.emit('audio-player-seek-back')">      <fa-solid-undo-alt/></div>
-          <div class="forward" @click="$compEmitter.emit('audio-player-seek-forward')"><fa-solid-redo-alt/></div>
-        </div>
         
       </div>
+      
+      <div class="player-buttons">
+        <div class="back" @click="$compEmitter.emit('audio-player-seek-back')"><ic-baseline-replay-30/></div>
+        <div class="play-pause">
+          <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')"><ic-round-play-arrow/></div>
+          <div class="pause" v-else @click="$compEmitter.emit('audio-player-pause')"><ic-round-pause/></div>
+        </div>
+        <!-- <div class="stop" @click="$compEmitter.emit('audio-player-stop')">          <fa-solid-stop/></div> -->
+        <div class="forward" @click="$compEmitter.emit('audio-player-seek-forward')"><ic-baseline-forward-30/></div>
+      </div>
+      
     </div>
     
   </div>
@@ -67,10 +74,10 @@ export default {
     width: 100%;
     text-align: center;
     margin: 0 auto !important;
-    margin-top: 0 !important;
+    margin-top: auto !important;
     box-sizing: border-box;
     // background: themed(backColor);
-    background: darken( themed(elementColor), 5);
+    // background: darken( themed(elementColor), 5);
     color: themed(frontColor);
     position: relative;
     z-index: 0;
@@ -94,6 +101,8 @@ export default {
     .inner-wrap {
       display: flex;
       flex-direction: column;
+      justify-content: center;
+      align-items: center;
       width: 100%;
       
       font-size: 17px;
@@ -108,15 +117,17 @@ export default {
       font-size: 15px;
       line-height: 18px;
       color: themed(frontColor);
-      margin-right: 50px;
+      margin-bottom: 40px;
     }
     
-    .player-innards {
+    .player-timeline {
+      width: 100%;
       flex: 1;
       display: flex;
       flex-direction: row;
       justify-items: center;
       align-items: center;
+      margin-bottom: 40px;
     }
     
     .time-display { 
@@ -133,13 +144,14 @@ export default {
       flex-direction: row;
       align-content: center;
       align-items: center;
-      padding-left: 20px;
       > div {
         cursor: pointer;
-        margin-left: 15px;
+        margin: 0 15px;
         padding: 5px;
         &:first-child { padding-left: 0; }
       }
+      font-size: 2em;
+      margin-bottom: 40px;
     }
     
     
@@ -259,10 +271,39 @@ export default {
 }
 
 .book-cover { 
-  max-width:  40px;
-  max-height: 40px;
-  border-radius: .5em;  
-  margin-right: 1em;
+  max-width:  100%;
+  border-radius: .5em;
+  margin-bottom: 40px;
+}
+
+.play-pause {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  z-index: 1;
+  font-size: 1.5em;
+  padding: .1em !important;
+  @include themify($themes) {
+    color: themed(backColor);
+  }
+  &:after {
+    content: '';
+    position: absolute;
+    z-index: -1;
+    border-radius: 50%;
+    width: 100%;
+    height: auto;
+    padding-top: 100%;
+    @include themify($themes) {
+      background: themed(frontColor);
+    }
+  }
+  div {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
 }
 
 </style>

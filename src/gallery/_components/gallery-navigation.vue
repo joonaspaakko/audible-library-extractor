@@ -10,10 +10,10 @@
         <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" />
         
       </template>
-      <template #page-2>
+      <template #page-2 v-if="store.audioPlayer.audio">
         <!-- AUDIO PLAYER -->
         <!-- <gallery-audio-player v-if="inRoot" /> -->
-        <gallery-audio-player-ui-desktop />
+        <gallery-audio-player-ui-mobile />
           
       </template>
     </manual-splider>

@@ -3,7 +3,7 @@
     <SplideSlide>
       <slot name="page-1"></slot>
     </SplideSlide>
-    <SplideSlide>
+    <SplideSlide v-if="$slots['page-2']">
       <slot name="page-2"></slot>
     </SplideSlide>
   </Splide>
@@ -50,6 +50,10 @@ export default {
 :deep(.splide__list),
 :deep(.splide__list li) {
   height: 100%;
+}
+
+:deep(.splide__slide) {
+  display: flex;
 }
 
 </style>
