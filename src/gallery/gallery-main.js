@@ -35,6 +35,9 @@ import '@fortawesome/fontawesome-free/css/all.css';
 import longPress from './_plugins/gallery-long-press.js';
 app.directive('longpress', longPress);
 
+import Vue3TouchEvents from "vue3-touch-events";
+app.use(Vue3TouchEvents);
+
 // GLOBAL METHODS
 import setListRenderingOptions from './_plugins/gallery-set-list-rendering-options.js'
 app.use( setListRenderingOptions );

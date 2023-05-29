@@ -1,7 +1,13 @@
 <template>
-<div class="action-reverse-direction" :class="{ flip: detailSettings.reverseDirection }">
+<div 
+  class="action-reverse-direction" 
+  :class="{ flip: detailSettings.reverseDirection }"
+  @click="flip"
+>
   
-  <fa6-solid-retweet @click="flip" />
+  <fluent-circle-small-20-filled/>
+  <fluent-circle-12-filled/>
+  <!-- <fa6-solid-retweet @click="flip" /> -->
   
 <!--   
   <div
@@ -75,10 +81,12 @@ export default {
 .action-reverse-direction {
   @extend .no-selection;
   @include themify($themes) {
+    display: flex;
+    flex-direction: row;
     position: absolute;
     z-index: 2;
     top: -30px;
-    right: 40px;
+    right: 80px;
     font-size: 18px;
     cursor: pointer;
     transition: color 200ms cubic-bezier(0, 0, 0, .1);
@@ -87,6 +95,10 @@ export default {
     &:hover {
       color: themed(frontColor);
     }
+  }
+  
+  &.flip {
+    flex-direction: row-reverse;
   }
 }
 

@@ -1,5 +1,5 @@
 <template>
-  <Splide :options="options" class="manual-splider">
+  <Splide :options="options" class="manual-splider" @splide:active="onActive" @splide:resize="onActive">
     <SplideSlide>
       <slot name="page-1"></slot>
     </SplideSlide>
@@ -40,6 +40,21 @@ export default {
     }
   },
   
+  methods: {
+    onActive( slider ) {
+      
+      let slide = slider.Components.Slides.getAt( slider.index ).slide;
+      const slideHeight = slide.querySelector(':scope > div').offsetHeight;
+      const slidePadding = 35;
+      slide.parentElement.parentElement.style.height = null;
+      setTimeout(() => {
+        slide.parentElement.parentElement.style.height = (slide.offsetHeight) + 'px';
+      }, 1);
+      
+        
+    }
+  },
+  
 };
 </script>
  
@@ -52,8 +67,41 @@ export default {
   height: 100%;
 }
 
+// :deep(.splide__track) {
+//   height: auto !important;
+// }
+
 :deep(.splide__slide) {
   display: flex;
 }
+
+:deep(.splide__pagination) {
+  gap: 5px !important;
+}
+
+:deep(.splide__pagination__page) {
+  // width: 7px !important;
+  // height: 7px !important;
+  border-radius: 999999px !important;
+}
+
+// :deep(.splide__track) {
+//   transition: height .2s !important;
+// }
+// :deep(.splide__list) {
+//   transition: height .2s !important;
+// }
+
+// :deep(.splide__pagination__page.is-active) {
+//   width: 10px !important;
+//   height: 10px !important;
+// }
+
+// :deep(.splide .splide__track .splide__list) {
+//   align-items: flex-start !important;
+// }
+// :deep(.splide__slide:not(.is-active)) {
+//   height: 0 !important;    
+// }
 
 </style>

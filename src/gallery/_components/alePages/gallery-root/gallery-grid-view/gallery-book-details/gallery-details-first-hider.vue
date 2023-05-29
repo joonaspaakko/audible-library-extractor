@@ -7,8 +7,12 @@
 @click="flip"
 >
   
-  <fa6-regular-eye-slash v-if="detailSettings.hideFirstSection"/>
-  <fa6-regular-eye v-else />
+  <!-- <fluent-circle-small-20-filled />
+  <fluent-circle-12-filled/> -->
+  <!-- <fa6-regular-eye-slash v-if="detailSettings.hideFirstSection"/>
+  <fa6-regular-eye v-else /> -->
+  <ph-number-circle-one-fill v-if="detailSettings.hideFirstSection"/>
+  <ph-number-circle-two-fill v-else/>
 
 </div>
 </template>
@@ -39,10 +43,12 @@ export default {
 .details-first-hider {
   @extend .no-selection;
   @include themify($themes) {
+    // display: flex;
+    // flex-direction: row;
     position: absolute;
     z-index: 2;
     top: -30px;
-    right: 80px;
+    right: 40px;
     font-size: 18px;
     cursor: pointer;
     transition: color 200ms cubic-bezier(0, 0, 0, .1);
@@ -52,6 +58,10 @@ export default {
       color: themed(frontColor);
     }
   }
+  
+  // &.flip {
+  //   flex-direction: row-reverse;
+  // }
 }
 
 </style>

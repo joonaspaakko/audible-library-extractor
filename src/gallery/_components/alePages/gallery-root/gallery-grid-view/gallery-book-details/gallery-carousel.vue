@@ -304,38 +304,6 @@ export default {
 		}
 	}
 	
-	.splide {
-    padding: 42px !important;
-		padding-top: 0px !important;
-		padding-bottom: 25px !important;
-	}
-	.splide__pagination {
-		bottom: 9px !important;
-	}
-	.splide__arrow {
-		// margin-top: -19px;
-		svg {
-			width: 20px !important;
-			height: 20px !important;
-			padding: 10px !important;
-			@include themify($themes) { fill: rgba( themed(frontColor), .5 ) !important; }
-		}
-		&:hover svg {
-			@include themify($themes) { fill: rgba( themed(frontColor), .87 ) !important; }
-		}
-	}
-	.splide__arrow--prev { 
-		left: 10px !important; 
-		svg { padding-left: 0px !important; }
-	}
-	.splide__arrow--next { 
-		right: 10px !important; 
-		svg { padding-left: 0px !important; }
-	}
-	.splide__pagination__page.is-active {
-		@include themify($themes) { background: themed(audibleOrange) !important; }
-	}
-	
 	&[data-scrolling="true"]:before {
 		content: '';
 		position: absolute;
@@ -346,21 +314,13 @@ export default {
 		left: 0;
 		background: rgba(red, .4);
 	}
-	
-}
-
-
-@media (max-width: 716px) {
+		
 	.splide {
-		box-sizing: border-box !important;
-		position: relative;
-		left: 50%;
-		right: 50%;
-		width: 100vw;
-		margin-left: -50vw;
-		margin-right: -50vw;
-		max-width: unset !important;
+		padding: 42px !important;
+		padding-top: 0px !important;
+		padding-bottom: 25px !important;
 	}
+	
 }
 
 @media ( max-width: 500px ) {
@@ -389,8 +349,6 @@ export default {
 	  }
 			
   } // .ale-carousel
-  
-	.splide__pagination__page { width: 10px !important; }
 	
 }
 

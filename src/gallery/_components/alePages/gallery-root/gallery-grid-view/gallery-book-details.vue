@@ -33,7 +33,7 @@
         <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
         <gallery-book-details-settings v-if="store.bookDetailSettingsOpen" />
         
-        <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">
+        <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }" v-touch:swipe.left="swipeHandler" v-touch:swipe.right="swipeHandler">
           <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
             
             <div class="collapse-btn" 
@@ -553,6 +553,16 @@ export default {
       }
     },
     
+    swipeHandler( direction ) {
+      
+      if ( !this.mobileWidth ) return;
+      
+      this.$store.commit('prop', { 
+        key: 'sticky.bookDetailSettings.reverseDirection', 
+        value: !this.$store.state.sticky.bookDetailSettings.reverseDirection 
+      });
+      
+    },
   }
 };
 </script>
