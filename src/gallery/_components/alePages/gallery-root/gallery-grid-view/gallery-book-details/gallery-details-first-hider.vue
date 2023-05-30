@@ -45,10 +45,6 @@ export default {
   @include themify($themes) {
     // display: flex;
     // flex-direction: row;
-    position: absolute;
-    z-index: 2;
-    top: -30px;
-    right: 40px;
     font-size: 18px;
     cursor: pointer;
     transition: color 200ms cubic-bezier(0, 0, 0, .1);

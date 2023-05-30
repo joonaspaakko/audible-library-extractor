@@ -5,8 +5,10 @@
   @click="flip"
 >
   
-  <fluent-circle-small-20-filled/>
-  <fluent-circle-12-filled/>
+  <!-- <fluent-circle-small-20-filled/>
+  <fluent-circle-small-20-filled style="color: orange;"/> -->
+  <ri-toggle-line/>
+  <!-- <fluent-circle-12-filled/> -->
   <!-- <fa6-solid-retweet @click="flip" /> -->
   
 <!--   
@@ -83,10 +85,6 @@ export default {
   @include themify($themes) {
     display: flex;
     flex-direction: row;
-    position: absolute;
-    z-index: 2;
-    top: -30px;
-    right: 80px;
     font-size: 18px;
     cursor: pointer;
     transition: color 200ms cubic-bezier(0, 0, 0, .1);
@@ -99,6 +97,7 @@ export default {
   
   &.flip {
     flex-direction: row-reverse;
+    > * { transform: rotate(180deg); }
   }
 }
 

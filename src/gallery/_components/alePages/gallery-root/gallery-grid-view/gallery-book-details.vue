@@ -28,9 +28,12 @@
       <!-- REGULAR BOOK (in library) -->
       <div v-else class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
         
-        <gallery-details-first-hider v-if="mobileWidth" />
-        <gallery-sidebar-flipper />
-        <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
+        <div class="details-toolbar">
+          <gallery-details-first-hider v-if="mobileWidth" />
+          <gallery-sidebar-flipper />
+          <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
+        </div>
+        
         <gallery-book-details-settings v-if="store.bookDetailSettingsOpen" />
         
         <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }" v-touch:swipe.left="swipeHandler" v-touch:swipe.right="swipeHandler">
@@ -149,6 +152,10 @@ export default {
       bookSummaryJSON: null,
       scrpt: null,
       imageLoaded: false,
+      clientX: 0,
+      clientY: 0,
+      firstClientX: 0,
+      firstClientY: 0,
     };
   },
 
@@ -177,6 +184,11 @@ export default {
       this.scrollToMyBooksInTheSeries();
       
     });
+    
+    
+      window.addEventListener('touchstart', this.touchStart);
+      window.addEventListener('touchmove', this.preventTouch, {passive: false});
+      
   },
 
   beforeUnmount: function() {
@@ -196,6 +208,10 @@ export default {
     
     document.querySelector('#ale-bookdetails').remove();
     
+    
+      window.removeEventListener('touchstart', this.touchStart);
+      window.removeEventListener('touchmove', this.preventTouch, {passive: false});
+      
   },
 
   computed: {
@@ -563,18 +579,49 @@ export default {
       });
       
     },
+    
+    touchStart(e) {
+      
+      if ( !this.mobileWidth ) return;
+      
+      this.firstClientX = e.touches[0].clientX;
+      this.firstClientY = e.touches[0].clientY;
+      
+    },
+
+    preventTouch(e) {
+    
+      if ( !this.mobileWidth ) return;
+    
+      const minValue = 5; // threshold
+
+      this.clientX = e.touches[0].clientX - this.firstClientX;
+      this.clientY = e.touches[0].clientY - this.firstClientY;
+
+      // Vertical scrolling does not work when you start swiping horizontally.
+      if( Math.abs(this.clientX) > minValue ){ 
+        e.preventDefault();
+        e.returnValue = false;
+        return false;
+      }
+    },
+    
   }
 };
 </script>
 
 <style lang="scss" scoped>
 
-
-.book-details-info {
+.details-toolbar {
   position: absolute;
   z-index: 2;
   top: -30px;
   right: 0px;
+  display: flex;
+  flex-direction: row;
+  gap: 30px;
+}
+.book-details-info {
   font-size: 18px;
   cursor: pointer;
   transition: color 200ms cubic-bezier(0, 0, 0, .1);
