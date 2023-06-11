@@ -1,6 +1,6 @@
 <template>
   <div v-if="$store.state.searchMounted || true" 
-  class="search-btn" 
+  class="search-btn icon" 
   :class="{ float: float }"
   @click="startSearching" 
   v-tippy="{ interactive: true, allowHTML: true }" 

@@ -21,7 +21,8 @@
         subItemActive(route), 
         (route.disabled || (route.condition ? 
           !route.condition() : null)
-        ) ? 'disabled' : '' 
+        ) ? 'disabled' : '',
+        route.highlight ? 'highlight' : 'null',
       ]"
       v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'], maxWidth: 400 }"
       :content="typeof route.tippy === 'function' ? route.tippy() : route.tippy"
@@ -194,6 +195,20 @@ export default {
     cursor: default !important;
     opacity: .4;
   }
+  &.highlight {
+    color: #fff;
+    @include themify($themes) {
+      .menu-item-icon {
+        color: themed(audibleOrange);
+      }
+      .menu-item-text {
+        color: themed(frontColor);
+      }
+      border-left: 2px solid themed(audibleOrange);
+      background: darken(themed(elementColor), 3);
+    }
+  }
+  
 }
 
 .menu-item-inner {
@@ -311,11 +326,15 @@ export default {
     justify-content: center;
     align-items: center;
   }
-  &,
-  > div {
-    padding: 2px 5px;
+  :deep(.icon) {
+    padding: 5px 8px;
     cursor: pointer;
   }
+  // &,
+  // > div {
+  //   padding: 2px 5px;
+  //   cursor: pointer;
+  // }
   @include themify($themes) {
     border: 1px solid rgba( themed(frontColor), .1);
   }

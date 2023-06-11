@@ -231,6 +231,16 @@ export default {
         const extensionTools = [
           {
             tag: 'a',
+            href: this.$store.state.urlOrigin + '/library',
+            name: 'Open Audible library',
+            disabled: false,
+            meta: {
+              icon: 'fa-brands fa-audible',
+              nestedGroup: 'extension-tools'
+            },
+          },
+          {
+            tag: 'a',
             href: 'https://joonaspaakko.gitbook.io/audible-library-extractor/',
             name: 'Extension documentation',
             disabled: false,
@@ -240,18 +250,20 @@ export default {
             },
           },
           {
+            highlight: true,
             tag: 'div',
-            name: 'Save gallery locally',
+            name: 'Save gallery website',
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: 'fa-solid fa-floppy-disk',
+              icon: 'fa-solid fa-download',
               nestedGroup: 'extension-tools',
               // component: () => import( /* webpackChunkName: "save-locally" */ "@output-comps/aleSaveLocally.vue"),
               component: saveGallery,
             },
           },
           {
+            highlight: true,
             tag: 'div',
             name: 'CSV export&nbsp;<small>(spreadsheet)</small>',
             disabled: false,
@@ -263,6 +275,7 @@ export default {
             },
           },
           {
+            highlight: true,
             tag: 'div',
             name: 'Wallpaper creator',
             disabled: false,
@@ -304,7 +317,7 @@ export default {
               return txt;  
             },
             meta: {
-              icon: 'fa-solid fa-table-cells-large',
+              icon: 'fa-regular fa-image',
               nestedGroup: 'extension-tools'
             },
           },
@@ -333,7 +346,7 @@ export default {
               } catch(e) {}
             },
             meta: {
-              icon: 'fa-solid fa-crosshairs',
+              icon: 'fa-solid fa-house-user',
               nestedGroup: 'extension-tools'
             },
           },

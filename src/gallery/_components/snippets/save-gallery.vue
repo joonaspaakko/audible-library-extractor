@@ -12,7 +12,7 @@
         <h2>Stand-alone gallery</h2>
 
         <div class="description">
-          This saves the gallery as a stand-alone web page that can be uploaded online and shared or viewed as is by unpacking the zip file and opening the index.html file in a web chrome.
+          This saves the gallery as a web page that can be uploaded online and shared with others.
         </div>
       </div>
     </div>
@@ -33,10 +33,10 @@
       </div>
     </div>
     
-    <h3>Output:</h3>
+    <!-- <h3>Output:</h3>
     
     <div>Hosted online</div>
-    <div v-tippy content="Only use this option if you wish to view the gallery locally on your computer. Don't upload this online, unless you're really into slow load times.">Local viewing</div>
+    <div v-tippy content="Only use this option if you wish to view the gallery locally on your computer. Don't upload this online, unless you're really into slow load times.">Local viewing</div> -->
 
     <div class="buttons-footer">
       <div class="btn-wrapper">
