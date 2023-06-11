@@ -31,7 +31,7 @@ export default {
           this.$store.commit('addListRenderingOpts', { 
             listName: 'filter', 
             option: {
-              active: true,
+              active: false,
               type: 'filterExtras',
               label: 'Not In Library',
               key: 'notInLibrary',
@@ -45,7 +45,7 @@ export default {
           this.$store.commit('addListRenderingOpts', { 
             listName: 'filter', 
             option: {
-              active: true,
+              active: false,
               type: 'filterExtras',
               label: 'In Library',
               key: 'inLibrary',
@@ -56,6 +56,20 @@ export default {
             },
             splice: 3,
           });
+          // this.$store.commit('addListRenderingOpts', { 
+          //   listName: 'filter', 
+          //   option: {
+          //     active: true,
+          //     type: 'filterExtras',
+          //     label: 'All in series',
+          //     key: 'all-in-series',
+          //     group: 'filterExtras',
+          //     condition: function(book) {
+          //       return true;
+          //     }
+          //   },
+          //   splice: 3,
+          // });
           
         }
         else {

@@ -56,9 +56,10 @@ export default {
     mainfilters() {
       
       const inWishlist = this.$route.name === 'wishlist';
+      const inSeriesSubPage = this.$route.name === 'series';
       
       return _.filter( this.optionsList, ( item ) => {
-        return item.type === 'filter' && ( inWishlist ? !item.excludeFromWishlist : true );
+        return item.type === 'filter' && ( inWishlist ? !item.excludeFromWishlist : true ) && ( inSeriesSubPage ? !item.excludeFromSeriesSubPage : true );
       });
       
     },
@@ -66,12 +67,13 @@ export default {
     filteredOptionsList() {
       
       const inWishlist   = this.$route.name === 'wishlist';
+      const inSeriesSubPage = this.$route.name === "series";
       const viewModeGrid = this.$store.state.sticky.viewMode !== 'grid';
       
       return _.filter( this.optionsList, ( item ) => {
         const sortValues = item.key === 'sortValues';
         const notFilter  = item.type !== 'filter';
-        return !(viewModeGrid && sortValues) && notFilter && ( inWishlist ? !item.excludeFromWishlist : true );;
+        return !(viewModeGrid && sortValues) && notFilter && ( inWishlist ? !item.excludeFromWishlist : true ) && ( inSeriesSubPage ? !item.excludeFromSeriesSubPage : true );
       });
       
     },

@@ -119,8 +119,8 @@ export default {
           case "series":
             var series = vue.book.series;
             if ( series ) series = _.map(series, function( series ) {
-              let numbers = series.bookNumbers ? (' (book '+ series.bookNumbers.join(", ") +')') : '';
-              return series.name + numbers;
+              let numbers = series.bookNumbers ? (' (book '+ _.castArray(series.bookNumbers).join(", ") +')') : '';
+              return !series.name ? '' : series.name + numbers;
             }).join(", ");
             col.text = series || '';
             break;

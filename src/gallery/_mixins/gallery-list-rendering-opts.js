@@ -95,6 +95,7 @@ export default {
 
           // { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
           {
+            excludeFromSeriesSubPage: true,
             active: false,
             type: 'filterExtras',
             label: 'In series',
@@ -105,6 +106,7 @@ export default {
             }
           },
           {
+            excludeFromSeriesSubPage: true,
             active: false,
             type: 'filterExtras',
             label: 'Not in series',
@@ -115,6 +117,7 @@ export default {
             }
           },
           {
+            excludeFromSeriesSubPage: true,
             type: 'divider',
             key: 'divider1.1'
           },
