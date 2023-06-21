@@ -17,7 +17,7 @@ export default {
       
       const urlAlreadyFailed = _.includes(vue.$store.state.failedRequests, url);
       if (urlAlreadyFailed) {
-        config.done(null);
+        config.done({});
         return;
       }
       
@@ -41,19 +41,30 @@ export default {
             let obj = {};
             obj.urlObj = url;
             
+            let result = [ null, {}];
+            
             if ( config.skipFirstCall ) {
-              vue.getMaxPageSize( obj, config, config.response, callback);
+              result = vue.getMaxPageSize( obj, config, config.response, callback);
+              callback( result[0], result[1] );
             }
             else {
-              axiosLimited.get(url.toString()).then(function(response) {
-                vue.getMaxPageSize( obj, config, response, callback);
-              }).catch(function( e ) {
-                
+              
+              
+              axiosLimited.get( url.toString() )
+              .then(function(response) {
+                result = vue.getMaxPageSize( obj, config, response, callback);
+              })
+              .catch(function( e ) {
                 const status = _.get(e, 'response.status');
                 if (status == 404) vue.$store.commit('pushToFailedRequests', requestURL);
-                callback(true, null);
+                result = [ true, {} ];
+              })
+              .then(function() {
+                
+                callback( result[0], result[1] );
                 
               });
+              
             }
             
           },
@@ -78,22 +89,25 @@ export default {
     
     getMaxPageSize: function( obj, config, response, waterfallback ) {
       
-      const audible = $($.parseHTML(response.data)).find("div.adbl-main");
+      const data = _.get(response, 'data');
+      if ( !data ) return [ null, null ];
+      
+      const audible = $($.parseHTML(data)).find("div.adbl-main");
       const pageSizeDropdown = audible.find('select[name="pageSize"]');
       const maxPageSize = pageSizeDropdown.length > 0 ? DOMPurify.sanitize(pageSizeDropdown.find("option:last").val()) : null;
       obj.urlObj.query.pageSize = config.maxSize || obj.urlObj.query.pageSize || maxPageSize;
       
-      if (config.returnResponse) obj.response = response;
+      if ( config.returnResponse ) obj.response = response;
       
       const pagination = audible.find(".pagingElements").length;
       if ( !pagination || !maxPageSize || maxPageSize < 50 || config.returnAfterFirstCall ) {
         obj.pageNumbers = [1];
         obj.pageSize = obj.urlObj.query.pageSize;
-        waterfallback(true, obj); // true makes the waterfall jump to the end.
+        return [ true, obj ];
       } else {
-        waterfallback(null, obj);
+        return [ null, obj ];
       }
-      
+            
     },
     
     getPageNumbers: function( response  ) {

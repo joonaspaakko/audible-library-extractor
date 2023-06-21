@@ -36,7 +36,9 @@ export default {
                   if ( !html ) callback(null, prep);
                   
                   const audible = $($.parseHTML( html )).find("div.adbl-main")[0];
-                  const titlesLength = parseFloat( DOMPurify.sanitize(audible.querySelector(".adbl-library-refinement-section > div.bc-col-responsive.bc-col-2 > span").textContent.match(/\d+/)[0]) );
+                  const wishlistLengthEl = audible.querySelector('.adbl-library-refinement-section > div:nth-child(1) span');
+                  let wishlistLength = wishlistLengthEl ? wishlistLengthEl.textContent : null;
+                  if ( wishlistLength ) wishlistLength = parseFloat( DOMPurify.sanitize(wishlistLength.match(/\d+/)[0]) )
                   delete prep.response;
                   
                   // Forcing smaller pageSize...
@@ -44,7 +46,7 @@ export default {
                   // prep.pageSize = 20;
                   // prep.urlObj.query.pageSize = prep.pageSize;
 
-                  const pagesLength = prep.pageSize ? Math.ceil(titlesLength / prep.pageSize) : 1;
+                  const pagesLength = prep.pageSize ? Math.ceil(wishlistLength / prep.pageSize) : 1;
                   prep.pageNumbers = _.range(1, pagesLength + 1);
 
                   callback(null, prep);
