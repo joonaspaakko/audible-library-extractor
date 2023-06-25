@@ -1,5 +1,25 @@
 <template>
-  <div id="ale-progress-wrap">
+  
+  <div v-if="$store.state.checkingWishlistAccess">
+    
+    <div class="progress-wrapper">
+      <progress class="progress is-warning is-large" max="100" style="min-width: 288px;">75%</progress>
+      <small style="font-size: 12px;">Checking for wishlist access...</small>
+    </div>
+    
+  </div>
+  <div v-else-if="$store.state.noWishlistAccess">
+    
+    <article class="message is-warning">
+      <div class="message-body">
+        Try to open your
+        <a target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
+        After that try  to redo the extraction. <strong>The link will open in a new tab!</strong>
+      </div>
+    </article>
+    
+  </div>
+  <div id="ale-progress-wrap" v-else>
     <transition name="fade">
       <div class="loader-image">
         <img height="72" :src="imageSources.loader" alt="" />
@@ -89,6 +109,8 @@ export default {
   },
 };
 </script>
+
+<style scoped src="@node/bulma/css/bulma.css"></style>
 
 <style lang="scss" scoped>
 #ale-progress-wrap {
@@ -190,4 +212,23 @@ export default {
     background: linear-gradient(180deg, rgba(255,255,255,0) 0%, rgba(255,255,255,1) 100%);
   }
 }
+
+.progress-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+    .progress { margin-bottom: 0 !important; }
+    small {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      left: 0;
+      z-index: 5;
+    }
+  }
 </style>

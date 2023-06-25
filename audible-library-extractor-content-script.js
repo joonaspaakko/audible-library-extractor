@@ -202,6 +202,17 @@ $("#audible-library-extractor-btn").on("click", function(e) {
   });
 });
 
+// Open ALE on page load
+if ( store.state.openOnLoad ) {
+  // https://developer.chrome.com/apps/storage
+  // Permission: "storage"
+  chrome.storage.local.get(null).then(data => {
+    store.commit('update', { key: 'openOnLoad', value: false });
+    chrome.runtime.sendMessage({ newAddress: url.toString() });
+    audibleLibraryExtractor(data);
+  });
+}
+
 // LISTENING FOR MESSAGES FROM BACKGROUND.JS
 // - Clicking the extension icon sends a message "iconClicked"
 // https://developer.chrome.com/apps/messaging#simple

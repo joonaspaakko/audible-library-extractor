@@ -23,26 +23,8 @@
     <!-- EXTRACTION BUTTONS -->
     <div>
       <div class="extract-wrapper">
-        <div v-if="cannotAccessWishlist">
-          
-          <article class="message is-warning">
-            <div class="message-body">
-              Try to open your
-              <a target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
-              After that try  to redo the extraction. <strong>The link will open in a new tab!</strong>
-            </div>
-          </article>
-        </div>
-        <div v-else-if="store.extractBtnDisabled">
-          
-          <div class="progress-wrapper">
-            <progress class="progress is-warning is-large" max="100" style="min-width: 288px;">75%</progress>
-            <small style="font-size: 12px;">Checking for wishlist access...</small>
-          </div>
-          
-        </div>
         
-        <div class="field has-addons extract-btn" v-show="!store.extractionButtonDisabled && !loading" v-else>
+        <div class="field has-addons extract-btn" v-show="!store.extractionButtonDisabled && !loading">
           <p class="control">
             <button class="button is-info extract is-large" @click="extract" expanded>
               Extract selected items
@@ -232,31 +214,32 @@ export default {
       
       let vue = this;
       
-      // Going to extract wishlist...?
-      if ( this.$store.getters.setting('wishlist').value ) {
+      // // Going to extract wishlist...?
+      // if ( this.$store.getters.setting('wishlist').value ) {
         
-        this.$store.commit('update', {  key: 'extractBtnDisabled', value: true });
-        this.$store.commit('update', {  key: 'extractionButtonDisabled', value: true });
+      //   this.$store.commit('update', {  key: 'extractBtnDisabled', value: true });
+      //   this.$store.commit('update', {  key: 'extractionButtonDisabled', value: true });
         
-        // I don't know the full logic, but Audible tends to require a login to certain pages after you haven't in a while. 
-        // I think it might just do that for any page you haven't visited after a while. The only evidence I have is that I visit
-        // library very often but wishlist and other pages not so much and wishlist requires login way more often than my library.
-        vue.checkAccess({
-          to: vue.wishlistUrl,
-          success: function( e ) {
-            vue.takeNextStep('extract');
-          },
-          failed: function() {
-            vue.cannotAccessWishlist = true;
-          },
-          finally: function() {
-            vue.$store.commit('update', {  key: 'extractBtnDisabled', value: false });
-          },
-        });
-      }
-      else {
-        vue.takeNextStep('extract');
-      }
+      //   // I don't know the full logic, but Audible tends to require a login to certain pages after you haven't in a while. 
+      //   // I think it might just do that for any page you haven't visited after a while. The only evidence I have is that I visit
+      //   // library very often but wishlist and other pages not so much and wishlist requires login way more often than my library.
+      //   vue.checkAccess({
+      //     to: vue.wishlistUrl,
+      //     success: function( e ) {
+      //       vue.takeNextStep('extract');
+      //     },
+      //     failed: function() {
+      //       vue.cannotAccessWishlist = true;
+      //     },
+      //     finally: function() {
+      //       vue.$store.commit('update', {  key: 'extractBtnDisabled', value: false });
+      //     },
+      //   });
+      // }
+      // else {
+      //   vue.takeNextStep('extract');
+      // }
+      vue.takeNextStep('extract');
       
     },
     
@@ -337,25 +320,6 @@ body > .notices {
     }
     a:visited {
       color: darken(#b5b5b5, 10);
-    }
-  }
-  
-  .progress-wrapper {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    position: relative;
-    .progress { margin-bottom: 0 !important; }
-    small {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 5;
     }
   }
 

@@ -129,13 +129,41 @@ export default {
           
           const waterfallArray = [
             function(callback) { callback(null, hotpotato); },
-            vue.getDataFromWishlist,        // Can be scraped alone
-            vue.getDataFromStorePages,      // Requires wishlist data
             vue.getDataFromLibraryPages,    // Can be scraped alone
             // vue.getDataFromLibraryPagesFin, // Requires library page data
             vue.getDataFromStorePages,      // Requires library page data
             vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
             vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
+            function(hotpotato, callback) { 
+              vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {
+                
+                vue.$store.commit('update', { key: 'checkingWishlistAccess', value: true });
+                vue.$store.commit('update', { key: 'noWishlistAccess', value: false });
+                
+                vue.checkAccess({
+                  to: vue.wishlistUrl,
+                  success: function( e ) {
+                    callback(null, hotpotato);
+                  },
+                  failed: function() {
+                    
+                    vue.$store.commit('update', { key: 'noWishlistAccess', value: true });
+                    
+                  },
+                  finally: function() {
+                    vue.$store.commit('update', {  key: 'checkingWishlistAccess', value: false });
+                  },
+                });
+                
+              });    
+            },
+            vue.getDataFromWishlist,        // Can be scraped alone
+            vue.getDataFromStorePages,      // Requires wishlist data
+            function(hotpotato, callback) { 
+              vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {
+                callback(null, hotpotato); 
+              });    
+            },
             // vue.getDataFromWishlist,        // Can be scraped alone
             // vue.getDataFromStorePages,      // Requires wishlist data
             vue.getISBNsFromGoogleBooks,    // Requires library page data
@@ -189,12 +217,8 @@ export default {
       });
       
     },
-
-    goToOutputPage: function(hotpotato) {
-      
-      // console.log('goToOutputPage', hotpotato);
-      // console.log( this.$store.state.canceledRequests );
-      // return;
+    
+    saveExtractionSoFar( hotpotato, callback ) {
       
       let vue = this;
       let collections = hotpotato.collections;
@@ -232,6 +256,7 @@ export default {
         });
       }
       
+      
       if ( hotpotato.useStorageData ) {
         chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
       } else {
@@ -254,17 +279,31 @@ export default {
           if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
           this.makeFrenchFries(hotpotato);
         }
-
+        
         chrome.storage.local.clear().then(() => {
           chrome.storage.local.set(hotpotato).then(() => {
             
-            // If console is open don't open the gallery page....
-            // if ( vue.erudaOpenStayInAudible() ) return;
-            chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
+            callback( hotpotato );
             
           });
         });
       }
+      
+    },
+
+    goToOutputPage: function(hotpotato) {
+      
+      // console.log('goToOutputPage', hotpotato);
+      // console.log( this.$store.state.canceledRequests );
+      // return;
+      
+      this.saveExtractionSoFar( hotpotato, () => {
+        
+        // If console is open don't open the gallery page....
+        // if ( vue.erudaOpenStayInAudible() ) return;
+        chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
+        
+      });     
       
     },
     
@@ -276,9 +315,9 @@ export default {
       let version = chrome.runtime.getManifest().version;
       
       // If a step was just extracted and there was no existing data update data version...
-      if ( _.find( hotpotato.config.steps, { name: 'library', value: true })     && !hasData.books       ) hotpotato.version.library     = version;
-      if ( _.find( hotpotato.config.steps, { name: 'collections', value: true }) && !hasData.collections ) hotpotato.version.collections = version;
-      if ( _.find( hotpotato.config.steps, { name: 'wishlist', value: true })    && !hasData.wishlist    ) hotpotato.version.wishlist    = version;
+      if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'library', value: true })     && !hasData.books       ) hotpotato.version.library     = version;
+      if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'collections', value: true }) && !hasData.collections ) hotpotato.version.collections = version;
+      if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'wishlist', value: true })    && !hasData.wishlist    ) hotpotato.version.wishlist    = version;
       
     },
     
@@ -376,6 +415,22 @@ export default {
       
     // }
     
+    
+    checkAccess: function( config ) {
+      
+      config = config || {};
+      
+      // Check if it's possible to read the wishlist page
+      axios.get( config.to )
+      .then(function() {
+        if ( config.success ) config.success();
+      }).catch(function() {
+        if ( config.failed ) config.failed();
+      }).then(function() {
+        if ( config.finally ) config.finally();
+      });
+      
+    },
   }
 };
 </script>

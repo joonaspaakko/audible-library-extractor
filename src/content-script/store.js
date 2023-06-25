@@ -99,6 +99,9 @@ export default createStore({
     failedRequests: [],
     lastFailedRequestStatus: null,
     taking_a_break: false,
+    openOnLoad: false,
+    noWishlistAccess: false,
+    checkingWishlistAccess: false,
   },
 
   mutations: {

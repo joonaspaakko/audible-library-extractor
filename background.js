@@ -68,7 +68,10 @@ chrome.action.onClicked.addListener(tabId => {
 
 // LISTENS FOR A MESSAGES form the content script
 chrome.runtime.onMessage.addListener( async (message, sender) => {
-  if (message.action === "openOutput") {
+  if (message.action === "refresh") {
+    chrome.tabs.update( sender.tab.id, { url: message.url });
+  }
+  else if (message.action === "openOutput") {
     
     // Close the tab where extraction started
     // setTimeout(function() {
