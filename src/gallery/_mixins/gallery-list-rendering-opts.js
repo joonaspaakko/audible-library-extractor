@@ -156,6 +156,31 @@ export default {
           },
           {
             type: 'divider',
+            key: 'divider1.3.1'
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Podcast episodes: include',
+            key: 'podcasts-inlcude',
+            group: 'filterExtras',
+            condition: function(book) {
+              return _.get(book, "format") === 'Podcast';
+            }
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Podcast episodes: exclude',
+            key: 'podcasts-exclude',
+            group: 'filterExtras',
+            condition: function(book) {
+              
+              return _.get(book, "format") !== 'Podcast';
+            }
+          },
+          {
+            type: 'divider',
             key: 'divider1.3'
           },
           {

@@ -203,6 +203,7 @@ export default {
       }
       .menu-item-text {
         color: themed(frontColor);
+        font-weight: 600;
       }
       border-left: 2px solid themed(audibleOrange);
       background: darken(themed(elementColor), 3);
