@@ -39,6 +39,24 @@ import { createApp } from 'vue';
 import App from "@contscript/content-script-app.vue";
 import store from "@contscript/store.js";
 
+// Get local storage settings on load
+store.commit("fromLocalStorage");
+// Set settings to local storage on mutate
+store.subscribe(function(mutation, state) {
+  
+  let payload = _.get(mutation, "payload");
+      payload = _.castArray( payload );
+  
+  if ( mutation.type === "updateSetting" ) {
+    localStorage.setItem( state.localStorageName, JSON.stringify( state.sticky ));
+    return;
+  }
+  
+  const storingSticky = _.find( payload, o => _.get(o, 'key', '').match(/^sticky./) );
+  if ( storingSticky ) localStorage.setItem( state.localStorageName, JSON.stringify( state.sticky ));
+  
+});
+
 const app = createApp(App);
 
 // For emitting custom events between components
@@ -203,12 +221,13 @@ $("#audible-library-extractor-btn").on("click", function(e) {
 });
 
 // Open ALE on page load
-if ( store.state.openOnLoad ) {
+console.log( 'store.state.sticky.openOnLoad', store.state.sticky.openOnLoad );
+if ( store.state.sticky.openOnLoad ) {
   // https://developer.chrome.com/apps/storage
   // Permission: "storage"
   chrome.storage.local.get(null).then(data => {
-    store.commit('update', { key: 'openOnLoad', value: false });
-    chrome.runtime.sendMessage({ newAddress: url.toString() });
+    store.commit('update', { key: 'sticky.openOnLoad', value: false });
+    // chrome.runtime.sendMessage({ newAddress: url.toString() });
     audibleLibraryExtractor(data);
   });
 }
@@ -228,13 +247,6 @@ chrome.runtime.onMessage.addListener(message => {
 });
 
 function audibleLibraryExtractor(data) {
-  
-  // Get local storage settings on load
-  store.commit("fromLocalStorage");
-  // Set settings to local storage on mutate
-  store.subscribe(function(mutation, state) {
-    localStorage.setItem( state.localStorageName, JSON.stringify( state.extractSettings ));
-  });
   
   $('<div>', { id: 'audible-library-extractor'}).prependTo("body");
   

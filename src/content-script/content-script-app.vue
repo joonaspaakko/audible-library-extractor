@@ -1,10 +1,7 @@
 <template>
   <cont-overlay>
-    <cont-menu-screen v-if="ui === 'menu-screen'"
-    :domainExtension="domainExtension"
-    :wishlistUrl="wishlistUrl"
-    ></cont-menu-screen>
-    <cont-scraping-progress v-else-if="ui === 'scraping'"></cont-scraping-progress>
+    <cont-menu-screen v-if="ui === 'menu-screen'" :domainExtension="domainExtension" :wishlistUrl="wishlistUrl" />
+    <cont-scraping-progress v-else-if="ui === 'scraping'" :domainExtension="domainExtension" />
   </cont-overlay>
 </template>
 
@@ -145,8 +142,8 @@ export default {
                   success: function( e ) {
                     callback(null, hotpotato);
                   },
-                  failed: function() {
-                    
+                  failed: function( e ) {
+                    console.log( 'wishlist error', _.get(e,'response', e) );
                     vue.$store.commit('update', { key: 'noWishlistAccess', value: true });
                     
                   },
@@ -218,9 +215,8 @@ export default {
       
     },
     
-    saveExtractionSoFar( hotpotato, callback ) {
+    outputCleanup( hotpotato ) {
       
-      let vue = this;
       let collections = hotpotato.collections;
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
       if ( archive ) archive.description = '';
@@ -235,7 +231,7 @@ export default {
             if ( book.requestUrl ) delete book.requestUrl;
             // Add prop "archived" if a book is in the archive....
             // This helps simplify the filters related to archive
-            if ( key === 'books' && book.asin && archive && archive.books.length > 0 ) {
+            if ( key === 'books' && book.asin && _.get(archive, 'books.0') ) {
               let bookInArchive = _.includes( archive.books, book.asin );
               if ( bookInArchive ) book.archived = true;
             }
@@ -248,62 +244,67 @@ export default {
       removeStragglers('books'); // Library
       removeStragglers('wishlist'); 
       
-      const pageAddress = window.location.origin + window.location.pathname;
       // Make sure library books are excluded from the wishlist no matter hwhat...
-      if ( hotpotato.books && hotpotato.books.length && hotpotato.wishlist && hotpotato.wishlist.length ) {
+      if ( _.get(hotpotato, 'books.0') && _.get(hotpotato, 'wishlist.0') ) {
         _.remove( hotpotato.wishlist, function( book ) {
           if ( book.asin ) return _.find( hotpotato.books, { asin: book.asin });
         });
       }
       
+    },
+    
+    saveExtractionSoFar( hotpotato, callback ) {
       
-      if ( hotpotato.useStorageData ) {
-        chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
-      } else {
+      let vue = this;
+      
+      this.outputCleanup( hotpotato );
+
+      if ( hotpotato.config ) {
+        if ( hotpotato.config.steps || hotpotato.config.extraSettings ) {
+          let steps = hotpotato.config.steps;
+          let extraSettings = hotpotato.config.extraSettings;
+          hotpotato.config = {};
+          if ( steps ) hotpotato.config.steps = steps;
+          if ( extraSettings ) hotpotato.config.extraSettings = extraSettings; 
+        }
         
-        if ( hotpotato.config ) {
-          if ( hotpotato.config.steps || hotpotato.config.extraSettings ) {
-            let steps = hotpotato.config.steps;
-            let extraSettings = hotpotato.config.extraSettings;
-            hotpotato.config = {};
-            if ( steps ) hotpotato.config.steps = steps;
-            if ( extraSettings ) hotpotato.config.extraSettings = extraSettings; 
-          }
+      }
+      
+      this.addDataVersions( hotpotato );
+      
+      if (!hotpotato.chunks ) {
+        if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
+        if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
+        this.makeFrenchFries(hotpotato);
+      }
+      
+      chrome.storage.local.clear().then(() => {
+        chrome.storage.local.set(hotpotato).then(() => {
           
-        }
-        
-        this.addDataVersions( hotpotato );
-        
-        if (!hotpotato.chunks ) {
-          if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
-          if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
-          this.makeFrenchFries(hotpotato);
-        }
-        
-        chrome.storage.local.clear().then(() => {
-          chrome.storage.local.set(hotpotato).then(() => {
+            if ( _.get(hotpotato, 'chunks.0') ) vue.glueFriesBackTogether(hotpotato);
             
             callback( hotpotato );
-            
-          });
+          
         });
-      }
+      });
       
     },
 
     goToOutputPage: function(hotpotato) {
       
-      // console.log('goToOutputPage', hotpotato);
-      // console.log( this.$store.state.canceledRequests );
-      // return;
+      const pageAddress = window.location.origin + window.location.pathname;
       
-      this.saveExtractionSoFar( hotpotato, () => {
-        
-        // If console is open don't open the gallery page....
-        // if ( vue.erudaOpenStayInAudible() ) return;
+      this.$store.commit('update', { key: 'sticky.openOnLoad', value: true });
+      
+      // No need to save anything...
+      if ( hotpotato.useStorageData ) {
         chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
-        
-      });     
+      }
+      else {
+        this.saveExtractionSoFar( hotpotato, () => {
+          chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
+        }); 
+      }
       
     },
     
@@ -424,8 +425,8 @@ export default {
       axios.get( config.to )
       .then(function() {
         if ( config.success ) config.success();
-      }).catch(function() {
-        if ( config.failed ) config.failed();
+      }).catch(function( e ) {
+        if ( config.failed ) config.failed( e );
       }).then(function() {
         if ( config.finally ) config.finally();
       });

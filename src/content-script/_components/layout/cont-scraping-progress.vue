@@ -10,10 +10,10 @@
   </div>
   <div v-else-if="$store.state.noWishlistAccess">
     
-    <article class="message is-warning">
+    <article class="message is-warning wishlist-login-wrapper">
       <div class="message-body">
         Try to open your
-        <a target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
+        <a @click.prevent="wishlistLinkClicked" target="_blank" rel="noopener noreferrer" :href="'https://audible'+ domainExtension +'/wishlist'">audible{{ domainExtension }}/wishlist</a> and login when asked. <br>
         After that try  to redo the extraction. <strong>The link will open in a new tab!</strong>
       </div>
     </article>
@@ -81,6 +81,7 @@
 <script>
 export default {
   name: "scrapingProgress",
+  props: ["domainExtension"],
   data() {
     return {
       store: this.$store.state,
@@ -105,6 +106,16 @@ export default {
 
     progressWidth: function() {
       return { width: (this.store.progress.step / this.store.progress.max) * 100 + "%" };
+    }
+  },
+  
+  methods: {
+    wishlistLinkClicked( e ) {
+      
+      this.$store.commit('update', { key: 'sticky.openOnLoad', value: true });
+      chrome.runtime.sendMessage({ action: "refresh", url: window.location.origin + window.location.pathname });
+      chrome.runtime.sendMessage({ action: "newPage", url: e.target.href });      
+      
     }
   },
 };
@@ -214,21 +225,28 @@ export default {
 }
 
 .progress-wrapper {
+  max-width: 400px;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  .progress { margin-bottom: 0 !important; }
+  small {
     display: flex;
     justify-content: center;
     align-items: center;
-    position: relative;
-    .progress { margin-bottom: 0 !important; }
-    small {
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      position: absolute;
-      top: 0;
-      right: 0;
-      bottom: 0;
-      left: 0;
-      z-index: 5;
-    }
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 5;
   }
+}
+
+.wishlist-login-wrapper {
+  max-width: 500px;
+  margin: 0 auto;
+}
 </style>

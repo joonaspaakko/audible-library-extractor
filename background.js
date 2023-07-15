@@ -71,6 +71,15 @@ chrome.runtime.onMessage.addListener( async (message, sender) => {
   if (message.action === "refresh") {
     chrome.tabs.update( sender.tab.id, { url: message.url });
   }
+  else if (message.action === "newPage") {
+    
+    chrome.tabs.create({
+      url: message.url,
+      active: true,
+      index: sender.tab.index + 1,
+    });
+    
+  }
   else if (message.action === "openOutput") {
     
     // Close the tab where extraction started

@@ -239,7 +239,8 @@ export default {
       // else {
       //   vue.takeNextStep('extract');
       // }
-      vue.takeNextStep('extract');
+      
+      this.takeNextStep('extract');
       
     },
     
@@ -247,13 +248,13 @@ export default {
       
       if ( !config ) {
         config = {
-          steps: _.map( _.filter( this.store.extractSettings, function( o ) { return o.value && !o.extra }), function(o) {
+          steps: _.map( _.filter( this.store.sticky.extractSettings, function( o ) { return o.value && !o.extra }), function(o) {
             return { name: o.name, value: o.value };
           })
         };  
       }
       
-      config.extraSettings = _.map( _.filter( this.store.extractSettings, 'extra'), function(o) {
+      config.extraSettings = _.map( _.filter( this.store.sticky.extractSettings, 'extra'), function(o) {
         return { name: o.name, value: o.value, deactivated: false };
       });
       

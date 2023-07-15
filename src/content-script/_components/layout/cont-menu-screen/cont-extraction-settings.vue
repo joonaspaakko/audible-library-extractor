@@ -60,17 +60,12 @@ export default {
 	computed: {
 		
     saveStandaloneAfter: function() {
-      return _.find( this.store.extractSettings, { name: 'saveStandaloneAfter' });
+      return _.find( this.store.sticky.extractSettings, { name: 'saveStandaloneAfter' });
     },
 		
 	},
 	
 	methods: {
-		
-    checkBrowser: function() {
-      this.isFirefox = chrome.runtime.getURL('').startsWith('moz-extension://');
-      this.isChrome = chrome.runtime.getURL('').startsWith('chrome-extension://');
-    },
     
 	}
 }

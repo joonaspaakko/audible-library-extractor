@@ -39,59 +39,6 @@ export default createStore({
     dataVersion: null,
     extractBtnDisabled: false,
     extractionButtonDisabled: false,
-    extractSettings: [
-      {
-        label: "Library",
-        name: "books",
-        value: true,
-        disabled: true,
-        type: "is-success",
-        tippy: "Library is required in order to extract collections and isbn.",
-        trashTippy: 'This will also remove Collections and ISBN data.',
-        kind: 'main',
-        deleteChunks: ['books', 'series', 'collections'],
-        partialData: true,
-      },
-      {
-        label: "Collections",
-        name: "collections",
-        parent: 'books',
-        value: true,
-        disabled: false,
-        type: "is-success",
-        tippy: "Very quick extraction that just needs to check the first page of each collection to find out the title and description",
-        kind: 'main',
-        partialData: true,
-      },
-      {
-        label: "Wishlist",
-        name: "wishlist",
-        value: false,
-        disabled: false,
-        type: "is-success",
-        tippy: "Similar to library extraction but series order is not fetched. Books that also exist in your library are dropped off as long as you also extract library data.",
-        kind: 'main',
-        partialData: true,
-        // cannotAccessTippy: this.cannotAccessWishlist ? '<a href="https://audible.com/login">audible.com/login</a>' : null,
-      },
-      {
-        label: "ISBN",
-        name: "isbn",
-        parent: 'books',
-        value: false,
-        disabled: false,
-        type: "is-danger",
-        tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. ISBNs are fetched for library books only. Very slow extraction time.",
-        kind: 'main',
-        partialData: true,
-      },
-      {
-        name: "saveStandaloneAfter",
-        value: false,
-        label: "Start saving the standalone gallery immediately after extraction",
-        kind: 'extra',
-      }
-    ],
     axiosRateLimit: { 
       maxRequests: 10, 
       perMilliseconds: 1000,
@@ -99,9 +46,64 @@ export default createStore({
     failedRequests: [],
     lastFailedRequestStatus: null,
     taking_a_break: false,
-    openOnLoad: false,
     noWishlistAccess: false,
     checkingWishlistAccess: false,
+    sticky: {
+      openOnLoad: false,
+      extractSettings: [
+        {
+          label: "Library",
+          name: "books",
+          value: true,
+          disabled: true,
+          type: "is-success",
+          tippy: "Library is required in order to extract collections and isbn.",
+          trashTippy: 'This will also remove Collections and ISBN data.',
+          kind: 'main',
+          deleteChunks: ['books', 'series', 'collections'],
+          partialData: true,
+        },
+        {
+          label: "Collections",
+          name: "collections",
+          parent: 'books',
+          value: true,
+          disabled: false,
+          type: "is-success",
+          tippy: "Very quick extraction that just needs to check the first page of each collection to find out the title and description",
+          kind: 'main',
+          partialData: true,
+        },
+        {
+          label: "Wishlist",
+          name: "wishlist",
+          value: false,
+          disabled: false,
+          type: "is-success",
+          tippy: "Similar to library extraction but series order is not fetched. Books that also exist in your library are dropped off as long as you also extract library data.",
+          kind: 'main',
+          partialData: true,
+          // cannotAccessTippy: this.cannotAccessWishlist ? '<a href="https://audible.com/login">audible.com/login</a>' : null,
+        },
+        {
+          label: "ISBN",
+          name: "isbn",
+          parent: 'books',
+          value: false,
+          disabled: false,
+          type: "is-danger",
+          tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. ISBNs are fetched for library books only. Very slow extraction time.",
+          kind: 'main',
+          partialData: true,
+        },
+        {
+          name: "saveStandaloneAfter",
+          value: false,
+          label: "Start saving the standalone gallery immediately after extraction",
+          kind: 'extra',
+        }
+      ],
+    },
   },
 
   mutations: {
@@ -111,14 +113,19 @@ export default createStore({
       if ( lsState && lsState != "undefined" ) {
         
         lsState = JSON.parse( lsState );
-        const settings = _.map( lsState, function(o) {
+        
+        const settings = _.map( lsState.extractSettings, function(o) {
           return { 
             disabled: o.disabled,
-            value: o.value,
+            value   : o.value,
           };
         });
         
-        _.merge( state.extractSettings, settings );
+        lsState.extractSettings = [];
+        
+        _.merge(state.sticky, lsState);
+        
+        _.merge( state.sticky.extractSettings, settings );
         
       }
     },
@@ -166,11 +173,11 @@ export default createStore({
     
     updateSetting: function( state, o ) {
       
-      o = _.isArray(o) ? o : [o];
+      o = _.castArray(o);
       
       _.each( o, function( o ) {
         
-        const setting = _.find(state.extractSettings, { name: o.item.name });
+        const setting = _.find(state.sticky.extractSettings, { name: o.item.name });
         _.merge( setting, o.obj );
         
       });
@@ -186,11 +193,12 @@ export default createStore({
   getters: {
     
     settings_mainSteps: function( state ) {
-      return _.filter(state.extractSettings, { kind: 'main' });
+      
+      return _.filter(state.sticky.extractSettings, { kind: 'main' });
     },
     
     settings_extras: function( state ) {
-      return _.filter(state.extractSettings, { kind: 'extra' });
+      return _.filter(state.sticky.extractSettings, { kind: 'extra' });
     },
     
     mainDataExists: function( state ) {
@@ -199,7 +207,7 @@ export default createStore({
     
     
     setting: ( state ) => ( settingName ) => {
-      return _.find(state.extractSettings, { name: settingName });
+      return _.find(state.sticky.extractSettings, { name: settingName });
     },
     
     partialDataSettings( state, getters ) {
