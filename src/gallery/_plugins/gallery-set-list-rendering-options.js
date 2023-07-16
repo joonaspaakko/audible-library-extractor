@@ -42,7 +42,6 @@ setListRenderingOpts.install = function (app, options) {
         let targetKey = splitColon[0];
         let targetItem = _.find(list.filter, { type: 'filterExtras', key: targetKey });
         
-        console.log( targetItem )
         
         
         if ( targetItem ) {
@@ -51,7 +50,6 @@ setListRenderingOpts.install = function (app, options) {
             
             if ( targetItem.dropdownOpts ) {
               targetItem.value = splitColon[1].split('|');
-              console.log( targetItem.value )
             }
             else if ( targetItem.range ) {
               let splitDash = splitColon[1].split('-');

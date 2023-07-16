@@ -28,31 +28,39 @@ export default {
             },
             splice: 3,
           });
+          
+          const seriesFilters = this.$store.state.sticky.seriesFilters;
+          
+          const routeFilters = (this.$route.query.filterExtras || '').split(',');
+          
           this.$store.commit('addListRenderingOpts', { 
             listName: 'filter', 
             option: {
-              active: false,
+              active: _.includes( routeFilters, 'notInLibrary') || seriesFilters.notInLibrary,
               type: 'filterExtras',
               label: 'Not In Library',
               key: 'notInLibrary',
               group: 'filterExtras',
               condition: function(book) {
                 return _.get( book, 'notInLibrary');
-              }
+              },
+              tippy: `This filter is persistent: if you open the gallery later or when you open another series sub page, this setting will carry over.`,
             },
             splice: 3,
           });
+          
           this.$store.commit('addListRenderingOpts', { 
             listName: 'filter', 
             option: {
-              active: false,
+              active: _.includes( routeFilters, 'inLibrary') || seriesFilters.inLibrary,
               type: 'filterExtras',
               label: 'In Library',
               key: 'inLibrary',
               group: 'filterExtras',
               condition: function(book) {
                 return !_.get( book, 'notInLibrary');
-              }
+              },
+              tippy: `This filter is persistent: if you open the gallery later or when you open another series sub page, this setting will carry over.`,
             },
             splice: 3,
           });

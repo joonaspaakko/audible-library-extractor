@@ -46,6 +46,10 @@ export default {
         // { asin: x, progress: 0 },
       ],
     },
+    seriesFilters: {
+      inLibrary: null,
+      notInLibrary: null,
+    },
   },
   // States that don't persist
   bookDetailSettingsOpen: false,

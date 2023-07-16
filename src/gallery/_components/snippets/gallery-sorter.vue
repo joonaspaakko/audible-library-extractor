@@ -378,6 +378,12 @@ export default {
         }
         if ( sortType === 'filterExtras' ) {
           
+          if ( this.$route.name === 'series' ) {
+            if ( sortKey.match(/inLibrary|notInLibrary/) ) {
+              this.$store.commit('prop', { key: 'sticky.seriesFilters.' + sortKey, value: value });
+            }
+          }
+          
           let vue = this;
           const filterExtrasKeys = vue.$store.getters.filterExtrasKeys;
           const queryKeysArray = !filterExtrasKeys ? false : _.map( filterExtrasKeys.split(','), function( key ) {
@@ -387,7 +393,7 @@ export default {
             if ( range && _.isArray(range) ) {
               return encodeURIComponent( key + ':' + range[0] +'-'+ (range[1]||range[0]) );
             }
-            else if ( keyItem && keyItem.value && keyItem.value.length > 0 ) {
+            else if ( _.get(keyItem, 'value.0') ) {
               return encodeURIComponent(key + ':') + encodeURIComponent(_.map( keyItem.value, function( val ) { return val; }).join('|'));
             }
             else if ( key ) { 
