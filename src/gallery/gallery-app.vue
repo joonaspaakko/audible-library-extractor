@@ -51,6 +51,9 @@ export default {
     if ( this.checkIf_iOS() ) {
       document.querySelector('body').classList.add('is-ios');
     }
+    if ( this.checkIf_Mobile() ) {
+      document.querySelector('body').classList.add('is-mobile');
+    }
     
     this.$compEmitter.on('refresh-page', this.refreshPage);
     
@@ -97,13 +100,28 @@ export default {
     
     checkIf_iOS: function() {
       return [
-        'iPad Simulator',
-        'iPhone Simulator',
-        'iPod Simulator',
         'iPad',
         'iPhone',
         'iPod'
       ].includes(navigator.platform) || (navigator.userAgent.includes("Mac") && "ontouchend" in document);
+    },
+    
+    checkIf_Mobile() {
+      
+      const toMatch = [
+          /Android/i,
+          /webOS/i,
+          /iPhone/i,
+          /iPad/i,
+          /iPod/i,
+          /BlackBerry/i,
+          /Windows Phone/i
+      ];
+      
+      return toMatch.some((toMatchItem) => {
+          return navigator.userAgent.match(toMatchItem);
+      });
+      
     },
     
     showTheBackgroundGrid: function() {

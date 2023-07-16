@@ -477,9 +477,9 @@ export default {
   border-radius: 0 0 100% 0;
 }
 .ale-click-wrap:hover .blurb-tooltip { display: block; }
-// body.is-ios .blurb-tooltip { display: none !important; }
+body.is-mobile .blurb-tooltip { display: none !important; }
 
-body.is-ios .ale-click-wrap {
+body.is-mobile .ale-click-wrap {
   .ale-info-indicator {
     display: none !important;
   }

@@ -51,7 +51,7 @@ export default {
 }
 
 
-body:not(.is-ios) .ale-book:hover .ale-play-sample {
+body:not(.is-mobile) .ale-book:hover .ale-play-sample {
   display: inline-block;
 }
 
