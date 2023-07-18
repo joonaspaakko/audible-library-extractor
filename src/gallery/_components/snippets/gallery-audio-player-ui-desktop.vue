@@ -1,5 +1,5 @@
 <template>
-  <div id="audio-player" v-show="store.audioPlayer.audio">
+  <div id="audio-player" v-show="store.audioPlayer.audio" ref="player">
     
     <div class="inner-wrap">
       
@@ -46,6 +46,18 @@ export default {
     return {
       store: this.$store.state,
     };
+  },
+  
+  watch: {
+    
+    'store.audioPlayer.audio'( show ) {
+      this.$nextTick(() => {
+        
+        this.$store.commit('prop', { key: 'desktopPlayerHeight', value: show ? (this.$refs.player.offsetHeight/2)+'px' : null });
+        
+      });
+    },
+    
   },
   
 };

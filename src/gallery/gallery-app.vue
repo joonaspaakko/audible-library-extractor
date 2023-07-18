@@ -1,5 +1,10 @@
 <template>
-  <div :data-version="$store.state.version" :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }" :data-block-scrolling="$store.state.blockScrolling">
+  <div 
+    :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }" 
+    :data-version="$store.state.version" 
+    :data-block-scrolling="$store.state.blockScrolling"
+    :style="{ paddingTop: $store.state.desktopPlayerHeight }"
+  >
     
     <gallery-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></gallery-background>
     <gallery-navigation></gallery-navigation>

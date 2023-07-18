@@ -50,6 +50,12 @@ export default {
       prevScrollTop: 0,
     };
   },
+  
+  watch: {
+    '$store.state.desktopPlayerHeight'() {
+      this.setSpreadsheetOffset();
+    },
+  },
 
   created: function() {
     this.keys = this.prepareKeys();

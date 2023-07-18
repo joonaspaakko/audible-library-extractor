@@ -107,4 +107,5 @@ export default {
     playing: false,
   },
   showMobilePlayer: false,
+  desktopPlayerHeight: null,
 };
