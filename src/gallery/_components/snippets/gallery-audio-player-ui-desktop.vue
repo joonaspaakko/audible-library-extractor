@@ -26,8 +26,8 @@
           <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')"><fa6-solid-play/></div>
           <div class="pause" v-else @click="$compEmitter.emit('audio-player-pause')"> <fa6-solid-pause/></div>
           <div class="stop" @click="$compEmitter.emit('audio-player-stop')">          <fa-solid-times/></div>
-          <div class="back" @click="$compEmitter.emit('audio-player-seek-back')">      <fa-solid-undo-alt/></div>
-          <div class="forward" @click="$compEmitter.emit('audio-player-seek-forward')"><fa-solid-redo-alt/></div>
+          <div class="back" @click="$compEmitter.emit('audio-player-seek-back')">      <ic-baseline-replay-30/></div>
+          <div class="forward" @click="$compEmitter.emit('audio-player-seek-forward')"><ic-baseline-forward-30/></div>
         </div>
         
       </div>
@@ -263,6 +263,10 @@ export default {
   max-height: 40px;
   border-radius: .5em;  
   margin-right: 1em;
+}
+
+.back, .forward {
+  font-size: 1.4em;
 }
 
 </style>

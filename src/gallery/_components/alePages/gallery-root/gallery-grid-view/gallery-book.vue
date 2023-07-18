@@ -111,12 +111,6 @@ export default {
           index: index
         } 
       });
-      // this.$compEmitter.emit("play-audio", {
-      //   from: "book",
-      //   route: this.$route,
-      //   book: book,
-      //   index: index
-      // });
     },
     
   }
@@ -492,9 +486,14 @@ body.is-mobile .ale-click-wrap {
 @media (max-width: 640px) {
   
   .ale-play-sample {
-    > div {
+    :deep(> div),
+    :deep(> a) {
       width: 15px;
       height: 15px;
+      font-size: .6em;
+      :deep(img) {
+        max-width: 70%;
+      }
     }
   }
   

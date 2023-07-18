@@ -2,21 +2,7 @@
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation" ref="navigation">
     
-    <gallery-navigation-looper v-if="!mobileMenuOpen" :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" :desktopMenu="true" />
-    
-    <manual-splider v-else-if="mobileMenuOpen">
-      <template #page-1>
-        
-        <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" />
-        
-      </template>
-      <template #page-2 v-if="store.audioPlayer.audio">
-        <!-- AUDIO PLAYER -->
-        <!-- <gallery-audio-player v-if="inRoot" /> -->
-        <gallery-audio-player-ui-mobile />
-          
-      </template>
-    </manual-splider>
+    <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" :desktopMenu="!mobileMenuOpen" />
     
     <!-- Component opened by one of the menu items -->
     <div class="floater-components" v-if="!mobileThreshold">
@@ -26,10 +12,12 @@
     
   </div>
   
-  <gallery-mobile-menu-floaters v-if="mobileThreshold" v-model:mobileMenuOpen="mobileMenuOpen" @startSearching="startSearching" />
+  <gallery-mobile-menu-floaters v-if="mobileThreshold" v-model:mobileMenuOpen="mobileMenuOpen" :mobileThreshold="mobileThreshold" @startSearching="startSearching" />
   
   <!-- When gallery is saved to the home screen on a Tablet -->
   <gallery-back-forward-btns v-if="$store.state.displayMode && !mobileThreshold" :viewportFloat="true" />
+  
+  <gallery-audio-player-ui-mobile v-if="mobileThreshold && store.showMobilePlayer" />
   
 </div>
 </template>

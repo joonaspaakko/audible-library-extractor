@@ -105,5 +105,6 @@ export default {
     progress: 0,
     sample: true,
     playing: false,
-  }
+  },
+  showMobilePlayer: false,
 };

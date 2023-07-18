@@ -14,11 +14,15 @@ export default {
   props: ["book", "index", "topRight", "size"],
   methods: {
     playSample: function(book, index) {
-      this.$compEmitter.emit("play-audio", {
-        from: "sampleButton",
-        route: this.$route,
-        book: book,
-        index: index
+      
+      this.$store.commit('prop', { 
+        key: 'audioPlayer.audio', 
+        value: {
+          from: "book",
+          route: this.$route,
+          book: book,
+          index: index
+        } 
       });
     }
   },

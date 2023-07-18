@@ -138,6 +138,7 @@ export default {
       
       this.destroyHowler('keepAudioData'); // Just in case...
       
+      this.$store.commit('prop', { key: 'showMobilePlayer', value: true });
       this.$store.commit('prop', { key: 'playingAudio', value: true });
       
       this.howler = new Howl({
@@ -150,19 +151,19 @@ export default {
           vue.howler.once('unlock', function() {
             vue.howler.play();
           });
-          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() })
+          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() });
         },
         onplay(e, a) {
-          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() })
+          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() });
         },
         onend(e) {
-          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() })
+          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() });
         },
         onpause(e) {
-          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() })
+          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() });
         },
         onstop(e) {
-          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler.playing() })
+          vue.$store.commit('prop', { key: 'audioPlayer.playing', value: vue.howler ? vue.howler.playing() : false });
         },
       });
       
@@ -324,6 +325,8 @@ export default {
     },
     
     destroyHowler( keepAudioData ) {
+      
+      this.$store.commit('prop', { key: 'showMobilePlayer', value: false });
       
       if ( this.howler ) {
         this.clearPause();

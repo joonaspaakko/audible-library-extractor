@@ -7,17 +7,24 @@
   <div id="mobile-menu-floaters" :class="{ mobile: mobileMenuOpen }">
     <div class="second-row">
       
-      <div v-if="$store.state.searchMounted && !mobileMenuOpen" class="search-btn" @click="$emit('startSearching')">
+      <div v-if="$store.state.searchMounted && !mobileMenuOpen" class="search-btn" @click="$emit('startSearching')"
+        :style="{ top: showMobilePlayerButton ? '-93px' : '-46px' }"
+      >
         <fa-solid-search/>
+      </div>
+      
+      <div v-if="showMobilePlayerButton" class="mobile-player-button" @click="$store.commit('prop', { key: 'showMobilePlayer', value: true });">
+        <!-- <material-symbols-play-circle/> -->
+        <fa6-solid-headphones-simple/>
       </div>
       
       <gallery-back-forward-btns v-if="$store.state.displayMode && !mobileMenuOpen" />
       
       <div class="burger-menu" @click="$emit('update:mobileMenuOpen', !mobileMenuOpen)">
         <fa-solid-bars class="brgr-btn" />
-        <div class="player-open-indicator" v-if="$store.state.playingAudio">
+        <!-- <div class="player-open-indicator" v-if="$store.state.playingAudio">
           <fa-solid-music class="brgr-btn" />
-        </div>
+        </div> -->
       </div>
       
     </div>
@@ -28,12 +35,19 @@
 <script>
 export default {
   name: "mobileMenuFloaters",
-  props: ['mobileMenuOpen'],
+  props: ['mobileMenuOpen', 'mobileThreshold'],
   data: function() {
     return {
       store: this.$store.state,
     };
   },
+  
+  computed: {
+    showMobilePlayerButton() {
+      return !this.mobileMenuOpen && this.mobileThreshold && !this.store.showMobilePlayer && this.store.audioPlayer.audio;
+    },
+  },
+  
 };
 </script>
 
@@ -61,8 +75,9 @@ export default {
   }
   
   .search-btn {
+    transition: top 300ms ease;
     position: absolute;
-    top: -46px;
+    top: -93px;
     cursor: pointer;
     @extend .center-contents;
     border-radius: 999999px;
@@ -75,6 +90,13 @@ export default {
     background: rgba( #292929, .90);
     border: 1px solid rgba( #fff, 1);
   }
+  
+  .mobile-player-button {
+    @extend .search-btn;
+    top: -46px;
+    background: #ff1946;
+  }
+  
   
   .burger-menu {
     cursor: pointer;
