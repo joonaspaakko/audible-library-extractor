@@ -63,4 +63,8 @@ export default {
     return book.title || book.titleShort;
   },
   
+  mobileThreshold( state ) {
+    return state.windowWidth < state.mobileWidth;
+  },
+  
 };

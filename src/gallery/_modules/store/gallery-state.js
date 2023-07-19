@@ -108,4 +108,5 @@ export default {
   },
   showMobilePlayer: false,
   desktopPlayerHeight: null,
+  mobileWidth: 630,
 };

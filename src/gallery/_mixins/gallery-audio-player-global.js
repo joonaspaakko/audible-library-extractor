@@ -138,7 +138,7 @@ export default {
       
       this.destroyHowler('keepAudioData'); // Just in case...
       
-      this.$store.commit('prop', { key: 'showMobilePlayer', value: true });
+      if ( this.$store.getters.mobileThreshold ) this.$store.commit('prop', { key: 'showMobilePlayer', value: true });
       this.$store.commit('prop', { key: 'playingAudio', value: true });
       
       this.howler = new Howl({
@@ -326,7 +326,7 @@ export default {
     
     destroyHowler( keepAudioData ) {
       
-      this.$store.commit('prop', { key: 'showMobilePlayer', value: false });
+      if ( this.$store.getters.mobileThreshold ) this.$store.commit('prop', { key: 'showMobilePlayer', value: false });
       
       if ( this.howler ) {
         this.clearPause();

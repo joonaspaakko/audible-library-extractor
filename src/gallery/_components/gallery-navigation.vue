@@ -34,7 +34,6 @@ export default {
       store: this.$store.state,
       mobileMenuOpen: false,
       sampleData: null,
-      mobileWidth: 630,
       subMenuActive: null,
       routeAvailable: {},
       loading: true,
@@ -54,7 +53,7 @@ export default {
     },
     
     mobileThreshold() {
-      return this.$store.state.windowWidth < this.mobileWidth;
+      return this.$store.getters.mobileThreshold;
     },
   },
   
