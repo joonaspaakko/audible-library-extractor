@@ -206,8 +206,8 @@ export default {
     
     this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
     
-    document.querySelector('#ale-bookdetails').remove();
-    
+    const bookDetailsEl = document.querySelector('#ale-bookdetails');
+    if ( bookDetailsEl ) bookDetailsEl.remove();
     
       window.removeEventListener('touchstart', this.touchStart);
       window.removeEventListener('touchmove', this.preventTouch, {passive: false});
