@@ -80,8 +80,9 @@ export default {
   methods: {
     swipeHandler() {
       
-      // this.$compEmitter.emit('audio-player-stop');
-      this.$store.commit('prop', { key: 'showMobilePlayer', value: false });
+      setTimeout(() => {
+        this.$store.commit('prop', { key: 'showMobilePlayer', value: false });
+      }, 100);
       
     },
   },
