@@ -94,7 +94,7 @@ export default {
   modal: {
     saveLocally: false,
   },
-  blockScrolling: false,
+  preventScrolling: false,
   playingAudio: false,
   topNavOffset: 0,
   bookClicked: false,

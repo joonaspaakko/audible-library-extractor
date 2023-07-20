@@ -2,7 +2,7 @@
   <div 
     :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }" 
     :data-version="$store.state.version" 
-    :data-block-scrolling="$store.state.blockScrolling"
+    :data-prevent-scrolling="$store.state.preventScrolling"
     :style="{ paddingTop: $store.state.desktopPlayerHeight }"
   >
     
@@ -192,6 +192,9 @@ export default {
     },
     "$store.state.showRoute"( value ) {
       if ( !value ) this.refreshPage();
+    },
+    "$store.state.preventScrolling"( value ) {
+      document.body.classList[ value ? 'add' : 'remove' ]('prevent-scrolling');
     },
   },
   
@@ -434,9 +437,12 @@ body {
   }
 }
 
-div[data-block-scrolling="true"] {
-  height: 100vh !important;
-  width:  100vw !important;
+// div[data-prevent-scrolling="true"] {
+//   height: 100vh !important;
+//   width:  100vw !important;
+//   overflow: hidden !important;
+// }
+body.prevent-scrolling {
   overflow: hidden !important;
 }
 

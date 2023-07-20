@@ -69,12 +69,12 @@ export default {
     mobileMenuOpen( open ) {
       // FIXME this resets the scroll, so if you were looking at a book and you just close the menu, the scroll position is lost
       // - This should still exist in case there's need to scroll the mobile menu... just in case.
-      // - So perhaps the fix should be to remember the scroll position when blockScrolling is triggered and reinstate it later
-      this.$store.commit('prop', { key: 'blockScrolling', value: open }); // Makes it so if you have to scroll in the mobile menu, the viewport won't scroll
+      // - So perhaps the fix should be to remember the scroll position when preventScrolling is triggered and reinstate it later
+      this.$store.commit('prop', { key: 'preventScrolling', value: open }); // Makes it so if you have to scroll in the mobile menu, the viewport won't scroll
       this.routes = this.getRoutes();
     },
     clickedRouteComp( open ) {
-      this.$store.commit('prop', { key: 'blockScrolling', value: open });
+      this.$store.commit('prop', { key: 'preventScrolling', value: open });
     },
   },
   
