@@ -41,6 +41,14 @@ export default {
         this.$store.commit('prop', { key: 'audioPlayer.timeDisplay', value: newValue })
       },
     },
+    timeDisplayLeft: {
+      get() {
+        return this.store.audioPlayer.timeDisplayLeft;
+      },
+      set( newValue ) {
+        this.$store.commit('prop', { key: 'audioPlayer.timeDisplayLeft', value: newValue })
+      },
+    },
     progress: {
       get() {
         return this.store.audioPlayer.progress;
@@ -188,13 +196,13 @@ export default {
         };
         
         const mathMethod = seek.going.forward ? 'add' : 'subtract';
-        seek.value    = _[ mathMethod ]( vue.howler.current.time, config.value ); // Add of subtract from the current time
+        seek.value    = _[ mathMethod ]( vue.howler.current.time, config.value ); // Add of subtract from the current time );
         seek.at.end   = seek.value >= audioLength;
-        seek.at.start = seek.value <= audioLength;
+        seek.at.start = seek.value <= 0;
         // Safeguard so seek never goes past start or end:
         seek.value    = seek.going.forward ? 
-                        seek.at.end ? audioLength : seek.value : 
-                        seek.at.start ? 0 : seek.value; 
+                        (seek.at.end ? audioLength-.00000001 : seek.value) : 
+                        (seek.at.start ? 0 : seek.value); 
         
         // Commands the player to seek...
         vue.howler.seek( seek.value );
@@ -215,6 +223,7 @@ export default {
         timer: null,
         time: null,
         timeDisplay: null,
+        timeDisplayLeft: null,
         percentage: null,
       };
       
@@ -250,11 +259,14 @@ export default {
     updateCurrent() {
       
       var seek = this.howler.seek() || 0;
+      var duration =  this.howler.duration() || 0;
       this.howler.current.time = seek;
       this.howler.current.timeDisplay = this.formatTime(Math.round(seek));
-      this.howler.current.percentage = ((seek / this.howler.duration()) * 100) || 0;
+      this.howler.current.timeDisplayLeft = this.formatTime(Math.round(duration - seek));
+      this.howler.current.percentage = ((seek / duration) * 100) || 0;
       
       this.timeDisplay = this.howler.current.timeDisplay;
+      this.timeDisplayLeft = this.howler.current.timeDisplayLeft;
       this.progress = this.howler.current.percentage.toFixed(1);
       
     },

@@ -102,6 +102,7 @@ export default {
     audio: null, // input object
     // howler: null,
     timeDisplay: '00:00',
+    timeDisplayLeft: '00:00',
     progress: 0,
     sample: true,
     playing: false,

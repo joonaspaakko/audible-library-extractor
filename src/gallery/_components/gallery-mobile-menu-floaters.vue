@@ -15,7 +15,13 @@
       
       <div v-if="showMobilePlayerButton" class="mobile-player-button" @click="$store.commit('prop', { key: 'showMobilePlayer', value: true });">
         <!-- <material-symbols-play-circle/> -->
-        <fa6-solid-headphones-simple/>
+        <!-- <ic-twotone-play-circle-filled-white/> -->
+        <ph-play-fill/>
+        <!-- <fa6-solid-headphones-simple/> -->
+        <!-- <streamline-interface-id-voice-1-identification-secure-id-soundwave-sound-voice-security/> -->
+        <!-- <streamline-interface-id-voice-scan-identification-secure-id-soundwave-sound-voice-brackets-security/> -->
+        <!-- <solar-soundwave-bold/> -->
+        <!-- <material-symbols-video-audio-call/> -->
       </div>
       
       <gallery-back-forward-btns v-if="$store.state.displayMode && !mobileMenuOpen" />
@@ -95,6 +101,7 @@ export default {
     @extend .search-btn;
     top: -46px;
     background: #ff1946;
+    font-size: 1em;
   }
   
   

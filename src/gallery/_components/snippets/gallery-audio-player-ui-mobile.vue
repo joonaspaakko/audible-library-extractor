@@ -3,18 +3,20 @@
     
     <div class="inner-wrap">
       
-      <div class="close-instructions">
-        <div class="text">
-          Swipe to close
-        </div>
-        <div class="icon">
-          <!-- <material-symbols-arrow-downward-rounded/> -->
-          <fluent-swipe-down-20-filled/>
-        </div>
-      </div>
-      
       <div class="cover-wrap">
-        <img class="book-cover" :src="cover" alt="" draggable="false">
+        
+        <div class="close-instructions">
+          <div class="text">
+            swipe down to close
+          </div>
+          <!-- <div class="icon">
+            <fluent-swipe-down-20-filled/>
+          </div> -->
+        </div>
+        
+        <div class="cover-inner-wrap">
+          <img class="book-cover" :src="cover" alt="" draggable="false">
+        </div>
         <div class="book-cover-bg" :style="{ backgroundImage: `url('${cover}')` }"></div>
       </div>
       
@@ -22,18 +24,12 @@
       
         <div class="player-timeline">
           
+          <vue-slider style="width: 100%;" v-model="progress" :tooltip="'none'" />
           
-          <div class="time-display" v-if="store.audioPlayer.timeDisplay">{{ store.audioPlayer.timeDisplay }}</div>
-
-          <div class="scrubber-wrapper">
-            <input class="scrubber" type="range" step="0.1" min="0" :value="store.audioPlayer.progress" max="100" 
-              @change="$compEmitter.emit('audio-player-scrubbed', $event)"
-            >  
-            <div class="progress-filler">
-              <div :style="{
-                width: store.audioPlayer.progress ? store.audioPlayer.progress+'%' : null,
-              }"></div>
-            </div>
+          <div class="duration-wrapper">
+            <div class="time-display" v-if="store.audioPlayer.timeDisplay">{{ store.audioPlayer.timeDisplay }}</div>
+            
+            <div class="time-display" v-if="store.audioPlayer.timeDisplayLeft">-{{ store.audioPlayer.timeDisplayLeft }}</div>
           </div>
           
         </div>
@@ -62,9 +58,17 @@
 
 <script>
 import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
+
+import 'vue-slider-component/theme/antd.css';
+import '@vueform/multiselect/themes/default.css';
+import VueSlider from 'vue-slider-component';
+
 export default {
   name: "audioPlayerUiDesktop",
   mixins: [ makeCoverUrl ],
+  components: {
+    VueSlider,
+  },
   data: function() {
     return {
       store: this.$store.state,
@@ -75,14 +79,27 @@ export default {
     cover() {
       return this.makeCoverUrl(this.$store.getters.audioPlayerBook.cover, 500);
     },
+    progress: {
+      get() {
+        return this.store.audioPlayer.progress;
+      },
+      set( value ) {
+        this.$compEmitter.emit('audio-player-scrubbed', { target: { value } });
+      },
+    },
+  },
+  
+  mounted() {
+    this.$store.commit('prop', { key: 'preventScrolling', value: true });
+  },
+  beforeUnmount() {
+    this.$store.commit('prop', { key: 'preventScrolling', value: false });
   },
   
   methods: {
     swipeHandler() {
       
-      setTimeout(() => {
-        this.$store.commit('prop', { key: 'showMobilePlayer', value: false });
-      }, 100);
+      this.$store.commit('prop', { key: 'showMobilePlayer', value: false });
       
     },
   },
@@ -161,11 +178,11 @@ export default {
       width: 100%;
       flex: 1;
       display: flex;
-      flex-direction: row;
-      justify-items: center;
-      align-items: center;
-      margin-bottom: 25px;
-      padding: 10px 40px;
+      flex-direction: column;
+      justify-content: center;
+      align-items: stretch;
+      margin-bottom: 5px;
+      padding: 10px 20px;
       box-sizing: border-box;
       position: relative;
       left: 50%;
@@ -183,14 +200,20 @@ export default {
         height: 40px;
         background: linear-gradient(0deg, rgba(themed(elementColor),0) 0%, rgba(themed(elementColor),1) 100%);
       }
+      .duration-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: row;
+        justify-content: space-between;
+        align-items: center;
+      }
     }
     
     .time-display { 
       color: themed(frontColor);
       font-family: 'Inconsolata', monospace; 
-      margin-right: 20px; 
       display: flex;
-      justify-items: center;
+      justify-content: center;
       align-items: center;
     }
       
@@ -208,6 +231,15 @@ export default {
       }
       font-size: 1.7em;
       margin-bottom: 10px;
+      
+      .back {
+        padding-left: 40px !important;
+        margin-left: 70px;
+      }
+      .forward {
+        padding-right: 40px !important;
+        margin-right: 70px;
+      }
     }
     
     
@@ -296,7 +328,7 @@ export default {
   flex: 1;
   display: flex;
   flex-direction: row;
-  justify-items: center;
+  justify-content: center;
   align-items: center;
   position: relative;
   z-index: 0;
@@ -313,7 +345,7 @@ export default {
   left: 0;
   display: flex;
   flex-direction: row;
-  justify-items: center;
+  justify-content: center;
   align-items: center;
   div {
     position: relative;
@@ -332,23 +364,50 @@ export default {
   position: relative;
   z-index: 0;
   display: flex;
-  flex-direction: row;
+  flex-direction: column;
   justify-content: center;
   align-items: center;
   flex: 1;
   padding: 20px;
+  gap: 10px;
+  
+  &:before {
+    content: '';
+    position: absolute;
+    z-index: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    height: 60%;
+    @include themify($themes) {
+      background: linear-gradient(0deg, rgba(themed(elementColor),1) 0%, rgba(themed(elementColor),0.1) 80%, rgba(themed(elementColor),0) 100%);
+    }
+  }
+}
+.cover-inner-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100%;
+  width: 100%;
+  max-height:  500px;
+  max-width:  500px;
+  margin-top: -10px;
+  margin-bottom: auto;
+  box-sizing: border-box;
+  padding: 20px 0px;
 }
 .book-cover { 
-  height: auto;
-  width: 100%;
-  max-width:  350px;
-  object-fit: contain;
+  position: relative;
+  z-index: 5;
+  max-height:  100%;
+  max-width:  100%;
   border-radius: .5em;
   // margin-bottom: 40px;
   box-shadow: 10px 10px 50px rgba(#000, .4), 5px 5px 10px rgba(#000, .6);
 }
 .book-cover-bg { 
-  position: fixed;
+  position: absolute;
   z-index: -1;
   $blur: 23px;
   top   : -$blur*2;
@@ -359,19 +418,19 @@ export default {
   background-size: cover;
   background-position: center center;
   background-repeat: no-repeat;
-  background-attachment: fixed;
+  background-attachment: unset;
 }
 
 .bottom {
   @include themify($themes) {
-    background: rgba(themed(elementColor),.8);
+    background: rgba(themed(elementColor),1);
     padding: 30px;
     padding-top: 0;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: stretch;
-    box-shadow: 0 -10px 50px rgba(#000, .4), 0 -5px 10px rgba(#000, .6);
+    box-shadow: 0 -3px 3px rgba(themed(elementColor), 1), 0 -10px 50px rgba(#000, .2);
     position: relative;
     z-index: 10;
   }
@@ -409,16 +468,16 @@ export default {
 
 .close-instructions {
   @include themify($themes) {
-    color: themed(frontColor);
-    position: absolute;
-    z-index: 20;
-    top: 10px;
-    left: 0;
-    right: 0;
+    margin-top: 20px;
+    margin-bottom: auto;
+    color: themed(backColor);
+    background: themed(frontColor);
+    padding: 3px 11px;
     opacity: .4;
+    border-radius: 99999px;
     .text {
       font-size: .8em;
-      text-shadow: 2px 2px 2px themed(backColor);
+      // text-shadow: 2px 2px 2px themed(backColor);
     }
     .icon {
       padding-top: 5px;

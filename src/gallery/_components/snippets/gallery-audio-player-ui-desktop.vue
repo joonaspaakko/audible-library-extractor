@@ -9,18 +9,9 @@
           v-tippy="{ placement: 'right', flipBehavior: ['right', 'bottom'] }" :content="($store.state.audioPlayer.sample ? '<strong>sample</strong> | ' : '') + $store.getters.audioPlayerTitle"
         >
         
-        <div class="time-display" v-if="store.audioPlayer.timeDisplay">{{ store.audioPlayer.timeDisplay }}</div>
-
-        <div class="scrubber-wrapper">
-          <input class="scrubber" type="range" step="0.1" min="0" :value="store.audioPlayer.progress" max="100" 
-            @change="$compEmitter.emit('audio-player-scrubbed', $event)"
-          >  
-          <div class="progress-filler">
-            <div :style="{
-              width: store.audioPlayer.progress ? store.audioPlayer.progress+'%' : null,
-            }"></div>
-          </div>
-        </div>
+        <div class="time-display left" v-if="store.audioPlayer.timeDisplay">{{ store.audioPlayer.timeDisplay }}</div>
+        <vue-slider style="width: 100%;" v-model="progress" :tooltip="'none'" />
+        <div class="time-display right" v-if="store.audioPlayer.timeDisplayLeft">-{{ store.audioPlayer.timeDisplayLeft }}</div>
 
         <div class="player-buttons">
           <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')"><fa6-solid-play/></div>
@@ -39,9 +30,17 @@
 
 <script>
 import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
+
+import 'vue-slider-component/theme/antd.css';
+import '@vueform/multiselect/themes/default.css';
+import VueSlider from 'vue-slider-component';
+
 export default {
   name: "audioPlayerUiDesktop",
   mixins: [ makeCoverUrl ],
+  components: {
+    VueSlider,
+  },
   data: function() {
     return {
       store: this.$store.state,
@@ -58,6 +57,17 @@ export default {
       });
     },
     
+  },
+  
+  computed: {
+    progress: {
+      get() {
+        return this.store.audioPlayer.progress;
+      },
+      set( value ) {
+        this.$compEmitter.emit('audio-player-scrubbed', { target: { value } });
+      },
+    },
   },
   
 };
@@ -107,6 +117,7 @@ export default {
       display: flex;
       flex-direction: column;
       width: 100%;
+      max-width: 715px;
       
       font-size: 17px;
       line-height: 17px;
@@ -134,10 +145,15 @@ export default {
     .time-display { 
       color: themed(frontColor);
       font-family: 'Inconsolata', monospace; 
-      margin-right: 20px; 
       display: flex;
       justify-items: center;
       align-items: center;
+      &.left {
+        margin-right: 20px; 
+      }
+      &.right {
+        margin-left: 20px; 
+      }
     }
       
     .player-buttons {
