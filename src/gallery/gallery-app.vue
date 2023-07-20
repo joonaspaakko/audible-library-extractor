@@ -499,4 +499,51 @@ div[data-block-scrolling="true"] {
 	.splide__pagination__page { width: 10px !important; }
 }
 
+.vue-slider-dot-tooltip-inner,
+.vue-slider-process {
+  @include themify($themes) {
+    background: themed(audibleOrange);
+  }
+}
+.vue-slider-dot-tooltip-inner {
+  @include themify($themes) {
+    border-color: themed(audibleOrange);
+  }
+}
+.vue-slider-mark {
+  width: 2px !important;
+  @include themify($themes) {
+    background-color: rgba(#000, .05);
+  }
+}
+
+.vue-slider-dot-handle-focus {
+  @include themify($themes) {
+    box-shadow: 0 0 0 5px rgba(themed(audibleOrange), 0.2) !important;
+  }
+}
+.vue-slider .vue-slider-dot-handle {
+  @include themify($themes) {
+    border-color: themed(audibleOrange) !important;
+    background: themed(elementColor) !important;
+  }
+}
+.vue-slider .vue-slider-process {
+  @include themify($themes) {
+    background: themed(audibleOrange) !important;
+  }
+}
+.vue-slider .vue-slider-rail {
+  @include themify($themes) {
+    background: rgba(themed(frontColor), .25) !important;
+  }
+}
+
+.vue-slider .vue-slider-mark-step {
+  @include themify($themes) {
+    box-shadow: none !important;
+    background: themed(elementColor) !important;
+  }
+}
+
 </style>

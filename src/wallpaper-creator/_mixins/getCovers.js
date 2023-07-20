@@ -16,7 +16,6 @@ export default {
       
       let vue = this;
       
-      // console.log('TEST 1234')
       // Clear certain parts of the data when coming in from the gallery
       if ( window.location.href.indexOf('src=gallery') > -1 ) {
         this.$store.commit('clearTiers');

@@ -116,8 +116,8 @@
 <script>
 import 'vue-slider-component/theme/antd.css';
 import '@vueform/multiselect/themes/default.css';
-import slugify from "@output-mixins/gallery-slugify.js";
 import VueSlider from 'vue-slider-component';
+import slugify from "@output-mixins/gallery-slugify.js";
 import Multiselect from '@vueform/multiselect'
 
 export default {
@@ -521,23 +521,6 @@ export default {
     // }
   }
   
-  .vue-slider-dot-tooltip-inner,
-  .vue-slider-process {
-    @include themify($themes) {
-      background: themed(audibleOrange);
-    }
-  }
-  .vue-slider-dot-tooltip-inner {
-    @include themify($themes) {
-      border-color: themed(audibleOrange);
-    }
-  }
-  .vue-slider-mark {
-    width: 2px !important;
-    @include themify($themes) {
-      background-color: rgba(#000, .05);
-    }
-  }
 </style>
 
 <style lang="scss" scoped>
