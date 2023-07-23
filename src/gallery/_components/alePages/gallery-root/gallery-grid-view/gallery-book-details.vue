@@ -19,7 +19,7 @@
       <!-- MISSING BOOK (not in library) -->
       <div v-if="book.notInLibrary" class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
         
-        <fa6-solid-ban style="font-size: 30px; color: #ff404e; margin-bottom: 20px;" /> 
+        <fa6-solid-ban style="font-size: 30px; color: #ff404e; margin-bottom: 20px;" v-tippy="{ trigger: 'mouseenter click' }" content="Not in my library..." /> 
         
         <gallery-book-details-title :book="book" :tempAsin="tempAsin" />
         <gallery-book-info-toolbar style="margin-top: 15px;" :book="book" :tempAsin="tempAsin" v-if="sticky.bookDetailSettings.sidebar.iconToolbar"></gallery-book-info-toolbar>

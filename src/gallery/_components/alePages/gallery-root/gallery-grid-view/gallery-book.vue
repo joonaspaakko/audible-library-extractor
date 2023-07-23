@@ -51,17 +51,12 @@
           </div>
         </div>
       
-        <div class="ale-info-indicator">
+        <div class="ale-info-indicator open-details-icon" :class="{ 'not-in-library': book.notInLibrary }">
           <div>
             <!-- <fa6-solid-link v-if="book.notInLibrary" />
             <fa6-solid-book v-else /> -->
-            <fa6-solid-book />
-          </div>
-        </div>
-        
-        <div class="ale-info-indicator not-in-library" v-if="book.notInLibrary">
-          <div>
-            <fa6-solid-ban />
+            <fa6-solid-ban v-if="book.notInLibrary" />
+            <fa6-solid-book v-else />
           </div>
         </div>
         
@@ -400,11 +395,9 @@ export default {
       font-size: 140%;
     }
   }
-  
-  .placeholder-cover,
-  .ale-cover-image {
-    -webkit-filter: blur(1px) grayscale(30%);
-    filter: blur(1px) grayscale(30%);
+  .ale-info-indicator {
+    -webkit-backdrop-filter: blur(1px) grayscale(30%);
+    backdrop-filter: blur(1px) grayscale(30%);
   }
 }
 
@@ -470,19 +463,14 @@ export default {
   outline: none;
   border-radius: 0 0 100% 0;
 }
-.ale-click-wrap:hover .blurb-tooltip { display: block; }
+
+.ale-click-wrap:hover .blurb-tooltip { display: block !important; }
 body.is-mobile .blurb-tooltip { display: none !important; }
 
-body.is-mobile .ale-click-wrap {
-  .ale-info-indicator {
-    display: none !important;
-  }
-  .placeholder-cover,
-  .ale-cover-image {
-    -webkit-filter: none !important;
-    filter: none !important;
-  }
+body.is-mobile .ale-click-wrap .ale-info-indicator {
+    // display: none !important;
 }
+
 @media (max-width: 640px) {
   
   .ale-play-sample {
@@ -499,18 +487,18 @@ body.is-mobile .ale-click-wrap {
   
 }
 
-.not-in-library {
+// :global(.ale-book.details-open .ale-click-wrap),
+div.not-in-library {
   // border: 3px solid #ff404e;
   // box-shadow: 0 0 0 3px #ff404e;
   :deep(.sort-values-container > *) {
-    -webkit-filter: grayscale(1);
-    filter: grayscale(1);
+    -webkit-filter: grayscale(1) !important;
+    filter: grayscale(1) !important;
   }
   
-  .ale-cover-image {
-    // filter: grayscale(1) contrast(.4) brightness(1.2);
-    -webkit-filter: grayscale(1);
-    filter: grayscale(1);
+  .ale-info-indicator {
+      -webkit-backdrop-filter: grayscale(1) !important;
+      backdrop-filter: grayscale(1) !important;
   }
   // .cover-img-wrapper:before {
   //   content: '';
@@ -534,10 +522,6 @@ body.is-mobile .ale-click-wrap {
       font-size: 140%;
     }
   }
-}
-
-.ale-click-wrap:hover .ale-info-indicator.not-in-library {
-  display: none;
 }
 
 </style>
