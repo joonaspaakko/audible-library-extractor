@@ -51,7 +51,7 @@
           </div>
         </div>
       
-        <div class="ale-info-indicator open-details-icon" :class="{ 'not-in-library': book.notInLibrary }">
+        <div class="ale-info-indicator" :class="{ 'not-in-library': book.notInLibrary, 'open-details-icon': !book.notInLibrary }">
           <div>
             <!-- <fa6-solid-link v-if="book.notInLibrary" />
             <fa6-solid-book v-else /> -->
@@ -467,8 +467,8 @@ export default {
 .ale-click-wrap:hover .blurb-tooltip { display: block !important; }
 body.is-mobile .blurb-tooltip { display: none !important; }
 
-body.is-mobile .ale-click-wrap .ale-info-indicator {
-    // display: none !important;
+body.is-mobile .ale-click-wrap .ale-info-indicator.open-details-icon {
+  display: none !important;
 }
 
 @media (max-width: 640px) {

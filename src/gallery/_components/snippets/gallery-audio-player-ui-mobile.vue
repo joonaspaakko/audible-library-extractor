@@ -42,8 +42,8 @@
         <div class="player-buttons">
           <div class="back" @click="$compEmitter.emit('audio-player-seek-back')"><ic-baseline-replay-30/></div>
           <div class="play-pause">
-            <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')"><ic-round-play-arrow/></div>
-            <div class="pause" v-else @click="$compEmitter.emit('audio-player-pause')"><ic-round-pause/></div>
+            <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')"><ic-sharp-play-circle-filled/></div>
+            <div class="pause" v-else @click="$compEmitter.emit('audio-player-pause')"><ic-sharp-pause-circle-filled/></div>
           </div>
           <!-- <div class="stop" @click="$compEmitter.emit('audio-player-stop')">          <fa-solid-stop/></div> -->
           <div class="forward" @click="$compEmitter.emit('audio-player-seek-forward')"><ic-baseline-forward-30/></div>
@@ -368,7 +368,8 @@ export default {
   justify-content: center;
   align-items: center;
   flex: 1;
-  padding: 20px;
+  padding: 20px 40px;
+  box-sizing: border-box;
   gap: 10px;
   
   &:before {
@@ -385,26 +386,27 @@ export default {
   }
 }
 .cover-inner-wrap {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  height: 100%;
   width: 100%;
-  max-height:  500px;
-  max-width:  500px;
+  height: 100%;
   margin-top: -10px;
   margin-bottom: auto;
-  box-sizing: border-box;
   padding: 20px 0px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
 }
 .book-cover { 
   position: relative;
   z-index: 5;
-  max-height:  100%;
-  max-width:  100%;
+  // max-height:  100%;
+  // max-width:  100%;
   border-radius: .5em;
   // margin-bottom: 40px;
   box-shadow: 10px 10px 50px rgba(#000, .4), 5px 5px 10px rgba(#000, .6);
+  
+  max-width: 100%;
+  max-height: 100%;
 }
 .book-cover-bg { 
   position: absolute;
@@ -442,23 +444,23 @@ export default {
   align-items: center;
   position: relative;
   z-index: 1;
-  font-size: 1.5em;
+  font-size: 2em;
   padding: .1em !important;
   @include themify($themes) {
-    color: themed(backColor);
+    color: themed(frontColor);
   }
-  &:after {
-    content: '';
-    position: absolute;
-    z-index: -1;
-    border-radius: 50%;
-    width: 100%;
-    height: auto;
-    padding-top: 100%;
-    @include themify($themes) {
-      background: themed(frontColor);
-    }
-  }
+  // &:after {
+  //   content: '';
+  //   position: absolute;
+  //   z-index: -1;
+  //   border-radius: 50%;
+  //   width: 100%;
+  //   height: auto;
+  //   padding-top: 100%;
+  //   @include themify($themes) {
+  //     background: themed(frontColor);
+  //   }
+  // }
   div {
     display: flex;
     justify-content: center;
