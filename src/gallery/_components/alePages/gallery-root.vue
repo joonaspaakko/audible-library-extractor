@@ -7,7 +7,7 @@
     
     <context-menu-reminder v-if="!$store.state.standalone && $store.state.sticky.contextMenuReminder" />
     
-    <gallery-search v-if="prepsCompleted" :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle" @vue:mounted="searchMounted" />
+    <gallery-search v-if="prepsCompleted" :collectionSource="collectionSource" @vue:mounted="searchMounted" />
     
     <div v-if="collapseView" class="collection-expanded-btn" @click="expandView">
       <div>
@@ -104,15 +104,6 @@ export default {
   },
   
   created: function() {
-    
-    if ( this.$route.name === 'library' ) {
-      this.pageTitle = 'Library';
-      this.pageSubTitle = null;
-    }
-    else if ( this.$route.name === 'wishlist' ) {
-      this.pageTitle = 'Wishlist';
-      this.pageSubTitle = null;
-    }
     
     this.updateListRenderingOptions();
     

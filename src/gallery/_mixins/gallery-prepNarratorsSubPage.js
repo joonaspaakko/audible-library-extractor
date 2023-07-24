@@ -15,12 +15,9 @@ export default {
         });
         
         // Set page title
-        if ( books.length > 0 ) {
-          const narrator = _.find(books[0].narrators, function( narrator ) { return vue.slugify(narrator.name) === narratorSlug;  });
-          if ( narrator ) {
-            this.pageTitle = narrator.name;
-          }
-        }
+        const narrators = _.get(books, '0.narrators');
+        const narrator = _.find(narrators, ( narrator ) => { return this.slugify(narrator.name) === narratorSlug;  });
+        this.$store.commit('prop', { key: 'pageTitle', value:  _.get(narrator, 'name') });
         
         // Init arrays
         this.$store.commit("prop", { key: 'pageCollection', value: books });

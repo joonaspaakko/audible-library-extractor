@@ -1,7 +1,7 @@
 <template>
   <div>
     
-    <gallery-page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></gallery-page-title>
+    <gallery-page-title></gallery-page-title>
     
     <gallery-library-wishlist-switcher v-if="$route.meta.subPage" :aboveSearch="true" />
     
@@ -73,7 +73,7 @@ import filterAndSort from '@output-mixins/gallery-filter-and-sort.js';
 export default {
   name: "GallerySearch",
   mixins: [filterAndSort],
-  props: ['collectionSource', 'pageTitle', 'pageSubTitle'],
+  props: ['collectionSource'],
   data: function() {
     return {
       enableZoomTimer: null,

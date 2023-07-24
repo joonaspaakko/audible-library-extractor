@@ -1,6 +1,6 @@
 <template>
   <div id="ale-narrators" class="box-layout-wrapper" v-if="listReady" :style="optionsOpenMargin" ref="wrapper">
-    <gallery-search :collectionSource="collectionSource" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></gallery-search>
+    <gallery-search :collectionSource="collectionSource"></gallery-search>
     
     <div :style="galleryStyle" class="page-content">   
       <gallery-lazy

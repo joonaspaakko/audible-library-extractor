@@ -1,29 +1,31 @@
 
 export default {
   sortValues: function( state ) {
-    return _.find( state.listRenderingOpts.sort, { key: "sortValues" }).active;
+    const sortValues = _.find( _.get(state,'listRenderingOpts.sort'), { key: "sortValues" });
+    return _.get(sortValues, 'active');
   },
   sortBy: function( state ) {
-    return _.find( state.listRenderingOpts.sort, 'current').key;
+    const sort = _.find( _.get(state,'listRenderingOpts.sort'), 'current');
+    return _.get(sort,'key');
   },
   regularFilters: function( state ) {
-    return _.filter( state.listRenderingOpts.filter, { type: 'filter' }).length > 0;
+    return _.filter( _.get(state,'listRenderingOpts.filter'), { type: 'filter' }).length > 0;
   },
   filterKeys: function( state ) {
-    return _.map(_.filter( state.listRenderingOpts.filter, { type: 'filter', active: true }), function( o ) {
+    return _.map(_.filter( _.get(state,'listRenderingOpts.filter'), { type: 'filter', active: true }), function( o ) {
       return o.key;
     }).join(',');
   },
   filterKeysLength: function( state ) {
-    return _.filter( state.listRenderingOpts.filter, { type: 'filter' }).length;
+    return _.filter( _.get(state,'listRenderingOpts.filter'), { type: 'filter' }).length;
   },
   filterExtrasKeys: function( state ) {
-    return _.map(_.filter( state.listRenderingOpts.filter, { type: 'filterExtras', active: true }), function( o ) {
+    return _.map(_.filter( _.get(state,'listRenderingOpts.filter'), { type: 'filterExtras', active: true }), function( o ) {
       return o.key;
     }).join(',');
   },
   scopeKeys: function( state ) {
-    return _.map(_.filter( state.listRenderingOpts.scope, 'active'), function( o ) {
+    return _.map(_.filter( _.get(state,'listRenderingOpts.scope'), 'active'), function( o ) {
       return o.key;
     }).join(',');
   },
@@ -66,5 +68,9 @@ export default {
   mobileThreshold( state ) {
     return state.windowWidth < state.mobileWidth;
   },
+  
+  showPageTitle( state ) {
+    return !!(state.pageSubTitle || state.pageTitle);
+  }
   
 };

@@ -54,7 +54,6 @@ export default {
 
 <style lang="scss" scoped>
 
-
 #library-wishlist-switcher {
   text-align: center;
   // float: right;

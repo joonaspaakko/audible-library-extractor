@@ -157,8 +157,8 @@ export default {
             }
           });
           
-          if ( title ) this.pageTitle = title;
-          if ( !seriesHasBooks ) this.pageSubTitle = "Couldn't find series order: using number sort";
+          if ( title ) this.$store.commit('prop', { key: 'pageTitle', value: title });
+          if ( !seriesHasBooks ) this.$store.commit('prop', { key: 'pageSubTitle', value: "Couldn't find series order: using number sort" });
           
         }
         

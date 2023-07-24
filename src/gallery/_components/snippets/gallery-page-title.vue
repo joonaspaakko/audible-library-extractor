@@ -1,13 +1,13 @@
 <template>
-  <div class="gallery-title-wrapper" v-if="pageTitle || pageSubTitle">
-    <h2 class="gallery-title" v-if="pageTitle">
-      <router-link :to="pageLink">
-        {{ pageTitle }}
-      </router-link>
+  <div class="gallery-title-wrapper" v-if="title || subtitle">
+    <h2 class="gallery-title" v-if="title">
+      <a href="#" @click.prevent="titleClicked">
+        {{ title }}
+      </a>
     </h2>
-    <div class="divider"></div>
-    <h3 class="gallery-sub-title" v-if="pageSubTitle">
-      {{ pageSubTitle }}
+    <div class="divider" v-if="subtitle"></div>
+    <h3 class="gallery-sub-title" v-if="subtitle">
+      {{ subtitle }}
     </h3>
   </div>
 </template>
@@ -17,29 +17,50 @@ import domurl from 'domurl';
 
 export default {
   name: "pageTitle",
-  props: ['pageTitle', 'pageSubTitle'],
   data() {
     return {
-      pageLink: '#',
+      route: {
+        title: null,
+        subtitle: null,
+      },
     }
   },
-  mounted: function() {
+  
+  computed: {
+    title() {
+      return this.$store.state.pageTitle;
+    },
+    subtitle() {
+      return this.$store.state.pageSubTitle;
+    },
+  },
+  created: function() {
     
-    if ( this.pageTitle ) this.$store.commit('prop', { key: 'pageTitle', value: this.pageTitle });
-    if ( this.pageSubTitle ) this.$store.commit('prop', { key: 'pageSubTitle', value: this.pageSubTitle });
+    this.route.title    = _.get(this.$route, 'meta.title');
+    this.route.subtitle = _.get(this.$route, 'meta.subtitle');
     
-    const routeDolly = _.cloneDeep(this.$route);
-    routeDolly.query = {
-      refresh: true,
-    };
-    this.pageLink = routeDolly;
+    if ( !this.title    && this.route.title    ) this.$store.commit('prop', { key: 'pageTitle',    value: this.route.title });
+    if ( !this.subtitle && this.route.subtitle ) this.$store.commit('prop', { key: 'pageSubTitle', value: this.route.subtitle });
+    
+    // const routeDolly = _.cloneDeep(this.$route);
+    // routeDolly.query = {
+    //   refresh: true,
+    // };
+    // this.pageLink = routeDolly;
     
   },
   
   beforeUnmount: function() {
     
     this.$store.commit('prop', { key: 'pageTitle', value: null });
+    this.$store.commit('prop', { key: 'pageSubTitle', value: null });
     
+  },
+  
+  methods: {
+    titleClicked( e ) {
+      this.$router.go();
+    },
   },
   
 };
@@ -47,7 +68,6 @@ export default {
 
 
 <style lang="scss">
-
 
 .gallery-title-wrapper {
   margin-bottom: 20px;

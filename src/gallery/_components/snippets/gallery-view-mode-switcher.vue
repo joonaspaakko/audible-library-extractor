@@ -31,7 +31,7 @@ export default {
       
       const vue = this;
       
-      let viewModeIndex = _.findIndex( this.viewModes, function( v ) { return v === vue.sticky.viewMode });
+      let viewModeIndex = _.findIndex( this.viewModes, ( v ) => { return v === this.sticky.viewMode });
       if ( (viewModeIndex+1) > (this.viewModes.length-1) ) viewModeIndex = 0;
       else viewModeIndex = viewModeIndex+1;
       

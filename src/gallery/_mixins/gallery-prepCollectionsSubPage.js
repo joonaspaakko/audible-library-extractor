@@ -16,10 +16,8 @@ export default {
           });
           
           // Set page title
-          if ( collection.title || collection.description ) {
-            if ( collection.title        ) this.pageTitle = collection.title;
-            if ( collection.description  ) this.pageSubTitle = collection.description;
-          }
+          if ( collection.title        ) this.$store.commit('prop', { key: 'pageTitle',    value: collection.title });
+          if ( collection.description  ) this.$store.commit('prop', { key: 'pageSubTitle', value: collection.description });
           
           // Init arrays
           this.$store.commit("prop", { key: 'pageCollection', value: collectionBooks });

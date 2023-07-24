@@ -23,10 +23,10 @@ export default {
         
         // Set page title
         if ( categoryBooks && (category.parent || category.child)  ) {
-          const parentCategoryName = categoryBooks[0].categories[0] ? categoryBooks[0].categories[0].name : null;
-          const childCategoryName = categoryBooks[0].categories[1] ? categoryBooks[0].categories[1].name : null;
-          if ( parentCategoryName ) this.pageTitle = parentCategoryName;
-          if ( childCategoryName && category.child ) this.pageSubTitle = childCategoryName;
+          const parentCategoryName = _.get(categoryBooks, '0.categories.0.name');
+          const childCategoryName = _.get(categoryBooks, '0.categories.1.name');
+          if ( parentCategoryName ) this.pageTitle = this.$store.commit('prop', { key: 'pageTitle', value: parentCategoryName });
+          if ( childCategoryName && category.child ) this.$store.commit('prop', { key: 'pageSubTitle', value: childCategoryName });
         }
         
         // Just thinking about things... 

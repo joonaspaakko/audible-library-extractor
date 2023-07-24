@@ -1,7 +1,7 @@
 <template>
   <div id="ale-collections" class="box-layout-wrapper" v-if="collections">
     
-    <gallery-page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></gallery-page-title>
+    <gallery-page-title></gallery-page-title>
     
     <div class="hide-premade-btn-wrapper">
       <div @click="$store.commit('prop', { key: 'sticky.collectionsHidePremade', value: !$store.state.sticky.collectionsHidePremade })">
@@ -62,7 +62,7 @@ import slugify from "@output-mixins/gallery-slugify.js";
 import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 
 export default {
-  name: "aleCategories",
+  name: "aleCollections",
   mixins: [slugify, makeCoverUrl],
   data: function() {
     return {

@@ -12,12 +12,9 @@ export default {
         });
         
         // Set page title
-        if ( books.length > 0 ) {
-          const author = _.find(books[0].authors, function( author ) { return author.url === authorUrl;  });
-          if ( author ) {
-            this.pageTitle = author.name;
-          }
-        }
+        const authors = _.get(books, '0.authors');
+        const author = _.find(authors, ( author ) => { return author.url === authorUrl;  });
+        this.$store.commit('prop', { key: 'pageTitle', value:  _.get(author, 'name') });
         
         // Init arrays
         this.$store.commit("prop", { key: 'pageCollection', value: books });

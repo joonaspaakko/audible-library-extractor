@@ -113,19 +113,24 @@ export default {
     
     checkIf_Mobile() {
       
-      const toMatch = [
-          /Android/i,
-          /webOS/i,
-          /iPhone/i,
-          /iPad/i,
-          /iPod/i,
-          /BlackBerry/i,
-          /Windows Phone/i
-      ];
+      const userAgent = _.get(navigator, 'userAgent', '').toLowerCase();
       
-      return toMatch.some((toMatchItem) => {
-          return navigator.userAgent.match(toMatchItem);
+      const test1 = _.includes( [
+        "Android",
+        "webOS",
+        "iPhone",
+        "iPad",
+        "iPod",
+        "BlackBerry",
+        "Windows Phone",
+      ], ( item ) => {
+         item = item.toLowerCase();
+        return userAgent === item;
       });
+      
+      const test2 = navigator.userAgent.includes("Mac") && "ontouchend" in document;
+      
+      return test1 || test2;
       
     },
     

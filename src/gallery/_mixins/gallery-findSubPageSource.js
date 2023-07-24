@@ -30,7 +30,8 @@ export default {
   watch: {
     
     '$route.query.subPageSource': function( source ) {
-      if ( !this.$route.meta.gallery && this.$route.meta.subPage ) {
+      const routeMeta = _.get(this.$route, 'meta', {});
+      if ( !routeMeta.gallery && routeMeta.subPage ) {
         
         this.listReady = false;
         this.subPageSource = this.findSubPageSource();
@@ -53,8 +54,9 @@ export default {
 
   created: function () {
     
-    if ( this.$route.meta.subPage ) this.subPageSource = this.findSubPageSource();
-    if ( !this.$route.meta.gallery && this.$route.meta.subPage ) this.makeCollection();
+    const routeMeta = _.get(this.$route, 'meta', {});
+    if ( routeMeta.subPage ) this.subPageSource = this.findSubPageSource();
+    if ( !routeMeta.gallery && routeMeta.subPage ) this.makeCollection();
     
   },
   

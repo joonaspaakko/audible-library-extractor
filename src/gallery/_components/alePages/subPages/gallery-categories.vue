@@ -1,7 +1,7 @@
 <template>
   <div id="ale-categories" class="box-layout-wrapper" v-if="listReady">
     
-    <gallery-page-title v-if="pageTitle || pageSubTitle" :pageTitle="pageTitle" :pageSubTitle="pageSubTitle"></gallery-page-title>
+    <gallery-page-title></gallery-page-title>
     
     <gallery-library-wishlist-switcher />
     
