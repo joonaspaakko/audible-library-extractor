@@ -2,7 +2,7 @@
 <div class="reminder slide-in-blurred-top">
   <span>You can open this gallery page any time from <br>the browser context menu (right-click) </span>
   <div >
-    <img :src="contextMenuImage" alt="">
+    <img :src="img" alt="">
   </div>
   <fa-solid-times class="hide" @click="hide" />
 </div>
@@ -13,6 +13,11 @@ import contextMenuImage from './contextMenuReminder.png';
 
 export default {
   name: "contextMenuReminder",
+  data() {
+    return {
+      img: contextMenuImage,
+    }
+  },
   methods: {
     hide: function() {
       this.$store.commit('stickyProp', { key: 'contextMenuReminder', value: false });
