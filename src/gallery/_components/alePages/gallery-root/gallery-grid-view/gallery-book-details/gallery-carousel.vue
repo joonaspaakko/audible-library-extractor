@@ -16,7 +16,7 @@
 			:interactiveDebounce="75"
 			:interactiveBorder="30"
 			:allowHTML="true" 
-			:delay="520" 
+			:delay="1000" 
       @trigger="onShow" 
 			@untrigger="onHide"
 		>

@@ -13,11 +13,10 @@
       id="book-info-container"
       v-shortkey="{ left: ['arrowleft'], up: ['arrowup'], right: ['arrowright'], down: ['arrowdown'], tab: ['tab'], tabShift: ['tab', 'shift'] }"
       @shortkey="openAdjacentBookDetails"
-      :class="{ 'book-detail-settings-open': store.bookDetailSettingsOpen }"
     >
     
       <!-- MISSING BOOK (not in library) -->
-      <div v-if="book.notInLibrary" class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
+      <div v-if="book.notInLibrary" class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
         
         <fa6-solid-ban style="font-size: 30px; color: #ff404e; margin-bottom: 20px;" v-tippy="{ trigger: 'mouseenter click' }" content="Not in my library..." /> 
         
@@ -26,15 +25,13 @@
         
       </div>
       <!-- REGULAR BOOK (in library) -->
-      <div v-else class="inner-wrap" :style="{ maxWidth: getMaxWidth, minHeight: store.bookDetailSettingsOpen ? sticky.bookDetailSettings.minHeight : null }">
+      <div v-else class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
         
         <div class="details-toolbar">
           <gallery-details-first-hider v-if="mobileWidth" />
           <gallery-sidebar-flipper />
           <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
         </div>
-        
-        <gallery-book-details-settings v-if="store.bookDetailSettingsOpen" />
         
         <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }" v-touch:swipe.left="swipeHandler" v-touch:swipe.right="swipeHandler">
           <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
@@ -988,21 +985,4 @@ export default {
 .carousel-wrap {
   width: 100%;
 }
-.book-detail-settings-open {
-  .details-wrap,
-  .carousel-wrap {
-    opacity: .2;
-    -webkit-filter: blur(3px) grayscale(1);
-    filter: blur(3px) grayscale(1);
-  }
-}
-.theme-light {
-  .book-detail-settings-open {
-    .details-wrap,
-    .carousel-wrap {
-      opacity: .3;
-    }
-  }
-}
-
 </style>

@@ -1,6 +1,8 @@
 <template>
   <div id="ale-gallery">
     
+    <gallery-book-details-settings v-if="$store.state.bookDetailSettingsOpen" />
+    
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     
     <context-menu-reminder v-if="!$store.state.standalone && $store.state.sticky.contextMenuReminder" />

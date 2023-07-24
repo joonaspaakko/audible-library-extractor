@@ -1,5 +1,5 @@
 <template>
-<div class="settings-outer-wrapper">
+<gallery-modal class="bookdetails-settings" @closeModal="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })">
   
   <div class="tabs">
     <h3 @click="showSettings = true" :class="{ active: showSettings }">Settings</h3>
@@ -23,22 +23,23 @@
         <div class="divider" v-else-if="setting.type === 'divider'"></div>
         <div v-else class="inner-wrapper">
           
-          <label>
-            <input type="checkbox" :checked="setting.value" @change="setting.event" :disabled="!setting.enabled">
-            <div class="visual-checkbox">
-              <div class="switch"></div>
+          <div class="row-wrapper">
+            <label>
+              <input type="checkbox" :checked="setting.value" @change="setting.event" :disabled="!setting.enabled">
+              <div class="visual-checkbox">
+                <div class="switch"></div>
+              </div>
+              <div class="label-text">
+                <span>{{ setting.label  }}</span>
+              </div>
+            </label>
+            
+            <div class="more-info-icon" v-if="setting.info" @click="openInfo( setting )" :class="{ open: setting.infoOpen }">
+              <fa6-solid-circle-question />
             </div>
-            <div class="label-text">
-              <span>{{ setting.label  }}</span>
-            </div>
-          </label>
+          </div>
           
-          <fa6-solid-circle-question
-          class="more-info-icon" 
-          v-if="setting.info" 
-          v-tippy="{ trigger: 'mouseenter focus click', interactive: setting.interactiveTippy, hideOnClick: false, delay: 0, placement: 'right', flipBehavior: ['right', 'top', 'left', 'bottom'], allowHTML: true, }" 
-          :content="setting.info" 
-          />
+          <div class="setting-info" v-if="setting.infoOpen" v-html="setting.info"></div>
         </div>
         
         
@@ -47,10 +48,11 @@
     </div>
     
     <div class="shortcuts-wrapper" v-else>
+      <h3>Desktop</h3>
       <table>
         <tr>
-          <th>description</th>
-          <th>shortcut</th>
+          <th>Description</th>
+          <th>Shortcut</th>
         </tr>
         <tr>
           <td>Close</td>
@@ -64,15 +66,22 @@
           <td>Open adjacent book</td>
           <td>TAB & Shift+TAB</td>
         </tr>
-        <!-- <tr>
-          <td>Open book in Audible's mobile app (or website)</td>
-          <td>Long press book cover (grid view only)</td>
-        </tr> -->
+      </table>
+      <h3>Mobile</h3>
+      <table>
+        <tr>
+          <th>Description</th>
+          <th>Shortcut</th>
+        </tr>
+        <tr>
+          <td>Make infobox and summary change places</td>
+          <td>Swipe left or right</td>
+        </tr>
       </table>
     </div>
       
   </div>
-</div>
+</gallery-modal>
 </template>
 
 <script>
@@ -99,6 +108,7 @@ export default {
     const store = this.$store.state;
     const sticky = this.$store.state.sticky;
     return {
+      store: store,
       showSettings: true,
       settings: [
         
@@ -107,6 +117,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show sample play button', 
+          infoOpen: false,
           info: `<img src="${SamplePlayButton}" class="tippy-info-image" />`,
           parent: 'sampleButton',
           value: sticky.bookDetailSettings.playButton,
@@ -128,7 +139,8 @@ export default {
           type: 'checkbox', 
           label: 'Show cloud player button', 
           parent: 'cloudButton',
-          info: `You have to be logged in. Try opening <a targer="_blank" href="'+ store.urlOrigin +'/library">your library</a> first before opening the cloud player.<br>If you can open your library, you can also open the cloud player through the ALE gallery.<br><br><img src="${BookCoverCloudPlayerButton}" class="tippy-info-image" />`,
+          infoOpen: false,
+          info: `You have to be logged in to this button. Try opening <a target="_blank" href="${store.urlOrigin}/library">your library</a> first before opening the cloud player.<br>If you can open your library, you can also open the cloud player through the ALE gallery.<br><img src="${BookCoverCloudPlayerButton}" class="tippy-info-image" />`,
           interactiveTippy: true,
           value: sticky.bookDetailSettings.cloudPlayer,
           event: function( e ) {
@@ -148,6 +160,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show blurb on hover', 
+          infoOpen: false,
           info: `This is never visible on mobile <br/><img src="${BlurbHoverCorner}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.blurb,
           event: function( e ) {
@@ -158,6 +171,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show whispersync (owned) indicator', 
+          infoOpen: false,
           info: `<img src="${CoverWhispersyncIndicator}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.whispersync,
           event: function( e ) {
@@ -168,6 +182,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show plus catalog indicator', 
+          infoOpen: false,
           info: `<img src="${CoverPlusCalatogIndicator}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.plusCatalog,
           event: function( e ) {
@@ -178,6 +193,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show favorite indicator', 
+          infoOpen: false,
           info: `<strong>The RED dot</strong><br><img src="${CoverFavoriteFinishedIndicators}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.favorite,
           event: function( e ) {
@@ -188,7 +204,8 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show finished indicator', 
-          info: '<strong>The GREEN dot</strong><br><img src="images/info/cover-favorite-finished-indicators.jpg" class="tippy-info-image" />',
+          infoOpen: false,
+          info: `<strong>The GREEN dot</strong><br><img src="${CoverFavoriteFinishedIndicators}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.finished,
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.finished', value: e.target.checked });
@@ -201,7 +218,8 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Prefer short title', 
-          info: `This makes the title a little more readable without actually removing anything from the title, just diplaying it differently. Short title is used if available (for newly extracted data since v.0.2.9). Subtitle is shown below with a smaller font similar to Audible store pages. <br/><br/><strong>In case subtitle is not available, the full title is shown below instead, so you always get to see the full title either way.</strong><br/><br/><img src='${PreferShortTitle}' class='tippy-info-image' />`,
+          infoOpen: false,
+          info: `This makes the title a little more readable without actually removing anything from the title, just diplaying it differently. Short title is used if available (for newly extracted data since v.0.2.9). Subtitle is shown below with a smaller font similar to Audible store pages. <br/><br/><strong>In case subtitle is not available, the full title is shown below instead, so you always get to see the full title either way.</strong><br/><img src='${PreferShortTitle}' class='tippy-info-image' />`,
           value: sticky.bookDetailSettings.titleShort,
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.titleShort', value: e.target.checked });
@@ -216,6 +234,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show sidebar', 
+          infoOpen: false,
           info: `<strong>The entire sidebar!</strong> <br><img src="${Sidebar}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.sidebar.show,
           event: function( e ) {
@@ -238,6 +257,7 @@ export default {
           type: 'checkbox', 
           label: 'Show book cover', 
           parent: 'sidebar',
+          infoOpen: false,
           info: `There is also an easy access toggle swith on the left side of the sidebar (arrow up) <br><img src="${SidebarCover}" class="tippy-info-image" />`,
           value: !sticky.bookDetailsCollapsedCover,
           event: function( e ) {
@@ -252,6 +272,7 @@ export default {
           type: 'checkbox', 
           label: 'Show icon toolbar', 
           parent: 'sidebar',
+          infoOpen: false,
           info: `<img src="${SidebarToolbar}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.sidebar.iconToolbar,
           event: function( e ) {
@@ -266,6 +287,7 @@ export default {
           type: 'checkbox', 
           label: 'Show main details', 
           parent: 'sidebar',
+          infoOpen: false,
           info: `There is also an easy access toggle swith on the left side of the sidebar (arrow up) <br><img src="${SidebarMainInfo}" class="tippy-info-image" />`, 
           value: !sticky.bookDetailsCollapsedDetails,
           event: function( e ) {
@@ -280,6 +302,7 @@ export default {
           type: 'checkbox', 
           label: 'Show collections list', 
           parent: 'sidebar',
+          infoOpen: false,
           info: `If a book is in a collection... <br><img src="${SidebarCollectionsList}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.sidebar.collectionsList,
           event: function( e ) {
@@ -294,6 +317,7 @@ export default {
           type: 'checkbox', 
           label: 'Show series list', 
           parent: 'sidebar',
+          infoOpen: false,
           info: `If a book is in a series... <br><img src="${SidebarSeriesList}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.sidebar.seriesList,
           event: function( e ) {
@@ -310,6 +334,7 @@ export default {
           enabled: true,
           type: 'checkbox', 
           label: 'Show carousel', 
+          infoOpen: false,
           info: `<img src="${Carousel}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.carousel,
           event: function( e ) {
@@ -330,12 +355,6 @@ export default {
     
     this.dividerIds();
     
-  },
-  
-  mounted: function() {
-    this.$nextTick(function() {
-      this.setMinHeight();
-    });
   },
   
   methods: {
@@ -360,46 +379,36 @@ export default {
       
     },
     
-    setMinHeight: function() {
-      
-      const contentHeight = this.$el.offsetHeight;
-      const minHeightSet = this.$store.state.sticky.bookDetailSettings.minHeight;
-      this.$store.commit('prop', { key: 'sticky.bookDetailSettings.minHeight', value: contentHeight + 'px' });
-      
+    openInfo( current ) {
+      _.each( this.settings, ( setting ) => {
+        
+        const clicked = current.label === setting.label;
+        setting.infoOpen = clicked ? !setting.infoOpen : false;
+        
+      });
     },
   }
   
 };
 </script>
 
-<style>
+<!-- <style>
 .tippy-info-image {
   max-width: 200px;
   max-height: 200px;
   width: 100%;
   height: auto;
 }
-</style>
+</style> -->
 
 <style lang="scss" scoped>
 
-
-.settings-outer-wrapper {
-  overflow: auto;
-  position: absolute;
-  top: 0;
-  right: 0;
-  left: 0;
-  z-index: 10;
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-  align-items: center;  
-  > div { display: inline-block; }
-}
-
 .tabs {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  justify-content: center;
+  align-items: center;
   text-align: left;
   padding-bottom: 20px;
   h3 {
@@ -444,8 +453,9 @@ export default {
   label {
     display: flex; 
     flex-direction: row;
-    align-items: flex-start;
+    align-items: center;
     cursor: pointer;
+    flex: 1;
   }
   input {
     z-index: 1;
@@ -480,9 +490,19 @@ export default {
   }
   .inner-wrapper {
     display: flex; 
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+  }
+  .row-wrapper {
+    display: flex; 
     flex-direction: row;
+    justify-content: flex-start;
     align-items: center;
-    // white-space: nowrap;
+  }
+  .inner-wrapper,
+  .row-wrapper {
+    width: 100%;
   }
 }
 
@@ -529,11 +549,44 @@ input:checked ~ .visual-checkbox {
   outline: none;
   cursor: pointer;
   // margin-left: 6px;
-  padding:  5px 15px 5px 10px;
+  // padding:  5px 15px 5px 10px;
+  position: relative;
+  z-index: 0;
+  &:before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    top   : -8px;
+    right : -8px;
+    bottom: -8px;
+    left  : -8px;
+    // background: rgba(red, .4);
+  }
   @include themify($themes) {
     color: rgba(themed(frontColor), .5);
-    &:hover {
+    &:hover,
+    &.open {
       color: themed(audibleOrange);
+    }
+  }
+}
+
+.setting-info {
+  @include themify($themes) {
+    width: 100%;
+    box-sizing: border-box;
+    text-align: left;
+    margin: 10px 0 15px;
+    padding: 6px 15px;
+    border-radius: 5px;
+    color: rgba(themed(frontColor),.8);
+    background: themed(backColor);
+    border: 1px solid rgba(themed(frontColor),.5);
+    box-shadow: themed(shadowMedium);
+    :deep(img) {
+      padding-top: 15px;
+      max-height: 250px;
+      max-width: 100%;
     }
   }
 }
@@ -587,4 +640,14 @@ table {
   }
 }
 
+
+:global(.bookdetails-settings .outer-wrap) {
+  width: 100%;
+}
+:global(.bookdetails-settings .inner-wrap) {
+  width: 100%;
+  max-width: 900px !important;
+  padding: 25px;
+  box-sizing: border-box;
+}
 </style>

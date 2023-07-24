@@ -22,6 +22,7 @@ $themes: (
     outerColor: #999,
     shadowSmall: $shadowSmall rgba(0,0,0,0.15),
     shadowMedium: $shadowMedium rgba(0,0,0,0.1),
+    greenColor: #1faa1f,
   ),
   dark: (
 		audibleOrange: $audibleOrange,
@@ -31,6 +32,7 @@ $themes: (
     outerColor: #000,
     shadowSmall: $shadowSmall rgba(0,0,0,0.6),
     shadowMedium: $shadowMedium rgba(0,0,0,0.6),
+    greenColor: #00ed00,
   ),
 );
 

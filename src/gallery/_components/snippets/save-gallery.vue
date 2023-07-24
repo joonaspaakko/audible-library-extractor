@@ -687,6 +687,10 @@ export default {
   width:  17px;
   height: 17px;
   background: #292929;
+  @include themify($themes) {
+    // background: themed(backColor);
+    border: 1px solid rgba(themed(frontColor), .25);
+  }
   // border: 1px solid #666;
   border-radius: 4px;
   margin-right: 5px;

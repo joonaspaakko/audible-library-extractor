@@ -612,6 +612,9 @@ export default {
     height: 15px;
     // border: 1px solid #fff;
     background: #292929;
+    @include themify($themes) {
+      border: 1px solid rgba(themed(frontColor), .25);
+    }
     border-radius: 9999999999px;
     margin-right: 5px;
     .icon, svg {
