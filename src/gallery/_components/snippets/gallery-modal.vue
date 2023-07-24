@@ -30,6 +30,13 @@ export default {
     
   },
   
+  mounted() {
+    this.$store.commit('prop', { key: 'preventScrolling', value: true });
+  },
+  beforeUnmount() {
+    this.$store.commit('prop', { key: 'preventScrolling', value: false });
+  },
+  
   methods: {
     
     // toggleModal: function( value ) {
@@ -65,6 +72,7 @@ export default {
   padding: 70px 25px;
   box-sizing: border-box;
   position: fixed;
+  z-index: 999999;
   top: 0;
   right: 0;
   bottom: 0;
@@ -100,11 +108,15 @@ export default {
     line-height: 17px;
     font-weight: 400;
     max-width: 600px;
-    background: #454545;
+    @include themify($themes) {
+      background: themed(elementColor);
+      color: themed(frontColor);
+      // background: #454545;
+      // color: #f1f1f1;
+    }
     border-radius: 4px;
     box-shadow: 2px 15px 35px 5px rgba(#000, 0.4);
     border: 1px solid rgba(#000, 0.2);
-    color: #f1f1f1;
     position: relative;
     z-index: 0;
     text-align: left;
@@ -126,11 +138,16 @@ export default {
       right: 10px;
       z-index: 5;
       padding: 5px 10px;
-      border: 1px solid #222;
       border-top: none;
       display: inline-block;
       border-radius: 0 0 4px 4px;
-      background: #505050;
+      @include themify($themes) {
+        // border: 1px solid #222;
+        // background: #505050;
+        border: 1px solid rgba(themed(frontColor), .4);
+        background: themed(backColor);
+      }
+      border-top: none !important;
     }
 
     .export-group {
@@ -164,7 +181,9 @@ export default {
 
     .description {
       font-size: 0.95em;
-      color: rgba(#fff, 0.55);
+      @include themify($themes) {
+        color: rgba(themed(frontColor), .7);
+      }
       font-weight: 400;
     }
 
