@@ -29,9 +29,7 @@ export default {
   
   computed: {
     filteredBooks() {
-      
       const books =  _.filter( this.series.books, ( book ) => {
-        
         if ( _.get(book, 'notInLibrary') ) {
           return this.$store.state.sticky.booksInSeriesAll;
         }

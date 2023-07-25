@@ -28,7 +28,7 @@ import makeUrl from "@output-mixins/gallery-makeFullUrl.js";
 
 export default {
   name: "booksInSeriesLink",
-  props: ["series","book", "index", "seriesName"],
+  props: ["series", "book", "index", "seriesName"],
   mixins: [makeUrl],
   data: function() {
     return {

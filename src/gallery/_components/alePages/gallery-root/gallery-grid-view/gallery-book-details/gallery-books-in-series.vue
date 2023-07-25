@@ -71,10 +71,9 @@ export default {
     this.series.count = this.getSeriesCount();
     
     // Check if this book is in a series
-    const vue = this;
-    _.each(this.series.collection, function(series) {
+    _.each(this.series.collection, (series) => {
       if ( series.books.length ) {
-        vue.inSeries = true;
+        this.inSeries = true;
         return false;
       }
     });
@@ -124,7 +123,7 @@ export default {
           if (allBooksInSeries) {
             
             let booksSource = allBooksInSeries.books;
-            if ( !!allBooksInSeries.allBooks ) booksSource = allBooksInSeries.allBooks;
+            if ( allBooksInSeries.allBooks ) booksSource = allBooksInSeries.allBooks;
             
             series.push({
               asin: currentSeries.asin,

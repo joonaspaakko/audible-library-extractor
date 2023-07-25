@@ -94,12 +94,18 @@ export default {
         if ( seriesHasBooks ) {
           
           const allBooks = _.get(series, 'allBooks');
+          const seriesBooks = _.get(series, 'books');
+          
           let fakeAdded_counter = 0;
           books = _.map(allBooks, ( book ) => {
             
             ++fakeAdded_counter;
             
-            if ( book.notInLibrary ) {
+            const inLibrary = _.includes( seriesBooks, book.asin ) || !book.notInLibrary;
+            const notInLibrary =  !inLibrary;
+            
+            // NOT in library
+            if ( notInLibrary ) {
               
               const notInLib_book = _.merge({
                 added: fakeAdded_counter,
@@ -116,7 +122,8 @@ export default {
               
               return notInLib_book;
             }
-            else {
+            // IN library
+            else if ( inLibrary ) {
               
               let b =  _.find( this.subPageSource.collection, { asin: book.asin });
                   b = _.cloneDeep( b );
