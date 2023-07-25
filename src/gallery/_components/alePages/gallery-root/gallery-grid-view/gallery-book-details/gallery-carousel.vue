@@ -133,7 +133,7 @@ export default {
 		
 		tippyMount( t ) {
 			
-			console.log( 'after update', t );
+			// console.log( 'after update', t );
 		},
 		
 		// Process the heavy stuff on first hover

@@ -202,11 +202,9 @@ export default {
         // Collection IDs
         let collectionIds = _thisRow.querySelector('[id^="collectionIds-"]');
         if ( collectionIds ) delete book.collectionIds;
-        console.log( 'collectionIds-1', collectionIds )
         if ( collectionIds ) collectionIds = collectionIds.getAttribute('value');
         if ( collectionIds ) collectionIds = collectionIds.replace(/^\[/, '').replace(/\]$/, '').trim();
         if ( collectionIds ) collectionIds = collectionIds.split(', ');
-        console.log( 'collectionIds-2', collectionIds )
         if ( collectionIds && collectionIds.length > 0 ) {
           const ignoreCollections = ['', '__PENDING', '__PURCHASE'];
           _.remove( collectionIds, function( value ) { return _.includes( ignoreCollections, value.trim() ); });

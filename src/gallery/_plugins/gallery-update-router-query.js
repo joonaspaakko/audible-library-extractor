@@ -23,8 +23,6 @@ updateRouterQuery.install = function (app, options) {
       else queryClone[ query ] = value;
     }
     
-    console.log( query, queryClone )
-    
     // push() writes a history state...
     if ( history ) {
       this.$router.push({ query: queryClone }).catch(() => {}); 

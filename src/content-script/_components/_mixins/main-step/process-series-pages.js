@@ -456,7 +456,6 @@ export default {
             }
           }
           
-          console.log('missing numbers step done!');
           stepCallback(seriesBook);
           
         },
@@ -467,7 +466,7 @@ export default {
             let targetBook = _.find( series.allBooks, { asin: newBook.asin });
             if ( targetBook ) targetBook.bookNumbers = newBook.bookNumbers;
           });
-          console.log('Fetched missing numbers!');
+          
           vue.$store.commit('update', { key: 'progress.step', add: 1 });
           parentStepCallback(series);
           

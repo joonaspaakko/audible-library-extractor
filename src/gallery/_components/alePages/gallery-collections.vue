@@ -96,7 +96,6 @@ export default {
     
     const vue = this;
     let collections = [];
-    console.log( this.$store.state.library )
     _.each( this.$store.state.library.collections, function( collection ) {
       
       let newCollection = {

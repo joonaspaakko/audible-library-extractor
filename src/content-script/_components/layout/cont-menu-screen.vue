@@ -160,8 +160,6 @@ export default {
   
   created: function() {
     
-    console.log( '$store.getters.settings_mainSteps', this.$store.getters.settings_mainSteps );
-    
     this.hasData = this.$store.state.storageHasData;
     this.hasConfig = this.$store.state.storageConfig;
     // this.updateSettings();

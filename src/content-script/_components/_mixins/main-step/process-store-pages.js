@@ -23,8 +23,6 @@ export default {
           { key: 'progress.text', value: "Fetching additional data from store pages..." },
         ]);
         
-        console.log( 'requests 123', requests );
-        
         vue.amapxios({
           requests: requests,
           returnCatch: true, // Returns failed steps in the step() callback in order to mark missing sote page data

@@ -346,8 +346,6 @@ export default {
           zip.file("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
         }
         
-        console.log( _.cloneDeep( vue.files ) );
-        
         // The files array has all kinds of irrelevant files to the gallery, This makes sure only
         // the bare minimum is carried over to the standalone gallery.
         _.remove( vue.files, function( file ) {
@@ -413,7 +411,6 @@ export default {
           "app.webmanifest"
         ]);
         // vue.files.push('app.webmanifest');
-        console.log( vue.files )
 
         // Service worker file
         // if ( useServiceWorker ) {

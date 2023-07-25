@@ -143,7 +143,7 @@ export default {
                     callback(null, hotpotato);
                   },
                   failed: function( e ) {
-                    console.log( 'wishlist error', _.get(e,'response', e) );
+                    
                     vue.$store.commit('update', { key: 'noWishlistAccess', value: true });
                     
                   },

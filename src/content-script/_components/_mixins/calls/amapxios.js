@@ -50,12 +50,7 @@ export default {
         const requestId   = request.requestId || request.asin || getRequestId( requestURL );
         const controller  = new AbortController();
         
-        console.log('request', request)
-        console.log('requestURL', requestURL)
-        console.log('requestId', requestId)
-        
         const urlAlreadyFailed = _.includes( vue.$store.state.failedRequests, requestId);
-        console.log('urlAlreadyFailed', urlAlreadyFailed, JSON.parse(JSON.stringify(vue.$store.state.failedRequests)), requestURL);
         if ( urlAlreadyFailed ) {
           stepCallback(null, null);
           return;
@@ -266,12 +261,9 @@ export default {
         }, chunkCounter === 0 ? 0 : break_time); // No delay in front of the first chunk
       }, function( err, results ) {
         
-        console.log( '231312313123132123123123:', err, results );
-        
         if (!err) {
           results = options.flatten ? _.flatten(results) : results;
           results = _.compact( results );
-          console.log( 'results each:', results );
           options.done( results );
         }
         else {
