@@ -59,17 +59,17 @@ export default {
       // seriesPage: false,
     };
   },
-  
+
   created: function() {
-    
+
     // Because these links lead to the series page, they are disabled
     // when on that page and instead a different book is opened...
     // Except when the link leads to another series...
     this.seriesPage = this.$route.name === 'series';
-    
+
     this.series.collection = this.getBooksInSeries();
     this.series.count = this.getSeriesCount();
-    
+
     // Check if this book is in a series
     _.each(this.series.collection, (series) => {
       if ( series.books.length ) {
@@ -77,25 +77,25 @@ export default {
         return false;
       }
     });
-    
+
   },
-  
+
   mounted: function() {
-    
+
     if ( this.$store.state.sticky.booksInSeriesToggle ) {
       this.$nextTick(() => {
         this.$compEmitter.emit("resizeSummary");
       });
     }
-    
+
   },
 
   methods: {
-    
+
     inLibraryLength: function( series ) {
       return _.filter( series.books, function( o ) { return !o.notInLibrary; }).length;
     },
-    
+
     checkFilter: function( book ) {
       if ( _.get(book, 'notInLibrary') ) {
         return this.$store.state.sticky.booksInSeriesAll;
@@ -111,7 +111,7 @@ export default {
       }
 
     },
-    
+
     getBooksInSeries: function() {
       const vue = this;
       let series = [];
@@ -121,7 +121,7 @@ export default {
             asin: currentSeries.asin
           });
           if (allBooksInSeries) {
-            
+
             let booksSource = allBooksInSeries.books;
             if ( allBooksInSeries.allBooks ) booksSource = allBooksInSeries.allBooks;
             
@@ -132,7 +132,7 @@ export default {
               books: _.map( booksSource , function( book ) {
                 let asin = book.asin || book;
                 let inLibrary = _.includes( allBooksInSeries.books, asin );
-                
+                const wishlistBook = vue.$store.state.library.wishlist?.find(b => b.asin === asin);
                 if ( inLibrary ) {
                   let libBook = _.find(vue.$store.state.library.books, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
@@ -145,6 +145,16 @@ export default {
                     obj: libBook,
                   };
                   return newLibBook;
+                }
+                else if (wishlistBook) {
+                  return {
+                    asin,
+                    title: wishlistBook.title,
+                    titleShort: book.titleShort,
+                    obj: wishlistBook,
+                    bookNumbers: book.bookNumbers,
+                    inWishlist: true,
+                  }
                 }
                 else {
                   book.notInLibrary = true;
@@ -159,13 +169,13 @@ export default {
           }
         });
       }
-      
+
       return series.length > 0 ? series : null;
     },
 
     getSeriesCount: function() {
       let array = [];
-      
+
       _.each(this.series.collection, function(series, seriesIndex ) {
         if ( series.books.length ) {
           _.each(series.books, function(book) {
@@ -212,7 +222,7 @@ export default {
     @include themify($themes) {
       border-bottom: 1px dotted rgba(themed(frontColor), 0.2);
     }
-    
+
     .clickety-click {
         cursor: pointer;
         display: flex;
@@ -242,7 +252,7 @@ export default {
       outline: none;
       padding-right: 8px;
     }
-    
+
     &.not-in-library,
     &.finished {
       .title {
@@ -274,7 +284,7 @@ export default {
     }
     &.not-in-library .title { text-decoration: none; }
     &.not-in-library .numbers { opacity: 0.5; }
-    
+
     &.reading {
       font-style: normal;
     }
@@ -287,7 +297,7 @@ export default {
         }
       }
     }
-    
+
     a {
       @include themify($themes) {
         color: themed(frontColor) !important;
@@ -298,9 +308,9 @@ export default {
         }
       }
     }
-    
+
   }
-  
+
 }
 
 div.hidden-section-label {
@@ -385,7 +395,7 @@ div.hidden-section {
       opacity: .65 !important;
     }
   }
-  
+
   &.finished {
     .icon, .title {
       opacity: .50 !important;

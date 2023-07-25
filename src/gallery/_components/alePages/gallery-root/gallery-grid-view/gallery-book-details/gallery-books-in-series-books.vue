@@ -73,6 +73,9 @@ export default {
       else if ( book.notInLibrary ) {
         return 'Not in library...';
       }
+      else if (book.inWishlist) {
+        return 'In wishlist';
+      }
       else {
         const classes = this.numbersClass(book);
         var tippyContent = "";
@@ -96,6 +99,9 @@ export default {
       }
       else if ( book.notInLibrary ) {
         return 'fa-solid fa-ban';
+      }
+      else if (book.inWishlist) {
+        return 'fa-solid fa-hand-holding-heart';
       }
       else {
         const classes = this.numbersClass(book);
