@@ -82,70 +82,71 @@ export default {
     makeCollection: function () {
       const vue = this;
       const seriesCollection = [];
-      const librarySeries = this.$store.state.library.series;
       let addedCounter = 1;
 
+      // LOOP BOOKS
       // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
-      _.eachRight(vue.subPageSource.collection, function (book) {
-        if (book.series) {
-          _.each(book.series, function (series) {
-            // Find an existing entry in our series collection
-            const seriesAdded = _.find(seriesCollection, {asin: series.asin});
-            // Find the series in our library
-            const thisSeriesFromLibrary = _.find(librarySeries, {asin: series.asin});
+      _.eachRight(vue.subPageSource.collection, (book) => {
+        // LOOP SERIES
+        _.each(_.get(book, 'series'), (series) => {
+          
+          // Find an existing entry in our series collection
+          const seriesAdded = _.find(seriesCollection, {asin: series.asin});
+          // Find the series in our library
+          const librarySeries = _.find(this.$store.state.library.series, {asin: series.asin});
 
-            // If we have an existing series in our series collection (which we're building over time), use it
-            // Otherwise, create a new series to add and increment our counter
-            const thisSeries = seriesAdded ?? {
-              name: series.name,
-              asin: series.asin,
-              books: [],
-              added: addedCounter++,
-              authors: book.authors,
-              narrators: book.narrators,
-              publishers: book.publishers,
-              minRating: _.toNumber(book.myRating),
-            };
+          // If we have an existing series in our series collection (which we're building over time), use it...
+          // Otherwise, create a new series to add and increment our counter
+          const currentObj = seriesAdded ?? {
+            books     : [],
+            added     : addedCounter++,
+            name      : series.name,
+            asin      : series.asin,
+            authors   : book.authors,
+            narrators : book.narrators,
+            publishers: book.publishers,
+            minRating : _.toNumber(book.myRating),
+          };
+          
+          // If we this series in our library, we can add some extra goodies to the series
+          if (librarySeries) {
+            // The assumption is that in most situations you won't be buying multiple versions of a book, so duplicates are removed,
+            // because multiple versions of books make it so that some series will always be considered incomplete...
+            // I was thinking this could be cool in the "My books in the series list" too, but it's too unreliable for that purpose.
 
-            // If we this series in our library, we can add some extra goodies to the series
-            if (thisSeriesFromLibrary) {
-              // The assumption is that in most situations you won't be buying multiple versions of a book, so duplicates are removed,
-              // because multiple versions of books make it so that some series will always be considered incomplete...
-              // I was thinking this could be cool in the "My books in the series list" too, but it's too unreliable for that purpose.
-
-              function parseBookNumbers(bookNumbers) {
-                return bookNumbers.split("-").map(_.toNumber).filter(_.isFinite);
-              }
-              function getBookNumbers(books) {
-                return _.flatMap(books.map(b => parseBookNumbers(b.bookNumbers)))
-              }
-              function getMaxBookNumber(books) {
-                return _.max(getBookNumbers(books));
-              }
-
-              thisSeriesFromLibrary.allBooksMinusDupes = vue.removeDuplicates(thisSeriesFromLibrary.allBooks);
-              const myBooks = thisSeriesFromLibrary.allBooksMinusDupes.filter(ab => thisSeriesFromLibrary.books.some(asin => asin === ab.asin));
-
-              thisSeries.allBooksMinusDupes = thisSeriesFromLibrary.allBooksMinusDupes;
-              thisSeries.myMaxBookNumber = getMaxBookNumber(myBooks);
-              thisSeries.maxBookNumber = getMaxBookNumber(thisSeriesFromLibrary.allBooksMinusDupes);
-              thisSeries.missingLatest = thisSeries.myMaxBookNumber < thisSeries.maxBookNumber;
-              thisSeries.minRating = _.min(
-                  [thisSeries.minRating, book.myRating]
-                  .map(_.toNumber)
-                  .filter(rating => !_.isNaN(rating))
-              );
+            function parseBookNumbers(bookNumbers) {
+              return bookNumbers.split("-").map(_.toNumber).filter(_.isFinite);
+            }
+            function getBookNumbers(books) {
+              return _.flatMap(books.map(b => parseBookNumbers(b.bookNumbers)))
+            }
+            function getMaxBookNumber(books) {
+              return _.max(getBookNumbers(books));
             }
 
-            // Add the book we're processing to the series book list
-            thisSeries.books.push(book.title || book.shortTitle);
+            // Show all books for now
+            librarySeries.allBooksMinusDupes = vue.removeDuplicates(librarySeries.allBooks);
+            // librarySeries.allBooksMinusDupes = librarySeries.allBooks;
+            
+            const ownedBooks = _.filter( librarySeries.allBooksMinusDupes, ( book ) => {
+              return _.includes(librarySeries.books, book.asin);
+            });
+            
+            currentObj.allBooksMinusDupes = librarySeries.allBooksMinusDupes;
+            currentObj.myMaxBookNumber = getMaxBookNumber(ownedBooks);
+            currentObj.maxBookNumber = getMaxBookNumber(librarySeries.allBooksMinusDupes);
+            currentObj.missingLatest = currentObj.myMaxBookNumber < currentObj.maxBookNumber;
+            currentObj.minRating = this.calcMinRating(currentObj, book);
+          }
 
-            // If this is a new series, add it to the series collection
-            if (!seriesAdded) {
-              seriesCollection.push(thisSeries);
-            }
-          });
-        }
+          // Add the book we're processing to the series book list
+          currentObj.books.push(book.title || book.shortTitle);
+
+          // If this is a new series, add it to the series collection
+          if (!seriesAdded) {
+            seriesCollection.push(currentObj);
+          }
+        });
       });
       
       _.reverse(seriesCollection);
@@ -159,17 +160,17 @@ export default {
       let vue = this;
       let list = {
         scope: [
-          {active: true, key: 'name', tippy: 'Search series by name', weight: 5 },
-          {active: true, key: 'books', tippy: 'Search series by book titles', weight: 1 },
-          { active: true,  key: 'authors.name', tippy: 'Search series by authors', weight: 1 },
-          { active: true,  key: 'narrators.name', tippy: 'Search series by narrators', weight: 1 },
-          { active: true,  key: 'publishers.name', tippy: 'Search series by publishers', weight: 1 },
+          { active: true, key: 'name',            tippy: 'Search series by name',        weight: 5 },
+          { active: true, key: 'books',           tippy: 'Search series by book titles', weight: 1 },
+          { active: true, key: 'authors.name',    tippy: 'Search series by authors',     weight: 1 },
+          { active: true, key: 'narrators.name',  tippy: 'Search series by narrators',   weight: 1 },
+          { active: true, key: 'publishers.name', tippy: 'Search series by publishers',  weight: 1 },
         ],
         filter: [
           {
             active: false,
             type: 'filterExtras',
-            label: 'Number of books',
+            label: 'Number of owned books',
             key: 'inSeries',
             range: [1, (function () {
               let series = _.get(vue.$store.state, vue.collectionSource);
@@ -252,7 +253,7 @@ export default {
             type: 'filterExtras',
             label: 'Incomplete series',
             key: 'series-incomplete',
-            tippy: "Series where I don't own all the books",
+            tippy: "Series in which I don't own all the books",
             condition: function (series) {
               return series.allBooksMinusDupes.length > series.books.length;
             }
@@ -294,7 +295,7 @@ export default {
             active: false,
             current: false,
             key: 'amount',
-            label: 'Number of books',
+            label: 'Number of owned books',
             type: 'sort',
           },
           {
@@ -377,6 +378,16 @@ export default {
 
       return dollybooks;
 
+    },
+    
+    calcMinRating( obj, book ) {
+      
+      let ratings = [obj.minRating, book.myRating];
+          ratings = _.map(ratings, _.toNumber);
+          ratings = _.filter(ratings, _.isFinite);
+          
+      return _.min( ratings );
+      
     },
   },
 
