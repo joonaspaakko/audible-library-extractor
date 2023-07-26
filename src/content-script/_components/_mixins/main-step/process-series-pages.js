@@ -70,9 +70,9 @@ export default {
               vue.getBooksFromSeries( hotpotato, requests, waterfallback );
             },
             // Last effort to try to find missing book numbers from store pages
-            function(requests, waterfallback) {
-              vue.getMissingNumbers( hotpotato, requests, waterfallback );
-            }
+            // function(requests, waterfallback) {
+            //   vue.getMissingNumbers( hotpotato, requests, waterfallback );
+            // }
           ],
           function(err, responses) {
             

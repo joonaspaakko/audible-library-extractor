@@ -16,7 +16,7 @@ export default {
           { key: 'bigStep.title', value: 'Library' },
           { key: 'bigStep.step', add: 1 },
           { key: 'subStep.step', add: 1 },
-          { key: 'subStep.max', value: 5 },
+          { key: 'subStep.max', value: 4 },
           { key: 'progress.step', value: 0 },
           { key: 'progress.max', value: 0 },
           { key: 'progress.text', value: this.$store.state.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..." },
