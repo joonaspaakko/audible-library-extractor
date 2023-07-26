@@ -252,7 +252,8 @@ export default {
       outline: none;
       padding-right: 8px;
     }
-
+    
+    &.in-wishlist,
     &.not-in-library,
     &.finished {
       .title {
@@ -278,12 +279,12 @@ export default {
         opacity: 0.5;
       }
     }
-    &.not-in-library .icon {
-      color: #e75551;
-      // color: rgba( #e75551, .5);
+    &.in-wishlist,
+    &.not-in-library {
+      .icon { color: #e75551; }
+      .title { text-decoration: none; }
+      .numbers { opacity: 0.5; }
     }
-    &.not-in-library .title { text-decoration: none; }
-    &.not-in-library .numbers { opacity: 0.5; }
 
     &.reading {
       font-style: normal;
@@ -390,6 +391,7 @@ div.hidden-section {
 }
 
 .theme-light .my-books-in-series .numbers-list-item {
+  &.in-wishlist,
   &.not-in-library {
     .icon, .title {
       opacity: .65 !important;

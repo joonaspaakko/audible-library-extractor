@@ -10,9 +10,9 @@
     </div>
     <div class="hidden-section" v-if="$store.state.sticky.collectionsDrawerToggle">
       <router-link class="collection-link" v-for="collection in collections" :key="collection.id" :to="{ 
-      name: 'collection', 
-      params: { collection: collection.id },
-      query: { book: book.asin }
+        name: 'collection', 
+        params: { collection: collection.id },
+        query: { book: book.asin }
       }">
         <span class="text">{{ collection.title }}</span>
         <span class="total-books">{{ collection.books.length }}</span>
@@ -137,51 +137,6 @@ export default {
       padding-right: 8px;
     }
     
-    &.not-in-library,
-    &.finished {
-      .title {
-        overflow: hidden;
-        position: relative;
-      }
-      .title:after {
-        content: "";
-        position: absolute;
-        top: 0.9em;
-        right: 0px;
-        left: 0px;
-        height: 1px;
-        @include themify($themes) {
-          background: rgba(themed(frontColor), 0.2);
-        }
-      }
-      .icon {
-        opacity: 0.5;
-      }
-      .title {
-        text-decoration: line-through;
-        opacity: 0.5;
-      }
-    }
-    &.not-in-library .icon {
-      color: #e75551;
-      // color: rgba( #e75551, .5);
-    }
-    &.not-in-library .title { text-decoration: none; }
-    &.not-in-library .numbers { opacity: 0.5; }
-    
-    &.reading {
-      font-style: normal;
-    }
-    &.unfinished {
-    }
-    &.current {
-      .icon {
-        @include themify($themes) {
-          color: themed(audibleOrange);
-        }
-      }
-    }
-    
     a {
       @include themify($themes) {
         color: themed(frontColor) !important;
@@ -291,18 +246,5 @@ div.hidden-section {
   }
 }
 
-.theme-light .hidden-section .collection-link {
-  &.not-in-library {
-    .icon, .title {
-      opacity: .65 !important;
-    }
-  }
-  
-  &.finished {
-    .icon, .title {
-      opacity: .50 !important;
-    }
-  }
-}
 
 </style>

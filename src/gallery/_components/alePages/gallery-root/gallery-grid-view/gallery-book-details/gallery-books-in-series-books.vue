@@ -60,6 +60,7 @@ export default {
         unfinished: !progress,
         current: this.book.asin === _.get(book, 'obj.asin'),
         'not-in-library': book.notInLibrary,
+        'in-wishlist': book.inWishlist,
       };
     },
 
