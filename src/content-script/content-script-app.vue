@@ -68,16 +68,7 @@ export default {
       },
       ui: "menu-screen",
       doStorePageTest: [
-        // { storePageRequestUrl: "https://www.audible.com/pd/B0B6QBNK4J" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B08JJPL532" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B08JJLSSMQ" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/1721336850" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B06Y46VB4L" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B00VTQ8TO8" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B00D9171T0" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B076QXRJCZ" },
-        // { storePageRequestUrl: "https://www.audible.com/pd/B00IIS32NI" },
+        // { storePageRequestUrl: "https://www.audible.com/pd/B08N8452GZ" },
       ],
       doSeriesTest: [
         // { series: [{asin: 'B006XE41AC'}] },

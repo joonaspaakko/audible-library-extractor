@@ -95,21 +95,18 @@ export default {
       const series = [];
       if (element) {
         const html = DOMPurify.sanitize( $(element).html() );
-        var string = html.trimAll().trimToColon();
-        string = $.parseHTML(string);
+        let elements = html.trimAll().trimToColon();
+            elements = $.parseHTML(elements);
         
-        const strings = _.filter(string, function( object ) {
-          var str = object.textContent.trim().replace(/^,/, "") || "";
-          if ( str ) return object;
-        });
-        
-        $.each(strings, function(index, object) {
-          var string = object.textContent.trim().replace(/^,/, "").trimAll() || "";
-          var titleRow = (index + 1) % 2;
-          var numberRow = !titleRow;
-          if (titleRow) {
+        $.each(elements, function(index, object) {
+          
+          var string    = _.get(object, 'textContent', '' ).trim().replace(/^,/, "").trimAll() || "";
+          var titleRow  = _.get(object, 'href');
+          var numberRow = !titleRow && string.match(/\d/);
+          
+          if ( titleRow ) {
             
-            let url = new Url( object.href );
+            let url = new Url( titleRow );
             series.push({
               name: string,
               // url: url, // Url formed using the asin instead to minimize data size
@@ -117,15 +114,16 @@ export default {
             });
             
           } 
-          else if (numberRow && string.match(/\d/)) {
+          else if ( numberRow ) {
             // Trims text from the front: ("Book ", removes trailing comma, and splits numbers separated by commas
             var numbers = string.replace(/^[^0-9]*/, "").replace(/,$/, "").replace(/;$/, "").trim().split(",");
             // Numbers are added to the previous item
-            var lastItem = series[series.length - 1];
+            var lastItem = _.last(series);
             lastItem.bookNumbers = $.map(numbers, function(n) {
-              return "" + n; // Every number is handled as a string to avoid issues with book ranges
+              return "" + n.trim(); // Every number is handled as a string to avoid issues with book ranges
             });
           }
+          
         });
       }
       return series.length > 0 ? (reverse ? series.reverse() : series) : null;
