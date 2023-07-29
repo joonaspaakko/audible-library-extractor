@@ -265,6 +265,7 @@ export default {
       
       if (!hotpotato.chunks ) {
         if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
+        if ( hotpotato.books    ) this.languageCorrections(hotpotato.books);
         if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
         this.makeFrenchFries(hotpotato);
       }
@@ -279,6 +280,18 @@ export default {
         });
       });
       
+    },
+    
+    languageCorrections( books ) {
+      _.each(books, (book, index) => {
+        
+        switch ( book.progress ) {
+          case 'Beendet':
+            book.progress = 'Finished';
+            break;
+        }
+        
+      });
     },
 
     goToOutputPage: function(hotpotato) {

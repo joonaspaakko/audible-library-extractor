@@ -221,7 +221,6 @@ $("#audible-library-extractor-btn").on("click", function(e) {
 });
 
 // Open ALE on page load
-console.log( 'store.state.sticky.openOnLoad', store.state.sticky.openOnLoad );
 if ( store.state.sticky.openOnLoad ) {
   // https://developer.chrome.com/apps/storage
   // Permission: "storage"
