@@ -209,7 +209,7 @@ export default {
         let keys = this.prepKeys( dataSource );
         
         let csv = Papa.unparse({
-          fields: _.map( keys, function( key ) { return _.includes(['isbn', 'isbn10', 'isbn13'], key) ? key.toUpperCase() : _.startCase(key); }),
+          fields: _.map( keys, function( key ) { return _.includes(['isbn', 'isbn10', 'isbn13', 'asin'], key) ? key.toUpperCase() : _.startCase(key); }),
           data: this.processData( keys, dataSource ),
           quotes: false, //or array of booleans
           quoteChar: '"',
@@ -418,7 +418,8 @@ export default {
       dataSource = _.filter( dataSource, function( book ) {
         const isbn10 = _.find( book.isbns, { type: "ISBN_10" });
         const isbn13 = _.find( book.isbns, { type: "ISBN_13" });
-        return isbn10 || isbn13;
+        const asin = book.asin;
+        return isbn10 || isbn13 || asin;
       });
       
       return _.map( dataSource, function( book ) {
@@ -483,6 +484,10 @@ export default {
               const isbn13 = _.find( book.isbns, { type: "ISBN_13" });
               if ( isbn13 ) return isbn13.identifier;
               else { return ''; }
+              break;
+              
+            case "asin":
+              return book.asin || '';
               break;
               
             default:
@@ -570,7 +575,7 @@ export default {
           
           break;
         case 'Goodreads':
-          keys = ['dateRead','myReview','title','bookshelves','author','publisher','myRating','binding','yearPublished','dateAdded','isbn','isbn13'];
+          keys = ['dateRead','myReview','title','bookshelves','author','publisher','myRating','binding','yearPublished','dateAdded','isbn','isbn13', 'asin'];
           break;
       }
       
