@@ -209,7 +209,7 @@ export default {
         let keys = this.prepKeys( dataSource );
         
         let csv = Papa.unparse({
-          fields: _.map( keys, function( key ) { return (key === 'isbn10' && key === 'isbn13') ? key.toUpperCase() : _.startCase(key); }),
+          fields: _.map( keys, function( key ) { return _.includes(['isbn', 'isbn10', 'isbn13'], key) ? key.toUpperCase() : _.startCase(key); }),
           data: this.processData( keys, dataSource ),
           quotes: false, //or array of booleans
           quoteChar: '"',
