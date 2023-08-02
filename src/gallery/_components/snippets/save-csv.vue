@@ -440,12 +440,16 @@ export default {
               return book.myRating || '';
               break;
             
+            case "averageRating":
+              return book.rating || '';
+              break;
+            
             case "binding":
               return 'Audible Audio';
               break;
             
             case "yearPublished":
-              return book.releaseDate || '';
+              return (book.releaseDate || '').split('-')[0];
               break;
               
             // Added to goodreads...
@@ -575,7 +579,7 @@ export default {
           
           break;
         case 'Goodreads':
-          keys = ['dateRead','myReview','title','bookshelves','author','publisher','myRating','binding','yearPublished','dateAdded','isbn','isbn13', 'asin'];
+          keys = ['dateRead','myReview','title','bookshelves','author','publisher','myRating','averageRating','binding','yearPublished','dateAdded','isbn','isbn13', 'asin'];
           break;
       }
       
