@@ -1,9 +1,9 @@
 <template>
   <div class="gallery-title-wrapper" v-if="title || subtitle">
     <h2 class="gallery-title" v-if="title">
-      <a href="#" @click.prevent="titleClicked">
+      <router-link :to="{ name: this.$router.name, query: { refresh: true } }">
         {{ title }}
-      </a>
+      </router-link>
     </h2>
     <div class="divider" v-if="subtitle"></div>
     <h3 class="gallery-sub-title" v-if="subtitle">

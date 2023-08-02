@@ -20,8 +20,7 @@
             <span v-for="(number, index) in item.bookNumbers">
               <span v-if="index !== 0">{{ "," }}</span>
               <span>{{ number }}</span>
-            </span>
-          )
+            </span>)
         </span>
         
       </span>
