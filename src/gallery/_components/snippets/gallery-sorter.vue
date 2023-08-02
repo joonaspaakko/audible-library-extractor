@@ -335,22 +335,33 @@ export default {
 
     doTheThings: function( value, specialBoy ) {
       
-      if ( this.item.key === "sortValues" ) this.$compEmitter.emit("book-clicked", null);
+      // if ( this.item.key === "sortValues" ) this.$compEmitter.emit("book-clicked", null);
     
-      if ( this.listName === "scope" ) {
-        this.$compEmitter.emit("start-scope");
+      const action = {
+        change: {
+          scope : this.listName === "scope",
+          sort  : this.listName === "sort",
+          filter: this.listName === "filter",
+        },
+        randomize   : this.item.key === "randomize" && !this.$store.getters.searchIsActive,
+        noSortvalues: this.item.key !== "sortValues",
+        start: '',
+      };
+      
+      
+      if ( action.change.scope ) {
+        action.start = 'start-scope';
       }
-      else if (
-        ( this.listName === "sort" || this.item.key === "randomize" && !this.$store.getters.searchIsActive )
-        && this.item.key !== "sortValues"
-      ) {
+      else if ( ( action.change.sort || action.randomize ) && action.noSortvalues ) {
         this.$store.commit("prop", { 'key': 'searchSort', value: false });
-        this.$compEmitter.emit("start-sort");
-      } else if ( this.listName === "filter" ) {
-        this.$compEmitter.emit("start-filter");
+        action.start = 'start-sort';
+      } else if ( action.change.filter ) {
+        action.start = 'start-filter';
       } 
       
       this.saveOptions( value, specialBoy);
+      this.$compEmitter.emit( action.start );
+      
         
     },
 
@@ -411,7 +422,10 @@ export default {
         
       }
       
-      this.$updateQueries( queryObj );
+      queryObj.book = null;
+      this.$store.commit('prop', { key: 'bookClicked', value: true });
+      
+      this.$updateQueries( queryObj, { src: 'saveOptions' });
       
     },
 

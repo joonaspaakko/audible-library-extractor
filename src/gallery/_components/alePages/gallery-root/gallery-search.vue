@@ -67,7 +67,7 @@
 
 <script>
 
-let getFuse = () => import( /* webpackPrefetch: true */ /* webpackChunkName: "fuse-search" */ "fuse.js");
+import Fuse from 'fuse.js'
 import filterAndSort from '@output-mixins/gallery-filter-and-sort.js';
 
 export default {
@@ -174,37 +174,34 @@ export default {
     },
     
     scope: function() {
-      
-      this.$compEmitter.emit("book-clicked", null);
-      // No need to shuffle anything when there's no active search
-      if ( this.$store.getters.searchIsActive ) {
-        this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
-        // this.$nextTick(function() {
+      this.$nextTick(() => {
+        // No need to shuffle anything when there's no active search
+        if ( this.$store.getters.searchIsActive ) {
+          this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
           if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
           this.search();
-        // });
-      } 
-      
+        } 
+        
+      });
     },
     filter: function() {
-      
-      this.$compEmitter.emit("book-clicked", null);
-      
-      this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
-      
-      if ( this.$store.getters.searchIsActive ) {
-        // this.$nextTick(function() {
-          if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
+      this.$nextTick(() => {
+        
+        this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
+        
+        if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
+        if ( this.$store.getters.searchIsActive ) {
           this.search();
-        // });
-      } 
-      
+        } 
+        
+      });
     },
     sort: function() {
-      
-      this.$compEmitter.emit("book-clicked", null);
-      this.$store.commit("prop", { key: ( this.$store.getters.searchIsActive ? 'searchCollection' : 'mutatingCollection'), value: this.sortBooks( this.$store.getters.collection ) });
-      
+      this.$nextTick(() => {
+        
+        this.$store.commit("prop", { key: ( this.$store.getters.searchIsActive ? 'searchCollection' : 'mutatingCollection'), value: this.sortBooks( this.$store.getters.collection ) });
+        
+      });
     },
     
     search: _.debounce( function( e, onLoad ) {
@@ -213,8 +210,8 @@ export default {
       const newQueries = {};
       const searchQuery = decodeURIComponent(this.$route.query.search);
       if ( !onLoad ) {
-        this.$compEmitter.emit("book-clicked", null);
         newQueries.book = null;
+        this.$store.commit('prop', { key: 'bookClicked', value: true });
       }
       
       const triggeredByEvent = e;
@@ -248,22 +245,14 @@ export default {
         this.fuseOptions.keys = this.aliciaKeys;
         
         let vue = this;
-        getFuse().then(function( Fuse ) {
           
-          vue.fuse = new Fuse.default( vue.$store.state.mutatingCollection, vue.fuseOptions );
-          let result = vue.fuse.search(query);
-          
-          if ( vue.useAutocomplete ) vue.autocomplete( result );
-          if (result.length > 0) {
-            // FIXME: maybe I should get rid of this map and just find the data inside result[0].item?
-            result = _.map(result, function(o) {
-              return o.item;
-            });
-          }
-          
-          vue.$store.commit("prop", { key: 'searchCollection', value: result });
-          
-        });
+        vue.fuse = new Fuse( vue.$store.state.mutatingCollection, vue.fuseOptions );
+        let result = vue.fuse.search(query);
+        
+        if ( vue.useAutocomplete ) vue.autocomplete( result );
+        result = _.map(result, 'item');
+        
+        vue.$store.commit("prop", { key: 'searchCollection', value: result });
         
       }
       // Stop searching  

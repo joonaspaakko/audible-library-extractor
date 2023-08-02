@@ -172,7 +172,6 @@ export default {
       this.resetScroll();
       
       this.maxWidth = this.repositionBookDetails() + "px";
-      this.$updateQueries({ book: this.book.asin });
       this.$store.commit('prop', { key: 'timeStamp', value: new Date().getTime() });
       this.$compEmitter.on("afterWindowResize", this.onWindowResize);
       this.loading = false;

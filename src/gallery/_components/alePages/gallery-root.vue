@@ -156,7 +156,7 @@ export default {
     '$route.query.book': function( bookParam ) {
       
       // This is mostly in place because I didn't make certain things work in a reactive way
-      // When you back or forward navigate to the same route (by name) this refresh the view
+      // When you back or forward navigate to the same route (by name) this refreshes the view
       if ( !this.$store.state.bookClicked ) this.$updateQueries({ refresh: true });
       else this.$store.commit('prop', { key: 'bookClicked', value: false });
       
@@ -327,7 +327,7 @@ export default {
       };
       
       // Abort if changing url param is unnecessary
-      // - This was causing issues when it was overlapping with other url param changes
+      // - This was causing issues when it was overlapping with other url param changes      
       if ( 
         !query.newValue === !query.asin && !query.newValue // || // If false + identical value
         //  query.newValue ===  query.asin && !!query.newValue  // If true + identical value
@@ -338,7 +338,7 @@ export default {
       // nullify false
       if ( !query.newValue ) query.newValue = null;
       // Active book clicked: close bookdetails
-      this.$updateQueries({ book: query.newValue });
+      this.$updateQueries({ book: query.newValue }, { src: 'toggleBookDetails' });
       
     },
     
