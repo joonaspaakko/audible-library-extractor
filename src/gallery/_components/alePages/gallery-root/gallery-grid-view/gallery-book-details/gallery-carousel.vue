@@ -122,7 +122,7 @@ export default {
 	methods: {
 		
 		appendTo() {
-			return document.body;
+			return document.querySelector('#ale-bookdetails');
 		},
 		
 		windowScrollStarted() {
