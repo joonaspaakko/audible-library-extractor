@@ -7,6 +7,7 @@ const aleSeries      = () => import( /* webpackChunkName: "series" */ "@output-p
 const aleAuthors     = () => import( /* webpackChunkName: "authors" */ "@output-pages/subPages/gallery-authors.vue");
 const aleNarrators   = () => import( /* webpackChunkName: "narrators" */ "@output-pages/subPages/gallery-narrators.vue");
 const alePublishers  = () => import( /* webpackChunkName: "publishers" */ "@output-pages/subPages/gallery-publishers.vue");
+const alePodcasts    = () => import( /* webpackChunkName: "podcasts" */ "@output-pages/subPages/gallery-podcasts.vue");
 
 export default {
   library: { 
@@ -33,6 +34,17 @@ export default {
     },
     children: [
       { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
+    ]
+  },
+  
+  podcasts: {
+    path: "/podcasts",
+    component: aleLibraryView,
+    meta: {
+      icon: 'fa-solid fa-podcast',
+    },
+    children: [
+      { name: "podcasts", path: "", component: aleGallery, meta: { gallery: true, title: 'Podcasts' } },
     ]
   },
   

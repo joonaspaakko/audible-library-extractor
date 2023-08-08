@@ -117,6 +117,7 @@ export default {
             performance: _thisRow.querySelector('[name="contentType"][value="Performance"]'), 
             lecture: _thisRow.querySelector('[name="contentType"][value="Lecture"]'),
             podcast: _thisRow.querySelector('[name="contentType"][value="Podcast"]'),
+            podcastParent: _thisRow.querySelector('[name="contentDeliveryType"][value="PodcastParent"]'),
           }
         };
         
@@ -149,8 +150,8 @@ export default {
           book.asin = bookASIN;
           
           const coverImg = _thisRow.querySelector('a > img.bc-image-inset-border:first-of-type') ||
-                               _thisRow.querySelector(':scope > div > div > div > a > img.bc-image-inset-border') ||  
-                               _thisRow.querySelector(':scope > div > div > div > img.bc-image-inset-border');
+                           _thisRow.querySelector(':scope > div > div > div > a > img.bc-image-inset-border') ||  
+                           _thisRow.querySelector(':scope > div > div > div > img.bc-image-inset-border');
           if ( coverImg ) {
             let coverUrl = coverImg.getAttribute('src');
                 coverUrl = DOMPurify.sanitize( coverUrl );
@@ -170,9 +171,14 @@ export default {
           const fromPlusCatalog = _thisRow.querySelector('input[value="AudibleDiscovery"]');
           if (fromPlusCatalog) book.fromPlusCatalog = true;
         }
-  
+        
+        
         // ALWAYS FETCH ↓↓ ( downloaded, favorite, progress, myRating )
-  
+        
+        // Is a podcast episode or a podcast (parent)
+        if ( rowItem.is.podcast ) book.format = 'Podcast'; // Just in case store page is not available
+        if ( rowItem.is.podcastParent ) book.podcastParent = true; // Just in case store page is not available
+        
         // "Came from the plus catalog but is no longer available there"
         const unavailableBtn = _thisRow.querySelector(".adbl-library-inaccessible-button");
         if (unavailableBtn) { book.unavailable = true; }

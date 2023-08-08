@@ -3,7 +3,7 @@ import store from "@output-modules/store/gallery-store-index.js";
 
 import allRoutes from '@output-modules/gallery-routes.js';
 
-export default function( libraryData ) {
+export default function( libraryData, store ) {
   if ( libraryData ) {
     
     let routes = [];
@@ -47,6 +47,11 @@ export default function( libraryData ) {
     // COLLECTIONS
     if ( libraryData.collections ) {
       routes.push( allRoutes.collections );
+    }
+    
+    // PODCASTS
+    if ( libraryData.books && store.getters.podcasts.length ) {
+      routes.push( allRoutes.podcasts );
     }
     
     // WISHLIST

@@ -32,13 +32,16 @@ export default {
   searchIsActive: function( state ) {
     return state.searchQuery.trim() !== "";
   },
-  collectionSource: function( state ) {
-    return state.searchQuery.trim() !== "" ? state.searchCollection : _.get(state, state.collectionSource);
+  collectionSource: function( state, getters ) {
+    const libary = state.collectionSource === 'library.books';
+    return state.searchQuery.trim() !== "" ? state.searchCollection : libary ? getters.regularBooks : _.get(state, state.collectionSource);
   },
-  collectionTotal: function( state ) {
-    return _.get(state, state.collectionSource, []).length;
+  collectionTotal: function( state, getters ) {
+    const libary = state.collectionSource === 'library.books';
+    return libary ? getters.regularBooks.length : _.get(state, state.collectionSource, []).length;
   },
   collection: function( state ) {
+    
     const searchIsActive = state.searchQuery.trim() !== "";
     if ( searchIsActive ) {
       return state.searchCollection;
@@ -71,6 +74,20 @@ export default {
   
   showPageTitle( state ) {
     return !!(state.pageSubTitle || state.pageTitle);
-  }
+  },
+  
+  regularBooks( state, getters ) {
+    
+    const books = _.filter(state.library.books, o => !_.get(o,'podcastParent'));
+    return books;
+    
+  },
+  podcasts( state, getters ) {
+    
+    const books = state.library.books;
+    const podcasts = _.filter(books, 'podcastParent');
+    return podcasts;
+    
+  },
   
 };

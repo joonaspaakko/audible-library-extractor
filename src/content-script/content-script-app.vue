@@ -59,6 +59,7 @@ export default {
       seriesUrl: window.location.origin + "/series",
       collectionsUrl: window.location.origin + "/library/collections",
       wishlistUrl: window.location.origin + "/library/wishlist",
+      podcastsUrl: window.location.origin + "/library/podcasts",
       purchaseHistoryUrl: window.location.origin + "/account/purchase-history", // tf=orders&df=2021
       domainExtension: window.location.hostname.replace('www.audible', ''),
       newBooks: [],
