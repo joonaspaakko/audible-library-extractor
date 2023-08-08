@@ -75,10 +75,10 @@ export default {
     content: '';
     position: absolute;
     z-index: 4;
-    top: 5px;
-    height: 6px;
-    width: 6px;
-    left: -12px;
+    top: 4px;
+    height: 9px;
+    width: 9px;
+    left: -16px;
     display: none;
     border-radius: 9999999px;
     background: red;
@@ -86,6 +86,7 @@ export default {
   li.fixed:before    { background: #f25954; display: block; }
   li.improved:before { background: #ba23ca; display: block; }
   li.added:before    { background: #10c064; display: block; }
+  li.removed:before    { background: #f25500; display: block; }
 }
 
 .changelog {

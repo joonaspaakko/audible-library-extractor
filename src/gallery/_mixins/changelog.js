@@ -1,6 +1,10 @@
 
 let githubIssues = 'https://github.com/joonaspaakko/audible-library-extractor/issues/';
 
+function issue( number ) {
+ return { text: 'Fixed #'+number, href: githubIssues+number }; 
+}
+
 export default {
   data: function() {
     return {
@@ -11,8 +15,107 @@ export default {
           highlights: `Full extraction recommended.`,
           changes: [
             {
+              description: `Gallery: mobile usage has some minor improvements here and there; the mobile menu is a bit cleaner, you can copy a link to the current page in even if it's saved to your phone's home screen, which is when there's no addressbar or anything to copy it normally.`,
+              class: 'improved',
+            },
+            {
+              description: `Wallpaper creator: a new tierlist mode.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: collections now have some premade collections.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: as of this version, the special "standalone gallery" cannot be viewed locally due to the build tool changes. This changes nothing for the extension gallery and you can still upload it to github or your own web server and it's work just as before.`,
+              class: 'removed',
+            },
+            {
+              description: `Extraction provess: books will now be saved after extracting every book in the library or the wishlist. Also wishlist extraction happens just before wishlist is extracted.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: all the filters with multi-select dropdown lists now have the option to exclude.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: the book details sidebar now lists any collections that the book belongs to, if any.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: book details carousel now has clickable labels that show you useful info. The labels are: "from this series", "book in library", "series in library", "book in wishlist", and all except the first one open a page of the gallery when clicked.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: the tooltip in the book details carousel is now grouped so that you can switch between books faster because you don't have to wait for the tooltip to close and the open for the next one all slowly.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: rating sorts are now visually a bit nicer and also have a backup sort for when multiple books have an equal rating. The very basic logic is that more ratings gives more credibility to the rating, so if you have a "group" of books with the same rating, let's say 4; the first book will have the most ratings and the last book of the group will have the least ratings. Number of ratings sort uses the average rating as the second sort. Also, the area where you see the rating will in some cases contain extra ratings related info when hovered over or clicked on mobile.`,
+              class: 'improved',
+            },
+            {
+              description: `All important build tools were updated in this version, which involved breaking changes and involved a lot of revwrites, so keep an eye out for new and old issues.`,
+              class: 'improved',
+            },
+            {
               description: `Up to this version the extension used to add global CSS styling that slightly modified the CSS in the library. It added very small unnoticable changes, like shifting text a little bit, but now it's fixed.`,
               class: 'fixed',
+            },
+            {
+              description: `Converting progress text from German "Beendet" to English "Finished" `,
+              class: 'fixed',
+              link: issue(125), 
+            },
+            {
+              description: `Series sub page shows false totals.`,
+              class: 'fixed',
+              link: issue(120), 
+            },
+            {
+              description: `Missing extraction button on the library page.`,
+              class: 'fixed',
+              link: issue(111), 
+            },
+            {
+              description: `Not extracting data for (library): authors, narrators or book numbers.`,
+              class: 'fixed',
+              link: issue(105), 
+            },
+            {
+              description: `Extract podcasts too.`,
+              class: 'fixed',
+              link: issue(93), 
+            },
+            {
+              description: `Need to login to extract wishlist. After login: "audible redirected you too many times".`,
+              class: 'fixed',
+              link: issue(92), 
+            },
+            {
+              description: `Gallery filters: slider not working with other filters.`,
+              class: 'fixed',
+              link: issue(91), 
+            },
+            {
+              description: `Wishlist cannot be extracted.`,
+              class: 'fixed',
+              link: issue(90), 
+            },
+            {
+              description: `Collections: archived books no longer fetched.`,
+              class: 'fixed',
+              link: issue(89), 
+            },
+            {
+              description: `Extractor Freezing on "Fetching series order".`,
+              class: 'fixed',
+              link: issue(87), 
+            },
+            {
+              description: `Standalone gallery: saved with collections excluded (occasionally?) loads up blank.`,
+              class: 'fixed',
+              link: issue(81), 
             },
           ],
         },
