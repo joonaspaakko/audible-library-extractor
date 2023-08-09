@@ -122,9 +122,34 @@ export default {
             // vue.getDataFromLibraryPagesFin, // Requires library page data
             vue.getDataFromStorePages,      // Requires library page data
             vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
+            function(hotpotato, callback) { 
+              
+              if ( !_.find(hotpotato.config.steps, { name: "books" }) ) {
+                callback(null, hotpotato); 
+                return;
+              }
+              
+              vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {
+                callback(null, hotpotato); 
+              });
+              
+            },
             vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
             function(hotpotato, callback) { 
+              
+              if ( !_.find(hotpotato.config.steps, { name: "collections" }) ) {
+                callback(null, hotpotato); 
+                return;
+              }
+              
               vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {
+                
+                // Not extracting wishlist, skipping the check below...
+                if ( !_.find(hotpotato.config.steps, { name: "wishlist" }) ) {
+                  vue.$store.commit("resetProgress");
+                  callback(null, hotpotato);
+                  return; 
+                }
                 
                 vue.$store.commit('update', { key: 'checkingWishlistAccess', value: true });
                 vue.$store.commit('update', { key: 'noWishlistAccess', value: false });
@@ -149,6 +174,14 @@ export default {
             vue.getDataFromWishlist,        // Can be scraped alone
             vue.getDataFromStorePages,      // Requires wishlist data
             function(hotpotato, callback) { 
+              
+              // Not extracting wishlist, skipping save...
+              if ( !_.find(hotpotato.config.steps, { name: "wishlist" }) ) {
+                vue.$store.commit("resetProgress");
+                callback(null, hotpotato);
+                return; 
+              }
+              
               vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {
                 callback(null, hotpotato); 
               });    
