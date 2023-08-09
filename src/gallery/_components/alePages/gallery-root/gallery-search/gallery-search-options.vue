@@ -57,9 +57,19 @@ export default {
       
       const inWishlist = this.$route.name === 'wishlist';
       const inSeriesSubPage = this.$route.name === 'series';
+      const inPodcasts = this.$route.name === 'podcasts';
       
       return _.filter( this.optionsList, ( item ) => {
-        return item.type === 'filter' && ( inWishlist ? !item.excludeFromWishlist : true ) && ( inSeriesSubPage ? !item.excludeFromSeriesSubPage : true );
+        
+        const conditionsOK = this.allTrue({
+          'is regular filter'          : item.type === 'filter',
+          'exclude from wishlist'      : inWishlist ? !item.excludeFromWishlist : true,
+          'exclude from series subpage': inSeriesSubPage ? !item.excludeFromSeriesSubPage: true,
+          'exclude from podcasts'      : inPodcasts ? !item.excludeFromPodcasts : true,
+        });
+        
+        return conditionsOK;
+        
       });
       
     },
@@ -68,12 +78,20 @@ export default {
       
       const inWishlist   = this.$route.name === 'wishlist';
       const inSeriesSubPage = this.$route.name === "series";
+      const inPodcasts = this.$route.name === 'podcasts';
       const viewModeGrid = this.$store.state.sticky.viewMode !== 'grid';
       
       return _.filter( this.optionsList, ( item ) => {
-        const sortValues = item.key === 'sortValues';
-        const notFilter  = item.type !== 'filter';
-        return !(viewModeGrid && sortValues) && notFilter && ( inWishlist ? !item.excludeFromWishlist : true ) && ( inSeriesSubPage ? !item.excludeFromSeriesSubPage : true );
+        
+        const conditionsOK = this.allTrue({
+          'no sort values in list view': !(viewModeGrid && item.key === 'sortValues'),
+          'is not a regular filter'    : item.type !== 'filter',
+          'exclude from wishlist'      : inWishlist ? !item.excludeFromWishlist : true,
+          'exclude from series subpage': inSeriesSubPage ? !item.excludeFromSeriesSubPage: true,
+          'exclude from podcasts'      : inPodcasts ? !item.excludeFromPodcasts : true,
+        });
+        
+        return conditionsOK;
       });
       
     },
@@ -111,6 +129,13 @@ export default {
   },
 
   methods: {
+    
+    allTrue( input ) {
+      
+			input = _.values( input );
+			return _.every( input );
+      
+    },
     
     resetFilters: function() {
       

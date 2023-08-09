@@ -78,7 +78,8 @@ export default {
             condition: function(book) {
               return book.progress && !book.progress.toLowerCase().match('finished') ? true : false;
             },
-            excludeFromWishlist: true
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
           },
           {
             active: true,
@@ -88,7 +89,8 @@ export default {
             condition: function(book) {
               return book.progress && book.progress.toLowerCase().match('finished') ? true : false;
             },
-            excludeFromWishlist: true
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
           },
 
           // { type: 'divider', key: 'divider1' },
@@ -156,7 +158,9 @@ export default {
           },
           {
             type: 'divider',
-            key: 'divider1.3.1'
+            key: 'divider1.3.1',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
           },
           {
             active: false,
@@ -164,8 +168,10 @@ export default {
             label: 'Podcast episodes: include',
             key: 'podcasts-inlcude',
             group: 'filterExtras',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             condition: function(book) {
-              return _.get(book, "format") === 'Podcast';
+              return _.get(book, "format") === 'Podcast' && !_.get(book, "podcastParent");
             }
           },
           {
@@ -174,9 +180,11 @@ export default {
             label: 'Podcast episodes: exclude',
             key: 'podcasts-exclude',
             group: 'filterExtras',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             condition: function(book) {
               
-              return _.get(book, "format") !== 'Podcast';
+              return _.get(book, "format") !== 'Podcast' && !_.get(book, "podcastParent");
             }
           },
           {
@@ -207,7 +215,8 @@ export default {
           {
             type: 'divider',
             key: 'divider1.4',
-            excludeFromWishlist: true
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
           },
           {
             active: false,
@@ -215,6 +224,7 @@ export default {
             label: 'Favorites: include',
             key: 'favorites',
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             group: 'filterExtras',
             condition: function(book) {
               return book.favorite;
@@ -226,6 +236,7 @@ export default {
             label: 'Favorites: exclude',
             key: 'favorites-not',
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             group: 'filterExtras',
             condition: function(book) {
               return !book.favorite;
@@ -235,13 +246,15 @@ export default {
           {
             type: 'divider',
             key: 'divider1.4.1',
-            excludeFromWishlist: true
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
           },
           {
             active: false,
             type: 'filterExtras',
             label: 'Books I have rated',
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             key: 'rated-by-me',
             group: 'filterExtras',
             condition: function(book) {
@@ -253,6 +266,7 @@ export default {
             type: 'filterExtras',
             label: "Books I haven't rated",
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             key: 'not-rated-by-me',
             group: 'filterExtras',
             condition: function(book) {
@@ -313,6 +327,7 @@ export default {
           {
             active: false,
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             type: 'filterExtras',
             label: 'Whisperync: owned',
             key: 'whispersync-owned',
@@ -325,6 +340,7 @@ export default {
             active: false,
             type: 'filterExtras',
             label: 'Whispersync: available',
+            excludeFromPodcasts: true,
             key: 'whispersync-available',
             group: 'filterExtras',
             condition: function(book) {
@@ -334,6 +350,7 @@ export default {
           {
             active: false,
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             type: 'filterExtras',
             label: 'Whisperync: available + owned',
             key: 'whispersync-owned-or-available',
@@ -346,6 +363,7 @@ export default {
             active: false,
             type: 'filterExtras',
             label: 'Whispersync: unavailable',
+            excludeFromPodcasts: true,
             key: 'whispersync-false',
             group: 'filterExtras',
             tippy: 'Either unavailable or unkown...',
@@ -355,6 +373,7 @@ export default {
           },
           {
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             type: 'divider',
             key: 'divider-archived',
           },
@@ -362,6 +381,7 @@ export default {
           {
             active: false,
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             type: 'filterExtras',
             label: 'Archived',
             key: 'archived',
@@ -373,6 +393,7 @@ export default {
           {
             active: false,
             excludeFromWishlist: true,
+            excludeFromPodcasts: true,
             type: 'filterExtras',
             label: 'Not archived',
             key: 'not-archived',
@@ -383,6 +404,7 @@ export default {
           },
           
           {
+            excludeFromPodcasts: true,
             type: 'divider',
             key: 'divider2.2'
           },
