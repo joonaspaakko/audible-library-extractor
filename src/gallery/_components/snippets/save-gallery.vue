@@ -21,7 +21,17 @@
 
     <div class="options opt-groups">
       <div class="opt-group" v-for="(group, groupIndex) in chunkSource" :key="groupIndex" :class="[ 'group-' + groupIndex ]">
-        <label :class="[ 'item-' + itemIndex, item.disabled ? 'disabled' : null ]" :data-extra="item.extra"  v-for="(item, itemIndex) in group" :key="item.key" v-tippy :content="item.tippy">
+        <label 
+          v-for="(item, itemIndex) in group" 
+          :key="item.key" 
+          :class="[ 
+            'item-' + itemIndex, 
+            item.disabled ? 'disabled' : null, 
+            item.spacer ? 'hide-spacer': null
+          ]" 
+          :data-extra="item.extra"  
+          v-tippy :content="item.tippy"
+        >
           <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)"> 
           <div class="visual-checkbox">
             <span class="icon">
@@ -95,8 +105,11 @@ export default {
         { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
         { checked: true, disabled: false, key: 'Series', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Narrators', parent: ['Library', 'Wishlist'], subPage: true },
+        { checked: true, disabled: false, key: 'Podcasts' },
         { checked: true, disabled: false, key: 'Wishlist' },
-        { checked: true, disabled: true, key: 'Export archived books', extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export and "My books in the series" will list archived books as not owned. This option is disabled if the archive is empty.' },
+        { checked: true, disabled: true, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export and "My books in the series" will list archived books as not owned. This option is disabled if the archive is empty.' },
+        { checked: true, disabled: false, key: 'spacer-1', spacer: true },
+        { checked: true, disabled: false, key: 'spacer-2', spacer: true },
         
       ],
       zip: null,
@@ -115,10 +128,13 @@ export default {
     let vue = this;
 
     if ( this.$store.state.sticky.exportSettingsGallery ) {
+      console.log( this.$store.state.sticky.exportSettingsGallery );
       _.each(this.$store.state.sticky.exportSettingsGallery, function( stickySource ) {
         var source = _.find(vue.dataSources, { key: stickySource.key });
-        source.checked = stickySource.checked;
-        source.disabled = stickySource.disabled;
+        if ( source ) {
+          source.checked = stickySource.checked;
+          source.disabled = stickySource.disabled;
+        }
       });
     }
 
@@ -126,11 +142,13 @@ export default {
     librarySource.disabled =  !this.$store.state.library.books;
     let wishlistSource = _.find( this.dataSources, { key: 'Wishlist' });
     wishlistSource.disabled =  !this.$store.state.library.wishlist;
+    let podcastsSource = _.find( this.dataSources, { key: 'Podcasts' });
+    podcastsSource.disabled =  !this.$store.getters.podcasts;
     
     let collections = this.$store.state.library.collections;
     let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
     if ( archive && archive.books.length > 0  ) {
-      let archivedSource = _.find( this.dataSources, { key: 'Export archived books' });
+      let archivedSource = _.find( this.dataSources, { key: 'Archived' });
       if ( archivedSource ) archivedSource.disabled = false;
     }
     
@@ -201,7 +219,7 @@ export default {
       const vue = this;
 
       if ( this.bundling || this.$store.state.devMode ) return;
-
+      
       try {
         vue.bundling = true;
         vue.$store.commit("prop", { key: 'bundlingGallery', value: true });
@@ -511,12 +529,21 @@ export default {
             }
             break;
             
-          case "Export archived books":
+          case "Podcasts":
+            if ( itemDisabled ) {
+              const books = _.get(data, 'books');
+              _.remove( books, (book) => {
+                return _.get(book, "format") === 'Podcast' || _.get(book, "podcastParent");
+              });
+            }
+            break;
+            
+          case "Archived":
             if ( itemDisabled ) {
               let collections = data.collections;
               let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
               if ( archive && archive.books.length > 0 && data.books ) {
-                _.remove( data.books, 'archived');
+                _.remove( data.books, (o) => { return o.archived });
                 
                 // Removes archived books from series
                 if ( data.series ) {
@@ -707,10 +734,10 @@ export default {
       padding-top: 0px !important;
     }
     
-    .item-0 { width: 100px; }
-    .item-1 { width: 100px; }
-    .item-2 { width: 100px; }
-    .item-3 { width: 100px; }
+    .item-0 { width: 100px !important; }
+    .item-1 { width: 100px !important; }
+    .item-2 { width: 100px !important; }
+    .item-3 { width: 100px !important; }
     [data-extra] { width: auto; }
   }
 }
@@ -783,6 +810,10 @@ export default {
   padding-bottom: 35px;
   border-bottom: 2px solid rgba(#000, .15);
   margin-bottom: 5px;
+}
+
+.hide-spacer {
+  visibility: hidden;
 }
 
 </style>
