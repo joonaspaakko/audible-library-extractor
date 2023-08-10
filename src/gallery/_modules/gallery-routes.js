@@ -1,13 +1,12 @@
 
 import aleLibraryView from "@output-comps/gallery-library-view.vue";
-const aleGallery     = () => import( /* webpackPreload: true */ /* webpackChunkName: "gallery" */ "@output-pages/gallery-root.vue");
-const aleCollections = () => import( /* webpackChunkName: "collections" */ "@output-pages/gallery-collections.vue");
-const aleCategories  = () => import( /* webpackChunkName: "categories" */ "@output-pages/subPages/gallery-categories.vue");
-const aleSeries      = () => import( /* webpackChunkName: "series" */ "@output-pages/subPages/gallery-series.vue");
-const aleAuthors     = () => import( /* webpackChunkName: "authors" */ "@output-pages/subPages/gallery-authors.vue");
-const aleNarrators   = () => import( /* webpackChunkName: "narrators" */ "@output-pages/subPages/gallery-narrators.vue");
-const alePublishers  = () => import( /* webpackChunkName: "publishers" */ "@output-pages/subPages/gallery-publishers.vue");
-const alePodcasts    = () => import( /* webpackChunkName: "podcasts" */ "@output-pages/subPages/gallery-podcasts.vue");
+const aleGallery     = () => import("@output-pages/gallery-root.vue");
+const aleCollections = () => import("@output-pages/gallery-collections.vue");
+const aleCategories  = () => import("@output-pages/subPages/gallery-categories.vue");
+const aleSeries      = () => import("@output-pages/subPages/gallery-series.vue");
+const aleAuthors     = () => import("@output-pages/subPages/gallery-authors.vue");
+const aleNarrators   = () => import("@output-pages/subPages/gallery-narrators.vue");
+const alePublishers  = () => import("@output-pages/subPages/gallery-publishers.vue");
 
 export default {
   library: { 

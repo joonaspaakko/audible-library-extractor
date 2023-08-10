@@ -103,21 +103,16 @@ import vuexPrep from '@output-modules/gallery-vuex-prep.js';
 function startVue( libraryData ) {
   
   let standaloneRouteData;
-  libraryData.extras.pages = libraryData.extras.pages || {};
+  _.set(libraryData, 'extras.pages', {});
   if ( standalone ) {
     standaloneRouteData = JSON.parse(JSON.stringify(libraryData));
-    var cleanUp = ['books', 'series', 'collections', 'wishlist'];
+    var cleanUp = ['books', 'series', 'collections', 'podcasts', 'wishlist'];
     _.each(cleanUp, function( key ) {
       if ( _.get(libraryData, key) === true ) {
         delete libraryData[ key ];
-        _.set( libraryData, 'extras.pages.books', true );
-        libraryData.extras.pages.books = true;
+        _.set( libraryData, 'extras.pages.' + key, true );
       }
     });
-    // if ( libraryData.books       === true ) { delete libraryData.books;       libraryData.extras.pages.books = true;       }
-    // if ( libraryData.series      === true ) { delete libraryData.series;      libraryData.extras.pages.series = true;      }
-    // if ( libraryData.collections === true ) { delete libraryData.collections; libraryData.extras.pages.collections = true; }
-    // if ( libraryData.wishlist    === true ) { delete libraryData.wishlist;    libraryData.extras.pages.wishlist = true;    }
   }
   
   vuexPrep( libraryData );

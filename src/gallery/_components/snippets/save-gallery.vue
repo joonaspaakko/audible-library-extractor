@@ -102,12 +102,12 @@ export default {
         { checked: true, disabled: false, key: 'Categories', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Authors', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Publishers', parent: ['Library', 'Wishlist'], subPage: true },
-        { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
         { checked: true, disabled: false, key: 'Series', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Narrators', parent: ['Library', 'Wishlist'], subPage: true },
-        { checked: true, disabled: false, key: 'Podcasts' },
+        { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
+        { checked: true, disabled: false, key: 'Podcasts', parent: 'Library' },
+        { checked: true, disabled: true, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export.', parent: 'Library' },
         { checked: true, disabled: false, key: 'Wishlist' },
-        { checked: true, disabled: true, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export and "My books in the series" will list archived books as not owned. This option is disabled if the archive is empty.' },
         { checked: true, disabled: false, key: 'spacer-1', spacer: true },
         { checked: true, disabled: false, key: 'spacer-2', spacer: true },
         
@@ -125,17 +125,14 @@ export default {
     
     this.files = window.chunksFilePaths;
     
-    let vue = this;
-
     if ( this.$store.state.sticky.exportSettingsGallery ) {
-      console.log( this.$store.state.sticky.exportSettingsGallery );
-      _.each(this.$store.state.sticky.exportSettingsGallery, function( stickySource ) {
-        var source = _.find(vue.dataSources, { key: stickySource.key });
+      _.each(this.$store.state.sticky.exportSettingsGallery, ( stickySource ) => {
+        var source = _.find(this.dataSources, { key: stickySource.key });
         if ( source ) {
           source.checked = stickySource.checked;
           source.disabled = stickySource.disabled;
         }
-      });
+      });      
     }
 
     let librarySource = _.find( this.dataSources, { key: 'Library' });
@@ -143,14 +140,13 @@ export default {
     let wishlistSource = _.find( this.dataSources, { key: 'Wishlist' });
     wishlistSource.disabled =  !this.$store.state.library.wishlist;
     let podcastsSource = _.find( this.dataSources, { key: 'Podcasts' });
-    podcastsSource.disabled =  !this.$store.getters.podcasts;
+    podcastsSource.disabled = _.isEmpty(this.$store.getters.podcasts);
     
-    let collections = this.$store.state.library.collections;
-    let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
-    if ( archive && archive.books.length > 0  ) {
-      let archivedSource = _.find( this.dataSources, { key: 'Archived' });
-      if ( archivedSource ) archivedSource.disabled = false;
-    }
+    // let archivedBookFound = _.find( this.$store.state.library.books, o => _.includes(o.collectionIds, '__ARCHIVE') );
+    // if ( !archivedBookFound ) {
+    //   let archivedSource = _.find( this.dataSources, { key: 'Archived' });
+    //   if ( archivedSource ) archivedSource.disabled = false;
+    // }
     
   },
 
@@ -218,7 +214,7 @@ export default {
     saveButtonClicked: async function () {
       const vue = this;
 
-      if ( this.bundling || this.$store.state.devMode ) return;
+      // if ( this.bundling || this.$store.state.devMode ) return;
       
       try {
         vue.bundling = true;
@@ -239,6 +235,7 @@ export default {
           books: !!libraryData.books,
           series: !!libraryData.series,
           collections: !!libraryData.collections,
+          podcasts: !_.isEmpty(_.filter(libraryData.books, 'podcastParent')),
           wishlist: !!libraryData.wishlist,
           extras: libraryData.extras,
         };
@@ -540,41 +537,46 @@ export default {
             
           case "Archived":
             if ( itemDisabled ) {
-              let collections = data.collections;
-              let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
-              if ( archive && archive.books.length > 0 && data.books ) {
-                _.remove( data.books, (o) => { return o.archived });
-                
+              
+              let archivedBooks = _.filter( vue.$store.state.library.books, o => _.includes(o.collectionIds, '__ARCHIVE') );
+                  archivedBooks = _.map( archivedBooks, 'asin' );
+              
+              // Remove any book that is in the archive collection
+              _.remove( data.books, o  => _.includes(o.collectionIds, '__ARCHIVE'));
+              
+              if ( data.series ) {
                 // Removes archived books from series
-                if ( data.series ) {
-                  _.each( data.series, function( series ) {
-                    if ( series.books.length > 0 ) {
-                      _.remove( series.books, function( book ) {
-                        return _.includes( archive.books, book );
-                      });
-                    }
-                    if ( series.allBooks.length > 0 ) {
-                      _.each( series.allBooks, function( book ) {
-                        const inArchive = _.includes( archive.books, book.asin );
-                        if ( inArchive ) book.notInLibrary = true;
-                      });
-                    }
-                  });
-                  _.remove( data.series, function( series) {
-                    return series.books.length === 0;
-                  });
-                }
-                
-                // Makes sure archived won't show up in any other collection either...
-                _.each( collections, function( collection ) {
-                  _.remove( collection.books, function( book ) {
-                    return _.includes( archive.books, book );
-                  });
+                _.each( data.series, function( series ) {
+                  if ( series.books.length ) {
+                    _.remove( series.books, function( book ) {
+                      return _.includes( archivedBooks, book );
+                    });
+                  }
+                  if ( series.allBooks.length ) {
+                    _.each( series.allBooks, function( book ) {
+                      const inArchive = _.includes( archivedBooks, book.asin );
+                      if ( inArchive ) book.notInLibrary = true;
+                    });
+                  }
+                });
+                // Remove series that have no books
+                _.remove( data.series, function( series) {
+                  return series.books.length === 0;
                 });
               }
-              if ( archive ) _.remove( collections, function( collection ) {
-                return collection.id === '__ARCHIVE' || !collection.books || collection.books.length === 0;
+              
+              // Remove archived books from collections
+              _.each( data.collections, function( collection ) {
+                _.remove( collection.books, function( book ) {
+                  return _.includes( archivedBooks, book );
+                });
               });
+              
+              // Remove archive collection
+              _.remove( data.collections, function( collection ) {
+                return collection.id === '__ARCHIVE';
+              });
+              
             }
             break;
             
