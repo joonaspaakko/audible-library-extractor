@@ -604,6 +604,7 @@ export default {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
+  position: relative;
   
   input {
     opacity: 0;

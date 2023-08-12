@@ -758,6 +758,9 @@ export default {
   z-index: 0;
 }
 
+.opt-group label {
+  position: relative;
+}
 .opt-group input {
   opacity: 0;
   position: absolute;
