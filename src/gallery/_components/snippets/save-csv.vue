@@ -8,7 +8,7 @@
         <fa6-solid-file-csv/>
       </div>
       <div class="text-wrapper" ref="textWrapper">
-        <h2> CSV (Spreadsheet)</h2>
+        <h2> Spreadsheet</h2>
 
         <div class="description">
           CSV is a generic file format for tabular data that is supported by any proper spreadsheet application. 
@@ -50,6 +50,30 @@
     
     <div class="description" style="margin-top: 10px;">
       {{ compatibilityActive.description }}
+    </div>
+    
+    <div v-if="settings.compatibilityChecked === 'Goodreads'">
+      <h3>Goodreads identifier:</h3>
+  
+      <!-- <div class="warning">
+        If you have already imported books with ISBN, you may want to exclude ASIN, because books imported (and matched) with ASIN will be added as a duplicate entry.
+      </div> -->
+      
+      <div class="options">
+        <label v-for="item in settings.goodreadsIdentifier" :key="item.key">
+          <input type="checkbox" name="goodreadsIdentifier" v-model="item.checked" @change="inputChanged($event, item, settings.goodreadsIdentifier)"> 
+          <div class="visual-checkbox">
+              <span class="icon">
+                <fa-solid-check/>
+              </span>
+            </div>
+          <span>{{ item.label || item.key }}</span>
+        </label>
+      </div>
+      
+      <div class="description" style="margin-top: 10px;" v-if="GoodreadsIdentifiersClicked">
+        <strong>{{ GoodreadsIdentifiersClicked.key }}:</strong> <span v-html="GoodreadsIdentifiersClicked.description"></span>
+      </div>
     </div>
 
     <div class="buttons-footer">
@@ -106,15 +130,20 @@ export default {
       settings: {
         dataSourcesChecked: 'Library',
         dataSources: [
-          { key: 'Library', description: 'Export library data as spreadsheet. Default sorting (added): new books at the top.'},
-          { key: 'Wishlist', description: 'Export wishlist data as spreadsheet.  Default sorting (added): new books at the top.'},
-          { key: 'Current page', description: 'Export contents from any page with books. Search, filtering, and sorting affect this source.' },
+          { key: 'Library', description: 'Export library data as spreadsheet. Uses default sorting "added": new books at the top.'},
+          { key: 'Wishlist', description: 'Export wishlist data as spreadsheet.  Uses default sorting "added": new books at the top.'},
+          { key: 'Current page', description: 'Export contents from any page with books. Active: search, filtering, and sorting affect this source.' },
         ],
         compatibilityChecked: 'Google Sheets',
         compatibility: [
-          { key: 'Raw data', label: 'Raw data', description: "Raw data with no special formulas, so it will work in any spreadsheet application." },
-          { key: 'Google Sheets', description: `Adds Google Sheets compatible formulas that add icons and links. If you don't like the formulas, you can use "raw data" instead.` },
+          { key: 'Raw data', description: "Raw data with no special formulas, so it will work in any spreadsheet application." },
+          { key: 'Google Sheets', description: `Adds Google Sheets compatible formulas that add icons and links. If you don't like the formulas, you can use of course "raw data" instead.` },
           { key: 'Goodreads', description: "This spreadsheet includes Goodreads relevant columns and removes any books that don't have ISBNs since Goodreads won't import books without them. Book status determines the bookshelve: not started (to-read), started(currently-reading), finished (read). Book categories are divided into shelves as well." },
+        ],
+        goodreadsIdentifier: [
+          { key: 'ISBN',  checked: true, clicked: false, description: `You need to do the ISBN extraction in your Audible Library in order to use this.` },
+          { key: 'ASIN',  checked: true,  clicked: false, description: `These days Goodreads accepts imports with ASIN, which in this case will give you an exact match.` },
+          { key: 'MERGE', checked: true, clicked: false, description: `Goodreads will add one book per matched identifier, so with all 3 you can potentially add 3 duplicate entries. This merge option will pick just one of them in this order of priority: ISBN 10, ISBN 13, ASIN. <br><br>The potential issue with this is that we have no way of knowing which one of these identifiers actually matches a book. So you by <strong>unchecking</strong> this option you risk getting multiple duplicates and by cecking <strong>checking</strong> it, you risk getting less matches with fewer duplicates. <br><br>Removing duplicates in Goodreads is very time consuming when you have more than like 10. I have ~1000 books and I got like 300 duplicates without this merge option.` },
         ] 
       },
       bundling: false,
@@ -130,6 +159,9 @@ export default {
     if ( this.$store.state.sticky.exportSettingsCSVcompatibility ) {
       this.settings.compatibilityChecked = this.$store.state.sticky.exportSettingsCSVcompatibility;
     }
+    if ( this.$store.state.sticky.exportSettingsGoodreadsIdentifier ) {
+      this.settings.goodreadsIdentifier = this.$store.state.sticky.exportSettingsGoodreadsIdentifier;
+    }
     
     this.iconSize = this.$refs.textWrapper.offsetHeight;
     
@@ -142,6 +174,13 @@ export default {
     },
     compatibilityActive() {
       return _.find( this.settings.compatibility, { key: this.settings.compatibilityChecked });
+    },
+    
+    activeGoodreadsIdentifiers() {
+      return _.filter(this.settings.goodreadsIdentifier, { checked: true });
+    },
+    GoodreadsIdentifiersClicked() {
+      return _.find( this.settings.goodreadsIdentifier, { clicked: true });
     },
     
     googleSheets: function() {
@@ -231,7 +270,7 @@ export default {
       }
     },
     
-    inputChanged: function( e ) {
+    inputChanged: function( e, item, items ) {
       
       if ( this.$store.state.sticky.exportSettingsCSVdataSources !== this.settings.dataSourcesChecked ) {
         this.$store.commit('stickyProp', { key: 'exportSettingsCSVdataSources', value: this.settings.dataSourcesChecked });
@@ -240,6 +279,13 @@ export default {
         this.$store.commit('stickyProp', { key: 'exportSettingsCSVcompatibility', value: this.settings.compatibilityChecked });
       }
       
+      if ( item && items ) {
+        _.each(items, ( item ) => {
+          item.clicked = false;
+        });
+        item.clicked = true;
+        this.$store.commit('stickyProp', { key: 'exportSettingsGoodreadsIdentifier', value: this.settings.goodreadsIdentifier });
+      }
       
     },
     
@@ -414,15 +460,51 @@ export default {
       
       let vue = this;
       
-      // Filter out titles without ISBNs
-      dataSource = _.filter( dataSource, function( book ) {
-        const isbn10 = _.find( book.isbns, { type: "ISBN_10" });
-        const isbn13 = _.find( book.isbns, { type: "ISBN_13" });
-        const asin = book.asin;
-        return isbn10 || isbn13 || asin;
-      });
+      const identifier = {
+        merge: _.find(this.activeGoodreadsIdentifiers, { key: 'MERGE', checked: true }),
+        ASIN : _.find(this.activeGoodreadsIdentifiers, { key: 'ASIN', checked: true }),
+        ISBN : _.find(this.activeGoodreadsIdentifiers, { key: 'ISBN', checked: true }),
+      };
+      
+      // // Filter out titles without ISBNs
+      // dataSource = _.filter( dataSource, function( book ) {
+      //   const isbn10 = _.find( book.isbns, { type: "ISBN_10" });
+      //   const isbn13 = _.find( book.isbns, { type: "ISBN_13" });
+      //   const asin = book.asin;
+      //   return isbn10 || isbn13 || asin;
+      // });
+      
       
       return _.map( dataSource, function( book ) {
+        
+        let exportIDs = [];
+        
+        const get = {
+          isbn10: _.get(_.find( book.isbns, { type: "ISBN_10" }), 'identifier'),
+          isbn13: _.get(_.find( book.isbns, { type: "ISBN_13" }), 'identifier'),
+          asin  : book.asin,
+        };
+        
+        if ( identifier.merge && identifier.ASIN && identifier.ISBN ) {
+               if ( get.isbn10 ) exportIDs.push('isbn10');
+          else if ( get.isbn13 ) exportIDs.push('isbn13');
+          else if ( get.asin ) exportIDs.push('asin');
+        }
+        else if ( identifier.merge && identifier.ISBN ) {
+               if ( get.isbn10 ) exportIDs.push('isbn10');
+          else if ( get.isbn13 ) exportIDs.push('isbn13');
+        }
+        else if ( identifier.ISBN ) {
+          if ( get.isbn10 ) exportIDs.push('isbn10');
+          if ( get.isbn13 ) exportIDs.push('isbn13');
+        }
+        else if ( identifier.asin ) {
+          if ( get.asin ) exportIDs.push('asin');
+        }
+        else {
+          exportIDs = ['asin', 'isbn10', 'isbn13'];
+        }
+        
         return _.map(keys, function( key ) {
           
           switch ( key ) {
@@ -480,18 +562,14 @@ export default {
               break;
             
             case "isbn":
-              const isbn10 = _.find( book.isbns, { type: "ISBN_10" });
-              if ( isbn10 ) return isbn10.identifier;
-              else { return ''; }
+              return _.includes(exportIDs, 'isbn10') ? get.isbn10 : '';
               break;
             case "isbn13":
-              const isbn13 = _.find( book.isbns, { type: "ISBN_13" });
-              if ( isbn13 ) return isbn13.identifier;
-              else { return ''; }
+              return _.includes(exportIDs, 'isbn13') ? get.isbn13 : '';
               break;
               
             case "asin":
-              return book.asin || '';
+              return _.includes(exportIDs, 'asin') ? get.asin : '';
               break;
               
             default:
@@ -641,6 +719,47 @@ export default {
   input:checked ~ .visual-radiobutton .icon { opacity: 1; }
 }
 
+.options {
+  
+  .visual-checkbox {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width:  17px;
+    height: 17px;
+    background: #292929;
+    @include themify($themes) {
+      // background: themed(backColor);
+      border: 1px solid rgba(themed(frontColor), .25);
+    }
+    // border: 1px solid #666;
+    border-radius: 4px;
+    margin-right: 5px;
+  }
+  
+  .visual-checkbox .icon {
+    display: none;
+    color: #00ed00;
+    svg {
+      width: 80%;
+    }
+  }
+  
+  label input:checked ~ .visual-checkbox .icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+  }
+  
+  > .disabled {
+    opacity: .6;
+    cursor: default !important;
+    .visual-checkbox .icon {
+      color: inherit;
+    }
+  }
+}
+
 .top-wrapper {
   display: flex;
   flex-direction: row;
@@ -656,6 +775,13 @@ export default {
   margin-left: 3px;
   display: inline-block;
   padding: 5px;
+}
+
+.warning {
+  margin-top: 10px;
+  border: 1px dashed #ff404e;
+  border-radius: 6px;
+  padding: 10px;
 }
 
 </style>

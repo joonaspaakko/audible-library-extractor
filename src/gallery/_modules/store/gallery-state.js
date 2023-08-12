@@ -12,6 +12,7 @@ export default {
     exportSettingsGallery: null,
     exportSettingsCSVdataSources: null,
     exportSettingsCSVcompatibility: null,
+    exportSettingsGoodreadsIdentifier: null,
     booksInSeriesAll: true,
     booksInSeriesFinished: true,
     booksInSeriesOpenInApp: true,

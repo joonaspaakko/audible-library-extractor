@@ -106,7 +106,7 @@ export default {
         { checked: true, disabled: false, key: 'Narrators', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
         { checked: true, disabled: false, key: 'Podcasts', parent: 'Library' },
-        { checked: true, disabled: true, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export.', parent: 'Library' },
+        { checked: true, disabled: false, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export.', parent: 'Library' },
         { checked: true, disabled: false, key: 'Wishlist' },
         { checked: true, disabled: false, key: 'spacer-1', spacer: true },
         { checked: true, disabled: false, key: 'spacer-2', spacer: true },
