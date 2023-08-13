@@ -20,9 +20,7 @@
 			>
 				
 				<cont-extraction-setting 
-					:class="{ 
-						'partial-extraction': store.storageHasData[ setting.name ],
-					}"
+					:class="{ 'partial-extraction': store.storageHasData[ setting.name ] }"
 					:index="index" 
 					:settings="$store.getters.settings_mainSteps" 
 					:setting="setting" 
@@ -31,18 +29,19 @@
 			</div>
 		</div> <!-- setting-checkboxes -->
 		
-		<label class="checkbox is-small is-dark no-selection">
-			<input style="width: 0px; height: 0px; position: absolute; top: -1px; left: -1px; overflow: hidden; opacity: 0;" type="checkbox" v-model="saveStandaloneAfter.value">
+		<!-- EXTRA SETTINGS -->
+		<!-- <label class="checkbox is-small is-dark no-selection" v-for="setting in extraSettings" :key="name">
+			<input style="width: 0px; height: 0px; position: absolute; top: -1px; left: -1px; overflow: hidden; opacity: 0;" type="checkbox" v-model="setting.value">
 			
 			<span style="vertical-align: middle; padding-right: 5px;">
-				<tabler-checkbox v-if="saveStandaloneAfter.value" />
+				<tabler-checkbox v-if="setting.value" />
 				<ion-android-checkbox-outline-blank v-else />
 			</span>
 			<span>
-				{{ saveStandaloneAfter.label }}
+				{{ setting.label }}
 			</span>
 		</label>
-		
+		 -->
     <cont-extraction-actions />
     
 	</div>
@@ -59,8 +58,8 @@ export default {
 	
 	computed: {
 		
-    saveStandaloneAfter: function() {
-      return _.find( this.store.sticky.extractSettings, { name: 'saveStandaloneAfter' });
+    extraSettings: function() {
+      return _.filter( this.store.sticky.extractSettings, { kind: 'extra' });
     },
 		
 	},

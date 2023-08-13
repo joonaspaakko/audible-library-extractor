@@ -99,7 +99,13 @@ export default createStore({
         {
           name: "saveStandaloneAfter",
           value: false,
-          label: "Start saving the standalone gallery immediately after extraction",
+          label: "Save standalone gallery after extraction",
+          kind: 'extra',
+        },
+        {
+          name: "saveCSVAfter",
+          value: false,
+          label: "Save  CSV spreadsheet after extraction",
           kind: 'extra',
         }
       ],
