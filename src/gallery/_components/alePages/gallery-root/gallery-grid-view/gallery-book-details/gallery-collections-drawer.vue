@@ -148,10 +148,19 @@ export default {
       }
     }
     
+    &.router-link-active {
+      font-weight: 600;
+    }
+     
     &.router-link-active .total-books {
-      @include themify($themes) {
-        color: themed(audibleOrange);
-      }
+      position: relative;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      // @include themify($themes) {
+      //   color: themed(audibleOrange);
+      // }
     }
     // &.router-link-active { 
     //   position: relative; 
@@ -219,13 +228,6 @@ div.hidden-section-label {
 div.hidden-section {
   padding: 20px;
   padding-bottom: 0;
-}
-
-.series-section {
-  margin-top: 15px;
-  &:first-child {
-    margin-top: 0;
-  }
 }
 
 .series-heading {

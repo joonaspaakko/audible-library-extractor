@@ -13,15 +13,15 @@
         
         <a :href="makeUrl(label.toLowerCase(), item)" target="_blank" rel="noopener noreferrer">
           {{ item.name }}
+          
+          <span v-if="item.bookNumbers" class="book-number">
+            (book
+              <span v-for="(number, index) in item.bookNumbers">
+                <span v-if="index !== 0">{{ "," }}</span>
+                <span>{{ number }}</span>
+              </span>)
+          </span>
         </a>
-        
-        <span v-if="item.bookNumbers" class="book-number">
-          (book
-            <span v-for="(number, index) in item.bookNumbers">
-              <span v-if="index !== 0">{{ "," }}</span>
-              <span>{{ number }}</span>
-            </span>)
-        </span>
         
       </span>
     </span>
@@ -71,6 +71,11 @@ export default {
   font-size: 9px;
   line-height: 9px;
   padding: 0 5px;
+}
+
+.book-number {
+  @include themify($themes) { color: rgba(themed(frontColor), .9); };
+  white-space: nowrap;
 }
 
 </style>

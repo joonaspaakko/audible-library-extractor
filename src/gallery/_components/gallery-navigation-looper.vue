@@ -322,7 +322,9 @@ export default {
   border-radius: 9999px;
   margin-left: 10px;
   padding: 0 4px;
-  :deep(div) {
+  :deep(> div),
+  :deep(> div > div),
+  :deep(> div > div > div) {
     display: inline-flex !important;
     justify-content: center;
     align-items: center;

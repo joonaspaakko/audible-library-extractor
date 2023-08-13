@@ -16,6 +16,7 @@
       
       <div
         class="series-section"
+        :class="{ first: seriesIndex === 0 }"
         v-for="(series, seriesIndex) in series.collection"
         :key="series.asin"
       >
@@ -359,11 +360,8 @@ div.hidden-section {
 }
 
 .series-section {
-  margin-top: 1px;
-  // margin-top: 17px;
-  &:first-child {
-    margin-top: 0;
-  }
+  margin-top: 15px;
+  &.first { margin-top: 5px; }
 }
 
 .series-heading {

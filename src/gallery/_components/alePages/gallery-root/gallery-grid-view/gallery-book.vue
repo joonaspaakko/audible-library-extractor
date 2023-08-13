@@ -22,20 +22,20 @@
         <div class="info-icons-wrapper">
           <!-- FAVORITE -->
           <div class="favorite-marker" v-if="book.favorite && sticky.bookDetailSettings.favorite">
-            <span><fa6-solid-heart/></span>
+            <span><fa-solid-heart/></span>
             <span>favorite</span>
           </div>
 
           <!-- BOOK IS FINISHED -->
           <div class="finished-marker" v-if="book.progress === 'Finished' && sticky.bookDetailSettings.finished">
-            <span><mdi-check-bold/></span>
+            <span><ph-check-fat-fill/></span>
             <span>finished</span>
           </div>
 
           <!-- FROM PLUS CATALOG -->
           <div class="plus-catalog-marker" v-if="book.fromPlusCatalog && sticky.bookDetailSettings.plusCatalog">
             <span v-if="book.unavailable"><fa6-solid-unlock-keyhole/></span>
-            <span v-else><fa6-solid-circle-plus/></span>
+            <span v-else><fa-solid-plus-circle/></span>
             <span>catalog</span>
           </div>
           
@@ -182,16 +182,21 @@ export default {
     // left: 1px;
     > div {
       width: auto;
-      padding: 0 6px;
+      padding: 0 6px 0 5px;
       height: 15px;
       line-height: 15px;
+      height: 15px;
       font-size: .7em;
       font-weight: 700;
+      svg {
+        font-size: .87em;
+        line-height: 0;
+      }
       > span {
         // transition-duration: 150ms;
         display: flex;
-        margin-left: 5px;
-        &:first-child { margin-left: 0; }
+        padding-left: 3px;
+        &:first-child { padding-left: 0; }
       }
     }
   }

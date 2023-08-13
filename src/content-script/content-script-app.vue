@@ -137,11 +137,6 @@ export default {
             vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
             function(hotpotato, callback) { 
               
-              if ( !_.find(hotpotato.config.steps, { name: "collections" }) ) {
-                callback(null, hotpotato); 
-                return;
-              }
-              
               vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {
                 
                 // Not extracting wishlist, skipping the check below...

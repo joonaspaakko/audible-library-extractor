@@ -92,6 +92,10 @@ export default {
   text-overflow: ellipsis;
   flex: 1;
 }
+.series-name .linky {
+  white-space: normal;
+  overflow:visible;
+}
 
 .series-not-link {
   @include themify($themes) {

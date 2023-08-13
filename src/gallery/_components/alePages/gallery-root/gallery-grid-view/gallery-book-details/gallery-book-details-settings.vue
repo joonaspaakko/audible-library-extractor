@@ -508,7 +508,7 @@ export default {
 
 .visual-checkbox {
   margin-right: 10px;
-  width: 50px;
+  width: 36px;
   height: 20px;
   border-radius: 999999px;
   display: inline-flex !important;
@@ -531,7 +531,7 @@ export default {
 input:checked ~ .visual-checkbox {
   @include themify($themes) {
     .switch {
-      margin-left: 32px;
+      margin-left: 18px;
       background: themed(audibleOrange);
     }
   }
@@ -546,6 +546,10 @@ input:checked ~ .visual-checkbox {
   // white-space: nowrap;
 }
 .more-info-icon {
+  min-width: 35px;
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
   outline: none;
   cursor: pointer;
   // margin-left: 6px;

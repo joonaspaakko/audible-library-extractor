@@ -1,7 +1,7 @@
 <template>
 <gallery-modal @closeModal="$emit('closeComp')">
   
-  <div class="export-group">
+  <div class="export-group" :class="{ bundling: bundling }">
 
     
     <div class="top-wrapper">
@@ -214,7 +214,7 @@ export default {
     saveButtonClicked: async function () {
       const vue = this;
 
-      // if ( this.bundling || this.$store.state.devMode ) return;
+      if ( this.bundling || this.$store.state.devMode ) return;
       
       try {
         vue.bundling = true;
@@ -819,6 +819,13 @@ export default {
 
 .hide-spacer {
   visibility: hidden;
+}
+
+.bundling .save-gallery {
+  span,
+  button {
+    margin-left: auto !important;
+  }
 }
 
 </style>

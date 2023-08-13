@@ -233,6 +233,13 @@ export default {
     }
   }
   
+  .inline-children {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-start;
+  }
   .inline-children > * { display: inline-block; }
   
   .release-date {

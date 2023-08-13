@@ -411,7 +411,8 @@ body > .notices {
 
     .setting-checkboxes {
       display: block;
-      padding: 20px 6px;
+      // padding: 20px 6px;
+      padding: 15px 6px;
       > div {
         display: inline-block;
 			  padding-left: 11px;

@@ -259,7 +259,10 @@ export default {
         z-index: 0;
         cursor: pointer;
         flex: 1;
-        display: inline-block;
+        display: inline-flex;
+        flex-direction: row;
+        justify-content: center;
+        align-items: center;
         color: #fff !important;
         border: none;
         border-radius: 3px;
