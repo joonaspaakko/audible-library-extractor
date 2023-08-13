@@ -4,6 +4,7 @@
 		:class="{ disabled: setting.disabled }"
 		style="margin: 5px;" 
 		v-tippy="{ allowHTML: true, interactive: true }" :content="setting.cannotAccessTippy"
+		@click="notifier( setting )"
 	>
 		<!-- NUMBER -->
 		<!-- <p class="control pointer">
@@ -182,6 +183,25 @@ export default {
       }).catch( errorNotification );
       
     },
+		
+		notifier( setting ) {
+			if ( setting.disabled ) {
+				if ( setting.label === 'Library' ) {
+					
+					let collections = _.find(this.store.sticky.extractSettings, { value: true, name: 'collections' });
+							collections = _.get(collections, 'label', '');
+					let isbn = _.find(this.store.sticky.extractSettings, { value: true, name: 'isbn' });
+							isbn = _.get(isbn, 'label', '');
+							
+					let stringArray = [ collections, isbn ];
+							stringArray = _.compact(stringArray);
+							stringArray = _.join(stringArray, ' and ');
+					
+					this.$toast.error( `<span>Uncheck <strong>${stringArray}</strong> to disable library.</span>`, this.store.toastOpts );
+					
+				}
+			}
+		},
 		
 	}
 }
