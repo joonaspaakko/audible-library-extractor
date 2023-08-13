@@ -113,7 +113,7 @@ export default {
       const path = _.get(route, 'path');
       return !!path ? { 
         name: _.get(route, 'name') || _.get(route, 'children[0].name'),
-        query: { refresh: true },
+        query: { refresh: this.$route.name === route.name },
       } :
       _.get(route, 'href');
     },
