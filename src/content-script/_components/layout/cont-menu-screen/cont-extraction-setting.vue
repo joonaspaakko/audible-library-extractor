@@ -173,8 +173,8 @@ export default {
             
             if ( onSuccess ) onSuccess( data );
           
+            chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
             vue.$toast.success( successMsg, vue.store.toastOpts );
-            
 						vue.$dataChecker( data );
             
           }).catch( errorNotification );

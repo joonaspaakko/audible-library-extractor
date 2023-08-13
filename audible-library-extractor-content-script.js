@@ -247,6 +247,8 @@ chrome.runtime.onMessage.addListener(message => {
 
 function audibleLibraryExtractor(data) {
   
+  chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
+  
   $('<div>', { id: 'audible-library-extractor'}).prependTo("body");
   
   

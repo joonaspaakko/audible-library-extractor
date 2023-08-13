@@ -38,21 +38,21 @@
         </div>
 
         <div class="field has-addons other-btns">
-          <a
+          <button
             class="button control is-small"
             tag="a"
             href="https://joonaspaakko.gitbook.io/audible-library-extractor/"
             target="_blank"
           >
             Documentation <ri-external-link-line/>
-          </a>
-          <a
+          </button>
+          <button
             class="button control is-small"
             :disabled="!$store.getters.mainDataExists ? true : null"
             @click="takeNextStep('output')"
           >
             Open gallery <ri-external-link-line/>
-          </a>
+          </button>
         </div>
       </div>
     </div>

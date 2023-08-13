@@ -114,6 +114,9 @@ chrome.runtime.onMessage.addListener( async (message, sender) => {
     makeContextMenu();
     
   }
+  else if ( message.action === 'rebuild-context-menu' ) {
+    makeContextMenu();
+  }
 });
 
 // CONTEXT MENU

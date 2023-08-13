@@ -185,6 +185,7 @@ export default {
           chrome.storage.local.clear().then(() => {
             chrome.storage.local.set(data).then(function() {
               
+              chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
 							vue.$toast.success("Data imported succesfully!", vue.store.toastOpts);
               vue.loading = false;
               vue.$dataChecker( data );
@@ -203,6 +204,7 @@ export default {
       let vue = this;
       let confirmation = window.confirm('Are you sure you want to remove all extracted data?');
       if ( confirmation ) {
+        
         let errorNotification = function( e ) {
           vue.loading = false; 
           vue.$toast.error('Data clear failed: ' + e, vue.store.toastOpts);
@@ -212,7 +214,7 @@ export default {
           chrome.storage.local.get(null).then(data => {
             
             vue.$dataChecker(data);
-            
+            chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
             vue.$toast.success('Data removed succesfully', vue.store.toastOpts);
             
           }).catch( errorNotification );
