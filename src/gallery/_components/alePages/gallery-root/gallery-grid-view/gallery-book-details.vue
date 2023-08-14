@@ -5,7 +5,11 @@
     v-if="book"
     v-shortkey.once="['esc']"
     @shortkey="closeBookDetails"
-    :class="{ 'spreadsheet-details': sticky.viewMode === 'spreadsheet', 'mobile-width': mobileWidth }"
+    :class="{ 
+      'spreadsheet-details': sticky.viewMode === 'spreadsheet', 
+      'mobile-width': mobileWidth,
+      'links-lead-to-library': !sticky.detailLinksToAudible,
+    }"
   > 
     
     <div v-if="sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
@@ -28,6 +32,16 @@
       <div v-else class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
         
         <div class="details-toolbar">
+          <div 
+            class="audible-vs-local-links" 
+            @click="detailLinksToAudible()"
+            v-tippy="{ trigger: 'manual' }"
+            :content="sticky.detailLinksToAudible ? 'Links lead to Audible' : 'Links lead to my library'"
+            ref="detailLinksToAudible"
+          >
+            <ion-library-sharp v-if="!sticky.detailLinksToAudible" />
+            <fa6-brands-audible v-else />
+          </div>
           <gallery-details-first-hider v-if="mobileWidth" />
           <gallery-sidebar-flipper />
           <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
@@ -602,6 +616,18 @@ export default {
       }
     },
     
+    detailLinksToAudible() {
+      
+      this.$store.commit('prop', { key: 'sticky.detailLinksToAudible', value: !this.sticky.detailLinksToAudible })
+      
+      const el = _.get( this.$refs, 'detailLinksToAudible' );
+      el._tippy.show();
+      
+      setTimeout(() => {
+        el._tippy.hide();
+      }, 2000);
+      
+    },
   }
 };
 </script>
@@ -617,6 +643,8 @@ export default {
   flex-direction: row;
   gap: 30px;
 }
+
+.audible-vs-local-links, 
 .book-details-info {
   font-size: 18px;
   cursor: pointer;
@@ -984,4 +1012,27 @@ export default {
 .carousel-wrap {
   width: 100%;
 }
+
+.links-lead-to-library {
+  :deep(.book-tags),
+  :deep(.basic-info),
+  :deep(.categories) {
+    a {
+      @include themify($themes) {
+        color: complement(themed(audibleOrange)) !important;
+      }
+    }
+    a:visited {
+      @include themify($themes) {
+        color: complement(darken(desaturate(themed(audibleOrange), 5), 15)) !important;
+      }
+    }
+    a:hover {
+      @include themify($themes) {
+        color: themed(frontColor) !important;
+      }
+    }
+  }
+}
+
 </style>

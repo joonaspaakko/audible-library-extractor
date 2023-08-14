@@ -1,6 +1,6 @@
 <template>
   <div class="book-tags">
-    <a :href="makeUrl('tags', tag)" target="_blank" rel="noopener noreferrer" class="book-tag" v-for="tag in book.tags" :key="tag.name">
+    <a :href="makeUrl('tags', tag, (!$store.state.sticky.detailLinksToAudible ? book.tags : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer" class="book-tag" v-for="tag in book.tags" :key="tag.name">
       {{ tag.name }}
     </a>
   </div>

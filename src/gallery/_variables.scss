@@ -23,6 +23,8 @@ $themes: (
     shadowSmall: $shadowSmall rgba(0,0,0,0.15),
     shadowMedium: $shadowMedium rgba(0,0,0,0.1),
     greenColor: #1faa1f,
+    blueColor: #0c3eb5,
+    redColor: saturate(darken(#f7241c,7), 100),
   ),
   dark: (
 		audibleOrange: $audibleOrange,
@@ -33,6 +35,8 @@ $themes: (
     shadowSmall: $shadowSmall rgba(0,0,0,0.6),
     shadowMedium: $shadowMedium rgba(0,0,0,0.6),
     greenColor: #00ed00,
+    blueColor: #3f78ff,
+    redColor: #f7241c,
   ),
 );
 

@@ -172,7 +172,8 @@ export default {
       
       this.$nextTick(function() {
         
-        const scrollPosition = this.$route.query.y ? parseFloat(this.$route.query.y) : 0;
+        let scrollPosition = this.$route.query.y ? parseFloat(this.$route.query.y) : 0;
+        if ( this.$route.query.scrolltop ) scrollPosition = 0;
         
         // Book query: open book details on load
         if ( this.$route.query.book ) {

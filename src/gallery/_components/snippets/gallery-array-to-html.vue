@@ -11,7 +11,7 @@
           <span v-else>{{ delim || ", " }}</span>
         </span>
         
-        <a :href="makeUrl(label.toLowerCase(), item)" target="_blank" rel="noopener noreferrer">
+        <a :href="makeUrl(label.toLowerCase(), item, (!$store.state.sticky.detailLinksToAudible ? array : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer">
           {{ item.name }}
           
           <span v-if="item.bookNumbers" class="book-number">

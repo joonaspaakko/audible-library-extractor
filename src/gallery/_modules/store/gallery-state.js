@@ -20,6 +20,7 @@ export default {
     bookDetailsCollapsedCover: false,
     bookDetailsCollapsedDetails: false,
     contextMenuReminder: true,
+    detailLinksToAudible: true,
     bookDetailSettings: {
       minHeight: null,
       titleShort: true,

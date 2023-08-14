@@ -17,7 +17,7 @@
         <gallery-book-details-title :book="book" />        
         
         <div class="categories" v-if="book.categories">
-          <gallery-array-to-html v-if="book.categories" label="categories" :noLabel="true" :array="book.categories" :chevron="true"></gallery-array-to-html>
+          <gallery-array-to-html v-if="book.categories" label="categories" :noLabel="true" :array="book.categories" :chevron="true" />
         </div>
         
         <div class="inline-children smoll-text">

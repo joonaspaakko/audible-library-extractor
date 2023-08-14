@@ -157,7 +157,7 @@ export default {
     copyToClipboard() {
       
       navigator.clipboard.writeText( window.location.href );
-      const iconEl = _.get( this.$refs, 'copyToClipboard.$el' ) || _.get( this.$refs, 'copyToClipboard.$el' );
+      const iconEl = _.get( this.$refs, 'copyToClipboard.$el' );
       iconEl._tippy.show();
       setTimeout(() => {
         iconEl._tippy.hide();

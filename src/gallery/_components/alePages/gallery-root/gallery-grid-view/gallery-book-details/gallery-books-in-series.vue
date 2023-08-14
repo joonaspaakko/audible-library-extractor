@@ -133,7 +133,7 @@ export default {
               books: _.map( booksSource , function( book ) {
                 let asin = book.asin || book;
                 let inLibrary = _.includes( allBooksInSeries.books, asin );
-                const wishlistBook = vue.$store.state.library.wishlist?.find(b => b.asin === asin);
+                const wishlistBook = _.find(vue.$store.state.library.wishlist, { asin: asin });
                 if ( inLibrary ) {
                   let libBook = _.find(vue.$store.state.library.books, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });

@@ -274,6 +274,7 @@ body {
     text-decoration: none;
     @include themify($themes) {
       color: themed(audibleOrange);
+      // transition: color 300ms ease;
     }
   }
   a:visited {
