@@ -212,7 +212,7 @@ export default {
               
               let inLibrary;
               const asinEl = row.querySelector("div[data-asin]");
-              let titleShort = DOMPurify.sanitize(row.getAttribute('aria-label'));
+              let titleShort = DOMPurify.sanitize(row.getAttribute('aria-label').decodeHTMLEntities());
               
               let title;
               let subtitle = row.querySelector('.subtitle');

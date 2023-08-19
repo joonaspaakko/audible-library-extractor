@@ -27,6 +27,9 @@ String.prototype.trimToColon = function() {
     return null;
   }
 };
+String.prototype.decodeHTMLEntities = function() {
+  return $("<textarea/>").html(this).text();
+};
 
 window.each = function( array, callback ) {
   if ( !array ) return null;
