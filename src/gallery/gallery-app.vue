@@ -60,8 +60,6 @@ export default {
       document.querySelector('body').classList.add('is-mobile');
     }
     
-    this.$compEmitter.on('refresh-page', this.refreshPage);
-    
     this.$store.commit('prop', { key: 'siteOnline', value: navigator.onLine });
     window.addEventListener('offline', function() {
       vue.$store.commit('prop', { key: 'siteOnline', value: false });
@@ -79,29 +77,8 @@ export default {
     this.showTheBackgroundGrid();
     
   },
-  
-  beforeUnmount: function() {
-    
-    this.$compEmitter.off('refresh-page', this.refreshPage);
-
-  },
 
   methods: {
-    
-    refreshPage: function( callback ) {
-      
-      if ( this.$store.state.showRoute ) this.$store.commit('prop', { key: 'showRoute', value: false });
-      
-      this.$nextTick(function() {
-        setTimeout(() => {
-          this.$store.commit('prop', { key: 'showRoute', value: true });
-          this.$nextTick(function() {
-            if ( typeof callback === 'function' ) callback( this );
-          });
-        }, 10);
-      });
-      
-    },
     
     checkIf_iOS: function() {
       return [
@@ -194,9 +171,6 @@ export default {
         
       });
       
-    },
-    "$store.state.showRoute"( value ) {
-      if ( !value ) this.refreshPage();
     },
     "$store.state.preventScrolling"( value ) {
       document.body.classList[ value ? 'add' : 'remove' ]('prevent-scrolling');

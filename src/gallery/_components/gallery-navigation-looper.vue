@@ -113,7 +113,7 @@ export default {
       const path = _.get(route, 'path');
       return !!path ? { 
         name: _.get(route, 'name') || _.get(route, 'children[0].name'),
-        query: { refresh: this.$route.name === route.name },
+        query: { refresh: true },
       } :
       _.get(route, 'href');
     },
@@ -147,10 +147,6 @@ export default {
       else {
         this.$emit('closeMenu');
       }
-      
-      // let name = _.get(route, 'children[0].name') || route.name || '';
-      //     name = name.toLowerCase();
-      // if ( this.$route.name === name && !!name ) this.$compEmitter.emit('refresh-page');
       
     },
     

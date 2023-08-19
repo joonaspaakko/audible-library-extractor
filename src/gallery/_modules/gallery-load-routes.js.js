@@ -134,13 +134,14 @@ export default function( libraryData, store ) {
       
       router.beforeEach((to, from, next) => {
         
-        if ( 
-          to.name && (
-            from.name !== to.name || 
-            _.get(from, 'query.book') !== _.get(to, 'query.book') || 
-            from.query.subPageSource !== to.query.subPageSource 
-          )
-        ) {
+        beforeEach( to, from, next );
+        
+        const routeChanged = from.name !== to.name;
+        const bookChanged = _.get(from, 'query.book') !== _.get(to, 'query.book');
+        const subPageSourceChanged = from.query.subPageSource !== to.query.subPageSource;
+        
+        if ( to.name && ( routeChanged || bookChanged || subPageSourceChanged ) ) {
+          
           
           const loaderArray = [];
           const openingWishlist = to.name === 'wishlist' || 
@@ -169,6 +170,7 @@ export default function( libraryData, store ) {
     else {
       
       router.beforeEach((to, from, next) => {
+        beforeEach( to, from, next );
         viewRefreshClean( to, from, next );
       });
       
@@ -176,6 +178,8 @@ export default function( libraryData, store ) {
     
     router.afterEach((to, from, next) => {
       if ( from.name !== to.name ) {
+        
+        afterEach();
         
         const navForward = store.state.navHistory.forward;
         const navBack = store.state.navHistory.back;
@@ -200,13 +204,23 @@ export default function( libraryData, store ) {
 function viewRefreshClean( to, from, next ) {
   if ( to.query.refresh ) { 
     delete to.query.refresh;
-    store.commit('prop', [
-      { key: 'showRoute', value: false },
-      { key: 'refreshViewTimeStamp', value: new Date().getTime() },
-    ]);
     next(to);
   }
   else {
     next();
   }
+}
+
+function beforeEach( to, from, next ) {
+  if ( to.query.refresh ) { 
+    store.commit('prop', [
+      { key: 'showRoute', value: false },
+      { key: 'refreshViewTimeStamp', value: new Date().getTime() },
+    ]);
+  }
+}
+function afterEach() {
+  store.commit('prop', [
+    { key: 'showRoute', value: true },
+  ]);
 }

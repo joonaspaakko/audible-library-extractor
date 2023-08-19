@@ -160,8 +160,12 @@ export default {
       
       // This is mostly in place because I didn't make certain things work in a reactive way
       // When you back or forward navigate to the same route (by name) this refreshes the view
-      if ( !this.$store.state.bookClicked ) this.$updateQueries({ refresh: true });
-      else this.$store.commit('prop', { key: 'bookClicked', value: false });
+      if ( !this.$store.state.bookClicked ) {
+        this.$updateQueries({ refresh: true });
+      }
+      else {
+        this.$store.commit('prop', { key: 'bookClicked', value: false });
+      }
       
     },
   },
@@ -254,8 +258,7 @@ export default {
     
     expandView: function() {
       
-      this.$updateQueries({ book: null }, { history: true });
-      this.$compEmitter.emit('refresh-page');
+      // this.$updateQueries({ book: null }, { history: true });
       
     },
     
