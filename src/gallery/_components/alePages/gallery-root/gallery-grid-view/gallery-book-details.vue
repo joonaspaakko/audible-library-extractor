@@ -8,7 +8,7 @@
     :class="{ 
       'spreadsheet-details': sticky.viewMode === 'spreadsheet', 
       'mobile-width': mobileWidth,
-      'links-lead-to-library': !sticky.detailLinksToAudible,
+      'links-lead-to-library': !sticky.detailLinksToAudible && animate_detailLinksToAudible,
     }"
   > 
     
@@ -167,7 +167,21 @@ export default {
       clientY: 0,
       firstClientX: 0,
       firstClientY: 0,
+      animate_detailLinksToAudible: true,
     };
+  },
+  
+  watch: {
+    // 'sticky.detailLinksToAudible'( value ) {
+    //   if ( !value ) {
+        
+    //     this.animate_detailLinksToAudible = true;
+    //     setTimeout(() => {
+    //       this.animate_detailLinksToAudible = false;
+    //     }, 3000);
+        
+    //   }
+    // },
   },
 
   created: function() {
@@ -635,6 +649,7 @@ export default {
 <style lang="scss" scoped>
 
 .details-toolbar {
+  @extend .no-selection;
   position: absolute;
   z-index: 2;
   top: -30px;

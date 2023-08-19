@@ -181,20 +181,41 @@ export default {
 }
 
 .sample-covers-square {
-  @include themify($themes) { border: 1px solid rgba( themed(frontColor), .1); }
+  @include themify($themes) { 
+    border: 1px solid rgba( themed(frontColor), .1); 
+    background: rgba( themed(backColor), .5);
+  }
   border-radius: 11px;
   overflow: hidden;
   width: 80px;
   height: 80px;
+  min-width: 80px;
+  min-height: 80px;
   display: inline-block;
+  position: relative;
   .sample-cover {
     float: left;
     width: 50%;
     height: 50%;
+    padding: 3px;
+    box-sizing: border-box;
     img {
       display: block;
       width: 100%;
       height: 100%;
+      border-radius: 6px;
+      overflow: hidden;
+      &:hover {
+        position: absolute;
+        top   : 0px;
+        right : 0px;
+        bottom: 0px;
+        left  : 0px;
+        padding: 2px;
+        box-sizing: border-box;
+        border-radius: 11px;
+        overflow: hidden;
+      }
     }
   }
 }

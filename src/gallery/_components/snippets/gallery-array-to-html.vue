@@ -2,14 +2,14 @@
   <div class="array-list-wrapper" :class="identifierClass" v-if="inputDataExists">
     <strong class="strong-label" v-if="!noLabel">{{ label }}:</strong>
     <span clas="array-item" v-for="(item, index) in array" :key="item.name + '(' + index + ')'">
+      <span v-if="index !== 0">
+        <span v-if="chevron" class="chevron">
+          <fa-solid-chevron-right/>
+        </span>
+        <span v-else>{{ delim || ", " }}</span>
+      </span>
       <span>
         
-        <span v-if="index !== 0">
-          <span v-if="chevron" class="chevron">
-            <fa-solid-chevron-right/>
-          </span>
-          <span v-else>{{ delim || ", " }}</span>
-        </span>
         
         <a :href="makeUrl(label.toLowerCase(), item, (!$store.state.sticky.detailLinksToAudible ? array : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer">
           {{ item.name }}
@@ -70,7 +70,8 @@ export default {
   @include themify($themes) { color: rgba(themed(frontColor), .7); };
   font-size: 9px;
   line-height: 9px;
-  padding: 0 5px;
+  padding: 1px 4px 0 1px;
+  display: inline-block;
 }
 
 .book-number {
