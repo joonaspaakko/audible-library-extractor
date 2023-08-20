@@ -522,9 +522,9 @@ div.not-in-library {
     display: flex;
     div {
       background: rgba(#000, .55);
-      width: 50%;
-      height: 50%;
-      font-size: 140%;
+      width: 25%;
+      height: 25%;
+      font-size: 120%;
     }
   }
 }

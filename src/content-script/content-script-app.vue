@@ -267,8 +267,17 @@ export default {
                   const newAddition = _.pick(book, [ 'titleShort', 'title', 'cover', 'bookNumbers', 'asin' ]);
                   newAddition.bookNumbers = series.bookNumbers.join(', ');
                   const firstNumber = _.first(series.bookNumbers);
-                  const targetIndex = _.findLastIndex(foundSeries.allBooks, { bookNumbers: firstNumber });
-                  foundSeries.allBooks.splice(targetIndex+1, 0, newAddition);
+                  const targetIndex = _.findLastIndex(foundSeries.allBooks, ( book ) => {
+                    return book.bookNumbers == firstNumber || book.bookNumbers == newAddition.bookNumbers;
+                  });
+                  
+                  // Found a book with the same number
+                  if ( targetIndex > -1 ) {
+                    foundSeries.allBooks.splice(targetIndex+1, 0, newAddition);
+                  }
+                  else {
+                    foundSeries.allBooks.push(newAddition);
+                  }
                 }
               });
             }
