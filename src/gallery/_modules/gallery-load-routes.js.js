@@ -177,9 +177,10 @@ export default function( libraryData, store ) {
     }
     
     router.afterEach((to, from, next) => {
+      
+      afterEach();
+      
       if ( from.name !== to.name ) {
-        
-        afterEach();
         
         const navForward = store.state.navHistory.forward;
         const navBack = store.state.navHistory.back;
