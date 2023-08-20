@@ -15,9 +15,12 @@ export default {
     makeUrl: function(type, input, array) {
       const store = this.$store.state;
       const base = this.$store.state.urlOrigin;
-      let newUrl = "";
       
+      let newUrl = "";
       if ( array && !store.sticky.detailLinksToAudible ) {
+        const inSubPage = _.get(this.$route, 'meta.subPage');
+        const routeSubPage = this.$route.name === 'wishlist' ? 'wishlist' : 'library';
+        const subPageSource = inSubPage ? this.$store.state.sticky.subPageSource : routeSubPage;
         switch (type) {
           case "store":
           case "book":
@@ -32,10 +35,11 @@ export default {
             newUrl = this.$router.resolve({ 
               name: 'author', 
               params: { 
-                author: input.url
+                author: input.url || this.slugify(input.name)
               }, 
               query: { 
-                // subPageSource: subPageSource.name 
+                subPageSource,
+                refresh: true,
               } 
             });
             break;
@@ -46,7 +50,8 @@ export default {
                 narrator: this.slugify(input.name)
               }, 
               query: { 
-                // subPageSource: subPageSource.name 
+                subPageSource,
+                refresh: true,
               } 
             });
             break;
@@ -57,7 +62,8 @@ export default {
                 series: input.asin
               }, 
               query: { 
-                // subPageSource: subPageSource.name 
+                subPageSource,
+                refresh: true,
               } 
             });
             break;
@@ -68,16 +74,17 @@ export default {
                 publisher: this.slugify(input.name)
               }, 
               query: { 
-                // subPageSource: subPageSource.name 
+                subPageSource,
+                refresh: true,
               } 
             });
             break;
           case "tags":
             newUrl = this.$router.resolve({ 
-              name: 'library', 
+              name: subPageSource, 
               query: { 
                 filterExtras: `tags:${input.name}`,
-                // subPageSource: this.subPageSource.name,
+                refresh: true,
               } 
             });
             break;
@@ -104,7 +111,8 @@ export default {
                 child:  cat.child ? this.slugify(cat.child) : undefined, 
               }, 
               query: { 
-                // subPageSource: this.subPageSource.name,
+                subPageSource,
+                refresh: true,
               } 
             });
             break;
@@ -117,7 +125,7 @@ export default {
             newUrl = base + "/pd/" + encodeURIComponent(input);
             break;
           case "author":
-            if (input.url) newUrl = base + "/author/" + input.url;
+            if (input.url) newUrl = base + "/author/" + (input.url || this.slugify(input.name));
             else newUrl = base + "/search?searchAuthor=" + encodeURIComponent(input.name);
             break;
           case "narrator":

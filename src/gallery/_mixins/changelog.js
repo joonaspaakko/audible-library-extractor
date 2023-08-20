@@ -15,11 +15,19 @@ export default {
           highlights: `Full extraction recommended.`,
           changes: [
             {
+              description: `Gallery book details: at the top right (above the book title) for switching between links leading to audible or the library`,
+              class: 'improved',
+            },
+            {
+              description: `Better series merging for discontinued books.`,
+              class: 'improved',
+            },
+            {
               description: `Gallery: mobile usage has some minor improvements here and there; the mobile menu is a bit cleaner, you can copy a link to the current page in even if it's saved to your phone's home screen, which is when there's no addressbar or anything to copy it normally.`,
               class: 'improved',
             },
             {
-              description: `Wallpaper creator: a new tierlist mode.`,
+              description: `Wallpaper creator: a new "tier list" mode and a clearer preset selector that shows up every time it's opened.`,
               class: 'added',
             },
             {
