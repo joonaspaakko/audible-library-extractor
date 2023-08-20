@@ -256,6 +256,23 @@ export default {
               if ( bookInArchive ) book.archived = true;
             }
             
+            // Adding books that are no longer sold into series.
+            if ( key === 'books' ) {              
+              _.each( book.series, ( series ) => {
+                const foundSeries = _.find(hotpotato.series, { asin: series.asin});
+                const detachedFromSeries = !_.includes(foundSeries.books, book.asin);
+                if ( detachedFromSeries ) {
+                  foundSeries.detachedBooks = true;
+                  foundSeries.books.push( book.asin );
+                  const newAddition = _.pick(book, [ 'titleShort', 'title', 'cover', 'bookNumbers', 'asin' ]);
+                  newAddition.bookNumbers = series.bookNumbers.join(', ');
+                  const firstNumber = _.first(series.bookNumbers);
+                  const targetIndex = _.findLastIndex(foundSeries.allBooks, { bookNumbers: firstNumber });
+                  foundSeries.allBooks.splice(targetIndex+1, 0, newAddition);
+                }
+              });
+            }
+            
           });
         }
         
