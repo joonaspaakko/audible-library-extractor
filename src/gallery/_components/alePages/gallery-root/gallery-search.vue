@@ -109,15 +109,14 @@ export default {
   mounted: function() {
     
     if ( this.$route.query.search ) {
-      const searchQuery = decodeURIComponent(this.$route.query.search);
+      let searchQuery = _.trim(decodeURIComponent(this.$route.query.search));
       this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
     }
     
     this.$store.commit('prop', { key: 'collectionSource', value: this.collectionSource });
     
-    const ifUrlParams = this.$route.query.sort || this.$route.query.filter || this.$route.query.filterExtras;
-    // let collection = _.get(this.$store.state, this.collectionSource);
     let collection = this.$store.getters.collectionSource;
+    const ifUrlParams = this.$route.query.sort || this.$route.query.filter || this.$route.query.filterExtras;
     if ( ifUrlParams ) {
       if ( this.$route.query.filter || this.$route.query.filterExtras ) collection = this.filterBooks( collection );
       if ( this.$route.query.sort   ) collection = this.sortBooks( collection );
@@ -130,7 +129,7 @@ export default {
     
     if ( this.$route.query.search ) {
       if ( this.$route.query.sort ) this.fuseOptions.shouldSort = false;
-      this.search( this.$event, 'on-load');
+      this.search( null, 'on-load');
     }
     
     this.$refs.aleSearch.addEventListener( "touchstart", this.iosAutozoomDisable, { passive: true });
@@ -178,7 +177,7 @@ export default {
       this.$nextTick(() => {
         // No need to shuffle anything when there's no active search
         if ( this.$store.getters.searchIsActive ) {
-          this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
+          this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks(this.$store.getters.collectionSource) ) });
           if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
           this.search();
         } 
@@ -188,7 +187,7 @@ export default {
     filter: function() {
       this.$nextTick(() => {
         
-        this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks( _.get(this.$store.state, this.collectionSource) ) ) });
+        this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks(this.$store.getters.collectionSource) ) });
         
         if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
         if ( this.$store.getters.searchIsActive ) {
@@ -219,8 +218,9 @@ export default {
       if ( triggeredByEvent ) {
         
         this.fuseOptions.shouldSort = true;
-        this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
+        this.$store.commit("prop", { key: "searchQuery", value: _.trim(e.target.value) });
         newQueries.search = encodeURIComponent(e.target.value);
+        if ( !newQueries.search ) newQueries.search = null;
         
         if ( e.target.value.trim() !== "" ) {
           if ( this.$route.query.sort ) {
@@ -234,7 +234,6 @@ export default {
             newQueries.sortDir = activeSorter.active ? "desc" : "asc";
         }
         
-        
       }
       
       this.$updateQueries( newQueries );
@@ -246,7 +245,7 @@ export default {
         this.fuseOptions.keys = this.aliciaKeys;
         
         let vue = this;
-          
+        
         vue.fuse = new Fuse( vue.$store.state.mutatingCollection, vue.fuseOptions );
         let result = vue.fuse.search(query);
         

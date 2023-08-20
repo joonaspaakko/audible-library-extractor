@@ -34,16 +34,15 @@ export default {
   },
   collectionSource: function( state, getters ) {
     const libary = state.collectionSource === 'library.books';
-    return state.searchQuery.trim() !== "" ? state.searchCollection : libary ? getters.regularBooks : _.get(state, state.collectionSource);
+    return libary ? getters.regularBooks : _.get(state, state.collectionSource);
+    // return getters.searchIsActive ? state.searchCollection : libary ? getters.regularBooks : _.get(state, state.collectionSource);
   },
   collectionTotal: function( state, getters ) {
     const libary = state.collectionSource === 'library.books';
     return libary ? getters.regularBooks.length : _.get(state, state.collectionSource, []).length;
   },
-  collection: function( state ) {
-    
-    const searchIsActive = state.searchQuery.trim() !== "";
-    if ( searchIsActive ) {
+  collection: function( state, getters ) {
+    if ( getters.searchIsActive ) {
       return state.searchCollection;
     }
     else {

@@ -7,7 +7,12 @@
         <li class="reset-filters" @click="resetFilters" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
           <fa-solid-redo-alt/>
         </li>
-        <li class="total"><span :class="{ difference: $store.getters.collection.length !== $store.getters.collectionTotal }">{{ $store.getters.collection.length }}</span> / {{ $store.getters.collectionTotal }}</li>
+        <li class="total">
+          <span :class="{ difference: $store.getters.collection.length !== $store.getters.collectionTotal }">
+            {{ $store.getters.collection.length }}
+          </span>
+           / {{ $store.getters.collectionTotal }}
+        </li>
         <li 
           class="search-option" 
           v-for="(item, index) in mainfilters" :key="item.key"

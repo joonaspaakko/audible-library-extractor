@@ -1035,16 +1035,28 @@ export default {
     a {
       @include themify($themes) {
         color: complement(themed(audibleOrange)) !important;
+        // &:before {
+        //   content: '\02022';
+        //   padding: 0 .1em 0 0;
+        //   color: complement(themed(audibleOrange)) !important;
+        //   font-size: 1.9em;
+        //   line-height: 0px;
+        //   position: relative;
+        //   top: .2em;
+        // }
       }
     }
     a:visited {
       @include themify($themes) {
         color: complement(darken(desaturate(themed(audibleOrange), 5), 15)) !important;
+        // &:before {
+        //   color: complement(darken(desaturate(themed(audibleOrange), 5), 15)) !important;
+        // }
       }
     }
     a:hover {
       @include themify($themes) {
-        color: themed(frontColor) !important;
+        // color: themed(frontColor) !important;
       }
     }
   }
