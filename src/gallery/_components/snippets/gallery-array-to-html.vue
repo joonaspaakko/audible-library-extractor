@@ -9,20 +9,9 @@
         <span v-else>{{ delim || ", " }}</span>
       </span>
       <span>
-        
-        
         <a :href="makeUrl(label.toLowerCase(), item, (!$store.state.sticky.detailLinksToAudible ? array : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer">
-          {{ item.name }}
-          
-          <span v-if="item.bookNumbers" class="book-number">
-            (book
-              <span v-for="(number, index) in item.bookNumbers">
-                <span v-if="index !== 0">{{ "," }}</span>
-                <span>{{ number }}</span>
-              </span>)
-          </span>
+          {{ item.name }}<span v-if="item.bookNumbers" class="book-number"> (book {{ stringifyBookNumbers(item.bookNumbers) }})</span>
         </a>
-        
       </span>
     </span>
   </div>
@@ -54,6 +43,9 @@ export default {
     checkIfArrayHasData: function() {
       return this.array && !_.isEmpty( this.array );
     },
+    stringifyBookNumbers( numbers ) {
+      return _.join(numbers, ',');
+    },
   }
 };
 </script>
@@ -70,7 +62,10 @@ export default {
   @include themify($themes) { color: rgba(themed(frontColor), .7); };
   font-size: 9px;
   line-height: 9px;
-  padding: 1px 4px 0 1px;
+  padding: 0px 4px 0 4px;
+  display: inline-block;
+  position: relative;
+  top: 1px;
   display: inline-block;
 }
 
