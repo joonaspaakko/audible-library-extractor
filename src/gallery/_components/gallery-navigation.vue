@@ -151,7 +151,7 @@ export default {
           icon: 'fa-solid fa-chevron-down',
         },
         tag: 'div',
-        childItems: routeGroup,
+        childItems: _.orderBy(routeGroup, 'meta.order', 'asc'),
       };
       
       const groupName = routeGroup[0].meta.nestedGroup;

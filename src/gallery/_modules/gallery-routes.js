@@ -53,6 +53,7 @@ export default {
       meta: {
         icon: 'fa-solid fa-indent',
         nestedGroup: 'subPages',
+        order: 0,
       },
       component: aleLibraryView,
       children: [
@@ -66,6 +67,7 @@ export default {
       meta: {
         icon: 'fa-solid fa-list-ol',
         nestedGroup: 'subPages',
+        order: 1,
       },
       children: [
         { name: "all-series", path: "", component: aleSeries, meta: { subPage: true, title: 'Series' } },
@@ -78,6 +80,7 @@ export default {
       meta: { 
         icon: 'fa-solid fa-user-group',
         nestedGroup: 'subPages',
+        order: 2,
       },
       children: [
         { name: "authors", path: "", component: aleAuthors, meta: { subPage: true, title: 'Authors' } },
@@ -90,6 +93,7 @@ export default {
       meta: {
         icon: 'fa-solid fa-users',
         nestedGroup: 'subPages',
+        order: 3,
       },
       children: [
         { name: "narrators", path: "", component: aleNarrators, meta: { subPage: true, title: 'Narrators' } },
@@ -102,6 +106,7 @@ export default {
       meta: {
         icon: 'fa-solid fa-book',
         nestedGroup: 'subPages',
+        order: 4,
       },
       children: [
         { name: "publishers", path: "", component: alePublishers, meta: { subPage: true, title: 'Publishers' } },
