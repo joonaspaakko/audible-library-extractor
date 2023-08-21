@@ -18,7 +18,8 @@ export default {
         if ( books.length > 0 ) {
           const publisher = _.find(books[0].publishers, function( publisher ) { return vue.slugify(publisher.name) === publisherSlug;  });
           if ( publisher ) {
-            this.pageTitle = publisher.name;
+            // this.pageTitle = publisher.name;
+            if ( publisher.name ) this.$store.commit('prop', { key: 'pageTitle', value: publisher.name });
           }
         }
         

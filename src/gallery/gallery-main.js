@@ -48,7 +48,6 @@ import helpers from "@contscript-mixins/misc/content-script-helpers.js";
 // APP PREP
 // For testing side loading JSON
 var sideLoadJSON = false;
-// import sideLoadJSON from './test-data.json';
 // import sideLoadJSON from './test-data-2.json';
 if ( sideLoadJSON ) {
   startVue( sideLoadJSON );

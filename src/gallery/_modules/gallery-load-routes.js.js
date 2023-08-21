@@ -50,7 +50,7 @@ export default function( libraryData, store ) {
     }
     
     // PODCASTS
-    if ( libraryData.podcasts || store.getters.podcasts ) {
+    if ( libraryData.podcasts || store.getters.podcasts.length ) {
       routes.push( allRoutes.podcasts );
     }
     
