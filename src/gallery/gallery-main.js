@@ -116,6 +116,7 @@ function startVue( libraryData ) {
   }
   
   vuexPrep( libraryData );
+  
   let router = loadRoutes( standaloneRouteData || libraryData, store );
   
   app.use( router );

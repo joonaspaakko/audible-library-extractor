@@ -210,6 +210,9 @@ export default {
 
 .menu-item-inner {
   padding: 10px 12px;
+  @media ( max-width: 670px ) {
+    padding: 10px 8px;
+  }
 }
 
 .mobileMenu .menu-item-inner {
@@ -286,6 +289,11 @@ export default {
 .extension-tools {
   margin-left: 10px;
   padding: 6px 0;
+  @media ( max-width: 750px ) {
+    .menu-item-text {
+      display: none;
+    }
+  }
 }
 
 .extension-tools > .menu-item-inner {
