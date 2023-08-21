@@ -12,10 +12,10 @@
     >
       
       <div id="search-dropdown-overlay" v-show="listName"
-      @mousedown="readyToCloseOpts = true" 
-      @touchstart="readyToCloseOpts = true" 
-      @touchmove="dontCloseOpts"
-      @click="closeOpts"
+        @mousedown="readyToCloseOpts = true" 
+        @touchstart="readyToCloseOpts = true" 
+        @touchmove="dontCloseOpts"
+        @click="closeOpts"
       ></div>
       
       <div id="ale-search" ref="aleSearch">
@@ -109,7 +109,7 @@ export default {
   mounted: function() {
     
     if ( this.$route.query.search ) {
-      let searchQuery = _.trim(decodeURIComponent(this.$route.query.search));
+      let searchQuery = decodeURIComponent(this.$route.query.search);
       this.$store.commit("prop", { key: "searchQuery", value: searchQuery });
     }
     
@@ -218,7 +218,7 @@ export default {
       if ( triggeredByEvent ) {
         
         this.fuseOptions.shouldSort = true;
-        this.$store.commit("prop", { key: "searchQuery", value: _.trim(e.target.value) });
+        this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
         newQueries.search = encodeURIComponent(e.target.value);
         if ( !newQueries.search ) newQueries.search = null;
         
@@ -322,7 +322,7 @@ export default {
     searchAutocompleteResult: function( book ) {
       
       const searchQuery = book.match.value;
-      this.$store.commit('prop', { key: 'searchQuery', value: `"${searchQuery}"` });
+      this.$store.commit('prop', { key: "searchQuery", value: searchQuery });
       this.search();
       
     },
