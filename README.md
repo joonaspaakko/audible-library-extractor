@@ -3,13 +3,13 @@
 [![](https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20version)](https://github.com/joonaspaakko/audible-library-extractor/releases/latest)
 [![](https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug?label=known%20bugs)](https://github.com/joonaspaakko/audible-library-extractor/labels/bug)
 
-> Supported browsers: Chrome, ~~Firefox~~_(not past v.0.2.8)_, Edge
+> Supported browsers: Chrome, Edge (and other Chromium based browsers), ~~Firefox~~ (not past v.0.2.8)
 
 **Automatically generates a searchable gallery** from your Audible **library**. Additionally, you can extract **collections** and **wishlist**too. If you upload the gallery online, you can share it with others or you can use the gallery to find your next listen on mobile and  [easily open the book in Audible’s mobile app](applewebdata://130BB437-11BF-4F93-9793-DF8D1A3A9464/@joonaspaakko/s/audible-library-extractor/~/drafts/-M_UXBJG3cmCydpyKhOe/gallery/next-listen-mobile-use#open-book-in-audibles-mobile-app) .
 You can check my Audible library [here](https://joonaspaakko.github.io/my-audible-library/).
 
 ## Install
-- ~~Firefox - [https://addons.mozilla.org/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/firefox/addon/audible-library-extractor/)~~ _(not past v.0.2.9)_
+- ~~Firefox - [https://addons.mozilla.org/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/firefox/addon/audible-library-extractor/)~~ (not past v.0.2.8)
 - Chrome - [https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall](https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall)
     - This version can also be installed in the Chromium based Edge and other Chromium based browsers.
 
