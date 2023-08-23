@@ -3,13 +3,13 @@
 [![](https://img.shields.io/github/release-date/joonaspaakko/audible-library-extractor?label=latest%20version)](https://github.com/joonaspaakko/audible-library-extractor/releases/latest)
 [![](https://img.shields.io/github/issues/joonaspaakko/audible-library-extractor/bug?label=known%20bugs)](https://github.com/joonaspaakko/audible-library-extractor/labels/bug)
 
-> Supported browsers: Chrome, Firefox, Edge
+> Supported browsers: Chrome, ~~Firefox~~_(not past v.0.2.8)_, Edge
 
 **Automatically generates a searchable gallery** from your Audible **library**. Additionally, you can extract **collections** and **wishlist**too. If you upload the gallery online, you can share it with others or you can use the gallery to find your next listen on mobile and  [easily open the book in Audible’s mobile app](applewebdata://130BB437-11BF-4F93-9793-DF8D1A3A9464/@joonaspaakko/s/audible-library-extractor/~/drafts/-M_UXBJG3cmCydpyKhOe/gallery/next-listen-mobile-use#open-book-in-audibles-mobile-app) .
 You can check my Audible library [here](https://joonaspaakko.github.io/my-audible-library/).
 
 ## Install
-- Firefox - [https://addons.mozilla.org/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/firefox/addon/audible-library-extractor/)
+- ~~Firefox - [https://addons.mozilla.org/firefox/addon/audible-library-extractor/](https://addons.mozilla.org/firefox/addon/audible-library-extractor/)~~ _(not past v.0.2.9)_
 - Chrome - [https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall](https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall)
     - This version can also be installed in the Chromium based Edge and other Chromium based browsers.
 
@@ -32,13 +32,10 @@ Here you will find general usage information as well as instructions for sharing
 ## How to use the extension <!-- omit in toc -->
 
 1. Go to your Audible library, 
-2. Click the `Audible Library Extractor` link or the extension icon.
-	- If you can't find the link, check this [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-5.png?raw=true).
+2. Click the `Audible Library Extractor` button below the search input or the extension icon.
 3. In the next view you can choose what to extract and start the extraction process by clicking the big blue button: [screenshot](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-4.png?raw=true) 
-4. The extraction will take a few minutes. It depends on the size of your library and any of the other things you choose to extract.
-5. After the extraction is done the current tab is closed and a new output page for the gallery is opened.
-	- You can choose to save the gallery as a standalone web gallery using the [floppy disk button at the top right corner ](https://github.com/joonaspaakko/audible-library-extractor/blob/master/screenshots/audible-library-extractor-screenshot-2.png?raw=true) 💾. It’ll save a zip file that you can unpack to find an `index.html` file inside. This file can be opened in the browser without a need to have the extension installed or enabled.
-
+    - The extraction will take a few minutes. It depends on the size of your library and any of the other things you choose to extract.
+    - After the extraction is done the current tab is closed and a new output page for the gallery is opened.
 
 <br/><br/>
 
