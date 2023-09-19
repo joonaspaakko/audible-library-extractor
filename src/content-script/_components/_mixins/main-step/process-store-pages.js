@@ -144,7 +144,7 @@ export default {
         const subtitle = audible.querySelector('.subtitle');
         if ( subtitle ) book.subtitle = DOMPurify.sanitize( subtitle.textContent.trimAll() );
         const ratingsLink = audible.querySelector(".ratingsLabel > a");
-        if ( ratingsLink ) book.ratings = parseFloat( DOMPurify.sanitize(ratingsLink.textContent.match(/\d/g).join("")) );
+        if ( ratingsLink ) book.ratings = parseFloat( _.join(DOMPurify.sanitize(ratingsLink.textContent.match(/\d/g)), '') );
         const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
         if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
         book.summary = DOMPurify.sanitize(bookData.description) || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6" ) );

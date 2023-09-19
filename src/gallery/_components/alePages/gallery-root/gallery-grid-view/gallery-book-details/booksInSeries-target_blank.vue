@@ -148,7 +148,7 @@ export default {
     
     getBookNumber: function(book, seriesAsin) {
       const numbers = _.find(book.series, { asin: seriesAsin }).bookNumbers;
-      return numbers ? numbers.join(",") : "";
+      return numbers ? numbers.join(", ") : "";
     },
 
     getBooksInSeries: function() {

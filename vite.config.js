@@ -93,6 +93,7 @@ export default defineConfig({
     commonjsOptions: {
        esmExternals: true,
     }, 
+    // sourcemap: 'inline',
   },
   optimizeDeps: {
     include: [

@@ -265,7 +265,7 @@ export default {
                   foundSeries.detachedBooks = true;
                   foundSeries.books.push( book.asin );
                   const newAddition = _.pick(book, [ 'titleShort', 'title', 'cover', 'bookNumbers', 'asin' ]);
-                  newAddition.bookNumbers = series.bookNumbers.join(', ');
+                  newAddition.bookNumbers = _.isArray(series.bookNumbers) ? series.bookNumbers.join(', ') : series.bookNumbers;
                   const firstNumber = _.first(series.bookNumbers);
                   const targetIndex = _.findLastIndex(foundSeries.allBooks, ( book ) => {
                     return book.bookNumbers == firstNumber || book.bookNumbers == newAddition.bookNumbers;

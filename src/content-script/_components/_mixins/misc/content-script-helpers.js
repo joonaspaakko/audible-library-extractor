@@ -13,6 +13,8 @@ export default {
     },
 
     getSummary: function(el) {
+      if ( !el ) return "";
+      
       el.removeAttribute("class");
       var children = el.querySelectorAll("*");
       $.each(children, function() {

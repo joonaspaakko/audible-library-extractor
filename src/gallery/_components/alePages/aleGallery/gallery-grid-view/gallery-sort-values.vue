@@ -52,7 +52,7 @@ export default {
           
           if ( this.$route.params.series && this.book.series ) {
             let activeSeries = _.find( this.book.series, { asin: this.$route.params.series });
-            return activeSeries && _.isArray(activeSeries.bookNumbers) ? activeSeries.bookNumbers.join(", ") : '';
+            return _.isArray(_.get(activeSeries, 'bookNumbers')) ? activeSeries.bookNumbers.join(", ") : '';
           }
           else if (this.book.series) {
             
@@ -79,7 +79,7 @@ export default {
             if ( series ) {
               const seriesNumbers = series.bookNumbers;
               if ( seriesNumbers ) {
-                return _.isArray(seriesNumbers) ? seriesNumbers.join(numbersDelim) : seriesNumbers;
+                return _.castArray(seriesNumbers).join(numbersDelim);
               }
               else {
                 return "∞";

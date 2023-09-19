@@ -109,11 +109,12 @@ export default {
       
       let vue = this; 
       vue.loading = true; 
+			deleteArray = _.castArray(deleteArray);
       
       let confirmation = window.confirm('Delete "'+ this.setting.label +'" data?');
       if ( !confirmation ) return;
 			
-      let keysString = deleteArray.join(', ').replace('books', 'library');
+			let keysString = deleteArray.join(', ').replace('books', 'library');
       let errorMsg = "Failed to remove data for: <strong>" + keysString + "</strong>";
       let successMsg = "Successfully removed data for: <strong>" + keysString + "</strong>";
       

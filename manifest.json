@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "version": "0.2.9",
+  "version": "0.2.10",
   "name": "Audible Library Extractor",
   "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
   "author": "Joonas Pääkkö",

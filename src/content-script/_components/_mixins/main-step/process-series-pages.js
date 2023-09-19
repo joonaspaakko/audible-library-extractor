@@ -389,7 +389,7 @@ export default {
                 seriesBook = {
                   seriesAsin: request.seriesAsin,
                   asin: request.bookAsin, 
-                  bookNumbers: _.isArray(bookNumbers) ? bookNumbers.join(',') : bookNumbers,
+                  bookNumbers: _.isArray(bookNumbers) ? bookNumbers.join(', ') : bookNumbers,
                 };
               }
               
@@ -449,7 +449,7 @@ export default {
                 seriesBook = {
                   seriesAsin: request.seriesAsin,
                   asin: request.bookAsin, 
-                  bookNumbers: _.isArray(bookNumbers) ? bookNumbers.join(',') : bookNumbers,
+                  bookNumbers: _.isArray(bookNumbers) ? bookNumbers.join(', ') : bookNumbers,
                 };
               }
               

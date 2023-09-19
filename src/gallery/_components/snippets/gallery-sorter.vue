@@ -412,7 +412,7 @@ export default {
             }
           });
           
-          queryObj[ sortType ] = queryKeysArray ? queryKeysArray.join(',') : null;
+          queryObj[ sortType ] = _.isArray(queryKeysArray) ? queryKeysArray.join(', ') : null;
           
         }
       }
