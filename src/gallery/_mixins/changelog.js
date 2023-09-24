@@ -11,6 +11,18 @@ export default {
       
       changeLog: [
         {
+          version: 'v.0.2.10',
+          highlights: ``,
+          changes: [
+            
+            {
+              description: `Clock keeps spinning after all tasks completed`,
+              class: 'fixed',
+              link: issue(130), 
+            },
+          ],
+        },
+        {
           version: 'v.0.2.9',
           highlights: `Full extraction recommended.`,
           changes: [
