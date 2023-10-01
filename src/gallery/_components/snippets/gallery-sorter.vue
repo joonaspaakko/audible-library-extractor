@@ -57,6 +57,10 @@
             / {{ $store.getters.collectionSource.length }}
           </span> -->
         </span>
+        
+        <!-- <span class="books-in-filter" v-if="listName === 'filter'">
+          ({{ filterHours }})
+        </span> -->
 
       </label>
 
@@ -119,11 +123,13 @@ import '@vueform/multiselect/themes/default.css';
 import VueSlider from 'vue-slider-component';
 import slugify from "@output-mixins/gallery-slugify.js";
 import Multiselect from '@vueform/multiselect'
+// import timeStringToSeconds from "@output-mixins/gallery-timeStringToSeconds.js";
+// import secondsToTimeString from "@output-mixins/gallery-secondsToTimeString.js";
 
 export default {
   name: "sorter",
   props: [ "label", "currentList", "listName", "item", "index", "tippyTop" ],
-  mixins: [slugify],
+  mixins: [slugify/*, timeStringToSeconds, secondsToTimeString*/],
   components: {
     VueSlider,
     Multiselect,
@@ -179,8 +185,7 @@ export default {
   },
 
   computed: {
-
-    filterAmounts: function( ) {
+    filterBooks: function( ) {
       
       this.$compEmitter.emit('repositionSearchOpts'); // potentially changes the width of the container...
       
@@ -209,14 +214,30 @@ export default {
 
         return _.filter( collection, function(book) {
           return vue.item.condition(book) && conditionCheck( book );
-        }).length;
+        });
 
       }
       else {
-        return 0;
+        return [];
       }
 
     },
+    filterAmounts: function( ) {
+      
+      return this.filterBooks.length;
+
+    },
+    
+    // filterHours: function( ) {
+      
+    //   const result = _.sumBy( this.filterBooks, ( book ) => {
+    //     const length = book.length ? this.timeStringToSeconds(book.length) : 0;
+    //     return length;
+    //   });
+      
+    //   return this.secondsToTimeString(result, true);
+
+    // },
 
     rangeVal: function() {
       // let itemRange = _.get( this.item, 'range' );

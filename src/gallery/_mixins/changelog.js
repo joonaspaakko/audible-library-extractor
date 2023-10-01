@@ -15,12 +15,24 @@ export default {
           highlights: ``,
           changes: [
             {
+              description: `Search bar total books tooltip: added total listening time for the books in the selection.`,
+              class: 'added',
+            },
+            {
+              description: `Fixed an issue where collections page was visible in the navigation, even though it was empty.`,
+              class: 'fixed',
+            },
+            {
+              description: `Fixed an issue that could prevent the series sub page from loading in some cases.`,
+              class: 'fixed',
+            },
+            {
               description: `It's not impossible but difficult to navigate back from book details "Links lead to my library" links.`,
               class: 'fixed',
               link: issue(127), 
             },
             {
-              description: `Clock keeps spinning after all tasks completed`,
+              description: `Clock keeps spinning after all tasks completed.`,
               class: 'fixed',
               link: issue(130), 
             },
