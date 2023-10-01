@@ -232,11 +232,11 @@ export default {
         libraryData.extras.cacheID = vue.cacheBuster;
         
         let tempData = {
-          books: !!libraryData.books,
-          series: !!libraryData.series,
-          collections: !!libraryData.collections,
+          books: !!_.get(libraryData, 'books.0'),
+          series: !!_.get(libraryData, 'series.0'),
+          collections: !!_.get(libraryData, 'collections.0'),
           podcasts: !_.isEmpty(_.filter(libraryData.books, 'podcastParent')),
-          wishlist: !!libraryData.wishlist,
+          wishlist: !!_.get(libraryData, 'wishlist.0'),
           extras: libraryData.extras,
         };
 
@@ -348,16 +348,16 @@ export default {
         // Split page data into separate files...
         zip.file("data/temp-data."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
         
-        if ( libraryData.books       ) {
+        if ( tempData.books       ) {
           zip.file("data/library."+ vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.books) + ";");
         }
-        if ( libraryData.collections ) {
+        if ( tempData.collections ) {
           zip.file("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
         }
-        if ( libraryData.series      ) {
+        if ( tempData.series      ) {
           zip.file("data/series."+ vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");
         }
-        if ( libraryData.wishlist    ) {
+        if ( tempData.wishlist    ) {
           zip.file("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
         }
         
