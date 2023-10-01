@@ -9,9 +9,9 @@
         <span v-else>{{ delim || ", " }}</span>
       </span>
       <span>
-        <a :href="makeUrl(label.toLowerCase(), item, (!$store.state.sticky.detailLinksToAudible ? array : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer">
+        <component :is="routerOrLink(label.toLowerCase()).tag" v-bind:[routerOrLink(label.toLowerCase()).attr]="makeUrl(label.toLowerCase(), item, (!$store.state.sticky.detailLinksToAudible ? array : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer">
           {{ item.name }}<span v-if="item.bookNumbers" class="book-number"> (book {{ stringifyBookNumbers(item.bookNumbers) }})</span>
-        </a>
+        </component>
       </span>
     </span>
   </div>
@@ -36,7 +36,7 @@ export default {
   computed: {
     identifierClass: function() {
       return "details-" + _.kebabCase(this.label);
-    }
+    },
   },
 
   methods: {
@@ -46,6 +46,20 @@ export default {
     stringifyBookNumbers( numbers ) {
       return _.join(numbers, ',');
     },
+    routerOrLink( label ) {
+      if ( !this.$store.state.sticky.detailLinksToAudible && !(label === 'store' || label === 'book') ) {
+        return {
+          tag: "router-link",
+          attr: 'to',
+        };
+      }
+      else {
+        return {
+          tag: "a",
+          attr: 'href',
+        };
+      }
+    }
   }
 };
 </script>

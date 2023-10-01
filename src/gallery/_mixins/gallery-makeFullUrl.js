@@ -32,7 +32,7 @@ export default {
             newUrl = url.toString();
             break;
           case "author":
-            newUrl = this.$router.resolve({ 
+            newUrl = { 
               name: 'author', 
               params: { 
                 author: input.url || this.slugify(input.name)
@@ -41,10 +41,10 @@ export default {
                 subPageSource,
                 refresh: true,
               } 
-            });
+            };
             break;
           case "narrator":
-            newUrl = this.$router.resolve({ 
+            newUrl = { 
               name: 'narrator', 
               params: { 
                 narrator: this.slugify(input.name)
@@ -53,10 +53,10 @@ export default {
                 subPageSource,
                 refresh: true,
               } 
-            });
+            };
             break;
           case "series":
-            newUrl = this.$router.resolve({ 
+            newUrl = { 
               name: 'series', 
               params: { 
                 series: input.asin
@@ -65,10 +65,10 @@ export default {
                 subPageSource,
                 refresh: true,
               } 
-            });
+            };
             break;
           case "publisher":
-            newUrl = this.$router.resolve({ 
+            newUrl = { 
               name: 'publisher', 
               params: { 
                 publisher: this.slugify(input.name)
@@ -77,16 +77,16 @@ export default {
                 subPageSource,
                 refresh: true,
               } 
-            });
+            };
             break;
           case "tags":
-            newUrl = this.$router.resolve({ 
+            newUrl = { 
               name: subPageSource, 
               query: { 
                 filterExtras: `tags:${input.name}`,
                 refresh: true,
               } 
-            });
+            };
             break;
           case "categories":
             
@@ -104,7 +104,7 @@ export default {
               cat.child  = currentIsChild  ? cat.current : _.get(array, '1.name');
             }
             
-            newUrl = this.$router.resolve({ 
+            newUrl = { 
               name: 'category', 
               params: { 
                 parent: cat.parent ? this.slugify(cat.parent) : undefined, 
@@ -114,7 +114,7 @@ export default {
                 subPageSource,
                 refresh: true,
               } 
-            });
+            };
             break;
         }
       }
@@ -148,7 +148,6 @@ export default {
         return "";
       } 
       else if ( array && !store.sticky.detailLinksToAudible ) {
-        newUrl = _.get(newUrl, 'href');
         return newUrl;
       }
       else {

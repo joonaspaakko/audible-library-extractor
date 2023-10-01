@@ -14,7 +14,11 @@ export default {
           version: 'v.0.2.10',
           highlights: ``,
           changes: [
-            
+            {
+              description: `It's not impossible but difficult to navigate back from book details "Links lead to my library" links.`,
+              class: 'fixed',
+              link: issue(127), 
+            },
             {
               description: `Clock keeps spinning after all tasks completed`,
               class: 'fixed',

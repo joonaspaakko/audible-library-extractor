@@ -1,8 +1,8 @@
 <template>
   <div class="book-tags">
-    <a :href="makeUrl('tags', tag, (!$store.state.sticky.detailLinksToAudible ? book.tags : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer" class="book-tag" v-for="tag in book.tags" :key="tag.name">
+    <component :is="routerOrLink.tag" v-bind:[routerOrLink.attr]="makeUrl('tags', tag, (!$store.state.sticky.detailLinksToAudible ? book.tags : null))" :target="$store.state.sticky.detailLinksToAudible ? '_blank' : null" rel="noopener noreferrer" class="book-tag" v-for="tag in book.tags" :key="tag.name">
       {{ tag.name }}
-    </a>
+    </component>
   </div>
 </template>
 
@@ -16,6 +16,22 @@ export default {
   data: function() {
     return {
     };
+  },
+  computed: {
+    routerOrLink() {
+      if ( !this.$store.state.sticky.detailLinksToAudible ) {
+        return {
+          tag: "router-link",
+          attr: 'to',
+        };
+      }
+      else {
+        return {
+          tag: "a",
+          attr: 'href',
+        };
+      }
+    }
   },
 };
 </script>
