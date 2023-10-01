@@ -115,7 +115,7 @@ export default {
             // I was thinking this could be cool in the "My books in the series list" too, but it's too unreliable for that purpose.
 
             function parseBookNumbers(bookNumbers) {
-              return bookNumbers.split("-").map(_.toNumber).filter(_.isFinite);
+              return (bookNumbers||'').split("-").map(_.toNumber).filter(_.isFinite);
             }
             function getBookNumbers(books) {
               return _.flatMap(books.map(b => parseBookNumbers(b.bookNumbers)))
