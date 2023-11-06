@@ -187,7 +187,14 @@ export default {
             // RATING
             book.rating = Number( DOMPurify.sanitize(ratingSpan.textContent.match(/^\d\.?(\d)?/g)) ); // returns the first number
             // RATINGS
-            book.ratings = parseFloat( _.join(DOMPurify.sanitize(ratingsSpan.textContent.match(/\d/g)), '') ); // returns all numbers merged into one
+            let ratings = ratingsSpan.textContent;
+            if ( ratings ) {
+              ratings = DOMPurify.sanitize(ratings);
+              ratings = ratings.match(/\d/g);
+              ratings = _.isArray(ratings) ? _.join(ratings, '') : ratings;
+              ratings = parseFloat(ratings);
+              book.ratings = ratings;// returns all numbers merged into one
+            }
           }
           
           // From plus catalog

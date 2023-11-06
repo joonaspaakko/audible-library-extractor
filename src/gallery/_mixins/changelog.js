@@ -11,6 +11,17 @@ export default {
       
       changeLog: [
         {
+          version: 'v.0.2.11',
+          highlights: `Requires a full library extraction for to fix number of ratings. Wishlist should update them just fine with just the partial extraction.`,
+          changes: [
+            {
+              description: `Number of ratings extracted with faulty data.`,
+              class: 'fixed',
+              link: issue(134), 
+            },
+          ],
+        },
+        {
           version: 'v.0.2.10',
           highlights: ``,
           changes: [

@@ -44,7 +44,7 @@ export default {
       return this.array && !_.isEmpty( this.array );
     },
     stringifyBookNumbers( numbers ) {
-      return _.join(numbers, ',');
+      return _.isArray(numbers) ? _.join(numbers, ',') : numbers;
     },
     routerOrLink( label ) {
       if ( !this.$store.state.sticky.detailLinksToAudible && !(label === 'store' || label === 'book') ) {
