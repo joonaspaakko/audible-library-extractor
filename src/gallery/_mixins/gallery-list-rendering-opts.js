@@ -97,6 +97,20 @@ export default {
 
           // { active: true,  type: 'filterExtras', label: 'All',          key: 'all',          group: 'filterExtras', condition: function( book ) { return book.asin;            } },
           {
+            onlyWishlist: true,
+            active: false,
+            type: 'filterExtras',
+            label: 'On sale',
+            key: 'onsale',
+            group: 'filterExtras',
+            condition: function(book) {
+              return book.onSale;
+            }
+          },
+
+          { type: 'divider', key: 'divider1', onlyWishlist: true, },
+
+          {
             excludeFromSeriesSubPage: true,
             active: false,
             type: 'filterExtras',

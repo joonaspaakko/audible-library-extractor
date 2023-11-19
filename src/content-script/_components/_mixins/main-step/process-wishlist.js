@@ -201,7 +201,20 @@ export default {
           const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button');
           if (fromPlusCatalog) book.fromPlusCatalog = true;
           
-          book = _.omitBy(book, _.isNull);
+          // On sale
+          let saleEnded;
+          const saleEndedEl = _thisRow.querySelector('.adblSaleHasEnded');
+          if ( saleEndedEl ) {
+            const saleEndedAttribute = saleEndedEl.getAttribute('hidden');
+            saleEnded = !_.isNil(saleEndedAttribute) && saleEndedAttribute != false;
+          }
+          
+          const saleContainer = _thisRow.querySelector('.adblSaleTimerContainer');
+          if ( saleContainer && !saleEnded) book.onSale = true;
+          
+          
+          
+          book = _.omitBy(book, _.isNil);
           
           // - - - - - - -
           

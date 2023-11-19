@@ -12,8 +12,12 @@ export default {
       changeLog: [
         {
           version: 'v.0.2.11',
-          highlights: `Requires a full library extraction for to fix number of ratings. Wishlist should update them just fine with just the partial extraction.`,
+          highlights: `Requires a full library extraction to fix number of ratings. Wishlist should update them just fine with just the partial extraction.`,
           changes: [
+            {
+              description: `New filter for wishlist books that are on sale.`,
+              class: 'added',
+            },
             {
               description: `Number of ratings extracted with faulty data.`,
               class: 'fixed',

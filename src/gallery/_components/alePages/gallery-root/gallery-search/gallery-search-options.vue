@@ -66,12 +66,14 @@ export default {
       
       return _.filter( this.optionsList, ( item ) => {
         
-        const conditionsOK = this.allTrue({
+        let conditionsOK = this.allTrue({
           'is regular filter'          : item.type === 'filter',
           'exclude from wishlist'      : inWishlist ? !item.excludeFromWishlist : true,
-          'exclude from series subpage': inSeriesSubPage ? !item.excludeFromSeriesSubPage: true,
+          'exclude from series subpage': inSeriesSubPage ? !item.excludeFromSeriesSubPage : true,
           'exclude from podcasts'      : inPodcasts ? !item.excludeFromPodcasts : true,
         });
+        
+        if ( !inWishlist && item.onlyWishlist ) conditionsOK = false;
         
         return conditionsOK;
         
@@ -88,13 +90,15 @@ export default {
       
       return _.filter( this.optionsList, ( item ) => {
         
-        const conditionsOK = this.allTrue({
+        let conditionsOK = this.allTrue({
           'no sort values in list view': !(viewModeGrid && item.key === 'sortValues'),
           'is not a regular filter'    : item.type !== 'filter',
           'exclude from wishlist'      : inWishlist ? !item.excludeFromWishlist : true,
           'exclude from series subpage': inSeriesSubPage ? !item.excludeFromSeriesSubPage: true,
           'exclude from podcasts'      : inPodcasts ? !item.excludeFromPodcasts : true,
         });
+        
+        if ( !inWishlist && item.onlyWishlist ) conditionsOK = false;
         
         return conditionsOK;
       });
