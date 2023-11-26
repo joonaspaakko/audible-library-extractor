@@ -205,14 +205,40 @@ export default {
           let saleEnded;
           const saleEndedEl = _thisRow.querySelector('.adblSaleHasEnded');
           if ( saleEndedEl ) {
-            const saleEndedAttribute = saleEndedEl.getAttribute('hidden');
+            let saleEndedAttribute = saleEndedEl.getAttribute('hidden');
+            if ( saleEndedAttribute ) saleEndedAttribute = DOMPurify.sanitize(saleEndedAttribute);
             saleEnded = !_.isNil(saleEndedAttribute) && saleEndedAttribute != false;
+          }
+          
+          const priceEl = _thisRow.querySelector('#adbl-buy-box-container .adblBuyNowCashButton');
+          if ( priceEl ) {
+            let price = DOMPurify.sanitize(priceEl.textContent.trimAll());
+                price = price.match(/\d+(\.|\,)?/gm);
+                price = _.isArray(price) ? _.join(price, '') : price;
+            book.price = parseFloat(price);
           }
           
           const saleContainer = _thisRow.querySelector('.adblSaleTimerContainer');
           if ( saleContainer && !saleEnded) book.onSale = true;
-          
-          
+          if ( saleContainer ) {
+            
+            const salePrice = _thisRow.querySelector('[id^="buybox-sale-price"]')
+            if ( salePrice ) {
+              const salePercentage = salePrice.querySelector('.sale-discount-percentage');
+              if ( salePercentage ) {
+                const salePriceEl = salePercentage.previousElementSibling;
+                if ( salePriceEl ) {
+                  
+                  let salePrice = DOMPurify.sanitize(salePriceEl.textContent.trimAll());
+                      salePrice = salePrice.match(/\d+(\.|\,)?/gm);
+                      salePrice = _.isArray(salePrice) ? _.join(salePrice, '') : salePrice;
+                      
+                  book.price = parseFloat(salePrice);
+                  
+                }
+              }
+            }
+          }
           
           book = _.omitBy(book, _.isNil);
           
