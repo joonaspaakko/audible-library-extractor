@@ -107,6 +107,36 @@ export default {
               return book.onSale;
             }
           },
+          
+          {
+            onlyWishlist: true,
+            active: false,
+            type: 'filterExtras',
+            label: 'Price',
+            key: 'price',
+            group: 'filterExtras',
+            range: true,
+            rangeMinDist: 0,
+            rangeSuffix: '',
+            rangeInterval: 1,
+            rangeMin: function() {
+              let books = vue.$store.getters.collectionSource;
+              const min = _.minBy(books, 'price');
+              return min ? Math.floor(min.price) : -1;
+            },
+            rangeMax: function() {
+              let books = vue.$store.getters.collectionSource;
+              const max = _.maxBy(books, 'price');
+              return max ? Math.ceil(max.price) : -1;
+            },
+            condition: function(book) {
+              if ( book.price ) {
+                let min = this.range[0];
+                let max = this.range[1];
+                return book.price >= min && book.price <= max;
+              }
+            },
+          },
 
           { type: 'divider', key: 'divider1', onlyWishlist: true, },
 
