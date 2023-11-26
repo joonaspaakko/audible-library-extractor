@@ -14,6 +14,7 @@ import sortBookNumbers from "@output-mixins/sort/gallery-bookNumbers.js";
 import sortReleaseDate from "@output-mixins/sort/gallery-releaseDate.js";
 import sortStringNameProp from "@output-mixins/sort/gallery-stringNameProp.js";
 import sortMissing from "@output-mixins/sort/gallery-missing.js";
+import sortPrice from "@output-mixins/sort/gallery-price.js";
 
 export default {
   mixins: [
@@ -31,7 +32,8 @@ export default {
     sortBookNumbers,
     sortReleaseDate,
     sortStringNameProp,
-    sortMissing
+    sortMissing,
+    sortPrice,
   ],
   methods: {
 
@@ -141,13 +143,15 @@ export default {
           case "amountTotal":
             books = this.sortAmount(sortOptions);
             break;
-            break;
           case "isbn10":
           case "isbn13":
             books = this.sortIsbns(sortOptions);
             break;
           case "missing":
             books = this.sortMissing(sortOptions);
+            break;
+          case "price":
+            books = this.sortPrice(sortOptions);
             break;
         }
       }
