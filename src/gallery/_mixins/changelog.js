@@ -15,6 +15,11 @@ export default {
           highlights: `Requires a full library extraction to fix number of ratings. Wishlist should update them just fine with just the partial extraction.`,
           changes: [
             {
+              description: `Gallery sorting sometimes highlights the wrong item.`,
+              class: 'fixed',
+              link: issue(141), 
+            },
+            {
               description: `Not extracting wishlist pre-order covers.`,
               class: 'fixed',
               link: issue(142), 

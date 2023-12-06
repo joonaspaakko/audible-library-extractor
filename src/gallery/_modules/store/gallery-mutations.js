@@ -94,8 +94,10 @@ export default {
 
     // Changes the currently active sorter (in sort: active state controls the direction)
     if ( o.listName === "sort" && currentItem.type === 'sort' ) {
-      const currentSorter = _.find( currentList, "current" );
-      currentSorter.current = false;
+      const currentSorters = _.filter( currentList, "current" );
+      _.each( currentSorters, (sorter) => {
+        sorter.current = false;
+      });
       currentItem.current = true;
     }
     

@@ -15,7 +15,7 @@
       <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts }">
 
         <!-- LABEL in the front -->
-        <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem }">
+        <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem(item) }">
           <slot />
         </span>
 
@@ -23,7 +23,7 @@
         <input type="checkbox" :value="index" v-model="inputVmodel" />
 
         <!-- SORT ARROWS -->
-        <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem }" >
+        <span v-if="item.type === 'sort'" class="sortbox" :class="{ active: isActiveSortItem(item) }" >
           <fa6-solid-sort-down data-icon="sort-down" />
           <fa6-solid-sort-up data-icon="sort-up" />
         </span>
@@ -39,7 +39,7 @@
           <!-- <ion-checkmark-round data-icon="check"/> -->
         </span>
         <!-- LABEL in the back -->
-        <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem }">
+        <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem(item) }">
           <span>
             {{ item.label || item.key.replace(".name", "") }}
             <span v-if="item.dropdownOpts" class="dropdown-label-suffix">
@@ -268,24 +268,27 @@ export default {
       }
     },
 
-    isActiveSortItem: function() {
-      if ( this.listName === "sort" ) {
-        if ( !this.$store.getters.searchIsActive || this.$store.getters.searchIsActive && this.$route.query.sort ) {
-          const changedIndex = _.findIndex(this.currentList, "current");
-          return changedIndex === this.index;
-        }
-      }
-      else if ( this.listName === "filter" ) {
-        // const changedIndex = _.findIndex(this.currentList, { active: true, type: 'filterExtras' });
-        // return changedIndex === this.index;
-        return false;
-      }
-    },
-
   },
 
   methods: {
 
+    
+
+    isActiveSortItem: function( item ) {
+      
+      if ( this.listName === "sort" ) {
+        if ( item.current ) {
+          const searching = this.$store.getters.searchIsActive;
+          if ( !searching || (searching && this.$route.query.sort) ) {
+            return true;
+          }
+        }
+      }
+      
+      return false;
+      
+    },
+    
     tooltipFormatter: function( val ) {
       return val + this.item.rangeSuffix;
     },

@@ -1155,6 +1155,15 @@ export default {
             type: 'sortExtras',
             tippy: "Sorting is ignored and the order is randomized."
           },
+          
+          // Just an idea...
+          // {
+          //   active: false,
+          //   key: 'autofilternil',
+          //   label: 'Auto filter nil',
+          //   type: 'sortExtras',
+          //   tippy: "If a sorting value is missing, it's automatically filtered out of the list."
+          // },
 
           {
             type: 'divider',
@@ -1172,7 +1181,7 @@ export default {
           {
             onlyWishlist: true,
             active: true,
-            current: true,
+            current: false,
             key: 'price',
             label: 'Price',
             type: 'sort',
