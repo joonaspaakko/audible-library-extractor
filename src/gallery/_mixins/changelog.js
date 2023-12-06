@@ -15,8 +15,24 @@ export default {
           highlights: `Requires a full library extraction to fix number of ratings. Wishlist should update them just fine with just the partial extraction.`,
           changes: [
             {
+              description: `Not extracting wishlist pre-order covers.`,
+              class: 'fixed',
+              link: issue(142), 
+            },
+            {
+              description: `Wishlist price sorter.`,
+              class: 'added',
+              link: issue(139), 
+            },
+            {
+              description: `New range filter for wishlist price.`,
+              class: 'added',
+              link: issue(138), 
+            },
+            {
               description: `New filter for wishlist books that are on sale.`,
               class: 'added',
+              link: issue(137), 
             },
             {
               description: `Number of ratings extracted with faulty data.`,

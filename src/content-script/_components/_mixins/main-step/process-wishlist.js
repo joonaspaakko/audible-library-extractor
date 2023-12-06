@@ -134,21 +134,6 @@ export default {
               book.title = book.subtitle ? (title +': '+ book.subtitle) : title;
             }
             
-            // COVER
-            const coverWrapper = _thisRow.querySelector('[data-trigger^="product-list-flyout"]');
-            if ( coverWrapper ) {
-              const coverLink = coverWrapper.querySelector(':scope > a');
-              if ( coverLink ) {
-                let coverUrl = coverLink.getAttribute('src');
-                    coverUrl = DOMPurify.sanitize( coverUrl );
-                if ( coverUrl.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
-                  let coverId = coverUrl.match(/\/images\/I\/(.*)._SL/);
-                      coverId = _.get( coverId, '[1]');
-                  if ( coverId ) book.cover = coverId;
-                }
-              }
-            }
-            
             // SAMPLE
             const sample = _thisRow.querySelector("[data-mp3]");
             if (sample) book.sample = DOMPurify.sanitize( sample.getAttribute("data-mp3") );
@@ -177,6 +162,25 @@ export default {
             const language = _thisRow.querySelector(".languageLabel");
             if ( language ) book.language = DOMPurify.sanitize(language.textContent.trimToColon());
             
+          }
+          
+          // COVER
+          const coverWrapper = _thisRow.querySelector('[data-trigger^="product-list-flyout"]');
+          if ( coverWrapper ) {
+            let coverLink = coverWrapper.querySelector(':scope > a');
+            if ( coverLink ) {
+              let coverUrl = coverLink.getAttribute('src');
+              if ( !coverUrl ) {
+                const coverImg = coverLink.querySelector(':scope > img');
+                if ( coverImg ) coverUrl = coverImg.getAttribute('src');
+              }
+              coverUrl = DOMPurify.sanitize( coverUrl );
+              if ( coverUrl && coverUrl.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
+                let coverId = coverUrl.match(/\/images\/I\/(.*)._SL/);
+                    coverId = _.get( coverId, '[1]');
+                if ( coverId ) book.cover = coverId;
+              }
+            }
           }
           
           const ratingsWrappers = _thisRow.querySelector(".ratingsLabel");
