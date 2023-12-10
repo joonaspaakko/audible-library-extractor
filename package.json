@@ -53,6 +53,7 @@
     "@crxjs/vite-plugin": "^1.0.14",
     "@iconify/json": "^2.1.122",
     "@vitejs/plugin-vue": "2.3.2",
+    "easy-zip": "^0.0.4",
     "naive-ui": "^2.34.2",
     "picocolors": "^1.0.0",
     "rollup-plugin-copy": "^3.4.0",
@@ -65,6 +66,6 @@
     "vite-plugin-singlefile": "^0.13.5",
     "vite-plugin-static-copy": "^0.17.0",
     "vue": "^3.3.4",
-    "zip-folder": "^1.0.0"
+    "yarn-audit-fix": "^10.0.7"
   }
 }

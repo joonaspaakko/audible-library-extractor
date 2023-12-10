@@ -1,4 +1,4 @@
-var zipFolder = require('zip-folder');
+var EasyZip = require('easy-zip').EasyZip;
 var color = require('picocolors');
 var pkg = require('./package.json');
 var fs = require('fs');
@@ -40,17 +40,20 @@ var filenameDiff = Math.ceil((horizontalLineLength - filenameLength) / 2);
 var filenamePadding = repeatString(' ', filenameDiff);
 var filenamePaddingMinus = (filenameLength + (filenameDiff*2)) > horizontalLineLength ? 1 : 0;
 
-zipFolder('./dist', './'+ filename, function(err) {
-    if(err) {
-        console.log('Zip failed!', err);
-    } else {
-        console.log(' ');
-        console.log( color.gray(`+${horizontalLine}+`) );
-        console.log( color.gray('|') + repeatString(' ', horizontalLineLength) + color.gray('|') );
-        console.log( color.gray('|')+color.green(`${msgPadding}${msg[0]} ${color.bold(msg[1])}${msgPadding.substring(msgPaddingMinus)}`) + color.gray('|') );
-        console.log( color.gray('|')+ color.yellow( filenamePadding + color.bold(filename) + filenamePadding.substring(filenamePaddingMinus) ) + color.gray('|') );
-        console.log( color.gray('|') + repeatString(' ', horizontalLineLength) + color.gray('|') );
-        console.log( color.gray(`+${horizontalLine}+`) );
-        console.log(' ');
-    }
+//zip a folder and change folder destination name
+var zip = new EasyZip();
+zip.zipFolder('./dist',function(){
+	const test = zip.writeToFileSycn('./'+ filename );
+    
+    console.log( 'testing,', test );
+    
+    console.log(' ');
+    console.log( color.gray(`+${horizontalLine}+`) );
+    console.log( color.gray('|') + repeatString(' ', horizontalLineLength) + color.gray('|') );
+    console.log( color.gray('|')+color.green(`${msgPadding}${msg[0]} ${color.bold(msg[1])}${msgPadding.substring(msgPaddingMinus)}`) + color.gray('|') );
+    console.log( color.gray('|')+ color.yellow( filenamePadding + color.bold(filename) + filenamePadding.substring(filenamePaddingMinus) ) + color.gray('|') );
+    console.log( color.gray('|') + repeatString(' ', horizontalLineLength) + color.gray('|') );
+    console.log( color.gray(`+${horizontalLine}+`) );
+    console.log(' ');
+    
 });
