@@ -1,8 +1,9 @@
 
 let githubIssues = 'https://github.com/joonaspaakko/audible-library-extractor/issues/';
 
-function issue( number ) {
- return { text: 'Fixed #'+number, href: githubIssues+number }; 
+function issue( number, prefix ) {
+  prefix = prefix || 'Fixed';
+ return { text: prefix+ ' #'+number, href: githubIssues+number }; 
 }
 
 export default {
@@ -27,17 +28,17 @@ export default {
             {
               description: `Wishlist price sorter.`,
               class: 'added',
-              link: issue(139), 
+              link: issue(139, 'Added'), 
             },
             {
               description: `New range filter for wishlist price.`,
               class: 'added',
-              link: issue(138), 
+              link: issue(138, 'Added'), 
             },
             {
               description: `New filter for wishlist books that are on sale.`,
               class: 'added',
-              link: issue(137), 
+              link: issue(137, 'Added'), 
             },
             {
               description: `Number of ratings extracted with faulty data.`,

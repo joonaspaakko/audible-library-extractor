@@ -43,9 +43,8 @@ var filenamePaddingMinus = (filenameLength + (filenameDiff*2)) > horizontalLineL
 //zip a folder and change folder destination name
 var zip = new EasyZip();
 zip.zipFolder('./dist',function(){
-	const test = zip.writeToFileSycn('./'+ filename );
-    
-    console.log( 'testing,', test );
+	
+    zip.writeToFileSycn('./'+ filename );
     
     console.log(' ');
     console.log( color.gray(`+${horizontalLine}+`) );
