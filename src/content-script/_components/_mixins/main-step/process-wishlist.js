@@ -205,6 +205,44 @@ export default {
           const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button');
           if (fromPlusCatalog) book.fromPlusCatalog = true;
           
+          const getPrice = ( el ) => {
+            
+            // If "el" is a string, then use it as a selector
+            // otherwise, assume it's a DOM element already.
+            el = _.isString(el) ? _thisRow.querySelector(el) : el;
+            
+            // Abort if element is not found
+            if ( !el ) return;
+
+            let price = el.textContent;
+                price = DOMPurify.sanitize(price);
+                price = price.trimAll(); // Trim all extra whitespace
+                price = price.match(/\d+(\.|\,)?/gm); // Get all numbers
+                price = _.isArray(price) ? _.join(price, '') : price; // Merge all numbers — Note: the previous matching step catches commas and periods, so they are not needed when joining.
+                price = parseFloat(price); // Convert string into a number
+                
+            return price;
+            
+          };
+          
+          const buyBox = _thisRow.querySelector('#adbl-buy-box-container');
+          const regularPriceEl = !buyBox ? null : buyBox.querySelector('[id^="buybox-regular-price"]');
+          const useMemberPrice = !regularPriceEl ? null : regularPriceEl.querySelector(':scope > span.bc-text-strike');
+          const memberPriceEl  = !buyBox ? null : buyBox.querySelector(' [id^="buybox-member-price"]');
+          
+          if ( !useMemberPrice && regularPriceEl ) {
+            
+            const regularPrice = getPrice( regularPriceEl );
+            if ( regularPrice > -1 ) book.price = memberPrice;
+            
+          }
+          else if ( useMemberPrice && memberPriceEl ) {
+            
+            const memberPrice = getPrice( memberPriceEl.querySelector('.bc-color-price') );
+            if ( memberPrice > -1 ) book.price = memberPrice;
+            
+          }
+          
           // On sale
           let saleEnded;
           const saleEndedEl = _thisRow.querySelector('.adblSaleHasEnded');
@@ -213,16 +251,8 @@ export default {
             if ( saleEndedAttribute ) saleEndedAttribute = DOMPurify.sanitize(saleEndedAttribute);
             saleEnded = !_.isNil(saleEndedAttribute) && saleEndedAttribute != false;
           }
-          
-          const priceEl = _thisRow.querySelector('#adbl-buy-box-container .adblBuyNowCashButton');
-          if ( priceEl ) {
-            let price = DOMPurify.sanitize(priceEl.textContent.trimAll());
-                price = price.match(/\d+(\.|\,)?/gm);
-                price = _.isArray(price) ? _.join(price, '') : price;
-            book.price = parseFloat(price);
-          }
-          
           const saleContainer = _thisRow.querySelector('.adblSaleTimerContainer');
+          
           if ( saleContainer && !saleEnded) book.onSale = true;
           if ( saleContainer ) {
             
@@ -233,11 +263,8 @@ export default {
                 const salePriceEl = salePercentage.previousElementSibling;
                 if ( salePriceEl ) {
                   
-                  let salePrice = DOMPurify.sanitize(salePriceEl.textContent.trimAll());
-                      salePrice = salePrice.match(/\d+(\.|\,)?/gm);
-                      salePrice = _.isArray(salePrice) ? _.join(salePrice, '') : salePrice;
-                      
-                  book.price = parseFloat(salePrice);
+                  const salePrice = getPrice(salePriceEl);
+                  if ( salePrice > -1 ) book.price = salePrice;
                   
                 }
               }
