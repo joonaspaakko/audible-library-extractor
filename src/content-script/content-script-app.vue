@@ -23,6 +23,7 @@ import getDataFromStorePages from "./_components/_mixins/main-step/process-store
 import getISBNsFromGoogleBooks from "./_components/_mixins/main-step/process-isbns.js";
 import getDataFromSeriesPages from "./_components/_mixins/main-step/process-series-pages.js";
 import getDataFromCollections from "./_components/_mixins/main-step/process-collections.js";
+import getDataFrompUserReviews from "./_components/_mixins/main-step/process-user-reviews.js";
 import getDataFromWishlist from "./_components/_mixins/main-step/process-wishlist.js";
 import getDataFromPurchaseHistory from "./_components/_mixins/main-step/process-purchase-history.js";
 
@@ -47,6 +48,7 @@ export default {
     getDataFromCarousel,
     getDataFromSeriesPages,
     getDataFromCollections,
+    getDataFrompUserReviews,
     getDataFromWishlist,
     getDataFromPurchaseHistory,
     helpers,
@@ -59,6 +61,7 @@ export default {
       seriesUrl: window.location.origin + "/series",
       collectionsUrl: window.location.origin + "/library/collections",
       wishlistUrl: window.location.origin + "/library/wishlist",
+      listenerUrl: window.location.origin + "/listener",
       podcastsUrl: window.location.origin + "/library/podcasts",
       purchaseHistoryUrl: window.location.origin + "/account/purchase-history", // tf=orders&df=2021
       domainExtension: window.location.hostname.replace('www.audible', ''),
@@ -88,10 +91,6 @@ export default {
     // vue.init_purchaseHistoryTest();
     if ( _.get( this.doStorePageTest, 'length', 0 ) > 0 ) this.init_storePageTest();
     if ( _.get( this.doSeriesTest,    'length', 0 ) > 0 ) this.init_seriesPageTest();
-    
-    // this.scrapingPrep(this.libraryUrl, function(prep) {
-    //   console.log('PREP?', prep)
-    // });
     
   },
   
@@ -135,6 +134,7 @@ export default {
               
             },
             vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
+            vue.getDataFrompUserReviews,
             function(hotpotato, callback) { 
               
               vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {

@@ -108,8 +108,9 @@ export default {
         { checked: true, disabled: false, key: 'Podcasts', parent: 'Library' },
         { checked: true, disabled: false, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export.', parent: 'Library' },
         { checked: true, disabled: false, key: 'Wishlist' },
+        { checked: true, disabled: false, key: 'My Reviews', parent: ['Library'] },
         { checked: true, disabled: false, key: 'spacer-1', spacer: true },
-        { checked: true, disabled: false, key: 'spacer-2', spacer: true },
+        // { checked: true, disabled: false, key: 'spacer-2', spacer: true },
         
       ],
       zip: null,
@@ -141,6 +142,8 @@ export default {
     wishlistSource.disabled =  !this.$store.state.library.wishlist;
     let podcastsSource = _.find( this.dataSources, { key: 'Podcasts' });
     podcastsSource.disabled = _.isEmpty(this.$store.getters.podcasts);
+    let myReviews = _.find( this.dataSources, { key: 'My Reviews' });
+    myReviews.disabled = _.isEmpty(this.$store.state.library.userReviews);
     
     // let archivedBookFound = _.find( this.$store.state.library.books, o => _.includes(o.collectionIds, '__ARCHIVE') );
     // if ( !archivedBookFound ) {
@@ -235,9 +238,10 @@ export default {
           books: !!_.get(libraryData, 'books.0'),
           series: !!_.get(libraryData, 'series.0'),
           collections: !!_.get(libraryData, 'collections.0'),
-          podcasts: !_.isEmpty(_.filter(libraryData.books, 'podcastParent')),
+          podcasts: !_.isEmpty(_.filter(libraryData?.books, 'podcastParent')),
           wishlist: !!_.get(libraryData, 'wishlist.0'),
           extras: libraryData.extras,
+          userReviews: !!_.get(libraryData, 'userReviews.0'),
         };
 
         let loadServiceWorker = `
@@ -359,6 +363,10 @@ export default {
         }
         if ( tempData.wishlist    ) {
           zip.file("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
+        }
+        console.log( 'tempData.userReviews', tempData.userReviews );
+        if ( tempData.userReviews    ) {
+          zip.file("data/userReviews."+ vue.cacheBuster +".js", "window.userReviewsJSON = " + JSON.stringify(libraryData.userReviews) + ";");
         }
         
         // The files array has all kinds of irrelevant files to the gallery, This makes sure only
@@ -518,6 +526,10 @@ export default {
 
           case "Collections":
             if ( itemDisabled ) delete data.collections;
+            break;
+            
+          case "My Reviews":
+            if ( itemDisabled ) delete data.userReviews;
             break;
 
           case "Wishlist":

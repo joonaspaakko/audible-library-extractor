@@ -76,11 +76,13 @@ app.config.globalProperties.$dataChecker = function( data, store ) {
   // Later it's fetched again if needed.
   const dataChunks = _.get(data, 'chunks', []);
   const storageHasData = dataChunks.length > 0;
+  console.log( 'dataChunks', dataChunks );
   store.commit('update', [
     { key: 'storageHasData.books', 			 value: dataChunks.indexOf('books') > -1 },
     { key: 'storageHasData.isbn', 			 value: dataChunks.indexOf('isbn') > -1 ? checkISBNs( data ) : false },
     { key: 'storageHasData.wishlist', 	 value: dataChunks.indexOf('wishlist') > -1 },
     { key: 'storageHasData.collections', value: dataChunks.indexOf('collections') > -1 },
+    { key: 'storageHasData.userReviews', value: dataChunks.indexOf('userReviews') > -1 },
     { key: 'storageConfig', value: data.config || {} },
     { key: 'dataVersion', value: data.version || null },
   ]);

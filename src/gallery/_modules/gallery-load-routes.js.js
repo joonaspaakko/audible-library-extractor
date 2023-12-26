@@ -157,6 +157,7 @@ export default function( libraryData, store ) {
           
           if ( libraryData.series      ) loaderArray.push({name: 'series'});
           if ( libraryData.collections ) loaderArray.push({name: 'collections'}); 
+          if ( libraryData.userReviews ) loaderArray.push({name: 'userReviews'}); 
           
           getJSON( to, from, next, loaderArray);
         

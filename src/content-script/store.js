@@ -30,6 +30,7 @@ export default createStore({
       isbn: null,
       wishlist: null,
       collections: null,
+      userReviews: null,
     },
     toastOpts: {
       position: 'top',
@@ -72,7 +73,18 @@ export default createStore({
           type: "is-success",
           tippy: "Very quick extraction that just needs to check the first page of each collection to find out the title and description",
           kind: 'main',
-          partialData: true,
+          partialData: false,
+        },
+        {
+          label: "My Reviews",
+          name: "userReviews",
+          // parent: 'books',
+          value: false,
+          disabled: false,
+          type: "is-success",
+          tippy: "",
+          kind: 'main',
+          partialData: false,
         },
         {
           label: "Wishlist",

@@ -52,11 +52,27 @@
           
         </div>
         
+        
         <div class="meta-padding"></div>
+        
+        <div class="my-review-wrapper" v-if="review">
+          <div class="my-review-btn" :class="{ active: showReview }" @click="clickedShowReview">
+            <fluent-document-one-page-sparkle-20-regular /> My review 
+          </div>
+          
+          <div class="review-ratings" v-if="showReview">
+            <div class="review-rating" v-for="rating in reviewRatings">
+              <strong>{{ rating.name }}:</strong>
+              <gallery-star-ratings :size="12" :rating="rating.stars" number="true" />
+
+            </div>
+          </div>
+          
+        </div>
         
       </div>
       
-      <div class="summary-inner-wrap" ref="summaryInnerWrap" v-if="summaryHTML" v-html="summaryHTML"></div>
+      <div class="summary-inner-wrap" ref="summaryInnerWrap" v-if="summaryHTML" v-html="showReview ? reviewSummary : summaryHTML"></div>
       
     </div>
     
@@ -94,7 +110,8 @@ export default {
         maxHeight: null,
         maxHeightTemp: null,
         fullHeight: null,
-      }
+      },
+      showReview: false,
     };
   },
   
@@ -115,6 +132,15 @@ export default {
       // console.log( 'showReadmore - Has maxHeightTemp: ', summary.maxHeightTemp, 'summary.fullHeight > summary.maxHeightTemp', (summary.fullHeight > summary.maxHeightTemp) )
       if (  !summary.maxHeightTemp ) return;
       return summary.fullHeight > summary.maxHeightTemp;
+    },
+    review() {
+      return _.find( this.$store.state.library.userReviews, { asin: this.book.asin });
+    },
+    reviewSummary() {
+      return '<h2>' + _.get(this.review, 'title') + '</h2>' + _.get(this.review, 'summary');
+    },
+    reviewRatings() {
+      return _.get(this.review, 'ratings', []);
     },
   },
 
@@ -186,6 +212,15 @@ export default {
       
     },
     
+    clickedShowReview() {
+      
+      this.getSummaryMaxHeight();
+      this.$nextTick(() => {
+        this.showReview = !this.showReview;
+      });
+      
+    },
+    
   }
 };
 </script>
@@ -244,6 +279,41 @@ export default {
   
   .release-date {
     padding-top: 5px;
+  }
+  
+  .review-ratings {
+    @extend .no-selection;
+    display: flex;
+    flex-direction: row;
+    gap: 10px;
+    margin-top: 10px;
+  }
+  
+  .my-review-btn {
+    @include themify($themes) { 
+      @extend .no-selection;
+      font-size: .9em;
+      svg { 
+        padding-right: 6px; 
+        font-size: 1.1em;
+      }
+      margin-top: 5px;
+      cursor: pointer;
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+      padding: 2px 5px;
+      color: themed(frontColor);
+      border: 1px solid rgba(themed(frontColor), .35);
+      border-radius: 6px;
+      box-shadow: $shadowMedium rgba(0,0,0,0.45);
+      &.active {
+        border-color: themed(audibleOrange);
+        svg {
+          color: themed(audibleOrange);
+        }
+      }
+    }
   }
   
   .info-tag {

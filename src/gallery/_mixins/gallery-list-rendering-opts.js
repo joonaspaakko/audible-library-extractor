@@ -60,6 +60,11 @@ export default {
             // weight: .4,
             weight: 1,
           },
+          {
+            active: true,
+            key: 'asin',
+            weight: 20,
+          },
         ],
         filter: [{
             active: true,
@@ -316,6 +321,16 @@ export default {
             condition: function(book) {
               return !book.myRating;
             },
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: "Books I have reviewed",
+            key: 'my-review',
+            group: 'filterExtras',
+            condition: function(book) {
+              return _.find( vue.$store.state.library.userReviews, { asin: book.asin });
+            }
           },
           
           {
