@@ -186,18 +186,20 @@ export default {
           const ratingsWrappers = _thisRow.querySelector(".ratingsLabel");
           if ( ratingsWrappers ) {
             const starsWrapper = _thisRow.querySelector(".bc-review-stars");
-            const ratingSpan   = starsWrapper.nextElementSibling;
-            const ratingsSpan  = ratingSpan.nextElementSibling;
-            // RATING
-            book.rating = Number( DOMPurify.sanitize(ratingSpan.textContent.match(/^\d\.?(\d)?/g)) ); // returns the first number
-            // RATINGS
-            let ratings = ratingsSpan.textContent;
-            if ( ratings ) {
-              ratings = DOMPurify.sanitize(ratings);
-              ratings = ratings.match(/\d/g);
-              ratings = _.isArray(ratings) ? _.join(ratings, '') : ratings;
-              ratings = parseFloat(ratings);
-              book.ratings = ratings;// returns all numbers merged into one
+            if ( starsWrapper ) {
+              const ratingSpan   = starsWrapper.nextElementSibling;
+              const ratingsSpan  = ratingSpan.nextElementSibling;
+              // RATING
+              book.rating = Number( DOMPurify.sanitize(ratingSpan.textContent.match(/^\d\.?(\d)?/g)) ); // returns the first number
+              // RATINGS
+              let ratings = ratingsSpan.textContent;
+              if ( ratings ) {
+                ratings = DOMPurify.sanitize(ratings);
+                ratings = ratings.match(/\d/g);
+                ratings = _.isArray(ratings) ? _.join(ratings, '') : ratings;
+                ratings = parseFloat(ratings);
+                book.ratings = ratings;// returns all numbers merged into one
+              }
             }
           }
           
@@ -233,7 +235,7 @@ export default {
           if ( !useMemberPrice && regularPriceEl ) {
             
             const regularPrice = getPrice( regularPriceEl );
-            if ( regularPrice > -1 ) book.price = memberPrice;
+            if ( regularPrice > -1 ) book.price = regularPrice;
             
           }
           else if ( useMemberPrice && memberPriceEl ) {
