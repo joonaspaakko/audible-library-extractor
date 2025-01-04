@@ -10,8 +10,9 @@ import { fileURLToPath, URL } from 'node:url';
 import { defineConfig, splitVendorChunkPlugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { crx } from '@crxjs/vite-plugin';
-import manifest from './manifest.json'; 
-// import manifest from './manifest.json' assert { type: 'json' } // Node >=17
+// import manifest from './manifest.json'; 
+// import manifest from "./manifest.json" with { type: "json" };
+import manifest from './manifest.json' assert { type: 'json' } // Node >=17
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import copy from 'rollup-plugin-copy';
 import Icons from 'unplugin-icons/vite';
@@ -31,6 +32,7 @@ const src = function( path, prefix ) {
 const dist = function( path ) { return src(path, './dist'); };
 const root = function( path ) { return src(path, './'); };
 
+const devmode = process.env.development;
 const gallerySingleFile = process.env.gallerySingleFile;
 const wallpaperSingleFile = process.env.wallpaperSingleFile;
 const buildSingleFile = gallerySingleFile || wallpaperSingleFile;
@@ -40,11 +42,11 @@ const copyFilesBefore = [
   { src: src('gallery/app.webmanifest'),    dest: dist() },
 ];
 const copyFilesAfter = [
-  { src: src('extension-js'), dest: 'assets' },
-  { src: src('assets/js'),    dest: 'assets' },
-  { src: src('gallery/app.webmanifest'),    dest: dist('') },
-  { src: src('gallery/images'),    dest: dist('assets') },
-  { src: src('gallery/favicons'),    dest: dist('') },
+  { src: src('extension-js'),            dest: 'assets' },
+  { src: src('assets/js'),               dest: 'assets' },
+  { src: src('gallery/app.webmanifest'), dest: dist('') },
+  { src: src('gallery/images'),          dest: dist('assets') },
+  { src: src('gallery/favicons'),        dest: dist('') },
 ];
 
 const inputs = {};
@@ -58,15 +60,35 @@ else if ( wallpaperSingleFile ) {
 }
 else {
   inputs['gallery'] = 'gallery.html';
-  inputs['content-script'] = 'audible-library-extractor-content-script.js';
+  inputs['audible-library-extractor-content-script'] = 'audible-library-extractor-content-script.js';
   inputs['wallpaper-creator'] = 'wallpaper-creator.html';
   inputs['animated-wallpaper'] = 'animated-wallpaper.html';
   
-  manualChunks = {
-    jquery: ['jquery'],
-    jszip: ['jszip', 'jszip-utils'],
-    howler: ['howler'],
-  };
+  if ( devmode ) {
+    // manualChunks = function( id ) {
+      
+    //   if ( id.includes('jquery') ) {
+    //     return 'jquery';
+    //   }
+    //   else if (  id.includes('jszip') || id.includes('jszip-utils') ) {
+    //     return 'jszip';
+    //   }
+    //   else if ( id.includes('howler') ) {
+    //     return 'howler';
+    //   }
+    //   else {
+    //     return 'vendor';
+    //   }
+      
+    // };
+  }
+  else {
+    manualChunks = {
+      jquery: ['jquery'],
+      jszip: ['jszip', 'jszip-utils'],
+      howler: ['howler'],
+    };
+  }
 }
 
 // https://vitejs.dev/config/
@@ -91,7 +113,7 @@ export default defineConfig({
       },
     },
     commonjsOptions: {
-       esmExternals: true,
+      esmExternals: true,
     }, 
     // sourcemap: 'inline',
   },

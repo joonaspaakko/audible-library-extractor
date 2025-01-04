@@ -2,9 +2,11 @@
   "name": "audible-library-extractor",
   "version": "0.2.11",
   "license": "MIT",
+  "type": "module",
   "scripts": {
-    "dev": "yarn vite",
+    "dev": "development=true yarn vite",
     "build": "gallerySingleFile=true yarn vite build && wallpaperSingleFile=true yarn vite build && yarn vite build && node zipper.js",
+    "build1": "yarn vite build",
     "preview": "yarn vite preview --port 4173"
   },
   "dependencies": {
@@ -35,8 +37,8 @@
     "normalize.css": "^8.0.1",
     "pinia": "^2.0.21",
     "smoothscroll-polyfill": "^0.4.4",
-    "vite-plugin-dynamic-import": "^1.2.3",
-    "vite-plugin-package-version": "^1.0.2",
+    "vite-plugin-dynamic-import": "^1.6.0",
+    "vite-plugin-package-version": "^1.1.0",
     "vue-click-outside-element": "^3.1.2",
     "vue-contenteditable": "^4.1.0",
     "vue-dragscroll": "^4.0.5",
@@ -50,22 +52,26 @@
     "vuex": "^4.0.2"
   },
   "devDependencies": {
-    "@crxjs/vite-plugin": "^1.0.14",
+    "@crxjs/vite-plugin": "2.0.0-beta.28",
     "@iconify/json": "^2.1.122",
-    "@vitejs/plugin-vue": "2.3.2",
-    "easy-zip": "^0.0.4",
+    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-node-resolve": "^16.0.0",
+    "@vitejs/plugin-vue": "3.2.0",
     "naive-ui": "^2.34.2",
-    "picocolors": "^1.0.0",
-    "rollup-plugin-copy": "^3.4.0",
+    "picocolors": "^1.1.1",
+    "rollup-plugin-copy": "^3.5.0",
+    "rollup-plugin-node-builtins": "^2.1.2",
+    "rollup-plugin-node-globals": "^1.4.0",
     "sass": "^1.55.0",
-    "unplugin-icons": "^0.16.5",
-    "unplugin-vue-components": "^0.25.1",
+    "unplugin-icons": "^0.22.0",
+    "unplugin-vue-components": "^0.28.0",
     "vfonts": "^0.0.3",
-    "vite": "2.9.16",
-    "vite-plugin-ejs": "^1.5.0",
-    "vite-plugin-singlefile": "^0.13.5",
-    "vite-plugin-static-copy": "^0.17.0",
-    "vue": "^3.3.4",
-    "yarn-audit-fix": "^10.0.7"
+    "vite": "^3.2.11",
+    "vite-plugin-ejs": "^1.7.0",
+    "vite-plugin-singlefile": "^2.1.0",
+    "vite-plugin-static-copy": "^2.2.0",
+    "vue": "^3.2.47",
+    "yarn-audit-fix": "^10.0.7",
+    "zip-a-folder": "^3.1.8"
   }
 }
