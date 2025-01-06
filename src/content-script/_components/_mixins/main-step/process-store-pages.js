@@ -172,27 +172,38 @@ export default {
         book.titleShort = DOMPurify.sanitize(bookData.name);
         const subtitle = audible.querySelector('.subtitle');
         if ( subtitle ) book.subtitle = DOMPurify.sanitize( subtitle.textContent.trimAll() );
-        const ratingsLink = audible.querySelector(".ratingsLabel > a");
-        if ( ratingsLink ) {
-          let ratings = ratingsLink.textContent;
-          if ( ratings ) {
-            ratings = DOMPurify.sanitize(ratings);
-            ratings = ratings.match(/\d/g);
-            ratings = _.isArray(ratings) ? _.join(ratings, '') : ratings;
-            ratings = parseFloat(ratings);
-            book.ratings = ratings; // returns all numbers merged into one
-          }
+        if ( bookData.aggregateRating ) {
+          // Rating 
+          const rating = DOMPurify.sanitize(bookData.aggregateRating.ratingValue);
+          if ( rating ) book.rating = _.toNumber(_.toNumber(rating).toFixed('1').replace(/\.0$/, ''));
+          // Number of ratings
+          const ratings = DOMPurify.sanitize(bookData.aggregateRating.ratingCount);
+          book.ratings = _.toNumber(ratings);
         }
-        const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
-        if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
-        book.summary = DOMPurify.sanitize(bookData.description) || vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6" ) );
-        book.releaseDate = DOMPurify.sanitize(bookData.datePublished) ? DOMPurify.sanitize(bookData.datePublished) : vue.fixDates( audible.querySelector(".releaseDateLabel") ); 
+        else {
+          const ratingsLink = audible.querySelector(".ratingsLabel > a");
+          if ( ratingsLink ) {
+            let ratings = ratingsLink.textContent;
+            if ( ratings ) {
+              ratings = DOMPurify.sanitize(ratings);
+              ratings = ratings.match(/\d/g);
+              ratings = _.isArray(ratings) ? _.join(ratings, '') : ratings;
+              ratings = parseFloat(ratings);
+              book.ratings = ratings; // returns all numbers merged into one
+            }
+          }
+          const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
+          if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
+        }
+        book.summary = bookData.description ? DOMPurify.sanitize(bookData.description) : vue.getSummary( audible.querySelector( ".productPublisherSummary > .bc-section > .bc-box:first-of-type" ) || audible.querySelector( "#center-1 > div.bc-container > div > div.bc-col-responsive.bc-col-6" ) );
+        book.releaseDate = bookData.datePublished ? DOMPurify.sanitize(bookData.datePublished) : vue.fixDates( audible.querySelector(".releaseDateLabel") ); 
         book.publishers = vue.getArray( audible.querySelectorAll(".publisherLabel > a") );
         const length = audible.querySelector(".runtimeLabel");
         book.length = book.length || (length ? vue.shortenLength(length.textContent.trimToColon()) : 0);
         book.categories = vue.getArray( audible.querySelector(".categoriesLabel") ? audible.querySelectorAll(".categoriesLabel > a") : audible.querySelectorAll(".bc-breadcrumb > a") );
         book.language = bookData.inLanguage ? DOMPurify.sanitize(_.startCase(bookData.inLanguage)) : DOMPurify.sanitize(audible.querySelector(".languageLabel").textContent.trimToColon());
         book.format = DOMPurify.sanitize((audible.querySelector(".format") || "").textContent.trimAll());
+        if ( !book.cover && bookData.image ) book.cover = bookData.image;
         
         // Decided against this for now since this would never get updated... It's better if I can do this from the lbirary page....
         // Also couldn't get any results in my test...
