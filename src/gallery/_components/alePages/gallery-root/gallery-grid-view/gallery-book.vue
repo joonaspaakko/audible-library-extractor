@@ -5,7 +5,7 @@
     
     <div class="ale-cover">
       
-      <div class="ale-play-sample" v-if="book.sample && sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
+      <div class="ale-play-sample" v-if="sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
         <div><fa6-solid-play/></div>
       </div>
       <div class="ale-play-sample cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
@@ -97,15 +97,24 @@ export default {
     // },
 
     playSample: function(book, index) {
-      this.$store.commit('prop', { 
-        key: 'audioPlayer.audio', 
-        value: {
-          from: "book",
-          route: this.$route,
-          book: book,
-          index: index
-        } 
-      });
+      
+      if ( !book.sample ) {
+        window.open(`${this.$store.state.urlOrigin}/webplayer?asin=${book.asin}&isSample=true`, '_blank');
+      }
+      else {
+        
+        this.$store.commit('prop', { 
+          key: 'audioPlayer.audio', 
+          value: {
+            from: "book",
+            route: this.$route,
+            book: book,
+            index: index
+          } 
+        });
+        
+      }
+      
     },
     
   }

@@ -15,15 +15,23 @@ export default {
   methods: {
     playSample: function(book, index) {
       
-      this.$store.commit('prop', { 
-        key: 'audioPlayer.audio', 
-        value: {
-          from: "book",
-          route: this.$route,
-          book: book,
-          index: index
-        } 
-      });
+      if ( !book.sample ) {
+        window.open(`${this.$store.state.urlOrigin}/webplayer?asin=${book.asin}&isSample=true`, '_blank');
+      }
+      else {
+        
+        this.$store.commit('prop', { 
+          key: 'audioPlayer.audio', 
+          value: {
+            from: "book",
+            route: this.$route,
+            book: book,
+            index: index
+          } 
+        });
+        
+      }
+      
     }
   },
 };

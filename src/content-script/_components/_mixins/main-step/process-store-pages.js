@@ -147,10 +147,7 @@ export default {
         if (storePageChanged) book.storePageChanged = true;
       }
       
-      // This "#sample-player..." selector tries to weed out missing store pages
-      const foundSample = audible && audible.querySelector("#sample-player-" + book.asin + " > button");
-      const foundPlay = audible && audible.querySelector("#adbl-buy-box-play-now-button");
-      
+      // Don't event try if the page doesn't contain the book asin
       const foundAsin = audible.querySelector(`[data-asin="${book.asin}"]`);
       if ( isTest || foundAsin ) {
         
@@ -194,7 +191,6 @@ export default {
         const length = audible.querySelector(".runtimeLabel");
         book.length = book.length || (length ? vue.shortenLength(length.textContent.trimToColon()) : 0);
         book.categories = vue.getArray( audible.querySelector(".categoriesLabel") ? audible.querySelectorAll(".categoriesLabel > a") : audible.querySelectorAll(".bc-breadcrumb > a") );
-        book.sample = (isTest || !foundSample) ? null : DOMPurify.sanitize( foundSample.getAttribute("data-mp3") );
         book.language = bookData.inLanguage ? DOMPurify.sanitize(_.startCase(bookData.inLanguage)) : DOMPurify.sanitize(audible.querySelector(".languageLabel").textContent.trimToColon());
         book.format = DOMPurify.sanitize((audible.querySelector(".format") || "").textContent.trimAll());
         

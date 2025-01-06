@@ -147,6 +147,7 @@ export default {
         // UPDATE SCAN: fetch these only if the book is a new addition...
         // FULL SCAN: fetch always
         if ( fullScan_ALL_partialScan_NEW ) {
+          
           book.asin = bookASIN;
           
           const coverImg = _thisRow.querySelector('a > img.bc-image-inset-border:first-of-type') ||
@@ -170,6 +171,7 @@ export default {
           book.blurb     = DOMPurify.sanitize(_thisRow.querySelector(".summaryLabel > span").textContent.trimAll());
           const fromPlusCatalog = _thisRow.querySelector('input[value="AudibleDiscovery"]');
           if (fromPlusCatalog) book.fromPlusCatalog = true;
+
         }
         
         

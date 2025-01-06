@@ -4,7 +4,7 @@
                note: it's also visible in the spreadsheet tooltip book details
     -->
     <!-- <gallery-favorite-book   :size="size" :book="book" v-if="book.favorite" /> -->
-    <gallery-sample-button   :size="size" :book="book" v-if="book.sample" />
+    <gallery-sample-button   :size="size" :book="book" />
     <!-- <sampleButton    :size="size" :book="book" :index="rowIndex" /> -->
     <gallery-goodreads-link  :size="size" :book="book" :icon="true" />
     <gallery-open-in-app     :size="size" :book="book" v-if="!tempAsin" />
