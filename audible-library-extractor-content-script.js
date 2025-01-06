@@ -76,7 +76,7 @@ app.config.globalProperties.$dataChecker = function( data, store ) {
   // Later it's fetched again if needed.
   const dataChunks = _.get(data, 'chunks', []);
   const storageHasData = dataChunks.length > 0;
-  console.log( 'dataChunks', dataChunks );
+  
   store.commit('update', [
     { key: 'storageHasData.books', 			 value: dataChunks.indexOf('books') > -1 },
     { key: 'storageHasData.isbn', 			 value: dataChunks.indexOf('isbn') > -1 ? checkISBNs( data ) : false },

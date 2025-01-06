@@ -91,7 +91,7 @@ export default {
                 hotpotato.userReviews = reviews;
                 vue.$store.commit('resetProgress');    
                 
-                console.log( hotpotato.userReviews );
+                // console.log( hotpotato.userReviews );
                 
                 vue.$nextTick(function() {
                   userReviewsFetched(null, hotpotato);
