@@ -151,7 +151,8 @@ export default {
       const foundSample = audible && audible.querySelector("#sample-player-" + book.asin + " > button");
       const foundPlay = audible && audible.querySelector("#adbl-buy-box-play-now-button");
       
-      if ( isTest || foundSample || foundPlay ) {
+      const foundAsin = audible.querySelector(`[data-asin="${book.asin}"]`);
+      if ( isTest || foundAsin ) {
         
         book.storePageMissing = false;
         
