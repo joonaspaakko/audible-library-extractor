@@ -121,6 +121,7 @@ export default createStore({
           kind: 'extra',
         }
       ],
+      slowExtract: false,
     },
   },
 

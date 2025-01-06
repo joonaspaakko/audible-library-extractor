@@ -30,7 +30,10 @@ export default {
       //   }
       // });
       // const axiosLimited = rateLimit(letMeAxiosAQuestion, { maxRPS: 15 });
-      const axiosLimited = rateLimit(letMeAxiosAQuestion, this.$store.state.axiosRateLimit);
+      
+      const limiter = _.cloneDeep(this.$store.state.axiosRateLimit);
+      limiter.maxRequests = _.clamp( limiter.maxRequests * .5, 1, limiter.maxRequests );
+      const axiosLimited = rateLimit(letMeAxiosAQuestion, limiter);
       
       waterfall(
         [

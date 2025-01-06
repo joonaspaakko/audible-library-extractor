@@ -10,7 +10,10 @@ export default {
     amapxios: function(options) {
       
       const vue = this;
-      const limiter = options.rateLimit || this.$store.state.axiosRateLimit;
+      const limiter = _.cloneDeep( options.rateLimit || this.$store.state.axiosRateLimit );
+      if ( vue.$store.state.sticky.slowExtract ) {
+        limiter.maxRequests = _.clamp( limiter.maxRequests * .5, 1, limiter.maxRequests );
+      }
       const maxTimeout = this.minutesToMilliseconds(1);
       
       // AXIOS
@@ -130,7 +133,10 @@ export default {
     chunkAmapxios: function(options) {
       
       const vue = this;
-      const limiter = options.rateLimit || this.$store.state.axiosRateLimit;
+      const limiter = _.cloneDeep( options.rateLimit || this.$store.state.axiosRateLimit );
+      if ( vue.$store.state.sticky.slowExtract ) {
+        limiter.maxRequests = _.clamp( limiter.maxRequests * .5, 1, limiter.maxRequests );
+      }
       const maxTimeout = this.minutesToMilliseconds(1);
       
       // AXIOS

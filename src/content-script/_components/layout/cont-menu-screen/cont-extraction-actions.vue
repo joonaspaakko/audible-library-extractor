@@ -15,6 +15,13 @@
             <input v-if="action.inputEvent" accept=".json" type="file" @change="clickEvent( action, $event )" style="display:none">
           </label>
         </button>
+        <button class="button is-small" @click="$store.commit('update', {  key: 'sticky.slowExtract', value: !store.sticky.slowExtract })">
+          Extract&nbsp;<span v-if="store.sticky.slowExtract">slow</span> <span v-else>fast</span> &nbsp;
+          <mdi-speedometer-slow class="has-text-info" v-if="store.sticky.slowExtract"/>
+          <mdi-speedometer class="has-text-danger" v-else />
+          <!-- <mdi-snail class="has-text-info" v-if="store.sticky.slowExtract"/>
+          <mdi-rabbit class="has-text-danger" v-else /> -->
+        </button>
       </div>
 			
 		</div>
@@ -229,5 +236,14 @@ export default {
 <style scoped src="@node/bulma/css/bulma.css"></style>
 
 <style scoped lang="scss">
-	
+	.button {
+    &, label {
+      display: inline-flex;
+      justify-content: center;
+      align-items: center;
+    }
+    svg {
+      font-size: 1.2em;
+    }
+  }
 </style>
