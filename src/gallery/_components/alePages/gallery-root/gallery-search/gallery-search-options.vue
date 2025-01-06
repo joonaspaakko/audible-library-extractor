@@ -23,6 +23,9 @@
           @vue:mounted="sortersMounted"
           ></gallery-sorter>
         </li>
+        <li v-if="$store.getters.collectionHours" class="duration-text" :content="$store.getters.collectionHours" v-tippy="{ placement: 'top', flipBehavior: ['top', 'left', 'bottom', 'right'] }">
+          <small>{{ $store.getters.collectionDuration }}</small>
+        </li>
       </ul>
       
       <ul>
@@ -454,4 +457,11 @@ export default {
     cursor: pointer;
   }
 } // #search-options
+
+.duration-text {
+  
+  @include themify($themes) {
+    color: rgba(themed(frontColor), 0.6);
+  }
+}
 </style>
