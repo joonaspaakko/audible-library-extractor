@@ -142,10 +142,13 @@ export default {
         
       this.$store.commit("update", { key: 'subStep.step', add: 1 });
       
+      const limiter = _.cloneDeep(this.$store.state.axiosRateLimit);
+      limiter.maxRequests = _.clamp( limiter.maxRequests * .5, 1, limiter.maxRequests );
+      
       const vue = this;
       vue.amapxios({
         requests: requests,
-        // limiter: 100,
+        rateLimit: limiter,
         step: function(response, stepCallback, request) {
           
           request.pageNumbers = vue.getPageNumbers( response );
@@ -189,8 +192,12 @@ export default {
         { key: 'subStep.step', add: 1 },
       ]);
       
+      const limiter = _.cloneDeep(this.$store.state.axiosRateLimit);
+      limiter.maxRequests = _.clamp( limiter.maxRequests * .5, 1, limiter.maxRequests );
+      
       vue.amapxios({
         requests: requestUrls,
+        rateLimit: limiter,
         step: function(response, stepCallback, request) {
                     
           const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
