@@ -1,3 +1,10 @@
+import timeStringToSeconds from "@output-mixins/gallery-timeStringToSeconds.js";
+import secondsToTimeString from "@output-mixins/gallery-secondsToTimeString.js";
+import { 
+  intervalToDuration as dateFns_intervalToDuration,
+  formatDuration as dateFns_formatDuration,
+  
+} from "date-fns";
 
 export default {
   sortValues: function( state ) {
@@ -49,6 +56,34 @@ export default {
       return state.mutatingCollection;
     }
   },
+  
+  collectionDuration_inSeconds( state, getters) {
+    
+    return _.sumBy( getters.collection, ( book ) => {
+      const length = book.length ? timeStringToSeconds.methods.timeStringToSeconds(book.length) : 0;
+      return length;
+    });
+    
+  },
+  
+  collectionDuration( state, getters ) {
+    
+    const milliseconds = getters.collectionDuration_inSeconds * 1000;
+    const durationObj = dateFns_intervalToDuration({ start: 0, end: milliseconds });
+    return dateFns_formatDuration( durationObj );
+    
+  },
+    
+  collectionHours( state, getters ) {
+      
+    if ( !getters.collectionDuration_inSeconds ) return;
+    
+    const hours = secondsToTimeString.methods.secondsToTimeString(getters.collectionDuration_inSeconds, true);
+    
+    return (hours||'').trim();
+    
+  },
+  
   saveStandaloneAfter: function( state ) {
 
     let extraSettings = _.get( state, 'extractSettings.extraSettings' );

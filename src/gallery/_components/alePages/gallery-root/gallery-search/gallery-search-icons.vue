@@ -1,6 +1,6 @@
 <template>
   <div class="icons">
-    <div class="icon-wrap" v-tippy="{ trigger: 'click mouseenter' }" :content="'Items in current selection: <strong>'+ $store.getters.collection.length +'</strong> / <strong>' + $store.getters.collectionTotal +'</strong>.' + (!selectionHours ? '' : '<br> That amounts to: ' + selectionHours + '. ') + ($route.name === 'series' ? 'Owned books only!' : '')">
+    <div class="icon-wrap" v-tippy="{ trigger: 'click mouseenter' }" :content="'Items in current selection: <strong>'+ $store.getters.collection.length +'</strong> / <strong>' + $store.getters.collectionTotal +'</strong>.' + (!$store.getters.collectionHours ? '' : '<br> That amounts to: ' + $store.getters.collectionHours + ' ' + `or ${$store.getters.collectionDuration}.`) + ' ' + ($route.name === 'series' ? 'Owned books only!' : '')">
       <div class="book-in-selection">
         <div class="inner-wrap">
           {{ $store.getters.collection.length }}
@@ -29,13 +29,9 @@
 </template>
 
 <script>
-import secondsToTimeString from "@output-mixins/gallery-secondsToTimeString.js";
-import timeStringToSeconds from "@output-mixins/gallery-timeStringToSeconds.js";
-
 export default {
   name: "searchIcons",
   props: ["listName"],
-  mixins: [secondsToTimeString, timeStringToSeconds],
   data: function() {
     return {
       items: [
@@ -77,19 +73,6 @@ export default {
         return this.showIcon( item );
       });
     },
-    
-    selectionHours() {
-      
-      let result = _.sumBy( this.$store.getters.collection, ( book ) => {
-        const length = book.length ? this.timeStringToSeconds(book.length) : 0;
-        return length;
-      });
-      
-      if ( result ) result = this.secondsToTimeString(result, true);
-      
-      return (result||'').trim();
-      
-    }
     
   },
   
