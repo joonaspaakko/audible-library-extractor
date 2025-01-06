@@ -31,7 +31,12 @@ export default {
             if ( _.get(book, 'requestUrl') ) delete book.requestUrl;
             if (!hotpotato.config.test) vue.$store.commit('update', { key: 'progress.text2', value: _.get(book, 'title') });
             
-            if ( response && response.status >= 200 &&response.status < 400 ) {
+            let status = _.get(response, 'status');
+                status = status ? _.toNumber(status) : 0;
+            
+            const statusOk = _.inRange( status, 200, 400-1 );
+            
+            if ( statusOk ) {
               vue.getStorePageData(response, book, hotpotato.config.test);
             } 
             else if ( !!book ) {
@@ -102,9 +107,35 @@ export default {
       
       var html = $($.parseHTML(response.data));
       const audible = html.find("div.adbl-main")[0];
-      let jsonData = html.find("#bottom-0 > script:first")[0];
-      if (jsonData) jsonData = JSON.parse(jsonData.textContent);
-      const bookData = jsonData ? jsonData[0] : {};
+      
+      const bookData = (( html ) => {
+        
+        const jsonElements = html.find("#bottom-0").children();
+        
+        // Combine json arrays
+        // [ { author: 'Jim' } ] + [ { author: 'Earl', releaseDate: 3 } ] => [ { author: 'Jim' }, { author: 'Earl', releaseDate: 3 } ]
+        let arrays = [];
+        jsonElements.each((index, item) => {
+          const text = $(item).text();
+          if ( text ) {
+            const json = JSON.parse(text);
+            arrays = _.concat( arrays, _.castArray(json) );
+          }
+        });
+        
+        // Combine objects
+        // [ { author: 'Jim' }, { author: 'Earl', releaseDate: 3 } ] => { author: 'Earl', releaseDate: 3 }
+        // - Objects with identical props get overwritten. In the example author 'Jim' is overwritten by 'Earl'
+        // - The example aside, the expectation is that if there are any repeating property keys, the value is the same.
+        const combinedData = {};
+        _.each( arrays, ( object ) => {
+          _.merge(combinedData, object);
+        });
+        
+        return combinedData;
+        
+      })( html );
+      
       html = null;
     
       response.data = null;
