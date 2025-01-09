@@ -27,6 +27,9 @@ export default {
           maxSize: 20,
           done: function(prep) {
           
+            // Debug: extract specific pages only
+            // prep.pageNumbers = [1];
+            
             const requestURL = prep.urlObj.toString();
             vue.amapxios({
               requests: _.map(prep.pageNumbers, function(page) {
