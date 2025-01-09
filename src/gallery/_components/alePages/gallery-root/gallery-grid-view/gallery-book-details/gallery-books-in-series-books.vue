@@ -98,11 +98,11 @@ export default {
       else if ( book.plus && book.notInLibrary ) {
         return 'fa-solid fa-circle-plus';
       }
-      else if ( book.notInLibrary ) {
-        return 'fa-solid fa-ban';
-      }
       else if (book.inWishlist) {
         return 'fa-solid fa-hand-holding-heart';
+      }
+      else if ( book.notInLibrary ) {
+        return 'fa-solid fa-ban';
       }
       else {
         const classes = this.numbersClass(book);

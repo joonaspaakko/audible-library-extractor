@@ -155,6 +155,7 @@ export default {
                     obj: wishlistBook,
                     bookNumbers: book.bookNumbers,
                     inWishlist: true,
+                    notInLibrary: true,
                   }
                 }
                 else {
