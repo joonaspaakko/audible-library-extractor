@@ -130,14 +130,14 @@
               
             </div>
             
-            <component v-if="!store.animatedWallpaperMode" is="style">
+            <component v-if="!store.animatedWallpaperMode" is="style" class="cover-dynamic-sizes">
               .cover {
                 padding: {{ ( paddingSizeNumber > -1 ?  store.paddingSize : 0) }}px !important;
                 opacity: {{ store.coverOpacityEnabled ? store.coverOpacity : 1 }} !important;
               }
               .cover .cover-img {
-                width: {{ store.coverSize > 0 ? store.coverSize : 0 }}px !important;
-                height: {{ store.coverSize > 0 ? store.coverSize : 0 }}px !important;
+                width:  {{ clampedCoverSize }}px !important;
+                height: {{ clampedCoverSize }}px !important;
               }
               .cover .cover-heart-icon {
                 height: {{ coverIconSize }}px !important;
@@ -148,14 +148,10 @@
               .cover .cover-star-icons svg {
                 font-size: {{ coverIconSize }}px !important;
                 line-height: {{ coverIconSize }}px !important;
-                filter: drop-shadow( 0 1px 3px rgba(0,0,0, .8) );
+                {{ showStarShadow ? 'filter: drop-shadow( 0 1px 3px rgba(0,0,0, .8) );' : '' }}
               }
               .cover .cover-star-icons {
-                height: {{ coverIconSize-4 }}px !important;
-              }
-              .cover .cover-star-icons {
-                /* {{ store.paddingSize }} - {{ paddingSizeNumber > 5 }} */
-                bottom: {{ (paddingSizeNumber > 0) ? (paddingSizeNumber > 7 ? -paddingSizeNumber*1.2 : -paddingSizeNumber) : 12 }}px !important;
+                bottom: {{ coverStarIconsOffset }}px !important;
               }
               .cover img {
                 border-radius: {{ Math.floor(store.borderRadius * 100) }}% !important;
@@ -184,6 +180,7 @@ import {
   darkTheme, 
   NAlert,
 } from 'naive-ui';
+import { subtract } from 'lodash';
 
 export default {
   name: "editorCanvas",
@@ -255,12 +252,27 @@ export default {
       return parseFloat( this.store.paddingSize );
     },
     
+    clampedCoverSize : function() {
+      return _.clamp( this.store.coverSize, 0, Infinity ); 
+    },
+    
     coverIconSize: function() {
+      return _.clamp( this.store.coverSize/7.3, 0, Infinity ); 
+    },
+    
+    coverStarIconsOffset: function() {
       
-      const coverMatchedSize = this.store.coverSize/7.3; 
-      const min = 13;
-      return coverMatchedSize < min ? min : coverMatchedSize;
+      const starSize  = this.coverIconSize * .9; 
+      const initValue = starSize/9;
       
+      let value = _.subtract( initValue, this.paddingSizeNumber * 1.4 );
+          value = _.clamp( value, -(starSize * 1.3), initValue );
+      
+      return value; 
+    },
+    
+    showStarShadow: function() {
+      return this.coverStarIconsOffset > -this.coverIconSize; 
     },
     
     draggableCovers: {
