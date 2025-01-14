@@ -57,6 +57,7 @@ export default {
           });
         });
         requests = _.uniqBy(requests, "asin");
+        requests = _.reject(requests, { asin: _.isNill });
         
         // START MAKING CALLS
         waterfall(
