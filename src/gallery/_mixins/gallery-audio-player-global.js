@@ -259,7 +259,7 @@ export default {
     updateCurrent() {
       
       var seek = this.howler.seek() || 0;
-      var duration =  this.howler.duration() || 0;
+      var duration =  this.howler.duration() || 0;
       this.howler.current.time = seek;
       this.howler.current.timeDisplay = this.formatTime(Math.round(seek));
       this.howler.current.timeDisplayLeft = this.formatTime(Math.round(duration - seek));

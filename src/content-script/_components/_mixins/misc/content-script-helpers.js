@@ -187,7 +187,7 @@ export default {
     },
 
     makeFrenchFries: function(hotpotato) {
-      hotpotato.extras = hotpotato.extras || {};
+      hotpotato.extras = hotpotato.extras || {};
       hotpotato.extras['domain-extension'] = hotpotato.extras['domain-extension'] || this.domainExtension;
 
       hotpotato.chunks = [];

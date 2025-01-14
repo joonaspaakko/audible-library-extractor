@@ -135,7 +135,8 @@ export default {
         let book = vue.$store.state.storageHasData.books && bookInMemory ? bookInMemory : {};
         
         // Always pass over old ISBNs
-        if ( bookInMemory && bookInMemory.isbns ) book.isbns = bookInMemory.isbns;
+        const oldIsbns = _.get(bookInMemory, 'isbns');
+        if ( oldIsbns ) book.isbns = oldIsbns;
         
         let storePageLink;
         if ( rowItem.is.podcast ) storePageLink = _thisRow.querySelector(".adbl-episodes-link > a");
