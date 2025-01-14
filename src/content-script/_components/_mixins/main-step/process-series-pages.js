@@ -144,7 +144,7 @@ export default {
       this.$store.commit("update", { key: 'subStep.step', add: 1 });
       
       const limiter = _.cloneDeep(this.$store.state.axiosRateLimit);
-      limiter.maxRequests = _.clamp( limiter.maxRequests * .5, 1, limiter.maxRequests );
+      limiter.maxRequests = _.clamp( limiter.maxRequests * .6, 1, limiter.maxRequests );
       
       const vue = this;
       vue.amapxios({
@@ -194,7 +194,7 @@ export default {
       ]);
       
       const limiter = _.cloneDeep(this.$store.state.axiosRateLimit);
-      limiter.maxRequests = _.clamp( limiter.maxRequests * .5, 1, limiter.maxRequests );
+      limiter.maxRequests = _.clamp( limiter.maxRequests * .8, 1, limiter.maxRequests );
       
       vue.amapxios({
         requests: requestUrls,
