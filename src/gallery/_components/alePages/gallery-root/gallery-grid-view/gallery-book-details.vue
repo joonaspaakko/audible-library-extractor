@@ -47,7 +47,7 @@
           <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
         </div>
         
-        <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }" v-touch:swipe.left="swipeHandler" v-touch:swipe.right="swipeHandler">
+        <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">
           <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
             
             <div class="collapse-btn" 
