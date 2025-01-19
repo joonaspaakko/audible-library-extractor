@@ -13,17 +13,70 @@ export default {
       changeLog: [
         {
           version: 'v.0.2.11',
-          highlights: `Requires a full library extraction to fix number of ratings. Wishlist should update them just fine with just the partial extraction.`,
+          highlights: `This mostly ended up being a bug fix release. It's recommended to remove all extracted data and do a full extraction after updating to this version. You may want to export raw data beforehand just to be safe.`,
           changes: [
+            {
+              description: `Added new audible domains to the extraction whitelist: ".es" and ".com.br"`,
+              class: 'added',
+            },
+            {
+              description: `Because of this issue where the extraction was interrupted and you were subsequently banned for the next 10-15 mintues I added a new button in the extraction settings where you may toggle on slow extraction that could help with such issues in the future. I also slowed down series extraction so that the regular (fast) extraction would work better. It might also make sense to try extracting library and wishlist separately.`,
+              class: 'added',
+              link: issue(110),  
+            },
+            {
+              description: `The filter list now shows duration in years, months and days. Hovering over it shows what that is in hours. The duration is calculated from book length, which obviously doesn't count for re-listens, and discontinued don't have the data to calculate that.`,
+              class: 'improved',
+            },
+            {
+              description: `Some fields are no longer being extracted from the website.`,
+              class: 'fixed',
+              link: issue(154), 
+            },
+            {
+              description: `Wishlist extraction doesn't work.`,
+              class: 'fixed',
+              link: issue(152), 
+            },
+            {
+              description: `No Extraction Button.`,
+              class: 'fixed',
+              link: issue(151), 
+            },
+            {
+              description: `Newly added items have no thumbnail when extracted.`,
+              class: 'fixed',
+              link: issue(150), 
+            },
+            {
+              description: `Ratings" only captures the first digit.`,
+              class: 'fixed',
+              link: issue(147), 
+            },
+            {
+              description: `Wallpaper Creator: star rating flowing into the next row, if cover size is relatively small.`,
+              class: 'fixed',
+              link: issue(145), 
+            },
+            {
+              description: `Gallery (mobile): scroll swiping doesn't always work.`,
+              class: 'fixed',
+              link: issue(144), 
+            },
+            {
+              description: `Gallery wishlist: pre-order book covers seem to be missing.`,
+              class: 'fixed',
+              link: issue(142), 
+            },
             {
               description: `Gallery sorting sometimes highlights the wrong item.`,
               class: 'fixed',
               link: issue(141), 
             },
             {
-              description: `Not extracting wishlist pre-order covers.`,
-              class: 'fixed',
-              link: issue(142), 
+              description: `Extract user's own written reviews. There's a filter in the gallery for books you've reviewed and theres a button above summary if your review is avaiable for the book in question.`,
+              class: 'added',
+              link: issue(140, 'added'), 
             },
             {
               description: `Wishlist price sorter.`,
@@ -44,6 +97,11 @@ export default {
               description: `Number of ratings extracted with faulty data.`,
               class: 'fixed',
               link: issue(134), 
+            },
+            {
+              description: `Book details: my books in the series list's owned counter counts wishlist books as owned.`,
+              class: 'fixed',
+              link: issue(131), 
             },
           ],
         },
