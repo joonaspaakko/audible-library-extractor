@@ -8,7 +8,7 @@
     <div
     class="single-box"
     :data-category="parent.name"
-    v-for="(parent, index) in categories"
+    v-for="(parent, parentCategoryIndex) in categories"
     :key="parent.name"
     >
     
@@ -36,7 +36,7 @@
       
       <gallery-categories-page-random-thumbnails v-if="parent && parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" />
       
-      <gallery-categories-page-tags v-if="parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" />
+      <gallery-categories-page-tags v-if="parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" :parentCategoryIndex="parentCategoryIndex" />
 
     </div> <!-- .single-box -->
     

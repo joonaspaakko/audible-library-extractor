@@ -5,7 +5,8 @@
 		:class="{ 'tags-open': showTags, 'tags-closed': !showTags }"
 	>
 		
-		<div class="tags-toggle-btn" @click="showTags = !showTags">Tags 
+		<div class="tags-toggle-btn" @click="showTags = !showTags">
+			Tags ({{ tagGroups.length }}) 
 			<mdi-chevron-right v-if="!showTags" />
 			<mdi-chevron-down v-else />
 		</div>
@@ -40,7 +41,7 @@
 
 <script>
 export default {
-	props: ['parent','books', 'subPageSource'],
+	props: ['parent','books', 'subPageSource', 'parentCategoryIndex'],
 	data() {
 		return {
 			showTags: false,
@@ -48,12 +49,46 @@ export default {
 		}
 	},
 	
+	watch: {
+		showTags( open ) {
+			
+			let currentlyOpen = this.getOpenTags();
+			
+			// Remove
+			_.remove(currentlyOpen, tag => tag == this.parentCategoryIndex);
+			// Add			
+			if ( open )  {
+				currentlyOpen = currentlyOpen.concat([ this.parentCategoryIndex ]);
+			}
+			
+      this.$updateQueries({ tagsOpen: currentlyOpen.join(',') });
+			
+		},
+	},
+	
 	created() {
 		
+		// Reopen previously open tags on page load
+		let currentlyOpen = this.getOpenTags();
+		this.showTags = _.includes( currentlyOpen, _.toString(this.parentCategoryIndex) );
+		
+		// Compile tag groups from all books → book.tags
 		this.getTagGroups();
 		
 	},
+	
 	methods: {
+		
+		getOpenTags() {
+			
+			let currentlyOpen = this.$route.query.tagsOpen || '';
+					currentlyOpen = currentlyOpen.split(',');
+					currentlyOpen = _.compact(currentlyOpen);
+					
+			return currentlyOpen;
+			
+		},
+		
 		getTagGroups() {
 			
 			let tags = [];
