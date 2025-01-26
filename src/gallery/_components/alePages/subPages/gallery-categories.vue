@@ -34,12 +34,11 @@
         </div>
       </div>
       
-      <div class="sample-covers">
+      <div class="sample-covers" v-if="parent && parent.books">
         <div
-        class="sample-cover"
-        v-if="parent && parent.books"
-        v-for="(book, index) in getRandomBooks(parent.books, 5)"
-        :key="book.asin"
+          class="sample-cover"
+          v-for="(book, index) in getRandomBooks(parent.books, 5)"
+          :key="book.asin"
         >
           <router-link :to="{ 
             name: 'category', 
@@ -79,8 +78,15 @@ export default {
   methods: {
     
     getRandomBooks: function(books, number) {
-      let booksWithCategories = _.filter(books, function( book ) { return (book.categories && book.categories.length > 1) && book.cover });
+      
+      // Filter out books that can't be used a thumbnail
+      let booksWithCategories = _.filter(books, function( book ) { 
+        return _.first(book.categories) && book.cover 
+      });
+      
+      // Return a small number of random books to display from each parent category.
       return _.sampleSize(booksWithCategories, number);
+      
     },
     
     makeCollection: function() {
