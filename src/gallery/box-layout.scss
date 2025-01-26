@@ -101,12 +101,15 @@
     box-sizing: border-box !important;
   }
   
-  .child-categories {
+  .child-categories,
+  .category-tags {
     margin-bottom: 15px;
     font-size: .9em;
     line-height: 1.12em;
   }
-  .child-categories > div {
+  
+  .child-categories > div,
+  .category-tags > div {
     display: inline-block; 
     padding-right: 5px;
     a {

@@ -27,6 +27,7 @@ export default {
           const childCategoryName = _.get(categoryBooks, '0.categories.1.name');
           if ( parentCategoryName ) this.pageTitle = this.$store.commit('prop', { key: 'pageTitle', value: parentCategoryName });
           if ( childCategoryName && category.child ) this.$store.commit('prop', { key: 'pageSubTitle', value: childCategoryName });
+          else if ( this.$route.query.tagTitle ) this.$store.commit('prop', { key: 'pageSubTitle', value: this.$route.query.tagTitle });
         }
         
         // Just thinking about things... 

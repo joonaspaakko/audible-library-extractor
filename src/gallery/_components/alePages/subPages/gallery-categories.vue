@@ -30,7 +30,7 @@
             {{ child.name }}
           </router-link>
           <span v-else></span>
-          <span v-if="child.books" class="number-of-books">({{ child.books.length }})</span>
+          <span v-if="child.books" class="number-of-books">&nbsp;({{ child.books.length }})</span>
         </div>
       </div>
       
@@ -53,6 +53,8 @@
         </div>
       </div>
       
+      <gallery-categories-page-tags v-if="parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" />
+
     </div> <!-- .single-box -->
     
   </div>
