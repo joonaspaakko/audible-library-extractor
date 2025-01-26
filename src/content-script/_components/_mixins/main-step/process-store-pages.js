@@ -313,7 +313,38 @@ export default {
         
         // GET CATEGORIES
         // From data
-        if ( bookData.categories ) {
+        if ( bookData.itemListElement ) {
+          
+          const bdListElements = [];
+          _.each( bookData.itemListElement, ( category ) => {
+            
+            // Ignore items that don't have an item
+            const item = _.get(category, 'item');
+            if ( !item ) return;
+            // Ignore items that don't have a name
+            const name = item.name || '';
+            if ( !name )  return;
+            // Ignore item called "Home"
+            const home = name.match(/home/im);
+            if ( home )  return;
+            
+            const url = _.get(item, '@id');
+            
+            bdListElements.push({
+              name: name,
+              url : _.get( url.match(/\/cat\/.+\/(\d+)/im), '1'), // uri becomes category id and nothing else
+            });
+              
+          });
+          
+          if ( bdListElements.length ) {
+            book.categories = bdListElements;
+          }
+          
+        }
+        
+        // From data (again)
+        if ( bookData.categories && !_.get(book.categories, '1') ) {
           const bdCategories = _.castArray(bookData.categories);
           if ( bdCategories.length ) {
             book.categories = _.map( bdCategories, ( category ) => {
@@ -325,7 +356,7 @@ export default {
           }
         }
         // From DOM
-        else {
+        if ( !_.get(book.categories, '1') ) {
           const domCategories = audible.querySelector(".categoriesLabel") ? audible.querySelectorAll(".categoriesLabel > a") : audible.querySelectorAll(".bc-breadcrumb > a");
           if ( domCategories ) book.categories = vue.getArray( domCategories );
         }

@@ -12,6 +12,17 @@ export default {
       
       changeLog: [
         {
+          version: 'v.0.2.12',
+          highlights: `Full extraction recommended in order to extract subcategories.`,
+          changes: [
+            {
+              description: `Fixed a bug where the sub category was not extracted.`,
+              class: 'fixed',
+              link: issue(157), 
+            },
+          ],
+        },
+        {
           version: 'v.0.2.11',
           highlights: `This mostly ended up being a bug fix release. It's recommended to remove all extracted data and do a full extraction after updating to this version. You may want to export raw data beforehand just to be safe.`,
           changes: [
