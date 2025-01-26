@@ -34,24 +34,7 @@
         </div>
       </div>
       
-      <div class="sample-covers" v-if="parent && parent.books">
-        <div
-          class="sample-cover"
-          v-for="(book, index) in getRandomBooks(parent.books, 5)"
-          :key="book.asin"
-        >
-          <router-link :to="{ 
-            name: 'category', 
-            params: { 
-              parent: book.categories[0] ? slugify(book.categories[0].name) : null, 
-              child:  book.categories[1] ? slugify(book.categories[1].name) : null 
-            }, 
-            query: { book: book.asin, subPageSource: subPageSource.name }
-          }">
-            <img crossorigin="anonymous" :src="makeCoverUrl(book.cover)" alt="" />
-          </router-link>
-        </div>
-      </div>
+      <gallery-categories-page-random-thumbnails v-if="parent && parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" />
       
       <gallery-categories-page-tags v-if="parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" />
 
@@ -62,12 +45,11 @@
 
 <script>
 import slugify from "@output-mixins/gallery-slugify.js";
-import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 import findSubPageSource from "@output-mixins/gallery-findSubPageSource.js";
 
 export default {
   name: "aleCategories",
-  mixins: [slugify, makeCoverUrl, findSubPageSource],  
+  mixins: [slugify, findSubPageSource],  
   data: function() {
     return {
       categories: null,
@@ -78,18 +60,6 @@ export default {
   },
   
   methods: {
-    
-    getRandomBooks: function(books, number) {
-      
-      // Filter out books that can't be used a thumbnail
-      let booksWithCategories = _.filter(books, function( book ) { 
-        return _.first(book.categories) && book.cover 
-      });
-      
-      // Return a small number of random books to display from each parent category.
-      return _.sampleSize(booksWithCategories, number);
-      
-    },
     
     makeCollection: function() {
       
