@@ -2,6 +2,11 @@ export default {
   methods: {
     slugify: function(string) {
       
+      if (!string) {
+        console.error( 'Failed to slugify string:', 'type:', typeof string, 'string:', string );
+        return "";
+      }
+      
       const a =
         "àáâäæãåāăąçćčđďèéêëēėęěğǵḧîïíīįìłḿñńǹňôöòóœøōõőṕŕřßśšşșťțûüùúūǘůűųẃẍÿýžźż·/_,:;";
       const b =
