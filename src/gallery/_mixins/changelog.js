@@ -16,6 +16,21 @@ export default {
           highlights: `Full extraction recommended in order to extract subcategories.`,
           changes: [
             {
+              description: `Fixed publisher subpage in the gallery failing to open if any book is missing publishers.`,
+              class: 'fixed',
+              link: issue(160), 
+            },
+            {
+              description: `Fixed randomized thumbnail missing from gallery allery categories page if subcategory is missing from book data.`,
+              class: 'fixed',
+              link: issue(159), 
+            },
+            {
+              description: `Added tags to gallery categories page.`,
+              class: 'fixed',
+              link: issue(158), 
+            },
+            {
               description: `Fixed a bug where the sub category was not extracted.`,
               class: 'fixed',
               link: issue(157), 
