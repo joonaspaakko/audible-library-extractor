@@ -209,9 +209,8 @@ export default {
       
     });
     
-    
-      window.addEventListener('touchstart', this.touchStart);
-      window.addEventListener('touchmove', this.preventTouch, {passive: false});
+    // window.addEventListener('touchstart', this.touchStart);
+    // window.addEventListener('touchmove', this.preventTouch, {passive: false});
       
   },
 
@@ -233,8 +232,8 @@ export default {
     const bookDetailsEl = document.querySelector('#ale-bookdetails');
     if ( bookDetailsEl ) bookDetailsEl.remove();
     
-      window.removeEventListener('touchstart', this.touchStart);
-      window.removeEventListener('touchmove', this.preventTouch, {passive: false});
+    // window.removeEventListener('touchstart', this.touchStart);
+    // window.removeEventListener('touchmove', this.preventTouch, {passive: false});
       
   },
 
