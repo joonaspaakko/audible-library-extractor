@@ -20,6 +20,11 @@
         &nbsp;
         Re-read book
       </button>
+      <button class="remove-cover" @click="$store.commit('removeCover', store.coverActions.asin)">
+        <fa-solid-trash-alt style="color: #ff4136;" />
+        &nbsp;
+        Remove book
+      </button>
     </div>
     
     <div class="show-blank-canvas" v-show="store.saving"></div>
@@ -733,6 +738,9 @@ export default {
     outline: none;
     border: 2px solid #31b1ff;
     cursor: pointer;
+  }
+  button + button {
+    margin-left: 10px;
   }
   .remove-all-reread {
     svg {
