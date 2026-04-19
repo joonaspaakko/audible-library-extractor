@@ -52,6 +52,7 @@ export default {
       inLibrary: null,
       notInLibrary: null,
     },
+    useHaptics: false,
   },
   // States that don't persist
   bookDetailSettingsOpen: false,

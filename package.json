@@ -33,6 +33,7 @@
     "fuse.js": "^6.6.2",
     "howler": "^2.2.3",
     "html-to-image": "^1.11.4",
+    "ios-haptics": "^0.1.4",
     "jquery": "^3.6.1",
     "jszip": "^3.10.1",
     "jszip-utils": "^0.1.0",

@@ -7,7 +7,7 @@
   <div id="mobile-menu-floaters" :class="{ mobile: mobileMenuOpen }">
     <div class="second-row">
       
-      <div v-if="$store.state.searchMounted && !mobileMenuOpen" class="search-btn" @click="$emit('startSearching')"
+      <div v-if="$store.state.searchMounted && !mobileMenuOpen" class="search-btn" @mousedown="$haptic(1)" @click="$emit('startSearching')"
         :style="{ top: showMobilePlayerButton ? '-93px' : '-46px' }"
       >
         <fa-solid-search/>
@@ -26,7 +26,7 @@
       
       <gallery-back-forward-btns v-if="$store.state.displayMode && !mobileMenuOpen" />
       
-      <div class="burger-menu" @click="$emit('update:mobileMenuOpen', !mobileMenuOpen)">
+      <div class="burger-menu" @click="menuClicked">
         <fa-solid-bars class="brgr-btn" />
         <!-- <div class="player-open-indicator" v-if="$store.state.playingAudio">
           <fa-solid-music class="brgr-btn" />
@@ -52,6 +52,13 @@ export default {
     showMobilePlayerButton() {
       return !this.mobileMenuOpen && this.mobileThreshold && !this.store.showMobilePlayer && this.store.audioPlayer.audio;
     },
+  },
+  
+  methods: {
+    menuClicked() {
+      this.$haptic(1);
+      this.$emit('update:mobileMenuOpen', !this.mobileMenuOpen);
+    }
   },
   
 };

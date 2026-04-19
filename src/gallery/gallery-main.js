@@ -24,6 +24,33 @@ app.config.globalProperties.$compEmitter = new mitt();
 // VUEX store
 import store from "@output-modules/store/gallery-store-index.js";
 app.use(store);
+// Mobile haptics
+import { haptic } from 'ios-haptics';
+app.config.globalProperties.$haptic = ( number ) => {
+  
+  if ( !store.state.sticky.useHaptics ) return;
+  
+  try {
+    switch ( number ) {
+      case 1:
+        haptic();
+        break;
+      
+      case 2:
+        haptic.confirm();
+        break;
+      
+      case 3:
+        haptic.error();
+        break;
+        
+      default:
+        haptic();
+        break;
+    }
+  } catch (e) {}
+  
+};
 // VUE TIPPY
 import VueTippy from "vue-tippy";
 import tippySettings from './_plugins/gallery-tippy-settings.js';
