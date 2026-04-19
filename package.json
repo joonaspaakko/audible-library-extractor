@@ -8,10 +8,12 @@
     "dev2": "yarn vite build --watch",
     "build": "gallerySingleFile=true yarn vite build && wallpaperSingleFile=true yarn vite build && yarn vite build && node zipper.js",
     "build1": "yarn vite build",
-    "preview": "yarn vite preview --port 4173"
+    "preview": "yarn vite preview --port 4173",
+    "clean-install": "rm -rf node_modules yarn.lock && yarn install",
+    "backup-lock": "cp yarn.lock yarn.lock.backup"
   },
   "dependencies": {
-    "@crxjs/vite-plugin": "^2.0.2",
+    "@crxjs/vite-plugin": "^2.4.0",
     "@fortawesome/fontawesome-free": "^6.2.0",
     "@meforma/vue-toaster": "^1.3.0",
     "@panzoom/panzoom": "^4.5.1",
@@ -62,7 +64,6 @@
     "naive-ui": "^2.40.4",
     "picocolors": "^1.1.1",
     "rollup-plugin-copy": "^3.5.0",
-    "rollup-plugin-node-builtins": "^2.1.2",
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-visualizer": "^6.0.3",
     "sass": "~1.55.0",
@@ -70,10 +71,9 @@
     "unplugin-vue-components": "^0.28.0",
     "vfonts": "^0.0.3",
     "vite": "^5.2.0",
-    "vite-plugin-ejs": "v1.6.4",
+    "vite-plugin-ejs": "^1.7.0",
     "vite-plugin-singlefile": "^2.1.0",
     "vite-plugin-static-copy": "^2.2.0",
-    "yarn-audit-fix": "^10.0.7",
     "zip-a-folder": "^3.1.8"
   }
 }

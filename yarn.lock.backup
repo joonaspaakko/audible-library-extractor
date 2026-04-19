@@ -65,7 +65,7 @@
   dependencies:
     "@egjs/component" "^3.0.2"
 
-"@crxjs/vite-plugin@^2.4.0":
+"@crxjs/vite-plugin@^2.0.2":
   version "2.4.0"
   resolved "https://registry.yarnpkg.com/@crxjs/vite-plugin/-/vite-plugin-2.4.0.tgz#c1fdf2cb93d3c8fda6ce64bd0334c73fefa4aebc"
   integrity sha512-bDLdq0W2V1SkMQDJjrcYyjK9/uKtdl4joT7GRImcootCjZdKRiRYt+cv9z8tJoU/tK3o1lX48LTqN7JMsk5AQg==
