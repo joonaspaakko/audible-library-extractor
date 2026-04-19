@@ -19,7 +19,7 @@ export default {
           { key: 'subStep.max', value: 4 },
           { key: 'progress.step', value: 0 },
           { key: 'progress.max', value: 0 },
-          { key: 'progress.text', value: this.$store.state.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..." },
+          { key: 'progress.text', value: this.$store.state.storageHasData.books ? "Adding new books " : "Scanning library for books..." },
         ]);
         
         vue.scrapingPrep({
@@ -80,6 +80,8 @@ export default {
                      
                   // });
                   
+                  vue.$store.commit('update', { key: 'progress.textsuffix', value: null });
+
                   hotpotato.config.getStorePages = 'books';
                   vue.$nextTick(function() {
                     libraryPagesFetched(null, hotpotato);
@@ -284,6 +286,12 @@ export default {
           book.isNewThisRound = true;
           vue.$store.commit('update', { key: 'progress.max', add: 1 });
         }
+        else if ( vue.$store.state.storageHasData.books ) {
+          let previousTotal = (vue.$store.state.progress.textsuffix || '').match(/\d+/im);
+              previousTotal = _.first(previousTotal) || 0;
+          const booksTotal = _.toNumber(previousTotal) + 1;
+          vue.$store.commit('update', { key: 'progress.textsuffix', value: 'Updating old books ' + booksTotal });
+        }        
         
         books.push(book);
         
