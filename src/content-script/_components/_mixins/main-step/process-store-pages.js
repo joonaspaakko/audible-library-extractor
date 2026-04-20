@@ -417,6 +417,7 @@ export default {
               // Match 3rd path segment → /.../.../(...)? 
               asin: _.get( series.url.match(/\/.+\/.+\/(.+)\?/im), '1'),
               name: series.name,
+              url: series.url && series.url.split('?')[0],
               // 1. Make sure it's a string.
               // 2. Remove non-number prefix "Book ".
               // 3. Remove trailing whitespace (Just in case)
@@ -429,7 +430,7 @@ export default {
         }
         // From DOM
         else if ( !book.series ) {
-          book.series = vue.getSeries(audible.querySelector(".seriesLabel"));
+          book.series = vue.getSeries(audible.querySelector(".seriesLabel"), { getUrl: true });
         }
         
         // GET WHISPER SYNC
