@@ -93,7 +93,8 @@ export default {
       }
     },
 
-    getSeries: function(element, reverse) {
+    getSeries: function(element, params = {}) {
+      
       const series = [];
       if (element) {
         const html = DOMPurify.sanitize( $(element).html() );
@@ -111,8 +112,8 @@ export default {
             let url = new Url( titleRow );
             series.push({
               name: string,
-              // url: url, // Url formed using the asin instead to minimize data size
-              asin: reverse ? url.query.asin : url.path.substring(url.path.lastIndexOf("/") + 1),
+              ...(params.getUrl && { url: url.path }), // This should be discarded later....
+              asin: params.reverse ? url.query.asin : url.path.substring(url.path.lastIndexOf("/") + 1),
             });
             
           } 
@@ -128,7 +129,15 @@ export default {
           
         });
       }
-      return series.length > 0 ? (reverse ? series.reverse() : series) : null;
+      
+      // Return nothing
+      if (!series.length) return null;
+      
+      // Sort
+      if ( params.reverse ) series.reverse();
+      // Return series
+      return series;
+      
     },
 
     getArray: function(elements) {
