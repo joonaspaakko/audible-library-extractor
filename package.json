@@ -28,6 +28,7 @@
     "dompurify": "^3.0.5",
     "domurl": "^2.3.4",
     "downloadjs": "^1.4.7",
+    "fflate": "^0.8.2",
     "file-saver": "^2.0.5",
     "fitty": "^2.3.6",
     "fuse.js": "^6.6.2",

@@ -19,7 +19,8 @@
   "permissions": [
     "storage",
     "unlimitedStorage",
-    "contextMenus"
+    "contextMenus",
+    "downloads"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",

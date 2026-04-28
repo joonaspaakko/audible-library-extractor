@@ -87,6 +87,7 @@
 <script>
 import modal from '@output-snippets/gallery-modal.vue';
 // import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
+import { zip, strToU8 } from 'fflate'; 
 
 export default {
   name: "saveGallery",
@@ -219,33 +220,41 @@ export default {
       
       try {
         vue.bundling = true;
+        vue.progressWidth = '0%';
         vue.$store.commit("prop", { key: 'bundlingGallery', value: true });
         
         vue.cacheBuster = this.runCachebuster();
         
-        const files = (( zip ) => {
+        const files = (() => {
           
-          const collector = zip ? new JSZip() : [];
-
+          const collector = [];
+          
           return {
             add(path, content, options = {}) {
               
-              // JSZip
-              if ( zip ) {
-                collector.file(path, content, options);
-              } 
-              // Regular array for Github
-              else {
-                collector.push({ path, content, ...options });
-              }
+              collector.push({ path, content, ...options });
               
             },
 
             get() {
-              return collector;
+              
+              return collector.map(item => {
+                let data = item.content;
+
+                if (typeof data === 'string') {
+                  data = strToU8(data);
+                }
+
+                return {
+                  ...item,
+                  content: data
+                };
+              });
+              
             }
           };
-        })( action.zip );
+          
+        })();
 
         // I've had a few build errors so might as well make sure it never happens because this file doesn't exist...
         files.add(".nojekyll", '');
@@ -389,9 +398,10 @@ export default {
           files.add("data/userReviews."+ vue.cacheBuster +".js", "window.userReviewsJSON = " + JSON.stringify(libraryData.userReviews) + ";");
         }
         
+        let assetFiles = _.cloneDeep(vue.files);
         // The files array has all kinds of irrelevant files to the gallery, This makes sure only
         // the bare minimum is carried over to the standalone gallery.
-        _.remove( vue.files, function( file ) {
+        _.remove( assetFiles, function( file ) {
           const filename = file.replace(/^assets\//, "");
           if ( filename === 'gallery.html' ) return true;
           const matches = [
@@ -409,11 +419,12 @@ export default {
             !!filename.match(/^vendor/i), 
             !!filename.match(/^vue\.runtime\.esm-bundler/i), 
             !!filename.match(/^fa-.+(woff2?|ttf)/), 
+            !!filename.match(/^fflate/), 
           ];
           return !_.includes( matches, true); // Include matches & exclude (rmove) everything else
         });
         
-        vue.files = vue.files.concat([
+        assetFiles = assetFiles.concat([
           "favicons/android-chrome-192x192.png",
           "favicons/android-chrome-512x512.png",
           "favicons/apple-touch-icon.png",
@@ -462,22 +473,42 @@ export default {
         //   files.add( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
         // }
         
-        
-        for (let url of vue.files) {
-          
-          const data = await JSZipUtils.getBinaryContent(url);
-          files.add(url, data, {binary: true});
-          
+        const total = assetFiles.length;
+        let done = 0;
+
+        for (let url of assetFiles) {
+          const res = await fetch(url);
+          const buffer = await res.arrayBuffer();
+          files.add(url, new Uint8Array(buffer));
+
+          done++;
+          vue.progressWidth = ((done / total) * 100).toFixed(1) + '%';
         }
 
         if ( action.zip ) {
+
+          const items = files.get();
+          const zipData = {};
+
+          for ( const item of items ) {
+            zipData[item.path] = [item.content, { level: 6 }];
+          }
           
-          const content = await files.get().generateAsync({type: "blob", streamFiles: true}, (metadata) => {
-            this.progressWidth = metadata.percent + '%';
+          zip(zipData, (err, data) => {
+            
+            if (err) return console.error(err);
+
+            const blob = new Blob([data], { type: 'application/zip' });
+            const url = URL.createObjectURL(blob);
+
+            chrome.downloads.download({
+              url: url,
+              filename: "ALE-gallery.zip",
+              saveAs: true,
+            });
+            
           });
-  
-          saveAs(content, "ALE-gallery.zip");
-          
+
         }
         else {
           return files.get();
@@ -489,7 +520,7 @@ export default {
         setTimeout(function () {
           vue.bundling = false;
           vue.$store.commit("prop", { key: 'bundlingGallery', value: false });
-          vue.progressWidth = 0;
+          vue.progressWidth = '0%';
         }, 1000);
       }
     },
