@@ -10,9 +10,9 @@
       </div>
       <div class="text-wrapper" ref="textWrapper">
         <h2>Stand-alone gallery</h2>
-
+        
         <div class="description">
-          This saves the gallery as a web page that can be uploaded online and shared with others.
+          Create a shareable website version of your library. Publish it online instantly, or download the files for manual hosting.
         </div>
       </div>
     </div>
@@ -49,33 +49,39 @@
     <div v-tippy content="Only use this option if you wish to view the gallery locally on your computer. Don't upload this online, unless you're really into slow load times.">Local viewing</div> -->
 
     <div class="buttons-footer">
+      
+      <div v-if="$store.state.devMode" style="color: #999; font-weight: bold; margin-bottom: 5px;">
+        Saving the standalone gallery is only possible <br> in "production" builds (<code>yarn vite build</code>)
+      </div>
+        
       <div class="btn-wrapper">
         
-        <div v-if="$store.state.devMode" style="color: #999; font-weight: bold; margin-bottom: 5px;">
-          Saving the standalone gallery is only possible <br> in "production" builds (<code>yarn vite build</code>)
+        <div v-if="!githubApiProcessActive" class="non-github-api-wrapper">
+          
+          <div class="divider">
+            <span>OR</span>
+          </div>
+          
+          <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked({ zip: true })" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
+            <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
+              <line-md-downloading-loop v-if="bundling" />
+              <fa6-solid-download v-else />
+              <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
+              <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
+          </button>
+          <div class="github-instructions">
+            <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github">
+              <span>Upload instructions</span>
+              <octicon-mark-github-16/>
+            </a>
+            <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github/updating-gallery-in-github">
+              <span>Update instructions</span>
+              <octicon-mark-github-16/>
+            </a>
+          </div>
+          
         </div>
-        <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked({ zip: true })" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
-          <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
-            <line-md-downloading-loop v-if="bundling" />
-            <fa6-solid-download v-else />
-            <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
-            <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
-        </button>
-        <div>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github">
-            <span>Upload instructions</span>
-            <octicon-mark-github-16/>
-          </a>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github/updating-gallery-in-github">
-            <span>Update instructions</span>
-            <octicon-mark-github-16/>
-          </a>
-        </div>
-        <!--
-        <div class="file-desc">
-          You can upload the files to Github for free. See instructions <a href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github" target="_blank" rel="noopener noreferrer">here</a>.
-        </div>
-        -->
+        
       </div>
     </div>
   </div>
@@ -120,6 +126,7 @@ export default {
       saveBtnEnabled: true,
       progressWidth: null,
       iconSize: 20,
+      githubApiProcessActive: false,
     };
   },
 
@@ -898,6 +905,56 @@ export default {
   span,
   button {
     margin-left: auto !important;
+  }
+}
+
+.buttons-footer {
+  right: 0 !important;
+}
+
+.btn-wrapper {
+  width: 100% !important;
+}
+
+.divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #888;
+  font-family: sans-serif;
+  margin: 20px 0;
+}
+
+.divider::before,
+.divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #ccc;
+}
+
+.divider::before {
+  margin-right: 12px;
+}
+
+.divider::after {
+  margin-left: 12px;
+}
+
+.divider span {
+  color: white; /* this creates the “cut-out” effect */
+  font-weight: 500;
+}
+
+.github-instructions {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  align-items: center;
+  justify-content: center;
+  > * { flex: 1; }
+  
+  .github-btn {
+    margin: 10px 0 0 0;
   }
 }
 
