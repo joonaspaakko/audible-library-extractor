@@ -62,22 +62,27 @@
             <span>OR</span>
           </div>
           
-          <button class="save-btn save-gallery" :class="{ saving: bundling }" @click="saveButtonClicked({ zip: true })" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
-            <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
-              <line-md-downloading-loop v-if="bundling" />
-              <fa6-solid-download v-else />
-              <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
-              <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
-          </button>
-          <div class="github-instructions">
-            <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github">
-              <span>Upload instructions</span>
-              <octicon-mark-github-16/>
-            </a>
-            <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github/updating-gallery-in-github">
-              <span>Update instructions</span>
-              <octicon-mark-github-16/>
-            </a>
+          <div class="zip-export-wrapper">
+            <div class="zip-inner-wrapper">
+              
+              <div class="icon">
+                <fluent-folder-zip-20-filled />
+              </div>
+              
+              <div class="github-instructions">
+                Export your gallery as a ZIP file that you can host the files yourself. If choose to upload your files to Github manually:  <a target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github">upload instructions</a>, <a target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github/updating-gallery-in-github">update instructions</a>.
+              </div>
+              
+              <button class="export-zip-btn" :class="{ saving: bundling }" @click="saveButtonClicked({ zip: true })" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
+                <line-md-downloading-loop v-if="bundling" />
+                <fa6-solid-download v-else />
+                <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
+                <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
+                <div>
+                  <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
+                </div>
+              </button>
+            </div>
           </div>
           
         </div>
@@ -908,6 +913,43 @@ export default {
   }
 }
 
+.export-zip-btn {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 11px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  cursor: pointer;
+  @include themify($themes) {
+    background: themed(audibleOrange);
+    color: #fff;
+  }
+  border-width: medium;
+  border-style: none;
+  border-color: currentcolor;
+  border-image: initial;
+  padding: 7px 14px;
+  border-radius: 6px;
+  
+  &.saving {
+    -webkit-animation: vibrate-1 0.3s linear infinite both;
+    animation: vibrate-1 0.3s linear infinite both;
+    .progress {
+      position: absolute;
+      z-index: 1;
+      bottom: 0;
+      right: 0;
+      left: 0;
+      width: 0%;
+      height: 3px;
+      background: rgba(#fff, .7);
+    }
+  }
+}
+
 .buttons-footer {
   right: 0 !important;
 }
@@ -920,8 +962,11 @@ export default {
   display: flex;
   align-items: center;
   text-align: center;
-  color: #888;
+  @include themify($themes) {
+    color: rgba( themed(frontColor), .15);
+  }
   font-family: sans-serif;
+  font-weight: 500;
   margin: 20px 0;
 }
 
@@ -929,7 +974,9 @@ export default {
 .divider::after {
   content: "";
   flex: 1;
-  border-bottom: 1px solid #ccc;
+  @include themify($themes) {
+    border-bottom: 1px solid rgba( themed(frontColor), .15);
+  }
 }
 
 .divider::before {
@@ -940,21 +987,37 @@ export default {
   margin-left: 12px;
 }
 
-.divider span {
-  color: white; /* this creates the “cut-out” effect */
-  font-weight: 500;
+.github-instructions {
+  margin: 0;
+  opacity: 0.8;
+  font-size: 12px;
+  a {
+    text-decoration: underline !important;
+  }
 }
 
-.github-instructions {
-  display: flex;
-  flex-direction: row;
-  gap: 10px;
-  align-items: center;
-  justify-content: center;
-  > * { flex: 1; }
+.zip-export-wrapper {
+  font-size: 1em;
+  border-radius: 13px;
+  padding: 10px;
+  @include themify($themes) {
+    color: themed(frontColor);
+    border: 1px solid rgba(themed(frontColor), .15);
+    box-shadow: themed(shadowSmall);
+  }
   
-  .github-btn {
-    margin: 10px 0 0 0;
+  .zip-inner-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+    padding: 24px 16px;
+    
+    .icon {
+      font-size: 2rem;
+      // opacity: 0.7;
+    }
   }
 }
 
