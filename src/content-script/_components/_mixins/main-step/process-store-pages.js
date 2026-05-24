@@ -238,7 +238,10 @@ export default {
       book.releaseDate = (
         ( bookData.datePublished && DOMPurify.sanitize(bookData.datePublished) ) ||
         ( bookData.releaseDate && vue.fixDates(DOMPurify.sanitize(bookData.releaseDate)) ) ||
-        vue.fixDates(audible.querySelector(".releaseDateLabel"))
+        ( () => {
+          const el = audible.querySelector(".releaseDateLabel");
+          return el ? vue.fixDates(el) : undefined;
+        } )()
       );
       
       // GET PUBLISHER

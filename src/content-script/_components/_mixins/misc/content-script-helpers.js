@@ -34,72 +34,49 @@ export default {
     },
 
     fixDates: function( source ) {
-      
-      var date = (typeof source === 'object') ? DOMPurify.sanitize( source.textContent.trimToColon() ) : DOMPurify.sanitize( source );
-      if ( source && date ) {
-        
-        const domainExtension = this.domainExtension;
+      var date = (source && typeof source === 'object') ? DOMPurify.sanitize(source.textContent.trimToColon()) : DOMPurify.sanitize(source);
+      if ( !date ) return null;
 
-        const regionalDateFormats = {
-          ".com":    ["m-d-y", "MM-dd-yyyy"],
-          ".ca":     ["y-m-d", "yyyy-MM-dd"],
-          ".co.uk":  ["d-m-y", "dd-MM-yyyy"],
-          ".de":     ["d-m-y", "dd-MM-yyyy"],
-          ".fr":     ["d-m-y", "dd-MM-yyyy"],
-          ".it":     ["d-m-y", "dd-MM-yyyy"],
-          ".com.au": ["d-m-y", "dd-MM-yyyy"],
-          ".in":     ["d-m-y", "dd-MM-yyyy"],
-          // ".jp":     ["y-m-d", "yyyy-MM-dd"], // Looked at the audible.co.jp date format (book release date) and I'm pretty sure there is no point in me touching that.
-        };
+      const domainExtension = this.domainExtension;
 
-        const formatString = regionalDateFormats[domainExtension] ? regionalDateFormats[domainExtension][0] : null;
-        let splitDate = date.split("-");
-        
-        // Only try to fix date if we know the region and its date format...
-        // Or if the values are not separated by a dash
-        
-        if ( !formatString || !date.match(/\-/) || splitDate.length !== 3 ) {
-          return date;
-        }
-        else {
-          const formatSplit = formatString.split("-");
-  
-          const newDate = {
-            y: null,
-            m: null,
-            d: null
-          };
-          $.each(splitDate, function(i, date) {
-            newDate[formatSplit[i]] = date;
-          });
-          date = null;
-          // Some audible sites display all years in two digits,
-          // which is very difficult to transform to 4 digits.
-          // For example, if the year is 20, is it 1920, 2020, or 1420?
-          // This conversion to 4 digits is not bulletproof, but better than nothing.
-          if (newDate.y.length <= 2) {
-            if (newDate.y >= 95 && newDate.y <= 99) {
-              newDate.y = "19" + newDate.y;
-            } else if (newDate.y < 95) {
-              newDate.y = "20" + newDate.y;
-            }
-          }
-          const ISO8601 = [newDate.y, newDate.m, newDate.d];
-          // const originalFormat = regionalDateFormats[domainExtension][1] || regionalDateFormats['.com'][1];
-  
-          // This was just an idea to be a bit more flexible with how it shows up in the gallery, but it's not so simple
-          // What if the person viewing it is not from the same country? The only proper way to do it I feel would be to
-          // Show visitors whatever format is dominant in their country... but that seems too much work, so: "year-month-day" it is for now at least
-          // return {
-          //   value: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), 'yyyy-MM-dd'),
-          //   original: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), originalFormat),
-          // };
-          return dateFormat( new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), "yyyy-MM-dd");
-        }
-        
-      } else {
-        return null;
+      const regionalDateFormats = {
+        ".com":    ["m-d-y", "MM-dd-yyyy"],
+        ".ca":     ["y-m-d", "yyyy-MM-dd"],
+        ".co.uk":  ["d-m-y", "dd-MM-yyyy"],
+        ".de":     ["d-m-y", "dd-MM-yyyy"],
+        ".fr":     ["d-m-y", "dd-MM-yyyy"],
+        ".it":     ["d-m-y", "dd-MM-yyyy"],
+        ".com.au": ["d-m-y", "dd-MM-yyyy"],
+        ".in":     ["d-m-y", "dd-MM-yyyy"],
+        // ".jp":     ["y-m-d", "yyyy-MM-dd"], // Looked at the audible.co.jp date format (book release date) and I'm pretty sure there is no point in me touching that.
+      };
+
+      const formatString = regionalDateFormats[domainExtension] ? regionalDateFormats[domainExtension][0] : null;
+      let splitDate = date.split("-");
+
+      // Only try to fix date if we know the region and its date format, and values are separated by a dash
+      if ( !formatString || !date.match(/\-/) || splitDate.length !== 3 ) {
+        return date;
       }
+
+      const formatSplit = formatString.split("-");
+      const newDate = Object.fromEntries(
+        formatSplit.map((key, i) => [key, splitDate[i]])
+      );
+
+      // Some audible sites display all years in two digits, which is very difficult to transform to 4 digits.
+      // For example, if the year is 20, is it 1920, 2020, or 1420?
+      // This conversion to 4 digits is not bulletproof, but better than nothing.
+      if (newDate.y.length <= 2) {
+        if (newDate.y >= 95 && newDate.y <= 99) {
+          newDate.y = "19" + newDate.y;
+        } else if (newDate.y < 95) {
+          newDate.y = "20" + newDate.y;
+        }
+      }
+
+      const ISO8601 = [newDate.y, newDate.m, newDate.d];
+      return dateFormat(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), "yyyy-MM-dd");
     },
 
     getSeries: function(element, params = {}) {
