@@ -115,14 +115,7 @@ export default {
         const storePageChanged = response.request.responseURL.lastIndexOf(book.asin) < 0;
         if (storePageChanged) book.storePageChanged = true;
       }
-      
-      // Don't event try if the page doesn't contain the book asin
-      let foundSample = audible && audible.querySelector("#sample-player-" + book.asin);
-      if ( !foundSample ) foundSample = audible && audible.querySelector(`#jpp-sample-button[data-asin="${book.asin}"]`);
-      
-      
-      if ( isTest || foundSample ) {
-        
+              
         const bookData = (( html ) => {
           
           const jsonElements = html.find("#bottom-0").children();
@@ -518,11 +511,7 @@ export default {
         // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
         
         book = _.omitBy(book, _.isNull);
-        
-      } 
-      else {
-        book.storePageMissing = true;
-      }
+
     },
         
   }
