@@ -107,11 +107,11 @@
             <gallery-books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
-          <gallery-book-summary v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="bookSummaryJSON" :mobileWidth="mobileWidth"></gallery-book-summary>
+          <gallery-book-summary v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth"></gallery-book-summary>
         </div>
 
         <div class="carousel-wrap" v-if="sticky.bookDetailSettings.carousel && !loading">
-          <gallery-carousel v-if="(peopleAlsoBought && peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :detailsBook="book" :books="peopleAlsoBought" :key="maxWidth" :mobileWidth="mobileWidth">
+          <gallery-carousel v-if="(splitData.peopleAlsoBought && splitData.peopleAlsoBought !== true) && !(store.standalone && !store.siteOnline)" :detailsBook="book" :books="splitData.peopleAlsoBought" :key="maxWidth" :mobileWidth="mobileWidth">
             <!-- People who bought this also bought: -->
             <!-- Name changed: -->
             Listeners also enjoyed
@@ -138,6 +138,7 @@ import secondsToTimeString from "@output-mixins/gallery-secondsToTimeString.js";
 import progressbarWidth from "@output-mixins/gallery-progressbarWidth.js";
 import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 import makeUrl from "@output-mixins/gallery-makeFullUrl.js";
+import loadSplitBookData from "@output-mixins/gallery-load-split-book-data.js";
 
 export default {
   name: "bookDetails",
@@ -148,7 +149,8 @@ export default {
     secondsToTimeString,
     progressbarWidth,
     makeCoverUrl,
-    makeUrl
+    makeUrl,
+    loadSplitBookData,
   ],
   data: function() {
     return {
@@ -159,9 +161,10 @@ export default {
       maxWidth: "unset",
       loading: true,
       clickedBook: null,
-      peopleAlsoBoughtJSON: null,
-      bookSummaryJSON: null,
-      scrpt: null,
+      splitData: {
+         peopleAlsoBought: null,
+         bookSummary: null,
+      }, 
       imageLoaded: false,
       clientX: 0,
       clientY: 0,
@@ -216,14 +219,7 @@ export default {
 
   beforeUnmount: function() {
     
-    if ( this.scrpt ) {
-      this.scrpt.remove();
-      this.scrpt = null;
-    }
-    
     this.$compEmitter.off("afterWindowResize", this.onWindowResize);
-    this.peopleAlsoBoughtJSON = null;
-    this.bookSummaryJSON = null;
     
     // this.closeBookDetails();
     
@@ -238,9 +234,6 @@ export default {
   },
 
   computed: {
-    peopleAlsoBought: function () {
-      return this.book.peopleAlsoBought || this.peopleAlsoBoughtJSON;
-    },
     getMaxWidth: function() {
       if ( this.sticky.viewMode === 'spreadsheet' ) {
         return this.maxWidth;
@@ -263,38 +256,6 @@ export default {
       this.$nextTick(() => {
         this.$compEmitter.emit("resizeSummary");
       });
-    },
-    
-    loadJSON: function( afterError )  {
-      
-      if ( this.store.standalone ) {
-        let vue = this;
-        
-        let scrpt = document.createElement("script");
-        this.scrpt = scrpt;
-        scrpt.src = "data/split-book-data/"+ vue.book.asin +"."+ this.store.library.extras.cacheID +".js";
-        scrpt.type="text/javascript";
-        scrpt.onload = function() {
-          
-          vue.bookSummaryJSON = window.bookSummaryJSON;
-          window.bookSummaryJSON = true;
-          
-          vue.peopleAlsoBoughtJSON = window.peopleAlsoBoughtJSON;
-          window.peopleAlsoBoughtJSON = true;
-          scrpt = null;
-          
-        };
-        // Tries again if there's an error loading the files, but only once...
-        scrpt.onerror = function() {
-          scrpt = null;
-          setTimeout(function() {
-            if ( !afterError ) vue.loadJSON( 'afterError'); // Try twice...
-          }, 1000);
-        };
-        document.head.appendChild(scrpt);
-        
-      }
-
     },
     
     onWindowResize: function( msg ) {

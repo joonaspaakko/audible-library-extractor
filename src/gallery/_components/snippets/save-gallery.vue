@@ -208,21 +208,66 @@ export default {
     },
     
     // Book ASIN is used to identify the correct file later
+    //  Old code that makes 1 file per book (thousands of files). Keeping it for testing purposes...
+    // divideLargerDatapoints: function( files, books ) {
+    //    _.each(books, (book) => {
+    //     let fileData = '';
+    //     if (book.peopleAlsoBought && book.asin) {
+    //       fileData += "window.peopleAlsoBoughtJSON = " + JSON.stringify(book.peopleAlsoBought) + "; \n";
+    //       delete book.peopleAlsoBought;
+    //     }
+    //     if (book.summary && book.asin) {
+    //       fileData += "window.bookSummaryJSON = " + JSON.stringify(book.summary) + "; \n";
+    //       delete book.summary;
+    //     }
+    //     if (fileData !== '') {
+    //       files.add("data/split-book-data/" + book.asin + "." + this.cacheBuster + ".js", fileData);
+    //     }
+    //   });
+    // },
+    
+    // Book ASIN is used to identify the correct file later
     divideLargerDatapoints: function( files, books ) {
-      _.each( books, ( book ) => {
-        let fileData = '';
-        if ( book.peopleAlsoBought && book.asin ) {
-          fileData += "window.peopleAlsoBoughtJSON = " + JSON.stringify(book.peopleAlsoBought) + "; \n";
-          delete book.peopleAlsoBought;
+      const extractableKeys = ['peopleAlsoBought', 'summary'];
+      const maxChunkKB = 500 * 1024;
+
+      let chunkIndex = 0;
+      let chunkData = [];
+      let currentSize = 0;
+
+      _.each(books, (book) => {
+      
+        const extracted = _.pick(book, extractableKeys);
+
+        if (_.isEmpty(extracted)) return;
+
+        const entry = {
+          asin: book.asin,
+          ...extracted,
+        };
+
+        const entrySize = JSON.stringify(entry).length;
+
+        if (chunkData.length > 0 && (currentSize + entrySize) > maxChunkKB) {
+          files.add(`data/split-book-data/chunk-${chunkIndex}.${this.cacheBuster}.json`, JSON.stringify(chunkData));
+
+          chunkIndex++;
+          chunkData = [];
+          currentSize = 0;
         }
-        if ( book.summary && book.asin ) {
-          fileData += "window.bookSummaryJSON = " + JSON.stringify(book.summary) + "; \n";
-          delete book.summary;
-        }
-        if ( fileData !== '' ) {
-          files.add("data/split-book-data/"+ book.asin +"."+ this.cacheBuster +".js", fileData);
-        }
+
+        book.chunkId = chunkIndex;
+
+        chunkData.push(entry);
+        currentSize += entrySize;
+        
+        _.each(extractableKeys, key => _.unset(book, key));
+
       });
+
+      // Save final chunk
+      if ( chunkData.length > 0 ) files.add(`data/split-book-data/chunk-${chunkIndex}.${this.cacheBuster}.json`, JSON.stringify(chunkData));
+      
     },
 
     saveButtonClicked: async function (action = {}) {
