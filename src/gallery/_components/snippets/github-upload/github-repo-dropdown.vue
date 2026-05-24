@@ -114,34 +114,30 @@ export default {
 
   computed: {
     filteredRepos() {
-    
-      const source = this.showAllRepos ? this.repos : this.repos.filter( r => r.isAleRepo );
 
-      if ( !this.dropdownSearch.trim() ) return source;
-
-      // Rebuild Fuse only when the source array reference changes
-      if ( !this.fuseInstance || this.fuseSource !== source ) {
-        this.fuseInstance = new Fuse( source, { keys: ['name'], threshold: 0.4 } );
-        this.fuseSource = source;
+      // When no search, apply the ALE filter directly
+      if ( !this.dropdownSearch.trim() ) {
+        return this.showAllRepos ? this.repos : this.repos.filter( r => r.isAleRepo );
       }
 
+      // Always search across all repos (build Fuse if needed)
+      if ( !this.fuseInstance || this.fuseSource !== this.repos ) {
+        this.fuseInstance = new Fuse( this.repos, { keys: ['name'], threshold: 0.4 } );
+        this.fuseSource = this.repos;
+      }
+
+      // Search all repos and return all matches, ignoring the ALE filter during search
       return this.fuseInstance.search( this.dropdownSearch ).map( r => r.item );
-      
+
     },
   },
 
   watch: {
     dropdownOpen( isOpen ) {
-    
+
       if ( isOpen ) this.$nextTick( () => this.$refs.searchInput?.focus() );
       else this.dropdownSearch = '';
-      
-    },
-    repos( newRepos ) {
-    
-      this.fuseInstance = new Fuse( newRepos, { keys: ['name'], threshold: 0.4 } );
-      this.fuseSource = newRepos;
-      
+
     },
   },
 
