@@ -1,5 +1,14 @@
 export default {
   methods: {
+    
+    safeParseJSON( str ) {
+      try {
+        return JSON.parse( str );
+      } catch {
+        return null;
+      }
+    },
+    
     shortenLength: function(string) {
       if ( string ) {
         string = DOMPurify.sanitize( string.trimToColon().trimAll() );

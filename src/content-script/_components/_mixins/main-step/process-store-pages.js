@@ -126,8 +126,10 @@ export default {
         jsonElements.each((index, item) => {
           const text = $(item).text();
           if ( text ) {
-            const json = JSON.parse(text);
-            arrays = _.concat( arrays, _.castArray(json) );
+            const json = vue.safeParseJSON(text);
+            if ( json ) {
+              arrays = _.concat( arrays, _.castArray(json) );
+            }
           }
         });
         
@@ -148,8 +150,10 @@ export default {
           productMetadata.each((index, item) => {
             const text = $(item).text();
             if ( text ) {
-              const json = JSON.parse(text);
-              _.merge(combinedData, json);
+              const json = vue.safeParseJSON(text);
+              if ( json ) {
+                _.merge(combinedData, json);
+              }
             }
           });
         }
@@ -341,7 +345,7 @@ export default {
           book.categories = _.map( bdCategories, ( category ) => {
             return {
               name: category.name,
-              url : _.get( category.url.match(/\/cat\/.+\/(\d+)/im), '1'), // uri becomes category id and nothing else
+              url : _.get( (category.url || '').match(/\/cat\/.+\/(\d+)/im), '1'), // uri becomes category id and nothing else
             };
           });
         }
@@ -406,7 +410,7 @@ export default {
           
           book.series.push({
             // Match 3rd path segment → /.../.../(...)? 
-            asin: _.get( series.url.match(/\/.+\/.+\/(.+)\?/im), '1'),
+            asin: _.get( (series.url || '').match(/\/.+\/.+\/(.+)\?/im), '1'),
             name: series.name,
             url: series.url && series.url.split('?')[0],
             // 1. Make sure it's a string.
@@ -440,10 +444,12 @@ export default {
       const whisperSyncLink = audible.querySelector(".ws4vLabel > a");
       if ( whisperSyncLink ) {
         const whisperSyncIcon = whisperSyncLink.querySelector("img");
-        const whisperSyncText = whisperSyncIcon.getAttribute('alt');
-        if ( whisperSyncText ) {
-          if ( whisperSyncText.match(/Voice-enabled/) ) book.whispersync = 'owned';
-          else if ( whisperSyncText.match(/Voice-ready/) ) book.whispersync = 'available';
+        if ( whisperSyncIcon ) {
+          const whisperSyncText = whisperSyncIcon.getAttribute('alt');
+          if ( whisperSyncText ) {
+            if ( whisperSyncText.match(/Voice-enabled/) ) book.whispersync = 'owned';
+            else if ( whisperSyncText.match(/Voice-ready/) ) book.whispersync = 'available';
+          }
         }
       } 
       
@@ -457,7 +463,7 @@ export default {
             
           const tag = {
             name: chip.textContent,
-            url: _.get(chip.getAttribute('href').match(/\/(adbl_rec_tag.*)\?/im), '1'),
+            url: _.get( (chip.getAttribute('href') || '').match(/\/(adbl_rec_tag.*)\?/im), '1'),
           };
             
           tags.push(tag);
