@@ -126,8 +126,13 @@ export default {
         this.fuseSource = this.repos;
       }
 
-      // Search all repos and return all matches, ignoring the ALE filter during search
-      return this.fuseInstance.search( this.dropdownSearch ).map( r => r.item );
+      // Search all repos and return all matches, prioritizing ALE-tagged repos at the top
+      const searchResults = this.fuseInstance.search( this.dropdownSearch ).map( r => r.item );
+      return searchResults;
+      
+      // I thought about hoisting up ALE repos in search results, but I felt it could
+      // potentially get in the way of finding whatever it is you want to find.
+      // return _.orderBy( searchResults, ['isAleRepo'], ['desc'] );
 
     },
   },
