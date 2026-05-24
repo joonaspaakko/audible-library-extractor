@@ -29,6 +29,7 @@ export default {
           
             // Debug: extract specific pages only
             // prep.pageNumbers = [1];
+            // prep.pageNumbers = _.take(prep.pageNumbers, 2);
             
             const requestURL = prep.urlObj.toString();
             vue.amapxios({
@@ -131,6 +132,8 @@ export default {
         let bookASIN = _thisRow.querySelector('[data-asin]');
             bookASIN = bookASIN.getAttribute("data-asin");
             bookASIN = DOMPurify.sanitize( bookASIN );
+            
+        // if ( bookASIN !== "B004SOLDJQ" ) return;
         
         const bookInMemory = _.find(hotpotato.books, ["asin", bookASIN]);
         const fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.books && !bookInMemory) || !vue.$store.state.storageHasData.books;
@@ -173,7 +176,7 @@ export default {
           book.title     = DOMPurify.sanitize(_thisRow.querySelector(":scope > div > div > div > div > span > ul > li:nth-child(1)").textContent.trimAll());
           book.authors   = vue.getArray( _thisRow.querySelectorAll(".authorLabel a") );
           book.narrators = vue.getArray( _thisRow.querySelectorAll(".narratorLabel a") );
-          book.series    = vue.getSeries( _thisRow.querySelector(".seriesLabel > span") );
+          book.series    = vue.getSeries( _thisRow.querySelector(".seriesLabel > span"), { getUrl: true });
           book.blurb     = DOMPurify.sanitize(_thisRow.querySelector(".summaryLabel > span").textContent.trimAll());
           const fromPlusCatalog = _thisRow.querySelector('input[value="AudibleDiscovery"]');
           if (fromPlusCatalog) book.fromPlusCatalog = true;

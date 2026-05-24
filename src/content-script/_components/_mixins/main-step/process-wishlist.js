@@ -141,7 +141,7 @@ export default {
             // SERIES
             const series = _thisRow.querySelector(".seriesLabel > span");
             if ( series ) book.series = vue.getSeries( series );
-            // if ( series ) book.series = vue.getSeries( series, 'reverseOutput');
+            // if ( series ) book.series = vue.getSeries( series, { reverse: true });
             
             // LENGTH
             const length = _thisRow.querySelector(".runtimeLabel > span");
