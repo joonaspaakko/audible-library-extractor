@@ -13,17 +13,13 @@
         <router-link :to="{ name: 'series', params: { series: item.asin }, query: { subPageSource: subPageSource.name } }">
 
           <h2>{{ item.name }}</h2>
-
+          
           <div class="books-total"
-               v-if="item.books && item.books.length"
-               content="Total number of books I have in this series."
-               v-tippy="{ placement: 'right' }">
-            <span :class="{ 'my-books': item.allBooksMinusDupes && item.allBooksMinusDupes.length}">{{
-                item.books.length
-              }}</span><span v-if="item.allBooksMinusDupes && item.allBooksMinusDupes.length">&nbsp;of&nbsp;{{
-              item.allBooksMinusDupes.length
-            }}</span>
-          </div>
+            v-if="item.books && item.books.length"
+            content="Total number of books in this series."
+            v-tippy="{ placement: 'right' }"
+            v-html="bookCount( item )"
+          ></div>
 
         </router-link>
       </gallery-lazy>
@@ -132,6 +128,7 @@ export default {
               return _.includes(librarySeries.books, book.asin);
             });
             
+            currentObj.allBooks = librarySeries.allBooks || [];
             currentObj.allBooksMinusDupes = librarySeries.allBooksMinusDupes;
             currentObj.myMaxBookNumber = getMaxBookNumber(ownedBooks);
             currentObj.maxBookNumber = getMaxBookNumber(librarySeries.allBooksMinusDupes);
@@ -380,6 +377,14 @@ export default {
 
     },
     
+    bookCount: function ( item ) {
+      if ( item.allBooks && item.allBooks.length ) {
+        const space = '&nbsp;';
+        return `<span>${ item.books.length }</span>${ space }of${ space }<strong>${ item.allBooks.length }</strong>`;
+      }
+      return item.books.length;
+    },
+
     calcMinRating( obj, book ) {
       
       let ratings = [obj.minRating, book.myRating];
@@ -432,14 +437,6 @@ export default {
     top: 6px !important;
     right: 4px !important;
   }
-}
-
-.theme-dark .books-total .my-books {
-  color: $audibleOrange !important;
-}
-
-.theme-light .books-total .my-books {
-  font-weight: bold;
 }
 
 </style>
