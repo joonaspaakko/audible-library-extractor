@@ -43,6 +43,7 @@ export default {
   }
   
   .btn-primary {
-    font-weight: bold;}
+    font-weight: normal;
+  }
 }
 </style>

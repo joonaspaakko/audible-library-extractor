@@ -147,8 +147,8 @@ export default {
     }
 
     &.is-built .site-url {
-      .theme-dark & { color: #4ade80; }
-      .theme-light & { color: #1faa1f; }
+      .theme-dark & { color: #34c0ff; }
+      .theme-light & { color: #0061ac; }
     }
   }
 
@@ -167,7 +167,7 @@ export default {
     .status-icon { font-size: 1.15em; }
 
     &.is-building { color: #f97316; }
-    &.is-built    { color: #4ade80; }
+    &.is-built    { color: #4ade80; .theme-light & { color: #1faa1f; } }
     &.is-errored  { color: #ef4444; }
     &.is-pending  { @include themify($themes) { color: rgba( themed(frontColor), .4 ); } }
   }

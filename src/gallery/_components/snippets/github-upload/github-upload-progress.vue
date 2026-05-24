@@ -102,6 +102,8 @@ export default {
 
     @include themify($themes) { background: rgba( themed(frontColor), .08 ); }
 
+    .theme-light & { opacity: .7; }
+
     &.active { opacity: 1; background: #4ade80; color: #000; }
     &.done {
       opacity: 0.7;

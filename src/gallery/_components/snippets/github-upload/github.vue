@@ -240,7 +240,6 @@ export default {
 
   props: {
     getFiles: { type: Function },
-    version : { type: String, default: '' },
     active  : { type: Boolean, default: false },
   },
   

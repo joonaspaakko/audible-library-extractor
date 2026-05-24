@@ -968,8 +968,8 @@ export default {
   justify-content: center;
   align-items: center;
   gap: 11px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: 1em;
+  font-weight: normal;
   white-space: nowrap;
   cursor: pointer;
   @include themify($themes) {
@@ -1039,7 +1039,7 @@ export default {
 .github-instructions {
   margin: 0;
   opacity: 0.8;
-  font-size: 12px;
+  font-size: 1em;
   a {
     text-decoration: underline !important;
   }
