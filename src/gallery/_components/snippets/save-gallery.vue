@@ -3,6 +3,8 @@
   
   <div class="export-group" :class="{ bundling: bundling }">
 
+    <!-- GUI dark/light mode debugging -->
+    <!-- <gallery-light-switch /> -->
     
     <div class="top-wrapper">
       <div class="icon-wrapper" :style="{ fontSize: iconSize/1.2  + 'px', lineHeight: iconSize/1.2  + 'px', paddingRight: iconSize / 2.5 + 'px' }">
@@ -55,6 +57,8 @@
       </div>
         
       <div class="btn-wrapper">
+        
+        <github v-model:active="githubApiProcessActive" :getFiles="saveButtonClicked" />
         
         <div v-if="!githubApiProcessActive" class="non-github-api-wrapper">
           
@@ -568,7 +572,7 @@ export default {
 
         }
         else {
-          return files.get();
+          return { files: files.get(), hasBooks: tempData.books };
         }
         
         
@@ -1049,6 +1053,9 @@ export default {
     color: themed(frontColor);
     border: 1px solid rgba(themed(frontColor), .15);
     box-shadow: themed(shadowSmall);
+  }
+  .theme-light & {
+    box-shadow: 1px 1px 20px rgba(#000, .04), 1px 1px 3px rgba(#000, .03);
   }
   
   .zip-inner-wrapper {

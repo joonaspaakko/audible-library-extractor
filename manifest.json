@@ -20,11 +20,14 @@
     "storage",
     "unlimitedStorage",
     "contextMenus",
-    "downloads"
+    "downloads",
+    "identity"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
-    "https://m.media-amazon.com/*"
+    "https://m.media-amazon.com/*",
+    "https://api.github.com/*",
+    "https://*.supabase.co/*"
   ],
   "web_accessible_resources": [
     {
