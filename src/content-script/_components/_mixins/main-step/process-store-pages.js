@@ -160,9 +160,7 @@ export default {
       
       html = null;
       response.data = null;
-      
-      book.storePageMissing = false;
-      
+
       // GET COVED ID
       // From data
       if ( !book.cover && bookData.image ) {
