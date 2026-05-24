@@ -91,7 +91,7 @@
             v-else
             class="topic-action add"
             @click="$emit('tag-add', repoInfo.name)"
-            v-tippy="{ content: 'Tag as ALE project so that you can upload into it and filter by it in the project dropdown. Newly created projects are tagged automatically.', placement: 'top-end', flipBehavior: ['left', 'right', 'bottom'] }"
+            v-tippy="{ content: 'Tag as ALE project so that you can upload into it and filter by it in the project dropdown. Newly created projects are tagged automatically.', placement: 'top-end', maxWidth: 300, flipBehavior: ['left', 'right', 'bottom'] }"
           />
         </span> <!-- .topics-right -->
         

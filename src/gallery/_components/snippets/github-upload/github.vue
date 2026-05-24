@@ -195,11 +195,9 @@
                 :maxWidth="300"
               >
                 You can't upload unless the selected project is tagged as ALE project:
-                <div style="display: flex; flex-direction: row; justify-content: center; align-items: center; margin-top: 5px;">
-                  <button class="btn-gray small" @click="tagRepoWithAle(selectedRepoInfo.name, { action: 'add' })">
-                    <mdi:plus-box class="topic-action add" /> Mark as ALE Project
-                  </button>
-                </div>
+                <button class="btn-gray small tooltip-mark-as-ale-project" @click="tagRepoWithAle(selectedRepoInfo.name, { action: 'add' })">
+                  <mdi:plus-box class="topic-action add" /> Mark as ALE Project
+                </button>
               </tippy>
               
               <!-- Button -->
@@ -247,7 +245,7 @@ export default {
     return {
       newRepoKey: '__new__',
       debug: {
-        views: false, // Set to true to show debug buttons
+        views: true, // Set to true to show debug buttons
       },
     };
   },
@@ -616,5 +614,14 @@ export default {
 
 .topic-action {
   &.add { color: #4ade80; }
+}
+
+.tooltip-mark-as-ale-project {
+  display: inline-flex !important;
+  vertical-align: text-bottom;
+  line-height: 1;
+  padding: 0 !important;
+  background: transparent !important;
+  text-decoration: underline !important;
 }
 </style>
