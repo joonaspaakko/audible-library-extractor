@@ -81,6 +81,13 @@ export default {
   created() {
     
     this.routes = this.getRoutes();
+
+    // Debugging: Open save gallery on page load 
+    // let saveGallery = _.find( this.routes, route => _.get(route, 'name') === "extension-tools" );
+    // if ( saveGallery ) {
+    //   saveGallery = _.find(saveGallery.childItems, { name: "Save gallery website" });
+    //   this.routeClick(saveGallery);
+    // }
     
   },
   

@@ -53,6 +53,7 @@ export default {
       notInLibrary: null,
     },
     useHaptics: false,
+    githubSelectedRepo: '',
   },
   // States that don't persist
   bookDetailSettingsOpen: false,
