@@ -4,7 +4,6 @@
   "name": "Audible Library Extractor",
   "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
   "author": "Joonas Pääkkö",
-  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAq3WsTtxhnM15WSs3gaLB4KzR0YpeOmFfjLwu06mW6rKlG82UozRfHtEVmcLr0XoWymGQgvBigpMKdYZB+m6TpKuhJMPyauoguXwJm51tEZayComiVFAKAzWywF79xuOoGZcE60vQfOAGywmfrQHQyLNEmmFRlkOEMuOKlSblxzmL+yhwOm/JR1WE333rnF8FfFRDDvjqkLPIUFnKxJsFzEI+bLogFYsFI0DnfhmoS/YmkXsDpnXByOjNBSHn3GYTmRmrDj9HiejcoctqT8XvgJloL0PE20cb3t6AeudMvuXl/rnnHOn7bIH6rKUAdZCbniKAzpE/b4ORhEsW0wrq3wIDAQAB",
   "icons": {
     "16": "assets/icons/16.png",
     "48": "assets/icons/48.png",
