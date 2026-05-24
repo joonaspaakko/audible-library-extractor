@@ -166,29 +166,21 @@ export default {
       response.data = null;
 
       // GET COVED ID
+      const extractCoverIdFromUrl = ( url ) => _.get(DOMPurify.sanitize(url).match(/\/images\/I\/(.*)._SL/), '[1]');
+
       // From data
       if ( !book.cover && bookData.image ) {
-        
-        let coverId = DOMPurify.sanitize( bookData.image )
-            coverId = coverId.match(/\/images\/I\/(.*)._SL/);
-            coverId = _.get( coverId, '[1]');
-            
-        if ( coverId ) book.cover = coverId;
-        
+        book.cover = extractCoverIdFromUrl(bookData.image);
       }
       // From DOM
       if ( !book.cover ) {
-        const regularCover  = audible.querySelector('#center-1 > div > div > div > div.bc-col-responsive > div > div:nth-child(1) > img');
+        const regularCover = audible.querySelector('#center-1 > div > div > div > div.bc-col-responsive > div > div:nth-child(1) > img');
         const heroPageCover = audible.querySelector('#center-1 > div > div.bc-container > div > div:nth-child(1) > img');
-                              
-        let cover = regularCover || heroPageCover;
+        const cover = regularCover || heroPageCover;
         if ( cover ) {
-          cover = cover.getAttribute("src");
-          cover = DOMPurify.sanitize( cover );
-          if ( cover.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
-            let coverId = cover.match(/\/images\/I\/(.*)._SL/);
-                coverId = _.get( coverId, '[1]');
-            if ( coverId ) book.cover = coverId;
+          const src = DOMPurify.sanitize(cover.getAttribute("src"));
+          if ( src.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
+            book.cover = extractCoverIdFromUrl(src);
           }
         }
       }
@@ -197,56 +189,41 @@ export default {
       // From data (Title only, subtitle is not quite in the data)
       book.titleShort = DOMPurify.sanitize(bookData.name);
       // From DOM
-      if ( !book.titleShort || !book.subtitle ) {
-        
-        const titleLockup = audible.querySelector("adbl-title-lockup");
-        if ( titleLockup ) {
-          if ( !book.titleShort ) {
-            const lockupTitle = audible.querySelector('[slot="title"]');
-            if ( lockupTitle ) {
-              book.titleShort = DOMPurify.sanitize(lockupTitle.textContent);
-            }
-          }
-          if ( !book.subtitle ) {
-            const lockupSubtitle = audible.querySelector('[slot="subtitle"]');
-            if ( lockupSubtitle ) {
-              book.subtitle = DOMPurify.sanitize(lockupSubtitle.textContent);
-            }
-          }
-          if ( !book.subtitle) {
-            const subtitle = audible.querySelector('.subtitle');
-            if ( subtitle ) book.subtitle = DOMPurify.sanitize( subtitle.textContent.trimAll() );
-          }
-        }   
-                
+      const titleLockup = audible.querySelector("adbl-title-lockup");
+      if ( titleLockup ) {
+        if ( !book.titleShort ) {
+          const lockupTitle = titleLockup.querySelector('[slot="title"]');
+          book.titleShort = lockupTitle ? DOMPurify.sanitize(lockupTitle.textContent) : book.titleShort;
+        }
+        if ( !book.subtitle ) {
+          const lockupSubtitle = titleLockup.querySelector('[slot="subtitle"]');
+          const subtitle = !lockupSubtitle ? audible.querySelector('.subtitle') : lockupSubtitle;
+          book.subtitle = subtitle ? DOMPurify.sanitize(subtitle.textContent.trimAll()) : book.subtitle;
+        }
       }
       
       // GET RATING (rating + number of ratings)
-      // From data        
+      // From data
       if ( bookData.aggregateRating ) {
-        // Rating 
         const rating = DOMPurify.sanitize(bookData.aggregateRating.ratingValue);
         if ( rating ) book.rating = _.toNumber(_.toNumber(rating).toFixed('1').replace(/\.0$/, ''));
-        // Number of ratings
         const ratings = DOMPurify.sanitize(bookData.aggregateRating.ratingCount);
         book.ratings = _.toNumber(ratings);
       }
       // From DOM
-      else {
-        const ratingsLink = audible.querySelector(".ratingsLabel > a");
-        if ( ratingsLink ) {
-          let ratings = ratingsLink.textContent;
-          if ( ratings ) {
-            ratings = DOMPurify.sanitize(ratings);
-            ratings = ratings.match(/\d/g);
-            ratings = _.isArray(ratings) ? _.join(ratings, '') : ratings;
-            ratings = parseFloat(ratings);
-            book.ratings = ratings; // returns all numbers merged into one
-          }
+      const ratingsLink = audible.querySelector(".ratingsLabel > a");
+      if ( ratingsLink ) {
+        let ratings = ratingsLink.textContent;
+        if ( ratings ) {
+          ratings = DOMPurify.sanitize(ratings);
+          ratings = ratings.match(/\d/g);
+          ratings = _.isArray(ratings) ? _.join(ratings, '') : ratings;
+          ratings = parseFloat(ratings);
+          book.ratings = ratings;
         }
-        const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
-        if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
       }
+      const ratingEl = audible.querySelector(".ratingsLabel > span:last-of-type");
+      if ( ratingEl ) book.rating = Number( DOMPurify.sanitize(ratingEl.textContent.trimAll()) );
       
       // GET SUMMARY
       // From data
@@ -258,19 +235,11 @@ export default {
       }
       
       // GET RELEASE DATE
-      // From data
-      if ( bookData.datePublished ) {
-        book.releaseDate = DOMPurify.sanitize(bookData.datePublished);
-      }
-      // From data (again)
-      if ( !book.releaseDate && bookData.releaseDate ) {
-        const bdReleaseDate = DOMPurify.sanitize( bookData.releaseDate );
-        book.releaseDate = vue.fixDates( bdReleaseDate );
-      }
-      // From DOM
-      if ( !book.releaseDate ) {
-        book.releaseDate = vue.fixDates( audible.querySelector(".releaseDateLabel") );
-      }
+      book.releaseDate = (
+        ( bookData.datePublished && DOMPurify.sanitize(bookData.datePublished) ) ||
+        ( bookData.releaseDate && vue.fixDates(DOMPurify.sanitize(bookData.releaseDate)) ) ||
+        vue.fixDates(audible.querySelector(".releaseDateLabel"))
+      );
       
       // GET PUBLISHER
       // From data
@@ -293,16 +262,14 @@ export default {
       
       // GET LENGTH
       // From data
-      book.length = 0; // Default value that is falsy
-      if ( !book.length && bookData.duration ) {
-        book.length = vue.shortenLength( bookData.duration );
+      if ( bookData.duration ) {
+        book.length = vue.shortenLength(bookData.duration);
       }
       // From DOM
-      else if ( !book.length ) {
+      else {
         const lengthEl = audible.querySelector(".runtimeLabel");
         if ( lengthEl ) {
-          const domLength = lengthEl.textContent.trimToColon();
-          book.length = vue.shortenLength( domLength );
+          book.length = vue.shortenLength(lengthEl.textContent.trimToColon());
         }
       }
       
@@ -339,47 +306,42 @@ export default {
       }
       
       // From data (again)
-      if ( bookData.categories && !_.get(book.categories, '1') ) {
+      (() => {
+        if ( !bookData.categories || _.get(book.categories, '1') ) return;
+
         const bdCategories = _.castArray(bookData.categories);
-        if ( bdCategories.length ) {
-          book.categories = _.map( bdCategories, ( category ) => {
-            return {
-              name: category.name,
-              url : _.get( (category.url || '').match(/\/cat\/.+\/(\d+)/im), '1'), // uri becomes category id and nothing else
-            };
-          });
-        }
-      }
+        if ( !bdCategories.length ) return;
+
+        book.categories = _.map( bdCategories, ( category ) => {
+          return {
+            name: category.name,
+            url: _.get( (category.url || '').match(/\/cat\/.+\/(\d+)/im), '1'), // uri becomes category id and nothing else
+          };
+        });
+      })();
+
       // From DOM
-      if ( !_.get(book.categories, '1') ) {
-        const domCategories = audible.querySelector(".categoriesLabel") ? audible.querySelectorAll(".categoriesLabel > a") : audible.querySelectorAll(".bc-breadcrumb > a");
+      (() => {
+        if ( _.get(book.categories, '1') ) return;
+
+        const domCategories = audible.querySelector(".categoriesLabel")
+          ? audible.querySelectorAll(".categoriesLabel > a")
+          : audible.querySelectorAll(".bc-breadcrumb > a");
+
         if ( domCategories ) book.categories = vue.getArray( domCategories );
-      }
+      })();
       
       // GET LANGUAGE
       // From data
       if ( bookData.inLanguage ) {
-        if ( bookData.language ) {
-          book.language = DOMPurify.sanitize( bookData.language );
-        }
-        else if ( bookData.language ) {
-          book.language = DOMPurify.sanitize(_.startCase(bookData.inLanguage));
-        }
+        book.language = DOMPurify.sanitize(bookData.language || _.startCase(bookData.inLanguage));
       }
-      // From DOM 
+      // From DOM
       else {
-        
         const domLanguageEl = audible.querySelector(".languageLabel");
-        if ( domLanguageEl )  {
-          
-          let domLanguage = domLanguageEl.textContent;
-              domLanguage = DOMPurify.sanitize(domLanguage);
-              domLanguage = domLanguage.trimAll();
-              
-          book.language = domLanguage;
-          
+        if ( domLanguageEl ) {
+          book.language = DOMPurify.sanitize(domLanguageEl.textContent.trimAll());
         }
-        
       }
       
       // GET FORMAT
@@ -391,12 +353,7 @@ export default {
       else {
         const formatEl = audible.querySelector(".format");
         if ( formatEl ) {
-          
-          let format = formatEl.textContent;
-              format = DOMPurify.sanitize(format);
-              format = format.trimAll();
-              
-          book.format = format;
+          book.format = DOMPurify.sanitize(formatEl.textContent.trimAll());
         }
       }
       
@@ -429,82 +386,77 @@ export default {
       }
       
       // GET WHISPER SYNC
-      // From data 
-      // Around January 13th 2025 they changed the store layout and at least 
+      // From data
+      // Around January 13th 2025 they changed the store layout and at least
       // for now there's no longer a way to see if you own it or not.
-      if ( bookData.listeningEnhancements ) {
-        
+      (() => {
+        if ( !bookData.listeningEnhancements ) return;
         const whisperSyncAvailable = _.find( bookData.listeningEnhancements, { eventId: "whispersync" });
         if ( whisperSyncAvailable ) book.whispersync = 'available';
-        
-      }       
+      })();
+
       // From DOM
-      // This is checked every time because some pages still appear to have both (old dom elements & new meta data elements) 
+      // This is checked every time because some pages still appear to have both (old dom elements & new meta data elements)
       // and the new meta data only says it's in whisper sync, not if it's owned.
-      const whisperSyncLink = audible.querySelector(".ws4vLabel > a");
-      if ( whisperSyncLink ) {
+      (() => {
+        const whisperSyncLink = audible.querySelector(".ws4vLabel > a");
+        if ( !whisperSyncLink ) return;
+
         const whisperSyncIcon = whisperSyncLink.querySelector("img");
-        if ( whisperSyncIcon ) {
-          const whisperSyncText = whisperSyncIcon.getAttribute('alt');
-          if ( whisperSyncText ) {
-            if ( whisperSyncText.match(/Voice-enabled/) ) book.whispersync = 'owned';
-            else if ( whisperSyncText.match(/Voice-ready/) ) book.whispersync = 'available';
-          }
-        }
-      } 
+        if ( !whisperSyncIcon ) return;
+
+        const whisperSyncText = whisperSyncIcon.getAttribute('alt');
+        if ( !whisperSyncText ) return;
+
+        if ( whisperSyncText.match(/Voice-enabled/) ) book.whispersync = 'owned';
+        else if ( whisperSyncText.match(/Voice-ready/) ) book.whispersync = 'available';
+      })(); 
       
       // GET TAGS
       // From new DOM
-      const chipGroup = audible.querySelector('.product-topictag-impression');
-      if ( chipGroup ) {
+      (() => {
+        const chipGroup = audible.querySelector('.product-topictag-impression');
+        if ( !chipGroup ) return;
+
         const chips = chipGroup.querySelectorAll('adbl-chip');
         const tags = [];
-        _.each( chips , ( chip ) => {
-            
+        _.each( chips, ( chip ) => {
           const tag = {
             name: chip.textContent,
             url: _.get( (chip.getAttribute('href') || '').match(/\/(adbl_rec_tag.*)\?/im), '1'),
           };
-            
           tags.push(tag);
-            
         });
-        
+
         book.tags = tags;
-        
-      }
+      })();
+
       // From old DOM
-      else {
-        var tagWrapper = audible.querySelector('.product-topic-tags');
-        if ( tagWrapper ) {
-          
-          var tagsArray = [];
-          var tags = audible.querySelectorAll('.bc-chip-text');
-          each( tags, function( tag ) {
-            
-            var tagObj = {};
-            
-            var catUrl = tag.closest('a').getAttribute('href');
-            if ( catUrl ) {
-              catUrl = DOMPurify.sanitize( catUrl );
-              catUrl = new Url( catUrl ).path;
-              catUrl = catUrl.split('/').pop();
-              tagObj.url = DOMPurify.sanitize( catUrl )
-            }
-            
-            var tagName = tag.getAttribute('data-text');
-            if ( tagName ) {
-              tagObj.name = DOMPurify.sanitize( tagName );
-              tagsArray.push( tagObj );
-            }
-            
-          });
-          
-          if ( tagsArray.length > 0 ) book.tags = tagsArray;
-          
-        }
-        
-      }
+      (() => {
+        const tagWrapper = audible.querySelector('.product-topic-tags');
+        if ( !tagWrapper ) return;
+
+        const tagsArray = [];
+        const tags = audible.querySelectorAll('.bc-chip-text');
+        each( tags, function( tag ) {
+          const tagObj = {};
+
+          const catUrl = tag.closest('a').getAttribute('href');
+          if ( catUrl ) {
+            const sanitizedUrl = DOMPurify.sanitize(catUrl);
+            const pathUrl = new Url(sanitizedUrl).path;
+            tagObj.url = DOMPurify.sanitize(pathUrl.split('/').pop());
+          }
+
+          const tagName = tag.getAttribute('data-text');
+          if ( tagName ) {
+            tagObj.name = DOMPurify.sanitize(tagName);
+            tagsArray.push(tagObj);
+          }
+        });
+
+        if ( tagsArray.length > 0 ) book.tags = tagsArray;
+      })();
   
       // Around July 2020 audible has removed any mention of the added date.
       // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.

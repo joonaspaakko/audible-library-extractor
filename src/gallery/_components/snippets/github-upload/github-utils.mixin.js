@@ -11,6 +11,19 @@ export default {
     sleep( ms ) { return new Promise( resolve => setTimeout( resolve, ms ) ); },
 
     /**
+     * Safely parses a JSON string, returning null if parsing fails.
+     * @param {string} str
+     * @returns {Object|null}
+     */
+    safeParseJSON( str ) {
+      try {
+        return JSON.parse( str );
+      } catch {
+        return null;
+      }
+    },
+
+    /**
      * Formats an ISO date string as a relative label (e.g. "3 days ago").
      * @param {string|null} iso
      * @returns {string}
