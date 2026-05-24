@@ -313,7 +313,8 @@ export default {
       // which version of ALE they used for the upload. This is especially helpful if they
       // have multiple versions of ALE over time, or if they're uploading on behalf of
       // someone else and want to keep track of it.
-      const versionStr = this.version ? ` · ALE v${this.version}` : '';
+      const version = this.$store.state.version;
+      const versionStr = version ? ` (ALE v${version})` : '';
       
       let commitCount;
       if ( knownCount !== null ) {
