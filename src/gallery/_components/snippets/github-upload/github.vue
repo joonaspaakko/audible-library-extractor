@@ -245,7 +245,7 @@ export default {
     return {
       newRepoKey: '__new__',
       debug: {
-        views: true, // Set to true to show debug buttons
+        views: false, // Set to true to show debug buttons
       },
     };
   },
