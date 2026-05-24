@@ -163,7 +163,7 @@
             </button>
             <!-- Right: clean upload (post-cancel) + upload -->
             <div class="right-actions">
-            <tippy v-if="wasCancelled" placement="top-start" :maxWidth="300">
+            <tippy v-if="false" placement="top-start" :maxWidth="300">
               <button class="btn-ghost clean-btn" :disabled="!canUpload" @click="cleanUpload">
                 <mdi:broom />
                 Clean upload
