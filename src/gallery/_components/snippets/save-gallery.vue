@@ -102,7 +102,8 @@
 <script>
 import modal from '@output-snippets/gallery-modal.vue';
 // import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
-import { zip, strToU8 } from 'fflate'; 
+import { zip, strToU8 } from 'fflate';
+import { storageSet } from '@utils/chrome-storage.js'; 
 
 export default {
   name: "saveGallery",
@@ -185,7 +186,7 @@ export default {
           saveStandaloneAfter.deactivated = true;
 
           this.$store.commit('prop', { key: 'extractSettings', value: newConfig });
-          chrome.storage.local.set({config: newConfig }).then(function() {
+          storageSet( 'metadata', 'config', newConfig ).then(function() {
             vue.saveButtonClicked({ zip: true });
           });
 

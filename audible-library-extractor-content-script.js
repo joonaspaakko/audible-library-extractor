@@ -74,35 +74,21 @@ app.config.globalProperties.$dataChecker = function( data, store ) {
   // Storage data is dropped immediately. I just want to know if the data exists
   // in load so I can enable/disable things based on that info.
   // Later it's fetched again if needed.
-  const dataChunks = _.get(data, 'chunks', []);
-  const storageHasData = dataChunks.length > 0;
-  
+  const audibledata = data.audibledata || {};
+  const metadata = data.metadata || {};
+
   store.commit('update', [
-    { key: 'storageHasData.books', 			 value: dataChunks.indexOf('books') > -1 },
-    { key: 'storageHasData.isbn', 			 value: dataChunks.indexOf('isbn') > -1 ? checkISBNs( data ) : false },
-    { key: 'storageHasData.wishlist', 	 value: dataChunks.indexOf('wishlist') > -1 },
-    { key: 'storageHasData.collections', value: dataChunks.indexOf('collections') > -1 },
-    { key: 'storageHasData.userReviews', value: dataChunks.indexOf('userReviews') > -1 },
-    { key: 'storageConfig', value: data.config || {} },
-    { key: 'dataVersion', value: data.version || null },
+    { key: 'storageHasData.books', 			 value: !!audibledata.library },
+    { key: 'storageHasData.isbn', 			 value: !!audibledata.library && checkISBNs( audibledata.library ) },
+    { key: 'storageHasData.wishlist', 	 value: !!audibledata.wishlist },
+    { key: 'storageHasData.collections', value: !!audibledata.collections },
+    { key: 'storageHasData.userReviews', value: !!audibledata.userReviews },
+    { key: 'storageConfig', value: metadata.config || {} },
+    { key: 'dataVersion', value: metadata.version || null },
   ]);
-  
-  function checkISBNs( data ) {
-    
-    let foundISBNs = false;
-    _.each( _.range( 0, data['books-chunk-length'] ), function( index ) {
-      
-      const booksChunk = data['books-chunk-'+index];
-      const isbns = _.find( booksChunk, 'isbns' );
-      if ( isbns ) {
-        foundISBNs = true;
-        return false;
-      }
-      
-    });
-    
-    return foundISBNs;
-    
+
+  function checkISBNs( libraryChunks ) {
+    return _.some( libraryChunks, chunk => _.some( chunk, 'isbns' ) );
   }
   
 };

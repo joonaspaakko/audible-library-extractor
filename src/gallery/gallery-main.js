@@ -85,7 +85,7 @@ else if ( !standalone ) {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
     chrome.storage.local.get(null).then(data => {
-      if (!_.isEmpty(data) && data.chunks) {
+      if ( !_.isEmpty( _.get(data, 'audibledata') ) ) {
         helpers.methods.glueFriesBackTogether(data);
         startVue(data);
       } else {

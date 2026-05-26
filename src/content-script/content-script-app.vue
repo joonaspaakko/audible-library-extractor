@@ -106,7 +106,7 @@ export default {
       const vue = this;
       chrome.storage.local.get(null).then(hotpotato => {
         
-        if ( hotpotato.chunks && hotpotato.chunks.length ) vue.glueFriesBackTogether(hotpotato);
+        if ( !_.isEmpty( _.get(hotpotato, 'audibledata') ) ) vue.glueFriesBackTogether(hotpotato);
         
         vue.ui = "scraping";
         vue.$nextTick(function() {
@@ -228,8 +228,7 @@ export default {
 
     init_step_output: function( config ) {
       
-      let newData = {config: config, extras: { 'domain-extension': this.domainExtension }};
-      chrome.storage.local.set( newData ).then(() => {
+      chrome.storage.local.set({ metadata: { config, extras: { 'domain-extension': this.domainExtension } } }).then(() => {
         this.goToOutputPage({ useStorageData: true });
       });
       
@@ -325,21 +324,22 @@ export default {
       
       this.addDataVersions( hotpotato );
       
-      if (!hotpotato.chunks ) {
+      if ( !hotpotato.audibledata ) {
         if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
         if ( hotpotato.books    ) this.languageCorrections(hotpotato.books);
         if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
         this.makeFrenchFries(hotpotato);
       }
-      
-      chrome.storage.local.clear().then(() => {
-        chrome.storage.local.set(hotpotato).then(() => {
-          
-            if ( _.get(hotpotato, 'chunks.0') ) vue.glueFriesBackTogether(hotpotato);
-            
-            callback( hotpotato );
-          
-        });
+
+      chrome.storage.local.set({
+        metadata: hotpotato.metadata,
+        audibledata: hotpotato.audibledata,
+      }).then(() => {
+
+        if ( !_.isEmpty( hotpotato.audibledata ) ) vue.glueFriesBackTogether(hotpotato);
+
+        callback( hotpotato );
+
       });
       
     },

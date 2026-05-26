@@ -123,64 +123,38 @@ export default {
         vue.$toast.error( errorMsg + ' ('+ e +')', vue.toastOpts);
       };
       
-      chrome.storage.local.get(null).then(data => {
-        
-        _.each( deleteArray, function( deleteKey ) {
-          
-          let realKey;
+      chrome.storage.local.get(['audibledata', 'metadata']).then(data => {
+
+        const audibledata = data.audibledata || {};
+        const metadata    = data.metadata || {};
+
+        _.each( deleteArray, ( deleteKey ) => {
+
           if ( deleteKey === 'isbn' ) {
-            deleteKey = 'books';
-            realKey = 'isbn';
+            // ISBNs are properties on book objects — strip them from every book in library chunks
+            _.each( _.flatten( audibledata.library ), ( book ) => _.unset( book, 'isbns' ) );
+            _.unset( metadata, 'version.library' );
           }
-          
-          // REMOVE CHUNK ARRAYS
-          _.each( _.range( 0, data[ deleteKey + '-chunk-length'] ), function( index ) { 
-            if ( realKey === 'isbn' ) {
-              _.each( data[ 'books-chunk-'+index ], function( book ) {
-                if ( book.isbns ) delete book.isbns;
-              });
-            }
-            else {
-              delete data[ deleteKey + '-chunk-'+index ];
-            }
-          });
-          
-          if ( deleteKey !== 'books' || deleteKey === 'books' && realKey !== 'isbn' ) {
-            // REMOVE CHUNK LENGTH
-            delete data[deleteKey + '-chunk-length'];
-            
-            // REMOVE FROM CHUNKS ARRAY (basically array of data point keys)
-            _.remove( data.chunks, function( value ) {
-              return value === deleteKey;
-            });
+          else {
+            const storageKey = deleteKey === 'books' ? 'library' : deleteKey;
+            _.unset( audibledata, storageKey );
+            _.unset( metadata, 'version.' + storageKey );
           }
-          
-          if ( deleteKey === 'books') {
-            _.remove( data.chunks, function( value ) {
-              return value === 'isbn';
-            });
-          }
-          
-          delete data.version[ deleteKey === 'books' ? 'library' : deleteKey ];
-          
-          if ( data.config && data.config.steps ) delete data.config.steps;
-          
+
+          if ( _.get( metadata, 'config.steps' ) ) _.unset( metadata, 'config.steps' );
+
         });
-        
-        if ( data.chunks.length < 1 ) delete data.chunks;
-        
-        chrome.storage.local.clear().then(() => {
-          chrome.storage.local.set(data).then(() => {
-            
-            if ( onSuccess ) onSuccess( data );
-          
-            chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
-            vue.$toast.success( successMsg, vue.store.toastOpts );
-						vue.$dataChecker( data );
-            
-          }).catch( errorNotification );
+
+        chrome.storage.local.set({ audibledata, metadata }).then(() => {
+
+          if ( onSuccess ) onSuccess( data );
+
+          chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
+          vue.$toast.success( successMsg, vue.store.toastOpts );
+					vue.$dataChecker( data );
+
         }).catch( errorNotification );
-        
+
       }).catch( errorNotification );
       
     },

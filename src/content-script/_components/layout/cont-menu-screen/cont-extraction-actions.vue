@@ -108,30 +108,25 @@ export default {
           });
         };
         
-        chrome.storage.local.get(null).then(data => {
-          
-          _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
-            
-            let booksChunk = data[ 'books-chunk-'+index ];
-            _.each( booksChunk, function( book ) { if (book.isNew) delete book.isNew; });
-            
-          });
-          
-          _.each( _.range( 0, data[ 'wishlist-chunk-length'] ), function( index ) { 
-            
-            let wishlistChunk = data[ 'wishlist-chunk-'+index ];
-            _.each( wishlistChunk, function( book ) { if (book.isNew) delete book.isNew; });
-            
-          });
-          
-          chrome.storage.local.clear().then(() => {
-            chrome.storage.local.set(data).then(() => {
-            
-              vue.$toast.success('All "new" books succesfully reset', vue.store.toastOpts);
-              
-            }).catch( errorNotification );
+        chrome.storage.local.get(['audibledata']).then(data => {
+
+          const audibledata = data.audibledata || {};
+
+          const stripIsNew = ( chunks ) => {
+            _.each( _.flatten( chunks ), ( book ) => {
+              _.unset( book, 'isNew' );
+            });
+          };
+
+          stripIsNew( audibledata.library );
+          stripIsNew( audibledata.wishlist );
+
+          chrome.storage.local.set({ audibledata }).then(() => {
+
+            vue.$toast.success('All "new" books succesfully reset', vue.store.toastOpts);
+
           }).catch( errorNotification );
-          
+
         }).catch( errorNotification );
         
       }
@@ -141,26 +136,20 @@ export default {
 		exportRawData: function() {
 			let vue = this;
 			vue.exportRawDataDisabled = true;
-			chrome.storage.local.get(null).then(data => {
-				
-				if ( data.chunks ) vue.glueFriesBackTogether( data );
-				
-				delete data.imageEditorPageTitle;
-				delete data.imageEditorPageSubTitle;
-				delete data.imageEditorTimeCode;
-				delete data.imageEditorChunksLength;
-				delete data.imageEditorChunks;
-				
+			chrome.storage.local.get(['audibledata', 'metadata']).then(data => {
+
+				vue.glueFriesBackTogether( data );
+
 				saveAs(new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"}), 'Audible Library Extractor Data.json');
-				
+
 				vue.exportRawDataDisabled = false;
 				vue.$toast.success("Data exported succesfully!", vue.store.toastOpts);
-			
+
 			}).catch(function( err ) {
-				
+
 				vue.exportRawDataDisabled = false;
 				vue.$toast.error("Data export failed. Reload the page and try again.", vue.store.toastOpts);
-				
+
 			});
 		},
 		
@@ -188,16 +177,17 @@ export default {
           
           let data = JSON.parse(e.target.result);
           vue.makeFrenchFries( data );
-          
-          chrome.storage.local.clear().then(() => {
-            chrome.storage.local.set(data).then(function() {
-              
-              chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
-							vue.$toast.success("Data imported succesfully!", vue.store.toastOpts);
-              vue.loading = false;
-              vue.$dataChecker( data );
-              
-            }).catch(errorNotification);
+
+          chrome.storage.local.set({
+            metadata: data.metadata,
+            audibledata: data.audibledata,
+          }).then(function() {
+
+            chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
+						vue.$toast.success("Data imported succesfully!", vue.store.toastOpts);
+            vue.loading = false;
+            vue.$dataChecker( data );
+
           }).catch(errorNotification);
           
         };
@@ -217,13 +207,13 @@ export default {
           vue.$toast.error('Data clear failed: ' + e, vue.store.toastOpts);
         };
         
-        chrome.storage.local.clear().then(function() {
+        chrome.storage.local.remove(['audibledata', 'metadata']).then(function() {
           chrome.storage.local.get(null).then(data => {
-            
+
             vue.$dataChecker(data);
             chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
             vue.$toast.success('Data removed succesfully', vue.store.toastOpts);
-            
+
           }).catch( errorNotification );
         }).catch( errorNotification );
       };
