@@ -41,6 +41,7 @@ window.each = function( array, callback ) {
 import { createApp } from 'vue';
 import App from "@contscript/content-script-app.vue";
 import store from "@contscript/store.js";
+import helpers from "@contscript-mixins/misc/content-script-helpers.js";
 
 // Get local storage settings on load
 store.commit("fromLocalStorage");
@@ -237,7 +238,13 @@ chrome.runtime.onMessage.addListener(message => {
 });
 
 function audibleLibraryExtractor(data) {
-  
+
+  const migrated = helpers.methods.migrateStorageData( data );
+  if ( migrated ) {
+    chrome.storage.local.set({ audibledata: data.audibledata, metadata: data.metadata });
+    if ( migrated.remove ) chrome.storage.local.remove( migrated.remove );
+  }
+
   chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
   
   $('<div>', { id: 'audible-library-extractor'}).prependTo("body");

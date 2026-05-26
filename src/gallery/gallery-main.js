@@ -85,6 +85,12 @@ else if ( !standalone ) {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
     chrome.storage.local.get(null).then(data => {
+      const migrated = helpers.methods.migrateStorageData( data );
+      if ( migrated ) {
+        chrome.storage.local.set({ audibledata: data.audibledata, metadata: data.metadata });
+        if ( migrated.remove ) chrome.storage.local.remove( migrated.remove );
+        chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
+      }
       if ( !_.isEmpty( _.get(data, 'audibledata') ) ) {
         helpers.methods.glueFriesBackTogether(data);
         startVue(data);

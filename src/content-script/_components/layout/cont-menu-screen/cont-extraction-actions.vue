@@ -176,7 +176,8 @@ export default {
         read.onload = function( e ) {
           
           let data = JSON.parse(e.target.result);
-          vue.makeFrenchFries( data );
+          vue.normalizeForMakeFrenchFries( data );
+          if ( !data.audibledata ) vue.makeFrenchFries( data );
 
           chrome.storage.local.set({
             metadata: data.metadata,

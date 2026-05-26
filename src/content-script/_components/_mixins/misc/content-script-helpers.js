@@ -207,6 +207,39 @@ export default {
       
     },
 
+    // Rename old "books" key to "library" and update config.steps name.
+    // Call this on flat data before makeFrenchFries (import path).
+    normalizeForMakeFrenchFries: function( data ) {
+      if ( _.isArray( data.books ) && !data.library ) {
+        data.library = data.books;
+        delete data.books;
+      }
+      const steps = _.get( data, 'config.steps' ) || _.get( data, 'metadata.config.steps' );
+      if ( steps ) {
+        _.each( steps, step => { if ( step.name === 'books' ) step.name = 'library'; });
+      }
+    },
+
+    // Migrate old chrome.storage format to the current {audibledata, metadata} shape.
+    // Returns { remove } — the list of stale keys to delete from storage, or null if nothing was needed.
+    migrateStorageData: function( data ) {
+      if ( _.isArray( data.chunks ) && !data.audibledata ) {
+        const remove = ['chunks', 'config', 'extras', 'version'];
+        _.each( data.chunks, type => {
+          const chunkKeys = _.range( data[ type + '-chunk-length' ] || 0 ).map( i => type + '-chunk-' + i );
+          data[ type ] = _.flatten( chunkKeys.map( k => data[k] || [] ) );
+          const allKeys = [ ...chunkKeys, type + '-chunk-length' ];
+          remove.push( ...allKeys );
+          _.each( allKeys, k => delete data[k] );
+        });
+        delete data.chunks;
+        this.normalizeForMakeFrenchFries( data );
+        this.makeFrenchFries( data );
+        return { remove };
+      }
+      return null;
+    },
+
     // It's vegan glue... Don't worry about it...
     glueFriesBackTogether: function( data ) {
     
@@ -218,7 +251,7 @@ export default {
       });
       delete data.metadata;
 
-      // Flatten audibledata arrays back to root so that 'library' is restored as 'books'
+      // Flatten audibledata arrays back to root
       _.each( data.audibledata, ( chunks, key ) => {
         data[key] = _.flatten( chunks );
       });

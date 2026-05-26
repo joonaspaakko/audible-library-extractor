@@ -1,4 +1,8 @@
+import _ from 'lodash';
+import helpers from "@contscript-mixins/misc/content-script-helpers.js";
+
 var window = window ?? self;
+window._ = _;
 
 // await chrome.scripting.registerContentScripts([
 //   {
@@ -14,8 +18,22 @@ var domainExtension = false;
 var activeIcons = [];
 var galleryUrl;
 
-chrome.storage.local.get(['metadata']).then(data => {
+chrome.storage.local.get(['audibledata', 'metadata']).then(data => {
   galleryUrl = data?.metadata?.extras?.galleryUrl;
+  if ( !data.audibledata ) {
+    chrome.storage.local.get(null).then(allData => {
+      const migrated = helpers.methods.migrateStorageData( allData );
+      if ( migrated ) {
+        chrome.storage.local.set({ audibledata: allData.audibledata, metadata: allData.metadata });
+        if ( migrated.remove ) chrome.storage.local.remove( migrated.remove );
+        galleryUrl = allData?.metadata?.extras?.galleryUrl;
+      }
+      makeContextMenu();
+    });
+  }
+  else {
+    makeContextMenu();
+  }
 });
 
 chrome.runtime.onMessage.addListener(function(msg, sender) {
@@ -138,8 +156,6 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
   }
   
 });
-
-makeContextMenu();
 
 function makeContextMenu() {
   
