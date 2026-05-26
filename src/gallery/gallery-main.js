@@ -132,7 +132,7 @@ function startVue( libraryData ) {
   _.set(libraryData, 'extras.pages', {});
   if ( standalone ) {
     standaloneRouteData = JSON.parse(JSON.stringify(libraryData));
-    var cleanUp = ['books', 'series', 'collections', 'podcasts', 'wishlist'];
+    var cleanUp = ['library', 'series', 'collections', 'podcasts', 'wishlist'];
     _.each(cleanUp, function( key ) {
       if ( _.get(libraryData, key) === true ) {
         delete libraryData[ key ];

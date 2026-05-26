@@ -114,7 +114,7 @@ export default {
       let confirmation = window.confirm('Delete "'+ this.setting.label +'" data?');
       if ( !confirmation ) return;
 			
-			let keysString = deleteArray.join(', ').replace('books', 'library');
+			let keysString = deleteArray.join(', ');
       let errorMsg = "Failed to remove data for: <strong>" + keysString + "</strong>";
       let successMsg = "Successfully removed data for: <strong>" + keysString + "</strong>";
       
@@ -136,9 +136,8 @@ export default {
             _.unset( metadata, 'version.library' );
           }
           else {
-            const storageKey = deleteKey === 'books' ? 'library' : deleteKey;
-            _.unset( audibledata, storageKey );
-            _.unset( metadata, 'version.' + storageKey );
+            _.unset( audibledata, deleteKey );
+            _.unset( metadata, 'version.' + deleteKey );
           }
 
           if ( _.get( metadata, 'config.steps' ) ) _.unset( metadata, 'config.steps' );

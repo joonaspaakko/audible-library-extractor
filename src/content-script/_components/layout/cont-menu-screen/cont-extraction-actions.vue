@@ -44,7 +44,7 @@ export default {
 			actions: [
 				{ key: 'unselect all'},
 				{ key: 'select all' },
-				{ key: 'reset new books', disabled: function() { return !store.storageHasData.books; }, tippy: '<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is only ever reset automatically when you clear library data or press this button.</div>' },
+				{ key: 'reset new books', disabled: function() { return !store.storageHasData.library; }, tippy: '<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is only ever reset automatically when you clear library data or press this button.</div>' },
 				{ key: 'export raw data', disabled: function() { return !vue.rawDataExport;  } },
 				{ key: 'import raw data', inputEvent: true },
 				{ key: 'remove all extracted data', extraClasses: 'delete-btn' },
@@ -84,7 +84,7 @@ export default {
       const vue = this;
       
       _.each( this.$store.getters.settings_mainSteps, function( setting ) {
-        vue.$store.commit('updateSetting', { item: setting, obj: { value: true, disabled: setting.name === 'books' } });
+        vue.$store.commit('updateSetting', { item: setting, obj: { value: true, disabled: setting.name === 'library' } });
       });
       
       this.$store.commit('update', {  key: 'extractionButtonDisabled', value: false });

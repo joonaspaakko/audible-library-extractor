@@ -112,7 +112,7 @@ export default {
         vue.$nextTick(function() {
           
           hotpotato = hotpotato || {};
-          if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
+          if ( hotpotato.library ) config.oldBooksLength = hotpotato.library.length;
           hotpotato.config = config;
           
           const waterfallArray = [
@@ -123,7 +123,7 @@ export default {
             vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
             function(hotpotato, callback) { 
               
-              if ( !_.find(hotpotato.config.steps, { name: "books" }) ) {
+              if ( !_.find(hotpotato.config.steps, { name: "library" }) ) {
                 callback(null, hotpotato); 
                 return;
               }
@@ -250,13 +250,13 @@ export default {
             if ( book.requestUrl ) delete book.requestUrl;
             // Add prop "archived" if a book is in the archive....
             // This helps simplify the filters related to archive
-            if ( key === 'books' && book.asin && _.get(archive, 'books.0') ) {
+            if ( key === 'library' && book.asin && _.get(archive, 'books.0') ) {
               let bookInArchive = _.includes( archive.books, book.asin );
               if ( bookInArchive ) book.archived = true;
             }
-            
+
             // Adding books that are no longer sold into series.
-            if ( key === 'books' ) {              
+            if ( key === 'library' ) {              
               _.each( book.series, ( series ) => {
                 
                 const foundSeries = _.find(hotpotato.series, { asin: series.asin});
@@ -293,13 +293,13 @@ export default {
         
       };
       
-      removeStragglers('books'); // Library
-      removeStragglers('wishlist'); 
-      
+      removeStragglers('library'); // Library
+      removeStragglers('wishlist');
+
       // Make sure library books are excluded from the wishlist no matter hwhat...
-      if ( _.get(hotpotato, 'books.0') && _.get(hotpotato, 'wishlist.0') ) {
+      if ( _.get(hotpotato, 'library.0') && _.get(hotpotato, 'wishlist.0') ) {
         _.remove( hotpotato.wishlist, function( book ) {
-          if ( book.asin ) return _.find( hotpotato.books, { asin: book.asin });
+          if ( book.asin ) return _.find( hotpotato.library, { asin: book.asin });
         });
       }
       
@@ -325,8 +325,8 @@ export default {
       this.addDataVersions( hotpotato );
       
       if ( !hotpotato.audibledata ) {
-        if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
-        if ( hotpotato.books    ) this.languageCorrections(hotpotato.books);
+        if ( hotpotato.library ) this.addedOrder(hotpotato.library);
+        if ( hotpotato.library ) this.languageCorrections(hotpotato.library);
         if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
         this.makeFrenchFries(hotpotato);
       }
@@ -382,7 +382,7 @@ export default {
       let version = chrome.runtime.getManifest().version;
       
       // If a step was just extracted and there was no existing data update data version...
-      if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'library', value: true })     && !hasData.books       ) hotpotato.version.library     = version;
+      if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'library', value: true })     && !hasData.library     ) hotpotato.version.library     = version;
       if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'collections', value: true }) && !hasData.collections ) hotpotato.version.collections = version;
       if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'wishlist', value: true })    && !hasData.wishlist    ) hotpotato.version.wishlist    = version;
       

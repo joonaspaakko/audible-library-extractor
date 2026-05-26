@@ -155,15 +155,15 @@ export default {
     }
 
     let librarySource = _.find( this.dataSources, { key: 'Library' });
-    librarySource.disabled =  !this.$store.state.library.books;
+    librarySource.disabled =  !this.$store.state.audibledata.library;
     let wishlistSource = _.find( this.dataSources, { key: 'Wishlist' });
-    wishlistSource.disabled =  !this.$store.state.library.wishlist;
+    wishlistSource.disabled =  !this.$store.state.audibledata.wishlist;
     let podcastsSource = _.find( this.dataSources, { key: 'Podcasts' });
     podcastsSource.disabled = _.isEmpty(this.$store.getters.podcasts);
     let myReviews = _.find( this.dataSources, { key: 'My Reviews' });
-    myReviews.disabled = _.isEmpty(this.$store.state.library.userReviews);
-    
-    // let archivedBookFound = _.find( this.$store.state.library.books, o => _.includes(o.collectionIds, '__ARCHIVE') );
+    myReviews.disabled = _.isEmpty(this.$store.state.audibledata.userReviews);
+
+    // let archivedBookFound = _.find( this.$store.state.audibledata.library, o => _.includes(o.collectionIds, '__ARCHIVE') );
     // if ( !archivedBookFound ) {
     //   let archivedSource = _.find( this.dataSources, { key: 'Archived' });
     //   if ( archivedSource ) archivedSource.disabled = false;
@@ -321,15 +321,15 @@ export default {
         // I've had a few build errors so might as well make sure it never happens because this file doesn't exist...
         files.add(".nojekyll", '');
         
-        let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.library)) );
-        
+        let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.audibledata)) );
+
         libraryData.extras.cacheID = vue.cacheBuster;
-        
+
         let tempData = {
-          books      : !!_.get(libraryData, 'books.0'),
+          library    : !!_.get(libraryData, 'library.0'),
           series     : !!_.get(libraryData, 'series.0'),
           collections: !!_.get(libraryData, 'collections.0'),
-          podcasts   : !_.isEmpty(_.filter(libraryData?.books, 'podcastParent')),
+          podcasts   : !_.isEmpty(_.filter(libraryData?.library, 'podcastParent')),
           wishlist   : !!_.get(libraryData, 'wishlist.0'),
           extras     : libraryData.extras,
           userReviews: !!_.get(libraryData, 'userReviews.0'),
@@ -429,22 +429,22 @@ export default {
         // Split "peopleAlsoBought" into separate files and exclude from book data because 
         // it's a good amount of data that isn't necessarily needed immediately or all at once
         
-        if ( libraryData.wishlist && libraryData.books ) {
+        if ( libraryData.wishlist && libraryData.library ) {
           // Just to make sure no data file is created twice...
-          // Books are excluded during wishlist extraction if they exist in the library already, 
+          // Books are excluded during wishlist extraction if they exist in the library already,
           // but there are certain cases where that can change later....
-          this.divideLargerDatapoints(files, _.unionBy(libraryData.books, libraryData.wishlist, 'asin'));
+          this.divideLargerDatapoints(files, _.unionBy(libraryData.library, libraryData.wishlist, 'asin'));
         }
         else {
-          if ( libraryData.wishlist ) this.divideLargerDatapoints(files,libraryData.wishlist);
-          if ( libraryData.books    ) this.divideLargerDatapoints(files,libraryData.books);
+          if ( libraryData.wishlist ) this.divideLargerDatapoints(files, libraryData.wishlist);
+          if ( libraryData.library  ) this.divideLargerDatapoints(files, libraryData.library);
         }
-        
+
         // Split page data into separate files...
         files.add("data/temp-data."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
-        
-        if ( tempData.books       ) {
-          files.add("data/library."+ vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.books) + ";");
+
+        if ( tempData.library     ) {
+          files.add("data/library."+ vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.library) + ";");
         }
         if ( tempData.collections ) {
           files.add("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
@@ -573,7 +573,7 @@ export default {
 
         }
         else {
-          return { files: files.get(), hasBooks: tempData.books };
+          return { files: files.get(), hasBooks: tempData.library };
         }
         
         
@@ -635,7 +635,7 @@ export default {
         switch ( item.key ) {
           case "Library":
             if ( itemDisabled ) {
-              delete data.books;
+              delete data.library;
               delete data.series;
               delete data.collections;
             }
@@ -663,7 +663,7 @@ export default {
             
           case "Podcasts":
             if ( itemDisabled ) {
-              const books = _.get(data, 'books');
+              const books = _.get(data, 'library');
               _.remove( books, (book) => {
                 return _.get(book, "format") === 'Podcast' || _.get(book, "podcastParent");
               });
@@ -673,11 +673,11 @@ export default {
           case "Archived":
             if ( itemDisabled ) {
               
-              let archivedBooks = _.filter( vue.$store.state.library.books, o => _.includes(o.collectionIds, '__ARCHIVE') );
+              let archivedBooks = _.filter( vue.$store.state.audibledata.library, o => _.includes(o.collectionIds, '__ARCHIVE') );
                   archivedBooks = _.map( archivedBooks, 'asin' );
               
               // Remove any book that is in the archive collection
-              _.remove( data.books, o  => _.includes(o.collectionIds, '__ARCHIVE'));
+              _.remove( data.library, o => _.includes(o.collectionIds, '__ARCHIVE'));
               
               if ( data.series ) {
                 // Removes archived books from series

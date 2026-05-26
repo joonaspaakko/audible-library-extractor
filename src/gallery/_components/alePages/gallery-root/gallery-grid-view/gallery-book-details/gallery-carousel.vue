@@ -212,7 +212,7 @@ export default {
 		
 		findBookFromLibrary() {
 			
-			const library = this.$store.state.library.books;
+			const library = this.$store.state.audibledata.library;
 			const inLibrary = _.find( library, { asin: this.book.asin });
 			if ( inLibrary ) this.inLibrary = true;
 			
@@ -221,7 +221,7 @@ export default {
 		findBookFromSeries() {
 			
 			const carouselBookAsin = this.book.asin;
-			const series = this.$store.state.library.series;
+			const series = this.$store.state.audibledata.series;
 			const inSeries = _.find( series, function( seriesObj ) {
 				const allBooksInSeries = _.get(seriesObj, 'allBooks');
 				if ( allBooksInSeries ) return _.find( allBooksInSeries, { asin: carouselBookAsin });
@@ -249,7 +249,7 @@ export default {
 		findInWishlist() {
 			
 			const carouselBookAsin = this.book.asin;
-			const wishlist = this.$store.state.library.wishlist;
+			const wishlist = this.$store.state.audibledata.wishlist;
 			this.inWishlist = _.find( wishlist, { asin: carouselBookAsin });
 			
 		},

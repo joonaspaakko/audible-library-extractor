@@ -6,11 +6,11 @@ export default {
       
       const config = _.get(hotpotato, 'config');
       const step = {
-        library: _.find(_.get(config, 'steps'), { name: "books" }),
+        library: _.find(_.get(config, 'steps'), { name: "library" }),
         test: _.get(config, 'seriesTest'),
       };
       
-      const books = _.get(hotpotato, 'books', []);
+      const books = _.get(hotpotato, 'library', []);
       
            if ( step.library ) booksInSeries = _.filter(books, function(o) { return o.isNewThisRound && o.series; });
       else if ( step.test    ) booksInSeries = _.filter(books, function(o) { return o.series; });
@@ -110,7 +110,7 @@ export default {
             
             // IF SERIES HAVE BEEN EXTRACTED, MERGE FETCHED SERIES WITH THOSE
             const potatoSeries = _.get(hotpotato, 'series', []);
-            if ( vue.$store.state.storageHasData.books && potatoSeries.length ) {
+            if ( vue.$store.state.storageHasData.library && potatoSeries.length ) {
               _.each( requests, function( series ) {
                 const seriesExists = _.find(potatoSeries, { asin: series.asin });
                 if ( seriesExists ) _.merge( seriesExists, series );
@@ -300,7 +300,7 @@ export default {
         // possible to push the book asin in the series collection at the right location.
         else {
           
-          const potatoBooks = _.get( hotpotato, 'books', []);
+          const potatoBooks = _.get( hotpotato, 'library', []);
           // Try to match the title to an existing book in the library
           if ( title ) inLibrary = _.find( potatoBooks, { 'title': title });
           // TitleShort Fallback...
@@ -364,7 +364,7 @@ export default {
             const series = _.find(book.series, { asin: seriesAsin }); if ( !series ) return;
             return _.isArray(series.bookNumbers) ? series.bookNumbers.join(',') : series.bookNumbers;
             
-          })( hotpotato.books, request.asin, aBook.asin );
+          })( hotpotato.library, request.asin, aBook.asin );
         }
         
         // IF a book doesn't have a number, make it the infinity symbol...

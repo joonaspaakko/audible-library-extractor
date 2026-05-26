@@ -134,7 +134,7 @@ export default {
       return summary.fullHeight > summary.maxHeightTemp;
     },
     review() {
-      return _.find( this.$store.state.library.userReviews, { asin: this.book.asin });
+      return _.find( this.$store.state.audibledata.userReviews, { asin: this.book.asin });
     },
     reviewSummary() {
       return '<h2>' + _.get(this.review, 'title') + '</h2>' + _.get(this.review, 'summary');

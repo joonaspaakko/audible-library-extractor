@@ -16,13 +16,12 @@ export default {
     findSubPageSource: function() {
       const source = this.$route.query.subPageSource || this.$store.state.sticky.subPageSource;
       this.$store.commit('prop', { key: 'sticky.subPageSource', value: source });
-      const sourceKey = source === 'library' ? 'books' : null;
       return {
-        collection: this.$store.state.library[ sourceKey || source ],
+        collection: this.$store.state.audibledata[ source ],
         name: source,
         wishlist: source === 'wishlist',
-        library: source === 'library' || source === 'books',
-        books: source === 'library' || source === 'books',
+        library: source === 'library',
+        books: source === 'library',
       };
     },
     

@@ -78,7 +78,7 @@ app.config.globalProperties.$dataChecker = function( data, store ) {
   const metadata = data.metadata || {};
 
   store.commit('update', [
-    { key: 'storageHasData.books', 			 value: !!audibledata.library },
+    { key: 'storageHasData.library', 		 value: !!audibledata.library },
     { key: 'storageHasData.isbn', 			 value: !!audibledata.library && checkISBNs( audibledata.library ) },
     { key: 'storageHasData.wishlist', 	 value: !!audibledata.wishlist },
     { key: 'storageHasData.collections', value: !!audibledata.collections },

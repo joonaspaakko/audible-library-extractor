@@ -182,10 +182,11 @@ export default {
     },
 
     makeFrenchFries: function( hotpotato ) {
+    
       hotpotato.extras = hotpotato.extras || {};
       hotpotato.extras['domain-extension'] = hotpotato.extras['domain-extension'] || this.domainExtension;
 
-      // Collect scalar/object props into metadata
+      // Collect settings and such props into metadata
       hotpotato.metadata = {};
       _.each( ['config', 'version', 'extras'], key => {
         if ( hotpotato[key] !== undefined ) {
@@ -194,21 +195,22 @@ export default {
         }
       });
 
-      // Chunk all array props into audibledata; books is stored as library
+      // Chunk all array props into audibledata; books is 'stored' as 'library'
       const skipKeys = ['metadata', 'audibledata', 'auth'];
       hotpotato.audibledata = {};
       _.each( hotpotato, ( item, key ) => {
         if ( !_.includes( skipKeys, key ) && _.isArray( item ) ) {
-          const storageKey = key === 'books' ? 'library' : key;
-          hotpotato.audibledata[storageKey] = _.chunk( item, 50 );
+          hotpotato.audibledata[key] = _.chunk( item, 50 );
           delete hotpotato[key];
         }
       });
+      
     },
 
     // It's vegan glue... Don't worry about it...
     glueFriesBackTogether: function( data ) {
-      if ( !data || _.isEmpty( data ) ) return;
+    
+      if ( _.isEmpty( data ) ) return;
 
       // Flatten metadata back to root
       _.each( ['config', 'version', 'extras'], key => {
@@ -216,12 +218,12 @@ export default {
       });
       delete data.metadata;
 
-      // Flatten audibledata arrays back to root; library is restored as books
+      // Flatten audibledata arrays back to root so that 'library' is restored as 'books'
       _.each( data.audibledata, ( chunks, key ) => {
-        const rootKey = key === 'library' ? 'books' : key;
-        data[rootKey] = _.flatten( chunks );
+        data[key] = _.flatten( chunks );
       });
       delete data.audibledata;
+      
     },
     
     // - Remove books no longer in the library 

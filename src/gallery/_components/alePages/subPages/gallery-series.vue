@@ -93,7 +93,7 @@ export default {
           // Find an existing entry in our series collection
           const seriesAdded = _.find(seriesCollection, {asin: series.asin});
           // Find the series in our library
-          const librarySeries = _.find(this.$store.state.library.series, {asin: series.asin});
+          const librarySeries = _.find(this.$store.state.audibledata.series, {asin: series.asin});
 
           // If we have an existing series in our series collection (which we're building over time), use it...
           // Otherwise, create a new series to add and increment our counter

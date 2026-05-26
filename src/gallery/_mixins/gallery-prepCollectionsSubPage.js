@@ -8,10 +8,10 @@ export default {
         
         const vue = this;
         let collectionID = this.$route.params.collection;
-        let collection = _.find( this.$store.state.library.collections, { id: collectionID });
+        let collection = _.find( this.$store.state.audibledata.collections, { id: collectionID });
         if ( collection ) {
           
-          let collectionBooks = _.filter( this.$store.state.library.books, function( book ) {
+          let collectionBooks = _.filter( this.$store.state.audibledata.library, function( book ) {
             return _.includes( collection.books, book.asin );
           });
           

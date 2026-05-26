@@ -26,9 +26,9 @@ export default {
   },
 
   buildStandaloneData: function(state, inputArray) {
-    state.library = state.library || {};
+    state.audibledata = state.audibledata || {};
     _.each(inputArray, function( item ) {
-      if ( item.key ) _.set( state, 'library.' + item.key, Object.freeze( item.value ));
+      if ( item.key ) _.set( state, 'audibledata.' + item.key, Object.freeze( item.value ));
     });
   },
 

@@ -5,7 +5,7 @@ export default {
     getDataFromLibraryPages: function(hotpotato, libraryPagesFetched) {
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "books" }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
         
         this.$store.commit('update', [
           { key: 'bigStep.step', value: 0 },
@@ -19,7 +19,7 @@ export default {
           { key: 'subStep.max', value: 4 },
           { key: 'progress.step', value: 0 },
           { key: 'progress.max', value: 0 },
-          { key: 'progress.text', value: this.$store.state.storageHasData.books ? "Adding new books " : "Scanning library for books..." },
+          { key: 'progress.text', value: this.$store.state.storageHasData.library ? "Adding new books " : "Scanning library for books..." },
         ]);
         
         vue.scrapingPrep({
@@ -46,11 +46,11 @@ export default {
               done: function(books) {
                 vue.$nextTick(function() {
                   
-                  hotpotato.books = books;
-                  
+                  hotpotato.library = books;
+
                   // Removes unnecessary data from series and collections durin a partial extraction
-                  if ( hotpotato.books && hotpotato.books.length ) {
-                    const changedBooks = _.xorBy( hotpotato.books, books, 'asin');
+                  if ( hotpotato.library && hotpotato.library.length ) {
+                    const changedBooks = _.xorBy( hotpotato.library, books, 'asin');
                     if ( changedBooks.length > 0 ) {
                       let removedBooks = _.filter( changedBooks, function( book ) { return !book.isNewThisRound; });
                       if ( removedBooks.length > 0 )  {
@@ -59,7 +59,7 @@ export default {
                       }
                     }
                     if ( hotpotato.wishlist && hotpotato.wishlist.length > 0 ) {
-                      let newBooks = _.filter( hotpotato.books, 'isNewThisRound');
+                      let newBooks = _.filter( hotpotato.library, 'isNewThisRound');
                       if ( newBooks.length > 0 ) {
                         newBooks = _.map(newBooks, 'asin');
                         _.remove( hotpotato.wishlist, function( wBook ) {
@@ -83,7 +83,7 @@ export default {
                   
                   vue.$store.commit('update', { key: 'progress.textsuffix', value: null });
 
-                  hotpotato.config.getStorePages = 'books';
+                  hotpotato.config.getStorePages = 'library';
                   vue.$nextTick(function() {
                     libraryPagesFetched(null, hotpotato);
                   });
@@ -135,9 +135,9 @@ export default {
             
         // if ( bookASIN !== "B004SOLDJQ" ) return;
         
-        const bookInMemory = _.find(hotpotato.books, ["asin", bookASIN]);
-        const fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.books && !bookInMemory) || !vue.$store.state.storageHasData.books;
-        let book = vue.$store.state.storageHasData.books && bookInMemory ? bookInMemory : {};
+        const bookInMemory = _.find(hotpotato.library, ["asin", bookASIN]);
+        const fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.library && !bookInMemory) || !vue.$store.state.storageHasData.library;
+        let book = vue.$store.state.storageHasData.library && bookInMemory ? bookInMemory : {};
         
         // Always pass over old ISBNs
         const oldIsbns = _.get(bookInMemory, 'isbns');
@@ -279,17 +279,17 @@ export default {
   
         // - - - - - - -
         
-        if ( vue.$store.state.storageHasData.books ) {
+        if ( vue.$store.state.storageHasData.library ) {
           let newAddition = !bookInMemory;
           let newFromStorage = bookInMemory && bookInMemory.isNew;
           if ( newAddition || newFromStorage ) book.isNew = true;
         }
-        
+
         if (fullScan_ALL_partialScan_NEW) {
           book.isNewThisRound = true;
           vue.$store.commit('update', { key: 'progress.max', add: 1 });
         }
-        else if ( vue.$store.state.storageHasData.books ) {
+        else if ( vue.$store.state.storageHasData.library ) {
           let previousTotal = (vue.$store.state.progress.textsuffix || '').match(/\d+/im);
               previousTotal = _.first(previousTotal) || 0;
           const booksTotal = _.toNumber(previousTotal) + 1;
