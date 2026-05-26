@@ -142,7 +142,7 @@ export default {
 
   created: function() {
     
-    this.files = window.chunksFilePaths;
+    this.files = window.galleryFilePaths;
     
     if ( this.$store.state.sticky.exportSettingsGallery ) {
       _.each(this.$store.state.sticky.exportSettingsGallery, ( stickySource ) => {
@@ -461,30 +461,6 @@ export default {
         }
         
         let assetFiles = _.cloneDeep(vue.files);
-        // The files array has all kinds of irrelevant files to the gallery, This makes sure only
-        // the bare minimum is carried over to the standalone gallery.
-        _.remove( assetFiles, function( file ) {
-          const filename = file.replace(/^assets\//, "");
-          if ( filename === 'gallery.html' ) return true;
-          const matches = [
-            !!filename.match(/^gallery/),
-            !!filename.match(/^content-script-helpers/),
-            !!filename.match(/^howler/),
-            !!filename.match(/^lodash/),
-            !!filename.match(/^jszip/),
-            !!filename.match(/^tippy/),
-            !!filename.match(/^jquery/),
-            !!filename.match(/^fuse.esm/),
-            !!filename.match(/^index\..*\.js$/), 
-            !!filename.match(/^Roboto/i), 
-            !!filename.match(/^Inconsolata/i), 
-            !!filename.match(/^vendor/i), 
-            !!filename.match(/^vue\.runtime\.esm-bundler/i), 
-            !!filename.match(/^fa-.+(woff2?|ttf)/), 
-            !!filename.match(/^fflate/), 
-          ];
-          return !_.includes( matches, true); // Include matches & exclude (rmove) everything else
-        });
         
         assetFiles = assetFiles.concat([
           "favicons/android-chrome-192x192.png",
