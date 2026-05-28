@@ -47,7 +47,6 @@ export default createStore({
     },
     failedRequests: [],
     lastFailedRequestStatus: null,
-    taking_a_break: false,
     noWishlistAccess: false,
     checkingWishlistAccess: false,
     sticky: {
