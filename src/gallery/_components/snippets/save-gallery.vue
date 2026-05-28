@@ -455,7 +455,6 @@ export default {
         if ( tempData.wishlist    ) {
           files.add("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
         }
-        console.log( 'tempData.userReviews', tempData.userReviews );
         if ( tempData.userReviews    ) {
           files.add("data/userReviews."+ vue.cacheBuster +".js", "window.userReviewsJSON = " + JSON.stringify(libraryData.userReviews) + ";");
         }
