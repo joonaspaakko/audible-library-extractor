@@ -12,7 +12,7 @@ export default {
       const vue = this;
       const limiter = _.cloneDeep( options.rateLimit || this.$store.state.axiosRateLimit );
       if ( vue.$store.state.sticky.slowExtract ) {
-        limiter.maxRequests = _.clamp( Math.ceil(limiter.maxRequests * .5), 1, limiter.maxRequests );
+        limiter.perMilliseconds = limiter.perMilliseconds * 2;
       }
       const maxTimeout = this.minutesToMilliseconds(1);
       
@@ -46,7 +46,7 @@ export default {
       };
       
       
-      asyncMapLimit( options.requests, limiter.maxRequests, function(request, stepCallback) {
+      asyncMapLimit( options.requests, limiter.concurrency || limiter.maxRequests, function(request, stepCallback) {
               
         const axiosConfig = options.config || {};
         const requestURL  = request.requestUrl || request.url || request;
@@ -135,7 +135,7 @@ export default {
       const vue = this;
       const limiter = _.cloneDeep( options.rateLimit || this.$store.state.axiosRateLimit );
       if ( vue.$store.state.sticky.slowExtract ) {
-        limiter.maxRequests = _.clamp( Math.ceil(limiter.maxRequests * .5), 1, limiter.maxRequests );
+        limiter.perMilliseconds = limiter.perMilliseconds * 2;
       }
       const maxTimeout = this.minutesToMilliseconds(1);
       
@@ -185,7 +185,7 @@ export default {
           vue.$store.commit('update', { key: 'taking_a_break', value: false });
           
           // 1 chunk of requests per loop...
-          asyncMapLimit( requestChunk, limiter.maxRequests, function(request, stepCallback) {
+          asyncMapLimit( requestChunk, limiter.concurrency || limiter.maxRequests, function(request, stepCallback) {
               
             const axiosConfig = options.config || {};
             const requestURL  = request.requestUrl || request.url || request;

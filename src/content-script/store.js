@@ -40,9 +40,10 @@ export default createStore({
     dataVersion: null,
     extractBtnDisabled: false,
     extractionButtonDisabled: false,
-    axiosRateLimit: { 
-      maxRequests: 10, 
-      perMilliseconds: 1000,
+    axiosRateLimit: {
+      maxRequests: 1,
+      perMilliseconds: 100,
+      concurrency: 10,
     },
     failedRequests: [],
     lastFailedRequestStatus: null,
