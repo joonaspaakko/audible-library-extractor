@@ -1,13 +1,6 @@
 import { createClient } from '@supabase/supabase-js';
 import { Octokit } from 'octokit';
-
-// Supabase needs async-capable storage so the PKCE code_verifier survives the
-// OAuth round-trip and the session persists across popup opens.
-const chromeStorageAdapter = {
-  getItem   : key => chrome.storage.local.get( key ).then( r => r[key] ?? null ),
-  setItem   : ( key, val ) => chrome.storage.local.set({ [key]: val }),
-  removeItem: key => chrome.storage.local.remove( key ),
-};
+import { storageGet, storageSet, storageUnset } from '@utils/chrome-storage.js';
 
 export default {
   data() {
@@ -30,12 +23,16 @@ export default {
     this.supabaseClient = createClient( this.supabaseConfig.url, this.supabaseConfig.key, {
       auth: {
         flowType: 'pkce',
-        storage : chromeStorageAdapter,
+        storage: {
+          getItem:    ( key )      => storageGet( 'auth', key ).then( val => val ?? null ),
+          setItem:    ( key, val ) => storageSet( 'auth', key, val ),
+          removeItem: ( key )      => storageUnset( 'auth', key ),
+        },
       },
     });
 
     // Restore a persisted token so the user doesn't have to re-auth on every open
-    const { github_token: token } = await chrome.storage.local.get( 'github_token' );
+    const token = await storageGet( 'auth', 'github_token' );
     if ( token ) {
       this.githubToken = token;
       this.octokit     = new Octokit({ auth: token });
@@ -101,7 +98,7 @@ export default {
             // ABORT!
             if ( !this.githubToken ) throw new Error( 'No GitHub token in session' );
             // Store the token in Chrome local storage. Supabase drops provider_token after JWT refresh
-            await chrome.storage.local.set({ github_token: this.githubToken });
+            await storageSet( 'auth', 'github_token', this.githubToken );
 
             this.octokit = new Octokit({ auth: this.githubToken });
             this.statusMessage = '';
@@ -139,7 +136,7 @@ export default {
     async clearSession() {
     
       await this.supabaseClient?.auth.signOut();
-      await chrome.storage.local.remove([ 'github_token' ]);
+      await storageUnset( 'auth', 'github_token' );
       
       this.octokit     = null;
       this.githubToken = null;

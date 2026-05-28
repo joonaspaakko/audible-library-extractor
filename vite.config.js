@@ -184,6 +184,7 @@ export default defineConfig({
     alias: {
       '@'                 : src(''),
       '@root'             : src(''),
+      '@utils'            : src('utils'),
       '@dist'             : dist(''),
       '@fonts'            : src('fonts'),
       '@assets'           : src('assets'),

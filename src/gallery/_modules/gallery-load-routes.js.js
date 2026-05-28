@@ -9,7 +9,7 @@ export default function( libraryData, store ) {
     let routes = [];
     
     // HOME PAGE REDIRECT
-    if ( libraryData.books ) {
+    if ( libraryData.library ) {
       routes.push({ path: "/", redirect: "/library" });
     }
     else if ( libraryData.wishlist ) {
@@ -17,13 +17,13 @@ export default function( libraryData, store ) {
     }
     
     // LIBRARY
-    if ( libraryData.books ) {
+    if ( libraryData.library ) {
       routes.push( allRoutes.library );
     }
     
     // WISHLIST
     // If library data is not fetched put wishlish before sub pages menu item
-    if ( !libraryData.books && libraryData.wishlist ) {
+    if ( !libraryData.library && libraryData.wishlist ) {
       routes.push( allRoutes.wishlist );
     }
     
@@ -38,7 +38,7 @@ export default function( libraryData, store ) {
       });
     }
     // Extension-gallery SUBPAGES
-    else if ( libraryData.books || libraryData.wishlist ) {
+    else if ( libraryData.library || libraryData.wishlist ) {
       _.each(subPages, function( subPage ) {
         routes.push( subPage );
       });
@@ -56,7 +56,7 @@ export default function( libraryData, store ) {
     
     // WISHLIST
     // If library is also extracted, push wishlist as the last menu item
-    if ( libraryData.books && libraryData.wishlist ) {
+    if ( libraryData.library && libraryData.wishlist ) {
       routes.push( allRoutes.wishlist );
     }
     
@@ -151,8 +151,8 @@ export default function( libraryData, store ) {
           if ( libraryData.wishlist && openingWishlist ) {
             loaderArray.push({name: 'wishlist'}); 
           }
-          else if ( libraryData.books ) {
-            loaderArray.push({name: 'library', keyOverride: 'books'}); 
+          else if ( libraryData.library ) {
+            loaderArray.push({name: 'library'});
           }
           
           if ( libraryData.series      ) loaderArray.push({name: 'series'});

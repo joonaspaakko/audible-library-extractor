@@ -96,7 +96,7 @@ export default {
      */
     uniteBooksInCollections: function( hotpotato, waterfallback ) {
       
-      const booksInCollections = _.filter( hotpotato.books, 'collectionIds' );
+      const booksInCollections = _.filter( hotpotato.library, 'collectionIds' );
       const collections = [];
       const vue = this;
       

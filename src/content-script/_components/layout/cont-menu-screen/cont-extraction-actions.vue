@@ -44,7 +44,7 @@ export default {
 			actions: [
 				{ key: 'unselect all'},
 				{ key: 'select all' },
-				{ key: 'reset new books', disabled: function() { return !store.storageHasData.books; }, tippy: '<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is only ever reset automatically when you clear library data or press this button.</div>' },
+				{ key: 'reset new books', disabled: function() { return !store.storageHasData.library; }, tippy: '<strong>Removes the status &#34;new&#34; from all extracted books.</strong> <br><br>During a partial library or wishlist extraction newly added books are marked and you can filter and sort based on that status in the gallery. <br><br><div style="color: #f14668;">The new status is only ever reset automatically when you clear library data or press this button.</div>' },
 				{ key: 'export raw data', disabled: function() { return !vue.rawDataExport;  } },
 				{ key: 'import raw data', inputEvent: true },
 				{ key: 'remove all extracted data', extraClasses: 'delete-btn' },
@@ -84,7 +84,7 @@ export default {
       const vue = this;
       
       _.each( this.$store.getters.settings_mainSteps, function( setting ) {
-        vue.$store.commit('updateSetting', { item: setting, obj: { value: true, disabled: setting.name === 'books' } });
+        vue.$store.commit('updateSetting', { item: setting, obj: { value: true, disabled: setting.name === 'library' } });
       });
       
       this.$store.commit('update', {  key: 'extractionButtonDisabled', value: false });
@@ -108,30 +108,25 @@ export default {
           });
         };
         
-        chrome.storage.local.get(null).then(data => {
-          
-          _.each( _.range( 0, data[ 'books-chunk-length'] ), function( index ) { 
-            
-            let booksChunk = data[ 'books-chunk-'+index ];
-            _.each( booksChunk, function( book ) { if (book.isNew) delete book.isNew; });
-            
-          });
-          
-          _.each( _.range( 0, data[ 'wishlist-chunk-length'] ), function( index ) { 
-            
-            let wishlistChunk = data[ 'wishlist-chunk-'+index ];
-            _.each( wishlistChunk, function( book ) { if (book.isNew) delete book.isNew; });
-            
-          });
-          
-          chrome.storage.local.clear().then(() => {
-            chrome.storage.local.set(data).then(() => {
-            
-              vue.$toast.success('All "new" books succesfully reset', vue.store.toastOpts);
-              
-            }).catch( errorNotification );
+        chrome.storage.local.get(['audibledata']).then(data => {
+
+          const audibledata = data.audibledata || {};
+
+          const stripIsNew = ( chunks ) => {
+            _.each( _.flatten( chunks ), ( book ) => {
+              _.unset( book, 'isNew' );
+            });
+          };
+
+          stripIsNew( audibledata.library );
+          stripIsNew( audibledata.wishlist );
+
+          chrome.storage.local.set({ audibledata }).then(() => {
+
+            vue.$toast.success('All "new" books succesfully reset', vue.store.toastOpts);
+
           }).catch( errorNotification );
-          
+
         }).catch( errorNotification );
         
       }
@@ -141,26 +136,20 @@ export default {
 		exportRawData: function() {
 			let vue = this;
 			vue.exportRawDataDisabled = true;
-			chrome.storage.local.get(null).then(data => {
-				
-				if ( data.chunks ) vue.glueFriesBackTogether( data );
-				
-				delete data.imageEditorPageTitle;
-				delete data.imageEditorPageSubTitle;
-				delete data.imageEditorTimeCode;
-				delete data.imageEditorChunksLength;
-				delete data.imageEditorChunks;
-				
+			chrome.storage.local.get(['audibledata', 'metadata']).then(data => {
+
+				vue.glueFriesBackTogether( data );
+
 				saveAs(new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"}), 'Audible Library Extractor Data.json');
-				
+
 				vue.exportRawDataDisabled = false;
 				vue.$toast.success("Data exported succesfully!", vue.store.toastOpts);
-			
+
 			}).catch(function( err ) {
-				
+
 				vue.exportRawDataDisabled = false;
 				vue.$toast.error("Data export failed. Reload the page and try again.", vue.store.toastOpts);
-				
+
 			});
 		},
 		
@@ -187,17 +176,19 @@ export default {
         read.onload = function( e ) {
           
           let data = JSON.parse(e.target.result);
-          vue.makeFrenchFries( data );
-          
-          chrome.storage.local.clear().then(() => {
-            chrome.storage.local.set(data).then(function() {
-              
-              chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
-							vue.$toast.success("Data imported succesfully!", vue.store.toastOpts);
-              vue.loading = false;
-              vue.$dataChecker( data );
-              
-            }).catch(errorNotification);
+          vue.normalizeForMakeFrenchFries( data );
+          if ( !data.audibledata ) vue.makeFrenchFries( data );
+
+          chrome.storage.local.set({
+            metadata: data.metadata,
+            audibledata: data.audibledata,
+          }).then(function() {
+
+            chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
+						vue.$toast.success("Data imported succesfully!", vue.store.toastOpts);
+            vue.loading = false;
+            vue.$dataChecker( data );
+
           }).catch(errorNotification);
           
         };
@@ -217,13 +208,13 @@ export default {
           vue.$toast.error('Data clear failed: ' + e, vue.store.toastOpts);
         };
         
-        chrome.storage.local.clear().then(function() {
+        chrome.storage.local.remove(['audibledata', 'metadata']).then(function() {
           chrome.storage.local.get(null).then(data => {
-            
+
             vue.$dataChecker(data);
             chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
             vue.$toast.success('Data removed succesfully', vue.store.toastOpts);
-            
+
           }).catch( errorNotification );
         }).catch( errorNotification );
       };

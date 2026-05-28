@@ -85,7 +85,13 @@ else if ( !standalone ) {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
     chrome.storage.local.get(null).then(data => {
-      if (!_.isEmpty(data) && data.chunks) {
+      const migrated = helpers.methods.migrateStorageData( data );
+      if ( migrated ) {
+        chrome.storage.local.set({ audibledata: data.audibledata, metadata: data.metadata });
+        if ( migrated.remove ) chrome.storage.local.remove( migrated.remove );
+        chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
+      }
+      if ( !_.isEmpty( _.get(data, 'audibledata') ) ) {
         helpers.methods.glueFriesBackTogether(data);
         startVue(data);
       } else {
@@ -132,7 +138,7 @@ function startVue( libraryData ) {
   _.set(libraryData, 'extras.pages', {});
   if ( standalone ) {
     standaloneRouteData = JSON.parse(JSON.stringify(libraryData));
-    var cleanUp = ['books', 'series', 'collections', 'podcasts', 'wishlist'];
+    var cleanUp = ['library', 'series', 'collections', 'podcasts', 'wishlist'];
     _.each(cleanUp, function( key ) {
       if ( _.get(libraryData, key) === true ) {
         delete libraryData[ key ];

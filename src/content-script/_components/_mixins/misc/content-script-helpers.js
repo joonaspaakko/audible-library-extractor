@@ -181,44 +181,82 @@ export default {
       });
     },
 
-    makeFrenchFries: function(hotpotato) {
+    makeFrenchFries: function( hotpotato ) {
+    
       hotpotato.extras = hotpotato.extras || {};
       hotpotato.extras['domain-extension'] = hotpotato.extras['domain-extension'] || this.domainExtension;
 
-      hotpotato.chunks = [];
-      _.each(hotpotato, function(item, key) {
-        if (key !== "chunks" && _.isArray(item)) {
-          const chunks = _.chunk(item, 50);
-          hotpotato.chunks.push(key);
-          hotpotato[key + "-chunk-length"] = chunks.length;
-          _.each(chunks, function(chunk, i) {
-            hotpotato[key + "-chunk-" + i] = chunk;
-          });
-          delete hotpotato[key]; // The original array is not needed anymore
-          
+      // Collect settings and such props into metadata
+      hotpotato.metadata = {};
+      _.each( ['config', 'version', 'extras'], key => {
+        if ( hotpotato[key] !== undefined ) {
+          hotpotato.metadata[key] = hotpotato[key];
+          delete hotpotato[key];
         }
       });
+
+      // Chunk all array props into audibledata; books is 'stored' as 'library'
+      const skipKeys = ['metadata', 'audibledata', 'auth'];
+      hotpotato.audibledata = {};
+      _.each( hotpotato, ( item, key ) => {
+        if ( !_.includes( skipKeys, key ) && _.isArray( item ) ) {
+          hotpotato.audibledata[key] = _.chunk( item, 50 );
+          delete hotpotato[key];
+        }
+      });
+      
+    },
+
+    // Rename old "books" key to "library" and update config.steps name.
+    // Call this on flat data before makeFrenchFries (import path).
+    normalizeForMakeFrenchFries: function( data ) {
+      if ( _.isArray( data.books ) && !data.library ) {
+        data.library = data.books;
+        delete data.books;
+      }
+      const steps = _.get( data, 'config.steps' ) || _.get( data, 'metadata.config.steps' );
+      if ( steps ) {
+        _.each( steps, step => { if ( step.name === 'books' ) step.name = 'library'; });
+      }
+    },
+
+    // Migrate old chrome.storage format to the current {audibledata, metadata} shape.
+    // Returns { remove } — the list of stale keys to delete from storage, or null if nothing was needed.
+    migrateStorageData: function( data ) {
+      if ( _.isArray( data.chunks ) && !data.audibledata ) {
+        const remove = ['chunks', 'config', 'extras', 'version'];
+        _.each( data.chunks, type => {
+          const chunkKeys = _.range( data[ type + '-chunk-length' ] || 0 ).map( i => type + '-chunk-' + i );
+          data[ type ] = _.flatten( chunkKeys.map( k => data[k] || [] ) );
+          const allKeys = [ ...chunkKeys, type + '-chunk-length' ];
+          remove.push( ...allKeys );
+          _.each( allKeys, k => delete data[k] );
+        });
+        delete data.chunks;
+        this.normalizeForMakeFrenchFries( data );
+        this.makeFrenchFries( data );
+        return { remove };
+      }
+      return null;
     },
 
     // It's vegan glue... Don't worry about it...
-    glueFriesBackTogether: function(data) {
-      if (data && _.isEmpty(data)) {
-        return null;
-      } else {
-        _.each(data.chunks, function(chunkName) {
-          const chunksLength = data[chunkName + "-chunk-length"];
-          const chunkNumbers = _.range(0, chunksLength);
-          data[chunkName] = [];
-          _.each(chunkNumbers, function(n) {
-            data[chunkName] = data[chunkName].concat(
-              data[chunkName + "-chunk-" + n]
-            );
-            delete data[chunkName + "-chunk-" + n];
-          });
-          delete data[chunkName + "-chunk-length"];
-        });
-        delete data.chunks;
-      }
+    glueFriesBackTogether: function( data ) {
+    
+      if ( _.isEmpty( data ) ) return;
+
+      // Flatten metadata back to root
+      _.each( ['config', 'version', 'extras'], key => {
+        if ( _.get( data, 'metadata.' + key ) !== undefined ) data[key] = data.metadata[key];
+      });
+      delete data.metadata;
+
+      // Flatten audibledata arrays back to root
+      _.each( data.audibledata, ( chunks, key ) => {
+        data[key] = _.flatten( chunks );
+      });
+      delete data.audibledata;
+      
     },
     
     // - Remove books no longer in the library 

@@ -103,8 +103,14 @@ export default {
         }
         asin  = DOMPurify.sanitize( asin );
         
-        let carryOnMyWaywardPines = hotpotato.books ? !_.find( hotpotato.books, { asin: asin }) : true;
-        if ( carryOnMyWaywardPines ) {
+        // Audible doesn't auto-remove wishlist books when you purchase them, so skip ones already in the library
+        const alreadyOwned = hotpotato.library ? _.find( hotpotato.library, { asin: asin }) : false;
+        if ( alreadyOwned ) {
+          hotpotato.wishlistAlreadyOwned = hotpotato.wishlistAlreadyOwned || [];
+          hotpotato.wishlistAlreadyOwned.push( asin );
+        }
+
+        if ( !alreadyOwned ) {
           
           let bookInMemory = _.find(hotpotato.wishlist, ["asin",  asin]);
           let fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.wishlist && !bookInMemory) || !vue.$store.state.storageHasData.wishlist;
@@ -279,7 +285,7 @@ export default {
           
           // - - - - - - -
           
-          if ( vue.$store.state.storageHasData.books ) {
+          if ( vue.$store.state.storageHasData.library ) {
             let newAddition = !bookInMemory;
             let newFromStorage = bookInMemory && bookInMemory.isNew;
             if ( newAddition || newFromStorage ) book.isNew = true;

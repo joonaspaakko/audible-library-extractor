@@ -1,4 +1,8 @@
+import _ from 'lodash';
+import helpers from "@contscript-mixins/misc/content-script-helpers.js";
+
 var window = window ?? self;
+window._ = _;
 
 // await chrome.scripting.registerContentScripts([
 //   {
@@ -14,8 +18,22 @@ var domainExtension = false;
 var activeIcons = [];
 var galleryUrl;
 
-chrome.storage.local.get(['extras']).then(data => {
-  galleryUrl = data?.extras?.galleryUrl;
+chrome.storage.local.get(['audibledata', 'metadata']).then(data => {
+  galleryUrl = data?.metadata?.extras?.galleryUrl;
+  if ( !data.audibledata ) {
+    chrome.storage.local.get(null).then(allData => {
+      const migrated = helpers.methods.migrateStorageData( allData );
+      if ( migrated ) {
+        chrome.storage.local.set({ audibledata: allData.audibledata, metadata: allData.metadata });
+        if ( migrated.remove ) chrome.storage.local.remove( migrated.remove );
+        galleryUrl = allData?.metadata?.extras?.galleryUrl;
+      }
+      makeContextMenu();
+    });
+  }
+  else {
+    makeContextMenu();
+  }
 });
 
 chrome.runtime.onMessage.addListener(function(msg, sender) {
@@ -139,19 +157,16 @@ chrome.tabs.onActivated.addListener((activeInfo) => {
   
 });
 
-makeContextMenu();
-
 function makeContextMenu() {
   
   // https://developer.chrome.com/apps/storage
   // Permission: "storage"
-  chrome.storage.local.get(['chunks', 'extras']).then(data => {
-    
-    const dataChunks = data?.chunks || [];
-    const storageHasData = dataChunks.length > 0;
-    const libraryExists = dataChunks.lastIndexOf('books') > -1;
-    const wishlistExists = dataChunks.lastIndexOf('wishlist') > -1;
-    domainExtension = data?.extras?.['domain-extension'];
+  chrome.storage.local.get(['audibledata', 'metadata']).then(data => {
+
+    const audibledata = data.audibledata || {};
+    const libraryExists = !!audibledata.library;
+    const wishlistExists = !!audibledata.wishlist;
+    domainExtension = data?.metadata?.extras?.['domain-extension'];
     data = null;
     
     // https://developer.chrome.com/docs/extensions/reference/contextMenus/
@@ -224,8 +239,8 @@ function contextEvents( info, tab ) {
   
   if ( info.menuItemId === 'ale-to-audible' ) {
     if ( !domainExtension ) {
-      chrome.storage.local.get(['extras']).then(data => {
-        domainExtension = data?.extras?.['domain-extension'];
+      chrome.storage.local.get(['metadata']).then(data => {
+        domainExtension = data?.metadata?.extras?.['domain-extension'];
         newTab.url = "https://audible"+ (domainExtension || '.com') +"/library/titles?ipRedirectOverride=true&overrideBaseCountry=true";
         chrome.tabs.create(newTab);
       });

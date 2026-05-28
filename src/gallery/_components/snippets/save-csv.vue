@@ -211,10 +211,10 @@ export default {
     dataSource: function() {
       switch ( this.settings.dataSourcesChecked ) {
         case "Library":
-          return this.$store.state.library.books;
+          return this.$store.state.audibledata.library;
           break;
         case "Wishlist":
-          return this.$store.state.library.wishlist;
+          return this.$store.state.audibledata.wishlist;
           break;
         case "Current page":
           return this.$store.getters.collection;

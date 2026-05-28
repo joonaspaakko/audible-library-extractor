@@ -4,7 +4,7 @@ export default {
     sortPrice: function(params) {
       
       // const seriesAsin = this.$route.params.series;
-      // const seriesObj = _.find( this.$store.state.library.series, { asin: seriesAsin });
+      // const seriesObj = _.find( this.$store.state.audibledata.series, { asin: seriesAsin });
       return _.orderBy(
         params.books, 
         function( book ) {

@@ -3,7 +3,7 @@ export default {
     getDataFromLibraryPagesFin: function(hotpotato, libraryPagesFetched) {
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "books" }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
           
         // this.$root.$emit("update-progress", {
         //   text: 'Double checking book status...'
@@ -56,7 +56,7 @@ function processLibraryPage(vue, response, hotpotato, stepCallback) {
     if (rowItemIsBook) {
       
       const bookASIN = DOMPurify.sanitize(_thisRow.getAttribute("id").replace("adbl-library-content-row-", ""));
-      const book = _.find(hotpotato.books, ["asin", bookASIN]);
+      const book = _.find(hotpotato.library, ["asin", bookASIN]);
       
       if ( book ) {
         

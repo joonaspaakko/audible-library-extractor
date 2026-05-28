@@ -77,7 +77,7 @@ export default {
       
       const bgLength = this.bgGridSize();
       
-      this.coverSource = this.$store.state.library.books ? this.$store.state.library.books : this.$store.state.library.wishlist;
+      this.coverSource = this.$store.state.audibledata.library ? this.$store.state.audibledata.library : this.$store.state.audibledata.wishlist;
       
       let books = (function(books) {
         const booksLength = books.length;

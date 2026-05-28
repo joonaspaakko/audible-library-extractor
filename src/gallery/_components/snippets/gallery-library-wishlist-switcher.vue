@@ -1,5 +1,5 @@
 <template>
-  <div id="library-wishlist-switcher" :class="{ 'above-search': aboveSearch }" v-if="($route.meta.subPage && !$route.meta.gallery) && ($store.state.library.books || $store.state.library.extras.pages.books) && ($store.state.library.wishlist || $store.state.library.extras.pages.wishlist)">
+  <div id="library-wishlist-switcher" :class="{ 'above-search': aboveSearch }" v-if="($route.meta.subPage && !$route.meta.gallery) && ($store.state.audibledata.library || $store.state.audibledata.extras.pages.library) && ($store.state.audibledata.wishlist || $store.state.audibledata.extras.pages.wishlist)">
     <button @click="switcher('library')" :class="{ active: isActive('library') }">
       Library
     </button>
