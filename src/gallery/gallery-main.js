@@ -91,6 +91,13 @@ else if ( !standalone ) {
         if ( migrated.remove ) chrome.storage.local.remove( migrated.remove );
         chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
       }
+
+      // Remove stale root-level auth keys from storage (should be nested under 'auth')
+      const knownStaleKeys = [ 'github_token', 'selectedRepo', 'auth' ];
+      const toRemove = _.filter(_.keys(data), k => _.includes(knownStaleKeys, k) || _.startsWith(k, 'sb-'));
+      if ( toRemove.length ) chrome.storage.local.remove( toRemove );
+      _.each(toRemove, k => delete data[k]);
+
       if ( !_.isEmpty( _.get(data, 'audibledata') ) ) {
         helpers.methods.glueFriesBackTogether(data);
         startVue(data);

@@ -66,7 +66,6 @@
               :repos
               :showAllRepos
               @update:show-all-repos="showAllRepos = $event"
-              @update:model-value="onRepoSelected"
             />
 
             <!-- New repo creation -->
@@ -296,15 +295,6 @@ export default {
   },
 
   methods: {
-    /**
-     * Handles repo selection from the dropdown.
-     * Persists the selection to local storage so it survives modal close/reopen.
-     * @param {string} name
-     */
-    onRepoSelected( name ) {
-      if ( name && name !== this.newRepoKey ) chrome.storage.local.set( { selectedRepo: name } );
-    },
-
     debugSetAuth() {
       this.octokit = true;
       this.profile = { login: 'devuser', name: 'Dev User', avatar: 'https://github.com/identicons/devuser', publicRepos: 42 };

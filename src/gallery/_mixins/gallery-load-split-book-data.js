@@ -36,7 +36,7 @@ export default {
       if ( !this.store.standalone ) return;
 
       const { asin, chunkId } = this.book;
-      const cacheID = this.store.library.extras.cacheID;
+      const cacheID = this.store.audibledata.extras.cacheID;
 
       try {
 

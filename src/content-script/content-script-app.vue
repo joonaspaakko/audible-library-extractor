@@ -104,8 +104,8 @@ export default {
     init_step_extract: function( config ) {
       
       const vue = this;
-      chrome.storage.local.get(null).then(hotpotato => {
-        
+      chrome.storage.local.get(['audibledata', 'metadata']).then(hotpotato => {
+
         if ( !_.isEmpty( _.get(hotpotato, 'audibledata') ) ) vue.glueFriesBackTogether(hotpotato);
         
         vue.ui = "scraping";

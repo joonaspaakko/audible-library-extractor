@@ -1137,7 +1137,7 @@ export default {
               
               const selectedTags = _.get(this, 'value') || [];
               const collectionIds = _.get(book, 'collectionIds', []);
-              const allCollections = _.get(vue.$store.state, 'library.collections', []);
+              const allCollections = vue.$store.state.audibledata.collections || [];
               if ( selectedTags.length && collectionIds.length && allCollections.length ) {
                 
                 let ping = false;
