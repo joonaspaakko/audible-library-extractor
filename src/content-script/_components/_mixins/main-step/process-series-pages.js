@@ -164,13 +164,9 @@ export default {
         
       this.$store.commit("update", { key: 'subStep.step', add: 1 });
       
-      const limiter = _.cloneDeep(this.$store.state.axiosRateLimit);
-      limiter.maxRequests = _.clamp( limiter.maxRequests * .6, 1, limiter.maxRequests );
-      
       const vue = this;
       vue.amapxios({
         requests: requests,
-        rateLimit: limiter,
         step: function(response, stepCallback, request) {
           
           request.pageNumbers = vue.getPageNumbers( response );
@@ -229,11 +225,8 @@ export default {
       if ( !amapxiosRequests.length ) return parentStepCallback(null, cachedSeries);
       
       // Fetch remaining pages...
-      const limiter = _.cloneDeep(this.$store.state.axiosRateLimit);
-      limiter.maxRequests = _.clamp( limiter.maxRequests * .8, 1, limiter.maxRequests );
       vue.amapxios({
         requests: amapxiosRequests,
-        rateLimit: limiter,
         returnCatch: true,
         step: function(response, stepCallback, request) {
           
