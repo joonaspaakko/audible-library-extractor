@@ -6,7 +6,6 @@ export default createStore({
   state: {
     appVersion: import.meta.env.PACKAGE_VERSION,
     localStorageName: 'ale-content-script-settings',
-    canceledRequests: [],
     progress: {
       text: null,
       textSuffix: null,
@@ -184,10 +183,6 @@ export default createStore({
       state.progress.bar        = false;
       state.progress.thumbnail  = null;
       
-    },
-    
-    pushToCanceledRequests: function( state, value ) {
-      state.canceledRequests.push( value );
     },
     
     updateSetting: function( state, o ) {
