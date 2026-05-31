@@ -38,7 +38,8 @@ export default {
             
             if ( statusOk ) {
               vue.getStorePageData(response, book, hotpotato.config.test);
-            } 
+              delete book.storePageMissing;
+            }
             else if ( !!book ) {
               book.storePageMissing = true;
             }
@@ -68,37 +69,49 @@ export default {
       
     },
     
+    // Converts storePageRequestUrl into a requestUrl with redirect-override params appended,
+    // then returns the books that actually need a store page fetch this round — new books only
+    // on update scans, all books on a full scan, always excluding storePageMissing books.
     prepStorePages: function(hotpotato, getStorePages) {
-      
-      let vue = this;
-      _.each( hotpotato[ getStorePages ], function( book ) { 
-        
-        if ( vue.$store.state.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
+
+      _.each( hotpotato[ getStorePages ], ( book ) => {
+
+        // ABORT: No store page link was found on the library page...
+        if ( book.storePageMissing ) return;
+
+        // Update scan: only assign a URL for books new this round
+        if ( this.$store.state.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
           if ( book.isNewThisRound ) book.requestUrl = book.storePageRequestUrl;
         }
+        // Full scan: assign for all
         else {
           book.requestUrl = book.storePageRequestUrl;
         }
-        
-        let url = new Url(book.requestUrl);
-        url.query.ipRedirectOverride = true;
-        url.query.overrideBaseCountry = true;
-        book.requestUrl = url.toString();
-        
+
+        // Append params that tell Audible not to redirect based on region/country (shouldn't really be necessary here)
+        if ( book.requestUrl ) {
+          let url = new Url(book.requestUrl);
+          url.query.ipRedirectOverride = true;
+          url.query.overrideBaseCountry = true;
+          book.requestUrl = url.toString();
+        }
+
         delete book.storePageRequestUrl;
       });
-      
+
       let result = [];
-      
-      if ( vue.$store.state.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
-        result = _.filter(hotpotato[ getStorePages ], "isNewThisRound");
+
+      // Update scan: fetch store pages for new books only
+      if ( this.$store.state.storageHasData[ getStorePages ] && !hotpotato.config.test ) {
+        result = _.filter(hotpotato[ getStorePages ], (b) => b.isNewThisRound && !b.storePageMissing);
       }
+      // Full scan: fetch for all books
       else {
-        result = hotpotato[ getStorePages ] || [];
+        result = _.reject(hotpotato[ getStorePages ] || [], 'storePageMissing');
       }
-      
+
       return result;
-      
+
     },
     
     getStorePageData: function(response, book, isTest) {

@@ -33,12 +33,10 @@ export default {
             
             const requestURL = prep.urlObj.toString();
             vue.amapxios({
-              requests: _.map(prep.pageNumbers, function(page) {
-                return {
-                  requestUrl: requestURL + "&page=" + page,
-                  requestId: 'library-page-' + page,
-                };
-              }),
+              requests: _.map(prep.pageNumbers, (page) => ({
+                requestUrl: requestURL + "&page=" + page,
+                requestId: 'library-page-' + page,
+              })),
               step: function(response, stepCallback) {
                 vue.processLibraryPage(response, hotpotato, stepCallback);
               },
@@ -143,15 +141,26 @@ export default {
         const oldIsbns = _.get(bookInMemory, 'isbns');
         if ( oldIsbns ) book.isbns = oldIsbns;
         
+        // Podcasts use a different link element than regular books
         let storePageLink;
         if ( rowItem.is.podcast ) storePageLink = _thisRow.querySelector(".adbl-episodes-link > a");
         if ( !storePageLink ) storePageLink = _thisRow.querySelector(":scope > div > div > div > div > span > ul > li:nth-child(1) > a");
-        
-        if (storePageLink) {
-          let storePageUrl = new Url( window.location.origin + DOMPurify.sanitize(storePageLink.getAttribute("href")) );
-          storePageUrl.clearQuery();
-          book.storePageRequestUrl = storePageUrl.toString();
+
+        // Audible removed store page links for discontinued books (noticed this
+        // 2026-05-31), so the selector above may match a link that doesn't lead to the
+        // store page. 
+        if ( storePageLink ) {
+          const href = DOMPurify.sanitize( storePageLink.getAttribute("href") );
+          if ( href && href.includes('/pd/') ) {
+            let storePageUrl = new Url( window.location.origin + href );
+            storePageUrl.clearQuery();
+            book.storePageRequestUrl = storePageUrl.toString();
+          }
         }
+        // No valid store page link found — mark as missing so the store page step skips it.
+        if ( !book.storePageRequestUrl ) book.storePageMissing = true;
+        // Clear the flag on re-extraction in case a previously discontinued book was restored.
+        else if ( book.storePageMissing ) delete book.storePageMissing;
         
         // UPDATE SCAN: fetch these only if the book is a new addition...
         // FULL SCAN: fetch always

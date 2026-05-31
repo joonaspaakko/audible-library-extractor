@@ -85,51 +85,41 @@ export default {
           function(err, responses) {
             
             resetProgress();
+
+            // Each series may span multiple pages, each returned as a separate response.
+            // Compact removes null responses (pages with no books), then group by ASIN
+            // and concatenate books/allBooks so each series ends up as one merged object.
+            const merged = {};
+            _.each( _.compact(responses), function( series ) {
             
-            // FIXME: everything in this function is a bit janky. Could just push into hotpotato.series within each step...?
-            
-            // Each series page is fetched as a separate request.
-            // This merges the books arrays and cleans up the returning object a little
-            _.each(responses, function(series) {
+              let mergedSeries = merged[series.asin];
+              if ( !mergedSeries ) mergedSeries = merged[series.asin] = { asin: series.asin, books: [], allBooks: [], length: 0 };
               
-              if ( !series ) return;
-              
-              const targetSeries = _.find(requests, { asin: series.asin });
-              if (targetSeries) {
-                targetSeries.books = targetSeries.books.concat(series.books);
-                targetSeries.allBooks = targetSeries.allBooks.concat(series.allBooks);
-                targetSeries.length += series.length;
-                delete targetSeries.pageNumbers;
-                delete targetSeries.pageSize;
-                delete targetSeries.url;
-                delete targetSeries.parsedFirstPage;
-                delete targetSeries.html;
-              }
+              mergedSeries.books     = mergedSeries.books.concat( series.books );
+              mergedSeries.allBooks  = mergedSeries.allBooks.concat( series.allBooks );
+              mergedSeries.length   += series.length;
               
             });
-            
-            // IF SERIES HAVE BEEN EXTRACTED, MERGE FETCHED SERIES WITH THOSE
+            const fetchedSeries = _.values( merged );
+
+            // UPDATE EXTRACTION: merge freshly fetched series into the existing series data.
             const potatoSeries = _.get(hotpotato, 'series', []);
             if ( vue.$store.state.storageHasData.library && potatoSeries.length ) {
-              _.each( requests, function( series ) {
+              _.each( fetchedSeries, function( series ) {
+              
                 const seriesExists = _.find(potatoSeries, { asin: series.asin });
-                if ( seriesExists ) _.merge( seriesExists, series );
+                // Update existing series
+                if ( seriesExists ) _.assign( seriesExists, series );
+                // Add new series
                 else hotpotato.series.push( series );
+                
               });
             }
-            // ALL NEW SERIES: dump requests into potato as is
+            // FULL EXTRACTION: just use the freshly fetched series as-is.
             else {
-              hotpotato.series = requests;
+              hotpotato.series = fetchedSeries;
             }
-            
-            
-            // // Deduplicate and assign series (avoid repeated merging of mutated objects)
-            // const existingSeries = _.get(hotpotato, 'series', []);
-            // // Combine existing + new, then dedupe by asin (new results win by order in concat)
-            // const combinedSeries = _.unionBy([...existingSeries, ...requests], 'asin');
-            // hotpotato.series = combinedSeries;
-            
-            
+
             if ( err ) console.error('%c' + 'error' + '', 'background: #f41b1b; color: #fff; padding: 2px 5px; border-radius: 8px;', err);
             
             moveOn();
@@ -287,19 +277,21 @@ export default {
             series.books.push( DOMPurify.sanitize(asin) );
           }
         }
-        // Sometimes books may leave the store or it is blocked in your region or something. 
-        // This makes it so the book you have doesn't match a book in the series page.
-        // So what I'm doing is matching the title to a title in the library so it is then 
-        // possible to push the book asin in the series collection at the right location.
+        // Discontinued books: Fall back to title matching against the library so we can still mark the book
+        // as owned at the right position in the series.
         else {
           
           const potatoBooks = _.get( hotpotato, 'library', []);
-          // Try to match the title to an existing book in the library
-          if ( title ) inLibrary = _.find( potatoBooks, { 'title': title });
-          // TitleShort Fallback...
-          // Title short is not as accurate for matching purposes, but it's better than nothing...
-          if ( !inLibrary ) inLibrary = _.find( potatoBooks, { 'titleShort': titleShort });
-          // The book is in the library so push it into series
+          // Match by full title first...
+          if ( title ) inLibrary = _.find( potatoBooks, function( b ) {
+            return b.title === title && _.find( b.series, { asin: request.asin } );
+          });
+          // Short title as fallback...
+          if ( !inLibrary && titleShort ) inLibrary = _.find( potatoBooks, function( b ) {
+            return b.titleShort === titleShort && _.find( b.series, { asin: request.asin } );
+          });
+          
+          // If found, add to series
           if ( inLibrary ) series.books.push( inLibrary.asin );
           
         }

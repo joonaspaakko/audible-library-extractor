@@ -240,62 +240,79 @@ export default {
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
       if ( archive ) archive.description = '';
       
-      let removeStragglers = function( key ) {
-        
-        if ( hotpotato[ key ] ) {
-          _.each(hotpotato[ key ], function( book ) {
-            
-            if ( book.storePageRequestUrl ) delete book.storePageRequestUrl;
-            if ( book.isNewThisRound ) delete book.isNewThisRound;
-            if ( book.requestUrl ) delete book.requestUrl;
-            // Add prop "archived" if a book is in the archive....
-            // This helps simplify the filters related to archive
-            if ( key === 'library' && book.asin && _.get(archive, 'books.0') ) {
-              let bookInArchive = _.includes( archive.books, book.asin );
-              if ( bookInArchive ) book.archived = true;
-            }
+      let finalizeBooks = function( key ) {
 
-            // Adding books that are no longer sold into series.
-            if ( key === 'library' ) {              
-              _.each( book.series, ( series ) => {
+        if ( !hotpotato[ key ] ) return;
+
+        _.each(hotpotato[ key ], function( book ) {
+
+          // STRIP OUT PROPERTIES USED DURING PROCESSING 
+          if ( book.storePageRequestUrl ) delete book.storePageRequestUrl;
+          if ( book.isNewThisRound ) delete book.isNewThisRound;
+          if ( book.requestUrl ) delete book.requestUrl;
+
+          // MARK ARCHIVED BOOKS
+          // Achive property is denormalized onto each book to simplify archive-related filters in the gallery.
+          if ( key === 'library' && book.asin && _.get(archive, 'books.0') ) {
+            let bookInArchive = _.includes( archive.books, book.asin );
+            if ( bookInArchive ) book.archived = true;
+          }
+
+          // INSERT DISCONTINUED BOOKS INTO SERIES
+          if ( key === 'library' ) {
+            _.each( book.series, ( series ) => {
+
+              // Skip books without an ASIN: nothing to insert
+              const sourceBookAsin = _.get(book, 'asin');
+              if ( !sourceBookAsin ) return;
+
+              // Find the series
+              let foundSeries = _.find(hotpotato.series, { asin: series.asin });
+
+              // Series doesn't exist yet, create it
+              if ( !foundSeries ) {
+                foundSeries = { asin: series.asin, name: series.name, url: series.url, books: [], allBooks: [], detachedBooks: true };
+                if ( !hotpotato.series ) hotpotato.series = [];
+                hotpotato.series.push( foundSeries );
+              }
+
+              // If the book isn't already in the series, add it.
+              if ( !_.includes(foundSeries.books, sourceBookAsin) ) {
+              
+                // The `detachedBooks` signals to the gallery this series contains discontinued books.
+                foundSeries.detachedBooks = true;
+                foundSeries.books.push( book.asin );
                 
-                const foundSeries = _.find(hotpotato.series, { asin: series.asin});
+                // Build a minimal `allBooks` entry using the book's own series metadata
+                // for the number, since the series page won't have listed it.
+                const newAddition = _.pick(book, [ 'titleShort', 'title', 'cover', 'bookNumbers', 'asin' ]);
+                newAddition.bookNumbers = _.isArray(series.bookNumbers) ? series.bookNumbers.join(', ') : series.bookNumbers;
                 
-                const books = _.get(foundSeries, 'books');
-                const sourceBookAsin = _.get(book, 'asin');
-                // Remember to fix this. Clearly in my library this is conditional is causing issues that shouldn't happen.
-                if ( !books || !sourceBookAsin ) return;
+                // Try to slot the book next to others sharing the same number so the order
+                // stays sensible. Falls back to appending at the end if nothing matches.
+                const firstNumber = _.first( _.castArray(series.bookNumbers) );
+                const targetIndex = _.findLastIndex(foundSeries.allBooks, ( b ) => {
+                  return b.bookNumbers == firstNumber || b.bookNumbers == newAddition.bookNumbers;
+                });
+
+                // Insert after the last book sharing the same number to keep order sensible
+                if ( targetIndex > -1 ) foundSeries.allBooks.splice(targetIndex+1, 0, newAddition);
+                // No positional match found — append to the end
+                else foundSeries.allBooks.push(newAddition);
                 
-                const detachedFromSeries = !_.includes(books, sourceBookAsin);
-                if ( detachedFromSeries ) {
-                  foundSeries.detachedBooks = true;
-                  foundSeries.books.push( book.asin );
-                  const newAddition = _.pick(book, [ 'titleShort', 'title', 'cover', 'bookNumbers', 'asin' ]);
-                  newAddition.bookNumbers = _.isArray(series.bookNumbers) ? series.bookNumbers.join(', ') : series.bookNumbers;
-                  const firstNumber = _.first(series.bookNumbers);
-                  const targetIndex = _.findLastIndex(foundSeries.allBooks, ( book ) => {
-                    return book.bookNumbers == firstNumber || book.bookNumbers == newAddition.bookNumbers;
-                  });
-                  
-                  // Found a book with the same number
-                  if ( targetIndex > -1 ) {
-                    foundSeries.allBooks.splice(targetIndex+1, 0, newAddition);
-                  }
-                  else {
-                    foundSeries.allBooks.push(newAddition);
-                  }
-                }
-              });
-            }
-            
-          });
-        }
-        
+              }
+            });
+          }
+
+        });
+
       };
-      
-      removeStragglers('library'); // Library
-      removeStragglers('wishlist');
 
+      finalizeBooks('library');
+      finalizeBooks('wishlist');
+        
+      // return;
+      
       // Make sure library books are excluded from the wishlist no matter hwhat...
       if ( _.get(hotpotato, 'library.0') && _.get(hotpotato, 'wishlist.0') ) {
         _.remove( hotpotato.wishlist, function( book ) {
