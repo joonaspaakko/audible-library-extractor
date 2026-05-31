@@ -56,54 +56,67 @@ export default {
           // return;
           
           let count = 0;
-          _.each( filesArray , function(book) {
-            let coverUrl = _.get( book, 'cover' );
-            let getFile = !!coverUrl ? coverUrl : book;
-            
-            JSZipUtils.getBinaryContent( getFile, function(err, data) {
-              
-              if (err) throw err;
-              
-              if ( data && !coverUrl ) {
-                var path = book;
-                var fileName = path.substring(path.lastIndexOf('/') + 1);
-                // Make sure the single file html output is index.html
-                fileName = fileName.replace('single-file-animated-wallpaper.html', 'index.html'); 
-                zip.file(fileName, data, { binary: true });
-              }
-              else if ( data ) {
-                coversFolder.file(book.asin + '.jpg', data, { binary: true });
-              }
-              
-              count++;
-              if (count == filesArray.length) {
-                zip.generateAsync({ type: "blob", streamFiles: true }, function updateCallback(metadata) {
-                  vue.saveProgressWidth = metadata.percent;
-                }).then(function(content) {
-                  
-                  let pageTitle = vue.store.gallery.pageTitle ? '-' + _.kebabCase(vue.store.gallery.pageTitle) : '';
-                  saveAs(content, "ale-animated-wallpaper"+ pageTitle +".zip");
-                  setTimeout(function() { 
-                    vue.$store.commit("update", { key: "saving", value: false });
-                    vue.saveProgressWidth = -1; 
-                    vue.$nextTick(function() {
-                      // vue.$emitter.emit('canvas-center');
-                    });
-                  }, 1000);
-                  
-                }).catch(function( e ) {
-                  setTimeout(function() { 
-                    vue.$store.commit("update", { key: "saving", value: false });
-                    vue.saveProgressWidth = -1; 
-                    vue.$nextTick(function() {
-                      // vue.$emitter.emit('canvas-center');
-                    });
-                  }, 1000);
-                });
-              }
-              
-            });
-          });
+          const concurrency = 10;
+          let activeCount = 0;
+          let nextIndex = 0;
+
+          function fetchNext() {
+            while ( activeCount < concurrency && nextIndex < filesArray.length ) {
+              const book = filesArray[nextIndex++];
+              const coverUrl = _.get( book, 'cover' );
+              const getFile = !!coverUrl ? coverUrl : book;
+              activeCount++;
+
+              JSZipUtils.getBinaryContent( getFile, function(err, data) {
+                activeCount--;
+
+                if (err) throw err;
+
+                if ( data && !coverUrl ) {
+                  var path = book;
+                  var fileName = path.substring(path.lastIndexOf('/') + 1);
+                  // Make sure the single file html output is index.html
+                  fileName = fileName.replace('single-file-animated-wallpaper.html', 'index.html');
+                  zip.file(fileName, data, { binary: true });
+                }
+                else if ( data ) {
+                  coversFolder.file(book.asin + '.jpg', data, { binary: true });
+                }
+
+                count++;
+                if ( count == filesArray.length ) {
+                  zip.generateAsync({ type: "blob", streamFiles: true }, function updateCallback(metadata) {
+                    vue.saveProgressWidth = metadata.percent;
+                  }).then(function(content) {
+
+                    let pageTitle = vue.store.gallery.pageTitle ? '-' + _.kebabCase(vue.store.gallery.pageTitle) : '';
+                    saveAs(content, "ale-animated-wallpaper"+ pageTitle +".zip");
+                    setTimeout(function() {
+                      vue.$store.commit("update", { key: "saving", value: false });
+                      vue.saveProgressWidth = -1;
+                      vue.$nextTick(function() {
+                        // vue.$emitter.emit('canvas-center');
+                      });
+                    }, 1000);
+
+                  }).catch(function( e ) {
+                    setTimeout(function() {
+                      vue.$store.commit("update", { key: "saving", value: false });
+                      vue.saveProgressWidth = -1;
+                      vue.$nextTick(function() {
+                        // vue.$emitter.emit('canvas-center');
+                      });
+                    }, 1000);
+                  });
+                }
+                else {
+                  fetchNext();
+                }
+              });
+            }
+          }
+
+          fetchNext();
           
         });
       }
