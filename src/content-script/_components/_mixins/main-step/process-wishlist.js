@@ -212,8 +212,10 @@ export default {
           }
           
           // From plus catalog
-          const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button');
-          if (fromPlusCatalog) book.fromPlusCatalog = true;
+          const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button') || 
+                                  _thisRow.querySelector('.ucx-add-to-library-button') ||
+                                  _thisRow.querySelector('.adblBuyBoxMinervaPlayNow');
+          if ( fromPlusCatalog ) book.fromPlusCatalog = true;
           
           const getPrice = ( el ) => {
             
