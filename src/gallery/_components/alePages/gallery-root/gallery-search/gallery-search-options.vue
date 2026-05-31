@@ -28,10 +28,17 @@
         </li>
       </ul>
       
-      <ul>
-        <li 
-          class="search-option" 
-          :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }" 
+      <ul :class="{ 'extras-only': listName === 'filter' && !$store.getters.regularFilters }">
+        <li v-if="listName === 'filter' && !$store.getters.regularFilters"
+            class="reset-filters"
+            @click="resetFilters"
+            content="Reset filters"
+            v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
+          <fa-solid-redo-alt/>
+        </li>
+        <li
+          class="search-option"
+          :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }"
           v-for="(item, index) in filteredOptionsList" :key="item.key"
         >
           <gallery-sorter v-if="item.type !== 'divider'" 
@@ -315,6 +322,10 @@ export default {
     }
   }
   
+  ul.extras-only {
+    padding-top: 30px;
+  }
+
   .reset-filters {
     outline: none;
     cursor: pointer;
