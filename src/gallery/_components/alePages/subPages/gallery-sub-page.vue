@@ -1,18 +1,29 @@
 <template>
-  <div :id="'ale-'+pageName" class="box-layout-wrapper" v-if="listReady" :style="optionsOpenMargin" ref="wrapper">
-    
-    <gallery-search :collectionSource="collectionSource"></gallery-search>
-    
-    <div :style="contentCSS" class="page-content">
+  <div :id="'ale-' + config.pageId" class="box-layout-wrapper" v-if="listReady" :style="optionsOpenMargin" ref="wrapper">
+
+    <gallery-search collectionSource="pageCollection"></gallery-search>
+
+    <div :style="galleryStyle" class="page-content">
       <gallery-lazy
-        v-for="(item, index) in $store.getters.collection"
-        :key="'series:'+item.asin"
-        :data-asin="item.asin"
+        v-for="item in $store.getters.collection"
         class="single-box"
+        :data-id="item.asin || item.name"
+        :key="config.pageId + ':' + ( item.asin || item.name )"
       >
-        <gallery-sub-page-row :item="item">
-          <template #right-side></template>
-        </gallery-sub-page-row>
+        <router-link :to="itemRoute( item )">
+
+          <h2>{{ item.name }}</h2>
+
+          <div
+            class="books-total"
+            :class="{ 'books-total--borderless': config.booksTotalBorderless }"
+            v-if="item.books && item.books.length"
+            :content="config.booksTotalTippy"
+            v-tippy="{ placement: 'right' }"
+            v-html="config.booksTotalContent( item )"
+          ></div>
+
+        </router-link>
       </gallery-lazy>
     </div>
 
@@ -21,306 +32,128 @@
 
 <script>
 import findSubPageSource from "@output-mixins/gallery-findSubPageSource.js";
+import slugify from "@output-mixins/gallery-slugify.js";
+import { defaultConfig } from "@output-pages/subPages/gallery-sub-page-configs.js";
+
 
 export default {
   name: "GallerySubPage",
-  mixins: [ findSubPageSource ],
+  mixins: [ findSubPageSource, slugify ],
+
+  props: {
+    routeConfig: {
+      type: Object,
+      required: true,
+    },
+  },
+
   data: function () {
     return {
-      collectionSource: 'pageCollection',
-      pageTitle: 'Series',
-      pageSubTitle: null,
       listReady: false,
     };
   },
 
   computed: {
-    searchOptHeight() {
-      return this.$store.state.searchOptOpenHeight;
+
+    // Functions in each config's resolve{} are called with context to produce their final values.
+    // Everything else merges as-is — plain values or callable functions for later use.
+    config: function () {
+    
+      const merged  = { ...defaultConfig, ...this.routeConfig };
+      const resolve = { ...defaultConfig.resolve, ...( this.routeConfig.resolve || {} ) };
+      const context = { bp: merged.bookProp, singular: merged.label, scope: merged.scope || [] };
+      
+      _.each( resolve, ( resolver, key ) => {
+        merged[ key ] = resolver( context );
+      } );
+      
+      delete merged.resolve;
+      return merged;
+      
     },
+
     optionsOpenMargin: function () {
-
-      if ( this.searchOptHeight ) return {
-        marginBottom: 0
-      };
-
+      if ( this.$store.state.searchOptOpenHeight ) return { marginBottom: 0 };
+      return false;
     },
-    contentCSS: function () {
 
-      if (this.searchOptHeight) return {
-        overflow: 'hidden',
-        height: this.searchOptHeight - (this.$refs.wrapper.offsetTop * 2) + 'px',
-      };
-
+    galleryStyle: function () {
+      if ( this.$store.state.searchOptOpenHeight ) {
+        return {
+          overflow: 'hidden',
+          height: this.$store.state.searchOptOpenHeight - ( this.$refs.wrapper.offsetTop * 2 ) + 'px',
+        };
+      }
+      return false;
     },
+
   },
 
   methods: {
 
+    // Merges two arrays by id/key: base items are overridden by matching overrides,
+    // and override-only items are appended. The id property is stripped from all output objects
+    // since it's only used for matching, not rendering.
+    mergeByKey: function ( base, overrides ) {
+
+      const getId = ( o ) => o.id || o.key;
+      const stripId = ( { id, ...rest } ) => rest;
+
+      // No overrides: return base items as fresh objects with id stripped
+      if ( !overrides || !overrides.length ) return base.map( stripId );
+
+      // Merge base items with their matching overrides
+      const result = base.map( ( baseItem ) => {
+        const override = overrides.find( ( o ) => getId( o ) === getId( baseItem ) );
+        if ( !override ) return stripId( baseItem );
+        return { ...stripId( baseItem ), ...stripId( override ) };
+      } );
+
+      // Append override items that have no matching base entry
+      overrides.forEach( ( override ) => {
+        if ( !base.find( ( b ) => getId( b ) === getId( override ) ) ) {
+          result.push( stripId( override ) );
+        }
+      } );
+
+      return result;
+
+    },
+
+    itemRoute: function ( item ) {
+      return this.config.rowRoute( item, this.subPageSource.name );
+    },
+
     makeCollection: function () {
-      
-      const seriesCollection = [];
-      let addedCounter = 1;
-
-      // LOOP BOOKS
-      // Processed in reverse order so that the "added" order is based on the first book added to the library of each series.
-      _.eachRight(this.subPageSource.collection, (book) => {
-        const bookProp = _.get(book, 'series');
-        // LOOP SERIES
-        _.each( bookProp, (series) => {
-          
-          this.makeCollectionCallback( seriesCollection, series );
-          
-          // Find an existing entry in our series collection
-          const seriesAdded = _.find(seriesCollection, {asin: series.asin});
-          // Find the series in our library
-          const librarySeries = _.find(this.$store.state.library.series, {asin: series.asin});
-
-        });
-      });
-      
-      _.reverse(seriesCollection);
-
-      this.$store.commit("prop", {key: "pageCollection", value: seriesCollection});
+      const result = this.config.makeCollection( this.subPageSource.collection, this );
+      this.$store.commit( "prop", { key: "pageCollection", value: result } );
       this.updateListRenderingOptions();
       this.listReady = true;
     },
 
     updateListRenderingOptions: function () {
-      let vue = this;
-      let list = {
-        scope: [
-          { active: true, key: 'name',            tippy: 'Search series by name',        weight: 5 },
-          { active: true, key: 'books',           tippy: 'Search series by book titles', weight: 1 },
-          { active: true, key: 'authors.name',    tippy: 'Search series by authors',     weight: 1 },
-          { active: true, key: 'narrators.name',  tippy: 'Search series by narrators',   weight: 1 },
-          { active: true, key: 'publishers.name', tippy: 'Search series by publishers',  weight: 1 },
-        ],
-        filter: [
-          {
-            active: false,
-            type: 'filterExtras',
-            label: 'Number of owned books',
-            key: 'inSeries',
-            range: [1, (function () {
-              let series = _.get(vue.$store.state, vue.collectionSource);
-              let max = _.maxBy(series, function (series) {
-                if (series.books) return series.books.length;
-              });
-              return max ? max.books.length : 1;
-            }())],
-            rangeMinDist: 0,
-            rangeSuffix: '',
-            rangeMin: function () {
-              return 1;
-            },
-            rangeMax: function () {
-              let series = _.get(vue.$store.state, vue.collectionSource);
-              let max = _.maxBy(series, function (series) {
-                if (series.books) return series.books.length;
-              });
-              return max ? max.books.length : 1;
-            },
-            condition: function (series) {
-              if (series.books) {
-                let min = this.range[0];
-                let max = this.range[1];
-                return series.books.length >= min && series.books.length <= max;
-              }
-            }
-          },
-          {
-            excludeFromWishlist: true,
-            type: 'divider',
-            key: 'divider1.0'
-          },
-          {
-            excludeFromWishlist: true,
-            active: false,
-            type: 'filterExtras',
-            label: 'Rating (min)',
-            tippy: 'Based on the book you rated lowest in the series',
-            key: 'min-rating',
-            condition: function (series) {
-              return (series.minRating || 0) >= this.range[0];
-            },
-            range: true,
-            rangeMin: () => 1,
-            rangeMax: () => 5,
-            rangeMinDist: 0,
-            rangeSuffix: '',
-            tooltipFormatter: function (val) {
-              switch (val) {
-                case 1:
-                  return val + ' (Not for me)';
-                  break;
-                case 2:
-                  return val + ' (It’s okay)';
-                  break;
-                case 3:
-                  return val + ' (Pretty good)';
-                  break;
-                case 4:
-                  return val + ' (It’s great)';
-                  break;
-                case 5:
-                  return val + ' (I love it)';
-                  break;
-                default: 
-                  return 0;
-                break;
-              }
-            },
-          },
-          {
-            excludeFromWishlist: true,
-            type: 'divider',
-            key: 'divider1.1'
-          },
-          {
-            excludeFromWishlist: true,
-            active: false,
-            type: 'filterExtras',
-            label: 'Incomplete series',
-            key: 'series-incomplete',
-            tippy: "Series in which I don't own all the books",
-            condition: function (series) {
-              return series.allBooksMinusDupes.length > series.books.length;
-            }
-          },
-          {
-            excludeFromWishlist: true,
-            type: 'divider',
-            key: 'divider1.2'
-          },
-          {
-            excludeFromWishlist: true,
-            active: false,
-            type: 'filterExtras',
-            label: 'Missing latest book',
-            key: 'missing-latest',
-            condition: (series) => series?.missingLatest,
-          },
-        ],
-        sort: [
-          {
-            active: false,
-            key: 'randomize',
-            label: 'Randomize',
-            type: 'sortExtras',
-            tippy: "Ignores sorting and randomizes instead unless there's an active search."
-          },
-          {type: 'divider', key: 'divider1'},
-          // active: true = arrow down / descending
-          {
-            active: true,
-            current: true,
-            key: 'added',
-            label: 'Added',
-            type: 'sort',
-            tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>'
-          },
-          {active: true, current: false, key: 'name', label: 'Name', type: 'sort', tippy: "Sort by series name"},
-          {
-            active: false,
-            current: false,
-            key: 'amount',
-            label: 'Number of owned books',
-            type: 'sort',
-          },
-          {
-            excludeFromWishlist: true,
-            active: false,
-            current: false,
-            key: 'amountTotal',
-            label: 'Total number of books',
-            type: 'sort',
-          },
-          {
-            excludeFromWishlist: true,
-            active: false,
-            current: false,
-            key: 'missing',
-            label: 'Missing',
-            tippy: 'Number of missing books',
-            type: 'sort',
-          },
-        ],
-      };
 
-      if (this.subPageSource.wishlist) {
-        list.filter = _.filter(list.filter, function (o) {
-          return !o.excludeFromWishlist;
-        });
-        list.sort = _.filter(list.sort, function (o) {
-          return !o.excludeFromWishlist;
-        });
+      // All three arrays are built with fresh objects each call so that
+      // $setListRenderingOpts can mutate them (setting .active, .current, .range
+      // from URL params) without corrupting the config originals.
+
+      const scope = this.mergeByKey( defaultConfig.scope, this.routeConfig.scope || [] );
+
+      const sort = this.mergeByKey( defaultConfig.sort, this.routeConfig.sort || [] );
+
+      const filter = _.cloneDeep( this.mergeByKey( defaultConfig.filters, this.routeConfig.filters || [] ) );
+
+      const list = { scope, filter, sort };
+
+      if ( this.subPageSource.wishlist ) {
+        list.filter = _.filter( list.filter, ( o ) => !o.excludeFromWishlist );
+        list.sort   = _.filter( list.sort,   ( o ) => !o.excludeFromWishlist );
       }
 
-      this.$setListRenderingOpts(list);
-
+      this.$setListRenderingOpts( list );
     },
 
-    // Basically drops out all other versions of books you already own (tries to anyways)
-    removeDuplicates: function (books) {
-      // Logic - Remove duplicate books from series:
-      // - Compare book numbers and remove duplicates prioritizing books in the library
-      // - Needs to be an exact match: "0.3, 0.5, 1" !== "1"
-      // - Any kind of bundles will be ignored, even if you have separate book copies from the bundle.
-      // - Of course identical bundle numbers are considered duplicates
-      // Simply put:
-      // 1. Book in library: always keep
-      // 2. Not in Library: remove if it exists in the library and if there are multiple books (not in library) make sure only one is kept
-
-      let dollybooks = _.clone(books);
-      // const inLibrary = _.filter( dollybooks, function( book ) { return !book.notInLibrary;  });
-      // const notInLibrary = _.filter( dollybooks, function( book ) { return book.notInLibrary;  });
-
-      var n = 0;
-      _.each(dollybooks, function (book) {
-        book.order = ++n;
-      });
-
-      dollybooks = _.groupBy(dollybooks, 'bookNumbers');
-
-      _.each(dollybooks, function (chunk, i) {
-
-        if (chunk.length === 1) {
-          dollybooks[i] = [chunk[0]];
-        } else {
-          var inLibrary = _.filter(chunk, function (o) {
-            return !o.notInLibrary
-          });
-          if (inLibrary.length > 0) {
-            dollybooks[i] = inLibrary;
-          } else {
-            dollybooks[i] = [chunk[0]];
-          }
-        }
-
-      });
-
-      dollybooks = _.map(dollybooks, function (o) {
-        return o;
-      });
-      dollybooks = _.flatten(dollybooks);
-      dollybooks = _.orderBy(dollybooks, 'order', 'asc');
-
-      return dollybooks;
-
-    },
-    
-    calcMinRating( obj, book ) {
-      
-      let ratings = [obj.minRating, book.myRating];
-          ratings = _.map(ratings, _.toNumber);
-          ratings = _.filter(ratings, _.isFinite);
-          
-      return _.min( ratings );
-      
-    },
   },
-
 };
 </script>
 
@@ -352,24 +185,25 @@ export default {
   }
 
   .books-total {
-    border: none !important;
-    background: transparent !important;
-    padding: 0 6px !important;
-    width: auto !important;
+    width: 23px !important;
     height: 23px !important;
     line-height: 23px !important;
     font-size: .9em !important;
-    top: 6px !important;
+    top: unset !important;
+    border-width: 2px !important;
+    top: 4px !important;
     right: 4px !important;
+
+    &.books-total--borderless {
+      border: none !important;
+      background: transparent !important;
+      padding: 0 6px !important;
+      width: auto !important;
+      height: 23px !important;
+      line-height: 23px !important;
+      top: 6px !important;
+    }
   }
-}
-
-.theme-dark .books-total .my-books {
-  color: $audibleOrange !important;
-}
-
-.theme-light .books-total .my-books {
-  font-weight: bold;
 }
 
 </style>
