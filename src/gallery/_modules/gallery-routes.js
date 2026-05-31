@@ -3,10 +3,8 @@ import aleLibraryView from "@output-comps/gallery-library-view.vue";
 const aleGallery     = () => import("@output-pages/gallery-root.vue");
 const aleCollections = () => import("@output-pages/gallery-collections.vue");
 const aleCategories  = () => import("@output-pages/subPages/gallery-categories.vue");
-const aleSeries      = () => import("@output-pages/subPages/gallery-series.vue");
-const aleAuthors     = () => import("@output-pages/subPages/gallery-authors.vue");
-const aleNarrators   = () => import("@output-pages/subPages/gallery-narrators.vue");
-const alePublishers  = () => import("@output-pages/subPages/gallery-publishers.vue");
+const aleSubPage     = () => import("@output-pages/subPages/gallery-sub-page.vue");
+import { seriesConfig, authorsConfig, narratorsConfig, publishersConfig } from "@output-pages/subPages/gallery-sub-page-configs.js";
 
 export default {
   library: { 
@@ -70,7 +68,7 @@ export default {
         order: 1,
       },
       children: [
-        { name: "all-series", path: "", component: aleSeries, meta: { subPage: true, title: 'Series' } },
+        { name: "all-series", path: "", component: aleSubPage, props: { routeConfig: seriesConfig }, meta: { subPage: true, title: 'Series' } },
         { name: "series", path: ":series", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Series' } }
       ],
     },
@@ -83,7 +81,7 @@ export default {
         order: 2,
       },
       children: [
-        { name: "authors", path: "", component: aleAuthors, meta: { subPage: true, title: 'Authors' } },
+        { name: "authors", path: "", component: aleSubPage, props: { routeConfig: authorsConfig }, meta: { subPage: true, title: 'Authors' } },
         { name: "author", path: ":author", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Authors' } }
       ],
     },
@@ -96,7 +94,7 @@ export default {
         order: 3,
       },
       children: [
-        { name: "narrators", path: "", component: aleNarrators, meta: { subPage: true, title: 'Narrators' } },
+        { name: "narrators", path: "", component: aleSubPage, props: { routeConfig: narratorsConfig }, meta: { subPage: true, title: 'Narrators' } },
         { name: "narrator", path: ":narrator", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Narrators' } }
       ],
     },
@@ -109,7 +107,7 @@ export default {
         order: 4,
       },
       children: [
-        { name: "publishers", path: "", component: alePublishers, meta: { subPage: true, title: 'Publishers' } },
+        { name: "publishers", path: "", component: aleSubPage, props: { routeConfig: publishersConfig }, meta: { subPage: true, title: 'Publishers' } },
         { name: "publisher", path: ":publisher", component: aleGallery, meta: { gallery: true, subPage: true, title: 'Publishers' } }
       ],
     },
