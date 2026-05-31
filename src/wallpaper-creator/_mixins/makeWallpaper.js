@@ -1,5 +1,6 @@
 
 import { zip, strToU8 } from 'fflate';
+import { downloadBlob } from '@utils/download.js';
 
 export default {
   data: function() {
@@ -95,15 +96,8 @@ export default {
           });
         });
 
-        const blob = new Blob([data], { type: 'application/zip' });
-        const url = URL.createObjectURL(blob);
         const pageTitle = this.store.gallery.pageTitle ? '-' + _.kebabCase(this.store.gallery.pageTitle) : '';
-
-        chrome.downloads.download({
-          url: url,
-          filename: "ale-animated-wallpaper"+ pageTitle +".zip",
-          saveAs: true,
-        });
+        downloadBlob( new Blob([data], { type: 'application/zip' }), "ale-animated-wallpaper"+ pageTitle +".zip" );
 
       }
       catch(e) {

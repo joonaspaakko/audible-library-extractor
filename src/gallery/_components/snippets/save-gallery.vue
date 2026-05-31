@@ -103,7 +103,8 @@
 import modal from '@output-snippets/gallery-modal.vue';
 // import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 import { zip, strToU8 } from 'fflate';
-import { storageSet } from '@utils/chrome-storage.js'; 
+import { storageSet } from '@utils/chrome-storage.js';
+import { downloadBlob } from '@utils/download.js'; 
 
 export default {
   name: "saveGallery",
@@ -535,14 +536,7 @@ export default {
             
             if (err) return console.error(err);
 
-            const blob = new Blob([data], { type: 'application/zip' });
-            const url = URL.createObjectURL(blob);
-
-            chrome.downloads.download({
-              url: url,
-              filename: "ALE-gallery.zip",
-              saveAs: true,
-            });
+            downloadBlob( new Blob([data], { type: 'application/zip' }), "ALE-gallery.zip" );
             
           });
 

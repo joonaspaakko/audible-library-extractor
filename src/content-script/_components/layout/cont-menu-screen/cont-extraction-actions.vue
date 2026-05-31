@@ -29,8 +29,8 @@
 </template>
  
 <script>
-import { saveAs } from 'file-saver';
 import helpers from '@contscript-mixins/misc/content-script-helpers.js';
+import { downloadBlob } from '@utils/download.js';
 export default {
 	
 	mixins: [ helpers ],
@@ -140,12 +140,14 @@ export default {
 
 				vue.glueFriesBackTogether( data );
 
-				saveAs(new Blob([JSON.stringify(data)], {type: "application/json;charset=utf-8"}), 'Audible Library Extractor Data.json');
+				downloadBlob( new Blob([JSON.stringify(data)], { type: "application/json;charset=utf-8" }), 'Audible Library Extractor Data.json' );
 
 				vue.exportRawDataDisabled = false;
 				vue.$toast.success("Data exported succesfully!", vue.store.toastOpts);
 
 			}).catch(function( err ) {
+      
+        console.error( err );
 
 				vue.exportRawDataDisabled = false;
 				vue.$toast.error("Data export failed. Reload the page and try again.", vue.store.toastOpts);

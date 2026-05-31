@@ -86,7 +86,6 @@ else {
   else {
     manualChunks = {
       jquery: ['jquery'],
-      jszip: ['jszip', 'jszip-utils'],
       howler: ['howler'],
     };
   }
@@ -132,7 +131,6 @@ export default defineConfig({
       'async-es/mapLimit',
       'async-es/waterfall',
       'domurl',
-      'file-saver',
       'howler',
       '@splidejs/vue-splide', 
       'vue-slider-component', 
