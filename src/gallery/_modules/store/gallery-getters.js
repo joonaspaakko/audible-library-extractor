@@ -40,12 +40,12 @@ export default {
     return state.searchQuery.trim() !== "";
   },
   collectionSource: function( state, getters ) {
-    const libary = state.collectionSource === 'library.books';
+    const libary = state.collectionSource === 'audibledata.library';
     return libary ? getters.regularBooks : _.get(state, state.collectionSource);
     // return getters.searchIsActive ? state.searchCollection : libary ? getters.regularBooks : _.get(state, state.collectionSource);
   },
   collectionTotal: function( state, getters ) {
-    const libary = state.collectionSource === 'library.books';
+    const libary = state.collectionSource === 'audibledata.library';
     return libary ? getters.regularBooks.length : _.get(state, state.collectionSource, []).length;
   },
   collection: function( state, getters ) {
@@ -112,13 +112,13 @@ export default {
   
   regularBooks( state, getters ) {
     
-    const books = _.filter(state.library.books, o => !_.get(o,'podcastParent'));
+    const books = _.filter(state.audibledata.library, o => !_.get(o,'podcastParent'));
     return books;
-    
+
   },
   podcasts( state, getters ) {
-    
-    const books = state.library.books;
+
+    const books = state.audibledata.library;
     const podcasts = _.filter(books, 'podcastParent');
     return podcasts;
     

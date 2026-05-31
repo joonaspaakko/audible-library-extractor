@@ -15,7 +15,7 @@ export default {
       
       let url = new Url(DOMPurify.sanitize(config.url));
       
-      const urlAlreadyFailed = _.includes(vue.$store.state.failedRequests, url);
+      const urlAlreadyFailed = _.includes(vue.$store.state.failedRequests, vue.getRequestId( url.toString() ));
       if (urlAlreadyFailed) {
         config.done({});
         return;
@@ -59,7 +59,7 @@ export default {
               })
               .catch(function( e ) {
                 const status = _.get(e, 'response.status');
-                if (status == 404) vue.$store.commit('pushToFailedRequests', requestURL);
+                if (status == 404) vue.$store.commit('pushToFailedRequests', vue.getRequestId( url.toString() ));
                 result = [ true, {} ];
               })
               .then(function() {

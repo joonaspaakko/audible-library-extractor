@@ -104,15 +104,15 @@ export default {
     init_step_extract: function( config ) {
       
       const vue = this;
-      chrome.storage.local.get(null).then(hotpotato => {
-        
-        if ( hotpotato.chunks && hotpotato.chunks.length ) vue.glueFriesBackTogether(hotpotato);
+      chrome.storage.local.get(['audibledata', 'metadata']).then(hotpotato => {
+
+        if ( !_.isEmpty( _.get(hotpotato, 'audibledata') ) ) vue.glueFriesBackTogether(hotpotato);
         
         vue.ui = "scraping";
         vue.$nextTick(function() {
           
           hotpotato = hotpotato || {};
-          if ( hotpotato.books ) config.oldBooksLength = hotpotato.books.length;
+          if ( hotpotato.library ) config.oldBooksLength = hotpotato.library.length;
           hotpotato.config = config;
           
           const waterfallArray = [
@@ -123,7 +123,7 @@ export default {
             vue.getDataFromSeriesPages,     // Requires store page data (for fallback)
             function(hotpotato, callback) { 
               
-              if ( !_.find(hotpotato.config.steps, { name: "books" }) ) {
+              if ( !_.find(hotpotato.config.steps, { name: "library" }) ) {
                 callback(null, hotpotato); 
                 return;
               }
@@ -228,8 +228,7 @@ export default {
 
     init_step_output: function( config ) {
       
-      let newData = {config: config, extras: { 'domain-extension': this.domainExtension }};
-      chrome.storage.local.set( newData ).then(() => {
+      chrome.storage.local.set({ metadata: { config, extras: { 'domain-extension': this.domainExtension } } }).then(() => {
         this.goToOutputPage({ useStorageData: true });
       });
       
@@ -241,59 +240,83 @@ export default {
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
       if ( archive ) archive.description = '';
       
-      let removeStragglers = function( key ) {
-        
-        if ( hotpotato[ key ] ) {
-          _.each(hotpotato[ key ], function( book ) {
-            
-            if ( book.storePageRequestUrl ) delete book.storePageRequestUrl;
-            if ( book.isNewThisRound ) delete book.isNewThisRound;
-            if ( book.requestUrl ) delete book.requestUrl;
-            // Add prop "archived" if a book is in the archive....
-            // This helps simplify the filters related to archive
-            if ( key === 'books' && book.asin && _.get(archive, 'books.0') ) {
-              let bookInArchive = _.includes( archive.books, book.asin );
-              if ( bookInArchive ) book.archived = true;
-            }
-            
-            // Adding books that are no longer sold into series.
-            if ( key === 'books' ) {              
-              _.each( book.series, ( series ) => {
-                const foundSeries = _.find(hotpotato.series, { asin: series.asin});
-                const detachedFromSeries = !_.includes(foundSeries.books, book.asin);
-                if ( detachedFromSeries ) {
-                  foundSeries.detachedBooks = true;
-                  foundSeries.books.push( book.asin );
-                  const newAddition = _.pick(book, [ 'titleShort', 'title', 'cover', 'bookNumbers', 'asin' ]);
-                  newAddition.bookNumbers = _.isArray(series.bookNumbers) ? series.bookNumbers.join(', ') : series.bookNumbers;
-                  const firstNumber = _.first(series.bookNumbers);
-                  const targetIndex = _.findLastIndex(foundSeries.allBooks, ( book ) => {
-                    return book.bookNumbers == firstNumber || book.bookNumbers == newAddition.bookNumbers;
-                  });
-                  
-                  // Found a book with the same number
-                  if ( targetIndex > -1 ) {
-                    foundSeries.allBooks.splice(targetIndex+1, 0, newAddition);
-                  }
-                  else {
-                    foundSeries.allBooks.push(newAddition);
-                  }
-                }
-              });
-            }
-            
-          });
-        }
-        
+      let finalizeBooks = function( key ) {
+
+        if ( !hotpotato[ key ] ) return;
+
+        _.each(hotpotato[ key ], function( book ) {
+
+          // STRIP OUT PROPERTIES USED DURING PROCESSING 
+          if ( book.storePageRequestUrl ) delete book.storePageRequestUrl;
+          if ( book.isNewThisRound ) delete book.isNewThisRound;
+          if ( book.requestUrl ) delete book.requestUrl;
+
+          // MARK ARCHIVED BOOKS
+          // Achive property is denormalized onto each book to simplify archive-related filters in the gallery.
+          if ( key === 'library' && book.asin && _.get(archive, 'books.0') ) {
+            let bookInArchive = _.includes( archive.books, book.asin );
+            if ( bookInArchive ) book.archived = true;
+          }
+
+          // INSERT DISCONTINUED BOOKS INTO SERIES
+          if ( key === 'library' ) {
+            _.each( book.series, ( series ) => {
+
+              // Skip books without an ASIN: nothing to insert
+              const sourceBookAsin = _.get(book, 'asin');
+              if ( !sourceBookAsin ) return;
+
+              // Find the series
+              let foundSeries = _.find(hotpotato.series, { asin: series.asin });
+
+              // Series doesn't exist yet, create it
+              if ( !foundSeries ) {
+                foundSeries = { asin: series.asin, name: series.name, url: series.url, books: [], allBooks: [], detachedBooks: true };
+                if ( !hotpotato.series ) hotpotato.series = [];
+                hotpotato.series.push( foundSeries );
+              }
+
+              // If the book isn't already in the series, add it.
+              if ( !_.includes(foundSeries.books, sourceBookAsin) ) {
+              
+                // The `detachedBooks` signals to the gallery this series contains discontinued books.
+                foundSeries.detachedBooks = true;
+                foundSeries.books.push( book.asin );
+                
+                // Build a minimal `allBooks` entry using the book's own series metadata
+                // for the number, since the series page won't have listed it.
+                const newAddition = _.pick(book, [ 'titleShort', 'title', 'cover', 'bookNumbers', 'asin' ]);
+                newAddition.bookNumbers = _.isArray(series.bookNumbers) ? series.bookNumbers.join(', ') : series.bookNumbers;
+                
+                // Try to slot the book next to others sharing the same number so the order
+                // stays sensible. Falls back to appending at the end if nothing matches.
+                const firstNumber = _.first( _.castArray(series.bookNumbers) );
+                const targetIndex = _.findLastIndex(foundSeries.allBooks, ( b ) => {
+                  return b.bookNumbers == firstNumber || b.bookNumbers == newAddition.bookNumbers;
+                });
+
+                // Insert after the last book sharing the same number to keep order sensible
+                if ( targetIndex > -1 ) foundSeries.allBooks.splice(targetIndex+1, 0, newAddition);
+                // No positional match found — append to the end
+                else foundSeries.allBooks.push(newAddition);
+                
+              }
+            });
+          }
+
+        });
+
       };
-      
-      removeStragglers('books'); // Library
-      removeStragglers('wishlist'); 
+
+      finalizeBooks('library');
+      finalizeBooks('wishlist');
+        
+      // return;
       
       // Make sure library books are excluded from the wishlist no matter hwhat...
-      if ( _.get(hotpotato, 'books.0') && _.get(hotpotato, 'wishlist.0') ) {
+      if ( _.get(hotpotato, 'library.0') && _.get(hotpotato, 'wishlist.0') ) {
         _.remove( hotpotato.wishlist, function( book ) {
-          if ( book.asin ) return _.find( hotpotato.books, { asin: book.asin });
+          if ( book.asin ) return _.find( hotpotato.library, { asin: book.asin });
         });
       }
       
@@ -318,21 +341,22 @@ export default {
       
       this.addDataVersions( hotpotato );
       
-      if (!hotpotato.chunks ) {
-        if ( hotpotato.books    ) this.addedOrder(hotpotato.books);
-        if ( hotpotato.books    ) this.languageCorrections(hotpotato.books);
+      if ( !hotpotato.audibledata ) {
+        if ( hotpotato.library ) this.addedOrder(hotpotato.library);
+        if ( hotpotato.library ) this.languageCorrections(hotpotato.library);
         if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
         this.makeFrenchFries(hotpotato);
       }
-      
-      chrome.storage.local.clear().then(() => {
-        chrome.storage.local.set(hotpotato).then(() => {
-          
-            if ( _.get(hotpotato, 'chunks.0') ) vue.glueFriesBackTogether(hotpotato);
-            
-            callback( hotpotato );
-          
-        });
+
+      chrome.storage.local.set({
+        metadata: hotpotato.metadata,
+        audibledata: hotpotato.audibledata,
+      }).then(() => {
+
+        if ( !_.isEmpty( hotpotato.audibledata ) ) vue.glueFriesBackTogether(hotpotato);
+
+        callback( hotpotato );
+
       });
       
     },
@@ -375,7 +399,7 @@ export default {
       let version = chrome.runtime.getManifest().version;
       
       // If a step was just extracted and there was no existing data update data version...
-      if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'library', value: true })     && !hasData.books       ) hotpotato.version.library     = version;
+      if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'library', value: true })     && !hasData.library     ) hotpotato.version.library     = version;
       if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'collections', value: true }) && !hasData.collections ) hotpotato.version.collections = version;
       if ( _.find( _.get(hotpotato, 'config.steps'), { name: 'wishlist', value: true })    && !hasData.wishlist    ) hotpotato.version.wishlist    = version;
       

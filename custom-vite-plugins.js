@@ -8,14 +8,51 @@ export const customFilePathsJSON = {
 	name: 'Custom file paths json',
 	writeBundle(opts, bundle) {
 		if ( buildSingleFile ) return;
-		const files = [];
-		for (const [key, o] of Object.entries(bundle)) {
-			files.push( o.fileName );
+
+		const byFileName = {};
+		for (const [, o] of Object.entries(bundle)) {
+			byFileName[ o.fileName ] = o;
 		}
 
-		const contents = 'window.chunksFilePaths = ' + JSON.stringify(files.sort(), null, 2) + ';';
+		function collectDeps( fileName, seen = new Set() ) {
+			if ( seen.has( fileName ) ) return seen;
+			seen.add( fileName );
+			const chunk = byFileName[ fileName ];
+			if ( !chunk || chunk.type !== 'chunk' ) return seen;
+			for ( const imp of [ ...( chunk.imports || [] ), ...( chunk.dynamicImports || [] ) ] ) {
+				collectDeps( imp, seen );
+			}
+			for ( const css of chunk.viteMetadata?.importedCss || [] ) {
+				seen.add( css );
+			}
+			for ( const asset of chunk.viteMetadata?.importedAssets || [] ) {
+				seen.add( asset );
+			}
+			return seen;
+		}
+
+		const galleryEntry = Object.values( bundle ).find(
+			c => c.type === 'chunk' && c.isEntry && /^assets\/gallery\.[^/]+\.js$/.test( c.fileName )
+		);
+
+		let galleryFiles = [];
+		if ( galleryEntry ) {
+			const deps = collectDeps( galleryEntry.fileName );
+			for ( const fileName of [ ...deps ] ) {
+				const chunk = byFileName[ fileName ];
+				if ( chunk?.type === 'asset' && fileName.endsWith('.css') && chunk.source ) {
+					const matches = chunk.source.matchAll( /url\(['"]?(?!data:|https?:|#)([^'")\s?#]+)['"]?\)/g );
+					for ( const [ , ref ] of matches ) {
+						const assetPath = 'assets/' + ref.split('/').pop();
+						if ( byFileName[ assetPath ] ) deps.add( assetPath );
+					}
+				}
+			}
+			galleryFiles = [ ...deps ].sort();
+		}
+
+		const contents = 'window.galleryFilePaths = ' + JSON.stringify( galleryFiles, null, 2 ) + ';';
 		fs.writeFileSync('./dist/file-paths.js', contents);
-		
 	}
 };
 

@@ -329,7 +329,7 @@ export default {
             key: 'my-review',
             group: 'filterExtras',
             condition: function(book) {
-              return _.find( vue.$store.state.library.userReviews, { asin: book.asin });
+              return _.find( vue.$store.state.audibledata.userReviews, { asin: book.asin });
             }
           },
           
@@ -575,13 +575,13 @@ export default {
               let most = 1;
               _.each(books, function(book) {
                 let bigBoe = _.maxBy(book.series, function(series) {
-                  let foundSeries = _.find(vue.$store.state.library.series, {
+                  let foundSeries = _.find(vue.$store.state.audibledata.series, {
                     asin: series.asin
                   });
                   if (foundSeries && foundSeries.books) return foundSeries.books.length;
                 });
                 if (bigBoe) {
-                  const bigBoeLength = _.find(vue.$store.state.library.series, {
+                  const bigBoeLength = _.find(vue.$store.state.audibledata.series, {
                     asin: bigBoe.asin
                   }).books.length;
                   if (most < bigBoeLength) most = bigBoeLength;
@@ -598,7 +598,7 @@ export default {
 
                 let result = false;
                 _.each(book.series, function(cSeries) {
-                  const series = _.find(vue.$store.state.library.series, {
+                  const series = _.find(vue.$store.state.audibledata.series, {
                     asin: cSeries.asin
                   });
                   if (series) {
@@ -1118,14 +1118,14 @@ export default {
             dropdownLabel: 'label',
             dropdownValueProp: 'valueProp',
             dropdownOpts: function(type) {
-              if ( vue.$store.state.library.collections ) {
-                let allTags = _.map( vue.$store.state.library.collections, function( collection ) {
+              if ( vue.$store.state.audibledata.collections ) {
+                let allTags = _.map( vue.$store.state.audibledata.collections, function( collection ) {
                   return {
                     label: collection.title,
                     valueProp: collection.id,
                   };
                 });
-                // _.each(vue.$store.state.library.collections, function(book) {
+                // _.each(vue.$store.state.audibledata.collections, function(book) {
                 //   if (book.publishers) allTags.push(_.map(book.publishers, 'name'));
                 // });
                 return _.sortBy(allTags, 'title');
@@ -1137,7 +1137,7 @@ export default {
               
               const selectedTags = _.get(this, 'value') || [];
               const collectionIds = _.get(book, 'collectionIds', []);
-              const allCollections = _.get(vue.$store.state, 'library.collections', []);
+              const allCollections = vue.$store.state.audibledata.collections || [];
               if ( selectedTags.length && collectionIds.length && allCollections.length ) {
                 
                 let ping = false;
@@ -1493,9 +1493,9 @@ export default {
     
     removeArchived: function( list ) {
 
-      if ( !this.$store.state.library.collections ) return;
+      if ( !this.$store.state.audibledata.collections ) return;
       
-      let collections = this.$store.state.library.collections;
+      let collections = this.$store.state.audibledata.collections;
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
       if ( !archive || archive.books.length < 1 ) {
         let removeArchiveKeys = ['archived', 'not-archived'];

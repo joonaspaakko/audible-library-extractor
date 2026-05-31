@@ -54,7 +54,7 @@ export default {
     compileCollections: function() {
       
       const collectionIds = this.book.collectionIds;
-      const collections = this.store.library.collections;
+      const collections = this.store.audibledata.collections;
       if ( !collectionIds || !collections ) return;
       
       this.collections = _.filter(collections, function( collection ) {

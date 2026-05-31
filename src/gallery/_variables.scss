@@ -17,6 +17,7 @@ $themes: (
   light: (
 		audibleOrange: saturate(darken($audibleOrange,7), 100),
     backColor: $lightBackColor,
+    panelColor: darken($lightBackColor, 4),
     elementColor: lighten( $lightBackColor, 12),
     frontColor: $lightFrontColor,
     outerColor: #999,
@@ -29,6 +30,7 @@ $themes: (
   dark: (
 		audibleOrange: $audibleOrange,
     backColor: $darkBackColor,
+    panelColor: #171717,
     elementColor: lighten( $darkBackColor, 12),
     frontColor: $darkFrontColor,
     outerColor: #000,

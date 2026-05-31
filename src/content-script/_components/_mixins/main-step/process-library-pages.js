@@ -5,7 +5,7 @@ export default {
     getDataFromLibraryPages: function(hotpotato, libraryPagesFetched) {
       const vue = this;
       
-      if ( _.find(hotpotato.config.steps, { name: "books" }) ) {
+      if ( _.find(hotpotato.config.steps, { name: "library" }) ) {
         
         this.$store.commit('update', [
           { key: 'bigStep.step', value: 0 },
@@ -19,7 +19,7 @@ export default {
           { key: 'subStep.max', value: 4 },
           { key: 'progress.step', value: 0 },
           { key: 'progress.max', value: 0 },
-          { key: 'progress.text', value: this.$store.state.storageHasData.books ? "Updating old books and adding new books..." : "Scanning library for books..." },
+          { key: 'progress.text', value: this.$store.state.storageHasData.library ? "Adding new books " : "Scanning library for books..." },
         ]);
         
         vue.scrapingPrep({
@@ -29,15 +29,14 @@ export default {
           
             // Debug: extract specific pages only
             // prep.pageNumbers = [1];
+            // prep.pageNumbers = _.take(prep.pageNumbers, 2);
             
             const requestURL = prep.urlObj.toString();
             vue.amapxios({
-              requests: _.map(prep.pageNumbers, function(page) {
-                return {
-                  requestUrl: requestURL + "&page=" + page,
-                  requestId: 'library-page-' + page,
-                };
-              }),
+              requests: _.map(prep.pageNumbers, (page) => ({
+                requestUrl: requestURL + "&page=" + page,
+                requestId: 'library-page-' + page,
+              })),
               step: function(response, stepCallback) {
                 vue.processLibraryPage(response, hotpotato, stepCallback);
               },
@@ -45,11 +44,11 @@ export default {
               done: function(books) {
                 vue.$nextTick(function() {
                   
-                  hotpotato.books = books;
-                  
+                  hotpotato.library = books;
+
                   // Removes unnecessary data from series and collections durin a partial extraction
-                  if ( hotpotato.books && hotpotato.books.length ) {
-                    const changedBooks = _.xorBy( hotpotato.books, books, 'asin');
+                  if ( hotpotato.library && hotpotato.library.length ) {
+                    const changedBooks = _.xorBy( hotpotato.library, books, 'asin');
                     if ( changedBooks.length > 0 ) {
                       let removedBooks = _.filter( changedBooks, function( book ) { return !book.isNewThisRound; });
                       if ( removedBooks.length > 0 )  {
@@ -58,7 +57,7 @@ export default {
                       }
                     }
                     if ( hotpotato.wishlist && hotpotato.wishlist.length > 0 ) {
-                      let newBooks = _.filter( hotpotato.books, 'isNewThisRound');
+                      let newBooks = _.filter( hotpotato.library, 'isNewThisRound');
                       if ( newBooks.length > 0 ) {
                         newBooks = _.map(newBooks, 'asin');
                         _.remove( hotpotato.wishlist, function( wBook ) {
@@ -80,7 +79,9 @@ export default {
                      
                   // });
                   
-                  hotpotato.config.getStorePages = 'books';
+                  vue.$store.commit('update', { key: 'progress.textsuffix', value: null });
+
+                  hotpotato.config.getStorePages = 'library';
                   vue.$nextTick(function() {
                     libraryPagesFetched(null, hotpotato);
                   });
@@ -129,24 +130,37 @@ export default {
         let bookASIN = _thisRow.querySelector('[data-asin]');
             bookASIN = bookASIN.getAttribute("data-asin");
             bookASIN = DOMPurify.sanitize( bookASIN );
+            
+        // if ( bookASIN !== "B004SOLDJQ" ) return;
         
-        const bookInMemory = _.find(hotpotato.books, ["asin", bookASIN]);
-        const fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.books && !bookInMemory) || !vue.$store.state.storageHasData.books;
-        let book = vue.$store.state.storageHasData.books && bookInMemory ? bookInMemory : {};
+        const bookInMemory = _.find(hotpotato.library, ["asin", bookASIN]);
+        const fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.library && !bookInMemory) || !vue.$store.state.storageHasData.library;
+        let book = vue.$store.state.storageHasData.library && bookInMemory ? bookInMemory : {};
         
         // Always pass over old ISBNs
         const oldIsbns = _.get(bookInMemory, 'isbns');
         if ( oldIsbns ) book.isbns = oldIsbns;
         
+        // Podcasts use a different link element than regular books
         let storePageLink;
         if ( rowItem.is.podcast ) storePageLink = _thisRow.querySelector(".adbl-episodes-link > a");
         if ( !storePageLink ) storePageLink = _thisRow.querySelector(":scope > div > div > div > div > span > ul > li:nth-child(1) > a");
-        
-        if (storePageLink) {
-          let storePageUrl = new Url( window.location.origin + DOMPurify.sanitize(storePageLink.getAttribute("href")) );
-          storePageUrl.clearQuery();
-          book.storePageRequestUrl = storePageUrl.toString();
+
+        // Audible removed store page links for discontinued books (noticed this
+        // 2026-05-31), so the selector above may match a link that doesn't lead to the
+        // store page. 
+        if ( storePageLink ) {
+          const href = DOMPurify.sanitize( storePageLink.getAttribute("href") );
+          if ( href && href.includes('/pd/') ) {
+            let storePageUrl = new Url( window.location.origin + href );
+            storePageUrl.clearQuery();
+            book.storePageRequestUrl = storePageUrl.toString();
+          }
         }
+        // No valid store page link found — mark as missing so the store page step skips it.
+        if ( !book.storePageRequestUrl ) book.storePageMissing = true;
+        // Clear the flag on re-extraction in case a previously discontinued book was restored.
+        else if ( book.storePageMissing ) delete book.storePageMissing;
         
         // UPDATE SCAN: fetch these only if the book is a new addition...
         // FULL SCAN: fetch always
@@ -171,7 +185,7 @@ export default {
           book.title     = DOMPurify.sanitize(_thisRow.querySelector(":scope > div > div > div > div > span > ul > li:nth-child(1)").textContent.trimAll());
           book.authors   = vue.getArray( _thisRow.querySelectorAll(".authorLabel a") );
           book.narrators = vue.getArray( _thisRow.querySelectorAll(".narratorLabel a") );
-          book.series    = vue.getSeries( _thisRow.querySelector(".seriesLabel > span") );
+          book.series    = vue.getSeries( _thisRow.querySelector(".seriesLabel > span"), { getUrl: true });
           book.blurb     = DOMPurify.sanitize(_thisRow.querySelector(".summaryLabel > span").textContent.trimAll());
           const fromPlusCatalog = _thisRow.querySelector('input[value="AudibleDiscovery"]');
           if (fromPlusCatalog) book.fromPlusCatalog = true;
@@ -274,16 +288,22 @@ export default {
   
         // - - - - - - -
         
-        if ( vue.$store.state.storageHasData.books ) {
+        if ( vue.$store.state.storageHasData.library ) {
           let newAddition = !bookInMemory;
           let newFromStorage = bookInMemory && bookInMemory.isNew;
           if ( newAddition || newFromStorage ) book.isNew = true;
         }
-        
+
         if (fullScan_ALL_partialScan_NEW) {
           book.isNewThisRound = true;
           vue.$store.commit('update', { key: 'progress.max', add: 1 });
         }
+        else if ( vue.$store.state.storageHasData.library ) {
+          let previousTotal = (vue.$store.state.progress.textsuffix || '').match(/\d+/im);
+              previousTotal = _.first(previousTotal) || 0;
+          const booksTotal = _.toNumber(previousTotal) + 1;
+          vue.$store.commit('update', { key: 'progress.textsuffix', value: 'Updating old books ' + booksTotal });
+        }        
         
         books.push(book);
         

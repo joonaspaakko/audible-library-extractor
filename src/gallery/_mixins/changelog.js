@@ -16,6 +16,11 @@ export default {
           highlights: `Full extraction recommended in order to extract subcategories.`,
           changes: [
             {
+              description: `Gallery (mobile): vertical scrolling doesn't always work with book details open.`,
+              class: 'fixed',
+              link: issue(144), 
+            },
+            {
               description: `Fixed publisher subpage in the gallery failing to open if any book is missing publishers.`,
               class: 'fixed',
               link: issue(160), 

@@ -27,7 +27,7 @@ export default function ( libraryData ) {
   const standalone = document.querySelector("html.standalone-gallery");
   
   store.commit("prop", [
-    { key: "library", value: libraryData, freeze: standalone ? false : true },
+    { key: "audibledata", value: libraryData, freeze: standalone ? false : true },
     { key: "standalone", value: !!standalone },
     { key: "displayMode", value: window.matchMedia("(display-mode: standalone)").matches },
     { key: "urlOrigin", value: "https://audible" + libraryData.extras["domain-extension"] },
@@ -35,8 +35,8 @@ export default function ( libraryData ) {
   ]);
   
        if ( !libraryData.extras.pages.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'library'  });
-  else if ( !libraryData.extras.pages.books    ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
-  
-  if ( !libraryData.books && libraryData.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
+  else if ( !libraryData.extras.pages.library  ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
+
+  if ( !libraryData.library && libraryData.wishlist ) store.commit("stickyProp", { key: "subPageSource", value: 'wishlist' });
 
 };

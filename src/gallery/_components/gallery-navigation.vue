@@ -26,6 +26,7 @@
 
 import saveGallery from '@output-snippets/save-gallery.vue';
 import saveCSV from '@output-snippets/save-csv.vue';
+import { storageSet } from '@utils/chrome-storage.js';
 
 export default {
   name: "aleMenuActions",
@@ -81,6 +82,13 @@ export default {
   created() {
     
     this.routes = this.getRoutes();
+
+    // Debugging: Open save gallery on page load 
+    // let saveGallery = _.find( this.routes, route => _.get(route, 'name') === "extension-tools" );
+    // if ( saveGallery ) {
+    //   saveGallery = _.find(saveGallery.childItems, { name: "Save gallery website" });
+    //   this.routeClick(saveGallery);
+    // }
     
   },
   
@@ -321,15 +329,10 @@ export default {
                 chrome.runtime.sendMessage({ action: "changeGalleryUrl", url: newUrl }).then(() => {
                   
                   // This part makes sure the galleryUrl sticks between sessions (assumin)
-                  chrome.storage.local.get(['extras']).then(data => {
-                    data.extras.galleryUrl = newUrl;
-                    chrome.storage.local.set({ extras: data.extras}).then(() => {
-                      
-                    });
-                  });
-                  
+                  storageSet( 'metadata', 'extras.galleryUrl', newUrl );
+
                 });
-                
+
               } catch(e) {}
             },
             meta: {
@@ -343,17 +346,12 @@ export default {
             disabled: false,
             click: function( route ) {
               try {
-                
+
                 const newUrl = null;
                 chrome.runtime.sendMessage({ action: "changeGalleryUrl", url: newUrl }).then(() => {
-                  
+
                   // This part makes sure the galleryUrl sticks between sessions (assumin)
-                  chrome.storage.local.get(['extras']).then(data => {
-                    data.extras.galleryUrl = newUrl;
-                    chrome.storage.local.set({ extras: data.extras}).then(() => {
-                      
-                    });
-                  });
+                  storageSet( 'metadata', 'extras.galleryUrl', newUrl );
                   
                 });
                 

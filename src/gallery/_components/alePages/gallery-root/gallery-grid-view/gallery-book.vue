@@ -14,6 +14,7 @@
 
       <div
         class="ale-click-wrap"
+        @mousedown="$haptic(1)"
         @click="!book.asin ? null : $compEmitter.emit('book-clicked', book.asin)"
       >
         

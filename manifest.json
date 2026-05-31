@@ -1,9 +1,10 @@
 {
   "manifest_version": 3,
-  "version": "0.2.12",
+  "version": "0.2.14",
   "name": "Audible Library Extractor",
   "description": "Extracts your Audible library metadata and automatically generates a locally viewable gallery that can also be uploaded online.",
   "author": "Joonas Pääkkö",
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAgjgKUoHZRC0lpJA/o+JYOsv1lDnf7hfirc+DfnvQeKQUbNSOSknBFVYM1bHt+fG8LdTkVeo656eDddSPZqieRRxgcTeXmFYaaejgv37ltFjOB7qWNTO6O7KmPxmO+h61fiwvnJhfr7qLCAECDVEL7dMSdum0lsQlm9PkxTk7tihgt6eUa/2qpVWPoBJz6PLU7y8KRfa7+6BMsYuVkK28aQePA2B4wS0ULUIZXWShFd4p36R3oVa0ArObNM0UWAm2FvT7tp3WB8QGRqcwLr0NWiUfxZc/Bsb4ATTwcDneRN4WBErq6MajTSqa7/bCqrUG4K6ChDf0Ylcntcr9w0ul/QIDAQAB",
   "icons": {
     "16": "assets/icons/16.png",
     "48": "assets/icons/48.png",
@@ -19,11 +20,15 @@
   "permissions": [
     "storage",
     "unlimitedStorage",
-    "contextMenus"
+    "contextMenus",
+    "downloads",
+    "identity"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
-    "https://m.media-amazon.com/*"
+    "https://m.media-amazon.com/*",
+    "https://api.github.com/*",
+    "https://*.supabase.co/*"
   ],
   "web_accessible_resources": [
     {

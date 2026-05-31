@@ -156,7 +156,7 @@ export default {
       let series = [];
       if (vue.book.series) {
         _.each(vue.book.series, function(currentSeries, i) {
-          const allBooksInSeries = _.find(vue.$store.state.library.series, {
+          const allBooksInSeries = _.find(vue.$store.state.audibledata.series, {
             asin: currentSeries.asin
           });
           if (allBooksInSeries) {
@@ -165,7 +165,7 @@ export default {
               name: currentSeries.name,
               length: allBooksInSeries.length,
               books: _.map(allBooksInSeries.books, function(asin) {
-                return _.find(vue.$store.state.library.books, { asin: asin });
+                return _.find(vue.$store.state.audibledata.library, { asin: asin });
               })
             });
           }
