@@ -116,6 +116,15 @@ export default {
         }
       } );
 
+      // If any item carries an explicit `order`, sort the list.
+      // Items without `order` use their natural merge position (index × 10) as implicit order,
+      // so unsorted items stay put relative to each other.
+      if ( result.some( o => o.order !== undefined ) ) {
+        result.forEach( ( o, i ) => { if ( o.order === undefined ) o._order = i * 10; } );
+        result.sort( ( a, b ) => ( a.order ?? a._order ) - ( b.order ?? b._order ) );
+        result.forEach( o => delete o._order );
+      }
+
       return result;
 
     },
@@ -148,6 +157,10 @@ export default {
       if ( this.subPageSource.wishlist ) {
         list.filter = _.filter( list.filter, ( o ) => !o.excludeFromWishlist );
         list.sort   = _.filter( list.sort,   ( o ) => !o.excludeFromWishlist );
+      }
+
+      if ( this.routeConfig.bookProp === 'series' ) {
+        list.filter = _.filter( list.filter, ( o ) => !o.excludeFromSeries );
       }
 
       this.$setListRenderingOpts( list );
