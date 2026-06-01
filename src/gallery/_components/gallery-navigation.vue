@@ -1,16 +1,14 @@
 <template>
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation" ref="navigation">
-    
+
     <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" :desktopMenu="!mobileMenuOpen" />
-    
-    <!-- Component opened by one of the menu items -->
-    <div class="floater-components" v-if="!mobileThreshold">
-      <component v-if="clickedRouteComp" :is="clickedRouteComp" @closeComp="clickedRoute = null" />
-    </div>
     <!-- <mobile-menu /> -->
-    
+
   </div>
+
+  <!-- Component opened by one of the menu items (outside #ale-navigation so mobile-nav display:none doesn't affect it) -->
+  <component v-if="clickedRouteComp" :is="clickedRouteComp" @closeComp="clickedRoute = null" />
   
   <gallery-mobile-menu-floaters v-if="mobileThreshold" v-model:mobileMenuOpen="mobileMenuOpen" :mobileThreshold="mobileThreshold" @startSearching="startSearching" />
   
@@ -481,10 +479,5 @@ export default {
 //   position: absolute;
 // }
     
-
-.floater-components {
-  position: absolute;
-  z-index: 50;
-}
 
 </style>
