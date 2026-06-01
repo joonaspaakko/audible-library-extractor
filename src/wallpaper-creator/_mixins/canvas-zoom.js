@@ -90,10 +90,12 @@ export default {
 					// 	this.panzoom.pan(e.wheelDeltaX, e.wheelDeltaY, { relative: true });
 					// }
 					this.panzoom.pan(e.wheelDeltaX, e.wheelDeltaY, { relative: true });
+					this.clampPanToBounds();
 				});
 				
 				el.addEventListener('panzoomstart', this.panning);
 				el.addEventListener('panzoomend',   this.panning);
+				el.addEventListener('panzoomend',   () => this.clampPanToBounds());
 				el.addEventListener('panzoomzoom',  this.zooming);
 				
 			}, 1);
@@ -146,7 +148,34 @@ export default {
 		pan( value ) {
 			
 			this.panzoom.pan(value[0], value[1], { relative: true });
-			
+
+		},
+
+		clampPanToBounds( margin = 100 ) {
+
+			if ( this._clamping ) return;
+
+			const el = document.getElementById('editor-canvas-content');
+			const parent = el.parentElement;
+			const { x: panX, y: panY } = this.panzoom.getPan();
+			const scale = this.panzoom.getScale();
+
+			const canvasScreenW = el.clientWidth * scale;
+			const canvasScreenH = el.clientHeight * scale;
+			const viewW = parent.clientWidth;
+			const viewH = parent.clientHeight;
+
+			const clampedScreenX = _.clamp( panX * scale, margin - canvasScreenW, viewW - margin );
+			const clampedScreenY = _.clamp( panY * scale, margin - canvasScreenH, viewH - margin );
+			const clampedPanX = clampedScreenX / scale;
+			const clampedPanY = clampedScreenY / scale;
+
+			if ( clampedPanX !== panX || clampedPanY !== panY ) {
+				this._clamping = true;
+				this.panzoom.pan( clampedPanX, clampedPanY );
+				this._clamping = false;
+			}
+
 		},
 		
 		tickedCanvasFit() {
