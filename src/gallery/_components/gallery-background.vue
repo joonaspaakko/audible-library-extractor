@@ -1,12 +1,12 @@
 <template>
-  <div id="ale-background" v-if="hasBooks" :class="{ 'is-initial': initialLoad, 'is-resizing': resizing }">
+  <div id="ale-background" v-if="hasBooks" :class="{ 'is-loaded': loaded, 'is-resizing': resizing }">
     <div
       v-for="book in books"
       :key="book.id"
       :class="[ 'cover', { 'flip-out': book.flipOut, 'flip-back': book.flipBack } ]"
       :style="{ filter: book.filter }"
     >
-      <img crossorigin="anonymous" :src="makeCoverUrl(book.cover, 200)" alt="" />
+      <img crossorigin="anonymous" :src="makeCoverUrl(book.cover, 200)" alt="" @load="onImageLoad" />
     </div>
   </div>
 </template>
@@ -49,7 +49,7 @@ export default {
       books: null,
       coverSource: null,
       timers: [],
-      initialLoad: true,
+      loaded: false,
       resizing: false,
     };
   },
@@ -58,8 +58,7 @@ export default {
 
     this.coverSource = this.$store.state.audibledata.library || this.$store.state.audibledata.wishlist;
     this.books = this.buildGrid();
-    setTimeout( () => { this.initialLoad = false; }, 1000 );
-    this.startFlipTimers();
+    this.pendingLoads = this.books.length;
     window.addEventListener( 'resize', this.onResizeStart );
     document.addEventListener( 'visibilitychange', this.onVisibilityChange );
 
@@ -230,6 +229,17 @@ export default {
       this.resizing = false;
     }, 250 ),
 
+    onImageLoad: function() {
+
+      if ( this.loaded ) return;
+      this.pendingLoads--;
+      if ( this.pendingLoads <= 0 ) {
+        this.loaded = true;
+        setTimeout( () => this.startFlipTimers(), 1500 );
+      }
+
+    },
+
     onResizeStart: function() {
       this.resizing = true;
       this.debouncedResize();
@@ -241,11 +251,6 @@ export default {
 
 <style lang="scss" scoped>
 
-@keyframes show-cover {
-  from { opacity: 0; }
-  to   { opacity: 1; }
-}
-
 #ale-background {
   position: fixed;
   inset: 0 0 auto;
@@ -253,7 +258,7 @@ export default {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(clamp(70px, calc(55px + 4vw), 130px), 1fr));
   gap: 4px;
-  opacity: 0.18;
+  opacity: 0;
   will-change: transform;
   user-select: none;
   -webkit-user-select: none;
@@ -289,16 +294,14 @@ export default {
   }
 }
 
-#ale-background.is-initial .cover {
-  animation: show-cover 1000ms;
-}
-
-#ale-background:not(.is-resizing) {
-  transition: opacity 400ms;
+#ale-background.is-loaded {
+  opacity: 0.18;
+  transition: opacity 1500ms ease;
 }
 
 #ale-background.is-resizing {
   opacity: 0;
+  transition: none;
 }
 
 </style>
