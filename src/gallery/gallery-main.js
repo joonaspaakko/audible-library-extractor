@@ -93,7 +93,7 @@ else if ( !standalone ) {
       }
 
       // Remove stale root-level auth keys from storage (should be nested under 'auth')
-      const knownStaleKeys = [ 'github_token', 'selectedRepo' ];
+      const knownStaleKeys = [ 'github_token', 'selectedRepo', 'imageEditorChunks', 'imageEditorChunksLength', 'imageEditorTimeCode', 'imageEditorPageTitle', 'imageEditorPageSubTitle' ];
       const toRemove = _.filter(_.keys(data), k => _.includes(knownStaleKeys, k) || _.startsWith(k, 'sb-'));
       if ( toRemove.length ) chrome.storage.local.remove( toRemove );
       _.each(toRemove, k => delete data[k]);

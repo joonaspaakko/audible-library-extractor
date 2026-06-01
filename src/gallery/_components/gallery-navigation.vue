@@ -284,16 +284,16 @@ export default {
                 covers = JSON.parse(JSON.stringify(covers));
                 covers = _.chunk(covers, 50);
                 
-                let storageObj = {
-                  imageEditorChunks: covers,
-                  imageEditorChunksLength: covers.length,
-                  imageEditorTimeCode: new Date().getTime(),
+                let imageEditor = {
+                  chunks: covers,
+                  chunksLength: covers.length,
+                  timeCode: new Date().getTime(),
                 };
-                
-                if ( vue.$store.state.pageTitle    ) storageObj.imageEditorPageTitle = vue.$store.state.pageTitle;
-                if ( vue.$store.state.pageSubTitle ) storageObj.imageEditorPageSubTitle = vue.$store.state.pageSubTitle;
-                
-                chrome.storage.local.set(storageObj).then(() => {
+
+                if ( vue.$store.state.pageTitle    ) imageEditor.pageTitle = vue.$store.state.pageTitle;
+                if ( vue.$store.state.pageSubTitle ) imageEditor.pageSubTitle = vue.$store.state.pageSubTitle;
+
+                chrome.storage.session.set({ imageEditor }).then(() => {
                   chrome.runtime.sendMessage({ action: "openImageEditor" });
                 });
                 

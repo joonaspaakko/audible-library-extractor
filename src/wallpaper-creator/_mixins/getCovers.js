@@ -21,7 +21,7 @@ export default {
         this.$store.commit('clearTiers');
         this.$store.commit('update', [{ key: 'covers', value: [] }, { key: 'usedCovers', value: [] }]);
         // Remove URL param
-        var newURL = location.href.split("?")[0];
+        const newURL = location.href.split("?")[0];
         window.history.pushState({}, document.title, newURL);
       }
       else {
@@ -33,47 +33,40 @@ export default {
       }
       
       try {
-        chrome.storage.local.get([
-          'imageEditorChunks', 
-          'imageEditorChunksLength', 
-          'imageEditorTimeCode', 
-          'imageEditorPageTitle', 
-          'imageEditorPageSubTitle'
-      ]).then(data => {
-          // chrome.storage.local.remove(['imageEditorChunks', 'imageEditorChunksLength']);
-          // console.log( 'data', data );
-          if ( _.get(data, 'imageEditorChunksLength', 0) > 0 ) {
-          
+        chrome.storage.session.get('imageEditor').then(result => {
+          const data = result.imageEditor || {};
+          // chrome.storage.local.remove(['imageEditor']);
+          if ( _.get(data, 'chunksLength', 0) > 0 ) {
+
             // let coversArray = require('./getCovers.json');
-            let coversArray = _.flatten( data.imageEditorChunks );
+            let coversArray = _.flatten( data.chunks );
             coversArray = _.filter( coversArray, function( book ) { return book.cover; });
             coversArray = vue.mappy( coversArray );
-            
+
             let changes = [
               { key: "covers", value: coversArray },
               { key: "archived", value: vue.archivedLength },
             ];
-            
+
             // time code changes when wallpaper creator is opened through the gallery
-            if ( _.get(data, 'imageEditorTimeCode') ) changes.push({ key: "timeCode", value: data.imageEditorTimeCode });
-            // console.log( coversArray );
+            if ( _.get(data, 'timeCode') ) changes.push({ key: "timeCode", value: data.timeCode });
             let coverAmount = vue.$store.state.canvasPreset === 'wallpaper' ? 300 : 50;
-            const fromLocalstorage = data.imageEditorTimeCode === vue.$store.state.timeCode;
-            if ( !fromLocalstorage ) {
-              
+            const resuming = data.timeCode === vue.$store.state.timeCode;
+            if ( !resuming ) {
+
               coverAmount = coversArray.length > coverAmount ? coverAmount : coversArray.length;
               changes.push({ key: "coverAmount", value: coverAmount });
-              
+
             }
             else if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
               coverAmount = coversArray.length;
               changes.push({ key: "coverAmount", value: coverAmount });
             }
-            
+
             changes.push({ key: "usedCovers", value: coversArray.slice( 0, coverAmount ) });
-            
-            if ( data.imageEditorPageTitle    ) changes.push({ key: 'gallery.pageTitle', value: data.imageEditorPageTitle });
-            if ( data.imageEditorPageSubTitle ) changes.push({ key: 'gallery.pageSubTitle', value: data.imageEditorPageSubTitle });
+
+            if ( data.pageTitle    ) changes.push({ key: 'gallery.pageTitle', value: data.pageTitle });
+            if ( data.pageSubTitle ) changes.push({ key: 'gallery.pageSubTitle', value: data.pageSubTitle });
             
             vue.$store.commit("update", changes);
             
@@ -83,19 +76,7 @@ export default {
           }
           
         });
-      } catch(e) {
-        
-        // let coversArray = require('./getCovers.json');
-        // coversArray = this.mappy( coversArray );
-        // vue.$store.commit("update", [
-        //   { key: "covers", value: coversArray },
-        //   { key: "usedCovers", value: coversArray.slice( 0, vue.$store.state.coverAmount ) },
-        // ]);
-        
-        // if ( coversArray.length ) { vue.dataReady = true; }
-        // else { vue.noCovers = true; }
-        
-      }
+      } catch(e) {}
       
     },
     
