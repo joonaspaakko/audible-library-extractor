@@ -40,9 +40,10 @@ export default {
         await this.loadProfile();
         await this.loadRepos();
       }
-      catch {
-        // Token was revoked on GitHub, so wipe it and fall back to manual auth
-        await this.clearSession();
+      catch ( err ) {
+        // Only wipe the token if GitHub explicitly rejects it (401).
+        // Network errors, rate limits, etc. should not log the user out.
+        if ( err?.status === 401 ) await this.clearSession();
       }
     }
     
