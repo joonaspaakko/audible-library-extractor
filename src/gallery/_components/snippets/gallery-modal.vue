@@ -18,7 +18,7 @@
 <script>
 export default {
   name: "modal",
-  props: [ 'toggled' ],
+  props: [ 'toggled', 'preventClose' ],
   data: function() {
     return {
       modalOpen: true,
@@ -52,6 +52,7 @@ export default {
       this.$emit('closeModal');
     },
     closeOverlay: function( e ) {
+      if ( this.preventClose ) return;
       let vue = this;
       if ( e.target === this.$refs.modalGrandpa || e.target === this.$refs.modalPapa ) {
         vue.close();

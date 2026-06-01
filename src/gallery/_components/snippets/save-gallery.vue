@@ -1,5 +1,5 @@
 <template>
-<gallery-modal @closeModal="$emit('closeComp')">
+<gallery-modal :preventClose="githubSyncing" @closeModal="$emit('closeComp')">
   
   <div class="export-group" :class="{ bundling: bundling }">
 
@@ -58,7 +58,7 @@
         
       <div class="btn-wrapper">
         
-        <github v-model:active="githubApiProcessActive" :getFiles="saveButtonClicked" />
+        <github v-model:active="githubApiProcessActive" :getFiles="saveButtonClicked" @syncing-changed="githubSyncing = $event" />
         
         <div v-if="!githubApiProcessActive" class="non-github-api-wrapper">
           
@@ -134,6 +134,7 @@ export default {
       zip: null,
       cacheBuster: null,
       bundling: false,
+      githubSyncing: false,
       saveBtnEnabled: true,
       progressWidth: null,
       iconSize: 20,

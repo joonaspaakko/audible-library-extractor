@@ -249,7 +249,7 @@ export default {
     };
   },
 
-  emits: ['update:active'],
+  emits: ['update:active', 'syncing-changed'],
 
   computed: {
     /** @returns {boolean} */
@@ -282,8 +282,11 @@ export default {
   },
 
   watch: {
-    githubProcessActive( active ) { 
-      this.$emit( 'update:active', active ); 
+    githubProcessActive( active ) {
+      this.$emit( 'update:active', active );
+    },
+    isSyncing( syncing ) {
+      this.$emit( 'syncing-changed', syncing );
     },
   },
 
