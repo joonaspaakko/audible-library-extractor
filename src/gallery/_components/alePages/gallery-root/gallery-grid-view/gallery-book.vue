@@ -401,6 +401,11 @@ export default {
   }
 }
 
+.ale-click-wrap {
+  will-change: backdrop-filter;
+  transform: translateZ(0);
+}
+
 .ale-click-wrap:hover {
   .ale-info-indicator {
     display: flex;
