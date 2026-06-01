@@ -78,20 +78,28 @@ export default {
 				// el.parentElement.addEventListener('wheel', this.panzoom.zoomWithWheel);
 				
 				el.parentElement.addEventListener('wheel', (e) => {
-					
-					// // ZOOM  (Shift + Scroll)
-					// if ( e.shiftKey ) {
-					// 	console.log( e )
-					// 	this.panzoom.zoomWithWheel(e);
-						
-					// }
-					// // PAN (Scroll)
-					// else {
-					// 	this.panzoom.pan(e.wheelDeltaX, e.wheelDeltaY, { relative: true });
-					// }
-					this.panzoom.pan(e.wheelDeltaX, e.wheelDeltaY, { relative: true });
+					e.preventDefault();
+
+					const currentScale = this.panzoom.getScale();
+					const { x: panX, y: panY } = this.panzoom.getPan();
+
+					const delta    = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY;
+					const newScale = currentScale * Math.pow(0.999, delta);
+
+					const rect    = el.parentElement.getBoundingClientRect();
+					const cursorX = e.clientX - rect.left;
+					const cursorY = e.clientY - rect.top;
+
+					this.panzoom.zoom(newScale);
+					const actualScale = this.panzoom.getScale();
+
+					this.panzoom.pan(
+						cursorX * (1/actualScale - 1/currentScale) + panX,
+						cursorY * (1/actualScale - 1/currentScale) + panY
+					);
+
 					this.clampPanToBounds();
-				});
+				}, { passive: false });
 				
 				el.addEventListener('panzoomstart', this.panning);
 				el.addEventListener('panzoomend',   this.panning);
