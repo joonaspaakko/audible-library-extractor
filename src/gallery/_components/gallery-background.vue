@@ -6,7 +6,7 @@
       :class="[ 'cover', { 'flip-out': book.flipOut, 'flip-back': book.flipBack } ]"
       :style="{ filter: book.filter }"
     >
-      <img crossorigin="anonymous" :src="makeCoverUrl(book.cover, 200)" alt="" @load="onImageLoad" />
+      <img crossorigin="anonymous" :src="makeCoverUrl(book.cover, 200)" alt="" fetchpriority="low" @load="onImageLoad" />
     </div>
   </div>
 </template>
