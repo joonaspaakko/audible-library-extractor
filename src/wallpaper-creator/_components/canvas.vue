@@ -5,7 +5,19 @@
     v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
   >
   <!-- v-dragscroll="dragscrollEnabled" -->
-    
+
+    <div class="pan-mode-indicator" v-if="store.canvasPanning">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="-60 -60 120 120" width="80" height="80">
+        <path d="M 0,-55 L -8,-42 L -3,-42 L -3,-22 L 3,-22 L 3,-42 L 8,-42 Z" fill="white"/>
+        <path d="M 0,55 L -8,42 L -3,42 L -3,22 L 3,22 L 3,42 L 8,42 Z" fill="white"/>
+        <path d="M -55,0 L -42,-8 L -42,-3 L -22,-3 L -22,3 L -42,3 L -42,8 Z" fill="white"/>
+        <path d="M 55,0 L 42,-8 L 42,-3 L 22,-3 L 22,3 L 42,3 L 42,8 Z" fill="white"/>
+        <rect x="-11" y="-18" width="22" height="35" rx="11" fill="white"/>
+        <line x1="0" y1="-18" x2="0" y2="-7" stroke="rgba(0,0,0,0.25)" stroke-width="1.5"/>
+        <rect x="-3.5" y="-15" width="7" height="8" rx="3.5" fill="rgba(0,0,0,0.25)"/>
+      </svg>
+    </div>
+
     <tier-list-toolbar v-if="store.tierListMode" :draggableCovers="draggableCovers" />
     
     <div class="cover-actions" v-if="store.coverActions">
@@ -516,8 +528,22 @@ export default {
   right: 0;
   bottom: 0;
   left: 0;
-  // background: rgba(red, .4);
-  backdrop-filter: blur(1px) grayscale(1);
+}
+
+.pan-mode-indicator {
+  position: absolute;
+  inset: 0;
+  z-index: 10000;
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(#000, .22);
+
+  svg {
+    filter: drop-shadow( 0 2px 14px rgba(0, 0, 0, .8) );
+    opacity: .9;
+  }
 }
 
 .show-blank-canvas {
