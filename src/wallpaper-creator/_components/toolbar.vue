@@ -729,7 +729,11 @@
               Height: {{ $store.getters.scaledCanvasDimensions.height }}px
             </n-alert>
           </n-space>
-          
+
+          <n-alert type="error" v-if="$store.getters.exportTooLarge.tooLarge" title="Image too large to save">
+            The projected output is {{ $store.getters.exportTooLarge.width }} x {{ $store.getters.exportTooLarge.height }}px, which is past your browser's limit ({{ $store.getters.exportTooLarge.maxSide }}px per side). Try increasing covers per row, lowering the cover size, using fewer covers, or reducing the output scale.
+          </n-alert>
+
         </n-space>
 
       </n-space>

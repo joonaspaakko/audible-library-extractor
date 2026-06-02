@@ -483,7 +483,55 @@ const store = createStore({
         width:  Math.ceil(scale(state.canvas.width)),
         height: Math.ceil(scale(state.canvas.height || height)),
       };
-      
+
+    },
+
+    /**
+     * Predicts whether the static image export will exceed the browser's canvas limits.
+     *
+     * A canvas that breaches either ceiling makes toDataURL silently return an empty
+     * "data:," string rather than throwing, which would otherwise save a 0 byte file.
+     * We catch that at save time too, but this getter lets the UI warn beforehand using
+     * the same projected dimensions already shown to the user.
+     *
+     * @returns {{
+     *   tooLarge: boolean,  whether either ceiling is breached
+     *   overSide: boolean,  width or height is past the per-side limit
+     *   overArea: boolean,  width * height is past the total-area limit
+     *   width:    number,   projected output width in px
+     *   height:   number,   projected output height in px
+     *   maxSide:  number,   the per-side ceiling in px
+     *   maxArea:  number,   the total-area ceiling in px squared
+     * }}
+     */
+    exportTooLarge( state, getters ) {
+
+      // BROWSER CANVAS CEILINGS (chrome)
+      // both limits apply at once: a single side can't exceed maxSide, AND
+      // width * height can't exceed maxArea. maxSide is the same cap for width
+      // and height, there is no separate width/height limit.
+      const maxSide = 65535;     // px, per side (applies to width AND height)
+      const maxArea = 268435456; // px squared, total area (width * height)
+
+      // PROJECTED OUTPUT
+      // reuse the same scaled dimensions the save panel displays, so the warning
+      // can never disagree with the size shown next to it.
+      let dimensions = getters.scaledCanvasDimensions;
+
+      // LIMIT CHECKS
+      let overSide = dimensions.width > maxSide || dimensions.height > maxSide;
+      let overArea = (dimensions.width * dimensions.height) > maxArea;
+
+      return {
+        tooLarge: overSide || overArea,
+        overSide: overSide,
+        overArea: overArea,
+        width:    dimensions.width,
+        height:   dimensions.height,
+        maxSide:  maxSide,
+        maxArea:  maxArea,
+      };
+
     },
     
     rereadExist( state, getters ) {

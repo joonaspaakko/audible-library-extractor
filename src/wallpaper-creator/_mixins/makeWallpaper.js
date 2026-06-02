@@ -1,6 +1,8 @@
 
 import { zip, strToU8 } from 'fflate';
 import { downloadBlob } from '@utils/download.js';
+import { concurrentQueue } from '@utils/concurrent-queue.js';
+import { fetchAsArrayBuffer } from '@utils/image-fetcher.js';
 
 export default {
   data: function() {
@@ -9,18 +11,6 @@ export default {
     };
   },
   methods: {
-
-    fetchWithRetry: async function( url, retries = 3 ) {
-      for ( let i = 0; i < retries; i++ ) {
-        try {
-          const r = await fetch( url );
-          return await r.arrayBuffer();
-        }
-        catch(e) {
-          if ( i === retries - 1 ) throw e;
-        }
-      }
-    },
 
     makeWallpaper: async function( params ) {
     
@@ -53,39 +43,14 @@ export default {
         const books = coversArray.fetchCovers;
         const total = books.length;
         let fetched = 0;
-        let activeCount = 0;
-        let nextIndex = 0;
-        
-        // Downloads all covers concurrently (within the limit) and waits until every one is done
-        await new Promise(( resolve, reject ) => {
-          // Fills up to the concurrency limit, then stops until a slot opens up
-          const fetchNext = () => {
-            while ( activeCount < 10 && nextIndex < total ) {
-              const book = books[nextIndex++];
-              activeCount++;
 
-              this.fetchWithRetry( book.cover )
-                .then( buf => {
-                
-                  // Free up a slot so the while loop in fetchNext() can start another request
-                  activeCount--;
-                  
-                  // Update progress
-                  fetched++;
-                  this.saveProgressWidth = (fetched / total) * 100;
-                  
-                  // JPEGs are already compressed so re-compressing wastes time
-                  zipData['covers/' + book.asin + '.jpg'] = [new Uint8Array(buf), { level: 0 }];
-                  
-                  // Each completion opens a slot, so pull the next item from the queue
-                  if ( fetched === total ) resolve();
-                  else fetchNext();
-                  
-                })
-                .catch( reject );
-            }
-          }
-          fetchNext();
+        await concurrentQueue( books, 10, ( book ) => {
+          return fetchAsArrayBuffer( book.cover ).then( buf => {
+            fetched++;
+            this.saveProgressWidth = (fetched / total) * 100;
+            // JPEGs are already compressed so re-compressing wastes time
+            zipData['covers/' + book.asin + '.jpg'] = [new Uint8Array(buf), { level: 0 }];
+          });
         });
 
         // GENERATE ZIP
