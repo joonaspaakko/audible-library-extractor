@@ -29,6 +29,11 @@ export default {
           let canvas = document.querySelector(".editor-canvas");
           let filename = "ALE image"+extension;
 
+          // TRACK PROGRESS
+          const totalCovers = vue.store.usedCovers.length;
+          let fetchedCovers = 0;
+          vue.saveProgressWidth = totalCovers > 0 ? 0 : -1;
+
           // THROTTLE IMAGE FETCHES (avoids ERR_INSUFFICIENT_RESOURCES on large libraries)
           // modern-screenshot calls fetchFn(url) for each image as it walks the DOM, so we
           // can't drive the loop ourselves. Instead we run a semaphore: a rate limiter caps
@@ -49,6 +54,8 @@ export default {
                   
                   inFlight.delete(url); // free the slot, let the next queued url start, then hand the result back to modern-screenshot
                   flush();
+                  fetchedCovers++;
+                  vue.saveProgressWidth = (fetchedCovers / totalCovers) * 100;
                   resolve(dataUrl);
                   
                 })
@@ -56,6 +63,8 @@ export default {
                   
                   inFlight.delete(url); // free the slot even on failure so one bad cover can't stall the queue
                   flush();
+                  fetchedCovers++;
+                  vue.saveProgressWidth = (fetchedCovers / totalCovers) * 100;
                   reject(err);
                   
                 });
@@ -89,17 +98,20 @@ export default {
             if ( !dataUrl || dataUrl.length < 10 ) {
               console.error('ALE: image export failed, the canvas is likely too large to render. Try fewer covers or a smaller canvas.');
               vue.$store.commit("update", { key: "saving", value: false });
+              vue.saveProgressWidth = -1;
               return;
             }
 
             download( dataUrl, filename );
             setTimeout(function () {
               vue.$store.commit("update", { key: "saving", value: false });
+              vue.saveProgressWidth = -1;
             }, 500);
 
           }).catch(function( err ) {
             console.error('ALE: image export failed.', err);
             vue.$store.commit("update", { key: "saving", value: false });
+            vue.saveProgressWidth = -1;
           });
 
         });
