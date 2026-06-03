@@ -48,7 +48,6 @@ export default {
       if ( component ) {
         return {...component};
       }
-      // return _.get( this.clickedRoute, 'meta.component' );
     },
     
     mobileThreshold() {
