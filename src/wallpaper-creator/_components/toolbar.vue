@@ -1175,6 +1175,10 @@ $toolbar-text: #8eabc5;
   }
 }
 
+:deep(.label-row .n-checkbox__label) {
+  white-space: nowrap !important;
+}
+
 .offset-height-text {
   width: 50px; 
   position: relative; 

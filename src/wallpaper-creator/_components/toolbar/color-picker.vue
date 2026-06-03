@@ -1,15 +1,16 @@
 <template>
-  <div class="color-picker-placeholder">
-    <n-color-picker 
-      size="small" 
-      :default-value="value" 
-      :swatches="store.colorPicker_swatches" 
+  <div class="color-picker-placeholder" :class="{ 'color-picker-placeholder--labeled': label }">
+    <n-color-picker
+      size="small"
+      :default-value="value"
+      :swatches="store.colorPicker_swatches"
       @update:value="colorChanged"
       :style="{
         width: size + 'px',
         height: size + 'px',
       }"
     />
+    <span v-if="label" class="color-picker-label">{{ label }}</span>
   </div>
 </template>
 
@@ -31,6 +32,10 @@ export default {
       default: ''
     },
     defaultValue: {
+      type: String,
+      default: '',
+    },
+    label: {
       type: String,
       default: '',
     },
@@ -73,8 +78,8 @@ export default {
   justify-content: center;
   align-items: center;  
   
-  .n-color-picker-trigger,
-  .n-color-picker-trigger__fill  {
+  .n-color-picker,
+  .n-color-picker__fill  {
     border: none !important;
     border-radius: 999999999999px;
     overflow: hidden;
@@ -84,14 +89,33 @@ export default {
     left: 0;
     box-sizing: border-box;
   }
-  
-  .n-color-picker-trigger { 
+
+  .n-color-picker {
     position: relative;
     border: 1px solid #fff !important;
+    flex-shrink: 0;
+    aspect-ratio: 1;
+    width: 15px;
+    height: 15px;
   }
-  
-  .n-color-picker-trigger__value { display: none; }
-  
+
+  .n-color-picker__value { display: none; }
+
+}
+
+.color-picker-placeholder--labeled {
+  gap: 6px;
+
+  .n-color-picker,
+  .n-color-picker__fill {
+    border-radius: 4px;
+  }
+
+  .color-picker-label {
+    color: inherit;
+    white-space: nowrap;
+    padding: var(--n-label-padding);
+  }
 }
 
 </style>

@@ -87,29 +87,25 @@
         
       </div>
       
-      <div class="label-row">
-        
-        
-        <div style="display: flex; justify-content: center; align-items: center; flex: 0; align-self: flex-end;">
-          <color-picker :default-value="text.color" @input="$store.commit('changeText', { index: index, key: 'color', value: $event })"></color-picker>
-        </div>
-        
-        <n-checkbox 
-          :checked="text.bold" 
+      <div class="label-row label-row--spread">
+
+        <color-picker :default-value="text.color" label="Color" :size="18" @input="$store.commit('changeText', { index: index, key: 'color', value: $event })"></color-picker>
+
+        <n-checkbox
+          :checked="text.bold"
           @update:checked="changeTextElement( $event, index, text, 'bold' )"
-          style="padding-left: 15px;"
         >
           Bold
         </n-checkbox>
 
-        <n-checkbox 
-          :checked="text.allCaps" 
+        <n-checkbox
+          :checked="text.allCaps"
           @update:checked="changeTextElement( $event, index, text, 'allCaps' )"
-          style="padding-left: 4px; white-space: nowrap;"
+          style="white-space: nowrap;"
         >
           All caps
         </n-checkbox>
-        
+
       </div>
       
     </n-space>
@@ -298,11 +294,21 @@ export default {
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 8px;
   span {
     display: inline-block;
   }
   div {
     flex: 1;
+    line-height: 18px;
+  }
+
+  justify-content: space-between;
+  :deep(.n-checkbox__label),
+  :deep(.color-picker-label) {
+    font-size: 13px;
+    line-height: 18px;
+    color: inherit;    
   }
 }
 
