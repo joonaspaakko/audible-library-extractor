@@ -659,7 +659,7 @@ export default {
   left: 0;
   flex: 1;
   border-style: solid !important;
-  border-color: rgba(#ff394f, .45) !important;
+  border-color: rgba(#73c061, .5) !important;
 }
 
 .text-elements {

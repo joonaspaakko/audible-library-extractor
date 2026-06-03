@@ -117,7 +117,7 @@ export default {
   bottom: 0;
   left: 0;
   flex: 1;
-  background: rgba(#ff394f, .45) !important;
+  background: rgba(#73c061, .5) !important;
 }
 .show-cover-padding-preview .cover-padding-preview { display: block; }
 

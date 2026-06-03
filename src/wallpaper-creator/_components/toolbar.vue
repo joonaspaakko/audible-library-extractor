@@ -521,7 +521,7 @@
 
         <n-space vertical :size="spaceGapSize">
           
-          <h6>Canvas padding</h6>
+          <h6 @mouseenter="previewPadding('left')" @mouseleave="clearPaddingPreview"><span>Canvas padding <MdiInformationOutline class="padding-preview-hint" /></span></h6>
           
           <n-slider v-model:value="canvasPadding" :min="0" :max="200" :step="1" :tooltip="false" />
           
@@ -555,7 +555,7 @@
           
         </n-space>
         
-        <h6>Cover padding</h6>
+        <h6 @mouseenter="previewPadding('paddingSize')" @mouseleave="clearPaddingPreview"><span>Cover padding <MdiInformationOutline class="padding-preview-hint" /></span></h6>
         <div class="label-row no-padding">
           <n-input-number :value="store.paddingSize" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('paddingSize', v)" />
           <n-slider style="padding-left: 15px;" :value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" @update:value="v => throttledCommit('paddingSize', v)" />
@@ -745,6 +745,7 @@ export default {
     return {
       store: this.$store.state,
       slidingTimer: null,
+      hoveringPaddingHeading: false,
       saveProgressWidth: -1,
       darkTheme: darkTheme,
       spaceGapSize: 20,
@@ -913,12 +914,21 @@ export default {
       this.$store.commit('update', { key: 'coverSize', value: coverSize });
     },
     "store.slidingAround": _.debounce( function( value ) {
-      if ( value ) this.$store.commit("update", { key: "slidingAround", value: null });
+      if ( value && !this.hoveringPaddingHeading ) this.$store.commit("update", { key: "slidingAround", value: null });
     }, 1500, { leading: false, trailing: true }),
   },
   
   methods: {
     
+    previewPadding: function( key ) {
+      this.hoveringPaddingHeading = true;
+      if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: key });
+    },
+    clearPaddingPreview: function() {
+      this.hoveringPaddingHeading = false;
+      this.$store.commit("update", { key: "slidingAround", value: null });
+    },
+
     sliderCommit: function( key, value ) {
       this.$store.commit('update', { key, value });
     },
@@ -1487,9 +1497,9 @@ $toolbar-text: #8eabc5;
     line-height: 19px;
     font-weight: 400;
     color: #fff !important;
-    padding: 7px 0px;  
+    padding: 7px 63px 7px 23px;
     position: relative;
-    margin: 20px 0 0px -5px;
+    margin: 20px -63px 0px -28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1499,8 +1509,8 @@ $toolbar-text: #8eabc5;
     content: '';
     position: absolute;
     top: 0px;
-    right: -63px;
-    left: -23px;
+    right: 0px;
+    left: 0px;
     border-radius: 999px 0 0 999px;
     bottom: 0px;
     background: #212935;
@@ -1510,6 +1520,19 @@ $toolbar-text: #8eabc5;
     border-right: none;
   }
   
+  h6 > span {
+    display: flex;
+    align-items: center;
+  }
+
+  .padding-preview-hint {
+    width: 14px;
+    height: 14px;
+    opacity: .35;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+
   .disabled-settings-section {
     h6 {
       color: darken(#fff, 30) !important;
