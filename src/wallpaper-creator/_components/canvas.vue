@@ -217,6 +217,7 @@ export default {
       dragscrollEnabled: false,
       overlayHidden: false,
       darkTheme: darkTheme,
+      canvasHeightObserver: null,
     };
   },
   
@@ -228,7 +229,12 @@ export default {
     
     let coverSize = this.calculateCoverSize({ coversPerRow: this.store.coversPerRow });
     this.$store.commit('update', { key: 'coverSize', value: coverSize });
-    
+
+    this.canvasHeightObserver = new ResizeObserver( ( entries ) => {
+      this.$store.commit('update', { key: 'canvas.autoHeight', value: entries[0].contentRect.height });
+    });
+    this.canvasHeightObserver.observe( this.$refs.canvas );
+
     this.$nextTick(function() {
       
       this.dragscrollEnabled = true;
@@ -248,6 +254,7 @@ export default {
     document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.moveableControlsHide);
     this.$emitter.off('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
+    if ( this.canvasHeightObserver ) this.canvasHeightObserver.disconnect();
     
     const tierContainer = document.querySelector('#app > .tier-container');
     if ( tierContainer ) tierContainer.remove();

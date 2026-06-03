@@ -12,15 +12,7 @@
         <!-- <material-symbols-video-library/> -->
         <!-- <mdi-content-save-all/> -->
       </button>
-      <button v-else 
-        class="save-btn"
-        :disabled="store.saving"
-        @click="makeImage"
-        v-tippy :content="'Save image as a' + (store.compressImage ? '.jpg' : '.png' + ' file.')"
-      >
-        <ic-baseline-camera-alt/>
-        <!-- <mdi-content-save-all/> -->
-      </button>
+      <export-settings-panel v-else :make-image="makeImage" />
     </div>
     
     <div class="zoom-container" v-show="!store.saving">
@@ -63,21 +55,37 @@
       
     </div>
 
-    <div class="mode-switcher" v-if="!store.saving">
-      
-      <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
-        <ri-collage-fill/> &nbsp; Change canvas preset
-      </n-button>
-      
+    <div class="mode-switcher" v-show="!store.saving" ref="modeSwitcher">
+
+      <div class="mode-notice mode-notice-info" v-if="!store.animatedWallpaperMode && store.canvas.zoomOutputs">
+        Scaled output on. Export will be {{ $store.getters.scaledCanvasDimensions.width }}×{{ $store.getters.scaledCanvasDimensions.height }}px.
+      </div>
+
+      <div class="mode-notice mode-notice-error" v-if="!store.animatedWallpaperMode && tooLargeDetail">
+        Output too large:
+        <span :class="{ 'dim-over': tooLargeDetail.widthOver }">{{ $store.getters.exportTooLarge.width }}px</span>
+        ×
+        <span :class="{ 'dim-over': tooLargeDetail.heightOver }">{{ $store.getters.exportTooLarge.height }}px</span>
+        ({{ tooLargeDetail.pct }}% over the {{ tooLargeDetail.limit }} limit).
+        Try adjusting: output scale, canvas size, covers per row, cover count.
+      </div>
+
     </div>
-    
-    <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
+
+    <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }" :style="{ paddingTop: toolbarInnerPaddingTop + 'px' }">
+
       <n-space vertical :size="spaceGapSize" v-if="!store.saving">
-        
+
+        <div v-if="!store.animatedWallpaperMode" style="text-align: center;">
+          <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
+            <ri-collage-fill/> &nbsp; Change canvas preset
+          </n-button>
+        </div>
+
         <div v-if="store.animatedWallpaperMode" style="text-align: center;">
-          
-        <n-button 
-          type="error" style="border-radius: 999px;" 
+
+        <n-button
+          type="error" style="border-radius: 999px;"
           @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
         >
           Wallpaper installation instructions
@@ -658,85 +666,8 @@
           <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged"/>
         </h6>
         
-        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
-          
-          <h6>Reduce file size</h6>
-          
-          <n-alert type="default">
-            <template #icon>
-              <fluent-checkmark-circle-24-regular style="padding-top: 5px;" :style="{
-                color: store.compressImage ? '#63e2b8' : '#ffc12c'
-              }" />
-            </template>
-            Compressed image is saved as a <span :style="{ color: store.compressImage ? '#63e2b8' : null }">jpeg</span>, which doesn't support transparency. <br /><br />
-            Disable compression in order to save the image as a <span :style="{ color: store.compressImage ? null : '#ffc12c' }">png</span> that does support a transparent background color.
-          </n-alert>
-          
-          <div class="label-row">
-            <span>Compress image</span>
-            <div style=" display: flex; justify-content: flex-end;">
-              <n-switch size="small" v-model:value="store.compressImage" />
-            </div>
-          </div>
-          
-          <div class="label-row" v-if="store.compressImage">
-            <span class="compress-quality-text">Quality ({{ qualityPercentage }}%):</span>
-            <n-slider v-model:value="store.compressQuality" :min="0.50" :max="0.99" :step=".01" :tooltip="false" />
-          </div>
-          
-          <n-alert v-if="store.compressImage && qualityPercentage < 80" type="warning">
-            Make sure to pay extra attention to the saved image quality when setting the quality below 80%.
-          </n-alert>
-          
-          <h6>
-            <span>Scaled output</span>
-            <n-switch size="small" v-model:value="store.canvas.zoomOutputs" />
-          </h6>
-          
-          <n-space vertical :size="spaceGapSize" v-if="store.canvas.zoomOutputs">
-            <div class="label-row">
-              <span class="compress-quality-text">Scale ({{ scalePercentage }}%):</span>
-              <n-input-number size="small" v-model:value="store.canvas.outputScale" :min="0" :step="0.1" />
-            </div>
-            
-            <!-- <n-slider v-model:value="store.canvas.outputScale" :min="0.10" :max="5" :step=".01" :tooltip="false" /> -->
-            
-            <div style="display: flex; justify-content: center; align-items: center;">
-              <n-button-group size="small">
-                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: .5 })">
-                  .5x
-                </n-button>
-                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: .75 })">
-                  .75x
-                </n-button>
-                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: 1 })">
-                  1x
-                </n-button>
-                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: 1.5 })">
-                  1.5x
-                </n-button>
-                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: 2 })">
-                  2x
-                </n-button>
-                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: 3 })">
-                  3x
-                </n-button>
-              </n-button-group>
-            </div>
-            
-            <n-alert type="info">
-              Width: {{ $store.getters.scaledCanvasDimensions.width }}px <br>
-              Height: {{ $store.getters.scaledCanvasDimensions.height }}px
-            </n-alert>
-          </n-space>
 
-          <n-alert type="error" v-if="$store.getters.exportTooLarge.tooLarge" title="Image too large to save">
-            The projected output is {{ $store.getters.exportTooLarge.width }} x {{ $store.getters.exportTooLarge.height }}px, which is past your browser's limit ({{ $store.getters.exportTooLarge.maxSide }}px per side). Try increasing covers per row, lowering the cover size, using fewer covers, or reducing the output scale.
-          </n-alert>
-
-        </n-space>
-
-      </n-space>
+</n-space>
       <div v-else class="saving-container">
         
         <n-progress type="circle" :percentage="Math.round(saveProgressWidth)" v-if="saveProgressWidth > -1">
@@ -781,15 +712,17 @@ import makeImage from "@editor-mixins/makeImage.js";
 
 import ToolbarTextElements from "@editor-comps/toolbar/toolbar-text-elements.vue";
 import spacer from "@editor-comps/toolbar/spacer.vue";
+import ExportSettingsPanel from "@editor-comps/toolbar/export-settings-panel.vue";
 // import _ from "lodash";
 
 import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
 
 export default {
   name: "toolbar",
-  components: { 
+  components: {
     ToolbarTextElements,
-    spacer, 
+    spacer,
+    ExportSettingsPanel,
     Multiselect,
     NConfigProvider,
     NButton,
@@ -815,7 +748,18 @@ export default {
       saveProgressWidth: -1,
       darkTheme: darkTheme,
       spaceGapSize: 20,
+      toolbarInnerPaddingTop: 80,
+      modeSwitcherObserver: null,
     };
+  },
+  mounted: function () {
+    this.modeSwitcherObserver = new ResizeObserver( ( entries ) => {
+      this.toolbarInnerPaddingTop = entries[0].contentRect.height + 20;
+    });
+    this.modeSwitcherObserver.observe( this.$refs.modeSwitcher );
+  },
+  beforeDestroy: function () {
+    if ( this.modeSwitcherObserver ) this.modeSwitcherObserver.disconnect();
   },
   
   computed: {
@@ -1132,14 +1076,12 @@ $toolbar-text: #8eabc5;
 
 .toolbar-inner {
   overflow: auto;
-  padding: 80px 65px 50px;
+  padding: 20px 65px 300px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   min-height: 0;
   width: 100%;
-  padding-bottom: 300px;
-  box-sizing: border-box;
 }
 
 .toolbar-inner.saving {
@@ -1390,6 +1332,30 @@ $toolbar-text: #8eabc5;
   -moz-user-select: none; 
   -ms-user-select: none; 
   user-select: none; 
+}
+
+.mode-notice {
+  padding: 8px 37px;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+
+  &.mode-notice-info {
+    color: rgba(#7ec8e3, .9);
+    background: rgba(#1a3a4a, .8);
+    border-bottom: 1px solid rgba(#7ec8e3, .15);
+  }
+
+  &.mode-notice-error {
+    color: rgba(#ff9999, .95);
+    background: rgba(#4a1a1a, .8);
+    border-bottom: 1px solid rgba(#ff6666, .2);
+
+    .dim-over {
+      color: #fff;
+      font-weight: 600;
+    }
+  }
 }
 
 .mode-switcher {

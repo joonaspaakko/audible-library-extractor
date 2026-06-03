@@ -470,18 +470,21 @@ const store = createStore({
     },
     
     scaledCanvasDimensions( state, getters ) {
-      
+
       let scale = function( size ) {
         let scale = state.canvas.outputScale;
         return (scale > 0 && scale != 1) ? size * scale : size;
       };
-      
-      let content = document.querySelector("#editor-canvas-content");
-      const height = content ? content.clientHeight : null;
-      
+
+      let autoHeight = state.canvas.autoHeight;
+      if ( !autoHeight ) {
+        let content = document.querySelector("#editor-canvas-content");
+        autoHeight = content ? content.clientHeight : 0;
+      }
+
       return {
         width:  Math.ceil(scale(state.canvas.width)),
-        height: Math.ceil(scale(state.canvas.height || height)),
+        height: Math.ceil(scale(state.canvas.height || autoHeight)),
       };
 
     },
