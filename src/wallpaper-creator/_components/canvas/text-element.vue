@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div v-click-outside-element="clickedOutside">
     <content-editable 
       tag="span" 
       :contenteditable="contentIsEditable" 
@@ -8,7 +8,8 @@
       @returned="moveableBlur" 
       @blur.native="moveableBlur"
       @dblclick.native="doubleClick"
-      @mousedown.native="activateControls"
+      @mousedown.native="onMouseDown"
+      @mouseup.native="onMouseUp"
       ref="contenteditable"
       class="text-element-child"
       :class="[ textClass, 'panzoom-exclude']"
@@ -25,18 +26,21 @@
         color: textObj.color,
       }"
     />
-    <Moveable 
+    <Moveable
       :target="'.'+textClass"
       ref="moveable"
       class="panzoom-exclude"
-      v-bind="moveableOpts" 
+      v-bind="moveableOpts"
+      :className="textObj.active || snapOutlineVisible ? '' : 'moveable-hidden'"
+      @dragStart="moveableDragStart"
       @drag="moveableDrag"
+      @dragEnd="moveableDragEnd"
       @resize="moveableResize"
       @resizeStart="moveableResizeStart"
       @rotate="moveableRotate"
+      @snap="debugSnap"
       data-no-dragscroll
       :zoom="1"
-      @vue:mounted="moveableMounted"
     ></Moveable>
   </div> 
 </template>
@@ -68,7 +72,7 @@ export default {
         snappable: true,
         snapThreshold: 10,
         isDisplaySnapDigit: false,
-        snapGap: true,
+        snapGap: false,
         snapElement: true,
         snapVertical: true,
         snapHorizontal: true,
@@ -81,6 +85,8 @@ export default {
         translate: [0,0],
       },
       contentIsEditable: false,
+      snapOutlineVisible: false,
+      mouseIsDown: false,
     };
   },
   
@@ -99,25 +105,39 @@ export default {
   },
   
   watch: {
-    'store.usedCovers': function() {
-      this.setElementGuidelines();
-    },
+    'store.usedCovers':     function() { this.setElementGuidelines(); },
+    'store.coversPerRow':   function() { this.setElementGuidelines(); },
+    'store.canvas.width':   function() { this.setElementGuidelines(); },
+    'store.canvas.height':  function() { this.setElementGuidelines(); },
+    'store.textElements.length': function() { this.setElementGuidelines(); },
     'store.tiers': {
-      handler: function (val, oldVal) {
-        this.setElementGuidelines();
-      },
+      handler: function() { this.setElementGuidelines(); },
       deep: true
     },
   },
   
   mounted: function() {
-    
-    if ( this.textObj.width  ) this.$refs.moveable.$el.style.width  = this.textObj.width;
-    if ( this.textObj.height ) this.$refs.moveable.$el.style.height = this.textObj.height;
-    if ( this.textObj.transform ) this.$refs.moveable.$el.style.transform = this.textObj.transform;
-    
+
+    this.$nextTick(function() {
+      // Restore saved transform/size onto the actual target element
+      let target = document.querySelector('.' + this.textClass);
+      if ( target ) {
+        if ( this.textObj.width     ) target.style.width     = this.textObj.width;
+        if ( this.textObj.height    ) target.style.height    = this.textObj.height;
+        if ( this.textObj.transform ) target.style.transform = this.textObj.transform;
+      }
+
+      // Move control box to body so panzoom scaling doesn't affect it
+      let controlBox = this.$refs.moveable.getControlBoxElement();
+      document.body.appendChild( controlBox );
+      this.$refs.moveable.updateRect();
+    });
+
     this.setElementGuidelines();
     this.$emitter.on('update-moveable-handles', this.updateHandles);
+    this.$emitter.on('hide-moveable-controls', this.deactivate);
+    this.$emitter.on('text-drag-start', this.showSnapOutline);
+    this.$emitter.on('text-drag-end', this.hideSnapOutline);
     this.$emitter.on('nudge-up', this.nudgeUp);
     this.$emitter.on('nudge-right', this.nudgeRight);
     this.$emitter.on('nudge-down', this.nudgeDown);
@@ -125,7 +145,12 @@ export default {
   },
 
   beforeUnmount: function () {
+    let controlBox = this.$refs.moveable.getControlBoxElement();
+    if ( controlBox && controlBox.parentNode ) controlBox.parentNode.removeChild( controlBox );
     this.$emitter.off('update-moveable-handles', this.updateHandles);
+    this.$emitter.off('hide-moveable-controls', this.deactivate);
+    this.$emitter.off('text-drag-start', this.showSnapOutline);
+    this.$emitter.off('text-drag-end', this.hideSnapOutline);
     this.$emitter.off('nudge-up', this.nudgeUp);
     this.$emitter.off('nudge-right', this.nudgeRight);
     this.$emitter.off('nudge-down', this.nudgeDown);
@@ -152,75 +177,128 @@ export default {
     
     nudgeUp: function( distance ) {
       if ( this.textObj.active ) {
-        this.$refs.moveable.request("draggable", { deltaY: -Math.abs(distance), isInstant: true }); 
-        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
+        this.$refs.moveable.request("draggable", { deltaY: -Math.abs(distance), isInstant: true });
+        this.updateText({ key: 'transform', value: document.querySelector('.' + this.textClass).style.transform });
       }
     },
     nudgeRight: function( distance ) {
       if ( this.textObj.active ) {
-        this.$refs.moveable.request("draggable", { deltaX: distance, isInstant: true }); 
-        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
+        this.$refs.moveable.request("draggable", { deltaX: distance, isInstant: true });
+        this.updateText({ key: 'transform', value: document.querySelector('.' + this.textClass).style.transform });
       }
     },
     nudgeDown: function( distance ) {
       if ( this.textObj.active ) {
-        this.$refs.moveable.request("draggable", { deltaY: distance, isInstant: true }); 
-        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
+        this.$refs.moveable.request("draggable", { deltaY: distance, isInstant: true });
+        this.updateText({ key: 'transform', value: document.querySelector('.' + this.textClass).style.transform });
       }
     },
     nudgeLeft: function( distance ) {
       if ( this.textObj.active ) {
-        this.$refs.moveable.request("draggable", { deltaX: -Math.abs(distance), isInstant: true }); 
-        this.updateText({ key: 'transform', value: this.$refs.moveable.$el.style.transform });
+        this.$refs.moveable.request("draggable", { deltaX: -Math.abs(distance), isInstant: true });
+        this.updateText({ key: 'transform', value: document.querySelector('.' + this.textClass).style.transform });
       }
     },
     
+    onMouseDown: function() {
+      this.mouseIsDown = true;
+      this.activateControls();
+    },
+
+    onMouseUp: function() {
+      this.mouseIsDown = false;
+      if ( this.moveableDragging ) return;
+      this.$emitter.emit('text-drag-end', this.textIndex);
+    },
+
     activateControls: function() {
-      console.log('activateControls')
       if ( document.activeElement ) document.activeElement.blur();
-      
+      this.$store.commit("activateText", this.textIndex);
       this.updateHandles();
-      
-      let targetIndex = this.textIndex;
-      this.$store.commit("activateText", targetIndex);
-      
-      let transformBoxes = document.querySelectorAll('.moveable-control-box');
-      if ( transformBoxes.length ) {
-        transformBoxes.forEach(function( controlEl, controlIndex ) {
-          controlEl.style.display = (targetIndex === controlIndex) ? 'block' : 'none';
-        });
+    },
+
+    clickedOutside: function( e ) {
+      if ( !this.textObj.active ) return;
+      if ( e.target.closest('.moveable-control-box') ) return;
+      this.$store.commit("activateText", -1);
+    },
+
+    deactivate: function() {
+      this.$store.commit("activateText", -1);
+    },
+
+    debugSnap: function({ guidelines, elements, gaps }) {
+      if ( elements.length ) {
+        elements.forEach( g => console.log( 'snap element:', g.element, '| type:', g.type, '| direction:', g.direction, '| pos:', g.pos ) );
+      }
+      if ( guidelines.length ) {
+        guidelines.forEach( g => console.log( 'snap guideline:', g.type, '| direction:', g.direction, '| pos:', g.pos ) );
+      }
+      if ( gaps.length ) {
+        gaps.forEach( g => console.log( 'snap gap:', g.type, '| direction:', g.direction, '| pos:', g.pos ) );
       }
       
     },
     
     updateHandles: function() {
       this.$refs.moveable.updateRect();
-      // this.$refs.moveable.updateTarget();
     },
     
     setElementGuidelines: function() {
       this.$nextTick(function() {
-        
-        let coverImages = document.querySelectorAll('[data-coverImages], [data-tier-list-label]');
-        if ( !coverImages ) return;
-            coverImages = [...coverImages];
-        // console.log( coverImages );
-        const guidelinesFirstRow = coverImages.slice( 0, this.store.coversPerRow );
-        const guidelinesLastRow = coverImages.slice( coverImages.length - this.store.coversPerRow, coverImages.length );
-        this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesFirstRow );
-        this.moveableOpts.elementGuidelines = this.moveableOpts.elementGuidelines.concat( guidelinesLastRow );
-        this.moveableOpts.elementGuidelines.push( document.querySelector(".canvas-bounds") );
-      
+
+        const guidelines = [];
+
+        const canvasBounds = document.querySelector('.canvas-bounds');
+        if ( canvasBounds ) guidelines.push({ element: canvasBounds, refresh: true });
+
+        const coverEls = [...document.querySelectorAll('.cover')];
+        coverEls.forEach( el => guidelines.push({ element: el, refresh: true }) );
+
+        const coverImages = [...document.querySelectorAll('[data-coverImages], [data-tier-list-label]')];
+        coverImages.forEach( el => guidelines.push({ element: el, refresh: true }) );
+
+        this.store.textElements.forEach( (t, i) => {
+          if ( i === this.textIndex ) return;
+          const el = document.querySelector('.text-element-' + i);
+          if ( el ) guidelines.push({ element: el, refresh: true });
+        });
+
+        this.moveableOpts.elementGuidelines = guidelines;
+
       });
     },
     
-    moveableRotate({ target, dist, transform }) {
-      // console.log( transform )
+    moveableDragStart: function() {
+      this.moveableDragging = false;
+    },
+
+    moveableDrag: function({ target, transform, dist }) {
+      if ( !this.moveableDragging && ( Math.abs( dist[0] ) > 3 || Math.abs( dist[1] ) > 3 ) ) {
+        this.moveableDragging = true;
+        this.$emitter.emit('text-drag-start', this.textIndex);
+      }
       target.style.transform = transform;
       this.updateText({ key: 'transform', value: transform });
     },
-    
-    moveableDrag({ target, transform }) {
+
+    moveableDragEnd: function() {
+      this.moveableDragging = false;
+      if ( !this.mouseIsDown ) this.$emitter.emit('text-drag-end', this.textIndex);
+    },
+
+    showSnapOutline: function( draggingIndex ) {
+      if ( this.textIndex === draggingIndex ) return;
+      this.snapOutlineVisible = true;
+      this.updateHandles();
+    },
+
+    hideSnapOutline: function() {
+      this.snapOutlineVisible = false;
+    },
+
+    moveableRotate({ target, dist, transform }) {
+      // console.log( transform )
       target.style.transform = transform;
       this.updateText({ key: 'transform', value: transform });
     },
@@ -307,16 +385,6 @@ export default {
         { key: 'events.canvasPanning', value: true },
       ]);
       this.$nextTick(function() {
-        this.$refs.moveable.$el.click();
-      });
-
-    },
-    
-    // So that moveable's controls don't scale wiht the canvas
-    moveableMounted( moveable ) {
-      
-      this.$nextTick(function() {
-        document.body.appendChild( moveable.el );
         this.updateHandles();
       });
       
@@ -327,11 +395,16 @@ export default {
 };
 </script>
 
+
 <style>
-.moveable-control-box {
-  width: 0px !important;
-  height: 0px !important;
+.moveable-control-box.moveable-hidden {
+  display: none !important;
 }
+
+.text-element-snap-outline {
+  outline: 1px dashed rgba(255, 255, 255, 0.5) !important;
+}
+
 </style>
 
 <style scoped lang="scss">

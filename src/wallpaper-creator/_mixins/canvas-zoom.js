@@ -115,6 +115,8 @@ export default {
 				el.addEventListener('panzoomstart', this.panzoomStarted);
 				el.addEventListener('panzoomend',   this.panzoomEnded);
 				el.addEventListener('panzoomzoom',  this.zooming);
+				el.addEventListener('panzoompan',   this.panzoomMoved);
+				el.addEventListener('panzoomzoom',  this.panzoomMoved);
 				
 			}, 1);
 		});
@@ -141,6 +143,10 @@ export default {
 
 		const el = document.getElementById('editor-canvas-content');
 		if ( el ) el.parentElement.removeEventListener('pointermove', this.trackVelocityBound);
+		if ( el ) {
+			el.removeEventListener('panzoompan',  this.panzoomMoved);
+			el.removeEventListener('panzoomzoom', this.panzoomMoved);
+		}
 
 	},
 	
@@ -167,7 +173,11 @@ export default {
 		zooming( e ) {
 			
 			this.$store.commit('update', { key: 'canvas.zoom', value: e.detail.scale });
-			
+
+		},
+
+		panzoomMoved() {
+			this.$emitter.emit('update-moveable-handles');
 		},
 
 		/** @param {[number, number]} value - [x, y] relative amounts in pan-space units */
