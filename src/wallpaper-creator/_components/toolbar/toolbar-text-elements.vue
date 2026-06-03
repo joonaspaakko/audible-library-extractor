@@ -210,14 +210,14 @@ export default {
       this.$store.commit('changeText', { index: index, key: 'color', value: color, });
     }, 250, { leading: false, trailing: true }),
     
-    changeTextElement: _.debounce( function(value, index, textElement, key, e) {
+    changeTextElement: _.throttle( function(value, index, textElement, key, e) {
       let val = value;
       if ( e ) val = _.get(e, 'target.value') || val;
       this.$store.commit('changeText', { index: index, key: key, value: val, });
       this.$nextTick(function() {
         this.$emitter.emit('update-moveable-handles');
       });
-    }, 250, { leading: false, trailing: true }),
+    }, 50, { leading: true, trailing: true }),
     
     // Activate (show) moveable controls
     textElementClicked: function( index, textObj ) {

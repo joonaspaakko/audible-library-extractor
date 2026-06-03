@@ -571,14 +571,12 @@ const store = createStore({
 
 // Overwrite sticky defaults with local storage values
 store.commit("fromLocalStorage");
-// Listen for sticky commits and push them to local storage
-store.subscribe( function(mutation, state) {
-  
+// Listen for sticky commits and push them to local storage (debounced to avoid blocking on rapid slider changes)
+store.subscribe( _.debounce( function(mutation, state) {
   if ( !state.resetting ) {
     localStorage.setItem("aleImageEditorSettings", JSON.stringify( state ));
   }
-  
-});
+}, 300, { leading: false, trailing: true }));
 
 export default store;
 

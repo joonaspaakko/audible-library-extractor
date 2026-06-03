@@ -265,9 +265,9 @@
           
           <h6>Covers per row (columns)</h6>
           
-          <n-input-number v-model:value="store.coversPerRow" :min="1" :step="1" />
-          
-          <n-slider v-model:value="store.coversPerRow" :min="1" :max="25" :step="1" :tooltip="false"/>
+          <n-input-number :value="store.coversPerRow" :min="1" :step="1" @update:value="v => throttledCommit('coversPerRow', v)" />
+
+          <n-slider :value="store.coversPerRow" :min="1" :max="25" :step="1" :tooltip="false" @update:value="v => throttledCommit('coversPerRow', v)" />
           
           <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning">
             The more you upsize the more quality loss there will be. You can choose to ignore this, or you can try lowering canvas width or increasing covers per row.
@@ -316,9 +316,9 @@
             <span>{{ store.coverAmount }}/{{ store.covers.length }}</span>
           </h6>
           
-          <n-input-number v-model:value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" />
+          <n-input-number :value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" @update:value="v => throttledCommit('coverAmount', v)" />
           <!-- <spacer size="medium" :line="false" /> -->
-          <n-slider v-model:value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" :tooltip="false"/>
+          <n-slider :value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" :tooltip="false" @update:value="v => throttledCommit('coverAmount', v)" />
           <n-alert type="info">
             Excess covers are removed from the tail end.
           </n-alert>
@@ -348,24 +348,24 @@
           
           <div class="label-row" style="padding-left: 58px">
             
-            <n-slider v-model:value="store.canvas.width" :min="1" :max="1920" :step="1" :tooltip="false"/>
-            
+            <n-slider :value="store.canvas.width" :min="1" :max="1920" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.width', v)" />
+
           </div>
           <div class="label-row" v-tippy content="Width is always required">
-            
+
             <span style="width: 50px">Width:</span>
-            <n-input-number v-model:value="store.canvas.width" :min="1" :step="1" />
-            
+            <n-input-number :value="store.canvas.width" :min="1" :step="1" @update:value="v => throttledCommit('canvas.width', v)" />
+
           </div>
           <div class="label-row" style="padding-left: 58px">
-            
-            <n-slider v-model:value="store.canvas.height" :min="0" :max="1080" :step="1" :tooltip="false"/>
-            
+
+            <n-slider :value="store.canvas.height" :min="0" :max="1080" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.height', v)" />
+
           </div>
           <div class="label-row" v-tippy content="Set the height to 0 when you don't need to limit it to a certain height.">
-            
+
             <span style="width: 50px">Height:</span>
-            <n-input-number v-model:value="store.canvas.height" :min="0" :step="1" />
+            <n-input-number :value="store.canvas.height" :min="0" :step="1" @update:value="v => throttledCommit('canvas.height', v)" />
             
           </div>
           
@@ -529,26 +529,26 @@
             
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">left</span>
-              <n-input-number v-model:value="store.canvas.padding.left" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.left" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.left" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.left', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.left" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.left', v)" />
             </div>
-            
+
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">top</span>
-              <n-input-number v-model:value="store.canvas.padding.top" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.top" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.top" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.top', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.top" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.top', v)" />
             </div>
-            
+
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">right</span>
-              <n-input-number v-model:value="store.canvas.padding.right" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.right" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.right" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.right', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.right" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.right', v)" />
             </div>
-            
+
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">bottom</span>
-              <n-input-number v-model:value="store.canvas.padding.bottom" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.bottom" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.bottom" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.bottom', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.bottom" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.bottom', v)" />
             </div>
             
           </n-space>
@@ -557,8 +557,8 @@
         
         <h6>Cover padding</h6>
         <div class="label-row no-padding">
-          <n-input-number v-model:value="store.paddingSize" :min="0" :step="1" size="tiny" />
-          <n-slider style="padding-left: 15px;" v-model:value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" />
+          <n-input-number :value="store.paddingSize" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('paddingSize', v)" />
+          <n-slider style="padding-left: 15px;" :value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" @update:value="v => throttledCommit('paddingSize', v)" />
         </div>
         
         <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
@@ -856,6 +856,30 @@ export default {
       let scale = parseFloat(this.store.canvas.outputScale);
       return Math.floor(scale * 100);
     },
+    tooLargeDetail: function () {
+      const tl = this.$store.getters.exportTooLarge;
+      if ( !tl.tooLarge ) return null;
+      if ( tl.overSide ) {
+        const worstPct = Math.round( (Math.max( tl.width, tl.height ) / tl.maxSide - 1) * 100 );
+        return {
+          dims: tl.width + '×' + tl.height + 'px',
+          limit: tl.maxSide.toLocaleString() + 'px per side',
+          pct: worstPct,
+          widthOver: tl.width > tl.maxSide,
+          heightOver: tl.height > tl.maxSide,
+        };
+      }
+      else {
+        const areaPct = Math.round( (tl.width * tl.height / tl.maxArea - 1) * 100 );
+        return {
+          dims: tl.width + '×' + tl.height + 'px',
+          limit: Math.round( tl.maxArea / 1000000 ) + 'MP area',
+          pct: areaPct,
+          widthOver: false,
+          heightOver: false,
+        };
+      }
+    },
   },
   
   watch: {
@@ -889,13 +913,25 @@ export default {
       this.$store.commit('update', { key: 'coverSize', value: coverSize });
     },
     "store.slidingAround": _.debounce( function( value ) {
-      console.log('sliding', value)
       if ( value ) this.$store.commit("update", { key: "slidingAround", value: null });
     }, 1500, { leading: false, trailing: true }),
   },
   
   methods: {
     
+    sliderCommit: function( key, value ) {
+      this.$store.commit('update', { key, value });
+    },
+    throttledCommit: function( key, value ) {
+      if ( !this.throttleMap ) this.throttleMap = {};
+      if ( !this.throttleMap[key] ) {
+        this.throttleMap[key] = _.throttle( function( k, v ) {
+          this.$store.commit('update', { key: k, value: v });
+        }.bind( this ), 50, { leading: true, trailing: true });
+      }
+      this.throttleMap[key]( key, value );
+    },
+
     randomizeCovers: function() {
       
       let randomCovers = _.shuffle(this.store.covers);
