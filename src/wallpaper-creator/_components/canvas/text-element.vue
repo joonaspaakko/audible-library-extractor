@@ -220,6 +220,8 @@ export default {
     clickedOutside: function( e ) {
       if ( !this.textObj.active ) return;
       if ( e.target.closest('.moveable-control-box') ) return;
+      if ( e.target.closest('.text-elements.active') ) return;
+      if ( e.target.closest('.n-internal-select-menu') ) return;
       this.$store.commit("activateText", -1);
     },
 
