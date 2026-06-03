@@ -37,6 +37,7 @@
       @dragEnd="moveableDragEnd"
       @resize="moveableResize"
       @resizeStart="moveableResizeStart"
+      @resizeEnd="moveableResizeEnd"
       @rotate="moveableRotate"
       @snap="debugSnap"
       data-no-dragscroll
@@ -87,6 +88,7 @@ export default {
       contentIsEditable: false,
       snapOutlineVisible: false,
       mouseIsDown: false,
+      escHandler: null,
     };
   },
   
@@ -222,6 +224,10 @@ export default {
       if ( e.target.closest('.moveable-control-box') ) return;
       if ( e.target.closest('.text-elements.active') ) return;
       if ( e.target.closest('.n-internal-select-menu') ) return;
+      if ( this.contentIsEditable ) {
+        this.$refs.contenteditable.$el.blur();
+        return;
+      }
       this.$store.commit("activateText", -1);
     },
 
@@ -308,6 +314,11 @@ export default {
     moveableResizeStart: function( e ) {
       e.setOrigin(["%", "%"]);
       e.dragStart && e.dragStart.set(this.frame.translate);
+      this.$emitter.emit('text-drag-start', this.textIndex);
+    },
+
+    moveableResizeEnd: function() {
+      this.$emitter.emit('text-drag-end', this.textIndex);
     },
     
     moveableResize({ drag, target, width, height }) {
@@ -353,7 +364,7 @@ export default {
     },
     
     doubleClick: function() {
-      
+
       this.moveableOpts.draggable = false;
       this.moveableOpts.rotatable = false;
       this.moveableOpts.resizable = false;
@@ -366,17 +377,27 @@ export default {
       this.$nextTick(function() {
         let vue = this;
         setTimeout(function() {
-          
+
           vue.$refs.contenteditable.$el.focus();
           document.execCommand('selectAll',false,null);
-          
+
         }, 100);
       });
+
+      this.escHandler = ( e ) => {
+        if ( e.key === 'Escape' ) this.$refs.contenteditable.$el.blur();
+      };
+      document.addEventListener( 'keydown', this.escHandler );
 
     },
     
     moveableBlur: function() {
-      
+
+      if ( this.escHandler ) {
+        document.removeEventListener( 'keydown', this.escHandler );
+        this.escHandler = null;
+      }
+
       this.moveableOpts.draggable = true;
       this.moveableOpts.rotatable = true;
       this.moveableOpts.resizable = true;

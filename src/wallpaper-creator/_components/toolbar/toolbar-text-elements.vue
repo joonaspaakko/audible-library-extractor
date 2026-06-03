@@ -27,45 +27,47 @@
     @mousedown="textElementClicked(index, text)"
   >
     
-    <n-space vertical size="medium" class="text-elements-inner-wrap" :style="{ zIndex: store.textElements.length - index }">
-      
+    <div class="text-elements-inner-wrap" :style="{ zIndex: store.textElements.length - index }">
+
+      <span class="element-badge">#{{ index + 1 }}</span>
       <fa-regular-times-circle class="remove-text" style="font-size: 18px;" @click="$store.commit('removeText', index)" />
+
+      <n-space vertical size="medium">
       
       <div class="label-row">
-        <span style="display: inline-block; width: 37px;">Font:</span>
-        <n-select 
+        <span class="row-label">Font:</span>
+        <n-select
           size="small"
-          style="flex: 1; margin-left: 10px;" 
-          :default-value="text.fontFamily" 
-          :options="store.textElFonts" 
-          @update:value="changeTextElement( $event, index, text, 'fontFamily' )" 
+          style="flex: 1;"
+          :default-value="text.fontFamily"
+          :options="store.textElFonts"
+          @update:value="changeTextElement( $event, index, text, 'fontFamily' )"
           :render-label="renderFontOption"
         />
       </div>
-      
+
       <div class="label-row">
-        <span style="display: inline-block; width: 37px;"
+        <span class="row-label"
           v-tippy content="Alternatively double click text on the canvas to edit it directly"
-        >Text: </span>
-        <n-input 
+        >Text:</span>
+        <n-input
           size="small"
-          style="flex: 1; margin-left: 10px;" 
-          :default-value="text.text" :min="1" :step="1" 
-          @update:value="changeTextElement( $event, index, text, 'text' )" 
+          style="flex: 1;"
+          :default-value="text.text" :min="1" :step="1"
+          @update:value="changeTextElement( $event, index, text, 'text' )"
         />
       </div>
-      
+
       <div class="label-row">
-        <span style="display: inline-block; width: 37px;">Size:</span>
-        <n-slider 
-          @update:value="changeTextElement( $event, index, text, 'fontSize' )" 
-          :value="text.fontSize" :min="1" :max="200" :step="1" :tooltip="false" 
+        <span class="row-label">Size:</span>
+        <n-slider
+          @update:value="changeTextElement( $event, index, text, 'fontSize' )"
+          :value="text.fontSize" :min="1" :max="200" :step="1" :tooltip="false"
         />
-        <n-input-number 
+        <n-input-number
           size="tiny"
-          style="flex: 1; margin-left: 10px;" 
-          :value="text.fontSize" :min="1" :step="1" 
-          @update:value="changeTextElement( $event, index, text, 'fontSize' )" 
+          :value="text.fontSize" :min="1" :step="1"
+          @update:value="changeTextElement( $event, index, text, 'fontSize' )"
         />
       </div>
       
@@ -87,7 +89,7 @@
         
       </div>
       
-      <div class="label-row label-row--spread">
+      <div class="label-row">
 
         <color-picker :default-value="text.color" label="Color" :size="18" @input="$store.commit('changeText', { index: index, key: 'color', value: $event })"></color-picker>
 
@@ -109,9 +111,11 @@
       </div>
       
     </n-space>
-    
+
+    </div>
+
   </div>
-  
+
 </n-space>
 </template>
 
@@ -251,12 +255,21 @@ export default {
   border: 1px solid #b9bfca;
   border-radius: 10px;
   padding: 20px;
-  
+
+  .element-badge {
+    position: absolute;
+    top: -11px;
+    left: 12px;
+    background: #171e29;
+    padding: 0 6px;
+    font-size: 11px;
+    color: #8eabc5;
+    line-height: 20px;
+  }
+
   .remove-text {
     cursor: pointer;
     position: absolute;
-    top: 10px;
-    right: 20px;
     top: -18px;
     right: 10px;
     background: #171e29;
@@ -265,6 +278,10 @@ export default {
       color: #fbc03d;
     }
   }
+}
+
+.text-elements.active .text-elements-inner-wrap .element-badge {
+  color: #fbc03d;
 }
 
 .align-text {
@@ -305,10 +322,12 @@ export default {
 
   justify-content: space-between;
   :deep(.n-checkbox__label),
-  :deep(.color-picker-label) {
+  :deep(.color-picker-label),
+  .row-label {
     font-size: 13px;
     line-height: 18px;
-    color: inherit;    
+    color: inherit;
+    white-space: nowrap;
   }
 }
 

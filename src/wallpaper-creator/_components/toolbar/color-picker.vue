@@ -1,6 +1,7 @@
 <template>
   <div class="color-picker-placeholder" :class="{ 'color-picker-placeholder--labeled': label }">
     <n-color-picker
+      ref="picker"
       size="small"
       :default-value="value"
       :swatches="store.colorPicker_swatches"
@@ -10,7 +11,7 @@
         height: size + 'px',
       }"
     />
-    <span v-if="label" class="color-picker-label">{{ label }}</span>
+    <span v-if="label" class="color-picker-label" @click="$refs.picker.$el.click()">{{ label }}</span>
   </div>
 </template>
 
@@ -115,6 +116,7 @@ export default {
     color: inherit;
     white-space: nowrap;
     padding: var(--n-label-padding);
+    cursor: pointer;
   }
 }
 
