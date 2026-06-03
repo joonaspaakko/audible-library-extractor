@@ -223,8 +223,6 @@ export default {
   
   mounted: function() {
     
-    document.querySelector('#editor-canvas-left').addEventListener("mousedown", this.moveableControlsHide);
-    this.$emitter.on('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').addEventListener("scroll", this.panningCanvas);
     
     let coverSize = this.calculateCoverSize({ coversPerRow: this.store.coversPerRow });
@@ -236,9 +234,7 @@ export default {
     this.canvasHeightObserver.observe( this.$refs.canvas );
 
     this.$nextTick(function() {
-      
       this.dragscrollEnabled = true;
-      this.moveableControlsHide();
         
     });
     
@@ -251,8 +247,6 @@ export default {
   },
 
   beforeUnmount: function () {
-    document.querySelector('#editor-canvas-left').removeEventListener("mousedown", this.moveableControlsHide);
-    this.$emitter.off('hide-moveable-controls', this.moveableControlsHide);
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
     if ( this.canvasHeightObserver ) this.canvasHeightObserver.disconnect();
     
@@ -449,23 +443,6 @@ export default {
       
       var activeIndex = _.findIndex( this.store.textElements, 'active');
       if ( activeIndex > -1 ) this.$store.commit('removeText', activeIndex);
-      
-    },
-    
-    moveableControlsHide: function( e ) {
-      
-      let textElement = !e ? false : e.target.classList.contains('text-element') || e.target.classList.contains('text-element-child');
-      if ( !textElement ) {
-        
-        this.$store.commit("activateText", -1);
-        
-        let transformBoxes = document.querySelectorAll('.moveable-control-box');
-        if ( transformBoxes.length ) {
-          transformBoxes.forEach(function( controlEl, controlIndex ) {
-            controlEl.style.display = 'none';
-          });
-        }
-      }
       
     },
     

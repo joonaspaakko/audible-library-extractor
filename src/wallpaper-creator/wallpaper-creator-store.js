@@ -222,6 +222,7 @@ const store = createStore({
         delete lsState.textElFonts;
         delete lsState.coverActions;
         _.merge( state, lsState );
+        _.each( state.textElements, function( el ) { el.active = false; });
       }
     },
     

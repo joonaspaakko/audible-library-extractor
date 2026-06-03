@@ -262,7 +262,7 @@ export default {
 }
 
 .heading {
-  margin: 0 0 25px 0;
+  margin: 0 0 35px 0;
   font-size: 18px;
   font-weight: 600;
 }
@@ -318,6 +318,8 @@ export default {
   display: flex;
   flex-direction: column;
   gap: 3px;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .h6-title {
@@ -378,7 +380,8 @@ export default {
 .save-row {
   display: flex;
   justify-content: flex-end;
-  margin-top: 20px;
+  justify-content: center;
+  margin-top: 30px;
 }
 
 .save-image-btn {
