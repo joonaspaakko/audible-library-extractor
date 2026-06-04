@@ -12,15 +12,7 @@
         <!-- <material-symbols-video-library/> -->
         <!-- <mdi-content-save-all/> -->
       </button>
-      <button v-else 
-        class="save-btn"
-        :disabled="store.saving"
-        @click="makeImage"
-        v-tippy :content="'Save image as a' + (store.compressImage ? '.jpg' : '.png' + ' file.')"
-      >
-        <ic-baseline-camera-alt/>
-        <!-- <mdi-content-save-all/> -->
-      </button>
+      <export-settings-panel v-else :make-image="makeImage" />
     </div>
     
     <div class="zoom-container" v-show="!store.saving">
@@ -63,21 +55,37 @@
       
     </div>
 
-    <div class="mode-switcher" v-if="!store.saving">
-      
-      <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
-        <ri-collage-fill/> &nbsp; Change canvas preset
-      </n-button>
-      
+    <div class="mode-switcher" v-show="!store.saving" ref="modeSwitcher">
+
+      <div class="mode-notice mode-notice-info" v-if="!store.animatedWallpaperMode && store.canvas.zoomOutputs">
+        Scaled output on. Export will be {{ $store.getters.scaledCanvasDimensions.width }}×{{ $store.getters.scaledCanvasDimensions.height }}px.
+      </div>
+
+      <div class="mode-notice mode-notice-error" v-if="!store.animatedWallpaperMode && tooLargeDetail">
+        Output too large:
+        <span :class="{ 'dim-over': tooLargeDetail.widthOver }">{{ $store.getters.exportTooLarge.width }}px</span>
+        ×
+        <span :class="{ 'dim-over': tooLargeDetail.heightOver }">{{ $store.getters.exportTooLarge.height }}px</span>
+        ({{ tooLargeDetail.pct }}% over the {{ tooLargeDetail.limit }} limit).
+        Try adjusting: output scale, canvas size, covers per row, cover count.
+      </div>
+
     </div>
-    
-    <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }">
+
+    <div class="toolbar-inner" :class="{ saving: store.saving, 'hide-hints': !store.showHints }" :style="{ paddingTop: toolbarInnerPaddingTop + 'px' }">
+
       <n-space vertical :size="spaceGapSize" v-if="!store.saving">
-        
+
+        <div v-if="!store.animatedWallpaperMode" style="text-align: center;">
+          <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
+            <ri-collage-fill/> &nbsp; Change canvas preset
+          </n-button>
+        </div>
+
         <div v-if="store.animatedWallpaperMode" style="text-align: center;">
-          
-        <n-button 
-          type="error" style="border-radius: 999px;" 
+
+        <n-button
+          type="error" style="border-radius: 999px;"
           @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
         >
           Wallpaper installation instructions
@@ -257,9 +265,9 @@
           
           <h6>Covers per row (columns)</h6>
           
-          <n-input-number v-model:value="store.coversPerRow" :min="1" :step="1" />
-          
-          <n-slider v-model:value="store.coversPerRow" :min="1" :max="25" :step="1" :tooltip="false"/>
+          <n-input-number :value="store.coversPerRow" :min="1" :step="1" @update:value="v => throttledCommit('coversPerRow', v)" />
+
+          <n-slider :value="store.coversPerRow" :min="1" :max="25" :step="1" :tooltip="false" @update:value="v => throttledCommit('coversPerRow', v)" />
           
           <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning">
             The more you upsize the more quality loss there will be. You can choose to ignore this, or you can try lowering canvas width or increasing covers per row.
@@ -308,9 +316,9 @@
             <span>{{ store.coverAmount }}/{{ store.covers.length }}</span>
           </h6>
           
-          <n-input-number v-model:value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" />
+          <n-input-number :value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" @update:value="v => throttledCommit('coverAmount', v)" />
           <!-- <spacer size="medium" :line="false" /> -->
-          <n-slider v-model:value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" :tooltip="false"/>
+          <n-slider :value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" :tooltip="false" @update:value="v => throttledCommit('coverAmount', v)" />
           <n-alert type="info">
             Excess covers are removed from the tail end.
           </n-alert>
@@ -340,24 +348,24 @@
           
           <div class="label-row" style="padding-left: 58px">
             
-            <n-slider v-model:value="store.canvas.width" :min="1" :max="1920" :step="1" :tooltip="false"/>
-            
+            <n-slider :value="store.canvas.width" :min="1" :max="1920" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.width', v)" />
+
           </div>
           <div class="label-row" v-tippy content="Width is always required">
-            
+
             <span style="width: 50px">Width:</span>
-            <n-input-number v-model:value="store.canvas.width" :min="1" :step="1" />
-            
+            <n-input-number :value="store.canvas.width" :min="1" :step="1" @update:value="v => throttledCommit('canvas.width', v)" />
+
           </div>
           <div class="label-row" style="padding-left: 58px">
-            
-            <n-slider v-model:value="store.canvas.height" :min="0" :max="1080" :step="1" :tooltip="false"/>
-            
+
+            <n-slider :value="store.canvas.height" :min="0" :max="1080" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.height', v)" />
+
           </div>
           <div class="label-row" v-tippy content="Set the height to 0 when you don't need to limit it to a certain height.">
-            
+
             <span style="width: 50px">Height:</span>
-            <n-input-number v-model:value="store.canvas.height" :min="0" :step="1" />
+            <n-input-number :value="store.canvas.height" :min="0" :step="1" @update:value="v => throttledCommit('canvas.height', v)" />
             
           </div>
           
@@ -513,7 +521,7 @@
 
         <n-space vertical :size="spaceGapSize">
           
-          <h6>Canvas padding</h6>
+          <h6 @mouseenter="previewPadding('left')" @mouseleave="clearPaddingPreview"><span>Canvas padding <MdiInformationOutline class="padding-preview-hint" /></span></h6>
           
           <n-slider v-model:value="canvasPadding" :min="0" :max="200" :step="1" :tooltip="false" />
           
@@ -521,36 +529,36 @@
             
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">left</span>
-              <n-input-number v-model:value="store.canvas.padding.left" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.left" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.left" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.left', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.left" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.left', v)" />
             </div>
-            
+
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">top</span>
-              <n-input-number v-model:value="store.canvas.padding.top" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.top" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.top" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.top', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.top" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.top', v)" />
             </div>
-            
+
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">right</span>
-              <n-input-number v-model:value="store.canvas.padding.right" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.right" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.right" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.right', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.right" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.right', v)" />
             </div>
-            
+
             <div class="label-row">
               <span class="gb-field-message__message" style="display: inline-block; width: 55px;">bottom</span>
-              <n-input-number v-model:value="store.canvas.padding.bottom" :min="0" :step="1" size="tiny" />
-              <n-slider style="flex: 1;" v-model:value="store.canvas.padding.bottom" :min="0" :max="200" :step="1" :tooltip="false" />
+              <n-input-number :value="store.canvas.padding.bottom" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('canvas.padding.bottom', v)" />
+              <n-slider style="flex: 1;" :value="store.canvas.padding.bottom" :min="0" :max="200" :step="1" :tooltip="false" @update:value="v => throttledCommit('canvas.padding.bottom', v)" />
             </div>
             
           </n-space>
           
         </n-space>
         
-        <h6>Cover padding</h6>
+        <h6 @mouseenter="previewPadding('paddingSize')" @mouseleave="clearPaddingPreview"><span>Cover padding <MdiInformationOutline class="padding-preview-hint" /></span></h6>
         <div class="label-row no-padding">
-          <n-input-number v-model:value="store.paddingSize" :min="0" :step="1" size="tiny" />
-          <n-slider style="padding-left: 15px;" v-model:value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" />
+          <n-input-number :value="store.paddingSize" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('paddingSize', v)" />
+          <n-slider style="padding-left: 15px;" :value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" @update:value="v => throttledCommit('paddingSize', v)" />
         </div>
         
         <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
@@ -658,85 +666,8 @@
           <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged"/>
         </h6>
         
-        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode">
-          
-          <h6>Reduce file size</h6>
-          
-          <n-alert type="default">
-            <template #icon>
-              <fluent-checkmark-circle-24-regular style="padding-top: 5px;" :style="{
-                color: store.compressImage ? '#63e2b8' : '#ffc12c'
-              }" />
-            </template>
-            Compressed image is saved as a <span :style="{ color: store.compressImage ? '#63e2b8' : null }">jpeg</span>, which doesn't support transparency. <br /><br />
-            Disable compression in order to save the image as a <span :style="{ color: store.compressImage ? null : '#ffc12c' }">png</span> that does support a transparent background color.
-          </n-alert>
-          
-          <div class="label-row">
-            <span>Compress image</span>
-            <div style=" display: flex; justify-content: flex-end;">
-              <n-switch size="small" v-model:value="store.compressImage" />
-            </div>
-          </div>
-          
-          <div class="label-row" v-if="store.compressImage">
-            <span class="compress-quality-text">Quality ({{ qualityPercentage }}%):</span>
-            <n-slider v-model:value="store.compressQuality" :min="0.50" :max="0.99" :step=".01" :tooltip="false" />
-          </div>
-          
-          <n-alert v-if="store.compressImage && qualityPercentage < 80" type="warning">
-            Make sure to pay extra attention to the saved image quality when setting the quality below 80%.
-          </n-alert>
-          
-          <h6>
-            <span>Scaled output</span>
-            <n-switch size="small" v-model:value="store.canvas.zoomOutputs" />
-          </h6>
-          
-          <n-space vertical :size="spaceGapSize" v-if="store.canvas.zoomOutputs">
-            <div class="label-row">
-              <span class="compress-quality-text">Scale ({{ scalePercentage }}%):</span>
-              <n-input-number size="small" v-model:value="store.canvas.outputScale" :min="0" :step="0.1" />
-            </div>
-            
-            <!-- <n-slider v-model:value="store.canvas.outputScale" :min="0.10" :max="5" :step=".01" :tooltip="false" /> -->
-            
-            <div style="display: flex; justify-content: center; align-items: center;">
-              <n-button-group size="small">
-                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: .5 })">
-                  .5x
-                </n-button>
-                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: .75 })">
-                  .75x
-                </n-button>
-                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: 1 })">
-                  1x
-                </n-button>
-                <n-button @click="$store.commit('update', { key: 'canvas.outputScale', value: 1.5 })">
-                  1.5x
-                </n-button>
-                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: 2 })">
-                  2x
-                </n-button>
-                <n-button round @click="$store.commit('update', { key: 'canvas.outputScale', value: 3 })">
-                  3x
-                </n-button>
-              </n-button-group>
-            </div>
-            
-            <n-alert type="info">
-              Width: {{ $store.getters.scaledCanvasDimensions.width }}px <br>
-              Height: {{ $store.getters.scaledCanvasDimensions.height }}px
-            </n-alert>
-          </n-space>
 
-          <n-alert type="error" v-if="$store.getters.exportTooLarge.tooLarge" title="Image too large to save">
-            The projected output is {{ $store.getters.exportTooLarge.width }} x {{ $store.getters.exportTooLarge.height }}px, which is past your browser's limit ({{ $store.getters.exportTooLarge.maxSide }}px per side). Try increasing covers per row, lowering the cover size, using fewer covers, or reducing the output scale.
-          </n-alert>
-
-        </n-space>
-
-      </n-space>
+</n-space>
       <div v-else class="saving-container">
         
         <n-progress type="circle" :percentage="Math.round(saveProgressWidth)" v-if="saveProgressWidth > -1">
@@ -781,15 +712,17 @@ import makeImage from "@editor-mixins/makeImage.js";
 
 import ToolbarTextElements from "@editor-comps/toolbar/toolbar-text-elements.vue";
 import spacer from "@editor-comps/toolbar/spacer.vue";
+import ExportSettingsPanel from "@editor-comps/toolbar/export-settings-panel.vue";
 // import _ from "lodash";
 
 import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
 
 export default {
   name: "toolbar",
-  components: { 
+  components: {
     ToolbarTextElements,
-    spacer, 
+    spacer,
+    ExportSettingsPanel,
     Multiselect,
     NConfigProvider,
     NButton,
@@ -812,10 +745,22 @@ export default {
     return {
       store: this.$store.state,
       slidingTimer: null,
+      hoveringPaddingHeading: false,
       saveProgressWidth: -1,
       darkTheme: darkTheme,
       spaceGapSize: 20,
+      toolbarInnerPaddingTop: 80,
+      modeSwitcherObserver: null,
     };
+  },
+  mounted: function () {
+    this.modeSwitcherObserver = new ResizeObserver( ( entries ) => {
+      this.toolbarInnerPaddingTop = entries[0].contentRect.height + 20;
+    });
+    this.modeSwitcherObserver.observe( this.$refs.modeSwitcher );
+  },
+  beforeDestroy: function () {
+    if ( this.modeSwitcherObserver ) this.modeSwitcherObserver.disconnect();
   },
   
   computed: {
@@ -912,6 +857,30 @@ export default {
       let scale = parseFloat(this.store.canvas.outputScale);
       return Math.floor(scale * 100);
     },
+    tooLargeDetail: function () {
+      const tl = this.$store.getters.exportTooLarge;
+      if ( !tl.tooLarge ) return null;
+      if ( tl.overSide ) {
+        const worstPct = Math.round( (Math.max( tl.width, tl.height ) / tl.maxSide - 1) * 100 );
+        return {
+          dims: tl.width + '×' + tl.height + 'px',
+          limit: tl.maxSide.toLocaleString() + 'px per side',
+          pct: worstPct,
+          widthOver: tl.width > tl.maxSide,
+          heightOver: tl.height > tl.maxSide,
+        };
+      }
+      else {
+        const areaPct = Math.round( (tl.width * tl.height / tl.maxArea - 1) * 100 );
+        return {
+          dims: tl.width + '×' + tl.height + 'px',
+          limit: Math.round( tl.maxArea / 1000000 ) + 'MP area',
+          pct: areaPct,
+          widthOver: false,
+          heightOver: false,
+        };
+      }
+    },
   },
   
   watch: {
@@ -945,13 +914,34 @@ export default {
       this.$store.commit('update', { key: 'coverSize', value: coverSize });
     },
     "store.slidingAround": _.debounce( function( value ) {
-      console.log('sliding', value)
-      if ( value ) this.$store.commit("update", { key: "slidingAround", value: null });
+      if ( value && !this.hoveringPaddingHeading ) this.$store.commit("update", { key: "slidingAround", value: null });
     }, 1500, { leading: false, trailing: true }),
   },
   
   methods: {
     
+    previewPadding: function( key ) {
+      this.hoveringPaddingHeading = true;
+      if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: key });
+    },
+    clearPaddingPreview: function() {
+      this.hoveringPaddingHeading = false;
+      this.$store.commit("update", { key: "slidingAround", value: null });
+    },
+
+    sliderCommit: function( key, value ) {
+      this.$store.commit('update', { key, value });
+    },
+    throttledCommit: function( key, value ) {
+      if ( !this.throttleMap ) this.throttleMap = {};
+      if ( !this.throttleMap[key] ) {
+        this.throttleMap[key] = _.throttle( function( k, v ) {
+          this.$store.commit('update', { key: k, value: v });
+        }.bind( this ), 50, { leading: true, trailing: true });
+      }
+      this.throttleMap[key]( key, value );
+    },
+
     randomizeCovers: function() {
       
       let randomCovers = _.shuffle(this.store.covers);
@@ -1132,14 +1122,12 @@ $toolbar-text: #8eabc5;
 
 .toolbar-inner {
   overflow: auto;
-  padding: 80px 65px 50px;
+  padding: 20px 65px 300px;
   display: flex;
   flex-direction: column;
   box-sizing: border-box;
   min-height: 0;
   width: 100%;
-  padding-bottom: 300px;
-  box-sizing: border-box;
 }
 
 .toolbar-inner.saving {
@@ -1185,6 +1173,10 @@ $toolbar-text: #8eabc5;
   &.no-padding > div {
     padding-left: 0px;
   }
+}
+
+:deep(.label-row .n-checkbox__label) {
+  white-space: nowrap !important;
 }
 
 .offset-height-text {
@@ -1392,6 +1384,30 @@ $toolbar-text: #8eabc5;
   user-select: none; 
 }
 
+.mode-notice {
+  padding: 8px 37px;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+
+  &.mode-notice-info {
+    color: rgba(#7ec8e3, .9);
+    background: rgba(#1a3a4a, .8);
+    border-bottom: 1px solid rgba(#7ec8e3, .15);
+  }
+
+  &.mode-notice-error {
+    color: rgba(#ff9999, .95);
+    background: rgba(#4a1a1a, .8);
+    border-bottom: 1px solid rgba(#ff6666, .2);
+
+    .dim-over {
+      color: #fff;
+      font-weight: 600;
+    }
+  }
+}
+
 .mode-switcher {
   border-radius: 4px;
   position: absolute;
@@ -1485,9 +1501,9 @@ $toolbar-text: #8eabc5;
     line-height: 19px;
     font-weight: 400;
     color: #fff !important;
-    padding: 7px 0px;  
+    padding: 7px 63px 7px 23px;
     position: relative;
-    margin: 20px 0 0px -5px;
+    margin: 20px -63px 0px -28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -1497,8 +1513,8 @@ $toolbar-text: #8eabc5;
     content: '';
     position: absolute;
     top: 0px;
-    right: -63px;
-    left: -23px;
+    right: 0px;
+    left: 0px;
     border-radius: 999px 0 0 999px;
     bottom: 0px;
     background: #212935;
@@ -1508,6 +1524,19 @@ $toolbar-text: #8eabc5;
     border-right: none;
   }
   
+  h6 > span {
+    display: flex;
+    align-items: center;
+  }
+
+  .padding-preview-hint {
+    width: 14px;
+    height: 14px;
+    opacity: .35;
+    margin-left: 4px;
+    flex-shrink: 0;
+  }
+
   .disabled-settings-section {
     h6 {
       color: darken(#fff, 30) !important;
