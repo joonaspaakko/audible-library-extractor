@@ -41,21 +41,7 @@
     
     <div class="show-blank-canvas" v-show="store.saving"></div>
     
-    <n-config-provider :theme="darkTheme" class="float-alert-wrapper">
-      
-      <div class="float-alert" v-if="!store.animatedWallpaperMode">
-        <n-alert v-if="overlayHidden && showOverlay" title="Ovelay temporarily hidden so you can sort covers manually" type="warning" />
-      </div>
-      
-      <div class="float-alert">
-        <n-alert v-if="store.panningAlert" title="Sort covers manually by dragging or hold space bar while dragging to move the canvas" type="info" />
-      </div>
-      
-      <div class="float-alert">
-        <n-alert v-if="$store.getters.textElementActive" title="You can also move text using arrow keys. Shift modifier increases the step to 10px" type="info" />
-      </div>
-      
-    </n-config-provider>
+    <notification-panel />
     
     <div 
       ref="grid"  
@@ -190,13 +176,10 @@ import animatedWallpaper from "../animated-wallpaper/animated-wallpaper-app.vue"
 import tierList from "@editor-comps/canvas/tier-list.vue";
 import tierListToolbar from "@editor-comps/canvas/tier-list-toolbar.vue";
 import cover from '@editor-comps/canvas/cover.vue';
+import notificationPanel from '@editor-comps/canvas/notification-panel.vue';
 import zoomies from '@editor-mixins/canvas-zoom.js';
 
-import { 
-  NConfigProvider, 
-  darkTheme, 
-  NAlert,
-} from 'naive-ui';
+
 
 export default {
   name: "editorCanvas",
@@ -204,23 +187,20 @@ export default {
     calculateCoverSize,
     zoomies, 
   ],
-  components: { 
-    draggable, 
-    textElement, 
+  components: {
+    draggable,
+    textElement,
     animatedWallpaper,
     tierList,
     tierListToolbar,
     cover,
-    
-    NConfigProvider,
-    NAlert,
+    notificationPanel,
   },
   data: function () {
     return {
       store: this.$store.state,
       dragscrollEnabled: false,
       overlayHidden: false,
-      darkTheme: darkTheme,
       canvasHeightObserver: null,
     };
   },
@@ -275,6 +255,7 @@ export default {
   },
 
   watch: {
+
     reservedPadding: {
       handler: function( newVal, oldVal ) {
         if ( newVal.left !== oldVal.left || newVal.right !== oldVal.right ) {
@@ -285,12 +266,50 @@ export default {
       },
       deep: true,
     },
+
+    'textElementActive': function( active ) {
+      if ( active ) {
+        this.$store.commit('addNotification', { id: 'text-arrow-keys', type: 'arrows', message: 'Move text with arrow keys. Hold Shift for larger steps.' });
+        this.$store.commit('addNotification', { id: 'text-dblclick',   type: 'text',   message: 'Double-click to edit text.' });
+      }
+      else {
+        this.$store.commit('removeNotification', 'text-arrow-keys');
+        this.$store.commit('removeNotification', 'text-dblclick');
+      }
+    },
+
+    'store.panningAlert': function( active ) {
+      if ( active ) {
+        this.$store.commit('addNotification', { id: 'panning', type: 'drag', message: 'Drag covers to reorder them. Hold Space to pan the canvas.' });
+      }
+      else {
+        this.$store.commit('removeNotification', 'panning');
+      }
+    },
+
+    overlayHiddenNotify: function( show ) {
+      if ( show ) {
+        this.$store.commit('addNotification', { id: 'overlay-hidden', type: 'overlay', message: 'Overlay hidden while hovering. Move covers freely.' });
+      }
+      else {
+        this.$store.commit('removeNotification', 'overlay-hidden');
+      }
+    },
+
   },
 
   computed: {
 
     showOverlay() {
       return !this.store.animatedWallpaperMode && this.store.awpOverlayColorEnabled;
+    },
+
+    textElementActive: function() {
+      return this.$store.getters.textElementActive;
+    },
+
+    overlayHiddenNotify: function() {
+      return this.overlayHidden && this.showOverlay && !this.store.animatedWallpaperMode;
     },
     
     paddingSizeNumber: function() {
@@ -724,18 +743,6 @@ export default {
   display: none;
 }
 
-.float-alert-wrapper {
-  position: fixed;
-  z-index: 9999;
-  bottom: 5px;
-  left: 5px;
-  transform: scale(.8);
-  transform-origin: bottom left;
-}
-.float-alert {
-  margin-top: 6px;
-  background: rgb(22, 30, 41);
-}
 
 [data-saving-image="true"] #editor-canvas-content {
   transform: none !important;

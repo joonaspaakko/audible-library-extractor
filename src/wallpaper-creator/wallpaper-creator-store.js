@@ -1,5 +1,6 @@
 import { createStore } from 'vuex';
 import canvasPresets from './wallpaper-creator-canvas-presets.js';
+import { resolveNotification } from './_components/canvas/notification-presets.js';
 
 // import _ from "lodash";
 
@@ -167,6 +168,7 @@ const store = createStore({
       { visible: true, key: 'F', color: '#ff93fd', list: [], text: '' },
       { visible: true, key: 'container',  list: [] },
     ],
+    notifications: [],
     presetModalOpen: false,
     colorPicker_swatches: [
       '#001f3f',
@@ -221,6 +223,7 @@ const store = createStore({
         delete lsState.colorPicker_swatches;
         delete lsState.textElFonts;
         delete lsState.coverActions;
+        delete lsState.notifications;
         _.merge( state, lsState );
         _.each( state.textElements, function( el ) {
           el.active = false;
@@ -234,6 +237,25 @@ const store = createStore({
       }
     },
     
+    addNotification( state, opts ) {
+    
+      if ( state.notifications.find( n => n.id === opts.id ) ) return;
+      
+      const notification = resolveNotification( opts );
+      state.notifications.push( notification );
+      
+      if ( notification.duration ) {
+        setTimeout( () => {
+          state.notifications = state.notifications.filter( n => n.id !== opts.id );
+        }, notification.duration );
+      }
+      
+    },
+
+    removeNotification( state, id ) {
+      state.notifications = state.notifications.filter( n => n.id !== id );
+    },
+
     addText( state, textElement ) {
       
       ++state.textElementCounter;
