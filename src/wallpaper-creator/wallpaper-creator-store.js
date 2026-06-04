@@ -222,7 +222,15 @@ const store = createStore({
         delete lsState.textElFonts;
         delete lsState.coverActions;
         _.merge( state, lsState );
-        _.each( state.textElements, function( el ) { el.active = false; });
+        _.each( state.textElements, function( el ) {
+          el.active = false;
+          const rp = el.reservedPadding;
+          const isNewShape = rp && 'side' in rp && 'value' in rp && !( 'top' in rp );
+          if ( !isNewShape ) {
+            el.reservedPadding = { side: null, value: 0 };
+          }
+          if ( !el.upDirection ) el.upDirection = 'top';
+        });
       }
     },
     
@@ -231,6 +239,10 @@ const store = createStore({
       ++state.textElementCounter;
       if ( !textElement.id ) textElement.id = state.textElementCounter;
       if ( !textElement.textElement ) textElement.textElement = true;
+      if ( !textElement.reservedPadding || Array.isArray( textElement.reservedPadding ) || 'top' in textElement.reservedPadding ) {
+        textElement.reservedPadding = { side: null, value: 0 };
+      }
+      if ( !textElement.upDirection ) textElement.upDirection = 'top';
       
       let activeEl = _.find( state.textElements, { active: true });
       if ( activeEl ) activeEl.active = false;
@@ -240,8 +252,6 @@ const store = createStore({
     },
     
     removeText( state, index ) {
-      console.log( state.textElements )
-      console.log( index )
       state.textElements.splice(index, 1);
     },
     
@@ -251,10 +261,6 @@ const store = createStore({
         config = config || {};
         let textObj = state.textElements[ config.index ];
         if ( config.key && textObj ) {
-          
-          console.log( textObj )
-          console.log( config.key, config.value )
-          
           _.set(textObj, config.key, config.value);
         }
       };
@@ -269,6 +275,12 @@ const store = createStore({
       
     },
     
+    setTextReservedPadding( state, { index, side, value } ) {
+      if ( state.textElements[ index ] ) {
+        state.textElements[ index ].reservedPadding = { side, value };
+      }
+    },
+
     activateText( state, activateIndex ) {
       
       _.each( state.textElements, function( el, index ) {
@@ -315,12 +327,7 @@ const store = createStore({
       let setValues = function (config) {
         config = config || {};
         let textObj = state.tiers[ config.index ];
-        console.log( config.index )
         if ( config.key && textObj ) {
-          
-          console.log( textObj )
-          console.log( config.key, config.value )
-          
           _.set(textObj, 'text', config.value);
         }
       };
@@ -338,7 +345,6 @@ const store = createStore({
     changePreset: function( state, presetName ) {
       
       let preset = _.find( state.canvasPresets, { value: presetName });
-      console.log( preset.options )
       if ( preset ) state = _.merge( state, preset.options );
       
     },
@@ -464,6 +470,18 @@ const store = createStore({
     
     textElementActive: function( state ) {
       return !!_.find( state.textElements, 'active');
+    },
+
+    // SUM OF RESERVED PADDING PER SIDE: space text elements reserve so covers don't overlap them.
+    reservedPadding: function( state ) {
+      const result = { top: 0, right: 0, bottom: 0, left: 0 };
+      _.each( state.textElements, function( el ) {
+        const rp = el.reservedPadding;
+        if ( rp && rp.side ) {
+          result[ rp.side ] += rp.value || 0;
+        }
+      });
+      return result;
     },
     
     containerTierVisible: function( state ) {

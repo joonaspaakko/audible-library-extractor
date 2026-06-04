@@ -89,6 +89,24 @@
         
       </div>
       
+      <div class="label-row label-row--make-room">
+        <span class="row-label" v-tippy content="Rotate and move this text element to the selected side">Move:</span>
+        <div class="make-room-buttons">
+          <button
+            v-for="side in ['top', 'right', 'bottom', 'left']"
+            :key="side"
+            class="make-room-btn"
+            @click="$emitter.emit( 'snap-to-side', { index: index, side: side } )"
+            v-tippy :content="`Move to ${ side } side`"
+          >
+            <akar-icons-arrow-up    v-if="side === 'top'"    />
+            <akar-icons-arrow-right v-if="side === 'right'"  />
+            <akar-icons-arrow-down  v-if="side === 'bottom'" />
+            <akar-icons-arrow-left  v-if="side === 'left'"   />
+          </button>
+        </div>
+      </div>
+
       <div class="label-row">
 
         <color-picker :default-value="text.color" label="Color" :size="18" @input="$store.commit('changeText', { index: index, key: 'color', value: $event })"></color-picker>
@@ -168,11 +186,11 @@ export default {
       
       let transformBoxes = document.querySelectorAll('.moveable-control-box');
       if ( transformBoxes.length ) {
-        transformBoxes.forEach(function( controlEl, controlIndex ) {
+        transformBoxes.forEach(function( controlEl ) {
           controlEl.style.display = 'none';
         });
       }
-      
+
       let text = 'Lorem ipsum dolor sit amet';
       
       if ( this.textTextCounter === 0 || this.textTextCounter === 1 && this.store.gallery.pageTitle ) {
@@ -182,12 +200,13 @@ export default {
         text = this.store.gallery.pageSubTitle || text;
       }
       
-      this.$store.commit('addText', { 
+      this.$store.commit('addText', {
         text: text,
         rotation: 0,
         floater: false,
         fullWidth: true,
         fontSize: 30,
+        height: '55px',
         bold: false,
         allCaps: false,
         active: true,
@@ -196,6 +215,12 @@ export default {
         verticalAlignment: 'center',
         fontFamily: "'Work Sans', sans-serif",
       });
+
+      const newIndex = this.store.textElements.length - 1;
+      setTimeout( () => {
+        this.textElementClicked( newIndex, this.store.textElements[ newIndex ] );
+        this.$emitter.emit( 'snap-to-side', { index: newIndex, side: 'top' } );
+      }, 50 );
       
       if ( this.textTextCounter === 1 ) {
         this.textTextCounter = 0;
@@ -227,8 +252,8 @@ export default {
       
       let transformBoxes = document.querySelectorAll('.moveable-control-box');
       if ( transformBoxes.length ) {
-        transformBoxes.forEach(function( controlEl, controlIndex ) {
-          controlEl.style.display = (targetIndex === controlIndex) ? 'block' : 'none';
+        transformBoxes.forEach(function( controlEl ) {
+          controlEl.style.display = ( parseInt( controlEl.dataset.textIndex ) === targetIndex ) ? 'block' : 'none';
         });
       }
       
@@ -328,6 +353,33 @@ export default {
     line-height: 18px;
     color: inherit;
     white-space: nowrap;
+  }
+}
+
+.make-room-buttons {
+  display: flex;
+  flex-direction: row;
+  flex: 1;
+  gap: 4px;
+}
+
+.make-room-btn {
+  background: none;
+  border: 1px solid #b9bfca;
+  border-radius: 4px;
+  color: inherit;
+  cursor: pointer;
+  padding: 2px 6px;
+  line-height: 1;
+  font-size: 12px;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &:hover {
+    border-color: #fff;
+    color: #fff;
   }
 }
 

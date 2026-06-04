@@ -89,10 +89,10 @@
         
         <div
           class="canvas-padding-preview"
-          :style="{ 
-            borderLeftWidth  : store.canvas.padding.left + 'px',
-            borderTopWidth   : store.canvas.padding.top + 'px',
-            borderRightWidth : store.canvas.padding.right + 'px',
+          :style="{
+            borderLeftWidth  : store.canvas.padding.left   + 'px',
+            borderTopWidth   : store.canvas.padding.top    + 'px',
+            borderRightWidth : store.canvas.padding.right  + 'px',
             borderBottomWidth: store.canvas.padding.bottom + 'px',
           }"
           v-show="store.slidingAround && store.slidingAround !== 'paddingSize'"
@@ -192,7 +192,6 @@ import {
   darkTheme, 
   NAlert,
 } from 'naive-ui';
-import { subtract } from 'lodash';
 
 export default {
   name: "editorCanvas",
@@ -228,8 +227,23 @@ export default {
     let coverSize = this.calculateCoverSize({ coversPerRow: this.store.coversPerRow });
     this.$store.commit('update', { key: 'coverSize', value: coverSize });
 
+    let prevCanvasWidth  = this.$refs.canvas.offsetWidth;
+    let prevCanvasHeight = this.$refs.canvas.offsetHeight;
     this.canvasHeightObserver = new ResizeObserver( ( entries ) => {
-      this.$store.commit('update', { key: 'canvas.autoHeight', value: entries[0].contentRect.height });
+      const rect = entries[0].contentRect;
+      this.$store.commit('update', { key: 'canvas.autoHeight', value: rect.height });
+      const newWidth  = Math.round( entries[0].borderBoxSize[0].inlineSize );
+      const newHeight = Math.round( entries[0].borderBoxSize[0].blockSize );
+      if ( newWidth !== prevCanvasWidth || newHeight !== prevCanvasHeight ) {
+        this.$emitter.emit('canvas-resized', {
+          oldWidth:  prevCanvasWidth,
+          oldHeight: prevCanvasHeight,
+          newWidth:  newWidth,
+          newHeight: newHeight,
+        });
+        prevCanvasWidth  = newWidth;
+        prevCanvasHeight = newHeight;
+      }
     });
     this.canvasHeightObserver.observe( this.$refs.canvas );
 
@@ -255,8 +269,21 @@ export default {
     
   },
 
+  watch: {
+    reservedPadding: {
+      handler: function( newVal, oldVal ) {
+        if ( newVal.left !== oldVal.left || newVal.right !== oldVal.right ) {
+          // calculateCoverSize folds reserved padding in itself, so call it plainly.
+          const coverSize = this.calculateCoverSize();
+          this.$store.commit( 'update', { key: 'coverSize', value: coverSize } );
+        }
+      },
+      deep: true,
+    },
+  },
+
   computed: {
-    
+
     showOverlay() {
       return !this.store.animatedWallpaperMode && this.store.awpOverlayColorEnabled;
     },
@@ -309,8 +336,13 @@ export default {
       }
     },
     
+    reservedPadding: function() {
+      return this.$store.getters.reservedPadding;
+    },
+
     canvasStyle: function () {
       var style = {};
+      const p = this.store.canvas.padding;
       if (this.store.canvas.width > 0) {
         style.width = this.store.canvas.width + "px";
       }
@@ -320,18 +352,12 @@ export default {
       if (this.store.canvas.height > 0) style.height = this.store.canvas.height + "px";
       if (this.store.saving) style.borderColor = "transparent";
       if (this.store.saving) style.outlineColor = "transparent";
-      
-      style.paddingLeft   = this.store.canvas.padding.left   > -1 ? this.store.canvas.padding.left   + "px" : 0 + "px";
-      style.paddingTop    = this.store.canvas.padding.top    > -1 ? this.store.canvas.padding.top    + "px" : 0 + "px";
-      style.paddingRight  = this.store.canvas.padding.right  > -1 ? this.store.canvas.padding.right  + "px" : 0 + "px";
-      style.paddingBottom = this.store.canvas.padding.bottom > -1 ? this.store.canvas.padding.bottom + "px" : 0 + "px";
-      
-      // if ( this.store.saving ) style.transform = null;
-      // else if (this.store.canvas.zoom > 0 && this.store.canvas.zoom != 1) {
-      //   style.transform = "scale(" + this.store.canvas.zoom + ")";
-      // }
-      // if (this.store.canvas.transformOrigin) style.transformOrigin = this.store.canvas.transformOrigin;
-      
+
+      style.paddingLeft   = ( p.left   > -1 ? p.left   : 0 ) + "px";
+      style.paddingTop    = ( p.top    > -1 ? p.top    : 0 ) + "px";
+      style.paddingRight  = ( p.right  > -1 ? p.right  : 0 ) + "px";
+      style.paddingBottom = ( p.bottom > -1 ? p.bottom : 0 ) + "px";
+
       return style;
     },
     // coverStyle: function () {
@@ -362,23 +388,16 @@ export default {
     // },
     canvasAlignment: function() {
       let style = {};
-      
+
       style.textAlign = this.store.canvas.alignment;
       style.position = this.store.canvas.height > 0 ? 'absolute' : null;
-      // if ( this.store.canvas.height > 0 ) style.height = this.store.canvas.height + 'px';
-      // if ( this.store.canvas.alignmentVertical === 'flex-start' ) {
-      //   style.marginTop = 'auto';
-      //   style.marginBottom = null;
-      // }
-      // else if ( this.store.canvas.alignmentVertical === 'center' ) {
-      //   style.marginTop = 'auto';
-      //   style.marginBottom = 'auto';
-      // }
-      // else if ( this.store.canvas.alignmentVertical === 'flex-end' ) {
-      //   style.marginTop = null;
-      //   style.marginBottom = 'auto';
-      // }
-      
+
+      const rp = this.reservedPadding;
+      style.marginTop    = rp.top    ? rp.top    + 'px' : null;
+      style.marginRight  = rp.right  ? rp.right  + 'px' : null;
+      style.marginBottom = rp.bottom ? rp.bottom + 'px' : null;
+      style.marginLeft   = rp.left   ? rp.left   + 'px' : null;
+
       return style;
     },
     canvasAlignmentVertical: function() {
