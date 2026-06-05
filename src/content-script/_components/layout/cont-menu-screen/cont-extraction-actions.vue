@@ -123,7 +123,7 @@ export default {
 
           chrome.storage.local.set({ audibledata }).then(() => {
 
-            vue.$toast.success('All "new" books succesfully reset', vue.store.toastOpts);
+            vue.$toast.success('All "new" books successfully reset', vue.store.toastOpts);
 
           }).catch( errorNotification );
 
@@ -143,7 +143,7 @@ export default {
 				downloadBlob( new Blob([JSON.stringify(data)], { type: "application/json;charset=utf-8" }), 'Audible Library Extractor Data.json' );
 
 				vue.exportRawDataDisabled = false;
-				vue.$toast.success("Data exported succesfully!", vue.store.toastOpts);
+				vue.$toast.success("Data exported successfully!", vue.store.toastOpts);
 
 			}).catch(function( err ) {
       
@@ -187,7 +187,7 @@ export default {
           }).then(function() {
 
             chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
-						vue.$toast.success("Data imported succesfully!", vue.store.toastOpts);
+						vue.$toast.success("Data imported successfully!", vue.store.toastOpts);
             vue.loading = false;
             vue.$dataChecker( data );
 
@@ -215,7 +215,7 @@ export default {
 
             vue.$dataChecker(data);
             chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
-            vue.$toast.success('Data removed succesfully', vue.store.toastOpts);
+            vue.$toast.success('Data removed successfully', vue.store.toastOpts);
 
           }).catch( errorNotification );
         }).catch( errorNotification );

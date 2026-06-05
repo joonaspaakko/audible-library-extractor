@@ -425,7 +425,7 @@ export default {
             excludeFromPodcasts: true,
             key: 'whispersync-false',
             group: 'filterExtras',
-            tippy: 'Either unavailable or unkown...',
+            tippy: 'Either unavailable or unknown...',
             condition: function(book) {
               return !book.whispersync;
             }
