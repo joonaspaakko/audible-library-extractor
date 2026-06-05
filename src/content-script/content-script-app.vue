@@ -106,7 +106,9 @@ export default {
       const vue = this;
       chrome.storage.local.get(['audibledata', 'metadata']).then(hotpotato => {
 
-        if ( !_.isEmpty( _.get(hotpotato, 'audibledata') ) ) vue.glueFriesBackTogether(hotpotato);
+        // Always unglue: this also flattens metadata back to root and clears out a
+        // stale empty audibledata ({}) that would otherwise block re-chunking below.
+        vue.glueFriesBackTogether(hotpotato);
         
         vue.ui = "scraping";
         vue.$nextTick(function() {
@@ -341,7 +343,9 @@ export default {
       
       this.addDataVersions( hotpotato );
       
-      if ( !hotpotato.audibledata ) {
+      // isEmpty (not just !audibledata) so a stale empty {} from a previous save
+      // doesn't block chunking the data that exists now.
+      if ( _.isEmpty( hotpotato.audibledata ) ) {
         if ( hotpotato.library ) this.addedOrder(hotpotato.library);
         if ( hotpotato.library ) this.languageCorrections(hotpotato.library);
         if ( hotpotato.wishlist ) this.addedOrder(hotpotato.wishlist);
@@ -353,7 +357,9 @@ export default {
         audibledata: hotpotato.audibledata,
       }).then(() => {
 
-        if ( !_.isEmpty( hotpotato.audibledata ) ) vue.glueFriesBackTogether(hotpotato);
+        // Always unglue so the next waterfall step gets config/arrays back at root,
+        // even when nothing was chunked this round (audibledata ended up {}).
+        vue.glueFriesBackTogether(hotpotato);
 
         callback( hotpotato );
 
