@@ -32,8 +32,12 @@ export default {
      */
     async loadJSON(afterError) {
 
-      // In the extension environment book data isn't split into chunks.
-      if ( !this.store.standalone ) return;
+      // In the extension environment book data lives directly on the book object.
+      if ( !this.store.standalone ) {
+        this.splitData.bookSummary      = this.book.summary          ?? null;
+        this.splitData.peopleAlsoBought = this.book.peopleAlsoBought ?? null;
+        return;
+      }
 
       const { asin, chunkId } = this.book;
       const cacheID = this.store.audibledata.extras.cacheID;
