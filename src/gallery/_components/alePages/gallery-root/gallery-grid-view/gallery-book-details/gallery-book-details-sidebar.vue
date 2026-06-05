@@ -106,7 +106,7 @@ export default {
           );
         }
       } else {
-        return '<div class="stretch-center" style="flex: 1;"><strong>Length:</strong> ' + (book.length || 'unkown') + "</div>";
+        return '<div class="stretch-center" style="flex: 1;"><strong>Length:</strong> ' + (book.length || 'unknown') + "</div>";
       }
     },
     

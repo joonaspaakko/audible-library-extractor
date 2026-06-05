@@ -26,7 +26,7 @@ export default {
               link: issue(160), 
             },
             {
-              description: `Fixed randomized thumbnail missing from gallery allery categories page if subcategory is missing from book data.`,
+              description: `Fixed randomized thumbnail missing from gallery categories page if subcategory is missing from book data.`,
               class: 'fixed',
               link: issue(159), 
             },
@@ -51,7 +51,7 @@ export default {
               class: 'added',
             },
             {
-              description: `Because of this issue where the extraction was interrupted and you were subsequently banned for the next 10-15 mintues I added a new button in the extraction settings where you may toggle on slow extraction that could help with such issues in the future. I also slowed down series extraction so that the regular (fast) extraction would work better. It might also make sense to try extracting library and wishlist separately.`,
+              description: `Because of this issue where the extraction was interrupted and you were subsequently banned for the next 10-15 minutes I added a new button in the extraction settings where you may toggle on slow extraction that could help with such issues in the future. I also slowed down series extraction so that the regular (fast) extraction would work better. It might also make sense to try extracting library and wishlist separately.`,
               class: 'added',
               link: issue(110),  
             },
@@ -105,7 +105,7 @@ export default {
               link: issue(141), 
             },
             {
-              description: `Extract user's own written reviews. There's a filter in the gallery for books you've reviewed and theres a button above summary if your review is avaiable for the book in question.`,
+              description: `Extract user's own written reviews. There's a filter in the gallery for books you've reviewed and theres a button above summary if your review is available for the book in question.`,
               class: 'added',
               link: issue(140, 'added'), 
             },
@@ -317,7 +317,7 @@ export default {
           highlights: `
             You should do a full extraction after updating to this version. There are a a few new data points that the partial extraction will not update to any old books.
             <br><br>
-            I added global context menu items so you can easily open the gallery by right-clicking anywhere inside any tab and choose "Audible Library Extracor > Gallery page".
+            I added global context menu items so you can easily open the gallery by right-clicking anywhere inside any tab and choose "Audible Library Extractor > Gallery page".
             <br><br>
             There's now a wallpaper creator in the extension gallery. Look for it in the top menu.
           `,
@@ -533,7 +533,7 @@ export default {
             },
             { 
               link: { text: 'Fixed #20', href: githubIssues+'20' }, 
-              description: 'Filter and sorter menu disappearing behing the bottom mobile nav',
+              description: 'Filter and sorter menu disappearing behind the bottom mobile nav',
               class: 'fixed'
             },
             { 
