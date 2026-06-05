@@ -5,22 +5,29 @@ import { storageGet, storageSet, storageUnset } from '@utils/chrome-storage.js';
 const SUPABASE_URL = 'https://zyngevuwmgaakoqevrbx.supabase.co';
 const SUPABASE_KEY = 'sb_publishable_nWCEat6ZAGliNHytDdWfmA_Ia20fmCP';
 
-// SINGLETON: one GoTrueClient per browser context to avoid concurrent-instance warnings
-const supabaseClient = createClient( SUPABASE_URL, SUPABASE_KEY, {
-  auth: {
-    flowType: 'pkce',
-    storage: {
-      getItem:    ( key )      => storageGet( 'auth', key ).then( val => val ?? null ),
-      setItem:    ( key, val ) => storageSet( 'auth', key, val ),
-      removeItem: ( key )      => storageUnset( 'auth', key ),
-    },
-  },
-});
+// SINGLETON: one GoTrueClient per browser context to avoid concurrent-instance warnings.
+// Created lazily on first mount so the Chrome storage calls don't run at module load time.
+let supabaseClient = null;
+function getSupabaseClient() {
+  if ( !supabaseClient ) {
+    supabaseClient = createClient( SUPABASE_URL, SUPABASE_KEY, {
+      auth: {
+        flowType: 'pkce',
+        storage: {
+          getItem:    ( key )      => storageGet( 'auth', key ).then( val => val ?? null ),
+          setItem:    ( key, val ) => storageSet( 'auth', key, val ),
+          removeItem: ( key )      => storageUnset( 'auth', key ),
+        },
+      },
+    });
+  }
+  return supabaseClient;
+}
 
 export default {
   data() {
     return {
-      supabaseClient,
+      supabaseClient: null,
       octokit: null,
       githubToken: null,
       profile: {},
@@ -29,6 +36,8 @@ export default {
   },
 
   async mounted() {
+
+    this.supabaseClient = getSupabaseClient();
 
     // Restore a persisted token so the user doesn't have to re-auth on every open
     const token = await storageGet( 'auth', 'github_token' );

@@ -58,8 +58,8 @@
         
       <div class="btn-wrapper">
         
-        <github v-model:active="githubApiProcessActive" :getFiles="saveButtonClicked" @syncing-changed="githubSyncing = $event" />
-        
+        <github v-if="!$store.state.standalone" v-model:active="githubApiProcessActive" :getFiles="saveButtonClicked" @syncing-changed="githubSyncing = $event" />
+
         <div v-if="!githubApiProcessActive" class="non-github-api-wrapper">
           
           <div class="divider">
@@ -236,7 +236,7 @@ export default {
     // Book ASIN is used to identify the correct file later
     divideLargerDatapoints: function( files, books ) {
       const extractableKeys = ['peopleAlsoBought', 'summary'];
-      const maxChunkKB = 500 * 1024;
+      const maxChunkKB = 1000 * 1024;
 
       let chunkIndex = 0;
       let chunkData = [];

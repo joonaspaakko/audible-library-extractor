@@ -151,12 +151,13 @@ export default defineConfig({
       ],
       extensions: ['vue'],
       deep: true,
+      exclude: buildSingleFile ? [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /github-upload/] : undefined,
       resolvers: [
         IconsResolver({
           prefix: '',
         }),
       ],
-    }), 
+    }),
     Icons(),
     ( buildSingleFile ? undefined : crx({ manifest }) ),
     copy({

@@ -40,6 +40,10 @@ export default {
       }
 
       const { asin, chunkId } = this.book;
+
+      // No chunkId means this book had no split data.
+      if ( chunkId == null ) return;
+
       const cacheID = this.store.audibledata.extras.cacheID;
 
       try {
