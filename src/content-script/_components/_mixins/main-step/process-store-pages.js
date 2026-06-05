@@ -478,9 +478,7 @@ export default {
       // It was early 2020 when it was removed from the library page and now it's totally gone aside from the purchase history.
       // book.dateAdded   = vue.fixDates( audible.querySelector('#adbl-buy-box-purchase-date > span') );
       
-      vue.getDataFromCarousel(book, audible, "peopleAlsoBought", 5);
-      vue.getDataFromCarousel(book, audible, "moreLikeThis", 6);
-      // Audible seemed to have stopped using the ↑↑↑ "more like this" carousel in store pages around 2020 march-april.
+      vue.getDataFromCarousel(book, audible, "peopleAlsoBought", "Listeners who picked this title also picked");
       
       book = _.omitBy(book, _.isNull);
 
