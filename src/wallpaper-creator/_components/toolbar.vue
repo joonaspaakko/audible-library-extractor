@@ -571,7 +571,7 @@
         
         <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode" :class="{ 'disabled-settings-section': !$store.getters.rereadExist }">
           <h6>
-            <span>Re-read label (relisten) </span>
+            <span>Relisten label</span>
             <n-switch size="small" v-model:value="store.reread.label.show" />
           </h6>
           <h4 style="margin: 0 !important;">Offset:</h4>
@@ -587,7 +587,7 @@
           </div>
           
           <n-alert type="warning" v-if="!$store.getters.rereadExist">
-            No books marked re-read! Click a cover and use the button that appears on the top right.
+            No books marked as relisten. Right-click a cover to mark one.
           </n-alert>
         </n-space>
         

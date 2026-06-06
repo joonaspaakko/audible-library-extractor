@@ -20,24 +20,7 @@
 
     <tier-list-toolbar v-if="store.tierListMode" :draggableCovers="draggableCovers" />
     
-    <div class="cover-actions" v-if="store.coverActions">
-      <button v-if="$store.getters.rereadExist" class="remove-all-reread" @click="$store.commit('updateBookCover', { key: 'reread', value: false, book: store.coverActions, all: true })">
-        <fa-solid-trash-alt/>
-        &nbsp;
-        Clear all re-read books
-      </button>
-      <button class="reread" @click="$store.commit('updateBookCover', { key: 'reread', value: !store.coverActions.reread, book: store.coverActions })">
-        <ic-outline-check-circle style="color: #80f900;" v-if="store.coverActions.reread" />
-        <mdi-checkbox-blank-circle style="color: #333; border-radius: 9999px; box-shadow: inset 0 0 7px white" v-else />
-        &nbsp;
-        Re-read book
-      </button>
-      <button class="remove-cover" @click="$store.commit('removeCover', store.coverActions.asin)">
-        <fa-solid-trash-alt style="color: #ff4136;" />
-        &nbsp;
-        Remove book
-      </button>
-    </div>
+    <cover-context-menu />
     
     <div class="show-blank-canvas" v-show="store.saving"></div>
     
@@ -177,6 +160,7 @@ import tierList from "@editor-comps/canvas/tier-list.vue";
 import tierListToolbar from "@editor-comps/canvas/tier-list-toolbar.vue";
 import cover from '@editor-comps/canvas/cover.vue';
 import notificationPanel from '@editor-comps/canvas/notification-panel.vue';
+import coverContextMenu from '@editor-comps/canvas/cover-context-menu.vue';
 import zoomies from '@editor-mixins/canvas-zoom.js';
 
 
@@ -195,6 +179,7 @@ export default {
     tierListToolbar,
     cover,
     notificationPanel,
+    coverContextMenu,
   },
   data: function () {
     return {
@@ -749,41 +734,6 @@ export default {
   transform-origin: top left !important;
 }
 
-.cover-actions {
-  position: absolute;
-  z-index: 9999999;
-  top: 0;
-  right: 0;
-  // left: 0;
-  // background: rgba(#000, .7);
-  padding: 10px 50px 0px 0px;
-  border-radius: 0 0 0 36px;
-  &, button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  button {
-    padding: 15px 25px;
-    background: #161e29;
-    box-shadow: 0 2px 15px #0798f1, 0 2px 20px 4px #161e29;
-    color: #fff;
-    font-size: 15px;
-    border-radius: 999px;
-    border: none;
-    outline: none;
-    border: 2px solid #31b1ff;
-    cursor: pointer;
-  }
-  button + button {
-    margin-left: 10px;
-  }
-  .remove-all-reread {
-    svg {
-      color: lighten(red, 15);
-    }
-  }
-}
 
 :global(.tier-container) {
   width: 324px !important;
