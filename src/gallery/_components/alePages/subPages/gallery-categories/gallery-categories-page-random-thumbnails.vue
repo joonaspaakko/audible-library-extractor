@@ -26,7 +26,7 @@ export default {
 	
 	data() {
 		return {
-			coversMax: 5
+			coversMax: 10
 		}
 	},
 	
