@@ -76,7 +76,7 @@
 
       <n-space vertical :size="spaceGapSize" v-if="!store.saving">
 
-        <div v-if="!store.animatedWallpaperMode" style="text-align: center;">
+        <div style="text-align: center;">
           <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
             <ri-collage-fill/> &nbsp; Change canvas preset
           </n-button>
@@ -88,7 +88,7 @@
           type="error" style="border-radius: 999px;"
           @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
         >
-          Wallpaper installation instructions
+          <ic:baseline-info /> &nbsp; Wallpaper installation instructions
         </n-button>
         </div>
         

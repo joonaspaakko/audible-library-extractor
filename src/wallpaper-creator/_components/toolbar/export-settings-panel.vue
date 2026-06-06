@@ -162,6 +162,15 @@ export default {
       darkTheme: darkTheme,
     };
   },
+  mounted: function () {
+    this.onKeydown = ( e ) => {
+      if ( e.key === 'Escape' && this.open ) this.open = false;
+    };
+    document.addEventListener( 'keydown', this.onKeydown );
+  },
+  beforeDestroy: function () {
+    document.removeEventListener( 'keydown', this.onKeydown );
+  },
   computed: {
     qualityPercentage: function () {
       return Math.floor( parseFloat( this.store.compressQuality ) * 100 );
