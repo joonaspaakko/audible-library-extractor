@@ -408,6 +408,17 @@ const store = createStore({
       
     },
     
+    removeCover( state, asin ) {
+      const coverIndex = _.findIndex( state.covers, { asin: asin });
+      if ( coverIndex > -1 ) state.covers.splice(coverIndex, 1);
+
+      const usedIndex = _.findIndex( state.usedCovers, { asin: asin });
+      if ( usedIndex > -1 ) state.usedCovers.splice(usedIndex, 1);
+
+      if ( state.coverAmount > 0 ) state.coverAmount--;
+      state.coverActions = null;
+    },
+
     updateBookCover( state, config ) {
       
       
