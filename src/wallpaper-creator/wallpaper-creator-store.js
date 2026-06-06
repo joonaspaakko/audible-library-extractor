@@ -158,7 +158,7 @@ const store = createStore({
       { visible: true, key: 'D', color: '#78f2f2', list: [], text: '' }, 
       { visible: true, key: 'E', color: '#9c9bff', list: [], text: '' }, 
       { visible: true, key: 'F', color: '#ff93fd', list: [], text: '' },
-      { visible: true, key: 'container',  list: [] },
+      { visible: true, key: 'unusedSidebar', list: [] },
     ],
     sidebarHideFlash: false,
     notifications: [],
@@ -218,6 +218,9 @@ const store = createStore({
         delete lsState.coverActions;
         delete lsState.notifications;
         _.merge( state, lsState );
+        // migrate old tier key
+        const oldContainerTier = _.find( state.tiers, { key: 'container' } );
+        if ( oldContainerTier ) oldContainerTier.key = 'unusedSidebar';
         _.each( state.textElements, function( el ) {
           el.active = false;
           const rp = el.reservedPadding;
@@ -424,12 +427,12 @@ const store = createStore({
       
     },
     
-    containerTierSetVisibility( state, value ) {
-    
-      const containerTier = _.find( state.tiers, { key: 'container' } );
-      if ( !containerTier ) return;
+    setUnusedSidebarVisibility( state, value ) {
 
-      containerTier.visible = value;
+      const tier = _.find( state.tiers, { key: 'unusedSidebar' } );
+      if ( !tier ) return;
+
+      tier.visible = value;
 
     },
     
@@ -538,19 +541,19 @@ const store = createStore({
       return result;
     },
     
-    containerTier: function( state ) {
-    
+    unusedSidebarTier: function( state ) {
+
       if ( _.isEmpty( state.tiers ) ) return;
-      
-      return _.find(state.tiers, { key: 'container' });
-      
+
+      return _.find(state.tiers, { key: 'unusedSidebar' });
+
     },
-    containerTierVisible: function( state, getters ) {
-      
-      if ( !getters.containerTier ) return;
-      
-      return getters.containerTier.visible;
-      
+    unusedSidebarVisible: function( state, getters ) {
+
+      if ( !getters.unusedSidebarTier ) return;
+
+      return getters.unusedSidebarTier.visible;
+
     },
     
     scaledCanvasDimensions( state, getters ) {

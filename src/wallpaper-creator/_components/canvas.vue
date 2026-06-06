@@ -108,45 +108,13 @@
 
             </div>
 
-            <!-- UNUSED COVERS SIDEBAR: always present outside awp mode, DOM-moved to #app in mounted -->
-            <div
+            <unused-covers
               v-if="!store.animatedWallpaperMode"
               v-show="!store.saving"
-              ref="unusedSidebar"
-              class="tier-container-wrap"
-              :class="{ 'flash-hide-cover': !store.tierListMode && !$store.getters.containerTierVisible && store.sidebarHideFlash }"
-              :style="{
-                width: $store.getters.containerTierVisible ? '324px' : '25px',
-              }"
-            >
-              
-              <div class="collapse-toolbar" :class="{ 'collapsed': !$store.getters.containerTierVisible }" @click="collapseUnusedSidebar">
-                <bx-bxs-chevrons-right v-if="!$store.getters.containerTierVisible" />
-                <bx-bxs-chevrons-left v-else />
-              </div>
-              
-              <draggable
-                class="tier-container"
-                v-if="$store.getters.containerTierVisible"
-                v-model="sidebarCovers"
-                item-key="asin"
-                group="covers"
-                @start="draggingStarted"
-                @end="draggingEnded"
-                @move="draggingMoved"
-              >
-                 <!--Header  -->
-                <template #header>
-                  <div class="tier-container-heading">Unused covers</div>
-                </template>
-                
-                <!-- Items container -->
-                <template #item="{element}">
-                  <cover :key="element.asin" :book="element"></cover>
-                </template>
-                
-              </draggable>
-            </div>
+              @start="draggingStarted"
+              @end="draggingEnded"
+              @move="draggingMoved"
+            />
             
             <component v-if="!store.animatedWallpaperMode" is="style" class="cover-dynamic-sizes">
               .cover {
@@ -193,6 +161,7 @@ import tierListToolbar from "@editor-comps/canvas/tier-list-toolbar.vue";
 import cover from '@editor-comps/canvas/cover.vue';
 import notificationPanel from '@editor-comps/canvas/notification-panel.vue';
 import coverContextMenu from '@editor-comps/canvas/cover-context-menu.vue';
+import unusedCovers from '@editor-comps/canvas/unused-covers.vue';
 import zoomies from '@editor-mixins/canvas-zoom.js';
 
 
@@ -212,6 +181,7 @@ export default {
     cover,
     notificationPanel,
     coverContextMenu,
+    unusedCovers,
   },
   data: function () {
     return {
@@ -254,24 +224,11 @@ export default {
         
     });
     
-    if ( !this.store.animatedWallpaperMode ) {
-      
-      this.$nextTick(function() {
-        const wrap = this.$refs.unusedSidebar;
-        if ( wrap ) document.querySelector('#app').prepend( wrap );
-        
-      });
-      
-    }
-    
   },
 
   beforeUnmount: function () {
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
     if ( this.canvasHeightObserver ) this.canvasHeightObserver.disconnect();
-    
-    const wrap = document.querySelector('#app > .tier-container-wrap');
-    if ( wrap ) wrap.remove();
 
     
   },
@@ -286,14 +243,14 @@ export default {
           const all = this.store.covers.concat( this.store.hiddenCovers );
           this.$store.commit('update', { key: 'hiddenCovers', value: all });
           this.$store.commit('update', { key: 'covers', value: [] });
-          this.$store.commit('containerTierSetVisibility', true);
+          this.$store.commit('setUnusedSidebarVisibility', true);
         }
         else {
           // move all hiddenCovers back to canvas (restore)
           const all = this.store.covers.concat( this.store.hiddenCovers );
           this.$store.commit('update', { key: 'covers', value: all });
           this.$store.commit('update', { key: 'hiddenCovers', value: [] });
-          this.$store.commit('containerTierSetVisibility', false);
+          this.$store.commit('setUnusedSidebarVisibility', false);
         }
       },
     },
@@ -393,14 +350,6 @@ export default {
       }
     },
 
-    sidebarCovers: {
-      get() {
-        return this.store.hiddenCovers;
-      },
-      set( value ) {
-        this.$store.commit('update', { key: 'hiddenCovers', value });
-      },
-    },
     usedCovers: {
       get() {
         let covers = this.store.covers;
@@ -501,13 +450,6 @@ export default {
   },
   
   methods: {
-    
-    collapseUnusedSidebar() {
-    
-      let container = this.$store.getters.containerTier;
-      this.$store.commit('toggleTier', container);
-      
-    },
     
     arrowNudge: function( e ) {
     
@@ -809,132 +751,8 @@ export default {
 }
 
 
-:global(.tier-container-heading) {
-  padding: 14px 16px 10px;
-  margin-bottom: 30px;
-  font-size: 11px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: .06em;
-  color: rgba( 255, 255, 255, .4 );
-  border-bottom: 1px solid rgba( 255, 255, 255, .07 );
-  text-align: center;
-}
-
-
-:deep(.collapse-toolbar) {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  font-size: 1.3em;
-  cursor: pointer;
-  svg { display: block !important; }
-  position: absolute;
-  top: 25px;
-  right: -10px;
-  z-index: 0;
-  padding: 5px;
-  background: #171e29 !important;
-  border-radius: 50%;
-  color: #8eabc5;
-  &:before {
-    content: '';
-    position: absolute; 
-    border: 1px solid #303d4f;
-    border-radius: 50%;
-    width: 100%;
-    padding-bottom: 100%;
-  }
-  
-  &.collapsed {
-    right: -14px;
-  }
-}
-
-:global(.tier-container-wrap) {
-  min-width: 25px;
-  position: fixed;
-  top: 0;
-  left: 0;
-  bottom: 0;
-  z-index: 9000 !important;
-  background: #171e29 !important;
-  transition: width 0.3s ease;
-}
-
-:global(.tier-container) {
-  width: 100% !important;
-  flex: 1 !important;
-  display: block !important;
-  font-size: 0 !important;
-  overflow: hidden auto !important;
-  margin: 0 !important;
-  box-shadow: -4px 0 10px darken( rgba(#171e29, .3), 20) !important;
-  background: #171e29 !important;
-  text-align: center !important;
-  padding: 0 !important;
-  padding-bottom: 25px !important;
-  box-sizing: border-box !important;
-}
-
-:global(.tier-container .cover) {
-  width:  118px !important;
-  height: 118px !important;
-  padding: 0 !important;
-}
-:global(.tier-container .cover img) {
-  width:  118px !important;
-  height: 118px !important;
-  box-shadow: 0 0 5px rgba(#000, .5);
-}
-:global(.tier-container .cover) {
-  margin: 5px !important;
-}
-:global(.tier-container .cover .cover-heart-icon) {
-  top: 5px !important;
-  right: 5px !important;
-}
-:global(.tier-container .cover .cover-heart-icon svg) {
-  font-size: 19px !important;
-  line-height: 19px !important;
-}
-:global(.tier-container .cover .cover-star-icons) {
-  height: 15px !important;
-}
-:global(.tier-container .cover .cover-star-icons svg) {
-  font-size: 19px !important;
-  line-height: 19px !important;
-}
-:global(.tier-container .author-and-title) {
-  font-size: 19px !important;
-  line-height: 19px !important;
-  color: #fff !important;
-  width: 100% !important;
-  display: none !important;
-}
-
-
 :global(.sortable-chosen) {
   // filter: grayscale(1);
-}
-
-</style>
-
-<style lang="scss">
-
-// .moveable-control-box {
-//   display: none;
-// }
-
-@keyframes sidebar-hide-flash {
-  0%   { box-shadow: inset -3px 0 12px rgba( 255, 65, 54, 0 ),   inset 0 0 0    rgba( 255, 65, 54, 0 ),   3px 0 20px rgba( 255, 65, 54, 0 ),   1px 0 0 rgba( 255, 65, 54, 0 );   background: #171e29; }
-  15%  { box-shadow: inset -3px 0 18px rgba( 255, 65, 54, .9 ),  inset 0 0 30px rgba( 255, 65, 54, .35 ),  3px 0 28px rgba( 255, 65, 54, .7 ),  1px 0 0 rgba( 255, 65, 54, .9 );  background: rgba( 90, 20, 18, .9 ); }
-  60%  { box-shadow: inset -3px 0 14px rgba( 255, 65, 54, .5 ),  inset 0 0 20px rgba( 255, 65, 54, .2 ),   3px 0 18px rgba( 255, 65, 54, .4 ),  1px 0 0 rgba( 255, 65, 54, .5 );  background: rgba( 55, 20, 18, .7 ); }
-  100% { box-shadow: inset -3px 0 12px rgba( 255, 65, 54, 0 ),   inset 0 0 0    rgba( 255, 65, 54, 0 ),   3px 0 20px rgba( 255, 65, 54, 0 ),   1px 0 0 rgba( 255, 65, 54, 0 );   background: #171e29; }
-}
-
-.tier-container-wrap.flash-hide-cover {
-  animation: sidebar-hide-flash 700ms ease-out forwards !important;
 }
 
 </style>

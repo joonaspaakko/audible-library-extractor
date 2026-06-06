@@ -58,7 +58,7 @@ export default {
 
     openCoverActions( e ) {
 
-      if ( e.target.closest('.tier-container') ) return;
+      if ( e.target.closest('.unused-covers-list') ) return;
 
       this.$store.commit('update', {
         key: 'coverActions',
