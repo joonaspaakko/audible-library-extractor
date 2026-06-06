@@ -46,13 +46,6 @@
         :style="canvasStyle"
       >
         
-        <div class="legend" :style="{
-          right:  store.reread.label.offset.right+'px',
-          bottom: store.reread.label.offset.bottom+'px',
-        }">
-          <reread-marker v-if="!store.animatedWallpaperMode && $store.getters.rereadExist && store.reread.label.show" :isStatic="true">relisten</reread-marker>
-        </div>
-        
         <div id="canvas-bg-color" v-if="store.canvas.background" :style="{ backgroundColor: store.canvas.background }"></div>
         <div id="awp-overlay" v-if="store.awpOverlayColorEnabled" :style="{ 
           backgroundColor: store.awpOverlayColor, 
@@ -803,13 +796,6 @@ export default {
   // filter: grayscale(1);
 }
 
-.legend {
-  position: absolute;
-  bottom: 0px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
 
 </style>
 

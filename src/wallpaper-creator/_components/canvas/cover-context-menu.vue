@@ -7,9 +7,8 @@
   >
     <!-- MARK/UNMARK RELISTEN -->
     <button :class="['cover-context-menu-item', store.coverActions.book.reread ? 'reread-unmark' : 'reread-mark']" @click="toggleRelisten">
-      <mdi-headphones v-if="!store.coverActions.book.reread" />
-      <mdi-headphones-off v-else />
-      {{ store.coverActions.book.reread ? 'Un-mark relisten' : 'Mark relisten' }}
+      <ph-repeat-bold />
+      {{ store.coverActions.book.reread ? 'Remove relisten' : 'Mark relisten' }}
     </button>
     
     <!-- RESET RELISTENS -->

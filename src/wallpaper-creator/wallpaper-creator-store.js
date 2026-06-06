@@ -17,15 +17,6 @@ const store = createStore({
     coversPerRow: 14,
     borderRadius: 0,
     reverseCoverFlow: false,
-    reread: {
-      label: {
-        show: true,
-        offset: {
-          right: 0,
-          bottom: 0,
-        }
-      },
-    },
     canvas: {
       color: null,
       width: 1920,

@@ -13,7 +13,7 @@
     <span class="icon" :style="{
       borderRadius: (store.coverSize/20)+'px' + ' 0 0 ' + (store.coverSize/20)+'px',
       padding: (store.coverSize/25)+'px' + ' ' + (store.coverSize/30)+'px' + ' ' + (store.coverSize/25)+'px' + ' ' + (store.coverSize/18)+'px',
-    }"><mdi-bookshelf/></span><span :style="{
+    }"><ph-repeat-bold/></span><span :style="{
       padding: (store.coverSize/25)+'px' + ' ' + (store.coverSize/18)+'px' + ' ' + (store.coverSize/25)+'px' + ' ' + (store.coverSize/30)+'px',
     }"><slot></slot></span>
     </div>
@@ -30,8 +30,7 @@
       }"
       @click="book ? $store.commit('updateBookCover', { key: 'reread', value: false, book: book }) : null"
     >
-      <!-- <ic-outline-exposure-plus-1/> -->
-      <mdi-bookshelf/>
+      <ph-repeat-bold/>
     </div>
   </div>
 </template>

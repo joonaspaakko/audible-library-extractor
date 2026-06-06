@@ -569,28 +569,6 @@
           </div>
         </n-space>
         
-        <n-space vertical :size="spaceGapSize" v-if="!store.animatedWallpaperMode" :class="{ 'disabled-settings-section': !$store.getters.rereadExist }">
-          <h6>
-            <span>Relisten label</span>
-            <n-switch size="small" v-model:value="store.reread.label.show" />
-          </h6>
-          <h4 style="margin: 0 !important;">Offset:</h4>
-          <div class="label-row">
-            <span style="width: 45px;">Right</span>
-            <n-input-number v-model:value="store.reread.label.offset.right" :min="0" :step="1" size="tiny" :disabled="!$store.getters.rereadExist" />
-            <n-slider style="padding-left: 15px;" v-model:value="store.reread.label.offset.right" :min="0" :max="200" :step="1" :tooltip="false" :reverse="true" :disabled="!$store.getters.rereadExist" />
-          </div>
-          <div class="label-row">
-            <span style="width: 45px;">Bottom</span>
-            <n-input-number v-model:value="store.reread.label.offset.bottom" :min="0" :step="1" size="tiny" :disabled="!$store.getters.rereadExist" />
-            <n-slider style="padding-left: 15px;" v-model:value="store.reread.label.offset.bottom" :min="0" :max="200" :step="1" :tooltip="false" :reverse="true" :disabled="!$store.getters.rereadExist" />
-          </div>
-          
-          <n-alert type="warning" v-if="!$store.getters.rereadExist">
-            No books marked as relisten. Right-click a cover to mark one.
-          </n-alert>
-        </n-space>
-        
         <toolbar-text-elements v-if="!store.animatedWallpaperMode" :spaceGapSize="spaceGapSize"></toolbar-text-elements>
         
 <!--         
