@@ -50,10 +50,27 @@ export default {
   
   methods: {
     coverHover( e ) {
-      
+
       const hover = (e.type === 'mouseover');
-      this.$store.commit('update', { key: 'panningAlert', value: hover });
-      
+      const inSidebar = !!e.target.closest('.unused-covers-list');
+
+      this.$store.commit('update', { key: 'panningAlert', value: hover && !inSidebar });
+
+      if ( hover ) {
+        if ( inSidebar ) {
+          this.$store.commit('removeNotification', 'cover-ctx');
+          this.$store.commit('addNotification', { id: 'sidebar-drag', icon: 'arrows', color: 'red', message: 'Drag covers onto the canvas, or back to hide them.' });
+        }
+        else {
+          this.$store.commit('removeNotification', 'sidebar-drag');
+          this.$store.commit('addNotification', { id: 'cover-ctx', icon: 'cursor-click', color: 'info', message: 'Right-click a cover for options.' });
+        }
+      }
+      else {
+        this.$store.commit('removeNotification', 'sidebar-drag');
+        this.$store.commit('removeNotification', 'cover-ctx');
+      }
+
     },
 
     openCoverActions( e ) {

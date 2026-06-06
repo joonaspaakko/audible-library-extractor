@@ -1,8 +1,9 @@
 <template>
-  <div 
-    class="left" id="editor-canvas-left" ref="left" 
+  <div
+    class="left" id="editor-canvas-left" ref="left"
     :data-saving-image="store.saving"
     v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
+    @mouseenter="canvasLeftEnter" @mouseleave="canvasLeftLeave"
   >
   <!-- v-dragscroll="dragscrollEnabled" -->
 
@@ -41,7 +42,7 @@
         id="editor-canvas-content"
         @mouseenter="overlayHidden = true"
         @mouseleave="overlayHidden = false"
-        :class="{ 'show-cover-padding-preview': store.slidingAround === 'paddingSize', saving: store.saving, 'hide-overlay-on-hover': showOverlay }"
+        :class="{ 'show-cover-padding-preview': store.slidingAround === 'paddingSize', saving: store.saving }"
         ref="canvas"
         :style="canvasStyle"
       >
@@ -188,6 +189,7 @@ export default {
       store: this.$store.state,
       dragscrollEnabled: false,
       overlayHidden: false,
+      canvasLeftHovered: false,
       canvasHeightObserver: null,
     };
   },
@@ -268,7 +270,7 @@ export default {
 
     'textElementActive': function( active ) {
       if ( active ) {
-        this.$store.commit('addNotification', { id: 'text-arrow-keys', type: 'arrows', message: 'Move text with arrow keys. Hold Shift for larger steps.' });
+        this.$store.commit('addNotification', { id: 'text-arrow-keys', type: 'arrows', message: 'Drag to move, or use arrow keys. Shift gives larger steps.' });
         this.$store.commit('addNotification', { id: 'text-dblclick',   type: 'text',   message: 'Double-click to edit text.' });
       }
       else {
@@ -279,19 +281,14 @@ export default {
 
     'store.panningAlert': function( active ) {
       if ( active ) {
-        this.$store.commit('addNotification', { id: 'panning', type: 'drag', message: 'Drag covers to reorder them. Hold Space to pan the canvas.' });
+        this.$store.commit('addNotification', { id: 'panning', icon: 'arrows', color: 'red', message: 'Drag to reorder covers. Hold Space to pan instead.' });
+        this.$store.commit('removeNotification', 'canvas-pan');
       }
       else {
         this.$store.commit('removeNotification', 'panning');
-      }
-    },
-
-    overlayHiddenNotify: function( show ) {
-      if ( show ) {
-        this.$store.commit('addNotification', { id: 'overlay-hidden', type: 'overlay', message: 'Overlay hidden while hovering. Move covers freely.' });
-      }
-      else {
-        this.$store.commit('removeNotification', 'overlay-hidden');
+        if ( this.canvasLeftHovered ) {
+          this.$store.commit('addNotification', { id: 'canvas-pan', icon: 'hand-fill', color: 'blue', message: 'Drag to move around.' });
+        }
       }
     },
 
@@ -299,18 +296,10 @@ export default {
 
   computed: {
 
-    showOverlay() {
-      return !this.store.animatedWallpaperMode && this.store.awpOverlayColorEnabled;
-    },
-
     textElementActive: function() {
       return this.$store.getters.textElementActive;
     },
 
-    overlayHiddenNotify: function() {
-      return this.overlayHidden && this.showOverlay && !this.store.animatedWallpaperMode;
-    },
-    
     paddingSizeNumber: function() {
       return parseFloat( this.store.paddingSize );
     },
@@ -479,6 +468,20 @@ export default {
       }
     },
     
+    canvasLeftEnter: function() {
+      this.canvasLeftHovered = true;
+      this.$store.commit('addNotification', { id: 'zoom-hint', icon: 'scroll', color: 'info', message: 'Scroll to zoom.' });
+      if ( !this.store.panningAlert ) {
+        this.$store.commit('addNotification', { id: 'canvas-pan', icon: 'hand-fill', color: 'blue', message: 'Drag to move around.' });
+      }
+    },
+
+    canvasLeftLeave: function() {
+      this.canvasLeftHovered = false;
+      this.$store.commit('removeNotification', 'zoom-hint');
+      this.$store.commit('removeNotification', 'canvas-pan');
+    },
+
     panningCanvas: function() {
       this.$emitter.emit('update-moveable-handles');
     },
@@ -547,6 +550,21 @@ export default {
     cursor: grabbing !important;
   }
 }
+
+#editor-canvas-content .canvas-bounds {
+  cursor: grabbing !important;
+}
+#editor-canvas-content .grid-inner-wrap > div {
+  cursor: grabbing !important;
+}
+#editor-canvas-content .drag-container {
+  cursor: grabbing !important;
+}
+#editor-canvas-content .drag-container .cover {
+  cursor: move !important;
+}
+
+
 
 .grid.force-panning:before {
   content: '';
@@ -740,8 +758,8 @@ export default {
   z-index: -1;
 }
 
-.hide-overlay-on-hover:hover #awp-overlay {
-  display: none;
+#awp-overlay {
+  pointer-events: none;
 }
 
 

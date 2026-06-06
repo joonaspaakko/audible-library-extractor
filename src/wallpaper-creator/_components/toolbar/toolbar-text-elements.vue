@@ -221,6 +221,15 @@ export default {
         this.textElementClicked( newIndex, this.store.textElements[ newIndex ] );
         this.$emitter.emit( 'snap-to-side', { index: newIndex, side: 'top' } );
       }, 50 );
+
+      this.$store.commit('removeNotification', 'text-added');
+      this.$store.commit('addNotification', {
+        id: 'text-added',
+        type: 'text',
+        timed: true,
+        duration: 6000,
+        message: 'Text added to the top of the canvas with reserved space that adjusts along with the bounding box.',
+      });
       
       if ( this.textTextCounter === 1 ) {
         this.textTextCounter = 0;

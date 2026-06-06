@@ -17,11 +17,16 @@
     <div class="notification-panel-body" v-if="!collapsed">
       <div
         class="notification-item"
-        :class="'notification-item--' + n.type"
+        :class="['notification-item--' + n.type, { 'notification-item--timed': n.timed }]"
         :style="n.color ? { borderLeftColor: n.color } : null"
         v-for="n in notifications"
         :key="n.id"
       >
+        <div
+          v-if="n.timed && n.duration"
+          class="notification-item-progress"
+          :style="{ animationDuration: n.duration + 'ms', background: n.color || 'rgba(255,255,255,.5)' }"
+        ></div>
         <span v-if="n.icon" class="notification-item-icon" :style="n.color ? { color: n.color } : null" v-html="n.icon"></span>
         <span class="notification-item-message">{{ n.message }}</span>
         <button
@@ -169,7 +174,13 @@ export default {
 
 // NOTIFICATION ITEMS
 
+@keyframes timed-border-shrink {
+  from { transform: scaleY( 0 ); }
+  to   { transform: scaleY( 1 ); }
+}
+
 .notification-item {
+  position: relative;
   display: flex;
   align-items: flex-start;
   gap: 8px;
@@ -188,9 +199,24 @@ export default {
     border-left-color: #2ecc40;
   }
 
+  &--timed {
+    background: rgba( 255, 255, 255, .04 );
+    border-left-color: rgba( 255, 255, 255, .1 ) !important;
+  }
+
   & + & {
     border-top: 1px solid rgba( 255, 255, 255, .05 );
   }
+}
+
+.notification-item-progress {
+  position: absolute;
+  left: -3px;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  transform-origin: bottom;
+  animation: timed-border-shrink linear forwards;
 }
 
 .notification-item-icon {

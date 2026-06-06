@@ -1,16 +1,20 @@
-import IconFormatTitle  from '~icons/mdi/format-title?raw';
-import IconArrowAll     from '~icons/mdi/arrow-all?raw';
-import IconHandGrabbing from '~icons/ph/hand-grabbing?raw';
-import IconEyeOff       from '~icons/mdi/eye-off?raw';
+import IconFormatTitle    from '~icons/mdi/format-title?raw';
+import IconArrowAll       from '~icons/mdi/arrow-all?raw';
+import IconHandGrabbing   from '~icons/ph/hand-grabbing?raw';
+import IconHandFill       from '~icons/mingcute/hand-fill?raw';
+import IconCursorClick    from '~icons/mdi/cursor-default-click?raw';
+import IconScroll         from '~icons/mdi/mouse-scroll-wheel?raw';
 
 // NAMED ICON SHORTCUTS
 // Pass a shorthand string as icon, or a raw SVG string directly.
 export const iconPresets = {
-  'text'    : IconFormatTitle,
-  'arrows'  : IconArrowAll,
-  'hand'    : IconHandGrabbing,
-  'grab'    : IconHandGrabbing,
-  'eye-off' : IconEyeOff,
+  'text'          : IconFormatTitle,
+  'arrows'        : IconArrowAll,
+  'hand'          : IconHandGrabbing,
+  'grab'          : IconHandGrabbing,
+  'hand-fill'     : IconHandFill,
+  'cursor-click'  : IconCursorClick,
+  'scroll'        : IconScroll,
 };
 
 // NAMED COLOR SHORTCUTS
@@ -36,7 +40,6 @@ export const typePresets = {
   'arrows'  : { icon: 'arrows', color: 'purple'  },
   'drag'    : { icon: 'hand',   color: 'red'     },
   'sort'    : { icon: 'hand',   color: 'red'     },
-  'overlay' : { icon: 'eye-off', color: 'pink'   },
   'warning' : { color: 'warning', closable: false },
   'info'    : { color: 'info'                    },
   'success' : { color: 'success'                 },
