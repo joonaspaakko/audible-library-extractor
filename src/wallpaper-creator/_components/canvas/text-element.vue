@@ -129,10 +129,10 @@ export default {
         if ( this.textObj.transform ) target.style.transform = this.textObj.transform;
       }
 
-      // Move control box to body so panzoom scaling doesn't affect it
+      // Move control box out of panzoom-scaled canvas but keep it inside the editor viewport
       let controlBox = this.$refs.moveable.getControlBoxElement();
       controlBox.dataset.textIndex = this.textIndex;
-      document.body.appendChild( controlBox );
+      ( document.querySelector( '#editor-canvas-left' ) || document.body ).appendChild( controlBox );
       this.$refs.moveable.updateRect();
     });
 
