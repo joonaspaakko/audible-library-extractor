@@ -1,17 +1,17 @@
 <template>
 <n-space vertical :size="spaceGapSize">
-  
-  <h6>
-    
+
+  <h6 v-if="showHeading !== false">
+
     <span>Text elements</span>
-    
-    <n-button 
+
+    <n-button
       type="warning"
       @click="makeTextElement"
     >
       <fluent-text-add-20-filled/> &nbsp; ADD TEXT
     </n-button>
-    
+
   </h6>
   
   <n-alert v-if="store.textElements.length" type="info">
@@ -158,7 +158,7 @@ import {
 import spacer from "@editor-comps/toolbar/spacer.vue";
 export default {
   name: "textElements",
-  props: ['spaceGapSize'],
+  props: ['spaceGapSize', 'showHeading'],
   components: { 
     spacer, 
     NConfigProvider,
@@ -178,6 +178,12 @@ export default {
       store: this.$store.state,
       textTextCounter: 0,
     };
+  },
+  mounted: function () {
+    this.$emitter.on('make-text-element', this.makeTextElement);
+  },
+  beforeDestroy: function () {
+    this.$emitter.off('make-text-element', this.makeTextElement);
   },
   
   methods: {

@@ -145,6 +145,7 @@ const store = createStore({
     showFavorites: false,
     showMyRating: false,
     toolbarCollapsed: false,
+    toolbarExpandedSections: [],
     
     // PRESETS
     canvasPreset: 'wallpaper',
