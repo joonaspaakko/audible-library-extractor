@@ -17,13 +17,10 @@
       Reset relistens
     </button>
     
-    <!-- REMOVE COVER -->
-    <button class="cover-context-menu-item remove-cover" @click="removeCover">
+    <!-- HIDE COVER -->
+    <button class="cover-context-menu-item remove-cover" @click="hideCover">
       <mdi-book-remove-outline />
-      <span>
-        Remove book
-        <small>Can't be undone</small>
-      </span>
+      Hide book
     </button>
     
   </div>
@@ -35,6 +32,7 @@ export default {
   data: function() {
     return {
       store: this.$store.state,
+      sidebarFlashTimer: null,
     };
   },
 
@@ -66,10 +64,15 @@ export default {
       this.$store.commit('updateBookCover', { key: 'reread', value: false, book, all: true });
     },
 
-    removeCover: function() {
+    hideCover: function() {
       const { book } = this.store.coverActions;
       this.closeCoverActions();
-      this.$store.commit('removeCover', book.asin);
+      this.$store.commit( 'hideCover', book.asin );
+      clearTimeout( this.sidebarFlashTimer );
+      this.$store.commit( 'update', { key: 'sidebarHideFlash', value: true } );
+      this.sidebarFlashTimer = setTimeout( () => {
+        this.$store.commit( 'update', { key: 'sidebarHideFlash', value: false } );
+      }, 700 );
     },
 
   },
@@ -138,18 +141,6 @@ export default {
   &.remove-cover:hover {
     background: rgba( 255, 65, 54, .12 );
     svg { color: #ff4136; }
-  }
-
-  span {
-    display: flex;
-    flex-direction: column;
-    gap: 1px;
-  }
-
-  small {
-    font-size: 10px;
-    opacity: .45;
-    line-height: 1;
   }
 
   & + & {

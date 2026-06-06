@@ -6,18 +6,14 @@
       :class="[ tier.key ]"
       v-for="tier in $store.state.tiers" :key="'btn-'+tier.key" 
       :max="99"
-      :value="
-        tier.visible ? 0 : (
-          (tier.key === 'container') ? draggableCovers.length : tier.list.length
-        )
-      " 
+      :value="tier.visible ? 0 : (tier.key === 'container' ? $store.state.hiddenCovers.length : tier.list.length)"
     >
-      
+
       <!-- BUTTONS -->
-      <button 
-        :style="{ 
-          background: tier.color, 
-          width: tier.key === 'container' ? null : '30px', 
+      <button
+        :style="{
+          background: tier.color,
+          width: tier.key === 'container' ? null : '30px',
         }"
         :class="{ hidden: !tier.visible }"
         @click="buttonClicked( tier )"
@@ -64,9 +60,7 @@ export default {
   },
   methods: {
     buttonClicked( tier ) {
-      
       this.$store.commit('toggleTier', tier);
-      
     },
   }
 }

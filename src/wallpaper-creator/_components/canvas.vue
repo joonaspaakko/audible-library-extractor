@@ -85,20 +85,19 @@
               :editorCanvasPaddingBottom="store.canvas.padding.bottom"
             />
             
-            <div v-else style="width: 100%; height: 100%; display: flex; flex-direction: row;" :style="canvasAlignmentVertical"> 
-              
+            <div v-else style="width: 100%; height: 100%; display: flex; flex-direction: row;" :style="canvasAlignmentVertical">
+
               <tier-list v-if="store.tierListMode" style="width: 100%;" @start="draggingStarted" @end="draggingEnded" @move="draggingMoved" />
-              
-              <draggable 
+
+              <draggable
                 class="drag-container"
-                :class="{ 'tier-container': store.tierListMode, 'tier-container-collapse': !$store.getters.containerTierVisible }" 
-                v-if="!store.tierListMode || store.tierListMode && !store.saving"
-                v-model="draggableCovers" 
+                v-if="!store.tierListMode && !store.saving"
+                v-model="draggableCovers"
                 item-key="asin"
-                group="covers" 
-                @start="draggingStarted" 
-                @end="draggingEnded" 
-                @move="draggingMoved" 
+                group="covers"
+                @start="draggingStarted"
+                @end="draggingEnded"
+                @move="draggingMoved"
                 style="width: 100%;"
                 :style="store.tierListMode ? { marginTop: (store.paddingSize*10)+'px', minHeight: store.coverSize+'px' } : canvasAlignment"
               >
@@ -106,7 +105,47 @@
                   <cover :key="element.asin" :book="element"></cover>
                 </template>
               </draggable>
+
+            </div>
+
+            <!-- UNUSED COVERS SIDEBAR: always present outside awp mode, DOM-moved to #app in mounted -->
+            <div
+              v-if="!store.animatedWallpaperMode"
+              v-show="!store.saving"
+              ref="unusedSidebar"
+              class="tier-container-wrap"
+              :class="{ 'flash-hide-cover': !store.tierListMode && !$store.getters.containerTierVisible && store.sidebarHideFlash }"
+              :style="{
+                width: $store.getters.containerTierVisible ? '324px' : '25px',
+              }"
+            >
               
+              <div class="collapse-toolbar" :class="{ 'collapsed': !$store.getters.containerTierVisible }" @click="collapseUnusedSidebar">
+                <bx-bxs-chevrons-right v-if="!$store.getters.containerTierVisible" />
+                <bx-bxs-chevrons-left v-else />
+              </div>
+              
+              <draggable
+                class="tier-container"
+                v-if="$store.getters.containerTierVisible"
+                v-model="sidebarCovers"
+                item-key="asin"
+                group="covers"
+                @start="draggingStarted"
+                @end="draggingEnded"
+                @move="draggingMoved"
+              >
+                 <!--Header  -->
+                <template #header>
+                  <div class="tier-container-heading">Unused covers</div>
+                </template>
+                
+                <!-- Items container -->
+                <template #item="{element}">
+                  <cover :key="element.asin" :book="element"></cover>
+                </template>
+                
+              </draggable>
             </div>
             
             <component v-if="!store.animatedWallpaperMode" is="style" class="cover-dynamic-sizes">
@@ -215,10 +254,14 @@ export default {
         
     });
     
-    if ( this.store.tierListMode ) {
-      const tierContainer = this.$el.querySelector('.tier-container');
-      const appContainer = document.querySelector('#app');
-      appContainer.prepend( tierContainer )
+    if ( !this.store.animatedWallpaperMode ) {
+      
+      this.$nextTick(function() {
+        const wrap = this.$refs.unusedSidebar;
+        if ( wrap ) document.querySelector('#app').prepend( wrap );
+        
+      });
+      
     }
     
   },
@@ -227,12 +270,33 @@ export default {
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
     if ( this.canvasHeightObserver ) this.canvasHeightObserver.disconnect();
     
-    const tierContainer = document.querySelector('#app > .tier-container');
-    if ( tierContainer ) tierContainer.remove();
+    const wrap = document.querySelector('#app > .tier-container-wrap');
+    if ( wrap ) wrap.remove();
+
     
   },
 
   watch: {
+
+    'store.tierListMode': {
+      immediate: true,
+      handler: function( active ) {
+        if ( active ) {
+          // move all canvas covers to hiddenCovers (opt-in)
+          const all = this.store.covers.concat( this.store.hiddenCovers );
+          this.$store.commit('update', { key: 'hiddenCovers', value: all });
+          this.$store.commit('update', { key: 'covers', value: [] });
+          this.$store.commit('containerTierSetVisibility', true);
+        }
+        else {
+          // move all hiddenCovers back to canvas (restore)
+          const all = this.store.covers.concat( this.store.hiddenCovers );
+          this.$store.commit('update', { key: 'covers', value: all });
+          this.$store.commit('update', { key: 'hiddenCovers', value: [] });
+          this.$store.commit('containerTierSetVisibility', false);
+        }
+      },
+    },
 
     reservedPadding: {
       handler: function( newVal, oldVal ) {
@@ -319,13 +383,23 @@ export default {
     
     draggableCovers: {
       get() {
-        let covers = this.store.covers;
-            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;        
+        const hiddenAsins = new Set( _.map( this.store.hiddenCovers, 'asin' ) );
+        let covers = _.filter( this.store.covers, o => !hiddenAsins.has( o.asin ) );
+            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;
         return covers.slice(0, this.store.coverAmount);
       },
       set(value) {
         this.$store.commit('update', { key: 'covers', value: value  });
       }
+    },
+
+    sidebarCovers: {
+      get() {
+        return this.store.hiddenCovers;
+      },
+      set( value ) {
+        this.$store.commit('update', { key: 'hiddenCovers', value });
+      },
     },
     usedCovers: {
       get() {
@@ -427,6 +501,13 @@ export default {
   },
   
   methods: {
+    
+    collapseUnusedSidebar() {
+    
+      let container = this.$store.getters.containerTier;
+      this.$store.commit('toggleTier', container);
+      
+    },
     
     arrowNudge: function( e ) {
     
@@ -728,8 +809,62 @@ export default {
 }
 
 
+:global(.tier-container-heading) {
+  padding: 14px 16px 10px;
+  margin-bottom: 30px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .06em;
+  color: rgba( 255, 255, 255, .4 );
+  border-bottom: 1px solid rgba( 255, 255, 255, .07 );
+  text-align: center;
+}
+
+
+:deep(.collapse-toolbar) {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  font-size: 1.3em;
+  cursor: pointer;
+  svg { display: block !important; }
+  position: absolute;
+  top: 25px;
+  right: -10px;
+  z-index: 0;
+  padding: 5px;
+  background: #171e29 !important;
+  border-radius: 50%;
+  color: #8eabc5;
+  &:before {
+    content: '';
+    position: absolute; 
+    border: 1px solid #303d4f;
+    border-radius: 50%;
+    width: 100%;
+    padding-bottom: 100%;
+  }
+  
+  &.collapsed {
+    right: -14px;
+  }
+}
+
+:global(.tier-container-wrap) {
+  min-width: 25px;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: 9000 !important;
+  background: #171e29 !important;
+  transition: width 0.3s ease;
+}
+
 :global(.tier-container) {
-  width: 324px !important;
+  width: 100% !important;
+  flex: 1 !important;
   display: block !important;
   font-size: 0 !important;
   overflow: hidden auto !important;
@@ -737,7 +872,8 @@ export default {
   box-shadow: -4px 0 10px darken( rgba(#171e29, .3), 20) !important;
   background: #171e29 !important;
   text-align: center !important;
-  padding: 25px 0 !important;
+  padding: 0 !important;
+  padding-bottom: 25px !important;
   box-sizing: border-box !important;
 }
 
@@ -778,24 +914,9 @@ export default {
 }
 
 
-:global(.tier-container) {
-  transition: all 300ms ease-in-out;
-}
-:global(.tier-container-collapse) {
-  width: 0px !important;
-}
-
-:global(.tier-container .cover) {
-  transition: all 250ms ease;
-}
-:global(.tier-container-collapse .cover) {
-  opacity: 0 !important;
-}
-
 :global(.sortable-chosen) {
   // filter: grayscale(1);
 }
-
 
 </style>
 
@@ -804,5 +925,16 @@ export default {
 // .moveable-control-box {
 //   display: none;
 // }
+
+@keyframes sidebar-hide-flash {
+  0%   { box-shadow: inset -3px 0 12px rgba( 255, 65, 54, 0 ),   inset 0 0 0    rgba( 255, 65, 54, 0 ),   3px 0 20px rgba( 255, 65, 54, 0 ),   1px 0 0 rgba( 255, 65, 54, 0 );   background: #171e29; }
+  15%  { box-shadow: inset -3px 0 18px rgba( 255, 65, 54, .9 ),  inset 0 0 30px rgba( 255, 65, 54, .35 ),  3px 0 28px rgba( 255, 65, 54, .7 ),  1px 0 0 rgba( 255, 65, 54, .9 );  background: rgba( 90, 20, 18, .9 ); }
+  60%  { box-shadow: inset -3px 0 14px rgba( 255, 65, 54, .5 ),  inset 0 0 20px rgba( 255, 65, 54, .2 ),   3px 0 18px rgba( 255, 65, 54, .4 ),  1px 0 0 rgba( 255, 65, 54, .5 );  background: rgba( 55, 20, 18, .7 ); }
+  100% { box-shadow: inset -3px 0 12px rgba( 255, 65, 54, 0 ),   inset 0 0 0    rgba( 255, 65, 54, 0 ),   3px 0 20px rgba( 255, 65, 54, 0 ),   1px 0 0 rgba( 255, 65, 54, 0 );   background: #171e29; }
+}
+
+.tier-container-wrap.flash-hide-cover {
+  animation: sidebar-hide-flash 700ms ease-out forwards !important;
+}
 
 </style>

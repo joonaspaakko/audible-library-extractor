@@ -57,6 +57,7 @@ export default {
 
               coverAmount = coversArray.length > coverAmount ? coverAmount : coversArray.length;
               changes.push({ key: "coverAmount", value: coverAmount });
+              changes.push({ key: "hiddenCovers", value: [] });
 
             }
             else if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {

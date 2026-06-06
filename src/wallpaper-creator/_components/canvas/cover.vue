@@ -58,11 +58,13 @@ export default {
 
     openCoverActions( e ) {
 
+      if ( e.target.closest('.tier-container') ) return;
+
       this.$store.commit('update', {
         key: 'coverActions',
         value: { book: this.book, x: e.clientX, y: e.clientY },
       });
-      
+
     }
   },
   

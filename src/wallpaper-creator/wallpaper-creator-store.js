@@ -10,6 +10,7 @@ const store = createStore({
     resetting: false,
     visibleAnimatedCovers: null,
     covers: [],
+    hiddenCovers: [],
     coverAmount: 300,
     coverSize: 160,
     paddingSize: 0,
@@ -159,6 +160,7 @@ const store = createStore({
       { visible: true, key: 'F', color: '#ff93fd', list: [], text: '' },
       { visible: true, key: 'container',  list: [] },
     ],
+    sidebarHideFlash: false,
     notifications: [],
     presetModalOpen: false,
     colorPicker_swatches: [
@@ -403,15 +405,16 @@ const store = createStore({
     },
     
     resetTiers: function( state, config ) {
-      
+
+      const hiddenAsins = new Set( _.map( state.hiddenCovers, 'asin' ) );
       let covers = [];
-      
+
       _.each( state.tiers, function( tier ) {
-        covers = covers.concat( tier.list );
+        covers = covers.concat( _.filter( tier.list, o => !hiddenAsins.has( o.asin ) ) );
       });
-      
+
       state.covers = covers.concat( state.covers );
-      
+
     },
     
     toggleTier: function( state, tier ) {
@@ -421,14 +424,41 @@ const store = createStore({
       
     },
     
-    removeCover( state, asin ) {
-      const coverIndex = _.findIndex( state.covers, { asin: asin });
-      if ( coverIndex > -1 ) state.covers.splice(coverIndex, 1);
+    containerTierSetVisibility( state, value ) {
+    
+      const containerTier = _.find( state.tiers, { key: 'container' } );
+      if ( !containerTier ) return;
 
-      const usedIndex = _.findIndex( state.usedCovers, { asin: asin });
-      if ( usedIndex > -1 ) state.usedCovers.splice(usedIndex, 1);
+      containerTier.visible = value;
 
-      if ( state.coverAmount > 0 ) state.coverAmount--;
+    },
+    
+    hideCover( state, asin ) {
+      let book = null;
+
+      // remove from covers
+      const coverIndex = _.findIndex( state.covers, { asin });
+      if ( coverIndex > -1 ) {
+        book = state.covers.splice(coverIndex, 1)[0];
+      }
+
+      // remove from usedCovers
+      const usedIndex = _.findIndex( state.usedCovers, { asin });
+      if ( usedIndex > -1 ) {
+        if ( !book ) book = state.usedCovers[usedIndex];
+        state.usedCovers.splice(usedIndex, 1);
+      }
+
+      // remove from any tier list
+      _.each( state.tiers, function( tier ) {
+        const tierIndex = _.findIndex( tier.list, { asin });
+        if ( tierIndex > -1 ) {
+          if ( !book ) book = tier.list[tierIndex];
+          tier.list.splice(tierIndex, 1);
+        }
+      });
+
+      if ( book ) state.hiddenCovers.push( book );
       state.coverActions = null;
     },
 
@@ -508,8 +538,19 @@ const store = createStore({
       return result;
     },
     
-    containerTierVisible: function( state ) {
-      return _.find(state.tiers, { key: 'container' }).visible;
+    containerTier: function( state ) {
+    
+      if ( _.isEmpty( state.tiers ) ) return;
+      
+      return _.find(state.tiers, { key: 'container' });
+      
+    },
+    containerTierVisible: function( state, getters ) {
+      
+      if ( !getters.containerTier ) return;
+      
+      return getters.containerTier.visible;
+      
     },
     
     scaledCanvasDimensions( state, getters ) {
