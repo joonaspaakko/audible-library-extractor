@@ -285,8 +285,14 @@ export default {
     @extend .no-selection;
     display: flex;
     flex-direction: row;
+    flex-wrap: wrap;
     gap: 10px;
     margin-top: 10px;
+    .review-rating {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
   }
   
   .my-review-btn {
@@ -306,7 +312,6 @@ export default {
       color: themed(frontColor);
       border: 1px solid rgba(themed(frontColor), .35);
       border-radius: 6px;
-      box-shadow: $shadowMedium rgba(0,0,0,0.45);
       &.active {
         border-color: themed(audibleOrange);
         svg {
