@@ -33,7 +33,7 @@ export default {
       }
       
       try {
-        chrome.storage.session.get('imageEditor').then(result => {
+        chrome.storage.local.get('imageEditor').then(result => {
           const data = result.imageEditor || {};
           // chrome.storage.local.remove(['imageEditor']);
           if ( _.get(data, 'chunksLength', 0) > 0 ) {
@@ -52,6 +52,7 @@ export default {
             if ( _.get(data, 'timeCode') ) changes.push({ key: "timeCode", value: data.timeCode });
             let coverAmount = vue.$store.state.canvasPreset === 'wallpaper' ? 300 : 50;
             const resuming = data.timeCode === vue.$store.state.timeCode;
+            if ( !resuming ) chrome.storage.local.remove(['imageEditor']);
             if ( !resuming ) {
 
               coverAmount = coversArray.length > coverAmount ? coverAmount : coversArray.length;

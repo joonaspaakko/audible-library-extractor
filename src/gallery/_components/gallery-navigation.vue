@@ -290,7 +290,7 @@ export default {
                 if ( vue.$store.state.pageTitle    ) imageEditor.pageTitle = vue.$store.state.pageTitle;
                 if ( vue.$store.state.pageSubTitle ) imageEditor.pageSubTitle = vue.$store.state.pageSubTitle;
 
-                chrome.storage.session.set({ imageEditor }).then(() => {
+                chrome.storage.local.set({ imageEditor }).then(() => {
                   chrome.runtime.sendMessage({ action: "openImageEditor" });
                 });
                 
