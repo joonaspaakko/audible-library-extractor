@@ -16,9 +16,13 @@ const db = {
   },
 };
 
-// Intentionally outside the export so it survives component destroy/create cycles. 
+// Intentionally outside the export so it survives component destroy/create cycles.
 // No point resetting on every close.
 let dbInstance = null;
+
+// Keyed by chunkId — prevents duplicate fetches when multiple books from the same
+// chunk are opened before the first fetch resolves and writes to IndexedDB.
+const inflightChunkFetches = {};
 
 export default {
 
@@ -58,8 +62,17 @@ export default {
 
         if ( !chunkRecord ) {
           // Not cached — fetch from server and persist for subsequent opens.
-          const books = await this.fetchBookDataChunk(chunkId, cacheID);
-          await this.writeChunkToDatabase(database, chunkId, books);
+          // Re-use any in-flight fetch for the same chunk to avoid duplicate requests.
+          if ( !inflightChunkFetches[chunkId] ) {
+            inflightChunkFetches[chunkId] = this.fetchBookDataChunk(chunkId, cacheID).then( async (books) => {
+              await this.writeChunkToDatabase(database, chunkId, books);
+              return books;
+            })
+            .finally(() => {
+              delete inflightChunkFetches[chunkId];
+            });
+          }
+          const books = await inflightChunkFetches[chunkId];
           chunkRecord = { chunkIndex: chunkId, books };
         }
 
