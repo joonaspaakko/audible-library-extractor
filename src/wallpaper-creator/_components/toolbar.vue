@@ -134,12 +134,17 @@
 
             <n-space vertical :size="12" style="margin-top: 20px;">
 
+              <div class="label-row">
+                <span>Animation cycle (sec) </span>
+                <n-input-number size="small" v-model:value="store.awpCycleDelay" :min="0" :step="1" />
+              </div>
+
               <div style="height: 22px; cursor: help;">
                 <div class="label-row time-until-next-cycle" v-if="store.awpAnimationStarted"
                   v-tippy="{ placement: 'left', allowHTML: true, maxWidth: 380 }"
                   :content="`
                     The bar represents one full animation cycle: <br /><br />
-                    <strong style='color: #48c86d;'>GREEN:</strong> covers animate during this window. <br />
+                    <strong style='color: #48c86d;'>GREEN (${ store.awpAnimationZone  }%):</strong> covers animate during this window. <br />
                     <strong style='color: #ff2956;'>RED:</strong> nothing animates here, just waiting for the next cycle to begin. <br /><br />
                     A shorter green zone means covers animate in a burst at the start of each cycle. A longer green zone spreads them out more gradually. Setting it to 100% means animations run continuously with no pause.
                   `"
@@ -172,7 +177,7 @@
                     ></div>
                   </div>
                   
-                  <div class="progress-percentage">{{ store.awpAnimationZone }}%</div>
+                  <!-- <div class="progress-percentage">{{ store.awpAnimationZone }}%</div> -->
 
                   <!-- <radix-icons-info-circled style="padding-left: 10px;" /> -->
 
@@ -183,16 +188,6 @@
                     }
                   </component>
                 </div>
-              </div>
-
-              <div class="label-row">
-                <span>Animate immediately on load</span>
-                <n-switch size="small" v-model:value="store.awpAnimateOnLoad" style="justify-content: flex-end;" />
-              </div>
-
-              <div class="label-row">
-                <span>Animation cycle (sec) </span>
-                <n-input-number size="small" v-model:value="store.awpCycleDelay" :min="0" :step="1" />
               </div>
 
               <!-- <div class="label-row" v-tippy content="A percentage of the animation cycle where covers are animated. Settings this to 0 animates covers immediately at the beginning of the cycle.">
@@ -227,6 +222,11 @@
               >
                 <span>Sequential animation</span>
                 <n-switch size="small" v-model:value="store.awpSequential" style="justify-content: flex-end;" />
+              </div>
+
+              <div class="label-row">
+                <span>Animate immediately on load</span>
+                <n-switch size="small" v-model:value="store.awpAnimateOnLoad" style="justify-content: flex-end;" />
               </div>
 
             </n-space>
