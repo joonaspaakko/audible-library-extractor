@@ -503,10 +503,9 @@ export default {
 
       // right → canvas right
       if ( dir === 'e' ) {
-        // left edge already past canvas right: fill full width
+        // left edge already past canvas right: retain width, shift right edge to canvas right
         if ( elLeft >= canvasW ) {
-          newW  = canvasW;
-          newTx = tx - elLeft;
+          newTx = tx - elLeft + ( canvasW - elW );
         }
         // stretch right edge to canvas right, left edge stays
         else {
@@ -515,9 +514,8 @@ export default {
       }
       // left → canvas left
       else if ( dir === 'w' ) {
-        // right edge already past canvas left: fill full width
+        // right edge already past canvas left: retain width, shift left edge to canvas left
         if ( elRight <= 0 ) {
-          newW  = canvasW;
           newTx = tx - elLeft;
         }
         // stretch left edge to canvas left, right edge stays
@@ -528,10 +526,9 @@ export default {
       }
       // bottom → canvas bottom
       else if ( dir === 's' ) {
-        // top edge already past canvas bottom: fill full height
+        // top edge already past canvas bottom: retain height, shift bottom edge to canvas bottom
         if ( elTop >= canvasH ) {
-          newH  = canvasH;
-          newTy = ty - elTop;
+          newTy = ty - elTop + ( canvasH - elH );
         }
         // stretch bottom edge to canvas bottom, top edge stays
         else {
@@ -540,9 +537,8 @@ export default {
       }
       // top → canvas top
       else if ( dir === 'n' ) {
-        // bottom edge already past canvas top: fill full height
+        // bottom edge already past canvas top: retain height, shift top edge to canvas top
         if ( elBottom <= 0 ) {
-          newH  = canvasH;
           newTy = ty - elTop;
         }
         // stretch top edge to canvas top, bottom edge stays
