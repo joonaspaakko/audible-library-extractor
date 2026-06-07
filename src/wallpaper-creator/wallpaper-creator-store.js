@@ -65,6 +65,8 @@ const store = createStore({
     animatedWallpaperMode: false,
     tierListMode: false,
     excludeArchived: false,
+    coversRandomized: false,
+    randomizedOrder: [],
     archived: 0,
     animationPreset: null,
     animationPresets: null,

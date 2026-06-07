@@ -331,7 +331,13 @@ export default {
       get() {
         const hiddenAsins = new Set( _.map( this.store.hiddenCovers, 'asin' ) );
         let covers = _.filter( this.store.covers, o => !hiddenAsins.has( o.asin ) );
-            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;
+        if ( this.store.coversRandomized && this.store.randomizedOrder.length ) {
+          const indexMap = _.keyBy(covers, 'asin');
+          const ordered = _.compact( _.map(this.store.randomizedOrder, asin => indexMap[asin]) );
+          const rest = _.filter(covers, o => !_.includes(this.store.randomizedOrder, o.asin));
+          covers = ordered.concat(rest);
+        }
+        covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;
         return covers.slice(0, this.store.coverAmount);
       },
       set(value) {
@@ -342,7 +348,12 @@ export default {
     usedCovers: {
       get() {
         let covers = this.store.covers;
-            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;        
+        if ( this.store.coversRandomized && this.store.randomizedOrder.length ) {
+          const indexMap = _.keyBy(covers, 'asin');
+          covers = _.compact( _.map(this.store.randomizedOrder, asin => indexMap[asin]) );
+          covers = covers.concat( _.filter(this.store.covers, o => !_.includes(this.store.randomizedOrder, o.asin)) );
+        }
+        covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;
         return covers.slice(0, this.store.coverAmount);
       },
       set(value) {

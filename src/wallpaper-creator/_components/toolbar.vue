@@ -341,34 +341,14 @@
           </n-collapse-item>
         </n-collapse>
         
-        <n-collapse v-if="!store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
-          <n-collapse-item name="randomize-covers">
-            <template #header><basil:shuffle-solid/> Randomize covers</template>
-
-            <n-space vertical :size="spaceGapSize">
-
-              <n-button
-                strong
-                secondary
-                type="info"
-                style="width: 100%;"
-                @click="randomizeCovers"
-              >
-                <basil:shuffle-solid/> &nbsp; Shuffle covers
-              </n-button>
-
-              <n-alert type="warning" style="margin-top: 10px;">
-                This will reset any manual cover sorting.
-              </n-alert>
-
-            </n-space>
-
-          </n-collapse-item>
-        </n-collapse>
-
         <div v-if="store.archived" class="inline-toggle-row">
           <span v-tippy :content="store.archived + ' archived titles in your library'"><mdi-archive-off/> Exclude archived</span>
           <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged" />
+        </div>
+
+        <div v-if="!store.animatedWallpaperMode && !store.tierListMode" class="inline-toggle-row" v-tippy content="This will reset any manual cover sorting">
+          <span><basil:shuffle-solid/> Randomize covers</span>
+          <n-switch size="small" :value="store.coversRandomized" @update:value="randomizeCovers" />
         </div>
 
         <!-- CANVAS LAYOUT -->
@@ -1059,15 +1039,13 @@ export default {
       this.throttleMap[key]( key, value );
     },
 
-    randomizeCovers: function() {
-      
-      let randomCovers = _.shuffle(this.store.covers);
-      
+    randomizeCovers: function( value ) {
+
       this.$store.commit("update", [
-        { key: "covers", value: randomCovers },
-        { key: "usedCovers", value: randomCovers.slice( 0, this.$store.state.coverAmount ) }
+        { key: "coversRandomized", value: value },
+        { key: "randomizedOrder", value: value ? _.shuffle( _.map(this.store.covers, 'asin') ) : [] },
       ]);
-      
+
     },
     
     toMS: function( seconds ) {
