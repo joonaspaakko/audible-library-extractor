@@ -78,20 +78,17 @@
 
         
         <n-space vertical :size="20" style="margin-bottom: 30px;">
-          <div style="text-align: center;">
-            <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
-              <ri-collage-fill/> &nbsp; Change canvas preset
-            </n-button>
-          </div>
+          <n-button block type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
+            <ri-collage-fill/> &nbsp; Change canvas preset
+          </n-button>
 
-          <div v-if="store.animatedWallpaperMode" style="text-align: center;">
-            <n-button
-              type="error" style="border-radius: 999px;"
-              @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
-            >
-              <ic:baseline-info /> &nbsp; Wallpaper installation instructions
-            </n-button>
-          </div>
+          <n-button
+            v-if="store.animatedWallpaperMode"
+            block type="error" style="border-radius: 999px; height: auto; white-space: normal; padding-top: 8px; padding-bottom: 8px;"
+            @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
+          >
+            <ic:baseline-info /> &nbsp; Wallpaper installation instructions
+          </n-button>
         </n-space>
         
         <n-collapse v-if="store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })" style="position: relative; z-index: 10;">
@@ -271,7 +268,8 @@
           <spacer size="large" :line="true" />
 
         </div>  -->
-        
+
+        <!-- COVER POOL -->
         <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="covers-per-row">
             <template #header><bx:grid-horizontal/> Covers per row</template>
@@ -367,7 +365,13 @@
 
           </n-collapse-item>
         </n-collapse>
-        
+
+        <div v-if="store.archived" class="inline-toggle-row">
+          <span v-tippy :content="store.archived + ' archived titles in your library'"><mdi-archive-off/> Exclude archived</span>
+          <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged" />
+        </div>
+
+        <!-- CANVAS LAYOUT -->
         <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="canvas-size">
             <template #header><fluent:scale-fill-24-regular/> Canvas size</template>
@@ -445,7 +449,7 @@
         </n-collapse>
         
         <div v-if="store.animatedWallpaperMode" class="inline-toggle-row" v-tippy content="You might want to use this when adding padding around the canvas">
-          <span><mdi-table-row-remove/> Remove overflowing row</span>
+          <span><mdi-table-row-remove/> Drop overflow row</span>
           <n-switch size="small" v-model:value="store.awpDropOverflowingRow" />
         </div>
 
@@ -481,82 +485,7 @@
 
           </n-collapse-item>
         </n-collapse>
-        
-        <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
-          <n-collapse-item name="canvas-background">
-            <template #header><mdi-palette/> Canvas background color</template>
 
-            <color-picker storeKey="canvas.background" label="Background color" :size="22"></color-picker>
-
-          </n-collapse-item>
-        </n-collapse>
-
-        <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
-          <n-collapse-item name="color-overlay">
-            <template #header>
-              <mdi-layers/> <span :style="{ color: store.awpOverlayColorEnabled ? '#ffc02b' : null }"
-                v-tippy content="Overlay is recommended if you're making a desktop wallpaper and plan to have icons on top of it."
-              >Color overlay</span>
-            </template>
-
-            <n-space vertical :size="spaceGapSize*2">
-
-              <div class="label-row no-padding">
-                <span>Enabled</span>
-                <n-switch size="small" v-model:value="store.awpOverlayColorEnabled" />
-              </div>
-
-              <div class="label-row no-padding" :class="{ 'disabled-option': !store.awpOverlayColorEnabled }">
-                <span>Color</span>
-                <color-picker storeKey="awpOverlayColor"></color-picker>
-              </div>
-
-              <div
-                class="label-row no-padding"
-                :class="{ 'disabled-option': !store.awpOverlayColorEnabled || !store.awpBlendModes }"
-                v-tippy content="You can adjust the strength of the effect by lowering the overlay color opacity. Opacity is controlled by the second slider in the color picker."
-              >
-                <span>Blend mode</span>
-                <n-select
-                  v-model:value="store.awpBlendMode"
-                  :options="store.awpBlendModes || []"
-                  :disabled="!store.awpOverlayColorEnabled"
-                  size="small"
-                  style="flex: 1;"
-                />
-              </div>
-
-            </n-space>
-
-          </n-collapse-item>
-        </n-collapse>
-        
-        <!-- <h6 v-if="true || store.overlayTextures" style="position: relative; z-index: 1;">
-          <span>Textures</span>
-          <n-select v-model:value="store.overlayTexture" :options="store.overlayTextures" size="small" />
-        </h6> -->
-        
-        <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
-          <n-collapse-item name="grayscale">
-            <template #header><mdi-yin-yang/> Grayscale</template>
-
-            <n-space vertical :size="spaceGapSize*2">
-
-              <div class="label-row no-padding">
-                <span>Enabled</span>
-                <n-switch size="small" v-model:value="store.awpGrayscale" />
-              </div>
-
-              <div class="label-row no-padding" :class="{ 'disabled-option': !store.awpGrayscale }">
-                <span>Contrast</span>
-                <n-slider v-model:value="store.awpGrayscaleContrast" :min=".15" :max="1" :step=".05" :tooltip="false" style="flex: 1;" :disabled="!store.awpGrayscale" />
-              </div>
-
-            </n-space>
-
-          </n-collapse-item>
-        </n-collapse>
-        
         <!-- Abandoning for now... Just doesn't seem so necessary when there's the overlay? -->
         <!-- <div v-if="!store.animatedWallpaperMode && store.coverOpacityEnabled">
           <gb-heading tag="h6" :uppercase="true">
@@ -652,25 +581,84 @@
 
           </n-collapse-item>
         </n-collapse>
-        
-        <n-collapse v-if="!store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
-          <n-collapse-item name="text-elements">
-            <template #header><mdi-format-text/> Text elements</template>
 
-            <n-space vertical :size="spaceGapSize">
+        <!-- APPEARANCE / EFFECTS -->
+        <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
+          <n-collapse-item name="canvas-background">
+            <template #header><mdi-palette/> Canvas background color</template>
 
-              <n-button type="warning" style="width: 100%;" @click="$emitter.emit('make-text-element')">
-                <fluent-text-add-20-filled/> &nbsp; Add text element
-              </n-button>
+            <color-picker storeKey="canvas.background" label="Background color" :size="22"></color-picker>
 
-              <toolbar-text-elements :spaceGapSize="16"></toolbar-text-elements>
+          </n-collapse-item>
+        </n-collapse>
+
+        <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
+          <n-collapse-item name="color-overlay">
+            <template #header>
+              <mdi-layers/> <span :style="{ color: store.awpOverlayColorEnabled ? '#ffc02b' : null }"
+                v-tippy content="Overlay is recommended if you're making a desktop wallpaper and plan to have icons on top of it."
+              >Color overlay</span>
+            </template>
+
+            <n-space vertical :size="spaceGapSize*2">
+
+              <div class="label-row no-padding">
+                <span>Enabled</span>
+                <n-switch size="small" v-model:value="store.awpOverlayColorEnabled" />
+              </div>
+
+              <div class="label-row no-padding" :class="{ 'disabled-option': !store.awpOverlayColorEnabled }">
+                <span>Color</span>
+                <color-picker storeKey="awpOverlayColor"></color-picker>
+              </div>
+
+              <div
+                class="label-row no-padding"
+                :class="{ 'disabled-option': !store.awpOverlayColorEnabled || !store.awpBlendModes }"
+                v-tippy content="You can adjust the strength of the effect by lowering the overlay color opacity. Opacity is controlled by the second slider in the color picker."
+              >
+                <span>Blend mode</span>
+                <n-select
+                  v-model:value="store.awpBlendMode"
+                  :options="store.awpBlendModes || []"
+                  :disabled="!store.awpOverlayColorEnabled"
+                  size="small"
+                  style="flex: 1;"
+                />
+              </div>
 
             </n-space>
 
           </n-collapse-item>
         </n-collapse>
-        
-<!--         
+
+        <!-- <h6 v-if="true || store.overlayTextures" style="position: relative; z-index: 1;">
+          <span>Textures</span>
+          <n-select v-model:value="store.overlayTexture" :options="store.overlayTextures" size="small" />
+        </h6> -->
+
+        <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
+          <n-collapse-item name="grayscale">
+            <template #header><mdi-yin-yang/> Grayscale</template>
+
+            <n-space vertical :size="spaceGapSize*2">
+
+              <div class="label-row no-padding">
+                <span>Enabled</span>
+                <n-switch size="small" v-model:value="store.awpGrayscale" />
+              </div>
+
+              <div class="label-row no-padding" :class="{ 'disabled-option': !store.awpGrayscale }">
+                <span>Contrast</span>
+                <n-slider v-model:value="store.awpGrayscaleContrast" :min=".15" :max="1" :step=".05" :tooltip="false" style="flex: 1;" :disabled="!store.awpGrayscale" />
+              </div>
+
+            </n-space>
+
+          </n-collapse-item>
+        </n-collapse>
+
+<!--
         <div>
           <gb-heading tag="h6" :uppercase="true">Cover size</gb-heading>
           <spacer size="mini" :line="false" />
@@ -695,6 +683,7 @@
         </div>
 -->
         
+        <!-- COVER CONTENT -->
         <n-collapse v-if="!store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="cover-details" class="cover-details">
             <template #header><mdi-card-text/> Cover details</template>
@@ -735,12 +724,24 @@
 
           </n-collapse-item>
         </n-collapse>
-        
-        <div v-if="store.archived" class="inline-toggle-row">
-          <span><mdi-archive-off/> Exclude {{ store.archived }} archived</span>
-          <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged" />
-        </div>
-        
+
+        <n-collapse v-if="!store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
+          <n-collapse-item name="text-elements">
+            <template #header><mdi-format-text/> Text elements</template>
+
+            <n-space vertical :size="spaceGapSize">
+
+              <n-button type="warning" style="width: 100%;" @click="$emitter.emit('make-text-element')">
+                <fluent-text-add-20-filled/> &nbsp; Add text element
+              </n-button>
+
+              <toolbar-text-elements :spaceGapSize="16"></toolbar-text-elements>
+
+            </n-space>
+
+          </n-collapse-item>
+        </n-collapse>
+
 
 </n-space>
       <div v-else class="saving-container">
@@ -1334,6 +1335,7 @@ $toolbar-text: #8eabc5;
     display: flex;
     align-items: center;
     gap: 7px;
+    padding-left: 30px;
   }
 }
 
