@@ -88,7 +88,7 @@
             
             <div v-else style="width: 100%; height: 100%; display: flex; flex-direction: row;" :style="canvasAlignmentVertical">
 
-              <tier-list v-if="store.tierListMode" style="width: 100%;" @start="draggingStarted" @end="draggingEnded" @move="draggingMoved" />
+              <tier-list v-if="store.tierListMode" style="width: 100%;" :style="reservedMargins" @start="draggingStarted" @end="draggingEnded" @move="draggingMoved" />
 
               <draggable
                 class="drag-container"
@@ -400,19 +400,25 @@ export default {
     //   } 
     //   return style;
     // },
+    // RESERVED MARGINS: the text-reserved space expressed as plain margins. Shared by the cover
+    // draggable and the tier list so reservations push content in on every side in both modes.
+    reservedMargins: function() {
+      const rp = this.reservedPadding;
+      return {
+        marginTop:    rp.top    ? rp.top    + 'px' : null,
+        marginRight:  rp.right  ? rp.right  + 'px' : null,
+        marginBottom: rp.bottom ? rp.bottom + 'px' : null,
+        marginLeft:   rp.left   ? rp.left   + 'px' : null,
+      };
+    },
+
     canvasAlignment: function() {
       let style = {};
 
       style.textAlign = this.store.canvas.alignment;
       style.position = this.store.canvas.height > 0 ? 'absolute' : null;
 
-      const rp = this.reservedPadding;
-      style.marginTop    = rp.top    ? rp.top    + 'px' : null;
-      style.marginRight  = rp.right  ? rp.right  + 'px' : null;
-      style.marginBottom = rp.bottom ? rp.bottom + 'px' : null;
-      style.marginLeft   = rp.left   ? rp.left   + 'px' : null;
-
-      return style;
+      return _.assign( style, this.reservedMargins );
     },
     canvasAlignmentVertical: function() {
       let style = {};
