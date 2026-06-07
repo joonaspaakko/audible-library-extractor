@@ -121,6 +121,7 @@ export default {
   mounted: function() {
 
     this.$nextTick(function() {
+    
       // Restore saved transform/size onto the actual target element
       let target = document.querySelector('.' + this.textClass);
       if ( target ) {
@@ -134,6 +135,18 @@ export default {
       controlBox.dataset.textIndex = this.textIndex;
       ( document.querySelector( '#editor-canvas-left' ) || document.body ).appendChild( controlBox );
       this.$refs.moveable.updateRect();
+
+      // STRETCH TO EDGE: double-clicking a side handle stretches that edge flush to the canvas
+      this.sideHandleDblclickHandler = ( e ) => {
+        const handle = e.target.closest('.moveable-direction');
+        if ( !handle ) return;
+        const dir = handle.className.match(/\bn\b|\bs\b|\be\b|\bw\b/);
+        if ( !dir ) return;
+        e.stopPropagation();
+        this.stretchEdgeToCanvas( dir[0] );
+      };
+      controlBox.addEventListener( 'dblclick', this.sideHandleDblclickHandler );
+      
     });
 
     this.setElementGuidelines();
@@ -151,7 +164,10 @@ export default {
 
   beforeUnmount: function () {
     let controlBox = this.$refs.moveable.getControlBoxElement();
-    if ( controlBox && controlBox.parentNode ) controlBox.parentNode.removeChild( controlBox );
+    if ( controlBox ) {
+      if ( this.sideHandleDblclickHandler ) controlBox.removeEventListener( 'dblclick', this.sideHandleDblclickHandler );
+      if ( controlBox.parentNode ) controlBox.parentNode.removeChild( controlBox );
+    }
     this.$emitter.off('update-moveable-handles', this.updateHandles);
     this.$emitter.off('hide-moveable-controls', this.deactivate);
     this.$emitter.off('text-drag-start', this.showSnapOutline);
@@ -452,6 +468,107 @@ export default {
 
       this.$nextTick( () => {
         this.$refs.moveable && this.$refs.moveable.updateRect();
+      });
+    },
+
+    // STRETCH TO CANVAS EDGE: extends only the double-clicked side flush to the canvas boundary.
+    // The opposite edge stays fixed. Works correctly even when the element hangs off that edge.
+    stretchEdgeToCanvas: function( dir ) {
+      const target   = document.querySelector( '.' + this.textClass );
+      const canvasEl = document.querySelector( '.editor-canvas' );
+      if ( !target || !canvasEl ) return;
+
+      const canvasRect = canvasEl.getBoundingClientRect();
+      const scale      = canvasRect.width / this.store.canvas.width;
+      const elRect     = target.getBoundingClientRect();
+
+      const { tx, ty }  = this.getTranslate( target.style.transform );
+      const angle       = this.getAngle( target.style.transform );
+
+      // current element edges in canvas-space (unscaled)
+      const elLeft   = ( elRect.left   - canvasRect.left   ) / scale;
+      const elTop    = ( elRect.top    - canvasRect.top    ) / scale;
+      const elRight  = ( elRect.right  - canvasRect.left   ) / scale;
+      const elBottom = ( elRect.bottom - canvasRect.top    ) / scale;
+      const elW      = elRect.width  / scale;
+      const elH      = elRect.height / scale;
+
+      const canvasW = canvasRect.width  / scale;
+      const canvasH = canvasRect.height / scale;
+
+      let newW  = elW;
+      let newH  = elH;
+      let newTx = tx;
+      let newTy = ty;
+
+      // right → canvas right
+      if ( dir === 'e' ) {
+        // left edge already past canvas right: fill full width
+        if ( elLeft >= canvasW ) {
+          newW  = canvasW;
+          newTx = tx - elLeft;
+        }
+        // stretch right edge to canvas right, left edge stays
+        else {
+          newW = canvasW - elLeft;
+        }
+      }
+      // left → canvas left
+      else if ( dir === 'w' ) {
+        // right edge already past canvas left: fill full width
+        if ( elRight <= 0 ) {
+          newW  = canvasW;
+          newTx = tx - elLeft;
+        }
+        // stretch left edge to canvas left, right edge stays
+        else {
+          newW  = elRight;
+          newTx = tx - ( newW - elW );
+        }
+      }
+      // bottom → canvas bottom
+      else if ( dir === 's' ) {
+        // top edge already past canvas bottom: fill full height
+        if ( elTop >= canvasH ) {
+          newH  = canvasH;
+          newTy = ty - elTop;
+        }
+        // stretch bottom edge to canvas bottom, top edge stays
+        else {
+          newH = canvasH - elTop;
+        }
+      }
+      // top → canvas top
+      else if ( dir === 'n' ) {
+        // bottom edge already past canvas top: fill full height
+        if ( elBottom <= 0 ) {
+          newH  = canvasH;
+          newTy = ty - elTop;
+        }
+        // stretch top edge to canvas top, bottom edge stays
+        else {
+          newH  = elBottom;
+          newTy = ty - ( newH - elH );
+        }
+      }
+
+      newW = Math.max( 1, Math.round( newW ) );
+      newH = Math.max( 1, Math.round( newH ) );
+      newTx = Math.round( newTx );
+      newTy = Math.round( newTy );
+
+      const newTransform = `translate(${ newTx }px, ${ newTy }px) rotate(${ angle }deg)`;
+      target.style.width     = newW + 'px';
+      target.style.height    = newH + 'px';
+      target.style.transform = newTransform;
+
+      this.$store.commit( 'changeText', { index: this.textIndex, key: 'width',     value: newW + 'px' } );
+      this.$store.commit( 'changeText', { index: this.textIndex, key: 'height',    value: newH + 'px' } );
+      this.$store.commit( 'changeText', { index: this.textIndex, key: 'transform', value: newTransform } );
+
+      this.$nextTick( () => {
+        this.$refs.moveable && this.$refs.moveable.updateRect();
+        this.recalculateReservedSide();
       });
     },
 
