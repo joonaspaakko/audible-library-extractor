@@ -11,7 +11,7 @@
         height: size + 'px',
       }"
     />
-    <span v-if="label" class="color-picker-label" @click="$refs.picker.$el.click()">{{ label }}</span>
+    <span v-if="label" class="color-picker-label" @click="openPicker">{{ label }}</span>
   </div>
 </template>
 
@@ -56,6 +56,11 @@ export default {
   },
   methods: {
     
+    openPicker( event ) {
+      const trigger = event.currentTarget.closest( '.color-picker-placeholder' ).querySelector( '.n-color-picker-trigger' );
+      if ( trigger ) trigger.click();
+    },
+
     colorChanged( value ) {
       if ( this.defaultValue ) {
         this.$emit('input', value);

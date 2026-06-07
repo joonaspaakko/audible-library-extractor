@@ -145,7 +145,7 @@ const store = createStore({
     showFavorites: false,
     showMyRating: false,
     toolbarCollapsed: false,
-    toolbarExpandedSections: [],
+    toolbarExpandedSections: [ 'animation-settings' ],
     
     // PRESETS
     canvasPreset: 'wallpaper',

@@ -1,26 +1,8 @@
 <template>
-<n-space vertical :size="spaceGapSize">
+<n-space v-if="store.textElements.length" vertical :size="spaceGapSize" style="margin-top: 16px;">
 
-  <h6 v-if="showHeading !== false">
-
-    <span>Text elements</span>
-
-    <n-button
-      type="warning"
-      @click="makeTextElement"
-    >
-      <fluent-text-add-20-filled/> &nbsp; ADD TEXT
-    </n-button>
-
-  </h6>
-  
-  <n-alert v-if="store.textElements.length" type="info">
-    You can make room for text by adjusting canvas padding.
-  </n-alert>
-  
   <div
-    v-if="store.textElements.length" 
-    class="text-elements" 
+    class="text-elements"
     v-for="(text, index) in store.textElements" 
     :key="text.id" 
     :class="{ active: text.active }"
@@ -32,103 +14,103 @@
       <span class="element-badge">#{{ index + 1 }}</span>
       <fa-regular-times-circle class="remove-text" style="font-size: 18px;" @click="$store.commit('removeText', index)" />
 
-      <n-space vertical size="medium">
+      <n-space vertical :size="10">
       
-      <div class="label-row">
-        <span class="row-label">Font:</span>
-        <n-select
-          size="small"
-          style="flex: 1;"
-          :default-value="text.fontFamily"
-          :options="store.textElFonts"
-          @update:value="changeTextElement( $event, index, text, 'fontFamily' )"
-          :render-label="renderFontOption"
-        />
-      </div>
+        <div class="label-row">
+          <span class="row-label">Font:</span>
+          <n-select
+            size="small"
+            style="flex: 1;"
+            :default-value="text.fontFamily"
+            :options="store.textElFonts"
+            @update:value="changeTextElement( $event, index, text, 'fontFamily' )"
+            :render-label="renderFontOption"
+          />
+        </div>
 
-      <div class="label-row">
-        <span class="row-label"
-          v-tippy content="Alternatively double click text on the canvas to edit it directly"
-        >Text:</span>
-        <n-input
-          size="small"
-          style="flex: 1;"
-          :default-value="text.text" :min="1" :step="1"
-          @update:value="changeTextElement( $event, index, text, 'text' )"
-        />
-      </div>
+        <div class="label-row">
+          <span class="row-label"
+            v-tippy content="Alternatively double click text on the canvas to edit it directly"
+          >Text:</span>
+          <n-input
+            size="small"
+            style="flex: 1;"
+            :default-value="text.text" :min="1" :step="1"
+            @update:value="changeTextElement( $event, index, text, 'text' )"
+          />
+        </div>
 
-      <div class="label-row">
-        <span class="row-label">Size:</span>
-        <n-slider
-          @update:value="changeTextElement( $event, index, text, 'fontSize' )"
-          :value="text.fontSize" :min="1" :max="200" :step="1" :tooltip="false"
-        />
-        <n-input-number
-          size="tiny"
-          :value="text.fontSize" :min="1" :step="1"
-          @update:value="changeTextElement( $event, index, text, 'fontSize' )"
-        />
-      </div>
-      
-      <div class="label-row">
+        <div class="label-row">
+          <span class="row-label">Size:</span>
+          <n-slider
+            @update:value="changeTextElement( $event, index, text, 'fontSize' )"
+            :value="text.fontSize" :min="1" :max="200" :step="1" :tooltip="false"
+          />
+          <n-input-number
+            size="tiny"
+            :value="text.fontSize" :min="1" :step="1"
+            @update:value="changeTextElement( $event, index, text, 'fontSize' )"
+          />
+        </div>
         
-        <div style="display: flex; flex-direction: row;">
-          <div class="align-text" style="padding-left: 0px;" v-tippy content="<strong>Horizontal alignment.</strong> Text is aligned inside its own bounding box.">
-            <akar-icons-align-left :class="{ active: text.alignment === 'left' }" style="font-size: 14px;" name="format_align_left" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'left', });" />
-            <akar-icons-align-horizontal-center :class="{ active: text.alignment === 'center' }" style="font-size: 14px;" name="format_align_center" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'center', });" />
-            <akar-icons-align-right :class="{ active: text.alignment === 'right' }" style="font-size: 14px;" name="format_align_right" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'right', });" />
+        <div class="label-row">
+          
+          <div style="display: flex; flex-direction: row;">
+            <div class="align-text" style="padding-left: 0px;" v-tippy content="<strong>Horizontal alignment.</strong> Text is aligned inside its own bounding box.">
+              <akar-icons-align-left :class="{ active: text.alignment === 'left' }" style="font-size: 14px;" name="format_align_left" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'left', });" />
+              <akar-icons-align-horizontal-center :class="{ active: text.alignment === 'center' }" style="font-size: 14px;" name="format_align_center" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'center', });" />
+              <akar-icons-align-right :class="{ active: text.alignment === 'right' }" style="font-size: 14px;" name="format_align_right" @click="$store.commit('changeText', { index: index, key: 'alignment', value: 'right', });" />
+            </div>
+            
+            <div class="align-text" style="padding-left: 30px;" v-tippy content="<strong>Vertical alignment.</strong> Text is aligned inside its own bounding box.">
+              <akar-icons-align-top :class="{ active: text.verticalAlignment === 'left' }" style="font-size: 14px;" name="vertical_align_top" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'left', });" />
+              <akar-icons-align-vertical-center :class="{ active: text.verticalAlignment === 'center' }" style="font-size: 14px;" name="vertical_align_center" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'center', });" />
+              <akar-icons-align-bottom :class="{ active: text.verticalAlignment === 'right' }" style="font-size: 14px;" name="vertical_align_bottom" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'right', });" />
+            </div>
           </div>
           
-          <div class="align-text" style="padding-left: 30px;" v-tippy content="<strong>Vertical alignment.</strong> Text is aligned inside its own bounding box.">
-            <akar-icons-align-top :class="{ active: text.verticalAlignment === 'left' }" style="font-size: 14px;" name="vertical_align_top" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'left', });" />
-            <akar-icons-align-vertical-center :class="{ active: text.verticalAlignment === 'center' }" style="font-size: 14px;" name="vertical_align_center" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'center', });" />
-            <akar-icons-align-bottom :class="{ active: text.verticalAlignment === 'right' }" style="font-size: 14px;" name="vertical_align_bottom" @click="$store.commit('changeText', { index: index, key: 'verticalAlignment', value: 'right', });" />
-          </div>
         </div>
         
-      </div>
-      
-      <div class="label-row label-row--make-room">
-        <span class="row-label" v-tippy content="Rotate and move this text element to the selected side">Move:</span>
-        <div class="make-room-buttons">
-          <button
-            v-for="side in ['top', 'right', 'bottom', 'left']"
-            :key="side"
-            class="make-room-btn"
-            @click="$emitter.emit( 'snap-to-side', { index: index, side: side } )"
-            v-tippy :content="`Move to ${ side } side`"
-          >
-            <akar-icons-arrow-up    v-if="side === 'top'"    />
-            <akar-icons-arrow-right v-if="side === 'right'"  />
-            <akar-icons-arrow-down  v-if="side === 'bottom'" />
-            <akar-icons-arrow-left  v-if="side === 'left'"   />
-          </button>
+        <div class="label-row label-row--make-room">
+          <span class="row-label" v-tippy content="Rotate and move this text element to the selected side">Move:</span>
+          <div class="make-room-buttons">
+            <button
+              v-for="side in ['top', 'right', 'bottom', 'left']"
+              :key="side"
+              class="make-room-btn"
+              @click="$emitter.emit( 'snap-to-side', { index: index, side: side } )"
+              v-tippy :content="`Move to ${ side } side`"
+            >
+              <akar-icons-arrow-up    v-if="side === 'top'"    />
+              <akar-icons-arrow-right v-if="side === 'right'"  />
+              <akar-icons-arrow-down  v-if="side === 'bottom'" />
+              <akar-icons-arrow-left  v-if="side === 'left'"   />
+            </button>
+          </div>
         </div>
-      </div>
 
-      <div class="label-row">
+        <div class="label-row">
 
-        <color-picker :default-value="text.color" label="Color" :size="18" @input="$store.commit('changeText', { index: index, key: 'color', value: $event })"></color-picker>
+          <color-picker :default-value="text.color" label="Color" :size="18" @input="$store.commit('changeText', { index: index, key: 'color', value: $event })"></color-picker>
 
-        <n-checkbox
-          :checked="text.bold"
-          @update:checked="changeTextElement( $event, index, text, 'bold' )"
-        >
-          Bold
-        </n-checkbox>
+          <n-checkbox
+            :checked="text.bold"
+            @update:checked="changeTextElement( $event, index, text, 'bold' )"
+          >
+            Bold
+          </n-checkbox>
 
-        <n-checkbox
-          :checked="text.allCaps"
-          @update:checked="changeTextElement( $event, index, text, 'allCaps' )"
-          style="white-space: nowrap;"
-        >
-          All caps
-        </n-checkbox>
+          <n-checkbox
+            :checked="text.allCaps"
+            @update:checked="changeTextElement( $event, index, text, 'allCaps' )"
+            style="white-space: nowrap;"
+          >
+            All caps
+          </n-checkbox>
 
-      </div>
-      
-    </n-space>
+        </div>
+        
+      </n-space>
 
     </div>
 
@@ -158,7 +140,7 @@ import {
 import spacer from "@editor-comps/toolbar/spacer.vue";
 export default {
   name: "textElements",
-  props: ['spaceGapSize', 'showHeading'],
+  props: ['spaceGapSize'],
   components: { 
     spacer, 
     NConfigProvider,

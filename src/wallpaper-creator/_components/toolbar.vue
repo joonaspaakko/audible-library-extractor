@@ -76,21 +76,23 @@
 
       <n-space vertical :size="spaceGapSize" v-if="!store.saving">
 
-        <div style="text-align: center;">
-          <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
-            <ri-collage-fill/> &nbsp; Change canvas preset
-          </n-button>
-        </div>
+        
+        <n-space vertical :size="20" style="margin-bottom: 30px;">
+          <div style="text-align: center;">
+            <n-button type="success" style="border-radius: 999px;" @click="$store.commit('update', { key: 'presetModalOpen', value: true });">
+              <ri-collage-fill/> &nbsp; Change canvas preset
+            </n-button>
+          </div>
 
-        <div v-if="store.animatedWallpaperMode" style="text-align: center;">
-
-        <n-button
-          type="error" style="border-radius: 999px;"
-          @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
-        >
-          <ic:baseline-info /> &nbsp; Wallpaper installation instructions
-        </n-button>
-        </div>
+          <div v-if="store.animatedWallpaperMode" style="text-align: center;">
+            <n-button
+              type="error" style="border-radius: 999px;"
+              @click="openLink('https://joonaspaakko.gitbook.io/audible-library-extractor/wallpaper-creator/general-info/animated-wallpapers')"
+            >
+              <ic:baseline-info /> &nbsp; Wallpaper installation instructions
+            </n-button>
+          </div>
+        </n-space>
         
         <n-collapse v-if="store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })" style="position: relative; z-index: 10;">
           <n-collapse-item name="animation-settings">
@@ -269,7 +271,7 @@
         
         <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="covers-per-row">
-            <template #header><mdi-view-column/> Covers per row (columns)</template>
+            <template #header><bx:grid-horizontal/> Covers per row</template>
 
             <n-space vertical :size="spaceGapSize">
 
@@ -277,11 +279,11 @@
 
               <n-slider :value="store.coversPerRow" :min="1" :max="25" :step="1" :tooltip="false" @update:value="v => throttledCommit('coversPerRow', v)" />
 
-              <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning">
+              <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning" style="margin-top: 10px;">
                 The more you upsize the more quality loss there will be. You can choose to ignore this, or you can try lowering canvas width or increasing covers per row.
               </n-alert>
 
-              <n-alert v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length" type="warning">
+              <n-alert v-if="store.animatedWallpaperMode && store.visibleAnimatedCovers > store.covers.length" type="warning" style="margin-top: 10px; margin-bottom: 10px;">
                 <strong>{{ store.visibleAnimatedCovers - store.covers.length }}/{{ store.visibleAnimatedCovers }}</strong>
                 visible covers have been duplicated in order for the animated wallpaper to function.
                 <br><br>
@@ -299,14 +301,14 @@
                   Prioritize covers per row
                 </n-checkbox>
 
-                <n-alert type="default" v-if="store.prioritizeCoversPerRow">
+                <n-alert type="default" v-if="store.prioritizeCoversPerRow" style="margin-top: 10px;">
                   <template #icon>
                     <fluent-checkmark-circle-24-regular style="color: #63e2b8; padding-top: 5px;"/>
                   </template>
                   No matter what screen resolution you have, the wallpaper will always have {{ store.coversPerRow }} columns.
                 </n-alert>
 
-                <n-alert type="warning" v-else title="This will only affect the output">
+                <n-alert type="warning" v-else title="This will only affect the output" style="margin-top: 10px;">
                   The current cover size ~{{ Math.round(store.coverSize) }}px is prioritized over
                   "covers per row".
                 </n-alert>
@@ -321,7 +323,7 @@
         <n-collapse v-if="!store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="limit-covers">
             <template #header>
-              <mdi-counter/> <span :style="{ color: store.covers.length > store.coverAmount ? '#ffc02b' : null }">Limit covers</span>
+              <carbon:array-numbers/> <span :style="{ color: store.covers.length > store.coverAmount ? '#ffc02b' : null }">Limit covers</span>
               <span style="margin-left: 6px; opacity: 0.6;">{{ store.coverAmount }}/{{ store.covers.length }}</span>
             </template>
 
@@ -329,7 +331,7 @@
 
               <n-input-number :value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" @update:value="v => throttledCommit('coverAmount', v)" />
               <n-slider :value="store.coverAmount" :min="1" :max="store.covers.length" :step="1" :tooltip="false" @update:value="v => throttledCommit('coverAmount', v)" />
-              <n-alert type="info">
+              <n-alert type="info" style="margin-top: 10px;">
                 Excess covers are removed from the tail end.
               </n-alert>
 
@@ -340,24 +342,32 @@
         
         <n-collapse v-if="!store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="randomize-covers">
-            <template #header><icomoon-free-shuffle/> Randomize covers</template>
+            <template #header><basil:shuffle-solid/> Randomize covers</template>
 
-            <n-button
-              strong
-              secondary
-              type="info"
-              @click="randomizeCovers"
-              v-tippy content="Randomizes all covers from the source data. You might want to use this before manual sorting."
-            >
-              <icomoon-free-shuffle/> &nbsp; shuffle
-            </n-button>
+            <n-space vertical :size="spaceGapSize">
+
+              <n-button
+                strong
+                secondary
+                type="info"
+                style="width: 100%;"
+                @click="randomizeCovers"
+              >
+                <basil:shuffle-solid/> &nbsp; Shuffle covers
+              </n-button>
+
+              <n-alert type="warning" style="margin-top: 10px;">
+                This will reset any manual cover sorting.
+              </n-alert>
+
+            </n-space>
 
           </n-collapse-item>
         </n-collapse>
         
         <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="canvas-size">
-            <template #header><mdi-resize/> Canvas size</template>
+            <template #header><fluent:scale-fill-24-regular/> Canvas size</template>
 
             <n-space vertical :size="spaceGapSize">
 
@@ -384,45 +394,45 @@
 
               </div>
 
-              <n-alert type="info" v-if="store.canvas.height == 0">
+              <n-alert type="info" v-if="store.canvas.height == 0" style="margin-top: 10px;">
                 0 height = content height ({{ store.canvas.autoHeight }}px)
               </n-alert>
 
-              <n-space :size="spaceGapSize" style="text-align: center; flex-flow: row;" v-if="!store.animatedWallpaperMode && store.canvas.height > 0">
+              <div style="display: flex; gap: 9px; margin-top: 20px;" v-if="!store.animatedWallpaperMode && !store.tierListMode && store.canvas.height > 0">
 
-                <n-button strong type="info" style="box-sizing: border-box;"
+                <n-button strong type="info" style="flex: 1;"
                   @click="fillCanvasWithCovers('fit')"
-                  v-tippy content="Sets visible cover amount based on how many covers <strong>fit</strong> inside the canvas."
+                  v-tippy="{ content: 'Adjusts the <strong>covers per row</strong> setting to fit the canvas.', maxWidth: 200 }"
                   :disabled="store.showAuthorAndTitle"
                 >
                   <teenyicons-border-bottom-outline/> &nbsp; Covers Fit
                 </n-button>
 
-                <n-button strong type="info" style="box-sizing: border-box;"
+                <n-button strong type="info" style="flex: 1;"
                   @click="fillCanvasWithCovers"
-                  v-tippy content="Sets visible cover amount based on how many covers <strong>fill</strong> inside the canvas."
+                  v-tippy="{ content: 'Adjusts the <strong>covers per row</strong> setting to fill the canvas.', maxWidth: 200 }"
                   :disabled="store.showAuthorAndTitle"
                 >
                   <bi-border-outer/> &nbsp; Covers Fill
                 </n-button>
 
-              </n-space>
+              </div>
 
               <n-button strong type="info"
-                v-if="!store.animatedWallpaperMode && store.canvas.height > 0"
-                style="width: 100%;"
+                v-if="!store.animatedWallpaperMode && !store.tierListMode && store.canvas.height > 0"
+                style="width: 100%; margin-top: 5px;"
                 @click="fitCanvasToContent"
-                v-tippy content="Sets visible cover amount based on how many covers <strong>fit</strong> inside the canvas."
+                v-tippy="{ content: 'Resets canvas height to content height.', maxWidth: 200, placement: 'left' }"
                 :disabled="store.showAuthorAndTitle"
               >
                 <mdi-crop/> &nbsp; Fit canvas size to covers
               </n-button>
 
-              <n-alert v-if="store.animatedWallpaperMode" type="info">
+              <n-alert v-if="store.animatedWallpaperMode" type="info" style="margin-top: 10px;">
                 In this "animated wallpaper" mode the canvas size is for preview purposes only, as the animated wallpaper will fit itself to any screen size.
               </n-alert>
 
-              <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning">
+              <n-alert v-if="store.coverSize > 500" :title="'Cover upsized by ' + Math.floor( (store.coverSize / 500) * 100 ) + '%'" type="warning" style="margin-top: 10px;">
                 The more you upsize the more quality loss there will be. You can choose to ignore this, or you can try lowering canvas width or increasing covers per row.
               </n-alert>
 
@@ -431,30 +441,23 @@
           </n-collapse-item>
         </n-collapse>
         
-        <n-collapse v-if="store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
-          <n-collapse-item name="remove-overflowing-row">
-            <template #header><mdi-table-row-remove/> Remove overflowing row</template>
-
-            <div class="label-row no-padding" v-tippy content="You might want to use this when adding padding around the canvas">
-              <span>Enabled</span>
-              <n-switch size="small" v-model:value="store.awpDropOverflowingRow" />
-            </div>
-
-          </n-collapse-item>
-        </n-collapse>
+        <div v-if="store.animatedWallpaperMode" class="inline-toggle-row" v-tippy content="You might want to use this when adding padding around the canvas">
+          <span><mdi-table-row-remove/> Remove overflowing row</span>
+          <n-switch size="small" v-model:value="store.awpDropOverflowingRow" />
+        </div>
 
         <n-collapse v-if="store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="covers-alignment-animated">
             <template #header><mdi-format-horizontal-align-center/> Covers alignment</template>
 
-            <div class="align-canvas label-row no-padding" style="width: 85px;">
+            <div class="align-canvas label-row no-padding" style="width: 100%;">
               <material-symbols-vertical-align-top style="font-size: 18px;" :class="{ active: store.canvas.alignmentVertical === 'flex-start' }" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-start', });" />
               <material-symbols-vertical-align-center style="font-size: 18px;" :class="{ active: store.canvas.alignmentVertical === 'center' }" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'center', });" />
               <material-symbols-vertical-align-bottom style="font-size: 18px;" :class="{ active: store.canvas.alignmentVertical === 'flex-end' }" @click="$store.commit('update', { key: 'canvas.alignmentVertical', value: 'flex-end', });" />
             </div>
 
           </n-collapse-item>
-        </n-collapse> 
+        </n-collapse>
         
         <n-collapse v-if="!store.animatedWallpaperMode" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="covers-alignment">
@@ -480,7 +483,7 @@
           <n-collapse-item name="canvas-background">
             <template #header><mdi-palette/> Canvas background color</template>
 
-            <color-picker storeKey="canvas.background"></color-picker>
+            <color-picker storeKey="canvas.background" label="Background color" :size="22"></color-picker>
 
           </n-collapse-item>
         </n-collapse>
@@ -493,28 +496,30 @@
               >Color overlay</span>
             </template>
 
-            <n-space vertical :size="spaceGapSize">
+            <n-space vertical :size="spaceGapSize*2">
 
               <div class="label-row no-padding">
                 <span>Enabled</span>
                 <n-switch size="small" v-model:value="store.awpOverlayColorEnabled" />
               </div>
 
-              <div class="label-row no-padding">
+              <div class="label-row no-padding" :class="{ 'disabled-option': !store.awpOverlayColorEnabled }">
                 <span>Color</span>
                 <color-picker storeKey="awpOverlayColor"></color-picker>
               </div>
 
               <div
                 class="label-row no-padding"
+                :class="{ 'disabled-option': !store.awpOverlayColorEnabled || !store.awpBlendModes }"
                 v-tippy content="You can adjust the strength of the effect by lowering the overlay color opacity. Opacity is controlled by the second slider in the color picker."
               >
                 <span>Blend mode</span>
                 <n-select
-                  v-if="store.awpOverlayColorEnabled && store.awpBlendModes"
                   v-model:value="store.awpBlendMode"
-                  :options="store.awpBlendModes"
+                  :options="store.awpBlendModes || []"
+                  :disabled="!store.awpOverlayColorEnabled"
                   size="small"
+                  style="flex: 1;"
                 />
               </div>
 
@@ -530,18 +535,18 @@
         
         <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="grayscale">
-            <template #header><mdi-contrast/> Grayscale</template>
+            <template #header><mdi-yin-yang/> Grayscale</template>
 
-            <n-space vertical :size="spaceGapSize">
+            <n-space vertical :size="spaceGapSize*2">
 
               <div class="label-row no-padding">
                 <span>Enabled</span>
                 <n-switch size="small" v-model:value="store.awpGrayscale" />
               </div>
 
-              <div class="label-row no-padding" v-if="store.awpGrayscale">
+              <div class="label-row no-padding" :class="{ 'disabled-option': !store.awpGrayscale }">
                 <span>Contrast</span>
-                <n-slider v-model:value="store.awpGrayscaleContrast" :min=".15" :max="1" :step=".05" :tooltip="false" style="padding: 0 15px;" />
+                <n-slider v-model:value="store.awpGrayscaleContrast" :min=".15" :max="1" :step=".05" :tooltip="false" style="flex: 1;" :disabled="!store.awpGrayscale" />
               </div>
 
             </n-space>
@@ -575,7 +580,7 @@
         <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="canvas-padding">
             <template #header>
-              <mdi-margin/> <span @mouseenter="previewPadding('left')" @mouseleave="clearPaddingPreview">
+              <radix-icons:border-all /> <span @mouseenter="previewPadding('left')" @mouseleave="clearPaddingPreview" class="label-row">
                 Canvas padding <MdiInformationOutline class="padding-preview-hint" />
               </span>
             </template>
@@ -620,14 +625,14 @@
         <n-collapse :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
           <n-collapse-item name="cover-padding">
             <template #header>
-              <bi-border-outer/> <span @mouseenter="previewPadding('paddingSize')" @mouseleave="clearPaddingPreview">
+              <mdi:border-all /> <span @mouseenter="previewPadding('paddingSize')" @mouseleave="clearPaddingPreview" class="label-row">
                 Cover padding <MdiInformationOutline class="padding-preview-hint" />
               </span>
             </template>
 
-            <div class="label-row no-padding">
-              <n-input-number :value="store.paddingSize" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('paddingSize', v)" />
-              <n-slider style="padding-left: 15px;" :value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" @update:value="v => throttledCommit('paddingSize', v)" />
+            <div class="label-row no-padding" style="gap: 8px;">
+              <n-input-number :value="store.paddingSize" :min="0" :step="1" size="tiny" @update:value="v => throttledCommit('paddingSize', v)" style="width: 80px; flex-shrink: 0;" />
+              <n-slider style="flex: 1;" :value="store.paddingSize" :min="0" :max="50" :step="1" :tooltip="false" @update:value="v => throttledCommit('paddingSize', v)" />
             </div>
 
           </n-collapse-item>
@@ -637,9 +642,9 @@
           <n-collapse-item name="border-radius">
             <template #header><mdi-rounded-corner/> Border radius</template>
 
-            <div class="label-row no-padding">
-              <n-input-number v-model:value="store.borderRadius" :min="0" :step="0.01" :max=".5" size="tiny" />
-              <n-slider style="padding-left: 15px;" v-model:value="store.borderRadius" :min="0" :max=".5" :step="0.01" :tooltip="false" />
+            <div class="label-row no-padding" style="gap: 8px;">
+              <n-input-number v-model:value="borderRadiusDisplay" :min="0" :step="1" :max="100" size="tiny" style="width: 80px; flex-shrink: 0;" />
+              <n-slider style="flex: 1;" v-model:value="store.borderRadius" :min="0" :max=".5" :step="0.01" :tooltip="false" />
             </div>
 
           </n-collapse-item>
@@ -651,11 +656,11 @@
 
             <n-space vertical :size="spaceGapSize">
 
-              <n-button type="warning" @click="$emitter.emit('make-text-element')">
-                <fluent-text-add-20-filled/> &nbsp; ADD TEXT
+              <n-button type="warning" style="width: 100%;" @click="$emitter.emit('make-text-element')">
+                <fluent-text-add-20-filled/> &nbsp; Add text element
               </n-button>
 
-              <toolbar-text-elements :spaceGapSize="spaceGapSize" :showHeading="false"></toolbar-text-elements>
+              <toolbar-text-elements :spaceGapSize="16"></toolbar-text-elements>
 
             </n-space>
 
@@ -691,7 +696,7 @@
           <n-collapse-item name="cover-details" class="cover-details">
             <template #header><mdi-card-text/> Cover details</template>
 
-            <n-space vertical :size="spaceGapSize">
+            <n-space vertical :size="spaceGapSize*2">
 
               <div class="label-row no-padding">
                 <span>Show My Rating</span>
@@ -728,17 +733,10 @@
           </n-collapse-item>
         </n-collapse>
         
-        <n-collapse v-if="store.archived" :expanded-names="store.toolbarExpandedSections" @update:expanded-names="v => $store.commit('update', { key: 'toolbarExpandedSections', value: v })">
-          <n-collapse-item name="exclude-archived">
-            <template #header><mdi-archive-off/> Exclude archived</template>
-
-            <div class="label-row no-padding">
-              <span>Exclude {{ store.archived }} archived books</span>
-              <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged" />
-            </div>
-
-          </n-collapse-item>
-        </n-collapse>
+        <div v-if="store.archived" class="inline-toggle-row">
+          <span><mdi-archive-off/> Exclude {{ store.archived }} archived</span>
+          <n-switch size="small" :value="store.excludeArchived" @update:value="excludeArchivedChanged" />
+        </div>
         
 
 </n-space>
@@ -785,6 +783,7 @@ import {
 import calculateCoverSize from "@editor-mixins/calculateCoverSize.js";
 import makeWallpaper from "@editor-mixins/makeWallpaper.js";
 import makeImage from "@editor-mixins/makeImage.js";
+import fillCanvasWithCovers from "../_mixins/fillCanvasWithCovers.js";
 
 import ToolbarTextElements from "@editor-comps/toolbar/toolbar-text-elements.vue";
 import spacer from "@editor-comps/toolbar/spacer.vue";
@@ -818,7 +817,7 @@ export default {
     NCollapse,
     NCollapseItem,
   },
-  mixins: [calculateCoverSize, makeWallpaper, makeImage],
+  mixins: [calculateCoverSize, makeWallpaper, makeImage, fillCanvasWithCovers],
   data: function () {
     return {
       store: this.$store.state,
@@ -914,6 +913,15 @@ export default {
       ),
     },
     
+    borderRadiusDisplay: {
+      get: function () {
+        return Math.round( this.store.borderRadius * 200 );
+      },
+      set: function ( value ) {
+        this.$store.commit( 'update', { key: 'borderRadius', value: value / 200 } );
+      },
+    },
+
     prioritizeCoversPerRow: {
       get: function () {
         return this.store.prioritizeCoversPerRow;
@@ -1196,6 +1204,7 @@ $toolbar-text: #8eabc5;
   user-select: none;
   -webkit-user-drag: none;
   user-drag: none;
+  justify-content: flex-start !important;
 }
 
 .toolbar-inner {
@@ -1203,6 +1212,7 @@ $toolbar-text: #8eabc5;
   padding: 20px 65px 300px;
   display: flex;
   flex-direction: column;
+  justify-content: flex-start;
   box-sizing: border-box;
   min-height: 0;
   width: 100%;
@@ -1238,11 +1248,15 @@ $toolbar-text: #8eabc5;
 }
 
 .label-row {
+  position: relative;
   display: flex;
   flex-direction: row;
   align-items: center;
+  gap: 10px;
   > span {
     display: inline-block;
+    white-space: nowrap;
+    flex-shrink: 0;
   }
   > div {
     padding-left: 10px;
@@ -1250,6 +1264,46 @@ $toolbar-text: #8eabc5;
   }
   &.no-padding > div {
     padding-left: 0px;
+    flex: unset;
+    margin-left: auto;
+  }
+}
+
+.inline-toggle-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  white-space: nowrap;
+  font-size: 14px;
+  line-height: 19px;
+  font-weight: 400;
+  color: #fff;
+  padding: 7px 63px 7px 23px;
+  position: relative;
+  margin: 0 -63px 0px -28px;
+  min-height: 33px;
+  cursor: default;
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 0px;
+    right: 0px;
+    left: 0px;
+    border-radius: 999px 0 0 999px;
+    bottom: 0px;
+    background: #212935;
+    box-shadow: 0 5px 18px rgba(darken(#212935, 20), .2);
+    z-index: -1;
+    border: 1px solid #313d4f;
+    border-right: none;
+  }
+
+  > span {
+    display: flex;
+    align-items: center;
+    gap: 7px;
   }
 }
 
@@ -1572,6 +1626,10 @@ $toolbar-text: #8eabc5;
   height: 27px !important;
 }
 
+.toolbar-inner .n-collapse-item__content-inner {
+  .n-alert { opacity: 0.65; }
+}
+
 .toolbar-inner {
   h6 {
     white-space: nowrap;
@@ -1617,9 +1675,15 @@ $toolbar-text: #8eabc5;
   .padding-preview-hint {
     width: 14px;
     height: 14px;
-    opacity: .35;
+    opacity: .35 !important;
     margin-left: 4px;
-    flex-shrink: 0;
+    flex-shrink: 0 !important;
+  }
+
+  .disabled-option {
+    filter: grayscale(1);
+    opacity: 0.45;
+    pointer-events: none;
   }
 
   .disabled-settings-section {
@@ -1710,6 +1774,7 @@ $toolbar-text: #8eabc5;
       .n-collapse-item__content-wrapper {
         .n-collapse-item__content-inner {
           padding: 16px 0 20px;
+
         }
       }
     }
