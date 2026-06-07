@@ -163,6 +163,8 @@ const store = createStore({
     ],
     sidebarHideFlash: false,
     notifications: [],
+    notificationPanelCollapsed: false,
+    notificationPanelWidth: 255,
     presetModalOpen: false,
     colorPicker_swatches: [
       '#001f3f',

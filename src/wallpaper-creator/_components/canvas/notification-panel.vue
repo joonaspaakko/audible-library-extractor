@@ -1,20 +1,20 @@
 <template>
   <div
     class="notification-panel"
-    :class="{ collapsed }"
-    :style="{ width: panelWidth + 'px' }"
+    :class="{ collapsed: notificationPanelCollapsed }"
+    :style="notificationPanelCollapsed ? {} : { width: notificationPanelWidth + 'px' }"
   >
 
     <div class="notification-panel-resize-handle" @mousedown="startResize"></div>
 
     <div class="notification-panel-header" @click="toggleCollapse">
       <span class="notification-panel-title">Hints</span>
-      <span class="notification-panel-badge" v-if="collapsed && notifications.length">{{ notifications.length }}</span>
-      <bx-bxs-chevrons-up v-if="!collapsed" class="notification-panel-chevron" />
+      <span class="notification-panel-badge" v-if="notificationPanelCollapsed && notifications.length">{{ notifications.length }}</span>
+      <bx-bxs-chevrons-up v-if="!notificationPanelCollapsed" class="notification-panel-chevron" />
       <bx-bxs-chevrons-down v-else class="notification-panel-chevron" />
     </div>
 
-    <div class="notification-panel-body" v-if="!collapsed">
+    <div class="notification-panel-body" v-if="!notificationPanelCollapsed">
       <div
         class="notification-item"
         :class="['notification-item--' + n.type, { 'notification-item--timed': n.timed }]"
@@ -48,8 +48,6 @@ export default {
 
   data: function() {
     return {
-      collapsed: false,
-      panelWidth: 280,
       minWidth: 200,
       maxWidth: 440,
       resizing: false,
@@ -63,8 +61,16 @@ export default {
       return this.$store.state.notifications;
     },
 
+    notificationPanelCollapsed: function() {
+      return this.$store.state.notificationPanelCollapsed;
+    },
+
+    notificationPanelWidth: function() {
+      return this.$store.state.notificationPanelWidth;
+    },
+
     visible: function() {
-      return this.collapsed || this.notifications.length > 0;
+      return this.notificationPanelCollapsed || this.notifications.length > 0;
     },
 
   },
@@ -72,28 +78,29 @@ export default {
   methods: {
 
     toggleCollapse: function() {
-      this.collapsed = !this.collapsed;
+      this.$store.commit( 'update', { key: 'notificationPanelCollapsed', value: !this.notificationPanelCollapsed } );
     },
 
     startResize: function( e ) {
       this.resizing = true;
       this.resizeStartX = e.clientX;
-      this.resizeStartWidth = this.panelWidth;
+      this.resizeStartWidth = this.notificationPanelWidth;
 
       const onMove = ( moveEvent ) => {
         if ( !this.resizing ) return;
         const delta = this.resizeStartX - moveEvent.clientX;
-        this.panelWidth = Math.min( this.maxWidth, Math.max( this.minWidth, this.resizeStartWidth + delta ) );
+        const clamped = Math.min( this.maxWidth, Math.max( this.minWidth, this.resizeStartWidth + delta ) );
+        this.$store.commit( 'update', { key: 'notificationPanelWidth', value: clamped } );
       };
 
       const onUp = () => {
         this.resizing = false;
-        document.removeEventListener('mousemove', onMove);
-        document.removeEventListener('mouseup', onUp);
+        document.removeEventListener( 'mousemove', onMove );
+        document.removeEventListener( 'mouseup', onUp );
       };
 
-      document.addEventListener('mousemove', onMove);
-      document.addEventListener('mouseup', onUp);
+      document.addEventListener( 'mousemove', onMove );
+      document.addEventListener( 'mouseup', onUp );
     },
 
   },
@@ -114,6 +121,14 @@ export default {
   min-width: 200px;
   max-width: 440px;
   user-select: none;
+  transition: top .2s ease, border-radius .2s ease;
+
+  &.collapsed {
+    top: 0;
+    min-width: 0;
+    max-width: none;
+    border-radius: 0 0 6px 6px;
+  }
 }
 
 .notification-panel-resize-handle {
@@ -127,6 +142,10 @@ export default {
 
   &:hover {
     background: rgba( 255, 255, 255, .06 );
+  }
+
+  .collapsed & {
+    display: none;
   }
 }
 
@@ -155,10 +174,11 @@ export default {
 .notification-panel-badge {
   font-size: 11px;
   font-weight: 700;
-  background: #0798f1;
-  color: #fff;
+  background: none;
+  color: rgba( 255, 255, 255, .5 );
+  border: 1px solid rgba( 255, 255, 255, .2 );
   border-radius: 999px;
-  padding: 1px 6px;
+  padding: 0px 5px;
   line-height: 1.4;
 }
 
