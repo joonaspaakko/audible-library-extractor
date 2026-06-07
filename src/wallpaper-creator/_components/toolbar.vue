@@ -136,43 +136,46 @@
 
               <div style="height: 22px; cursor: help;">
                 <div class="label-row time-until-next-cycle" v-if="store.awpAnimationStarted"
-                v-tippy="{ placement: 'top', allowHTML: true }"
-                :content="`
-                  <strong>Number:</strong> ${ !store.awpShowAnimationZone ? 0 : (store.awpAnimatedCoversLength || 0) } covers animated in this cycle. <br />
-                  <strong style='color: #48c86d;'>GREEN (animation zone):</strong> animations happen in this section. <br />
-                  <strong style='color: #ff2956;'>RED:</strong> time until next cycle begins.
-                  <br /><br />
-                  The line as a whole represents one full &#34;animation cycle&#34;
-                `"
+                  v-tippy="{ placement: 'left', allowHTML: true, maxWidth: 380 }"
+                  :content="`
+                    The bar represents one full animation cycle: <br /><br />
+                    <strong style='color: #48c86d;'>GREEN:</strong> covers animate during this window. <br />
+                    <strong style='color: #ff2956;'>RED:</strong> nothing animates here, just waiting for the next cycle to begin. <br /><br />
+                    A shorter green zone means covers animate in a burst at the start of each cycle. A longer green zone spreads them out more gradually. Setting it to 100% means animations run continuously with no pause.
+                  `"
                 >
-                  <span class="covers-this-cycle">{{ !store.awpShowAnimationZone ? 0 : (store.awpAnimatedCoversLength || 0) }}</span>
-                  <div class="progress-bar">
+                
+                  <div class="option-label"> Animation zone</div>
+                  <!-- <span class="covers-this-cycle">{{ !store.awpShowAnimationZone ? 0 : (store.awpAnimatedCoversLength || 0) }}</span> -->
+                  <div class="progress-bar" ref="progressBar">
                     <div class="fill" :class="{ animate: store.awpCycleDelay }"></div>
-                    <div class="fill-overlay"></div>
+                    <div
+                      v-if="store.awpShowAnimationZone && store.awpAnimationZone > -1"
+                      class="zone-tint"
+                      :style="{ width: store.awpAnimationZone + '%' }"
+                    ></div>
+                    <div
+                      v-if="store.awpShowAnimationZone && store.awpAnimationZone > -1"
+                      class="fill-overlay"
+                      :style="{ left: store.awpAnimationZone + '%' }"
+                    ></div>
+                    <div
+                      v-if="!store.awpShowAnimationZone"
+                      class="fill-overlay"
+                      style="left: 0"
+                    ></div>
+                    <div
+                      v-if="store.awpShowAnimationZone && store.awpAnimationZone > -1"
+                      class="zone-handle"
+                      :style="{ left: store.awpAnimationZone + '%' }"
+                      @mousedown.stop.prevent="onZoneHandleMousedown"
+                    ></div>
                   </div>
+                  
+                  <div class="progress-percentage">{{ store.awpAnimationZone }}%</div>
 
-                  <radix-icons-info-circled style="padding-left: 10px;" />
+                  <!-- <radix-icons-info-circled style="padding-left: 10px;" /> -->
 
-                  <component v-if="store.awpShowAnimationZone && store.awpAnimationZone > -1" is="style">
-                    .time-until-next-cycle .progress-bar:after {
-                      display: inline-block !important;
-                      left: {{ store.awpAnimationZone }}% !important;
-                    }
-                    .time-until-next-cycle .progress-bar:before {
-                      display: inline-block !important;
-                      width: {{ store.awpAnimationZone }}% !important;
-                    }
-                    .fill-overlay {
-                      display: inline-block !important;
-                      left: {{ store.awpAnimationZone }}% !important;
-                    }
-                  </component>
-                  <component v-if="!store.awpShowAnimationZone" is="style">
-                    .fill-overlay {
-                      display: inline-block !important;
-                      left: 0 !important;
-                    }
-                  </component>
                   <component v-if="store.awpAnimationStarted && store.awpCycleDelay" is="style">
                     .time-until-next-cycle .progress-bar .fill.animate {
                       -webkit-animation-duration: {{ store.awpCycleDelay }}s !important;
@@ -188,14 +191,14 @@
               </div>
 
               <div class="label-row">
-                <span>Animation Cycle (sec) </span>
+                <span>Animation cycle (sec) </span>
                 <n-input-number size="small" v-model:value="store.awpCycleDelay" :min="0" :step="1" />
               </div>
 
-              <div class="label-row" v-tippy content="A percentage of the animation cycle where covers are animated. Settings this to 0 animates covers immediately at the beginning of the cycle.">
+              <!-- <div class="label-row" v-tippy content="A percentage of the animation cycle where covers are animated. Settings this to 0 animates covers immediately at the beginning of the cycle.">
                 <span>Animation Zone (%) </span>
                 <n-slider v-model:value="store.awpAnimationZone" :min="0" :max="100" :step="1" :tooltip="true" />
-              </div>
+              </div> -->
 
               <div class="label-row">
                 <span>Covers per cycle</span>
@@ -838,6 +841,7 @@ export default {
   },
   beforeDestroy: function () {
     if ( this.modeSwitcherObserver ) this.modeSwitcherObserver.disconnect();
+    if ( this.zoneDragCleanup ) this.zoneDragCleanup();
   },
   
   computed: {
@@ -1006,6 +1010,32 @@ export default {
   
   methods: {
     
+    onZoneHandleMousedown: function( event ) {
+      const bar = this.$refs.progressBar;
+      if ( !bar ) return;
+
+      if ( this.zoneDragCleanup ) this.zoneDragCleanup();
+
+      const onMousemove = ( e ) => {
+        const currentBar = this.$refs.progressBar;
+        if ( !currentBar ) return;
+        const rect = currentBar.getBoundingClientRect();
+        if ( !rect.width ) return;
+        const pct = Math.round( Math.min( 100, Math.max( 0, (e.clientX - rect.left) / rect.width * 100 ) ) );
+        this.$store.commit( 'update', { key: 'awpAnimationZone', value: pct } );
+      };
+
+      const cleanup = () => {
+        window.removeEventListener( 'mousemove', onMousemove );
+        window.removeEventListener( 'mouseup', cleanup );
+        this.zoneDragCleanup = null;
+      };
+
+      this.zoneDragCleanup = cleanup;
+      window.addEventListener( 'mousemove', onMousemove );
+      window.addEventListener( 'mouseup', cleanup );
+    },
+
     previewPadding: function( key ) {
       this.hoveringPaddingHeading = true;
       if ( !this.store.slidingAround ) this.$store.commit("update", { key: "slidingAround", value: key });
@@ -1931,6 +1961,15 @@ $toolbar-text: #8eabc5;
 //   border-radius: 99999999px;
 // }
 
+.time-until-next-cycle {
+  .option-label,
+  .progress-percentage {
+    white-space: nowrap;
+    flex: 0 !important;
+    padding: 0 !important;
+  }
+}
+
 .covers-this-cycle {
   border-radius: 999999px;
   width: 20px;
@@ -1954,6 +1993,7 @@ $toolbar-text: #8eabc5;
   border-radius: 999999px;
   background: #212935;
   padding: 0 !important;
+  overflow: visible;
   .fill {
     width: 0%;
     height: 100%;
@@ -1974,35 +2014,17 @@ $toolbar-text: #8eabc5;
       100% { width: 100%; }
     }
   }
-  &:after {
-    display: none;
-    margin-left: -4.5px;
-    content: '';
-    position: absolute;
-    z-index: 1;
-    top: -3px;
-    width: 6px;
-    height: 6px;
-    background: #48c86d;
-    border: 3px solid #171e29;
-    border-radius: 999999px;
-  }
-  &:before {
-    display: none;
-    content: '';
+  .zone-tint {
     position: absolute;
     z-index: 1;
     top: 0;
-    left: 0px;
-    width: 6px;
+    left: 0;
     height: 6px;
     background: #48c86d;
     border-radius: 999999px;
     mix-blend-mode: color;
   }
   .fill-overlay {
-    display: none;
-    content: '';
     position: absolute;
     z-index: 1;
     top: 0;
@@ -2012,6 +2034,26 @@ $toolbar-text: #8eabc5;
     background: #cd5b73;
     border-radius: 999999px;
     mix-blend-mode: color;
+  }
+  .zone-handle {
+    position: absolute;
+    z-index: 2;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 12px;
+    height: 12px;
+    background: #fff;
+    border: 2px solid #171e29;
+    border-radius: 999999px;
+    cursor: ew-resize;
+    &::before {
+      content: '';
+      position: absolute;
+      top: -6px;
+      right: -6px;
+      bottom: -6px;
+      left: -6px;
+    }
   }
 }
 
