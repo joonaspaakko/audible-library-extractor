@@ -1,8 +1,9 @@
 <template>
-  <div 
-    class="left" id="editor-canvas-left" ref="left" 
+  <div
+    class="left" id="editor-canvas-left" ref="left"
     :data-saving-image="store.saving"
     v-shortkey="store.events.textRemove ? ['backspace'] : null" @shortkey="store.events.textRemove ? removeTextElement($event) : null"
+    @mouseenter="canvasLeftEnter" @mouseleave="canvasLeftLeave"
   >
   <!-- v-dragscroll="dragscrollEnabled" -->
 
@@ -20,42 +21,11 @@
 
     <tier-list-toolbar v-if="store.tierListMode" :draggableCovers="draggableCovers" />
     
-    <div class="cover-actions" v-if="store.coverActions">
-      <button v-if="$store.getters.rereadExist" class="remove-all-reread" @click="$store.commit('updateBookCover', { key: 'reread', value: false, book: store.coverActions, all: true })">
-        <fa-solid-trash-alt/>
-        &nbsp;
-        Clear all re-read books
-      </button>
-      <button class="reread" @click="$store.commit('updateBookCover', { key: 'reread', value: !store.coverActions.reread, book: store.coverActions })">
-        <ic-outline-check-circle style="color: #80f900;" v-if="store.coverActions.reread" />
-        <mdi-checkbox-blank-circle style="color: #333; border-radius: 9999px; box-shadow: inset 0 0 7px white" v-else />
-        &nbsp;
-        Re-read book
-      </button>
-      <button class="remove-cover" @click="$store.commit('removeCover', store.coverActions.asin)">
-        <fa-solid-trash-alt style="color: #ff4136;" />
-        &nbsp;
-        Remove book
-      </button>
-    </div>
+    <cover-context-menu />
     
     <div class="show-blank-canvas" v-show="store.saving"></div>
     
-    <n-config-provider :theme="darkTheme" class="float-alert-wrapper">
-      
-      <div class="float-alert" v-if="!store.animatedWallpaperMode">
-        <n-alert v-if="overlayHidden && showOverlay" title="Ovelay temporarily hidden so you can sort covers manually" type="warning" />
-      </div>
-      
-      <div class="float-alert">
-        <n-alert v-if="store.panningAlert" title="Sort covers manually by dragging or hold space bar while dragging to move the canvas" type="info" />
-      </div>
-      
-      <div class="float-alert">
-        <n-alert v-if="$store.getters.textElementActive" title="You can also move text using arrow keys. Shift modifier increases the step to 10px" type="info" />
-      </div>
-      
-    </n-config-provider>
+    <notification-panel />
     
     <div 
       ref="grid"  
@@ -72,17 +42,10 @@
         id="editor-canvas-content"
         @mouseenter="overlayHidden = true"
         @mouseleave="overlayHidden = false"
-        :class="{ 'show-cover-padding-preview': store.slidingAround === 'paddingSize', saving: store.saving, 'hide-overlay-on-hover': showOverlay }"
+        :class="{ 'show-cover-padding-preview': store.slidingAround === 'paddingSize', saving: store.saving }"
         ref="canvas"
         :style="canvasStyle"
       >
-        
-        <div class="legend" :style="{
-          right:  store.reread.label.offset.right+'px',
-          bottom: store.reread.label.offset.bottom+'px',
-        }">
-          <reread-marker v-if="!store.animatedWallpaperMode && $store.getters.rereadExist && store.reread.label.show" :isStatic="true">relisten</reread-marker>
-        </div>
         
         <div id="canvas-bg-color" v-if="store.canvas.background" :style="{ backgroundColor: store.canvas.background }"></div>
         <div id="awp-overlay" v-if="store.awpOverlayColorEnabled" :style="{ 
@@ -123,20 +86,19 @@
               :editorCanvasPaddingBottom="store.canvas.padding.bottom"
             />
             
-            <div v-else style="width: 100%; height: 100%; display: flex; flex-direction: row;" :style="canvasAlignmentVertical"> 
-              
-              <tier-list v-if="store.tierListMode" style="width: 100%;" @start="draggingStarted" @end="draggingEnded" @move="draggingMoved" />
-              
-              <draggable 
+            <div v-else style="width: 100%; height: 100%; display: flex; flex-direction: row;" :style="canvasAlignmentVertical">
+
+              <tier-list v-if="store.tierListMode" style="width: 100%;" :style="reservedMargins" @start="draggingStarted" @end="draggingEnded" @move="draggingMoved" />
+
+              <draggable
                 class="drag-container"
-                :class="{ 'tier-container': store.tierListMode, 'tier-container-collapse': !$store.getters.containerTierVisible }" 
-                v-if="!store.tierListMode || store.tierListMode && !store.saving"
-                v-model="draggableCovers" 
+                v-if="!store.tierListMode && !store.saving"
+                v-model="draggableCovers"
                 item-key="asin"
-                group="covers" 
-                @start="draggingStarted" 
-                @end="draggingEnded" 
-                @move="draggingMoved" 
+                group="covers"
+                @start="draggingStarted"
+                @end="draggingEnded"
+                @move="draggingMoved"
                 style="width: 100%;"
                 :style="store.tierListMode ? { marginTop: (store.paddingSize*10)+'px', minHeight: store.coverSize+'px' } : canvasAlignment"
               >
@@ -144,8 +106,16 @@
                   <cover :key="element.asin" :book="element"></cover>
                 </template>
               </draggable>
-              
+
             </div>
+
+            <unused-covers
+              v-if="!store.animatedWallpaperMode"
+              v-show="!store.saving"
+              @start="draggingStarted"
+              @end="draggingEnded"
+              @move="draggingMoved"
+            />
             
             <component v-if="!store.animatedWallpaperMode" is="style" class="cover-dynamic-sizes">
               .cover {
@@ -190,13 +160,12 @@ import animatedWallpaper from "../animated-wallpaper/animated-wallpaper-app.vue"
 import tierList from "@editor-comps/canvas/tier-list.vue";
 import tierListToolbar from "@editor-comps/canvas/tier-list-toolbar.vue";
 import cover from '@editor-comps/canvas/cover.vue';
+import notificationPanel from '@editor-comps/canvas/notification-panel.vue';
+import coverContextMenu from '@editor-comps/canvas/cover-context-menu.vue';
+import unusedCovers from '@editor-comps/canvas/unused-covers.vue';
 import zoomies from '@editor-mixins/canvas-zoom.js';
 
-import { 
-  NConfigProvider, 
-  darkTheme, 
-  NAlert,
-} from 'naive-ui';
+
 
 export default {
   name: "editorCanvas",
@@ -204,23 +173,23 @@ export default {
     calculateCoverSize,
     zoomies, 
   ],
-  components: { 
-    draggable, 
-    textElement, 
+  components: {
+    draggable,
+    textElement,
     animatedWallpaper,
     tierList,
     tierListToolbar,
     cover,
-    
-    NConfigProvider,
-    NAlert,
+    notificationPanel,
+    coverContextMenu,
+    unusedCovers,
   },
   data: function () {
     return {
       store: this.$store.state,
       dragscrollEnabled: false,
       overlayHidden: false,
-      darkTheme: darkTheme,
+      canvasLeftHovered: false,
       canvasHeightObserver: null,
     };
   },
@@ -257,24 +226,37 @@ export default {
         
     });
     
-    if ( this.store.tierListMode ) {
-      const tierContainer = this.$el.querySelector('.tier-container');
-      const appContainer = document.querySelector('#app');
-      appContainer.prepend( tierContainer )
-    }
-    
   },
 
   beforeUnmount: function () {
     document.querySelector('#editor-canvas-left').removeEventListener("scroll", this.panningCanvas);
     if ( this.canvasHeightObserver ) this.canvasHeightObserver.disconnect();
-    
-    const tierContainer = document.querySelector('#app > .tier-container');
-    if ( tierContainer ) tierContainer.remove();
+
     
   },
 
   watch: {
+
+    'store.tierListMode': {
+      immediate: true,
+      handler: function( active ) {
+        if ( active ) {
+          // move all canvas covers to hiddenCovers (opt-in)
+          const all = this.store.covers.concat( this.store.hiddenCovers );
+          this.$store.commit('update', { key: 'hiddenCovers', value: all });
+          this.$store.commit('update', { key: 'covers', value: [] });
+          this.$store.commit('setUnusedSidebarVisibility', true);
+        }
+        else {
+          // move all hiddenCovers back to canvas (restore)
+          const all = this.store.covers.concat( this.store.hiddenCovers );
+          this.$store.commit('update', { key: 'covers', value: all });
+          this.$store.commit('update', { key: 'hiddenCovers', value: [] });
+          this.$store.commit('setUnusedSidebarVisibility', false);
+        }
+      },
+    },
+
     reservedPadding: {
       handler: function( newVal, oldVal ) {
         if ( newVal.left !== oldVal.left || newVal.right !== oldVal.right ) {
@@ -285,14 +267,39 @@ export default {
       },
       deep: true,
     },
+
+    'textElementActive': function( active ) {
+      if ( active ) {
+        this.$store.commit('addNotification', { id: 'text-arrow-keys', type: 'arrows', message: 'Drag to move, or use arrow keys. Shift gives larger steps.' });
+        this.$store.commit('addNotification', { id: 'text-dblclick',   type: 'text',   message: 'Double-click to edit text.' });
+      }
+      else {
+        this.$store.commit('removeNotification', 'text-arrow-keys');
+        this.$store.commit('removeNotification', 'text-dblclick');
+      }
+    },
+
+    'store.panningAlert': function( active ) {
+      if ( active ) {
+        this.$store.commit('addNotification', { id: 'panning', icon: 'arrows', color: 'red', message: 'Drag to reorder covers. Hold Space to pan instead.' });
+        this.$store.commit('removeNotification', 'canvas-pan');
+      }
+      else {
+        this.$store.commit('removeNotification', 'panning');
+        if ( this.canvasLeftHovered ) {
+          this.$store.commit('addNotification', { id: 'canvas-pan', icon: 'hand-fill', color: 'blue', message: 'Drag to move around.' });
+        }
+      }
+    },
+
   },
 
   computed: {
 
-    showOverlay() {
-      return !this.store.animatedWallpaperMode && this.store.awpOverlayColorEnabled;
+    textElementActive: function() {
+      return this.$store.getters.textElementActive;
     },
-    
+
     paddingSizeNumber: function() {
       return parseFloat( this.store.paddingSize );
     },
@@ -322,18 +329,31 @@ export default {
     
     draggableCovers: {
       get() {
-        let covers = this.store.covers;
-            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;        
+        const hiddenAsins = new Set( _.map( this.store.hiddenCovers, 'asin' ) );
+        let covers = _.filter( this.store.covers, o => !hiddenAsins.has( o.asin ) );
+        if ( this.store.coversRandomized && this.store.randomizedOrder.length ) {
+          const indexMap = _.keyBy(covers, 'asin');
+          const ordered = _.compact( _.map(this.store.randomizedOrder, asin => indexMap[asin]) );
+          const rest = _.filter(covers, o => !_.includes(this.store.randomizedOrder, o.asin));
+          covers = ordered.concat(rest);
+        }
+        covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;
         return covers.slice(0, this.store.coverAmount);
       },
       set(value) {
         this.$store.commit('update', { key: 'covers', value: value  });
       }
     },
+
     usedCovers: {
       get() {
         let covers = this.store.covers;
-            covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;        
+        if ( this.store.coversRandomized && this.store.randomizedOrder.length ) {
+          const indexMap = _.keyBy(covers, 'asin');
+          covers = _.compact( _.map(this.store.randomizedOrder, asin => indexMap[asin]) );
+          covers = covers.concat( _.filter(this.store.covers, o => !_.includes(this.store.randomizedOrder, o.asin)) );
+        }
+        covers = this.store.excludeArchived ? _.filter(covers, function(o) { return !o.inArchive; }) : covers;
         return covers.slice(0, this.store.coverAmount);
       },
       set(value) {
@@ -391,19 +411,25 @@ export default {
     //   } 
     //   return style;
     // },
+    // RESERVED MARGINS: the text-reserved space expressed as plain margins. Shared by the cover
+    // draggable and the tier list so reservations push content in on every side in both modes.
+    reservedMargins: function() {
+      const rp = this.reservedPadding;
+      return {
+        marginTop:    rp.top    ? rp.top    + 'px' : null,
+        marginRight:  rp.right  ? rp.right  + 'px' : null,
+        marginBottom: rp.bottom ? rp.bottom + 'px' : null,
+        marginLeft:   rp.left   ? rp.left   + 'px' : null,
+      };
+    },
+
     canvasAlignment: function() {
       let style = {};
 
       style.textAlign = this.store.canvas.alignment;
       style.position = this.store.canvas.height > 0 ? 'absolute' : null;
 
-      const rp = this.reservedPadding;
-      style.marginTop    = rp.top    ? rp.top    + 'px' : null;
-      style.marginRight  = rp.right  ? rp.right  + 'px' : null;
-      style.marginBottom = rp.bottom ? rp.bottom + 'px' : null;
-      style.marginLeft   = rp.left   ? rp.left   + 'px' : null;
-
-      return style;
+      return _.assign( style, this.reservedMargins );
     },
     canvasAlignmentVertical: function() {
       let style = {};
@@ -459,6 +485,20 @@ export default {
       }
     },
     
+    canvasLeftEnter: function() {
+      this.canvasLeftHovered = true;
+      this.$store.commit('addNotification', { id: 'zoom-hint', icon: 'scroll', color: 'info', message: 'Scroll to zoom.' });
+      if ( !this.store.panningAlert ) {
+        this.$store.commit('addNotification', { id: 'canvas-pan', icon: 'hand-fill', color: 'blue', message: 'Drag to move around.' });
+      }
+    },
+
+    canvasLeftLeave: function() {
+      this.canvasLeftHovered = false;
+      this.$store.commit('removeNotification', 'zoom-hint');
+      this.$store.commit('removeNotification', 'canvas-pan');
+    },
+
     panningCanvas: function() {
       this.$emitter.emit('update-moveable-handles');
     },
@@ -527,6 +567,21 @@ export default {
     cursor: grabbing !important;
   }
 }
+
+#editor-canvas-content .canvas-bounds {
+  cursor: grabbing !important;
+}
+#editor-canvas-content .grid-inner-wrap > div {
+  cursor: grabbing !important;
+}
+#editor-canvas-content .drag-container {
+  cursor: grabbing !important;
+}
+#editor-canvas-content .drag-container .cover {
+  cursor: move !important;
+}
+
+
 
 .grid.force-panning:before {
   content: '';
@@ -720,146 +775,19 @@ export default {
   z-index: -1;
 }
 
-.hide-overlay-on-hover:hover #awp-overlay {
-  display: none;
+#awp-overlay {
+  pointer-events: none;
 }
 
-.float-alert-wrapper {
-  position: fixed;
-  z-index: 9999;
-  bottom: 5px;
-  left: 5px;
-  transform: scale(.8);
-  transform-origin: bottom left;
-}
-.float-alert {
-  margin-top: 6px;
-  background: rgb(22, 30, 41);
-}
 
 [data-saving-image="true"] #editor-canvas-content {
   transform: none !important;
   transform-origin: top left !important;
 }
 
-.cover-actions {
-  position: absolute;
-  z-index: 9999999;
-  top: 0;
-  right: 0;
-  // left: 0;
-  // background: rgba(#000, .7);
-  padding: 10px 50px 0px 0px;
-  border-radius: 0 0 0 36px;
-  &, button {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-  }
-  button {
-    padding: 15px 25px;
-    background: #161e29;
-    box-shadow: 0 2px 15px #0798f1, 0 2px 20px 4px #161e29;
-    color: #fff;
-    font-size: 15px;
-    border-radius: 999px;
-    border: none;
-    outline: none;
-    border: 2px solid #31b1ff;
-    cursor: pointer;
-  }
-  button + button {
-    margin-left: 10px;
-  }
-  .remove-all-reread {
-    svg {
-      color: lighten(red, 15);
-    }
-  }
-}
-
-:global(.tier-container) {
-  width: 324px !important;
-  display: block !important;
-  font-size: 0 !important;
-  overflow: hidden auto !important;
-  margin: 0 !important;
-  box-shadow: -4px 0 10px darken( rgba(#171e29, .3), 20) !important;
-  background: #171e29 !important;
-  text-align: center !important;
-  padding: 25px 0 !important;
-  box-sizing: border-box !important;
-}
-
-:global(.tier-container .cover) {
-  width:  118px !important;
-  height: 118px !important;
-  padding: 0 !important;
-}
-:global(.tier-container .cover img) {
-  width:  118px !important;
-  height: 118px !important;
-  box-shadow: 0 0 5px rgba(#000, .5);
-}
-:global(.tier-container .cover) {
-  margin: 5px !important;
-}
-:global(.tier-container .cover .cover-heart-icon) {
-  top: 5px !important;
-  right: 5px !important;
-}
-:global(.tier-container .cover .cover-heart-icon svg) {
-  font-size: 19px !important;
-  line-height: 19px !important;
-}
-:global(.tier-container .cover .cover-star-icons) {
-  height: 15px !important;
-}
-:global(.tier-container .cover .cover-star-icons svg) {
-  font-size: 19px !important;
-  line-height: 19px !important;
-}
-:global(.tier-container .author-and-title) {
-  font-size: 19px !important;
-  line-height: 19px !important;
-  color: #fff !important;
-  width: 100% !important;
-  display: none !important;
-}
-
-
-:global(.tier-container) {
-  transition: all 300ms ease-in-out;
-}
-:global(.tier-container-collapse) {
-  width: 0px !important;
-}
-
-:global(.tier-container .cover) {
-  transition: all 250ms ease;
-}
-:global(.tier-container-collapse .cover) {
-  opacity: 0 !important;
-}
 
 :global(.sortable-chosen) {
   // filter: grayscale(1);
 }
-
-.legend {
-  position: absolute;
-  bottom: 0px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-</style>
-
-<style lang="scss">
-
-// .moveable-control-box {
-//   display: none;
-// }
 
 </style>

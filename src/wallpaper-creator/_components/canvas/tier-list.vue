@@ -12,7 +12,7 @@
     >
       
       <div 
-        v-if="tier.key !== 'container'"
+        v-if="tier.key !== 'unusedSidebar'"
         data-tier-list-label
         class="label panzoom-exclude" 
         ref="label"
@@ -69,14 +69,14 @@ export default {
   
   computed: {
     visibleTiers: function() {
-      return _.filter( this.store.tiers, function( o ){ return o.visible && o.key !== 'container' });
+      return _.filter( this.store.tiers, function( o ){ return o.visible && o.key !== 'unusedSidebar' });
     },
   },
   
   created: function() {
     
     // this.$store.commit('tierConcat', {
-    //   key: 'container',
+    //   key: 'unusedSidebar',
     //   list: this.store.covers,
     //   ifEmpty: true,
     // });

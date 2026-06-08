@@ -1,5 +1,6 @@
 import { createStore } from 'vuex';
 import canvasPresets from './wallpaper-creator-canvas-presets.js';
+import { resolveNotification } from './_components/canvas/notification-presets.js';
 
 // import _ from "lodash";
 
@@ -9,6 +10,7 @@ const store = createStore({
     resetting: false,
     visibleAnimatedCovers: null,
     covers: [],
+    hiddenCovers: [],
     coverAmount: 300,
     coverSize: 160,
     paddingSize: 0,
@@ -16,15 +18,6 @@ const store = createStore({
     coversPerRow: 14,
     borderRadius: 0,
     reverseCoverFlow: false,
-    reread: {
-      label: {
-        show: true,
-        offset: {
-          right: 0,
-          bottom: 0,
-        }
-      },
-    },
     canvas: {
       color: null,
       width: 1920,
@@ -72,6 +65,8 @@ const store = createStore({
     animatedWallpaperMode: false,
     tierListMode: false,
     excludeArchived: false,
+    coversRandomized: false,
+    randomizedOrder: [],
     archived: 0,
     animationPreset: null,
     animationPresets: null,
@@ -152,6 +147,7 @@ const store = createStore({
     showFavorites: false,
     showMyRating: false,
     toolbarCollapsed: false,
+    toolbarExpandedSections: [ 'animation-settings' ],
     
     // PRESETS
     canvasPreset: 'wallpaper',
@@ -165,8 +161,12 @@ const store = createStore({
       { visible: true, key: 'D', color: '#78f2f2', list: [], text: '' }, 
       { visible: true, key: 'E', color: '#9c9bff', list: [], text: '' }, 
       { visible: true, key: 'F', color: '#ff93fd', list: [], text: '' },
-      { visible: true, key: 'container',  list: [] },
+      { visible: true, key: 'unusedSidebar', list: [] },
     ],
+    sidebarHideFlash: false,
+    notifications: [],
+    notificationPanelCollapsed: false,
+    notificationPanelWidth: 255,
     presetModalOpen: false,
     colorPicker_swatches: [
       '#001f3f',
@@ -221,7 +221,11 @@ const store = createStore({
         delete lsState.colorPicker_swatches;
         delete lsState.textElFonts;
         delete lsState.coverActions;
+        delete lsState.notifications;
         _.merge( state, lsState );
+        // migrate old tier key
+        const oldContainerTier = _.find( state.tiers, { key: 'container' } );
+        if ( oldContainerTier ) oldContainerTier.key = 'unusedSidebar';
         _.each( state.textElements, function( el ) {
           el.active = false;
           const rp = el.reservedPadding;
@@ -234,6 +238,25 @@ const store = createStore({
       }
     },
     
+    addNotification( state, opts ) {
+    
+      if ( state.notifications.find( n => n.id === opts.id ) ) return;
+      
+      const notification = resolveNotification( opts );
+      state.notifications.push( notification );
+      
+      if ( notification.duration ) {
+        setTimeout( () => {
+          state.notifications = state.notifications.filter( n => n.id !== opts.id );
+        }, notification.duration );
+      }
+      
+    },
+
+    removeNotification( state, id ) {
+      state.notifications = state.notifications.filter( n => n.id !== id );
+    },
+
     addText( state, textElement ) {
       
       ++state.textElementCounter;
@@ -390,15 +413,16 @@ const store = createStore({
     },
     
     resetTiers: function( state, config ) {
-      
+
+      const hiddenAsins = new Set( _.map( state.hiddenCovers, 'asin' ) );
       let covers = [];
-      
+
       _.each( state.tiers, function( tier ) {
-        covers = covers.concat( tier.list );
+        covers = covers.concat( _.filter( tier.list, o => !hiddenAsins.has( o.asin ) ) );
       });
-      
+
       state.covers = covers.concat( state.covers );
-      
+
     },
     
     toggleTier: function( state, tier ) {
@@ -408,14 +432,41 @@ const store = createStore({
       
     },
     
-    removeCover( state, asin ) {
-      const coverIndex = _.findIndex( state.covers, { asin: asin });
-      if ( coverIndex > -1 ) state.covers.splice(coverIndex, 1);
+    setUnusedSidebarVisibility( state, value ) {
 
-      const usedIndex = _.findIndex( state.usedCovers, { asin: asin });
-      if ( usedIndex > -1 ) state.usedCovers.splice(usedIndex, 1);
+      const tier = _.find( state.tiers, { key: 'unusedSidebar' } );
+      if ( !tier ) return;
 
-      if ( state.coverAmount > 0 ) state.coverAmount--;
+      tier.visible = value;
+
+    },
+    
+    hideCover( state, asin ) {
+      let book = null;
+
+      // remove from covers
+      const coverIndex = _.findIndex( state.covers, { asin });
+      if ( coverIndex > -1 ) {
+        book = state.covers.splice(coverIndex, 1)[0];
+      }
+
+      // remove from usedCovers
+      const usedIndex = _.findIndex( state.usedCovers, { asin });
+      if ( usedIndex > -1 ) {
+        if ( !book ) book = state.usedCovers[usedIndex];
+        state.usedCovers.splice(usedIndex, 1);
+      }
+
+      // remove from any tier list
+      _.each( state.tiers, function( tier ) {
+        const tierIndex = _.findIndex( tier.list, { asin });
+        if ( tierIndex > -1 ) {
+          if ( !book ) book = tier.list[tierIndex];
+          tier.list.splice(tierIndex, 1);
+        }
+      });
+
+      if ( book ) state.hiddenCovers.push( book );
       state.coverActions = null;
     },
 
@@ -495,8 +546,19 @@ const store = createStore({
       return result;
     },
     
-    containerTierVisible: function( state ) {
-      return _.find(state.tiers, { key: 'container' }).visible;
+    unusedSidebarTier: function( state ) {
+
+      if ( _.isEmpty( state.tiers ) ) return;
+
+      return _.find(state.tiers, { key: 'unusedSidebar' });
+
+    },
+    unusedSidebarVisible: function( state, getters ) {
+
+      if ( !getters.unusedSidebarTier ) return;
+
+      return getters.unusedSidebarTier.visible;
+
     },
     
     scaledCanvasDimensions( state, getters ) {

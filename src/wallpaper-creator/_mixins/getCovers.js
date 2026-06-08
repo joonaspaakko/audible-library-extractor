@@ -19,7 +19,7 @@ export default {
       // Clear certain parts of the data when coming in from the gallery
       if ( window.location.href.indexOf('src=gallery') > -1 ) {
         this.$store.commit('clearTiers');
-        this.$store.commit('update', [{ key: 'covers', value: [] }, { key: 'usedCovers', value: [] }]);
+        this.$store.commit('update', [{ key: 'covers', value: [] }, { key: 'usedCovers', value: [] }, { key: 'coversRandomized', value: false }, { key: 'randomizedOrder', value: [] }]);
         // Remove URL param
         const newURL = location.href.split("?")[0];
         window.history.pushState({}, document.title, newURL);
@@ -57,6 +57,7 @@ export default {
 
               coverAmount = coversArray.length > coverAmount ? coverAmount : coversArray.length;
               changes.push({ key: "coverAmount", value: coverAmount });
+              changes.push({ key: "hiddenCovers", value: [] });
 
             }
             else if ( !vue.$store.state.coverAmount || coversArray.length < vue.$store.state.coverAmount ) {
