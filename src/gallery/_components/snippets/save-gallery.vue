@@ -349,7 +349,7 @@ export default {
           }
         `;
         
-        const useServiceWorker = false;
+        const useServiceWorker = true;
         loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker +'<\/script>' : '';
         
         const getFile = function( name, ext ) {
@@ -410,12 +410,14 @@ export default {
             '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
             '<meta name="theme-color" content="#f29a33">' +
             "<title>My Audible Library</title>" +
+            '<script type="module" src="https://esm.sh/@khmyznikov/pwa-install"><\/script>' +
             loadServiceWorker +
             '<link id="ale-css" rel="stylesheet" href="'+ getFile('gallery', 'css') +'">' +
           "</head>" +
           "<body>" +
           
             '<div id="audible-library-extractor" data-version="'+ this.$store.state.version +'" data-cache-id="'+ vue.cacheBuster +'"></div>' +
+            '<pwa-install use-local-storage styles=\'{"--tint-color": "#f29a33"}\'></pwa-install>' +
             '<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"><\/script>' +
             // '<script type="module" src="'+ lodashJS +'"><\/script>' +
             '<script id="ale-js" src="'+ getFile('gallery', 'js') +'" type="module"><\/script>' +
@@ -508,9 +510,9 @@ export default {
         // vue.files.push('app.webmanifest');
 
         // Service worker file
-        // if ( useServiceWorker ) {
-        //   files.add( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
-        // }
+        if ( useServiceWorker ) {
+          files.add( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
+        }
         
         const total = assetFiles.length;
         let done = 0;
@@ -708,7 +710,7 @@ export default {
       let vue = this;
 
       return `
-      importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.1.5/workbox-sw.js');
+      importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
       workbox.setConfig({
         debug: false,
