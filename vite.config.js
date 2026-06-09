@@ -95,6 +95,9 @@ else {
 export default defineConfig({
   base: '',
   publicDir: src('public'),
+  server: {
+    cors: true,
+  },
   // Build options
   // root: 'src',
   build: {
