@@ -8,7 +8,7 @@
     <div
     class="single-box"
     :data-category="parent.name"
-    v-for="(parent, index) in categories"
+    v-for="(parent, parentCategoryIndex) in categories"
     :key="parent.name"
     >
     
@@ -30,30 +30,14 @@
             {{ child.name }}
           </router-link>
           <span v-else></span>
-          <span v-if="child.books" class="number-of-books">({{ child.books.length }})</span>
+          <span v-if="child.books" class="number-of-books">&nbsp;({{ child.books.length }})</span>
         </div>
       </div>
       
-      <div class="sample-covers">
-        <div
-        class="sample-cover"
-        v-if="parent && parent.books"
-        v-for="(book, index) in getRandomBooks(parent.books, 5)"
-        :key="book.asin"
-        >
-          <router-link :to="{ 
-            name: 'category', 
-            params: { 
-              parent: book.categories[0] ? slugify(book.categories[0].name) : null, 
-              child:  book.categories[1] ? slugify(book.categories[1].name) : null 
-            }, 
-            query: { book: book.asin, subPageSource: subPageSource.name }
-          }">
-            <img crossorigin="anonymous" :src="makeCoverUrl(book.cover)" alt="" />
-          </router-link>
-        </div>
-      </div>
+      <gallery-categories-page-random-thumbnails v-if="parent && parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" />
       
+      <gallery-categories-page-tags v-if="parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" :parentCategoryIndex="parentCategoryIndex" />
+
     </div> <!-- .single-box -->
     
   </div>
@@ -61,12 +45,11 @@
 
 <script>
 import slugify from "@output-mixins/gallery-slugify.js";
-import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 import findSubPageSource from "@output-mixins/gallery-findSubPageSource.js";
 
 export default {
   name: "aleCategories",
-  mixins: [slugify, makeCoverUrl, findSubPageSource],  
+  mixins: [slugify, findSubPageSource],  
   data: function() {
     return {
       categories: null,
@@ -77,11 +60,6 @@ export default {
   },
   
   methods: {
-    
-    getRandomBooks: function(books, number) {
-      let booksWithCategories = _.filter(books, function( book ) { return (book.categories && book.categories.length > 1) && book.cover });
-      return _.sampleSize(booksWithCategories, number);
-    },
     
     makeCollection: function() {
       

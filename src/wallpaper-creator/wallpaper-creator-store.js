@@ -1,5 +1,6 @@
 import { createStore } from 'vuex';
 import canvasPresets from './wallpaper-creator-canvas-presets.js';
+import { resolveNotification } from './_components/canvas/notification-presets.js';
 
 // import _ from "lodash";
 
@@ -9,6 +10,7 @@ const store = createStore({
     resetting: false,
     visibleAnimatedCovers: null,
     covers: [],
+    hiddenCovers: [],
     coverAmount: 300,
     coverSize: 160,
     paddingSize: 0,
@@ -16,15 +18,6 @@ const store = createStore({
     coversPerRow: 14,
     borderRadius: 0,
     reverseCoverFlow: false,
-    reread: {
-      label: {
-        show: true,
-        offset: {
-          right: 0,
-          bottom: 0,
-        }
-      },
-    },
     canvas: {
       color: null,
       width: 1920,
@@ -72,6 +65,8 @@ const store = createStore({
     animatedWallpaperMode: false,
     tierListMode: false,
     excludeArchived: false,
+    coversRandomized: false,
+    randomizedOrder: [],
     archived: 0,
     animationPreset: null,
     animationPresets: null,
@@ -152,6 +147,7 @@ const store = createStore({
     showFavorites: false,
     showMyRating: false,
     toolbarCollapsed: false,
+    toolbarExpandedSections: [ 'animation-settings' ],
     
     // PRESETS
     canvasPreset: 'wallpaper',
@@ -165,8 +161,12 @@ const store = createStore({
       { visible: true, key: 'D', color: '#78f2f2', list: [], text: '' }, 
       { visible: true, key: 'E', color: '#9c9bff', list: [], text: '' }, 
       { visible: true, key: 'F', color: '#ff93fd', list: [], text: '' },
-      { visible: true, key: 'container',  list: [] },
+      { visible: true, key: 'unusedSidebar', list: [] },
     ],
+    sidebarHideFlash: false,
+    notifications: [],
+    notificationPanelCollapsed: false,
+    notificationPanelWidth: 255,
     presetModalOpen: false,
     colorPicker_swatches: [
       '#001f3f',
@@ -221,15 +221,51 @@ const store = createStore({
         delete lsState.colorPicker_swatches;
         delete lsState.textElFonts;
         delete lsState.coverActions;
+        delete lsState.notifications;
         _.merge( state, lsState );
+        // migrate old tier key
+        const oldContainerTier = _.find( state.tiers, { key: 'container' } );
+        if ( oldContainerTier ) oldContainerTier.key = 'unusedSidebar';
+        _.each( state.textElements, function( el ) {
+          el.active = false;
+          const rp = el.reservedPadding;
+          const isNewShape = rp && 'side' in rp && 'value' in rp && !( 'top' in rp );
+          if ( !isNewShape ) {
+            el.reservedPadding = { side: null, value: 0 };
+          }
+          if ( !el.upDirection ) el.upDirection = 'top';
+        });
       }
     },
     
+    addNotification( state, opts ) {
+    
+      if ( state.notifications.find( n => n.id === opts.id ) ) return;
+      
+      const notification = resolveNotification( opts );
+      state.notifications.push( notification );
+      
+      if ( notification.duration ) {
+        setTimeout( () => {
+          state.notifications = state.notifications.filter( n => n.id !== opts.id );
+        }, notification.duration );
+      }
+      
+    },
+
+    removeNotification( state, id ) {
+      state.notifications = state.notifications.filter( n => n.id !== id );
+    },
+
     addText( state, textElement ) {
       
       ++state.textElementCounter;
       if ( !textElement.id ) textElement.id = state.textElementCounter;
       if ( !textElement.textElement ) textElement.textElement = true;
+      if ( !textElement.reservedPadding || Array.isArray( textElement.reservedPadding ) || 'top' in textElement.reservedPadding ) {
+        textElement.reservedPadding = { side: null, value: 0 };
+      }
+      if ( !textElement.upDirection ) textElement.upDirection = 'top';
       
       let activeEl = _.find( state.textElements, { active: true });
       if ( activeEl ) activeEl.active = false;
@@ -239,8 +275,6 @@ const store = createStore({
     },
     
     removeText( state, index ) {
-      console.log( state.textElements )
-      console.log( index )
       state.textElements.splice(index, 1);
     },
     
@@ -250,10 +284,6 @@ const store = createStore({
         config = config || {};
         let textObj = state.textElements[ config.index ];
         if ( config.key && textObj ) {
-          
-          console.log( textObj )
-          console.log( config.key, config.value )
-          
           _.set(textObj, config.key, config.value);
         }
       };
@@ -268,6 +298,12 @@ const store = createStore({
       
     },
     
+    setTextReservedPadding( state, { index, side, value } ) {
+      if ( state.textElements[ index ] ) {
+        state.textElements[ index ].reservedPadding = { side, value };
+      }
+    },
+
     activateText( state, activateIndex ) {
       
       _.each( state.textElements, function( el, index ) {
@@ -314,12 +350,7 @@ const store = createStore({
       let setValues = function (config) {
         config = config || {};
         let textObj = state.tiers[ config.index ];
-        console.log( config.index )
         if ( config.key && textObj ) {
-          
-          console.log( textObj )
-          console.log( config.key, config.value )
-          
           _.set(textObj, 'text', config.value);
         }
       };
@@ -337,7 +368,6 @@ const store = createStore({
     changePreset: function( state, presetName ) {
       
       let preset = _.find( state.canvasPresets, { value: presetName });
-      console.log( preset.options )
       if ( preset ) state = _.merge( state, preset.options );
       
     },
@@ -383,15 +413,16 @@ const store = createStore({
     },
     
     resetTiers: function( state, config ) {
-      
+
+      const hiddenAsins = new Set( _.map( state.hiddenCovers, 'asin' ) );
       let covers = [];
-      
+
       _.each( state.tiers, function( tier ) {
-        covers = covers.concat( tier.list );
+        covers = covers.concat( _.filter( tier.list, o => !hiddenAsins.has( o.asin ) ) );
       });
-      
+
       state.covers = covers.concat( state.covers );
-      
+
     },
     
     toggleTier: function( state, tier ) {
@@ -401,6 +432,44 @@ const store = createStore({
       
     },
     
+    setUnusedSidebarVisibility( state, value ) {
+
+      const tier = _.find( state.tiers, { key: 'unusedSidebar' } );
+      if ( !tier ) return;
+
+      tier.visible = value;
+
+    },
+    
+    hideCover( state, asin ) {
+      let book = null;
+
+      // remove from covers
+      const coverIndex = _.findIndex( state.covers, { asin });
+      if ( coverIndex > -1 ) {
+        book = state.covers.splice(coverIndex, 1)[0];
+      }
+
+      // remove from usedCovers
+      const usedIndex = _.findIndex( state.usedCovers, { asin });
+      if ( usedIndex > -1 ) {
+        if ( !book ) book = state.usedCovers[usedIndex];
+        state.usedCovers.splice(usedIndex, 1);
+      }
+
+      // remove from any tier list
+      _.each( state.tiers, function( tier ) {
+        const tierIndex = _.findIndex( tier.list, { asin });
+        if ( tierIndex > -1 ) {
+          if ( !book ) book = tier.list[tierIndex];
+          tier.list.splice(tierIndex, 1);
+        }
+      });
+
+      if ( book ) state.hiddenCovers.push( book );
+      state.coverActions = null;
+    },
+
     updateBookCover( state, config ) {
       
       
@@ -464,26 +533,100 @@ const store = createStore({
     textElementActive: function( state ) {
       return !!_.find( state.textElements, 'active');
     },
+
+    // SUM OF RESERVED PADDING PER SIDE: space text elements reserve so covers don't overlap them.
+    reservedPadding: function( state ) {
+      const result = { top: 0, right: 0, bottom: 0, left: 0 };
+      _.each( state.textElements, function( el ) {
+        const rp = el.reservedPadding;
+        if ( rp && rp.side ) {
+          result[ rp.side ] += rp.value || 0;
+        }
+      });
+      return result;
+    },
     
-    containerTierVisible: function( state ) {
-      return _.find(state.tiers, { key: 'container' }).visible;
+    unusedSidebarTier: function( state ) {
+
+      if ( _.isEmpty( state.tiers ) ) return;
+
+      return _.find(state.tiers, { key: 'unusedSidebar' });
+
+    },
+    unusedSidebarVisible: function( state, getters ) {
+
+      if ( !getters.unusedSidebarTier ) return;
+
+      return getters.unusedSidebarTier.visible;
+
     },
     
     scaledCanvasDimensions( state, getters ) {
-      
+
       let scale = function( size ) {
         let scale = state.canvas.outputScale;
         return (scale > 0 && scale != 1) ? size * scale : size;
       };
-      
-      let content = document.querySelector("#editor-canvas-content");
-      const height = content ? content.clientHeight : null;
-      
+
+      let autoHeight = state.canvas.autoHeight;
+      if ( !autoHeight ) {
+        let content = document.querySelector("#editor-canvas-content");
+        autoHeight = content ? content.clientHeight : 0;
+      }
+
       return {
         width:  Math.ceil(scale(state.canvas.width)),
-        height: Math.ceil(scale(state.canvas.height || height)),
+        height: Math.ceil(scale(state.canvas.height || autoHeight)),
       };
-      
+
+    },
+
+    /**
+     * Predicts whether the static image export will exceed the browser's canvas limits.
+     *
+     * A canvas that breaches either ceiling makes toDataURL silently return an empty
+     * "data:," string rather than throwing, which would otherwise save a 0 byte file.
+     * We catch that at save time too, but this getter lets the UI warn beforehand using
+     * the same projected dimensions already shown to the user.
+     *
+     * @returns {{
+     *   tooLarge: boolean,  whether either ceiling is breached
+     *   overSide: boolean,  width or height is past the per-side limit
+     *   overArea: boolean,  width * height is past the total-area limit
+     *   width:    number,   projected output width in px
+     *   height:   number,   projected output height in px
+     *   maxSide:  number,   the per-side ceiling in px
+     *   maxArea:  number,   the total-area ceiling in px squared
+     * }}
+     */
+    exportTooLarge( state, getters ) {
+
+      // BROWSER CANVAS CEILINGS (chrome)
+      // both limits apply at once: a single side can't exceed maxSide, AND
+      // width * height can't exceed maxArea. maxSide is the same cap for width
+      // and height, there is no separate width/height limit.
+      const maxSide = 65535;     // px, per side (applies to width AND height)
+      const maxArea = 268435456; // px squared, total area (width * height)
+
+      // PROJECTED OUTPUT
+      // reuse the same scaled dimensions the save panel displays, so the warning
+      // can never disagree with the size shown next to it.
+      let dimensions = getters.scaledCanvasDimensions;
+
+      // LIMIT CHECKS
+      let overSide = dimensions.width > maxSide || dimensions.height > maxSide;
+      let overArea = (dimensions.width * dimensions.height) > maxArea;
+
+      return {
+        tooLarge: overSide || overArea,
+        overSide: overSide,
+        overArea: overArea,
+        width:    dimensions.width,
+        height:   dimensions.height,
+        maxSide:  maxSide,
+        maxArea:  maxArea,
+      };
+
     },
     
     rereadExist( state, getters ) {
@@ -520,14 +663,12 @@ const store = createStore({
 
 // Overwrite sticky defaults with local storage values
 store.commit("fromLocalStorage");
-// Listen for sticky commits and push them to local storage
-store.subscribe( function(mutation, state) {
-  
+// Listen for sticky commits and push them to local storage (debounced to avoid blocking on rapid slider changes)
+store.subscribe( _.debounce( function(mutation, state) {
   if ( !state.resetting ) {
     localStorage.setItem("aleImageEditorSettings", JSON.stringify( state ));
   }
-  
-});
+}, 300, { leading: false, trailing: true }));
 
 export default store;
 

@@ -118,7 +118,7 @@ export default {
       let series = [];
       if (vue.book.series) {
         _.each(vue.book.series, function(currentSeries, i) {
-          const allBooksInSeries = _.find(vue.$store.state.library.series, {
+          const allBooksInSeries = _.find(vue.$store.state.audibledata.series, {
             asin: currentSeries.asin
           });
           if (allBooksInSeries) {
@@ -133,9 +133,9 @@ export default {
               books: _.map( booksSource , function( book ) {
                 let asin = book.asin || book;
                 let inLibrary = _.includes( allBooksInSeries.books, asin );
-                const wishlistBook = _.find(vue.$store.state.library.wishlist, { asin: asin });
+                const wishlistBook = _.find(vue.$store.state.audibledata.wishlist, { asin: asin });
                 if ( inLibrary ) {
-                  let libBook = _.find(vue.$store.state.library.books, { asin: asin });
+                  let libBook = _.find(vue.$store.state.audibledata.library, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
                   let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(', ') : libSeries.bookNumbers) : book.bookNumbers;
                   let newLibBook = {

@@ -1,8 +1,8 @@
 
-import JSZip from 'jszip';
-import JSZipUtils from 'jszip-utils';
-// import _ from 'lodash';
-import { saveAs } from "file-saver";
+import { zip, strToU8 } from 'fflate';
+import { downloadBlob } from '@utils/download.js';
+import { concurrentQueue } from '@utils/concurrent-queue.js';
+import { fetchAsArrayBuffer } from '@utils/image-fetcher.js';
 
 export default {
   data: function() {
@@ -11,101 +11,69 @@ export default {
     };
   },
   methods: {
+
+    makeWallpaper: async function( params ) {
     
-    makeWallpaper: function( params ) {
-      let vue = this;
-      if ( !vue.store.saving ) { 
+      // Don't allow multiple saves at once
+      if ( this.store.saving ) return;
+
+      // Update GUI state
+      this.saveProgressWidth = 0;
+      this.$store.commit("update", { key: "saving", value: true });
+
+      // Let Vue render the saving state before blocking the thread with heavy work
+      await this.$nextTick();
+
+      try {
+
+        const coversArray = this.coversArray();
+        const zipData = {};
         
-        vue.saveProgressWidth = 0;
-        vue.$store.commit("update", { key: "saving", value: true });
-        vue.$nextTick(function () {
-          
-          var zip = new JSZip();
-          var coversFolder = zip.folder("covers");
-          
-          let coversArray = this.coversArray();
-          // let indexHTML = this.makeIndexHTML( coversArray.covers );
-          
-          // zip.file('index.html', indexHTML);
-          console.log( coversArray ); 
-          zip.file('options.js', `window.wallpaperOptions = ${JSON.stringify( this.editorOptions( coversArray.covers ) )};`);
-          
-          // var coversArray = _.map( books, function( book ) {
-          //   return '          <li><a href="#"><img src="'+ ('covers/' + book.title + '.jpg') +'"/></a></li>';
-          // });
-          // zip.file("index.html", indexHTML( _.shuffle(coversArray).join('\n') ) );
-          var filesArray = [];
-          filesArray = filesArray.concat( coversArray.fetchCovers );
-          
-          const filePaths = _.get(window, 'chunksFilePaths', []);
-          
-          var dependencies = [
-            // 'animated-wallpaper/animated-wallpaper.js',
-            // 'animated-wallpaper/animated-wallpaper.css',
-            'single-file-animated-wallpaper.html',
-          ];
-          
-          // _.each(filePaths, function( path ) {
-          //   const foundMatch = path.match(/animated-wallpaper.+\.(js|css)$/);
-          //   if ( foundMatch ) dependencies.push(path);
-          // });
-          
-          filesArray = filesArray.concat( dependencies );
-          
-          // console.log( filesArray )
-          // return;
-          
-          let count = 0;
-          _.each( filesArray , function(book) {
-            let coverUrl = _.get( book, 'cover' );
-            let getFile = !!coverUrl ? coverUrl : book;
-            
-            JSZipUtils.getBinaryContent( getFile, function(err, data) {
-              
-              if (err) throw err;
-              
-              if ( data && !coverUrl ) {
-                var path = book;
-                var fileName = path.substring(path.lastIndexOf('/') + 1);
-                // Make sure the single file html output is index.html
-                fileName = fileName.replace('single-file-animated-wallpaper.html', 'index.html'); 
-                zip.file(fileName, data, { binary: true });
-              }
-              else if ( data ) {
-                coversFolder.file(book.asin + '.jpg', data, { binary: true });
-              }
-              
-              count++;
-              if (count == filesArray.length) {
-                zip.generateAsync({ type: "blob", streamFiles: true }, function updateCallback(metadata) {
-                  vue.saveProgressWidth = metadata.percent;
-                }).then(function(content) {
-                  
-                  let pageTitle = vue.store.gallery.pageTitle ? '-' + _.kebabCase(vue.store.gallery.pageTitle) : '';
-                  saveAs(content, "ale-animated-wallpaper"+ pageTitle +".zip");
-                  setTimeout(function() { 
-                    vue.$store.commit("update", { key: "saving", value: false });
-                    vue.saveProgressWidth = -1; 
-                    vue.$nextTick(function() {
-                      // vue.$emitter.emit('canvas-center');
-                    });
-                  }, 1000);
-                  
-                }).catch(function( e ) {
-                  setTimeout(function() { 
-                    vue.$store.commit("update", { key: "saving", value: false });
-                    vue.saveProgressWidth = -1; 
-                    vue.$nextTick(function() {
-                      // vue.$emitter.emit('canvas-center');
-                    });
-                  }, 1000);
-                });
-              }
-              
-            });
+        // FETCH OPTIONS.JS
+        zipData['options.js'] = [strToU8(`window.wallpaperOptions = ${JSON.stringify( this.editorOptions( coversArray.covers ) )};`), { level: 6 }];
+
+        // FETCH INDEX.HTML 
+        // The bundled wallpaper HTML file is renamed to index.html so it opens directly in a browser
+        const indexRes = await fetch('single-file-animated-wallpaper.html');
+        const indexBuffer = await indexRes.arrayBuffer();
+        zipData['index.html'] = [new Uint8Array(indexBuffer), { level: 6 }];
+
+        // FETCH COVERS
+        // Capped at 10 concurrent requests — firing all at once causes ERR_INSUFFICIENT_RESOURCES on large libraries
+        const books = coversArray.fetchCovers;
+        const total = books.length;
+        let fetched = 0;
+
+        await concurrentQueue( books, 10, ( book ) => {
+          return fetchAsArrayBuffer( book.cover ).then( buf => {
+            fetched++;
+            this.saveProgressWidth = (fetched / total) * 100;
+            // JPEGs are already compressed so re-compressing wastes time
+            zipData['covers/' + book.asin + '.jpg'] = [new Uint8Array(buf), { level: 0 }];
           });
-          
         });
+
+        // GENERATE ZIP
+        const data = await new Promise(( resolve, reject ) => {
+          zip(zipData, (err, result) => {
+            if (err) reject(err);
+            else resolve(result);
+          });
+        });
+
+        const pageTitle = this.store.gallery.pageTitle ? '-' + _.kebabCase(this.store.gallery.pageTitle) : '';
+        downloadBlob( new Blob([data], { type: 'application/zip' }), "ale-animated-wallpaper"+ pageTitle +".zip" );
+
+      }
+      catch(e) {
+        console.error(e);
+      }
+      finally {
+        // Brief delay so the UI doesn't snap back to idle before the download dialog appears
+        setTimeout(() => {
+          this.$store.commit("update", { key: "saving", value: false });
+          this.saveProgressWidth = -1;
+        }, 1000);
       }
     },
     

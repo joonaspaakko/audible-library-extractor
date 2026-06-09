@@ -96,7 +96,7 @@ export default {
     
     const vue = this;
     let collections = [];
-    _.each( this.$store.state.library.collections, function( collection ) {
+    _.each( this.$store.state.audibledata.collections, function( collection ) {
       
       let newCollection = {
         id: collection.id,
@@ -104,7 +104,7 @@ export default {
         isSpecial: vue.isSpecial(collection),
       };
       
-      newCollection.books = _.filter( vue.$store.state.library.books, function( book ) {
+      newCollection.books = _.filter( vue.$store.state.audibledata.library, function( book ) {
         return _.includes( collection.books, book.asin );
       });
       

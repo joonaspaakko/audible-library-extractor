@@ -65,9 +65,8 @@
       </label>
 
       <div class="range-slider" v-if="item.range">
-        <span style="font-size: 13px; line-height: 13px; cursor: w-resize;" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
-        
-        <vue-slider 
+        <span class="min-number" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
+        <vue-slider
         :disabled="range.disabled"
         :dragOnClick="true"
         :adsorb="true"
@@ -89,7 +88,7 @@
         @drag-start="$store.commit('prop', { key: 'searchOptCloseGuard', value: true })"
         @drag-end="$store.commit('prop', { key: 'searchOptCloseGuard', value: false })"
         ></vue-slider>
-        <span style="font-size: 13px; line-height: 13px; cursor: e-resize;" @click="adjustRange('right')">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
+        <span class="max-number" @click="adjustRange('right')">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
       </div>
 
       <div v-if="!!item.dropdownOpts">
@@ -341,15 +340,19 @@ export default {
         range: [0,0],
       };
 
+      const step = this.item.rangeInterval || Math.max( 1, Math.round( ( this.range.max - this.range.min ) / 100 ) );
+
       if ( direction === 'left' ) {
-        const min = this.range.min;
-        changes.range[0]    = min;
-        this.range.value = [min, this.range.value[1]];
+        let newMin = _.round( this.range.value[0] - step, 10 );
+            newMin = _.clamp( newMin, this.range.min, this.range.max );
+        changes.range[0] = newMin;
+        this.range.value = [newMin, this.range.value[1]];
       }
       else {
-        const max = this.range.max;
-        changes.range[1]    = max;
-        this.range.value = [this.range.value[0], max];
+        let newMax = _.round( this.range.value[1] + step, 10 );
+            newMax = _.clamp( newMax, this.range.min, this.range.max );
+        changes.range[1] = newMax;
+        this.range.value = [this.range.value[0], newMax];
       }
 
       if ( this.item.group ) changes.group = true;
@@ -583,9 +586,36 @@ export default {
   justify-items: stretch;
   justify-content: stretch;
   white-space: nowrap;
+  gap: 10px;
   div { flex: 1; }
-  span:first-child { padding-right: 10px; }
-  span:last-child { padding-left: 10px; }
+  > .min-number,
+  > .max-number {
+    cursor: pointer;
+    font-size: 13px;
+    line-height: 13px;
+    min-width: 10px;
+    position: relative;
+    &:before {
+      content: '';
+      position: absolute;
+      top   : -10px;
+      bottom: -10px;
+    }
+  }
+  > .min-number {
+    cursor: w-resize;
+    &:before {
+      left : -14px;
+      right: -3px;
+    }
+  }
+  > .max-number {
+    cursor: e-resize;
+    &:before {
+      left : -3px;
+      right: -14px;
+    }
+  }
 }
 
 .sorter-button {

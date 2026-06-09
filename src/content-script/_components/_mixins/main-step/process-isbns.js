@@ -36,9 +36,9 @@ export default {
 
 function fetchISBNs(vue, hotpotato, isbnsFetched) {
   
-  // hotpotato.books.length = 100;
+  // hotpotato.library.length = 100;
   const requestUrls = [];
-  let booksOfInterest = _.filter(hotpotato.books, function(o) { return !o.isbns; });
+  let booksOfInterest = _.filter(hotpotato.library, function(o) { return !o.isbns; });
   
   _.each(booksOfInterest, function(book) {
     if ( book.title && book.authors ) {
@@ -84,7 +84,7 @@ function fetchISBNs(vue, hotpotato, isbnsFetched) {
           }
         })
         .then(function(response) {
-          const book = _.find(hotpotato.books, { asin: request.asin });
+          const book = _.find(hotpotato.library, { asin: request.asin });
           if (
             response &&
             response.status >= 200 &&

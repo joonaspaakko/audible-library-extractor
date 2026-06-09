@@ -24,6 +24,33 @@ app.config.globalProperties.$compEmitter = new mitt();
 // VUEX store
 import store from "@output-modules/store/gallery-store-index.js";
 app.use(store);
+// Mobile haptics
+import { haptic } from 'ios-haptics';
+app.config.globalProperties.$haptic = ( number ) => {
+  
+  if ( !store.state.sticky.useHaptics ) return;
+  
+  try {
+    switch ( number ) {
+      case 1:
+        haptic();
+        break;
+      
+      case 2:
+        haptic.confirm();
+        break;
+      
+      case 3:
+        haptic.error();
+        break;
+        
+      default:
+        haptic();
+        break;
+    }
+  } catch (e) {}
+  
+};
 // VUE TIPPY
 import VueTippy from "vue-tippy";
 import tippySettings from './_plugins/gallery-tippy-settings.js';
@@ -58,7 +85,20 @@ else if ( !standalone ) {
     // https://developer.chrome.com/apps/storage
     // Permission: "storage"
     chrome.storage.local.get(null).then(data => {
-      if (!_.isEmpty(data) && data.chunks) {
+      const migrated = helpers.methods.migrateStorageData( data );
+      if ( migrated ) {
+        chrome.storage.local.set({ audibledata: data.audibledata, metadata: data.metadata });
+        if ( migrated.remove ) chrome.storage.local.remove( migrated.remove );
+        chrome.runtime.sendMessage({ action: "rebuild-context-menu" });
+      }
+
+      // Remove stale root-level auth keys from storage (should be nested under 'auth')
+      const knownStaleKeys = [ 'github_token', 'selectedRepo', 'imageEditorChunks', 'imageEditorChunksLength', 'imageEditorTimeCode', 'imageEditorPageTitle', 'imageEditorPageSubTitle' ];
+      const toRemove = _.filter(_.keys(data), k => _.includes(knownStaleKeys, k) || _.startsWith(k, 'sb-'));
+      if ( toRemove.length ) chrome.storage.local.remove( toRemove );
+      _.each(toRemove, k => delete data[k]);
+
+      if ( !_.isEmpty( _.get(data, 'audibledata') ) ) {
         helpers.methods.glueFriesBackTogether(data);
         startVue(data);
       } else {
@@ -105,7 +145,7 @@ function startVue( libraryData ) {
   _.set(libraryData, 'extras.pages', {});
   if ( standalone ) {
     standaloneRouteData = JSON.parse(JSON.stringify(libraryData));
-    var cleanUp = ['books', 'series', 'collections', 'podcasts', 'wishlist'];
+    var cleanUp = ['library', 'series', 'collections', 'podcasts', 'wishlist'];
     _.each(cleanUp, function( key ) {
       if ( _.get(libraryData, key) === true ) {
         delete libraryData[ key ];

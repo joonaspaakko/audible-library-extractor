@@ -1,5 +1,14 @@
 export default {
   methods: {
+    
+    safeParseJSON( str ) {
+      try {
+        return JSON.parse( str );
+      } catch {
+        return null;
+      }
+    },
+    
     shortenLength: function(string) {
       if ( string ) {
         string = DOMPurify.sanitize( string.trimToColon().trimAll() );
@@ -25,75 +34,53 @@ export default {
     },
 
     fixDates: function( source ) {
-      
-      var date = (typeof source === 'object') ? DOMPurify.sanitize( source.textContent.trimToColon() ) : DOMPurify.sanitize( source );
-      if ( source && date ) {
-        
-        const domainExtension = this.domainExtension;
+      var date = (source && typeof source === 'object') ? DOMPurify.sanitize(source.textContent.trimToColon()) : DOMPurify.sanitize(source);
+      if ( !date ) return null;
 
-        const regionalDateFormats = {
-          ".com":    ["m-d-y", "MM-dd-yyyy"],
-          ".ca":     ["y-m-d", "yyyy-MM-dd"],
-          ".co.uk":  ["d-m-y", "dd-MM-yyyy"],
-          ".de":     ["d-m-y", "dd-MM-yyyy"],
-          ".fr":     ["d-m-y", "dd-MM-yyyy"],
-          ".it":     ["d-m-y", "dd-MM-yyyy"],
-          ".com.au": ["d-m-y", "dd-MM-yyyy"],
-          ".in":     ["d-m-y", "dd-MM-yyyy"],
-          // ".jp":     ["y-m-d", "yyyy-MM-dd"], // Looked at the audible.co.jp date format (book release date) and I'm pretty sure there is no point in me touching that.
-        };
+      const domainExtension = this.domainExtension;
 
-        const formatString = regionalDateFormats[domainExtension] ? regionalDateFormats[domainExtension][0] : null;
-        let splitDate = date.split("-");
-        
-        // Only try to fix date if we know the region and its date format...
-        // Or if the values are not separated by a dash
-        
-        if ( !formatString || !date.match(/\-/) || splitDate.length !== 3 ) {
-          return date;
-        }
-        else {
-          const formatSplit = formatString.split("-");
-  
-          const newDate = {
-            y: null,
-            m: null,
-            d: null
-          };
-          $.each(splitDate, function(i, date) {
-            newDate[formatSplit[i]] = date;
-          });
-          date = null;
-          // Some audible sites display all years in two digits,
-          // which is very difficult to transform to 4 digits.
-          // For example, if the year is 20, is it 1920, 2020, or 1420?
-          // This conversion to 4 digits is not bulletproof, but better than nothing.
-          if (newDate.y.length <= 2) {
-            if (newDate.y >= 95 && newDate.y <= 99) {
-              newDate.y = "19" + newDate.y;
-            } else if (newDate.y < 95) {
-              newDate.y = "20" + newDate.y;
-            }
-          }
-          const ISO8601 = [newDate.y, newDate.m, newDate.d];
-          // const originalFormat = regionalDateFormats[domainExtension][1] || regionalDateFormats['.com'][1];
-  
-          // This was just an idea to be a bit more flexible with how it shows up in the gallery, but it's not so simple
-          // What if the person viewing it is not from the same country? The only proper way to do it I feel would be to
-          // Show visitors whatever format is dominant in their country... but that seems too much work, so: "year-month-day" it is for now at least
-          // return {
-          //   value: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), 'yyyy-MM-dd'),
-          //   original: dateFns.format(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), originalFormat),
-          // };
-          return dateFormat( new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), "yyyy-MM-dd");
-        }
-        
-      } else {
-        return null;
+      const regionalDateFormats = {
+        ".com":    ["m-d-y", "MM-dd-yyyy"],
+        ".ca":     ["y-m-d", "yyyy-MM-dd"],
+        ".co.uk":  ["d-m-y", "dd-MM-yyyy"],
+        ".de":     ["d-m-y", "dd-MM-yyyy"],
+        ".fr":     ["d-m-y", "dd-MM-yyyy"],
+        ".it":     ["d-m-y", "dd-MM-yyyy"],
+        ".com.au": ["d-m-y", "dd-MM-yyyy"],
+        ".in":     ["d-m-y", "dd-MM-yyyy"],
+        // ".jp":     ["y-m-d", "yyyy-MM-dd"], // Looked at the audible.co.jp date format (book release date) and I'm pretty sure there is no point in me touching that.
+      };
+
+      const formatString = regionalDateFormats[domainExtension] ? regionalDateFormats[domainExtension][0] : null;
+      let splitDate = date.split("-");
+
+      // Only try to fix date if we know the region and its date format, and values are separated by a dash
+      if ( !formatString || !date.match(/\-/) || splitDate.length !== 3 ) {
+        return date;
       }
+
+      const formatSplit = formatString.split("-");
+      const newDate = Object.fromEntries(
+        formatSplit.map((key, i) => [key, splitDate[i]])
+      );
+
+      // Some audible sites display all years in two digits, which is very difficult to transform to 4 digits.
+      // For example, if the year is 20, is it 1920, 2020, or 1420?
+      // This conversion to 4 digits is not bulletproof, but better than nothing.
+      if (newDate.y.length <= 2) {
+        if (newDate.y >= 95 && newDate.y <= 99) {
+          newDate.y = "19" + newDate.y;
+        } else if (newDate.y < 95) {
+          newDate.y = "20" + newDate.y;
+        }
+      }
+
+      const ISO8601 = [newDate.y, newDate.m, newDate.d];
+      return dateFormat(new Date(ISO8601[0], ISO8601[1] - 1, ISO8601[2]), "yyyy-MM-dd");
     },
 
-    getSeries: function(element, reverse) {
+    getSeries: function(element, params = {}) {
+      
       const series = [];
       if (element) {
         const html = DOMPurify.sanitize( $(element).html() );
@@ -111,8 +98,8 @@ export default {
             let url = new Url( titleRow );
             series.push({
               name: string,
-              // url: url, // Url formed using the asin instead to minimize data size
-              asin: reverse ? url.query.asin : url.path.substring(url.path.lastIndexOf("/") + 1),
+              ...(params.getUrl && { url: url.path }), // This should be discarded later....
+              asin: params.reverse ? url.query.asin : url.path.substring(url.path.lastIndexOf("/") + 1),
             });
             
           } 
@@ -128,7 +115,15 @@ export default {
           
         });
       }
-      return series.length > 0 ? (reverse ? series.reverse() : series) : null;
+      
+      // Return nothing
+      if (!series.length) return null;
+      
+      // Sort
+      if ( params.reverse ) series.reverse();
+      // Return series
+      return series;
+      
     },
 
     getArray: function(elements) {
@@ -186,44 +181,82 @@ export default {
       });
     },
 
-    makeFrenchFries: function(hotpotato) {
+    makeFrenchFries: function( hotpotato ) {
+    
       hotpotato.extras = hotpotato.extras || {};
       hotpotato.extras['domain-extension'] = hotpotato.extras['domain-extension'] || this.domainExtension;
 
-      hotpotato.chunks = [];
-      _.each(hotpotato, function(item, key) {
-        if (key !== "chunks" && _.isArray(item)) {
-          const chunks = _.chunk(item, 50);
-          hotpotato.chunks.push(key);
-          hotpotato[key + "-chunk-length"] = chunks.length;
-          _.each(chunks, function(chunk, i) {
-            hotpotato[key + "-chunk-" + i] = chunk;
-          });
-          delete hotpotato[key]; // The original array is not needed anymore
-          
+      // Collect settings and such props into metadata
+      hotpotato.metadata = {};
+      _.each( ['config', 'version', 'extras'], key => {
+        if ( hotpotato[key] !== undefined ) {
+          hotpotato.metadata[key] = hotpotato[key];
+          delete hotpotato[key];
         }
       });
+
+      // Chunk all array props into audibledata; books is 'stored' as 'library'
+      const skipKeys = ['metadata', 'audibledata', 'auth'];
+      hotpotato.audibledata = {};
+      _.each( hotpotato, ( item, key ) => {
+        if ( !_.includes( skipKeys, key ) && _.isArray( item ) ) {
+          hotpotato.audibledata[key] = _.chunk( item, 50 );
+          delete hotpotato[key];
+        }
+      });
+      
+    },
+
+    // Rename old "books" key to "library" and update config.steps name.
+    // Call this on flat data before makeFrenchFries (import path).
+    normalizeForMakeFrenchFries: function( data ) {
+      if ( _.isArray( data.books ) && !data.library ) {
+        data.library = data.books;
+        delete data.books;
+      }
+      const steps = _.get( data, 'config.steps' ) || _.get( data, 'metadata.config.steps' );
+      if ( steps ) {
+        _.each( steps, step => { if ( step.name === 'books' ) step.name = 'library'; });
+      }
+    },
+
+    // Migrate old chrome.storage format to the current {audibledata, metadata} shape.
+    // Returns { remove } — the list of stale keys to delete from storage, or null if nothing was needed.
+    migrateStorageData: function( data ) {
+      if ( _.isArray( data.chunks ) && !data.audibledata ) {
+        const remove = ['chunks', 'config', 'extras', 'version'];
+        _.each( data.chunks, type => {
+          const chunkKeys = _.range( data[ type + '-chunk-length' ] || 0 ).map( i => type + '-chunk-' + i );
+          data[ type ] = _.flatten( chunkKeys.map( k => data[k] || [] ) );
+          const allKeys = [ ...chunkKeys, type + '-chunk-length' ];
+          remove.push( ...allKeys );
+          _.each( allKeys, k => delete data[k] );
+        });
+        delete data.chunks;
+        this.normalizeForMakeFrenchFries( data );
+        this.makeFrenchFries( data );
+        return { remove };
+      }
+      return null;
     },
 
     // It's vegan glue... Don't worry about it...
-    glueFriesBackTogether: function(data) {
-      if (data && _.isEmpty(data)) {
-        return null;
-      } else {
-        _.each(data.chunks, function(chunkName) {
-          const chunksLength = data[chunkName + "-chunk-length"];
-          const chunkNumbers = _.range(0, chunksLength);
-          data[chunkName] = [];
-          _.each(chunkNumbers, function(n) {
-            data[chunkName] = data[chunkName].concat(
-              data[chunkName + "-chunk-" + n]
-            );
-            delete data[chunkName + "-chunk-" + n];
-          });
-          delete data[chunkName + "-chunk-length"];
-        });
-        delete data.chunks;
-      }
+    glueFriesBackTogether: function( data ) {
+    
+      if ( _.isEmpty( data ) ) return;
+
+      // Flatten metadata back to root
+      _.each( ['config', 'version', 'extras'], key => {
+        if ( _.get( data, 'metadata.' + key ) !== undefined ) data[key] = data.metadata[key];
+      });
+      delete data.metadata;
+
+      // Flatten audibledata arrays back to root
+      _.each( data.audibledata, ( chunks, key ) => {
+        data[key] = _.flatten( chunks );
+      });
+      delete data.audibledata;
+      
     },
     
     // - Remove books no longer in the library 

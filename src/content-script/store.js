@@ -6,7 +6,6 @@ export default createStore({
   state: {
     appVersion: import.meta.env.PACKAGE_VERSION,
     localStorageName: 'ale-content-script-settings',
-    canceledRequests: [],
     progress: {
       text: null,
       textSuffix: null,
@@ -26,7 +25,7 @@ export default createStore({
       max: 0
     },
     storageHasData: {
-      books: null,
+      library: null,
       isbn: null,
       wishlist: null,
       collections: null,
@@ -40,13 +39,13 @@ export default createStore({
     dataVersion: null,
     extractBtnDisabled: false,
     extractionButtonDisabled: false,
-    axiosRateLimit: { 
-      maxRequests: 10, 
-      perMilliseconds: 1000,
+    axiosRateLimit: {
+      maxRequests: 1,
+      perMilliseconds: 100,
+      concurrency: 10,
     },
     failedRequests: [],
     lastFailedRequestStatus: null,
-    taking_a_break: false,
     noWishlistAccess: false,
     checkingWishlistAccess: false,
     sticky: {
@@ -54,20 +53,20 @@ export default createStore({
       extractSettings: [
         {
           label: "Library",
-          name: "books",
+          name: "library",
           value: true,
           disabled: true,
           type: "is-success",
           tippy: "Library is required in order to extract collections and isbn.",
           trashTippy: 'This will also remove Collections and ISBN data.',
           kind: 'main',
-          deleteChunks: ['books', 'series', 'collections'],
+          deleteChunks: ['library', 'series', 'collections'],
           partialData: true,
         },
         {
           label: "Collections",
           name: "collections",
-          parent: 'books',
+          parent: 'library',
           value: true,
           disabled: false,
           type: "is-success",
@@ -100,7 +99,7 @@ export default createStore({
         {
           label: "ISBN",
           name: "isbn",
-          parent: 'books',
+          parent: 'library',
           value: false,
           disabled: false,
           type: "is-danger",
@@ -186,10 +185,6 @@ export default createStore({
       
     },
     
-    pushToCanceledRequests: function( state, value ) {
-      state.canceledRequests.push( value );
-    },
-    
     updateSetting: function( state, o ) {
       
       o = _.castArray(o);
@@ -221,7 +216,7 @@ export default createStore({
     },
     
     mainDataExists: function( state ) {
-      return state.storageHasData.books || state.storageHasData.wishlist;
+      return state.storageHasData.library || state.storageHasData.wishlist;
     },
     
     
