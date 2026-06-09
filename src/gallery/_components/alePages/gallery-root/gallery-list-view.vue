@@ -98,7 +98,7 @@ export default {
   background: $lightBackColor;
   border-radius: 8px;
   @include themify($themes) {
-    background: rgba(lighten(themed(backColor), 3), 0.8);
+    background: rgba(color.adjust(themed(backColor), $lightness: 3%), 0.8);
     box-shadow: themed(shadowSmall);
     color: themed(frontColor);
   }
@@ -277,7 +277,7 @@ export default {
     a {
       color: #252525;
       &:visited {
-        color: lighten(#252525, 45%);
+        color: color.adjust(#252525, $lightness: 45%);
       }
     }
   }
@@ -285,20 +285,20 @@ export default {
     .ale-col {
       background: #fff;
     }
-    color: darken($lightFrontColor, 2);
+    color: color.adjust($lightFrontColor, $lightness: -2%);
     &:nth-child(odd) .ale-col {
       background: #f8f8f8;
     }
     &:hover .ale-col {
-      background: darken(#f8f8f8, 5) !important;
+      background: color.adjust(#f8f8f8, $lightness: -5%) !important;
     }
   }
   .list-view-header .ale-col {
-    background: darken(#f8f8f8, 5) !important;
+    background: color.adjust(#f8f8f8, $lightness: -5%) !important;
   }
   .list-view-header .ale-row-inner {
-    border-top: 1px solid darken(#f8f8f8, 15) !important;
-    border-bottom: 1px solid darken(#f8f8f8, 32) !important;
+    border-top: 1px solid color.adjust(#f8f8f8, $lightness: -15%) !important;
+    border-bottom: 1px solid color.adjust(#f8f8f8, $lightness: -32%) !important;
   }
 
   .ale-row {
@@ -317,7 +317,7 @@ export default {
     a {
       color: #e1e1e1;
       &:visited {
-        color: darken(#e1e1e1, 45%);
+        color: color.adjust(#e1e1e1, $lightness: -45%);
       }
     }
   }
@@ -326,27 +326,27 @@ export default {
     .ale-col {
       background: #15171a;
     }
-    color: darken($darkFrontColor, 10);
+    color: color.adjust($darkFrontColor, $lightness: -10%);
     &:nth-child(odd) .ale-col {
-      background: lighten(#15171a, 2);
+      background: color.adjust(#15171a, $lightness: 2%);
     }
     &:hover .ale-col {
-      background: lighten(#15171a, 5) !important;
+      background: color.adjust(#15171a, $lightness: 5%) !important;
     }
   }
 
   .list-view,
   .ale-row,
   .ale-col {
-    border-color: lighten($darkBackColor, 15) !important;
+    border-color: color.adjust($darkBackColor, $lightness: 15%) !important;
   }
 
   .list-view-header .ale-col {
-    background: darken(#15171a, 1) !important;
+    background: color.adjust(#15171a, $lightness: -1%) !important;
   }
   .list-view-header .ale-row-inner {
-    border-top: 1px solid lighten($darkBackColor, 11) !important;
-    border-bottom: 1px solid lighten($darkBackColor, 11) !important;
+    border-top: 1px solid color.adjust($darkBackColor, $lightness: 11%) !important;
+    border-bottom: 1px solid color.adjust($darkBackColor, $lightness: 11%) !important;
   }
 
   .ale-row {

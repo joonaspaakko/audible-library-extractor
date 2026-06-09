@@ -134,7 +134,7 @@ export default {
 
 <style lang="scss" scoped>
 
-	@import "@gallery/box-layout.scss";
+	@use "@gallery/box-layout.scss" as *;
 	
 	.category-tags-wrapper {
 		@include themify($themes) {

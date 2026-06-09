@@ -729,9 +729,9 @@ export default {
   .information {
     @include themify($themes) {
       // border: 1px solid rgba( themed(frontColor), .1);
-      $bgColor: lighten(themed(backColor), 7.5);
-      background: mix(blue, $bgColor, 2%);
-      box-shadow: 0 3px 15px rgba(darken(themed(backColor), 30), 0.8);
+      $bgColor: color.adjust(themed(backColor), $lightness: 7.5%);
+      background: color.mix(blue, $bgColor, 2%);
+      box-shadow: 0 3px 15px rgba(color.adjust(themed(backColor), $lightness: -30%), 0.8);
     }
     position: relative;
     border-radius: 3px;
@@ -785,7 +785,7 @@ export default {
         bottom: 0;
         left: 0;
         @include themify($themes) {
-          background: rgba(darken(themed(backColor), 1), 0.65);
+          background: rgba(color.adjust(themed(backColor), $lightness: -1%), 0.65);
         }
         .progress {
           height: 5px;
@@ -994,7 +994,7 @@ export default {
   :deep(.categories) {
     a {
       @include themify($themes) {
-        color: complement(themed(audibleOrange)) !important;
+        color: color.complement(themed(audibleOrange)) !important;
         // &:before {
         //   content: '\02022';
         //   padding: 0 .1em 0 0;
@@ -1008,9 +1008,9 @@ export default {
     }
     a:visited {
       @include themify($themes) {
-        color: complement(darken(desaturate(themed(audibleOrange), 5), 15)) !important;
+        color: color.complement(color.adjust(color.adjust(themed(audibleOrange), $saturation: -5%), $lightness: -15%)) !important;
         // &:before {
-        //   color: complement(darken(desaturate(themed(audibleOrange), 5), 15)) !important;
+        //   color: complement(darken(color.adjust(themed(audibleOrange), $saturation: -5%), 15)) !important;
         // }
       }
     }

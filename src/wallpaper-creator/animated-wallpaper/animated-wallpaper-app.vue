@@ -366,6 +366,8 @@ export default {
 </script>
 
 <style lang="scss" scope>
+@use "loader-bg.scss";
+@use "animations.scss";
 
 html, body, #animated-wallpaper, #awp {
   margin: 0px;
@@ -424,7 +426,5 @@ html, body, #animated-wallpaper, #awp {
   user-select: none; 
 }
 
-@import "loader-bg.scss";
-@import "animations.scss";
 
 </style>

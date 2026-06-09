@@ -112,7 +112,7 @@ export default {
 
 #audio-player {
   @include themify($themes) {
-    background: darken( themed(elementColor), 5);
+    background: color.adjust(themed(elementColor), $lightness: -5%);
     flex: unset;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
@@ -127,7 +127,7 @@ export default {
     margin-top: auto !important;
     box-sizing: border-box;
     // background: themed(backColor);
-    // background: darken( themed(elementColor), 5);
+    // background: color.adjust(themed(elementColor), $lightness: -5%);
     color: themed(frontColor);
     position: fixed;
     z-index: 9999999999;

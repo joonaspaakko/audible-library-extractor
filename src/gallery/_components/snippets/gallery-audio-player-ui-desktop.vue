@@ -92,7 +92,7 @@ export default {
     margin-top: 0 !important;
     box-sizing: border-box;
     // background: themed(backColor);
-    background: darken( themed(elementColor), 5);
+    background: color.adjust(themed(elementColor), $lightness: -5%);
     color: themed(frontColor);
     position: relative;
     z-index: 0;
@@ -194,7 +194,7 @@ export default {
     /******** Chrome, Safari, Opera and Edge Chromium styles ********/
     /* slider track */
     input[type="range"]::-webkit-slider-runnable-track {
-      border: 9px solid darken( themed(elementColor), 5);
+      border: 9px solid color.adjust(themed(elementColor), $lightness: -5%);
       border-left: none;
       border-right: none;
       background-color: $trackBackground;
@@ -224,7 +224,7 @@ export default {
     /*********** Firefox styles ***********/
     /* slider track */
     input[type="range"]::-moz-range-track {
-      border: 9px solid darken( themed(elementColor), 5);
+      border: 9px solid color.adjust(themed(elementColor), $lightness: -5%);
       border-left: none;
       border-right: none;
       background-color: $trackBackground;

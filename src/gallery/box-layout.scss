@@ -1,4 +1,7 @@
 
+@use "sass:color";
+@use "@gallery/_variables.scss" as *;
+
 .box-layout-wrapper {
   max-width: $containerSize;
   max-width: 600px;
@@ -13,12 +16,12 @@
     background: rgba( #1b1b1b, .98 );
     box-shadow: $shadowMedium rgba(0,0,0,0.45);
     color: $darkFrontColor;
-    border: 1px solid rgba( lighten( $darkBackColor, 32), .25 );
+    border: 1px solid rgba( color.adjust($darkBackColor, $lightness: 32%), .25 );
   }
 }
 .theme-light .box-layout-wrapper {
   .single-box {
-    background: rgba( lighten( $lightBackColor, 5), .98 );
+    background: rgba( color.adjust($lightBackColor, $lightness: 5%), .98 );
     box-shadow: $shadowSmall  rgba(0,0,0,0.2), $shadowMedium  rgba(0,0,0,0.2);
     color: $lightFrontColor;
     border: 1px solid rgba( $lightFrontColor, .25 );
@@ -34,10 +37,10 @@
       align-items: center;
     }
     a:visited {
-      color: lighten( $lightFrontColor, 35) !important;
+      color: color.adjust($lightFrontColor, $lightness: 35%) !important;
     }
     a:hover {
-      color: lighten( $lightFrontColor, 20) !important;
+      color: color.adjust($lightFrontColor, $lightness: 20%) !important;
     }
   }
 }

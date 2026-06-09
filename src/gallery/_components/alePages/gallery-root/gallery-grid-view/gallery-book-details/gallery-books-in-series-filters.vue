@@ -132,9 +132,9 @@ export default {
   margin: -20px -20px;
   margin-bottom: 0;
   @include themify($themes) {
-    // background: lighten(themed(backColor), 5);
-    $bgColor: lighten(themed(backColor), 7.5);
-    background: mix(blue, $bgColor, 2%);
+    // background: color.adjust(themed(backColor), $lightness: 5%);
+    $bgColor: color.adjust(themed(backColor), $lightness: 7.5%);
+    background: color.mix(blue, $bgColor, 2%);
     .shadow-box {
       padding: 0 !important;
       position: absolute;
@@ -152,7 +152,7 @@ export default {
         content: '';
         width: 150%;
         height: 12px;
-        box-shadow: inset 0 3px 3px rgba(darken(themed(backColor), 30), 0.2);
+        box-shadow: inset 0 3px 3px rgba(color.adjust(themed(backColor), $lightness: -30%), 0.2);
       }
     }
   }

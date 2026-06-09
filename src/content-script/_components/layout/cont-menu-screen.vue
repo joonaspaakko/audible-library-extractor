@@ -317,7 +317,7 @@ body > .notices {
       color: #b5b5b5;
     }
     a:visited {
-      color: darken(#b5b5b5, 10);
+      color: color.adjust(#b5b5b5, $lightness: -10%);
     }
   }
 
@@ -561,7 +561,7 @@ body > .notices {
         color: #717171 !important;
       }
       a {
-        color: darken(#717171, 5) !important;
+        color: color.adjust(#717171, $lightness: -5%) !important;
       }
       img { opacity: 1; }
     }
@@ -618,7 +618,7 @@ body > .notices {
   
   code {
     padding: 4px;
-    border: 1px solid darken( #f1f1f1, 5);
+    border: 1px solid color.adjust(#f1f1f1, $lightness: -5%);
     background: rgba( #f1f1f1, .7);
   }
 }

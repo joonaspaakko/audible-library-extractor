@@ -128,7 +128,7 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "@gallery/box-layout.scss";
+@use "@gallery/box-layout.scss" as *;
 
 .box-layout-wrapper .single-box .sample-covers img { 
   width: 100%; 

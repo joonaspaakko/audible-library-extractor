@@ -77,12 +77,12 @@ export default {
 }
 
 .theme-dark .book-info-toolbar {
-  background: lighten($darkBackColor, 6);
+  background: color.adjust($darkBackColor, $lightness: 6%);
   box-shadow: inset 0 3px 10px rgba($darkBackColor, .8);
 }
 .theme-light .book-info-toolbar {
-  background: darken($lightBackColor, 1);
-  box-shadow: inset 0 3px 10px rgba( darken($lightBackColor, 30), 0.4);
+  background: color.adjust($lightBackColor, $lightness: -1%);
+  box-shadow: inset 0 3px 10px rgba( color.adjust($lightBackColor, $lightness: -30%), 0.4);
 }
 
 </style>

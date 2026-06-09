@@ -249,7 +249,7 @@ export default {
     
     @include themify($themes) {
       color: themed(frontColor);
-      background: lighten(themed(backColor), 10);
+      background: color.adjust(themed(backColor), $lightness: 10%);
       box-shadow: 0 3px 15px rgba(#000, 0.7);
       border: 2px solid themed(audibleOrange);
     }
@@ -285,7 +285,7 @@ export default {
       border-style: solid;
       border-width: 0 10px 10px 10px;
       @include themify($themes) {
-        border-color: transparent transparent lighten(themed(backColor), 10) transparent;
+        border-color: transparent transparent color.adjust(themed(backColor), $lightness: 10%) transparent;
       }
     }
   }
@@ -305,12 +305,12 @@ export default {
     font-weight: 700;
     @include themify($themes) {
       // color: themed(backColor);
-      background: rgba( lighten(themed(frontColor), 10), .6);
-      color: rgba( lighten(themed(frontColor), 10), .65);
+      background: rgba( color.adjust(themed(frontColor), $lightness: 10%), .6);
+      color: rgba( color.adjust(themed(frontColor), $lightness: 10%), .65);
       box-shadow: 0 1px 5px rgba(themed(outerColor), .4);
       
-      // border: 1px solid rgba( lighten(themed(frontColor), 10), .4);
-      background: lighten(themed(backColor), 12);
+      // border: 1px solid rgba( color.adjust(themed(frontColor), $lightness: 10%), .4);
+      background: color.adjust(themed(backColor), $lightness: 12%);
       border: 1px solid rgba(themed(frontColor), 0.12);
       
     }
@@ -337,7 +337,7 @@ export default {
     font-size: 13px;
     display: inline-block;
     @include themify($themes) {
-      color: rgba( lighten(themed(frontColor), 10), .5);
+      color: rgba( color.adjust(themed(frontColor), $lightness: 10%), .5);
     }
   }
 
@@ -446,7 +446,7 @@ export default {
   
   .regular-filters {
     @include themify($themes) {
-      background: lighten(themed(backColor), 12);
+      background: color.adjust(themed(backColor), $lightness: 12%);
       box-shadow: 0 5px 12px rgba(themed(outerColor), .3);
       border-bottom: 2px solid rgba(themed(frontColor), 0.01);
     }
