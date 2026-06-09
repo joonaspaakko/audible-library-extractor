@@ -1,87 +1,54 @@
 export default {
   methods: {
-    getDataFromCarousel: function(parentBook, audible, key, carouselID) {
-      const carousel = audible.querySelector( "#adbl-web-carousel-c" + carouselID );
+    getDataFromCarousel: function(parentBook, audible, key, sectionName) {
 
-      if (carousel) {
-        const books = [];
-        const flyouts = carousel.querySelectorAll(".carousel-product");
+      const carousel = audible.querySelector( `adbl-product-carousel[skip-link-title="${sectionName}"]` );
+      if ( !carousel ) return;
 
-        _.each(flyouts, function(el) {
-          
-          const book = {};
-          
-          let image = el.querySelector('[id^="product-carousel-image"]');
-          if ( image ) image = image.getAttribute("src") || image.getAttribute("data-lazy");
-          if ( !image ) return false;
+      const books = [];
+      const items = carousel.querySelectorAll("adbl-product-grid-item");
 
-          let coverId = image.match(/\/images\/I\/(.*)._SL/);
-          if (coverId && coverId[1]) coverId = "" + DOMPurify.sanitize( coverId[1] );
-          if ( !coverId ) return false;
-          book.cover = coverId;
-          
-          let bookASIN = el.querySelector("[data-asin]");
-          if ( bookASIN ) bookASIN = bookASIN.getAttribute("data-asin");
-          if ( bookASIN ) bookASIN = "" + DOMPurify.sanitize( bookASIN );
-          if ( !bookASIN ) return false;
-          book.asin = bookASIN;
-          
-          // As long as we have all of the above, we can return the book
-          
-          const list = el.querySelector("[id^=product-list-flyout] ul");
-          let listItems, subHeading;
-          if ( list ) {
-            listItems = list.querySelectorAll("li:not(.bc-size-base)");
-            if ( listItems ) {
-              subHeading = list.querySelector("li.bc-size-base:nth-child(2)");
-              if ( subHeading ) {
-                let shTrailingComma = subHeading.querySelector('.bc-pub-offscreen');
-                if ( shTrailingComma ) shTrailingComma.remove();
-              }
-              if ( subHeading ) subHeading = subHeading.textContent;
-              if ( subHeading ) subHeading = DOMPurify.sanitize(subHeading.trim());
-              if ( subHeading ) book.subHeading = subHeading;
-            }
-          }
-          
-          if ( listItems ) {
-            _.each(listItems, function(el, i) {
-              
-              let trailingComma = el.querySelector('.bc-pub-offscreen');
-              if ( trailingComma ) trailingComma.remove();
-              
-              let text = el.textContent;
-              if ( text ) text = DOMPurify.sanitize(text.trimAll());
-              if ( text && !el.querySelector("h2") ) text = text.trimToColon();
-              if ( !text ) return false;
-              
-              var line = i + 1;
-              switch (line) {
-                case 1:
-                  book.title = text;
-                  break;
-                case 2:
-                  book.authors = text;
-                  break;
-                case 3:
-                  book.narrators = text;
-                  break;
-                case 4:
-                  book.length = text;
-                  break;
-              }
-              
-            });
-          }
-                    
-          books.push(book);
-          
-        });
+      _.each( items, ( item ) => {
 
-        if (books.length > 0) parentBook[key] = books;
-        
-      }
-      
+        const book = {};
+
+        // ASIN
+        const asinEl = item.querySelector("[data-asin]");
+        if ( !asinEl ) return;
+        const asin = DOMPurify.sanitize( asinEl.getAttribute("data-asin") );
+        if ( !asin ) return;
+        book.asin = asin;
+
+        // COVER
+        const img = item.querySelector("adbl-product-image img");
+        if ( img ) {
+          const src = DOMPurify.sanitize( img.getAttribute("src") || "" );
+          const coverId = _.get( src.match(/\/images\/I\/(.*)._SL/), "[1]" );
+          if ( coverId ) book.cover = coverId;
+        }
+        if ( !book.cover ) return;
+
+        // TITLE
+        const titleEl = item.querySelector("adbl-metadata[slot='title'] a");
+        if ( titleEl ) book.title = DOMPurify.sanitize( titleEl.textContent.trim() );
+
+        // AUTHOR
+        const authorLinks = item.querySelectorAll("adbl-metadata[slot='author'] a");
+        if ( authorLinks.length ) {
+          const names = [];
+          _.each( authorLinks, ( a ) => {
+            const name = DOMPurify.sanitize( a.textContent.trim() );
+            if ( name ) names.push( name );
+          });
+          if ( names.length ) book.authors = names.join(", ");
+        }
+
+        books.push( book );
+
+      });
+
+      if ( books.length > 0 ) parentBook[key] = books;
+
     },
   }
 };

@@ -1,16 +1,14 @@
 <template>
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation" ref="navigation">
-    
+
     <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" :desktopMenu="!mobileMenuOpen" />
-    
-    <!-- Component opened by one of the menu items -->
-    <div class="floater-components" v-if="!mobileThreshold">
-      <component v-if="clickedRouteComp" :is="clickedRouteComp" @closeComp="clickedRoute = null" />
-    </div>
     <!-- <mobile-menu /> -->
-    
+
   </div>
+
+  <!-- Component opened by one of the menu items (outside #ale-navigation so mobile-nav display:none doesn't affect it) -->
+  <component v-if="clickedRouteComp" :is="clickedRouteComp" @closeComp="clickedRoute = null" />
   
   <gallery-mobile-menu-floaters v-if="mobileThreshold" v-model:mobileMenuOpen="mobileMenuOpen" :mobileThreshold="mobileThreshold" @startSearching="startSearching" />
   
@@ -26,6 +24,7 @@
 
 import saveGallery from '@output-snippets/save-gallery.vue';
 import saveCSV from '@output-snippets/save-csv.vue';
+import { storageSet } from '@utils/chrome-storage.js';
 
 export default {
   name: "aleMenuActions",
@@ -49,7 +48,6 @@ export default {
       if ( component ) {
         return {...component};
       }
-      // return _.get( this.clickedRoute, 'meta.component' );
     },
     
     mobileThreshold() {
@@ -81,6 +79,13 @@ export default {
   created() {
     
     this.routes = this.getRoutes();
+
+    // Debugging: Open save gallery on page load 
+    // let saveGallery = _.find( this.routes, route => _.get(route, 'name') === "extension-tools" );
+    // if ( saveGallery ) {
+    //   saveGallery = _.find(saveGallery.childItems, { name: "Save gallery website" });
+    //   this.routeClick(saveGallery);
+    // }
     
   },
   
@@ -276,16 +281,16 @@ export default {
                 covers = JSON.parse(JSON.stringify(covers));
                 covers = _.chunk(covers, 50);
                 
-                let storageObj = {
-                  imageEditorChunks: covers,
-                  imageEditorChunksLength: covers.length,
-                  imageEditorTimeCode: new Date().getTime(),
+                let imageEditor = {
+                  chunks: covers,
+                  chunksLength: covers.length,
+                  timeCode: new Date().getTime(),
                 };
-                
-                if ( vue.$store.state.pageTitle    ) storageObj.imageEditorPageTitle = vue.$store.state.pageTitle;
-                if ( vue.$store.state.pageSubTitle ) storageObj.imageEditorPageSubTitle = vue.$store.state.pageSubTitle;
-                
-                chrome.storage.local.set(storageObj).then(() => {
+
+                if ( vue.$store.state.pageTitle    ) imageEditor.pageTitle = vue.$store.state.pageTitle;
+                if ( vue.$store.state.pageSubTitle ) imageEditor.pageSubTitle = vue.$store.state.pageSubTitle;
+
+                chrome.storage.local.set({ imageEditor }).then(() => {
                   chrome.runtime.sendMessage({ action: "openImageEditor" });
                 });
                 
@@ -321,15 +326,10 @@ export default {
                 chrome.runtime.sendMessage({ action: "changeGalleryUrl", url: newUrl }).then(() => {
                   
                   // This part makes sure the galleryUrl sticks between sessions (assumin)
-                  chrome.storage.local.get(['extras']).then(data => {
-                    data.extras.galleryUrl = newUrl;
-                    chrome.storage.local.set({ extras: data.extras}).then(() => {
-                      
-                    });
-                  });
-                  
+                  storageSet( 'metadata', 'extras.galleryUrl', newUrl );
+
                 });
-                
+
               } catch(e) {}
             },
             meta: {
@@ -343,17 +343,12 @@ export default {
             disabled: false,
             click: function( route ) {
               try {
-                
+
                 const newUrl = null;
                 chrome.runtime.sendMessage({ action: "changeGalleryUrl", url: newUrl }).then(() => {
-                  
+
                   // This part makes sure the galleryUrl sticks between sessions (assumin)
-                  chrome.storage.local.get(['extras']).then(data => {
-                    data.extras.galleryUrl = newUrl;
-                    chrome.storage.local.set({ extras: data.extras}).then(() => {
-                      
-                    });
-                  });
+                  storageSet( 'metadata', 'extras.galleryUrl', newUrl );
                   
                 });
                 
@@ -483,10 +478,5 @@ export default {
 //   position: absolute;
 // }
     
-
-.floater-components {
-  position: absolute;
-  z-index: 50;
-}
 
 </style>

@@ -101,12 +101,15 @@
     box-sizing: border-box !important;
   }
   
-  .child-categories {
+  .child-categories,
+  .category-tags {
     margin-bottom: 15px;
     font-size: .9em;
     line-height: 1.12em;
   }
-  .child-categories > div {
+  
+  .child-categories > div,
+  .category-tags > div {
     display: inline-block; 
     padding-right: 5px;
     a {
@@ -129,11 +132,18 @@
   }
   
   .sample-covers {
-    overflow: hidden;
+    overflow-x: auto;
+    overflow-y: hidden;
     display: flex;
     flex-direction: row;
     justify-content: flex-start;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    &::-webkit-scrollbar { display: none; }
     > div {
+      flex-shrink: 0;
+      scroll-snap-align: start;
       height: 100%;
       margin-left: 10px;
       display: inline-block;
@@ -145,9 +155,10 @@
         border: 1px solid rgba( themed(outerColor), .3 );
       }
     }
-    img { 
-      max-width: 98px; 
-      // height: 100%;
+    img {
+      width: 98px;
+      height: 98px;
+      object-fit: cover;
       display: block;
   	  -webkit-user-drag: none;
   	  -khtml-user-drag: none;

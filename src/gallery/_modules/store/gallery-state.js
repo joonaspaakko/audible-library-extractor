@@ -52,6 +52,8 @@ export default {
       inLibrary: null,
       notInLibrary: null,
     },
+    useHaptics: false,
+    githubSelectedRepo: '',
   },
   // States that don't persist
   bookDetailSettingsOpen: false,
@@ -62,7 +64,7 @@ export default {
   pageCollection: null,
   route: null,
   routeParams: null,
-  library: null,
+  audibledata: null,
   urlOrigin: null,
   searchQuery: "",
   standalone: null,

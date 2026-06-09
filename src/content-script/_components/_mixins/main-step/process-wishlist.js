@@ -103,8 +103,14 @@ export default {
         }
         asin  = DOMPurify.sanitize( asin );
         
-        let carryOnMyWaywardPines = hotpotato.books ? !_.find( hotpotato.books, { asin: asin }) : true;
-        if ( carryOnMyWaywardPines ) {
+        // Audible doesn't auto-remove wishlist books when you purchase them, so skip ones already in the library
+        const alreadyOwned = hotpotato.library ? _.find( hotpotato.library, { asin: asin }) : false;
+        if ( alreadyOwned ) {
+          hotpotato.wishlistAlreadyOwned = hotpotato.wishlistAlreadyOwned || [];
+          hotpotato.wishlistAlreadyOwned.push( asin );
+        }
+
+        if ( !alreadyOwned ) {
           
           let bookInMemory = _.find(hotpotato.wishlist, ["asin",  asin]);
           let fullScan_ALL_partialScan_NEW = (vue.$store.state.storageHasData.wishlist && !bookInMemory) || !vue.$store.state.storageHasData.wishlist;
@@ -141,7 +147,7 @@ export default {
             // SERIES
             const series = _thisRow.querySelector(".seriesLabel > span");
             if ( series ) book.series = vue.getSeries( series );
-            // if ( series ) book.series = vue.getSeries( series, 'reverseOutput');
+            // if ( series ) book.series = vue.getSeries( series, { reverse: true });
             
             // LENGTH
             const length = _thisRow.querySelector(".runtimeLabel > span");
@@ -189,10 +195,12 @@ export default {
             if ( starsWrapper ) {
               const ratingSpan   = starsWrapper.nextElementSibling;
               const ratingsSpan  = ratingSpan.nextElementSibling;
+              
               // RATING
-              book.rating = Number( DOMPurify.sanitize(ratingSpan.textContent.match(/^\d\.?(\d)?/g)) ); // returns the first number
+              const ratingText = _.get(ratingSpan, 'textContent');
+              if ( ratingText ) book.rating = Number( DOMPurify.sanitize(ratingText.match(/^\d\.?(\d)?/g)) ); // returns the first number
               // RATINGS
-              let ratings = ratingsSpan.textContent;
+              let ratings = _.get(ratingsSpan, 'textContent');
               if ( ratings ) {
                 ratings = DOMPurify.sanitize(ratings);
                 ratings = ratings.match(/\d/g);
@@ -204,8 +212,10 @@ export default {
           }
           
           // From plus catalog
-          const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button');
-          if (fromPlusCatalog) book.fromPlusCatalog = true;
+          const fromPlusCatalog = _thisRow.querySelector('.discovery-add-to-library-button') || 
+                                  _thisRow.querySelector('.ucx-add-to-library-button') ||
+                                  _thisRow.querySelector('.adblBuyBoxMinervaPlayNow');
+          if ( fromPlusCatalog ) book.fromPlusCatalog = true;
           
           const getPrice = ( el ) => {
             
@@ -277,7 +287,7 @@ export default {
           
           // - - - - - - -
           
-          if ( vue.$store.state.storageHasData.books ) {
+          if ( vue.$store.state.storageHasData.library ) {
             let newAddition = !bookInMemory;
             let newFromStorage = bookInMemory && bookInMemory.isNew;
             if ( newAddition || newFromStorage ) book.isNew = true;

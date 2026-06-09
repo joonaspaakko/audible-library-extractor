@@ -1,5 +1,5 @@
 <template>
-  <div v-if="showModal" class="modal-overlay">
+  <div v-if="showModal" class="modal-overlay" @click.self="$store.commit('update', { key: 'presetModalOpen', value: false })">
     
     <!-- <animated-wallpaper-app class="cover-bg"
       :editorCovers="store.covers"
@@ -178,8 +178,20 @@
       NButton,
     },
     
+    mounted() {
+      this.onKeydown = ( e ) => {
+        if ( e.key === 'Escape' && this.store.presetModalOpen ) {
+          this.$store.commit( 'update', { key: 'presetModalOpen', value: false } );
+        }
+      };
+      document.addEventListener( 'keydown', this.onKeydown );
+    },
+    beforeDestroy() {
+      document.removeEventListener( 'keydown', this.onKeydown );
+    },
+
     methods: {
-      
+
       extrasChecked( card, extra ) {
         
         card.images.extras = extra.checked ? extra.image : null;

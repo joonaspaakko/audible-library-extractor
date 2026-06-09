@@ -6,18 +6,14 @@
       :class="[ tier.key ]"
       v-for="tier in $store.state.tiers" :key="'btn-'+tier.key" 
       :max="99"
-      :value="
-        tier.visible ? 0 : (
-          (tier.key === 'container') ? draggableCovers.length : tier.list.length
-        )
-      " 
+      :value="tier.visible ? 0 : (tier.key === 'unusedSidebar' ? $store.state.hiddenCovers.length : tier.list.length)"
     >
-      
+
       <!-- BUTTONS -->
-      <button 
-        :style="{ 
-          background: tier.color, 
-          width: tier.key === 'container' ? null : '30px', 
+      <button
+        :style="{
+          background: tier.color,
+          width: tier.key === 'unusedSidebar' ? null : '30px',
         }"
         :class="{ hidden: !tier.visible }"
         @click="buttonClicked( tier )"
@@ -25,7 +21,7 @@
       
         <!-- BTN LABEL -->
         <span v-if="tier.visible">
-          <span v-if="tier.key === 'container'">
+          <span v-if="tier.key === 'unusedSidebar'">
             <ic-sharp-grid-view/>
           </span>
           <span v-else>
@@ -64,9 +60,7 @@ export default {
   },
   methods: {
     buttonClicked( tier ) {
-      
       this.$store.commit('toggleTier', tier);
-      
     },
   }
 }
@@ -124,11 +118,6 @@ export default {
   }
 
     
-  .container {
-    // transform: rotate(90deg);
-    // transform-origin: center;
-    // margin-top: 30px;
-  }
 }
 
 .tier-list-btn-wrapper {

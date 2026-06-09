@@ -9,7 +9,7 @@
 </template>
 
 <script>
-import contextMenuImage from './contextMenuReminder.png';
+import contextMenuImage from './contextMenuReminder.png?inline';
 
 export default {
   name: "contextMenuReminder",

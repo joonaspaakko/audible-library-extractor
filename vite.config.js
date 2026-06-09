@@ -11,8 +11,8 @@ import { defineConfig, splitVendorChunkPlugin } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { crx } from '@crxjs/vite-plugin';
 // import manifest from './manifest.json'; 
-// import manifest from "./manifest.json" with { type: "json" };
-import manifest from './manifest.json' assert { type: 'json' } // Node >=17
+import manifest from "./manifest.json" with { type: "json" };
+// import manifest from './manifest.json' assert { type: 'json' } // Node >=17
 import { viteStaticCopy } from 'vite-plugin-static-copy';
 import copy from 'rollup-plugin-copy';
 import Icons from 'unplugin-icons/vite';
@@ -23,6 +23,7 @@ import loadVersion from 'vite-plugin-package-version';
 import { viteSingleFile } from "vite-plugin-singlefile";
 import { customFilePathsJSON, customSingleFileGallery } from "./custom-vite-plugins.js";
 import { ViteEjsPlugin } from "vite-plugin-ejs";
+import { visualizer } from 'rollup-plugin-visualizer';
 
 const src = function( path, prefix ) {
   prefix = prefix || './src';
@@ -85,7 +86,6 @@ else {
   else {
     manualChunks = {
       jquery: ['jquery'],
-      jszip: ['jszip', 'jszip-utils'],
       howler: ['howler'],
     };
   }
@@ -116,6 +116,8 @@ export default defineConfig({
       esmExternals: true,
     }, 
     // sourcemap: 'inline',
+    target: 'esnext', 
+    minify: 'esbuild', 
   },
   optimizeDeps: {
     include: [
@@ -129,7 +131,6 @@ export default defineConfig({
       'async-es/mapLimit',
       'async-es/waterfall',
       'domurl',
-      'file-saver',
       'howler',
       '@splidejs/vue-splide', 
       'vue-slider-component', 
@@ -150,12 +151,13 @@ export default defineConfig({
       ],
       extensions: ['vue'],
       deep: true,
+      exclude: buildSingleFile ? [/[\\/]node_modules[\\/]/, /[\\/]\.git[\\/]/, /github-upload/] : undefined,
       resolvers: [
         IconsResolver({
           prefix: '',
         }),
       ],
-    }), 
+    }),
     Icons(),
     ( buildSingleFile ? undefined : crx({ manifest }) ),
     copy({
@@ -175,11 +177,13 @@ export default defineConfig({
     customFilePathsJSON,
     customSingleFileGallery,
     buildSingleFile ? null : splitVendorChunkPlugin(),
+    visualizer(),
   ],
   resolve: {
     alias: {
       '@'                 : src(''),
       '@root'             : src(''),
+      '@utils'            : src('utils'),
       '@dist'             : dist(''),
       '@fonts'            : src('fonts'),
       '@assets'           : src('assets'),
@@ -210,6 +214,15 @@ export default defineConfig({
           @use "@gallery/_variables.scss" as *;
         ` 
      }, 
+    },
+  },
+  
+  crx: {
+    manifest: {
+      web_accessible_resources: [{
+        resources: ['dist/assets/*'],
+        matches: ['<all_urls>']
+      }],
     },
   },
 });

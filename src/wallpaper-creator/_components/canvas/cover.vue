@@ -1,11 +1,10 @@
 <template>
-  <div 
+  <div
     class="cover"
-    :class="{ active: selectedBook }"
     @mouseover="coverHover"
     @mouseleave="coverHover"
     :style="{ transform: store.reverseCoverFlow ? 'rotate(180deg)' : null }"
-    @click="toggleCoverActions"
+    @contextmenu.prevent="openCoverActions"
   >
   
     <div v-if="!store.saving" class="cover-padding-preview"></div>
@@ -34,11 +33,6 @@
       
       <reread-marker v-if="book?.reread"></reread-marker>
       
-      <div class="selected-cover" v-if="selectedBook" :style="{ 
-        borderRadius: (this.store.coverSize * store.borderRadius) + 'px',
-        border: (this.store.coverSize/30)+'px solid #222',
-      }"></div>
-      
     </div>
   </div>  
 </template>
@@ -54,29 +48,40 @@ export default {
     };
   },
   
-  computed: {
-    selectedBook() {
-      return (this.store.coverActions?.asin === this.book.asin) && this.book.asin; 
-    }
-  },
-
   methods: {
     coverHover( e ) {
-      
+
       const hover = (e.type === 'mouseover');
-      this.$store.commit('update', { key: 'panningAlert', value: hover });
-      
+      const inSidebar = !!e.target.closest('.unused-covers-list');
+
+      this.$store.commit('update', { key: 'panningAlert', value: hover && !inSidebar });
+
+      if ( hover ) {
+        if ( inSidebar ) {
+          this.$store.commit('removeNotification', 'cover-ctx');
+          this.$store.commit('addNotification', { id: 'sidebar-drag', icon: 'arrows', color: 'red', message: 'Drag covers onto the canvas, or back to hide them.' });
+        }
+        else {
+          this.$store.commit('removeNotification', 'sidebar-drag');
+          this.$store.commit('addNotification', { id: 'cover-ctx', icon: 'cursor-click', color: 'info', message: 'Right-click a cover for options.' });
+        }
+      }
+      else {
+        this.$store.commit('removeNotification', 'sidebar-drag');
+        this.$store.commit('removeNotification', 'cover-ctx');
+      }
+
     },
-    
-    toggleCoverActions() {
-      
-      const coverActionsAsin = _.get(this.store, 'coverActions.asin');
-      
-      this.$store.commit('update', { 
-        key: 'coverActions', 
-        value: coverActionsAsin === this.book.asin ? null : this.book,
+
+    openCoverActions( e ) {
+
+      if ( e.target.closest('.unused-covers-list') ) return;
+
+      this.$store.commit('update', {
+        key: 'coverActions',
+        value: { book: this.book, x: e.clientX, y: e.clientY },
       });
-      
+
     }
   },
   
@@ -117,7 +122,7 @@ export default {
   bottom: 0;
   left: 0;
   flex: 1;
-  background: rgba(#ff394f, .45) !important;
+  background: rgba(#73c061, .5) !important;
 }
 .show-cover-padding-preview .cover-padding-preview { display: block; }
 
@@ -126,33 +131,6 @@ export default {
   display: inline-block;
   font-size: 0;
   line-height: 0;
-  // &, .cover-img {
-  //   transition: all 300ms ease;
-  // }
-  &.active .cover-img {
-    filter: grayscale(1) invert(1) brightness(1.1);
-    // box-shadow: 0 0 4px 4px red !important;
-  }
-}
-
-.selected-cover {
-  position: absolute;
-  z-index: 5;
-  top   : 0;
-  right : 0;
-  bottom: 0;
-  left  : 0;
-  // border: 4px solid #63e2b8;
-  &:before {
-    // content: '';
-    // background: rgba(255,0,0,1);
-    // mix-blend-mode: color-burn;
-    // position: absolute;
-    // top: 0;
-    // right: 0;
-    // bottom: 0;
-    // left: 0;
-  }
 }
 
 .cover .placeholder,

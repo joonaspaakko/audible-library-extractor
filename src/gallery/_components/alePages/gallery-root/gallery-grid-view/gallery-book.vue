@@ -14,6 +14,7 @@
 
       <div
         class="ale-click-wrap"
+        @mousedown="$haptic(1)"
         @click="!book.asin ? null : $compEmitter.emit('book-clicked', book.asin)"
       >
         
@@ -398,6 +399,11 @@ export default {
     align-items: center;
     justify-items: center;
   }
+}
+
+.ale-click-wrap {
+  will-change: backdrop-filter;
+  transform: translateZ(0);
 }
 
 .ale-click-wrap:hover {

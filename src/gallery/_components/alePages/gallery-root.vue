@@ -67,7 +67,7 @@ export default {
   data: function() {
     return {
       loading: true,
-      collectionSource: 'library.books',
+      collectionSource: 'audibledata.library',
       pageTitle: null,
       pageSubTitle: null,
       scrollContainer: null,
