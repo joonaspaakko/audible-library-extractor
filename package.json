@@ -40,7 +40,7 @@
     "modern-screenshot": "^4.7.0",
     "normalize.css": "^8.0.1",
     "octokit": "^5.0.5",
-    "pinia": "^2.0.21",
+    "pinia": "^3.0.4",
     "smoothscroll-polyfill": "^0.4.4",
     "vite-plugin-dynamic-import": "^1.6.0",
     "vite-plugin-package-version": "^1.1.0",
