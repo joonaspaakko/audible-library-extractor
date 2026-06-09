@@ -12,6 +12,264 @@ export default {
       
       changeLog: [
         {
+          version: 'v.1.0.0',
+          highlights: `Full extraction recommended due to data structure changes and store page fixes that restore previously lost data. This is a major release featuring direct GitHub uploads, a completely overhauled collage maker (formerly the wallpaper creator), and many more improvements. More changes are planned before this release is finalized.`,
+          changes: [
+            // EXTRACTION
+            {
+              description: `Fixed documentation button in extraction settings and right-click context menu not working.`,
+              class: 'fixed',
+              link: issue(165),
+            },
+            {
+              description: `Extraction: Fixed merging discontinued books with series.`,
+              class: 'fixed',
+            },
+            {
+              description: `Extraction: Fixed/cleaned up store page release date fetching.`,
+              class: 'fixed',
+            },
+            {
+              description: `Extraction: Fixed extractions sometimes saving an empty result.`,
+              class: 'fixed',
+            },
+            {
+              description: `Extraction: Fixed fetching "people also bought" carousel data.`,
+              class: 'fixed',
+              link: issue(180),
+            },
+            {
+              description: `Extraction: Fixed plus catalog availability from wishlist books (a class was changed).`,
+              class: 'fixed',
+              link: issue(181),
+            },
+            {
+              description: `Extraction: Fixed wishlist extraction failing and gallery not opening after library extraction.`,
+              class: 'fixed',
+              link: issue(178),
+            },
+            {
+              description: `Extraction: Now extracts the purchase date (added date) from purchase history, with a matching filter and sorter in the gallery.`,
+              class: 'added',
+            },
+            {
+              description: `Extraction: Migrated data structure from library.books to audibledata.library for better management. Automatic migration for old data structures on first load. This change is not really visible to users, but I wanted to mention it just as a heads up to say that a big structural change happened and this could potentially cause issues here and there as it touches just about every step of the extraction process and how data is displayed in the gallery etc.`,
+              class: 'improved',
+            },
+            {
+              description: `Extraction: Store page added extraction failsafes.`,
+              class: 'improved',
+            },
+            {
+              description: `Extraction: reduced the number requests needed for series extraction which should stabilize the extraction process by quite a bit.`,
+              class: 'improved',
+              link: issue(169),
+            },
+
+            // GALLERY
+            {
+              description: `Gallery: Animated background grid fixed last row not always being a full row.`,
+              class: 'fixed',
+              link: issue(167),
+            },
+            {
+              description: `Gallery: Series sub page removed deduped total to reduce confusion with disparity on the series list sub page and what you see in each individual series page.`,
+              class: 'fixed',
+            },
+            {
+              description: `Gallery: Fixed minor standalone gallery load errors.`,
+              class: 'fixed',
+            },
+            {
+              description: `Gallery: Fixed carousel gallery rendering.`,
+              class: 'fixed',
+            },
+            {
+              description: `Gallery: Fixed randomized sample covers in the first page of categories being squished when they don't fit on the screen. Decided to handle this by letting it overflow and function like a manually scrollable carousel.`,
+              class: 'fixed',
+              link: issue(161),
+            },
+            {
+              description: `Gallery: Fixed "my reviews" section above the summary causing content overflow on mobile.`,
+              class: 'fixed',
+              link: issue(162),
+            },
+            {
+              description: `Gallery: Fixed typo "unkown" → "unknown".`,
+              class: 'fixed',
+              link: issue(187),
+            },
+            {
+              description: `Added direct GitHub upload to the standalone gallery save modal so users don't need to manually download zips and upload them to GitHub.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added many new filters for sub pages.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added reset button for sub page filters.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added a "covers per row" setting to grid view.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added a "cover size" setting to grid view.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added a list/stacked details mode to grid view.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added a secondary sort value to grid view so you can, for example, still see the book series name while sorting by length.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added a segmented side scroller with a position label that shows how far you're scrolled and also works as a quick jump to any part of the page.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: Added search autocomplete with suggestions that also understand inline @scopes.`,
+              class: 'added',
+            },
+            {
+              description: `Gallery: The standalone gallery now packs the heavier book data (summaries and carousel data) into a handful of ~1MB chunk files instead of thousands of tiny per-book files, which makes GitHub uploads and page loads a lot faster. Chunks are also stored in IndexedDB to reduce file fetching.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Global settings are now available on any page and open in a drawer instead of living just inside the book details view.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Reworked the extension tools menu.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Replaced the cover blurb hot corner with a long press that lets you drag across multiple covers. Works on desktop and mobile.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: All views (grid, spreadsheet, sub pages and collections) now use virtual scrolling for much better scrolling performance.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Rewrote the search, replacing Fuse with MiniSearch. It's faster and supports advanced operators: exact match, exclude, starts/ends with, exact phrases, OR, and inline @scopes.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Range slider now steps by one increment when clicking min/max labels instead of snapping to absolute min/max.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Animated background grid now loads in more gently so it doesn't slow down the initial page load. It waits for its images and lets the page content load first before it starts animating.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Animated background grid no longer flickers when foreground books are hovered over.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Animated background grid added more variability and randomness when user doesn't have many covers.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: Changed tooltip styles.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery book details: Brought back sideways swipe to move between books.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery book details: Links now default to the gallery, and links that lead to Audible get an external link icon.`,
+              class: 'improved',
+            },
+            {
+              description: `Gallery: The "formulas" CSV export now uses the XLSX file format to retain formular compatibility with Google Sheets. Should also work with Excel.`,
+              class: 'improved',
+              link: issue(133),
+            },
+
+            // COLLAGE MAKER
+            {
+              description: `Collage maker: Fixed ERR_INSUFFICIENT_RESOURCES when exporting images with many covers (+400).`,
+              class: 'fixed',
+              link: issue(163),
+            },
+            {
+              description: `Collage maker: Fixed text element control box visibility.`,
+              class: 'fixed',
+            },
+            {
+              description: `Collage maker: Fixed text element snapping.`,
+              class: 'fixed',
+            },
+            {
+              description: `Collage maker: Fixed selecting text element inside the right side panel de-selecting it immediately.`,
+              class: 'fixed',
+            },
+            {
+              description: `Collage maker: text elements auto-reserve whitespace on canvas sides based on orientation and location, making it easier to add text without having to figure out how to make space for it.`,
+              class: 'added',
+            },
+            {
+              description: `Collage maker: Replaced old toast notifications with a "notification center" (panel) that makes it a bit easier to show multiple tips on how you can interact with the editor.`,
+              class: 'added',
+            },
+            {
+              description: `Collage maker: Added panning mode indicator (holding down spacebar allows you to always pan across any elements).`,
+              class: 'added',
+            },
+            {
+              description: `Collage maker: Added right-click context menu for relisten and hide actions ("remove" changed to "hide" using pre-existing tier-list hide container).`,
+              class: 'added',
+            },
+            {
+              description: `Collage maker: Added momentum to canvas panning.`,
+              class: 'added',
+            },
+            {
+              description: `Collage maker: Renamed the "Wallpaper creator" to "Collage maker".`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: The gallery menu button now prompts you to pick a source on pages with no books instead of being disabled.`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: Improved zooming with the scroll wheel and changed it to center to the cursor.`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: Constrained canvas panning so you can't shoot past the canvas into infinity.`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: Settings panel sliders and rapidly changing number inputs now work smoother with a large amount of covers.`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: Export settings now appear in a dialog before every save.`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: Options panel now has collapsible sections (collapsed by default) to better inform users about each option.`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: Double-clicking any side of text bounding box moves that side to a corresponding canvas edge (with some exceptions).`,
+              class: 'improved',
+            },
+            {
+              description: `Collage maker: Hovering over "cover padding" + "canvas padding" headings in the options panel now shows the current padding in the canvas.`,
+              class: 'improved',
+            },
+          ],
+        },
+        {
           version: 'v.0.2.12',
           highlights: `Full extraction recommended in order to extract subcategories.`,
           changes: [
@@ -193,7 +451,7 @@ export default {
               class: 'removed',
             },
             {
-              description: `Extraction provess: books will now be saved after extracting every book in the library or the wishlist. Also wishlist extraction happens just before wishlist is extracted.`,
+              description: `Extraction process: books will now be saved after extracting every book in the library or the wishlist. Also wishlist extraction happens just before wishlist is extracted.`,
               class: 'improved',
             },
             {
