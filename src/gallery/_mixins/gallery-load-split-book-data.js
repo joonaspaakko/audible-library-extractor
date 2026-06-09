@@ -7,12 +7,13 @@ import axios from 'axios';
 // MODULE-LEVEL CONSTANTS:
 
 // Database config:
-const db = {
+export const db = {
   name: 'ale_split_book_data',
-  version: 1,
+  version: 2,
   stores: {
     meta: 'meta',
     chunks: 'chunks',
+    pages: 'pages',
   },
 };
 
@@ -23,6 +24,60 @@ let dbInstance = null;
 // Keyed by chunkId — prevents duplicate fetches when multiple books from the same
 // chunk are opened before the first fetch resolves and writes to IndexedDB.
 const inflightChunkFetches = {};
+
+// Shared DB open. Used by both this mixin and the route loader.
+export function openDB() {
+  return new Promise((resolve, reject) => {
+
+    const request = indexedDB.open(db.name, db.version);
+
+    request.onupgradeneeded = (event) => {
+      const idb = event.target.result;
+      if ( !idb.objectStoreNames.contains(db.stores.meta) ) {
+        idb.createObjectStore(db.stores.meta, { keyPath: 'key' });
+      }
+      if ( !idb.objectStoreNames.contains(db.stores.chunks) ) {
+        idb.createObjectStore(db.stores.chunks, { keyPath: 'chunkIndex' });
+      }
+      if ( !idb.objectStoreNames.contains(db.stores.pages) ) {
+        idb.createObjectStore(db.stores.pages, { keyPath: 'name' });
+      }
+    };
+
+    request.onsuccess = (event) => resolve(event.target.result);
+    request.onerror   = (event) => reject(event.target.error);
+
+  });
+}
+
+// Shared cache validation. Wipes chunks+pages if cacheID changed.
+export function validateCache(database, currentCacheID) {
+  return new Promise((resolve, reject) => {
+
+    const tx = database.transaction([db.stores.meta, db.stores.chunks, db.stores.pages], 'readwrite');
+    const metaStore  = tx.objectStore(db.stores.meta);
+    const chunkStore = tx.objectStore(db.stores.chunks);
+    const pageStore  = tx.objectStore(db.stores.pages);
+
+    const getRequest = metaStore.get('cacheID');
+
+    getRequest.onsuccess = () => {
+      const storedCacheID = getRequest.result?.value ?? null;
+
+      if ( storedCacheID !== currentCacheID ) {
+        chunkStore.clear();
+        pageStore.clear();
+        metaStore.put({ key: 'cacheID', value: currentCacheID });
+      }
+
+      tx.oncomplete = () => resolve();
+      tx.onerror    = () => reject(tx.error);
+    };
+
+    getRequest.onerror = () => reject(getRequest.error);
+
+  });
+}
 
 export default {
 
@@ -103,71 +158,12 @@ export default {
      * @returns {Promise<IDBDatabase>}
      */
     async getBookDatabase() {
-      if ( !dbInstance ) dbInstance = await this.openBookDatabase();
+      if ( !dbInstance ) dbInstance = await openDB();
       return dbInstance;
     },
 
-    /**
-     * Opens (or creates) the IndexedDB database and its object stores.
-     * @returns {Promise<IDBDatabase>}
-     */
-    openBookDatabase() {
-      return new Promise((resolve, reject) => {
-
-        const request = indexedDB.open(db.name, db.version);
-
-        request.onupgradeneeded = (event) => {
-          const idb = event.target.result;
-          // 'meta' holds housekeeping data — currently just the last known cacheID.
-          if ( !idb.objectStoreNames.contains(db.stores.meta) ) {
-            idb.createObjectStore(db.stores.meta, { keyPath: 'key' });
-          }
-          // 'chunks' stores fetched chunk arrays, keyed by chunkIndex.
-          if ( !idb.objectStoreNames.contains(db.stores.chunks) ) {
-            idb.createObjectStore(db.stores.chunks, { keyPath: 'chunkIndex' });
-          }
-        };
-
-        request.onsuccess = (event) => resolve(event.target.result);
-        request.onerror   = (event) => reject(event.target.error);
-
-      });
-    },
-
-    /**
-     * Validates the stored cacheID against the current one.
-     * If they differ, wipes all cached chunks and records the new ID — atomically,
-     * so stale data is never served even if something fails mid-transaction.
-     * @param {IDBDatabase} database
-     * @param {string} currentCacheID
-     * @returns {Promise<void>}
-     */
     validateBookDataCache(database, currentCacheID) {
-      return new Promise((resolve, reject) => {
-
-        // Both stores in one transaction so the clear + meta write are atomic.
-        const tx = database.transaction([db.stores.meta, db.stores.chunks], 'readwrite');
-        const metaStore = tx.objectStore(db.stores.meta);
-        const chunkStore = tx.objectStore(db.stores.chunks);
-
-        const getRequest = metaStore.get('cacheID');
-
-        getRequest.onsuccess = () => {
-          const storedCacheID = getRequest.result?.value ?? null;
-
-          if ( storedCacheID !== currentCacheID ) {
-            // cacheID changed — nuke all stored chunks and record the new one.
-            chunkStore.clear();
-            metaStore.put({ key: 'cacheID', value: currentCacheID });
-          }
-
-          tx.oncomplete = () => resolve();
-          tx.onerror    = () => reject(tx.error);
-        };
-
-        getRequest.onerror = () => reject(getRequest.error);
-
-      });
+      return validateCache(database, currentCacheID);
     },
 
     /**

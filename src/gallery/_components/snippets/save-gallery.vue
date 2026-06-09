@@ -571,22 +571,22 @@ export default {
         }
 
         // Split page data into separate files...
-        files.add("data/temp-data."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
+        files.add("data/temp-data."+ vue.cacheBuster +".json", JSON.stringify(tempData));
 
         if ( tempData.library     ) {
-          files.add("data/library."+ vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.library) + ";");
+          files.add("data/library."+ vue.cacheBuster +".json", JSON.stringify(libraryData.library));
         }
         if ( tempData.collections ) {
-          files.add("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
+          files.add("data/collections."+ vue.cacheBuster +".json", JSON.stringify(libraryData.collections));
         }
         if ( tempData.series      ) {
-          files.add("data/series."+ vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");
+          files.add("data/series."+ vue.cacheBuster +".json", JSON.stringify(libraryData.series));
         }
         if ( tempData.wishlist    ) {
-          files.add("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
+          files.add("data/wishlist."+ vue.cacheBuster +".json", JSON.stringify(libraryData.wishlist));
         }
         if ( tempData.userReviews    ) {
-          files.add("data/userReviews."+ vue.cacheBuster +".js", "window.userReviewsJSON = " + JSON.stringify(libraryData.userReviews) + ";");
+          files.add("data/userReviews."+ vue.cacheBuster +".json", JSON.stringify(libraryData.userReviews));
         }
         
         let assetFiles = _.cloneDeep(vue.files);
