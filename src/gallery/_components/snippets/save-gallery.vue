@@ -350,7 +350,8 @@ export default {
         `;
         
         const useServiceWorker = true;
-        loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker +'<\/script>' : '';
+        const sc = '<' + '/script>';
+        loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker + sc : '';
         
         const getFile = function( name, ext ) {
           let regex = "^assets\\/"+ name +"\\..+\\."+ (ext || "js") +"$";
@@ -404,13 +405,14 @@ export default {
             <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
             <script>
               (function() {
+                var base = new URL("./", location.href).href;
                 var m = {
                   name: "My audible library",
                   short_name: "Audible library",
                   icons: [
-                    { src: "favicons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
-                    { src: "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-                    { src: "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+                    { src: base + "favicons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+                    { src: base + "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+                    { src: base + "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
                   ],
                   theme_color: "#f29a33",
                   background_color: "#f29a33",
@@ -425,22 +427,22 @@ export default {
                 l.href = URL.createObjectURL(b);
                 document.head.appendChild(l);
               })();
-            <\/script>
+            ${sc}
             <link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">
             <link rel="shortcut icon" href="favicons/favicon.ico">
             <meta name="msapplication-TileColor" content="#222222">
             <meta name="msapplication-config" content="favicons/browserconfig.xml">
             <meta name="theme-color" content="#f29a33">
             <title>My Audible Library</title>
-            <script type="module" src="https://esm.sh/@khmyznikov/pwa-install"><\/script>
+            <script type="module" src="https://esm.sh/@khmyznikov/pwa-install">${sc}
             ${loadServiceWorker}
             <link id="ale-css" rel="stylesheet" href="${ getFile('gallery', 'css') }">
           </head>
           <body>
             <div id="audible-library-extractor" data-version="${ this.$store.state.version }" data-cache-id="${ vue.cacheBuster }"></div>
-            <pwa-install use-local-storage styles='{"--tint-color": "#f29a33"}'></pwa-install>
-            <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"><\/script>
-            <script id="ale-js" src="${ getFile('gallery', 'js') }" type="module"><\/script>
+            <pwa-install use-local-storage manifest-url="app.webmanifest" icon="favicons/android-chrome-192x192.png" name="My Audible Library" styles='{"--tint-color": "#f29a33"}'></pwa-install>
+            <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js">${sc}
+            <script id="ale-js" src="${ getFile('gallery', 'js') }" type="module">${sc}
             <noscript>This library requires javascript to work!</noscript>
           </body>
           </html>
