@@ -403,31 +403,7 @@ export default {
             <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
             <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
             <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
-            <script>
-              (function() {
-                var base = new URL("./", location.href).href;
-                var m = {
-                  name: "My audible library",
-                  short_name: "Audible library",
-                  icons: [
-                    { src: base + "favicons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
-                    { src: base + "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
-                    { src: base + "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
-                  ],
-                  theme_color: "#f29a33",
-                  background_color: "#f29a33",
-                  display: "standalone",
-                  prefer_related_applications: false,
-                  start_url: "./" + (window.location.search || ""),
-                  orientation: "any",
-                };
-                var b = new Blob([JSON.stringify(m)], { type: "application/manifest+json" });
-                var l = document.createElement("link");
-                l.rel = "manifest";
-                l.href = URL.createObjectURL(b);
-                document.head.appendChild(l);
-              })();
-            ${sc}
+            <link rel="manifest" href="app.webmanifest">
             <link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">
             <link rel="shortcut icon" href="favicons/favicon.ico">
             <meta name="msapplication-TileColor" content="#222222">
