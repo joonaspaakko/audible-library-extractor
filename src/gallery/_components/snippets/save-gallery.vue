@@ -358,73 +358,93 @@ export default {
           return _.find(vue.files, file => file.match(regex));
         };
         
-        const indexHTML =
-          "<!DOCTYPE html>" +
-          '<html lang="en" class="theme-dark standalone-gallery" style="background: #171717; min-height: 100%;">' +
-          "<head>" +
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2388-1668.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-1536.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2224.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2224-1668.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1620-2160.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2160-1620.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1290-2796.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2796-1290.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1179-2556.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2556-1179.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1284-2778.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2778-1284.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1170-2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2532-1170.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2436-1125.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2688-1242.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1792-828.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2208-1242.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1334-750.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<meta charset="UTF-8">' +
-            // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-            '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-            '<meta http-equiv="X-UA-Compatible" content="ie=edge">' +
-            '<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">' +
-            '<meta http-equiv="Pragma" content="no-cache">' +
-            '<meta name="apple-mobile-web-app-capable" content="yes">' +
-            '<meta name="mobile-web-app-capable" content="yes">' +
-            '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +
-            '<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">' +
-            '<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">' +
-            '<link rel="manifest" href="app.webmanifest">' +
-            '<link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">' +
-            '<link rel="shortcut icon" href="favicons/favicon.ico">' +
-            '<meta name="msapplication-TileColor" content="#222222">' +
-            '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
-            '<meta name="theme-color" content="#f29a33">' +
-            "<title>My Audible Library</title>" +
-            '<script type="module" src="https://esm.sh/@khmyznikov/pwa-install"><\/script>' +
-            loadServiceWorker +
-            '<link id="ale-css" rel="stylesheet" href="'+ getFile('gallery', 'css') +'">' +
-          "</head>" +
-          "<body>" +
-          
-            '<div id="audible-library-extractor" data-version="'+ this.$store.state.version +'" data-cache-id="'+ vue.cacheBuster +'"></div>' +
-            '<pwa-install use-local-storage styles=\'{"--tint-color": "#f29a33"}\'></pwa-install>' +
-            '<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"><\/script>' +
-            // '<script type="module" src="'+ lodashJS +'"><\/script>' +
-            '<script id="ale-js" src="'+ getFile('gallery', 'js') +'" type="module"><\/script>' +
-            "<noscript>This library requires javascript to work!</noscript>" +
-            
-          "</body>" +
-            "</html>";
+        const indexHTML = `
+          <!DOCTYPE html>
+          <html lang="en" class="theme-dark standalone-gallery" style="background: #171717; min-height: 100%;">
+          <head>
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2388-1668.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-1536.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2224.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2224-1668.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1620-2160.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2160-1620.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1290-2796.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2796-1290.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1179-2556.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2556-1179.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1284-2778.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2778-1284.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1170-2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2532-1170.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2436-1125.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2688-1242.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1792-828.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2208-1242.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1334-750.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+            <meta http-equiv="Pragma" content="no-cache">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+            <meta name="mobile-web-app-capable" content="yes">
+            <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
+            <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+            <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+            <script>
+              (function() {
+                var m = {
+                  name: "My audible library",
+                  short_name: "Audible library",
+                  icons: [
+                    { src: "favicons/android-chrome-192x192.png", sizes: "192x192", type: "image/png" },
+                    { src: "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "any" },
+                    { src: "favicons/android-chrome-512x512.png", sizes: "512x512", type: "image/png", purpose: "maskable" },
+                  ],
+                  theme_color: "#f29a33",
+                  background_color: "#f29a33",
+                  display: "standalone",
+                  prefer_related_applications: false,
+                  start_url: "./" + (window.location.search || ""),
+                  orientation: "any",
+                };
+                var b = new Blob([JSON.stringify(m)], { type: "application/manifest+json" });
+                var l = document.createElement("link");
+                l.rel = "manifest";
+                l.href = URL.createObjectURL(b);
+                document.head.appendChild(l);
+              })();
+            <\/script>
+            <link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">
+            <link rel="shortcut icon" href="favicons/favicon.ico">
+            <meta name="msapplication-TileColor" content="#222222">
+            <meta name="msapplication-config" content="favicons/browserconfig.xml">
+            <meta name="theme-color" content="#f29a33">
+            <title>My Audible Library</title>
+            <script type="module" src="https://esm.sh/@khmyznikov/pwa-install"><\/script>
+            ${loadServiceWorker}
+            <link id="ale-css" rel="stylesheet" href="${ getFile('gallery', 'css') }">
+          </head>
+          <body>
+            <div id="audible-library-extractor" data-version="${ this.$store.state.version }" data-cache-id="${ vue.cacheBuster }"></div>
+            <pwa-install use-local-storage styles='{"--tint-color": "#f29a33"}'></pwa-install>
+            <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"><\/script>
+            <script id="ale-js" src="${ getFile('gallery', 'js') }" type="module"><\/script>
+            <noscript>This library requires javascript to work!</noscript>
+          </body>
+          </html>
+        `;
 
         files.add("index.html", indexHTML);
         
