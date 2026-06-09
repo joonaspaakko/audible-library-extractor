@@ -114,6 +114,11 @@ else {
   function loadJSON( afterError ) {
     let scrpt = document.createElement("script");
     let cacheID = document.querySelector('#audible-library-extractor').getAttribute('data-cache-id');
+    // Validate cacheID contains only digits to prevent injection
+    if (!/^\d+$/.test(cacheID)) {
+      console.error('Invalid cacheID format');
+      return;
+    }
     scrpt.src = "data/temp-data."+ cacheID +".js";
     scrpt.type = "text/javascript";
     scrpt.onload = function() {
