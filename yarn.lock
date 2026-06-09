@@ -2219,10 +2219,10 @@ inherits@2, inherits@^2.0.3, inherits@~2.0.3:
   resolved "https://registry.yarnpkg.com/inherits/-/inherits-2.0.4.tgz#0fa2c64f932917c3433a0ded55363aae37416b7c"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-ios-haptics@^0.1.4:
-  version "0.1.4"
-  resolved "https://registry.yarnpkg.com/ios-haptics/-/ios-haptics-0.1.4.tgz#6221b3b365eb42a8db3c9804fae9f7d20fe370c7"
-  integrity sha512-94FJcSuvmhe4mHTX4Uauj+/2yhs56m4BLkRScy1vNvkv7H1cSjsvfT+olc1sYOUqWlPhtVttAFBHex0cY9CE7Q==
+ios-haptics@^0.1.5:
+  version "0.1.5"
+  resolved "https://registry.yarnpkg.com/ios-haptics/-/ios-haptics-0.1.5.tgz#6d06586db31ca39f91bc21ff834600627100c399"
+  integrity sha512-quSSgC4pKFkXV0SzKPRB8jOh7GYl9nYvgIYYcmFMqOkk2WSJ/ocfN5O0F/w8cqzUxKP2z+4tiJRO3eGE3qU05g==
 
 is-binary-path@~2.1.0:
   version "2.1.0"
