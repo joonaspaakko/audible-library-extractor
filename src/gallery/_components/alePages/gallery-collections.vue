@@ -167,7 +167,7 @@ export default {
 
 <style lang="scss" scoped>
 
-@import "@gallery/box-layout.scss";
+@use "@gallery/box-layout.scss" as *;
 
 .single-box {
   display: flex;
@@ -287,13 +287,13 @@ export default {
 
 
 .theme-dark .hide-premade-btn-wrapper > div {
-  background: lighten(rgba( #121517, .98 ), 5);
+  background: color.adjust(rgba( #121517, .98 ), $lightness: 5%);
   box-shadow: $shadowMedium rgba(0,0,0,0.45);
   color: $darkFrontColor;
-  border: 1px solid rgba( lighten( $darkBackColor, 62), .25 );
+  border: 1px solid rgba( color.adjust($darkBackColor, $lightness: 62%), .25 );
 }
 .theme-light .hide-premade-btn-wrapper > div {
-  background: rgba( lighten( $lightBackColor, 5), .98 );
+  background: rgba( color.adjust($lightBackColor, $lightness: 5%), .98 );
   box-shadow: $shadowSmall  rgba(0,0,0,0.2), $shadowMedium  rgba(0,0,0,0.2);
   color: $lightFrontColor;
   border: 1px solid rgba( $lightFrontColor, .25 );

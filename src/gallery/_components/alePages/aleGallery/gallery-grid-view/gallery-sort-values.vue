@@ -264,13 +264,13 @@ export default {
 
 .theme-dark .ale-book .sort-values-container > div {
   color: #fff;
-  background: lighten( $darkBackColor, 9);
-  border-color: lighten( $darkBackColor, 14);
+  background: color.adjust($darkBackColor, $lightness: 9%);
+  border-color: color.adjust($darkBackColor, $lightness: 14%);
 }
 .theme-light .ale-book .sort-values-container > div {
   color: #fff;
   background: #202020;
-  border-color: lighten( #202020, 5);
+  border-color: color.adjust(#202020, $lightness: 5%);
 }
 
 .ale-book.details-open .sort-values-container > div {
@@ -302,12 +302,12 @@ export default {
   color: #fff;
   background: #c30d2d;
   box-shadow: -1px 1px 2px rgba( #000, .25 );
-  // border: 1px solid darken( #c30d2d, 10);
+  // border: 1px solid color.adjust(#c30d2d, $lightness: -10%);
   // border-radius: 0 3px 0 3px;
   border-radius: 3px;
   // @include themify($themes) {
   //   background: themed(audibleOrange);
-  //   border: 1px solid darken( themed(audibleOrange), 20);
+  //   border: 1px solid color.adjust(themed(audibleOrange), $lightness: -20%);
   // }
 }
 
@@ -315,14 +315,14 @@ export default {
   height: 2px;
   border-radius: 2px;
   @include themify($themes) {
-    // background: darken(themed(audibleOrange), 15);
-    border: 1px solid rgba( darken(themed(audibleOrange), 15), .5 );
+    // background: color.adjust(themed(audibleOrange), $lightness: -15%);
+    border: 1px solid rgba( color.adjust(themed(audibleOrange), $lightness: -15%), .5 );
   }
   div {
     height: 100%;
     border-radius: 2px;
     @include themify($themes) {
-      background: lighten(saturate(themed(audibleOrange), 5), 5);
+      background: color.adjust(color.adjust(themed(audibleOrange), $saturation: 5%), $lightness: 5%);
     }
   }
 }

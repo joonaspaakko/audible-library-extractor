@@ -94,8 +94,8 @@ export default {
   }
   .icon {
     display: inline-block;
-    border-right: 2px solid darken(#0798f1,10);
-    background: darken(#0798f1,10);
+    border-right: 2px solid color.adjust(#0798f1, $lightness: -10%);
+    background: color.adjust(#0798f1, $lightness: -10%);
   }
 }
 

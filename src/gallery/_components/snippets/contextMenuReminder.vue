@@ -44,7 +44,7 @@ span { padding-bottom: 10px; }
   padding: 10px 20px;
   @include themify($themes) {
     border: 2px solid themed(audibleOrange);
-    background: lighten( themed(backColor), 9);
+    background: color.adjust(themed(backColor), $lightness: 9%);
     color: themed(frontColor);
   }
 }
@@ -65,7 +65,7 @@ a {
   border-radius: 999999px;
   @include themify($themes) {
     border: 2px solid themed(audibleOrange);
-    background: lighten( themed(backColor), 9);
+    background: color.adjust(themed(backColor), $lightness: 9%);
     color: themed(frontColor);
   }
   position: absolute;

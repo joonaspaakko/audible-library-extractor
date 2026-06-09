@@ -7,7 +7,7 @@
 // re-install the extension from the dist folder.
 
 import { fileURLToPath, URL } from 'node:url';
-import { defineConfig, splitVendorChunkPlugin } from 'vite';
+import { defineConfig } from 'vite';
 import vue from '@vitejs/plugin-vue';
 import { crx } from '@crxjs/vite-plugin';
 // import manifest from './manifest.json'; 
@@ -176,7 +176,6 @@ export default defineConfig({
     }),
     customFilePathsJSON,
     customSingleFileGallery,
-    buildSingleFile ? null : splitVendorChunkPlugin(),
     visualizer(),
   ],
   resolve: {
@@ -211,6 +210,7 @@ export default defineConfig({
     preprocessorOptions: {
       scss: { 
          additionalData: `
+          @use "sass:color";
           @use "@gallery/_variables.scss" as *;
         ` 
      }, 

@@ -278,7 +278,7 @@ export default {
     justify-items: center;
     align-items: center;
     @include themify($themes) {
-      background-color: lighten( themed(backColor), 10);
+      background-color: color.adjust(themed(backColor), $lightness: 10%);
     }
     img {
       position: absolute;
@@ -292,7 +292,7 @@ export default {
     padding-bottom: 100%;
     @include themify($themes) {
       color: themed(frontColor);
-      background-color: lighten( themed(backColor), 10);
+      background-color: color.adjust(themed(backColor), $lightness: 10%);
     }
     position: relative;
     z-index: 1;

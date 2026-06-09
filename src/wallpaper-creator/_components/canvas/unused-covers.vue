@@ -144,7 +144,7 @@ export default {
   font-size: 0 !important;
   overflow: hidden auto !important;
   margin: 0 !important;
-  box-shadow: -4px 0 10px darken( rgba(#171e29, .3), 20) !important;
+  box-shadow: -4px 0 10px color.adjust(rgba(#171e29, .3), $lightness: -20%) !important;
   background: #171e29 !important;
   text-align: center !important;
   padding: 0 !important;

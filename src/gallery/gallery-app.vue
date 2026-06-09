@@ -254,7 +254,7 @@ body {
   a:visited {
     // @include themify($themes) { color: rgba( themed(frontColor), .7); }
     @include themify($themes) {
-      color: darken(desaturate(themed(audibleOrange), 5), 25);
+      color: color.adjust(color.adjust(themed(audibleOrange), $saturation: -5%), $lightness: -25%);
     }
   }
   a:hover {
@@ -320,8 +320,8 @@ body {
 
 .theme-dark {
   .tippy-box {
-    background: lighten($darkBackColor, 15) !important;
-    border: 1px solid lighten($darkBackColor, 34) !important;
+    background: color.adjust($darkBackColor, $lightness: 15%) !important;
+    border: 1px solid color.adjust($darkBackColor, $lightness: 34%) !important;
     box-shadow: 2px 2px 10px rgba(#000, 0.95) !important;
     .tippy-content {
       color: $darkFrontColor !important;
@@ -333,24 +333,24 @@ body {
   }
   
   .tippy-arrow {
-    color: lighten($darkBackColor, 34) !important;
+    color: color.adjust($darkBackColor, $lightness: 34%) !important;
   }
 
   .tippy-box {
     &[data-placement^="top"] .tippy-arrow {
-      border-top-color: lighten($darkBackColor, 34) !important;
+      border-top-color: color.adjust($darkBackColor, $lightness: 34%) !important;
       bottom: -1px !important;
     }
     &[data-placement^="right"] .tippy-arrow {
-      border-right-color: lighten($darkBackColor, 34) !important;
+      border-right-color: color.adjust($darkBackColor, $lightness: 34%) !important;
       left: -1px !important;
     }
     &[data-placement^="bottom"] .tippy-arrow {
-      border-bottom-color: lighten($darkBackColor, 34) !important;
+      border-bottom-color: color.adjust($darkBackColor, $lightness: 34%) !important;
       top: -1px !important;
     }
     &[data-placement^="left"] .tippy-arrow {
-      border-left-color: lighten($darkBackColor, 34) !important;
+      border-left-color: color.adjust($darkBackColor, $lightness: 34%) !important;
       right: -1px !important;
     }
   }
@@ -359,7 +359,7 @@ body {
 .theme-light {
   .tippy-box {
     background: #fff !important;
-    border: 1px solid darken($lightBackColor, 35) !important;
+    border: 1px solid color.adjust($lightBackColor, $lightness: -35%) !important;
     box-shadow: 2px 2px 10px rgba(#000, 0.05), 0px 0px 25px rgba(#000, 0.05) !important;
     .tippy-content {
       color: $lightFrontColor !important;
@@ -371,24 +371,24 @@ body {
   }
   
   .tippy-arrow {
-    color: darken($lightBackColor, 35) !important;
+    color: color.adjust($lightBackColor, $lightness: -35%) !important;
   }
   
   .tippy-box {
     &[data-placement^="top"] .tippy-arrow {
-      border-top-color: darken($lightBackColor, 35) !important;
+      border-top-color: color.adjust($lightBackColor, $lightness: -35%) !important;
       bottom: -1px !important;
     }
     &[data-placement^="right"] .tippy-arrow {
-      border-right-color: darken($lightBackColor, 35) !important;
+      border-right-color: color.adjust($lightBackColor, $lightness: -35%) !important;
       left: -1px !important;
     }
     &[data-placement^="bottom"] .tippy-arrow {
-      border-bottom-color: darken($lightBackColor, 35) !important;
+      border-bottom-color: color.adjust($lightBackColor, $lightness: -35%) !important;
       top: -1px !important;
     }
     &[data-placement^="left"] .tippy-arrow {
-      border-left-color: darken($lightBackColor, 35) !important;
+      border-left-color: color.adjust($lightBackColor, $lightness: -35%) !important;
       right: -1px !important;
     }
   }

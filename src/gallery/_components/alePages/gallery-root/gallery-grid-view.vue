@@ -56,7 +56,7 @@ body:not(.is-mobile) .ale-book:hover .ale-play-sample {
 }
 
 .theme-dark .ale-book.details-open .details-inner-wrap {
-  background: lighten( $darkBackColor, 9);
+  background: color.adjust($darkBackColor, $lightness: 9%);
 }
 .theme-light  .ale-book.details-open .details-inner-wrap {
   background: #202020;

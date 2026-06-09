@@ -1191,7 +1191,7 @@ export default {
 $toolbar-bg: #171e29;
 $toolbar-text: #8eabc5;
 .toolbar {
-  box-shadow: -4px 0 10px darken( rgba($toolbar-bg, .3), 20);
+  box-shadow: -4px 0 10px color.adjust(rgba($toolbar-bg, .3), $lightness: -20%);
   position: relative;
   font-size: 14px;
   line-height: 18px;
@@ -1203,8 +1203,8 @@ $toolbar-text: #8eabc5;
   min-width: 380px;
   max-width: 380px;
   z-index: 50 !important;
-  ::-moz-selection { background: #0093ee !important; color: lighten( #0093ee, 30 ); }
-  ::selection { background: #0093ee !important; color: lighten( #0093ee, 45 ); }
+  ::-moz-selection { background: #0093ee !important; color: color.adjust(#0093ee, $lightness: 30%); }
+  ::selection { background: #0093ee !important; color: color.adjust(#0093ee, $lightness: 45%); }
   -webkit-touch-callout: none;
   -webkit-user-select: none;
   -khtml-user-select: none;
@@ -1303,7 +1303,7 @@ $toolbar-text: #8eabc5;
     border-radius: 999px 0 0 999px;
     bottom: 0px;
     background: #212935;
-    box-shadow: 0 5px 18px rgba(darken(#212935, 20), .2);
+    box-shadow: 0 5px 18px rgba(color.adjust(#212935, $lightness: -20%), .2);
     z-index: -1;
     border: 1px solid #313d4f;
     border-right: none;
@@ -1328,7 +1328,7 @@ $toolbar-text: #8eabc5;
 }
 
 .hint-text {
-  color: darken($toolbar-text, 25) !important;
+  color: color.adjust($toolbar-text, $lightness: -25%) !important;
   padding: 3px 6px;
   border: 1px solid #323d4f;
   border-radius: 4px;
@@ -1342,7 +1342,7 @@ $toolbar-text: #8eabc5;
     opacity: 0.5;
   }
   &:hover {
-    color: darken($toolbar-text, 18) !important;
+    color: color.adjust($toolbar-text, $lightness: -18%) !important;
     .highlight {
       opacity: 0.65;
     }
@@ -1372,13 +1372,13 @@ $toolbar-text: #8eabc5;
   background: $toolbar-bg;
   padding: 10px;
   border-radius: 99999999px;
-  box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20);
+  box-shadow: -4px 0 7px color.adjust(rgba($toolbar-bg, .4), $lightness: -20%);
   background: $toolbar-bg;
   border: 1px solid #222c3c;
 }
 
 .toolbar .button-container {
-  box-shadow: -4px 0 7px darken( rgba($toolbar-bg, .4), 20), 2px 2px 9px darken( rgba($toolbar-bg, .4), 20);
+  box-shadow: -4px 0 7px color.adjust(rgba($toolbar-bg, .4), $lightness: -20%), 2px 2px 9px color.adjust(rgba($toolbar-bg, .4), $lightness: -20%);
   border-bottom: 1px solid #171e29;
   .save-btn {
     cursor: pointer;
@@ -1589,7 +1589,7 @@ $toolbar-text: #8eabc5;
     bottom: 0;
     border-bottom: 1px solid #323d4f;
     background: #212935;
-    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .1);
+    box-shadow: 0 5px 18px rgba( color.adjust(#212935, $lightness: -20%), .1);
     z-index: -1;
   }
 }
@@ -1602,7 +1602,7 @@ $toolbar-text: #8eabc5;
   padding: 5px 7px;
   border-radius: 4px;
   strong {
-    color: adjust-hue( lighten( #ffc02a, 5 ), -40);
+    color: color.adjust(color.adjust(#ffc02a, $lightness: 5%), $hue: -40deg);
   }
 }
 
@@ -1671,7 +1671,7 @@ $toolbar-text: #8eabc5;
     border-radius: 999px 0 0 999px;
     bottom: 0px;
     background: #212935;
-    box-shadow: 0 5px 18px rgba( darken(#212935, 20), .2);
+    box-shadow: 0 5px 18px rgba( color.adjust(#212935, $lightness: -20%), .2);
     z-index: -1;
     border: 1px solid #313d4f;
     border-right: none;
@@ -1698,7 +1698,7 @@ $toolbar-text: #8eabc5;
 
   .disabled-settings-section {
     h6 {
-      color: darken(#fff, 30) !important;
+      color: color.adjust(#fff, $lightness: -30%) !important;
     }
     > * {
       opacity: .6;
@@ -1737,7 +1737,7 @@ $toolbar-text: #8eabc5;
           border-radius: 999px 0 0 999px;
           bottom: 0px;
           background: #212935;
-          box-shadow: 0 5px 18px rgba( darken(#212935, 20), .2);
+          box-shadow: 0 5px 18px rgba( color.adjust(#212935, $lightness: -20%), .2);
           z-index: -1;
           border: 1px solid #313d4f;
           border-right: none;

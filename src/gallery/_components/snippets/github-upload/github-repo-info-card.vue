@@ -253,9 +253,9 @@ export default {
 
       .theme-light & { 
         $color: #4bde80;
-        background: saturate(darken( $color, 20%), 20%);
-        border: 1px solid darken($color, 10%);
-        color:  lighten($color, 100%);
+        background: color.adjust(color.adjust($color, $lightness: -20%), $saturation: 20%);
+        border: 1px solid color.adjust($color, $lightness: -10%);
+        color:  color.adjust($color, $lightness: 100%);
       }
       
     }
@@ -263,18 +263,18 @@ export default {
       background: rgba(#f97316, 0.15); color: #f97316; 
       .theme-light & { 
         $color: #f97316;
-        background: saturate(darken( $color, 10%), 10%);
-        border: 1px solid lighten($color, 1%);
-        color:  lighten($color, 100%);
+        background: color.adjust(color.adjust($color, $lightness: -10%), $saturation: 10%);
+        border: 1px solid color.adjust($color, $lightness: 1%);
+        color:  color.adjust($color, $lightness: 100%);
       }
     }
     &.errored  { 
       background: rgba(#ef4444, 0.15); color: #ef4444; 
       .theme-light & { 
         $color: #ef4444;
-        background: saturate(darken( $color, 20%), 10%);
-        border: 1px solid lighten($color, 10%);
-        color:  lighten($color, 100%);
+        background: color.adjust(color.adjust($color, $lightness: -20%), $saturation: 10%);
+        border: 1px solid color.adjust($color, $lightness: 10%);
+        color:  color.adjust($color, $lightness: 100%);
       }
     }
   }

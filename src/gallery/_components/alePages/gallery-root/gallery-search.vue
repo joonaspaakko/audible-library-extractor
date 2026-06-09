@@ -647,7 +647,7 @@ export default {
 }
 
 .theme-dark .autocomplete {
-  background: lighten( #121517, 4);
+  background: color.adjust(#121517, $lightness: 4%);
   box-shadow: 0 3px 15px rgba(#000, 1);
 }
 

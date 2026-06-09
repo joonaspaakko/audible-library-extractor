@@ -202,7 +202,7 @@ export default {
         font-weight: 600;
       }
       border-left: 2px solid themed(audibleOrange);
-      background: darken(themed(elementColor), 3);
+      background: color.adjust(themed(elementColor), $lightness: -3%);
     }
   }
   
