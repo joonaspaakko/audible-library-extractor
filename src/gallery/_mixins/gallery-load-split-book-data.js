@@ -17,12 +17,17 @@ export const db = {
   },
 };
 
+// Split-data field sets are described entirely by the export manifest
+// (extras.splitFields), written by save-gallery. The loader is driven by that
+// manifest, so adding a new split field needs no changes here.
+
 // Intentionally outside the export so it survives component destroy/create cycles.
 // No point resetting on every close.
 let dbInstance = null;
 
-// Keyed by chunkId — prevents duplicate fetches when multiple books from the same
-// chunk are opened before the first fetch resolves and writes to IndexedDB.
+// Keyed by namespaced chunk key ("summary-3") — prevents duplicate fetches when
+// multiple books from the same chunk are opened before the first fetch resolves
+// and writes to IndexedDB.
 const inflightChunkFetches = {};
 
 // Shared DB open. Used by both this mixin and the route loader.
@@ -85,8 +90,8 @@ export default {
 
     /**
      * Main entry point, called on component `created`.
-     * Loads split book data (summary + peopleAlsoBought) for the current book
-     * from IndexedDB, fetching from the server and caching if not yet stored.
+     * Loads every split field for the current book (per the export manifest) from
+     * IndexedDB, fetching from the server and caching if not yet stored.
      * @param {string} [afterError] - Truthy on a retry; suppresses further retries.
      */
     async loadJSON(afterError) {
@@ -98,10 +103,12 @@ export default {
         return;
       }
 
-      const { asin, chunkId } = this.book;
+      const { asin } = this.book;
 
-      // No chunkId means this book had no split data.
-      if ( chunkId == null ) return;
+      // The export manifest describes every split field generically (including where
+      // its value lands via splitDataProp), so new split fields need no changes here.
+      const splitFields = this.store.audibledata.extras.splitFields;
+      if ( _.isEmpty(splitFields) ) return;
 
       const cacheID = this.store.audibledata.extras.cacheID;
 
@@ -112,39 +119,58 @@ export default {
         // Wipe stale chunks if the library was re-exported with a new cacheID.
         await this.validateBookDataCache(database, cacheID);
 
-        // Try the local cache first...
-        let chunkRecord = await this.getChunkFromDatabase(database, chunkId);
+        await Promise.all( _.map( splitFields, async ( field ) => {
 
-        if ( !chunkRecord ) {
-          // Not cached — fetch from server and persist for subsequent opens.
-          // Re-use any in-flight fetch for the same chunk to avoid duplicate requests.
-          if ( !inflightChunkFetches[chunkId] ) {
-            inflightChunkFetches[chunkId] = this.fetchBookDataChunk(chunkId, cacheID).then( async (books) => {
-              await this.writeChunkToDatabase(database, chunkId, books);
-              return books;
-            })
-            .finally(() => {
-              delete inflightChunkFetches[chunkId];
-            });
-          }
-          const books = await inflightChunkFetches[chunkId];
-          chunkRecord = { chunkIndex: chunkId, books };
-        }
+          const chunkIndex = this.book[ field.chunkIdProp ];
 
-        // Update book details...
-        const bookData = this.findBookDataInChunk(chunkRecord.books, asin);
-        if ( bookData ) {
-          this.splitData.bookSummary = bookData.summary;
-          this.splitData.peopleAlsoBought = bookData.peopleAlsoBought;
-        }
+          // This book has no data for this field.
+          if ( chunkIndex == null ) return;
+
+          const books = await this.loadChunk( database, field, chunkIndex, cacheID );
+          const bookData = this.findBookDataInChunk( books, asin );
+
+          if ( bookData && field.splitDataProp ) this.splitData[ field.splitDataProp ] = bookData[ field.key ];
+
+        }));
 
       } catch ( err ) {
 
         console.warn(`[loadBookData] Failed to load data for asin ${asin}:`, err);
-        
+
         if ( !afterError ) setTimeout(() => this.loadJSON('afterError'), 1000);
 
       }
+
+    },
+
+    /**
+     * Loads one chunk (by field + index) from IndexedDB, fetching and caching it
+     * if not yet stored. Reuses any in-flight fetch for the same chunk.
+     * @param {IDBDatabase} database
+     * @param {Object} field    - A split-field manifest entry (extras.splitFields).
+     * @param {number} chunkIndex
+     * @param {string} cacheID
+     * @returns {Promise<Array>} The chunk's array of book-data entries.
+     */
+    async loadChunk( database, field, chunkIndex, cacheID ) {
+
+      // String key namespaces each file set within the shared chunk store.
+      const chunkKey = `${field.key}-${chunkIndex}`;
+
+      const cached = await this.getChunkFromDatabase( database, chunkKey );
+      if ( cached ) return cached.books;
+
+      if ( !inflightChunkFetches[chunkKey] ) {
+        inflightChunkFetches[chunkKey] = this.fetchBookDataChunk( field, chunkIndex, cacheID ).then( async (books) => {
+          await this.writeChunkToDatabase( database, chunkKey, books );
+          return books;
+        })
+        .finally(() => {
+          delete inflightChunkFetches[chunkKey];
+        });
+      }
+
+      return inflightChunkFetches[chunkKey];
 
     },
 
@@ -167,17 +193,17 @@ export default {
     },
 
     /**
-     * Retrieves a full chunk record from IndexedDB by its chunkIndex.
+     * Retrieves a full chunk record from IndexedDB by its chunk key.
      * @param {IDBDatabase} database
-     * @param {number} chunkIndex
+     * @param {string} chunkKey - Namespaced key, "summary-3" / "peopleAlsoBought-1".
      * @returns {Promise<Object|null>} The chunk record, or null if not yet cached.
      */
-    getChunkFromDatabase(database, chunkIndex) {
+    getChunkFromDatabase(database, chunkKey) {
       return new Promise((resolve, reject) => {
 
         const tx = database.transaction(db.stores.chunks, 'readonly');
         const store = tx.objectStore(db.stores.chunks);
-        const request = store.get(chunkIndex);
+        const request = store.get(chunkKey);
 
         request.onsuccess = () => resolve(request.result ?? null);
         request.onerror   = () => reject(request.error);
@@ -188,16 +214,17 @@ export default {
     /**
      * Persists a fetched chunk (array of book data objects) to IndexedDB.
      * @param {IDBDatabase} database
-     * @param {number} chunkIndex
+     * @param {string} chunkKey
      * @param {Array}  books
      * @returns {Promise<void>}
      */
-    writeChunkToDatabase(database, chunkIndex, books) {
+    writeChunkToDatabase(database, chunkKey, books) {
       return new Promise((resolve, reject) => {
 
         const tx = database.transaction(db.stores.chunks, 'readwrite');
         const store = tx.objectStore(db.stores.chunks);
-        const request = store.put({ chunkIndex, books });
+        // keyPath is 'chunkIndex'; it now holds the namespaced string key.
+        const request = store.put({ chunkIndex: chunkKey, books });
 
         request.onsuccess = () => resolve();
         request.onerror   = () => reject(request.error);
@@ -208,12 +235,13 @@ export default {
     /**
      * Fetches a chunk JSON file from the server via Axios.
      * Axios throws automatically on non-2xx responses, so no status check needed.
+     * @param {Object} field      - One of the `fields` descriptors.
      * @param {number} chunkIndex
      * @param {string} cacheID
      * @returns {Promise<Array>}
      */
-    async fetchBookDataChunk(chunkIndex, cacheID) {
-      const { data } = await axios.get(`data/split-book-data/chunk-${chunkIndex}.${cacheID}.json`);
+    async fetchBookDataChunk(field, chunkIndex, cacheID) {
+      const { data } = await axios.get(`data/split-book-data/${field.filePrefix}-${chunkIndex}.${cacheID}.json`);
       return data;
     },
 
