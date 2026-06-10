@@ -1,10 +1,7 @@
 <template>
   <div class="extension-toolbar">
     <div class="item" v-for="item in items" :key="item.label">
-      <span class="icon">
-        <!-- <component :is="item.icon"> -->
-        {{ item.icon }}
-      </span>
+      <span class="icon" v-html="item.icon"></span>
       <span class="label">
         {{ item.label }}
       </span>
@@ -13,6 +10,12 @@
 </template>
 
 <script>
+// ICON IMPORTS
+import IconFa6SolidFileCsv      from '~icons/fa6-solid/file-csv?raw';
+import IconFaSolidSave          from '~icons/fa6-solid/floppy-disk?raw';
+import IconFa6RegularImages     from '~icons/fa6-regular/images?raw';
+import IconFaSolidGraduationCap from '~icons/fa6-solid/graduation-cap?raw';
+
 export default {
   name: "extensionGalleryToolbar",
   data: function() {
@@ -20,19 +23,19 @@ export default {
       items: [
         { 
           label: 'Save CSV',
-          icon: 'fa6-solid-file-csv',
+          icon: IconFa6SolidFileCsv,
         },
         { 
           label: 'Save gallery locally',
-          icon: 'fa-solid-save',
+          icon: IconFaSolidSave,
         },
         { 
           label: 'Wallpaper creator',
-          icon: 'fa6-regular-images',
+          icon: IconFa6RegularImages,
         },
         { 
           label: 'Documentation',
-          icon: 'fa-solid-graduation-cap'
+          icon: IconFaSolidGraduationCap,
         },
       ],
     }
@@ -74,6 +77,7 @@ export default {
       color: #1C79F7;
     }
     .label {
+      /* label styles */
     }
   }
 }

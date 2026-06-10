@@ -6,16 +6,26 @@ const aleCategories  = () => import("@output-pages/subPages/gallery-categories.v
 const aleSubPage     = () => import("@output-pages/subPages/gallery-sub-page.vue");
 import { seriesConfig, authorsConfig, narratorsConfig, publishersConfig } from "@output-pages/subPages/gallery-sub-page-configs.js";
 
+// ICON IMPORTS
+import IconFaSolidBook         from '~icons/fa6-solid/book?raw';
+import IconFaRegularFolderOpen from '~icons/fa6-regular/folder-open?raw';
+import IconFaSolidBookmark     from '~icons/fa6-solid/bookmark?raw';
+import IconFaSolidPodcast      from '~icons/fa6-solid/podcast?raw';
+import IconFaSolidIndent       from '~icons/fa6-solid/indent?raw';
+import IconFaSolidListOl       from '~icons/fa6-solid/list-ol?raw';
+import IconFaSolidUsers        from '~icons/fa6-solid/users?raw';
+import IconFaSolidHome         from '~icons/fa6-solid/house?raw';
+
 export default {
   library: { 
-    name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: 'fa-solid fa-book' } 
+    name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: IconFaSolidBook } 
   },
   
   collections: {
     path: "/collections",
     component: aleLibraryView,
     meta: {
-      icon: 'fa-regular fa-folder-open',
+      icon: IconFaRegularFolderOpen,
     },
     children: [
       { name: "collections", path: "", component: aleCollections, meta: { title: 'Collections' } },
@@ -27,7 +37,7 @@ export default {
     path: "/wishlist",
     component: aleLibraryView,
     meta: {
-      icon: 'fa-solid fa-bookmark',
+      icon: IconFaSolidBookmark,
     },
     children: [
       { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },
@@ -38,7 +48,7 @@ export default {
     path: "/podcasts",
     component: aleLibraryView,
     meta: {
-      icon: 'fa-solid fa-podcast',
+      icon: IconFaSolidPodcast,
     },
     children: [
       { name: "podcasts", path: "", component: aleGallery, meta: { gallery: true, title: 'Podcasts' } },
@@ -49,7 +59,7 @@ export default {
     categories: {
       path: "/categories",
       meta: {
-        icon: 'fa-solid fa-indent',
+        icon: IconFaSolidIndent,
         nestedGroup: 'subPages',
         order: 0,
       },
@@ -63,7 +73,7 @@ export default {
       path: "/series",
       component: aleLibraryView,
       meta: {
-        icon: 'fa-solid fa-list-ol',
+        icon: IconFaSolidListOl,
         nestedGroup: 'subPages',
         order: 1,
       },
@@ -76,7 +86,7 @@ export default {
       path: "/authors",
       component: aleLibraryView,
       meta: { 
-        icon: 'fa-solid fa-user-group',
+        icon: IconFaSolidUsers,
         nestedGroup: 'subPages',
         order: 2,
       },
@@ -89,7 +99,7 @@ export default {
       path: "/narrators",
       component: aleLibraryView,
       meta: {
-        icon: 'fa-solid fa-users',
+        icon: IconFaSolidUsers,
         nestedGroup: 'subPages',
         order: 3,
       },
@@ -102,7 +112,7 @@ export default {
       path: "/publishers",
       component: aleLibraryView,
       meta: {
-        icon: 'fa-solid fa-book',
+        icon: IconFaSolidBook,
         nestedGroup: 'subPages',
         order: 4,
       },

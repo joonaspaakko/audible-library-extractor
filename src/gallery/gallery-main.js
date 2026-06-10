@@ -56,8 +56,6 @@ import VueTippy from "vue-tippy";
 import tippySettings from './_plugins/gallery-tippy-settings.js';
 app.use(VueTippy, tippySettings);
 import 'tippy.js/dist/tippy.css';
-// FONTAWESOME
-import '@fortawesome/fontawesome-free/css/all.css';
 // LONG PRESS
 import longPress from './_plugins/gallery-long-press.js';
 app.directive('longpress', longPress);
