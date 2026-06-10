@@ -53,9 +53,7 @@
           query: { book: book.asin }, 
         }" target="_blank" rel="noopener noreferrer">
           
-          <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
-            <i :class="booksInSeriesIcon(seriesBook)"></i>
-          </span>
+          <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }" v-html="booksInSeriesIcon(seriesBook)"></span>
           
           <span>
             <span class="numbers">{{ getBookNumber(seriesBook, series.asin) }}</span>
@@ -101,6 +99,11 @@
 </template>
 
 <script>
+// ICON IMPORTS
+import IconBoxArchive     from '~icons/fa6-solid/box-archive?raw';
+import IconBook           from '~icons/fa6-solid/book?raw';
+import IconBookOpenReader from '~icons/fa6-solid/book-open-reader?raw';
+
 export default {
   name: "booksInSeries",
   props: ["book"],
@@ -216,15 +219,15 @@ export default {
 
     booksInSeriesIcon: function(book) {
       const classes = this.numbersClass(book);
-      var iconClass = "";
       if (classes.finished) {
-        iconClass = "fa-solid fa-box-archive";
-      } else if (classes.unfinished) {
-        iconClass = "fa-solid fa-book";
-      } else if (classes.reading) {
-        iconClass = "fa-solid fa-book-open-reader";
+        return IconBoxArchive;
       }
-      return iconClass;
+      else if (classes.reading) {
+        return IconBookOpenReader;
+      }
+      else {
+        return IconBook;
+      }
     }
   }
 };

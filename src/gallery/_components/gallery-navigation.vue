@@ -26,6 +26,16 @@ import saveGallery from '@output-snippets/save-gallery.vue';
 import saveCSV from '@output-snippets/save-csv.vue';
 import { storageSet } from '@utils/chrome-storage.js';
 
+// ICON IMPORTS
+import IconFaSolidChevronDown   from '~icons/fa6-solid/chevron-down?raw';
+import IconFaBrandsAudible      from '~icons/fa6-brands/audible?raw';
+import IconFaSolidGraduationCap from '~icons/fa6-solid/graduation-cap?raw';
+import IconFaSolidDownload      from '~icons/fa6-solid/download?raw';
+import IconFaSolidFileCsv       from '~icons/fa6-solid/file-csv?raw';
+import IconFaRegularImage       from '~icons/fa6-regular/image?raw';
+import IconFaSolidHouseUser     from '~icons/fa6-solid/house-user?raw';
+import IconFaSolidHome          from '~icons/fa6-solid/house?raw';
+
 export default {
   name: "aleMenuActions",
   data: function() {
@@ -153,7 +163,7 @@ export default {
         name: key,
         meta: {
           groupName: routeGroup[0].meta.nestedGroup,
-          icon: 'fa-solid fa-chevron-down',
+          icon: IconFaSolidChevronDown,
         },
         tag: 'div',
         childItems: _.orderBy(routeGroup, 'meta.order', 'asc'),
@@ -227,7 +237,7 @@ export default {
             name: 'Open Audible library',
             disabled: false,
             meta: {
-              icon: 'fa-brands fa-audible',
+              icon: IconFaBrandsAudible,
               nestedGroup: 'extension-tools'
             },
           },
@@ -237,7 +247,7 @@ export default {
             name: 'Extension documentation',
             disabled: false,
             meta: {
-              icon: 'fa-solid fa-graduation-cap',
+              icon: IconFaSolidGraduationCap,
               nestedGroup: 'extension-tools'
             },
           },
@@ -248,7 +258,7 @@ export default {
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: 'fa-solid fa-download',
+              icon: IconFaSolidDownload,
               nestedGroup: 'extension-tools',
               // component: () => import( /* webpackChunkName: "save-locally" */ "@output-comps/aleSaveLocally.vue"),
               component: saveGallery,
@@ -261,7 +271,7 @@ export default {
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: 'fa-solid fa-file-csv',
+              icon: IconFaSolidFileCsv,
               nestedGroup: 'extension-tools',
               component: saveCSV,
             },
@@ -309,7 +319,7 @@ export default {
               return txt;  
             },
             meta: {
-              icon: 'fa-regular fa-image',
+              icon: IconFaRegularImage,
               nestedGroup: 'extension-tools'
             },
           },
@@ -333,7 +343,7 @@ export default {
               } catch(e) {}
             },
             meta: {
-              icon: 'fa-solid fa-house-user',
+              icon: IconFaSolidHouseUser,
               nestedGroup: 'extension-tools'
             },
           },
@@ -355,7 +365,7 @@ export default {
               } catch(e) {}
             },
             meta: {
-              icon: 'fa-solid fa-house',
+              icon: IconFaSolidHome,
               nestedGroup: 'extension-tools'
             },
           },

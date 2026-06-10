@@ -246,15 +246,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz#9bdad8176be7811ad148d1f8772359041f46c6c5"
   integrity sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA==
 
-"@fortawesome/fontawesome-free@^6.2.0":
-  version "6.7.2"
-  resolved "https://registry.yarnpkg.com/@fortawesome/fontawesome-free/-/fontawesome-free-6.7.2.tgz#8249de9b7e22fcb3ceb5e66090c30a1d5492b81a"
-  integrity sha512-JUOtgFW6k9u4Y+xeIaEiLr3+cjoUPiAuLXoyKOJSia6Duzb7pq+A76P9ZdPDoAoxHdHzq6gE9/jKBGXlZT8FbA==
-
-"@iconify/json@^2.1.122":
-  version "2.2.464"
-  resolved "https://registry.yarnpkg.com/@iconify/json/-/json-2.2.464.tgz#452f2a5b299a1c1e270eec6410780c8ad0b4d578"
-  integrity sha512-VSU7hPHuqqEwQk8Hmy+88iGmsL6KE2JAv1ZwxE0z50+JpymIzhZMHcuSrL2MOFtTDZQ4eJ7Ao9Hdm+TCctDwCQ==
+"@iconify/json@^2.2.484":
+  version "2.2.484"
+  resolved "https://registry.yarnpkg.com/@iconify/json/-/json-2.2.484.tgz#99053b384d4d065a6b76d41afaa6f90de004aedb"
+  integrity sha512-EEapfheix57SSxbYa6kooOveCLK0/fAhZzi72/wkezMrwc/24+itnIDnqk7pb5dbnev7pcCJ9FdrICLJozu/2Q==
   dependencies:
     "@iconify/types" "*"
     pathe "^2.0.3"

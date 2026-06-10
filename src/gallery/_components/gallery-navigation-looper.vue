@@ -30,9 +30,7 @@
     >
         
       <div class="menu-item-inner" @click="additionalClick(route)">
-        <span class="menu-item-icon" v-if="route.meta.icon">
-          <i :class="route.meta.icon"></i>
-        </span>
+        <span class="menu-item-icon" v-if="route.meta.icon" v-html="route.meta.icon"></span>
         <span class="menu-item-text" v-html="getRouteName(route)"></span>
       </div>
       
@@ -75,6 +73,7 @@
 </template>
 
 <script>
+
 export default {
   name: "menuLooper",
   props: [ 'routes', 'childRoutes', 'mobileMenuOpen', 'inRoot', 'desktopMenu' ],

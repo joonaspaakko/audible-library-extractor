@@ -8,9 +8,7 @@
     <gallery-open-in-app v-if="$store.state.sticky.booksInSeriesOpenInApp" :size="14" :book="seriesBook" :muted="true" />
     <gallery-goodreads-link v-else :size="14" :book="seriesBook" :icon="true" :muted="true"  />
     
-    <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }">
-      <i :class="booksInSeriesIcon(seriesBook)"></i>
-    </span>
+    <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }" v-html="booksInSeriesIcon(seriesBook)"></span>
     
     <gallery-books-in-series-link :series="series" :book="seriesBook" :index="index" />
     
@@ -19,6 +17,15 @@
 </template>
 
 <script>
+// ICON IMPORTS
+import IconCircleMinus      from '~icons/fa6-solid/circle-minus?raw';
+import IconCirclePlus       from '~icons/fa6-solid/circle-plus?raw';
+import IconHandHoldingHeart from '~icons/fa6-solid/hand-holding-heart?raw';
+import IconBan              from '~icons/fa6-solid/ban?raw';
+import IconBoxArchive       from '~icons/fa6-solid/box-archive?raw';
+import IconBook             from '~icons/fa6-solid/book?raw';
+import IconBookOpenReader   from '~icons/fa6-solid/book-open-reader?raw';
+
 export default {
   name: "booksInSeriesBooks",
   props: ["series", "book"],
@@ -93,28 +100,28 @@ export default {
 
     booksInSeriesIcon: function(book) {
       if ( book.free && book.notInLibrary ) {
-        return 'fa-solid fa-circle-minus';
+        return IconCircleMinus;
       }
       else if ( book.plus && book.notInLibrary ) {
-        return 'fa-solid fa-circle-plus';
+        return IconCirclePlus;
       }
-      else if (book.inWishlist) {
-        return 'fa-solid fa-hand-holding-heart';
+      else if ( book.inWishlist ) {
+        return IconHandHoldingHeart;
       }
       else if ( book.notInLibrary ) {
-        return 'fa-solid fa-ban';
+        return IconBan;
       }
       else {
         const classes = this.numbersClass(book);
-        var iconClass = "";
-        if (classes.finished) {
-          iconClass = "fa-solid fa-archive";
-        } else if (classes.unfinished) {
-          iconClass = "fa-solid fa-book";
-        } else if (classes.reading) {
-          iconClass = "fa-solid fa-book-reader";
+        if ( classes.finished ) {
+          return IconBoxArchive;
         }
-        return iconClass;
+        else if ( classes.reading ) {
+          return IconBookOpenReader;
+        }
+        else {
+          return IconBook;
+        }
       }
     }
   }

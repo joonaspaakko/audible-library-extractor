@@ -22,13 +22,18 @@
         :data-option="item.name"
         :class="{ active: listName === item.name, 'active-filters': item.name === 'filter' && filtersActive }"
       >
-        <i :class="item.icon"></i>
+        <span v-html="item.icon"></span>
       </div>
     </div>
   </div>
 </template>
 
 <script>
+// ICON IMPORTS
+import IconMicroscope from '~icons/fa6-solid/microscope?raw';
+import IconFilter     from '~icons/fa6-solid/filter?raw';
+import IconSort       from '~icons/fa6-solid/sort?raw';
+
 export default {
   name: "searchIcons",
   props: ["listName"],
@@ -39,21 +44,21 @@ export default {
           name: "scope",
           on: true,
           active: false,
-          icon: "fa-solid fa-microscope",
+          icon: IconMicroscope,
           tooltip: "Change the search scope for more accurate results"
         },
         {
           name: "filter",
           on: true,
           active: false,
-          icon: "fa-solid fa-filter",
+          icon: IconFilter,
           tooltip: "Filter books"
         },
         {
           name: "sort",
           on: true,
           active: false,
-          icon: "fa-solid fa-sort",
+          icon: IconSort,
           tooltip: "Sort books"
         }
       ]
