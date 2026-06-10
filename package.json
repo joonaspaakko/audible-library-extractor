@@ -35,6 +35,7 @@
     "ios-haptics": "^0.1.5",
     "jquery": "^3.6.1",
     "lodash": "^4.17.21",
+    "minisearch": "^7.2.0",
     "mitt": "^3.0.0",
     "modern-screenshot": "^4.7.0",
     "normalize.css": "^8.0.1",

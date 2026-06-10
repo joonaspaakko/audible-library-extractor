@@ -71,18 +71,17 @@
 
 <script>
 
-import Fuse from 'fuse.js'
 import filterAndSort from '@output-mixins/gallery-filter-and-sort.js';
+import miniSearchMixin from '@output-mixins/gallery-minisearch.js';
 import { loadAllFieldData } from '@output-mixins/gallery-load-split-book-data.js';
 
 export default {
   name: "GallerySearch",
-  mixins: [filterAndSort],
+  mixins: [filterAndSort, miniSearchMixin],
   props: ['collectionSource'],
   data: function() {
     return {
       enableZoomTimer: null,
-      fuse: null,
 
       // Summary text is chunked out of the book objects at save time, so summary
       // search needs it hydrated back into memory first. These track that one-time
@@ -90,20 +89,9 @@ export default {
       summarySearchReady: false,
       summarySearchHydrating: false,
 
-      // Defaults
-      fuseOptions: {
-        keys: [],
-        location: 0,
-        // distance: 350,
-        // threshold: 0.15,
-        threshold: 0.3,
-        ignoreLocation: true,
-        shouldSort: true,
-        includeScore: true,
-        includeMatches: true,
-        useExtendedSearch: true,
-        minMatchCharLength: 2,
-      },
+      // When true, search results are ordered by relevance. Set false while a user
+      // sort is in effect so matches keep the collection's existing (sorted) order.
+      sortByRelevance: true,
 
       listName: false,
 
@@ -140,7 +128,7 @@ export default {
     }
     
     if ( this.$route.query.search ) {
-      if ( this.$route.query.sort ) this.fuseOptions.shouldSort = false;
+      if ( this.$route.query.sort ) this.sortByRelevance = false;
       this.search( null, 'on-load');
     }
     
@@ -190,7 +178,7 @@ export default {
         // No need to shuffle anything when there's no active search
         if ( this.$store.getters.searchIsActive ) {
           this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks(this.$store.getters.collectionSource) ) });
-          if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
+          if ( !this.$store.getters.searchIsActive ) this.sortByRelevance = false;
           this.search();
         } 
         
@@ -201,7 +189,7 @@ export default {
         
         this.$store.commit("prop", { key: 'mutatingCollection', value: this.sortBooks( this.filterBooks(this.$store.getters.collectionSource) ) });
         
-        if ( !this.$store.getters.searchIsActive ) this.fuseOptions.shouldSort = false;
+        if ( !this.$store.getters.searchIsActive ) this.sortByRelevance = false;
         if ( this.$store.getters.searchIsActive ) {
           this.search();
         } 
@@ -252,6 +240,10 @@ export default {
 
         this.summarySearchReady = true;
 
+        // Summaries were written onto the books in place, so the existing index is
+        // stale. Force a rebuild that includes the summary text.
+        this.resetSearchIndex();
+
         // If a query is already pending behind the gate, run it now.
         if ( this.$store.getters.searchIsActive ) this.search();
 
@@ -278,7 +270,7 @@ export default {
       const triggeredByEvent = e;
       if ( triggeredByEvent ) {
         
-        this.fuseOptions.shouldSort = true;
+        this.sortByRelevance = true;
         this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
         newQueries.search = encodeURIComponent(e.target.value);
         if ( !newQueries.search ) newQueries.search = null;
@@ -308,20 +300,17 @@ export default {
 
       // Start searching
       if (this.$store.getters.searchIsActive) {
-        const query = this.modifyQuery(this.$store.state.searchQuery);
-        
-        this.fuseOptions.keys = this.aliciaKeys;
-        
-        let vue = this;
-        
-        vue.fuse = new Fuse( vue.$store.state.mutatingCollection, vue.fuseOptions );
-        let result = vue.fuse.search(query);
-        
-        if ( vue.useAutocomplete ) vue.autocomplete( result );
-        result = _.map(result, 'item');
-        
-        vue.$store.commit("prop", { key: 'searchCollection', value: result });
-        
+        const query = this.$store.state.searchQuery;
+
+        const result = this.miniSearchRun(
+          this.$store.state.mutatingCollection,
+          query,
+          this.aliciaKeys,
+          { keepCollectionOrder: !this.sortByRelevance }
+        );
+
+        this.$store.commit("prop", { key: 'searchCollection', value: result });
+
       }
       // Stop searching  
       else {
@@ -432,21 +421,6 @@ export default {
     //     this.fixedSearch = true;
     //   }
     // },
-
-    modifyQuery: function(query) {
-      let newQuery = query;
-      
-      if ( query.match(/&/i) || query.match(/ and /i) || query.match(/ a /i) || query.match(/ the /i) ) {
-        newQuery = query + "|" + 
-                   query.replace(/ & /ig, " ") + "|" + 
-                   query.replace(/ and /ig, " ") + "|" + 
-                   query.replace(/ a /ig, " ") + "|" + // For some reason titles with particles act kinda weird
-                   query.replace(/ an /ig, " ") + "|" + // For some reason titles with particles act kinda weird
-                   query.replace(/ the /ig, " "); // For some reason titles with particles act kinda weird
-      }
-      
-      return newQuery;
-    },
 
     iosAutozoomDisable: function() {
       // IOS input focus zoom workaround

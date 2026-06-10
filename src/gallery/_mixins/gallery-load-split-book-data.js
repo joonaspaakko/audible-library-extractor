@@ -197,13 +197,8 @@ let prefetchedCacheID = null;
  */
 export async function prefetchSplitData( splitFields, cacheID, opts = {} ) {
 
-  console.log('[prefetch] called', { cacheID, prefetchedCacheID, hasManifest: !_.isEmpty(splitFields), splitFields });
-
   if ( _.isEmpty(splitFields) || cacheID == null ) return;
-  if ( prefetchedCacheID === cacheID ) {
-    console.log('[prefetch] skipped — already ran for this cacheID');
-    return;
-  }
+  if ( prefetchedCacheID === cacheID ) return;
   prefetchedCacheID = cacheID;
 
   const database = await getBookDatabase();
@@ -219,26 +214,15 @@ export async function prefetchSplitData( splitFields, cacheID, opts = {} ) {
     }
   });
 
-  console.log('[prefetch] queued', jobs.length, 'chunk jobs');
-
   // Walk the jobs one idle slice at a time, so prefetching never competes with route
   // navigation or the cover-image grid.
   let cursor = 0;
-  let fetched = 0;
   const step = () => {
 
-    if ( cursor >= jobs.length ) {
-      console.log('[prefetch] done —', fetched, 'fetched from network,', jobs.length - fetched, 'already cached');
-      return;
-    }
+    if ( cursor >= jobs.length ) return;
 
     const { field, chunkIndex } = jobs[cursor];
     cursor++;
-
-    const chunkKey = `${field.key}-${chunkIndex}`;
-    getChunkFromDatabase( database, chunkKey ).then( cached => {
-      if ( !cached ) fetched++;
-    });
 
     loadSplitChunk( database, field, chunkIndex, cacheID )
     .catch(() => {})        // a failed prefetch is non-fatal; on-demand load can retry later
