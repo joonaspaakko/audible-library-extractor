@@ -1,6 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import store from "@output-modules/store/gallery-store-index.js";
-import { openDB, validateCache, db } from '@output-mixins/gallery-load-split-book-data.js';
+import { openDB, validateCache, db, prefetchSplitData } from '@output-mixins/gallery-load-split-book-data.js';
 
 import allRoutes from '@output-modules/gallery-routes.js';
 
@@ -146,6 +146,10 @@ export default function( libraryData, store ) {
         })
         .finally(function() {
           viewRefreshClean(to, from, next);
+          // First route's data is in; warm summary chunks in the background so book
+          // details open instantly and summaries are ready for search. peopleAlsoBought
+          // is intentionally left lazy. Self-dedupes, so calling it each route is fine.
+          prefetchSplitData( libraryData.extras.splitFields, cacheID, { only: ['summary'] });
         });
 
       };

@@ -84,6 +84,150 @@ export function validateCache(database, currentCacheID) {
   });
 }
 
+// Returns the module-level db instance, opening it first if needed. Shared so the
+// book-detail loader and the background prefetcher reuse one connection.
+export async function getBookDatabase() {
+  if ( !dbInstance ) dbInstance = await openDB();
+  return dbInstance;
+}
+
+// Reads a chunk record from IndexedDB by its namespaced key ("summary-3").
+function getChunkFromDatabase( database, chunkKey ) {
+  return new Promise((resolve, reject) => {
+
+    const tx = database.transaction(db.stores.chunks, 'readonly');
+    const request = tx.objectStore(db.stores.chunks).get(chunkKey);
+
+    request.onsuccess = () => resolve(request.result ?? null);
+    request.onerror   = () => reject(request.error);
+
+  });
+}
+
+// Persists a fetched chunk to IndexedDB under its namespaced key.
+function writeChunkToDatabase( database, chunkKey, books ) {
+  return new Promise((resolve, reject) => {
+
+    const tx = database.transaction(db.stores.chunks, 'readwrite');
+    // keyPath is 'chunkIndex'; it now holds the namespaced string key.
+    const request = tx.objectStore(db.stores.chunks).put({ chunkIndex: chunkKey, books });
+
+    request.onsuccess = () => resolve();
+    request.onerror   = () => reject(request.error);
+
+  });
+}
+
+// Fetches a chunk JSON file. Axios throws on non-2xx, so no status check needed.
+async function fetchChunkFile( field, chunkIndex, cacheID ) {
+  const { data } = await axios.get(`data/split-book-data/${field.filePrefix}-${chunkIndex}.${cacheID}.json`);
+  return data;
+}
+
+// Loads one chunk from IndexedDB, fetching and caching it if not yet stored.
+// Reuses any in-flight fetch for the same chunk so an on-demand book open and the
+// background prefetcher never fetch the same file twice.
+export async function loadSplitChunk( database, field, chunkIndex, cacheID ) {
+
+  const chunkKey = `${field.key}-${chunkIndex}`;
+
+  const cached = await getChunkFromDatabase( database, chunkKey );
+  if ( cached ) return cached.books;
+
+  if ( !inflightChunkFetches[chunkKey] ) {
+    inflightChunkFetches[chunkKey] = fetchChunkFile( field, chunkIndex, cacheID ).then( async (books) => {
+      await writeChunkToDatabase( database, chunkKey, books );
+      return books;
+    })
+    .finally(() => {
+      delete inflightChunkFetches[chunkKey];
+    });
+  }
+
+  return inflightChunkFetches[chunkKey];
+
+}
+
+// Runs a callback once the browser is idle, falling back to setTimeout where
+// requestIdleCallback isn't supported (older Safari).
+function whenIdle( callback ) {
+  if ( typeof requestIdleCallback === 'function' ) {
+    requestIdleCallback( callback, { timeout: 2000 });
+  }
+  else {
+    setTimeout( callback, 200 );
+  }
+}
+
+// Tracks the cacheID we've already kicked a prefetch off for, so it only runs once
+// per export per session even if called from multiple route changes.
+let prefetchedCacheID = null;
+
+/**
+ * Warms split-data chunks into IndexedDB in the background, one chunk per idle slice,
+ * so book details open instantly and summaries are available for search. Cheap to
+ * call repeatedly: dedupes via prefetchedCacheID and the shared in-flight map, and
+ * skips chunks already cached.
+ *
+ * @param {Object} splitFields - The export manifest (extras.splitFields).
+ * @param {string} cacheID
+ * @param {Object} [opts]
+ * @param {string[]} [opts.only] - Limit to these field keys (e.g. ['summary']).
+ */
+export async function prefetchSplitData( splitFields, cacheID, opts = {} ) {
+
+  console.log('[prefetch] called', { cacheID, prefetchedCacheID, hasManifest: !_.isEmpty(splitFields), splitFields });
+
+  if ( _.isEmpty(splitFields) || cacheID == null ) return;
+  if ( prefetchedCacheID === cacheID ) {
+    console.log('[prefetch] skipped — already ran for this cacheID');
+    return;
+  }
+  prefetchedCacheID = cacheID;
+
+  const database = await getBookDatabase();
+  await validateCache( database, cacheID );
+
+  // Flatten the manifest into a flat list of { field, chunkIndex } jobs.
+  const jobs = [];
+  _.each( splitFields, ( field ) => {
+    if ( opts.only && !_.includes(opts.only, field.key) ) return;
+    for ( let i = 0; i < field.chunkCount; i++ ) {
+      jobs.push({ field, chunkIndex: i });
+    }
+  });
+
+  console.log('[prefetch] queued', jobs.length, 'chunk jobs');
+
+  // Walk the jobs one idle slice at a time, so prefetching never competes with route
+  // navigation or the cover-image grid.
+  let cursor = 0;
+  let fetched = 0;
+  const step = () => {
+
+    if ( cursor >= jobs.length ) {
+      console.log('[prefetch] done —', fetched, 'fetched from network,', jobs.length - fetched, 'already cached');
+      return;
+    }
+
+    const { field, chunkIndex } = jobs[cursor];
+    cursor++;
+
+    const chunkKey = `${field.key}-${chunkIndex}`;
+    getChunkFromDatabase( database, chunkKey ).then( cached => {
+      if ( !cached ) fetched++;
+    });
+
+    loadSplitChunk( database, field, chunkIndex, cacheID )
+    .catch(() => {})        // a failed prefetch is non-fatal; on-demand load can retry later
+    .finally(() => whenIdle( step ));
+
+  };
+
+  whenIdle( step );
+
+}
+
 export default {
 
   methods: {
@@ -114,10 +258,10 @@ export default {
 
       try {
 
-        const database = await this.getBookDatabase();
+        const database = await getBookDatabase();
 
         // Wipe stale chunks if the library was re-exported with a new cacheID.
-        await this.validateBookDataCache(database, cacheID);
+        await validateCache(database, cacheID);
 
         await Promise.all( _.map( splitFields, async ( field ) => {
 
@@ -126,8 +270,8 @@ export default {
           // This book has no data for this field.
           if ( chunkIndex == null ) return;
 
-          const books = await this.loadChunk( database, field, chunkIndex, cacheID );
-          const bookData = this.findBookDataInChunk( books, asin );
+          const books = await loadSplitChunk( database, field, chunkIndex, cacheID );
+          const bookData = _.find( books, { asin } ) ?? null;
 
           if ( bookData && field.splitDataProp ) this.splitData[ field.splitDataProp ] = bookData[ field.key ];
 
@@ -141,118 +285,6 @@ export default {
 
       }
 
-    },
-
-    /**
-     * Loads one chunk (by field + index) from IndexedDB, fetching and caching it
-     * if not yet stored. Reuses any in-flight fetch for the same chunk.
-     * @param {IDBDatabase} database
-     * @param {Object} field    - A split-field manifest entry (extras.splitFields).
-     * @param {number} chunkIndex
-     * @param {string} cacheID
-     * @returns {Promise<Array>} The chunk's array of book-data entries.
-     */
-    async loadChunk( database, field, chunkIndex, cacheID ) {
-
-      // String key namespaces each file set within the shared chunk store.
-      const chunkKey = `${field.key}-${chunkIndex}`;
-
-      const cached = await this.getChunkFromDatabase( database, chunkKey );
-      if ( cached ) return cached.books;
-
-      if ( !inflightChunkFetches[chunkKey] ) {
-        inflightChunkFetches[chunkKey] = this.fetchBookDataChunk( field, chunkIndex, cacheID ).then( async (books) => {
-          await this.writeChunkToDatabase( database, chunkKey, books );
-          return books;
-        })
-        .finally(() => {
-          delete inflightChunkFetches[chunkKey];
-        });
-      }
-
-      return inflightChunkFetches[chunkKey];
-
-    },
-
-    // ==========
-    //  HELPERS:
-    // ==========
-
-    /**
-     * Returns the module-level db instance, opening the database first if needed.
-     * Caching at module scope means repeated book-detail opens skip the handshake.
-     * @returns {Promise<IDBDatabase>}
-     */
-    async getBookDatabase() {
-      if ( !dbInstance ) dbInstance = await openDB();
-      return dbInstance;
-    },
-
-    validateBookDataCache(database, currentCacheID) {
-      return validateCache(database, currentCacheID);
-    },
-
-    /**
-     * Retrieves a full chunk record from IndexedDB by its chunk key.
-     * @param {IDBDatabase} database
-     * @param {string} chunkKey - Namespaced key, "summary-3" / "peopleAlsoBought-1".
-     * @returns {Promise<Object|null>} The chunk record, or null if not yet cached.
-     */
-    getChunkFromDatabase(database, chunkKey) {
-      return new Promise((resolve, reject) => {
-
-        const tx = database.transaction(db.stores.chunks, 'readonly');
-        const store = tx.objectStore(db.stores.chunks);
-        const request = store.get(chunkKey);
-
-        request.onsuccess = () => resolve(request.result ?? null);
-        request.onerror   = () => reject(request.error);
-
-      });
-    },
-
-    /**
-     * Persists a fetched chunk (array of book data objects) to IndexedDB.
-     * @param {IDBDatabase} database
-     * @param {string} chunkKey
-     * @param {Array}  books
-     * @returns {Promise<void>}
-     */
-    writeChunkToDatabase(database, chunkKey, books) {
-      return new Promise((resolve, reject) => {
-
-        const tx = database.transaction(db.stores.chunks, 'readwrite');
-        const store = tx.objectStore(db.stores.chunks);
-        // keyPath is 'chunkIndex'; it now holds the namespaced string key.
-        const request = store.put({ chunkIndex: chunkKey, books });
-
-        request.onsuccess = () => resolve();
-        request.onerror   = () => reject(request.error);
-
-      });
-    },
-
-    /**
-     * Fetches a chunk JSON file from the server via Axios.
-     * Axios throws automatically on non-2xx responses, so no status check needed.
-     * @param {Object} field      - One of the `fields` descriptors.
-     * @param {number} chunkIndex
-     * @param {string} cacheID
-     * @returns {Promise<Array>}
-     */
-    async fetchBookDataChunk(field, chunkIndex, cacheID) {
-      const { data } = await axios.get(`data/split-book-data/${field.filePrefix}-${chunkIndex}.${cacheID}.json`);
-      return data;
-    },
-
-    /**
-     * Finds a single book's extra data within a chunk's books array by asin.
-     * @param {Array}  books
-     * @param {string} asin
-     * @returns {Object|null}
-     */
-    findBookDataInChunk(books, asin) {
-      return _.find(books, { asin }) ?? null;
     },
 
   },
