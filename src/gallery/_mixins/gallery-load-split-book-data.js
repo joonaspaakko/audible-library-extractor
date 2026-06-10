@@ -52,6 +52,10 @@ export function openDB() {
     request.onsuccess = (event) => resolve(event.target.result);
     request.onerror   = (event) => reject(event.target.error);
 
+    // Another (older) page still holding the DB open at a lower version blocks the
+    // upgrade. Reject so callers degrade rather than hang.
+    request.onblocked = () => reject(new Error('IndexedDB upgrade blocked by another open connection'));
+
   });
 }
 
@@ -84,10 +88,27 @@ export function validateCache(database, currentCacheID) {
   });
 }
 
+// Set once if opening the DB fails unrecoverably this session (most likely a
+// VersionError: stale cached code requesting a lower version than a newer build
+// already created). When true we stop retrying and split data simply doesn't load,
+// rather than crashing book details or spamming the console on every attempt.
+let dbOpenFailed = false;
+
 // Returns the module-level db instance, opening it first if needed. Shared so the
-// book-detail loader and the background prefetcher reuse one connection.
+// book-detail loader and the background prefetcher reuse one connection. Returns
+// null (instead of throwing) once an open has failed, so callers can degrade quietly.
 export async function getBookDatabase() {
-  if ( !dbInstance ) dbInstance = await openDB();
+  if ( dbOpenFailed ) return null;
+  if ( !dbInstance ) {
+    try {
+      dbInstance = await openDB();
+    }
+    catch ( err ) {
+      dbOpenFailed = true;
+      console.warn( '[splitData] IndexedDB unavailable, split data disabled this session:', err.name || err );
+      return null;
+    }
+  }
   return dbInstance;
 }
 
@@ -186,6 +207,7 @@ export async function prefetchSplitData( splitFields, cacheID, opts = {} ) {
   prefetchedCacheID = cacheID;
 
   const database = await getBookDatabase();
+  if ( !database ) return;        // IndexedDB unavailable — skip prefetch this session.
   await validateCache( database, cacheID );
 
   // Flatten the manifest into a flat list of { field, chunkIndex } jobs.
@@ -228,6 +250,34 @@ export async function prefetchSplitData( splitFields, cacheID, opts = {} ) {
 
 }
 
+/**
+ * Loads every chunk of a single split field and returns all its entries as one flat
+ * array (each entry is `{ asin, [fieldKey]: value }`). Reuses cached chunks and the
+ * shared in-flight map, so this is cheap once the prefetcher has warmed the field.
+ * Used to hydrate a whole field (e.g. summaries) into memory for search.
+ *
+ * @param {Object} splitFields - The export manifest (extras.splitFields).
+ * @param {string} cacheID
+ * @param {string} fieldKey    - Which field to load ('summary').
+ * @returns {Promise<Array>} All entries across the field's chunks.
+ */
+export async function loadAllFieldData( splitFields, cacheID, fieldKey ) {
+
+  const field = splitFields && splitFields[fieldKey];
+  if ( !field || cacheID == null ) return [];
+
+  const database = await getBookDatabase();
+  if ( !database ) return [];     // IndexedDB unavailable — no summaries to hydrate.
+  await validateCache( database, cacheID );
+
+  const chunks = await Promise.all(
+    _.times( field.chunkCount, i => loadSplitChunk( database, field, i, cacheID ) )
+  );
+
+  return _.flatten( chunks );
+
+}
+
 export default {
 
   methods: {
@@ -259,6 +309,10 @@ export default {
       try {
 
         const database = await getBookDatabase();
+
+        // IndexedDB unavailable (e.g. stale-cache VersionError). Degrade quietly:
+        // the book detail just renders without split summary / peopleAlsoBought.
+        if ( !database ) return;
 
         // Wipe stale chunks if the library was re-exported with a new cacheID.
         await validateCache(database, cacheID);

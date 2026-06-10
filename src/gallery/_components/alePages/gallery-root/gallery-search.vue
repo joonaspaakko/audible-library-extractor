@@ -38,7 +38,11 @@
       <gallery-view-mode-switcher v-if="$route.meta.gallery && $store.state.windowWidth >= 450" />
       
     </div> <!-- #ale-search-wrap -->
-    
+
+    <div class="summary-search-preparing" v-if="summarySearchPreparing">
+      Preparing summary search...
+    </div>
+
     <div class="autocomplete" v-if="useAutocomplete && autocompleteResults && autocompleteResults.length">
       <div class="header-wrapper">
         <div class="title">Autocomplete: </div>
@@ -69,6 +73,7 @@
 
 import Fuse from 'fuse.js'
 import filterAndSort from '@output-mixins/gallery-filter-and-sort.js';
+import { loadAllFieldData } from '@output-mixins/gallery-load-split-book-data.js';
 
 export default {
   name: "GallerySearch",
@@ -78,6 +83,13 @@ export default {
     return {
       enableZoomTimer: null,
       fuse: null,
+
+      // Summary text is chunked out of the book objects at save time, so summary
+      // search needs it hydrated back into memory first. These track that one-time
+      // load so search can show a "preparing" state until the data is ready.
+      summarySearchReady: false,
+      summarySearchHydrating: false,
+
       // Defaults
       fuseOptions: {
         keys: [],
@@ -204,6 +216,55 @@ export default {
       });
     },
     
+    // One-time hydration of summary text back onto the in-memory book objects so the
+    // 'summary' scope can be searched. Summaries are loaded from IndexedDB (warmed by
+    // the background prefetcher) and matched onto library + wishlist books by asin.
+    hydrateSummaries: async function() {
+
+      if ( this.summarySearchReady || this.summarySearchHydrating ) return;
+
+      const splitFields = _.get( this.$store.state, 'audibledata.extras.splitFields' );
+      const cacheID     = _.get( this.$store.state, 'audibledata.extras.cacheID' );
+
+      // No split-summary manifest means summaries already live on the books (extension
+      // gallery) or there are none. Either way nothing to hydrate.
+      if ( !_.get( splitFields, 'summary' ) ) {
+        this.summarySearchReady = true;
+        return;
+      }
+
+      this.summarySearchHydrating = true;
+
+      try {
+
+        const entries = await loadAllFieldData( splitFields, cacheID, 'summary' );
+        const summaryByAsin = _.keyBy( entries, 'asin' );
+
+        const books = _.concat(
+          _.get( this.$store.state, 'audibledata.library', [] ),
+          _.get( this.$store.state, 'audibledata.wishlist', [] )
+        );
+
+        _.each( books, ( book ) => {
+          const entry = summaryByAsin[ book.asin ];
+          if ( entry ) book.summary = entry.summary;
+        });
+
+        this.summarySearchReady = true;
+
+        // If a query is already pending behind the gate, run it now.
+        if ( this.$store.getters.searchIsActive ) this.search();
+
+      }
+      catch ( err ) {
+        console.warn( '[summary search] hydration failed:', err );
+      }
+      finally {
+        this.summarySearchHydrating = false;
+      }
+
+    },
+
     search: _.debounce( function( e, onLoad ) {
       
       // Reset 
@@ -238,6 +299,13 @@ export default {
       
       this.$updateQueries( newQueries );
       
+      // Gate: summary scope is active but its text isn't hydrated yet. Kick off (or
+      // wait on) hydration; hydrateSummaries re-runs search() once it's ready.
+      if ( this.summaryScopeActive && !this.summarySearchReady ) {
+        this.hydrateSummaries();
+        return;
+      }
+
       // Start searching
       if (this.$store.getters.searchIsActive) {
         const query = this.modifyQuery(this.$store.state.searchQuery);
@@ -415,8 +483,32 @@ export default {
       })(this.aliciaKeys);
 
       return "Search: " + placeholderKeys;
-    }
-  }
+    },
+
+    // True when the 'summary' scope key is currently active. Summary lives in chunk
+    // files, not on the book objects, so this drives hydration before searching.
+    summaryScopeActive: function() {
+      const summaryScope = _.find( this.$store.state.listRenderingOpts.scope, { key: 'summary' });
+      return !!( summaryScope && summaryScope.active );
+    },
+
+    // Show a "preparing" hint while summary data is still loading behind an active
+    // summary search.
+    summarySearchPreparing: function() {
+      return this.summaryScopeActive && this.summarySearchHydrating && this.$store.getters.searchIsActive;
+    },
+  },
+
+  watch: {
+    // Start hydrating summaries as soon as the summary scope becomes active, whether
+    // toggled by hand, restored from sticky state, or set via a URL param on load.
+    summaryScopeActive: {
+      immediate: true,
+      handler: function( active ) {
+        if ( active ) this.hydrateSummaries();
+      },
+    },
+  },
 };
 </script>
 
@@ -638,6 +730,16 @@ export default {
         color: #ffff;
       }
     }
+  }
+}
+
+.summary-search-preparing {
+  max-width: 600px;
+  margin: -15px auto 20px;
+  text-align: center;
+  font-size: 0.9em;
+  @include themify($themes) {
+    color: rgba( themed(frontColor), 0.6 );
   }
 }
 
