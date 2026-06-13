@@ -5,13 +5,13 @@
     
     <div class="ale-cover">
       
-      <div class="ale-play-sample" v-if="sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
+      <div class="ale-cover-icon ale-play-sample" v-if="sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
         <div><fa6-solid-play/></div>
       </div>
-      <div class="ale-play-sample cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
-        <gallery-open-web-player :size="20" :book="book" :icon="true" :tooltip="false" :noBG="true" />
+      <div class="ale-cover-icon cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
+        <gallery-open-web-player :size="20" :book="book" :icon="true" :tooltip="false" />
       </div>
-      <div class="ale-play-sample app-link-icon" v-else-if="book.asin && sticky.bookDetailSettings.appLink && $store.state.standalone">
+      <div class="ale-cover-icon app-link-icon" v-else-if="book.asin && sticky.bookDetailSettings.appLink && $store.state.standalone">
         <gallery-open-in-app :size="20" :book="book" />
       </div>
 
@@ -424,26 +424,25 @@ export default {
   }
 }
 
-.ale-play-sample {
+// SHARED BOUNDING BOX FOR THE COVER ICONS (play sample, cloud player, app link)
+// fixed square box so the icon can't collapse in on itself.
+.ale-cover-icon {
   display: none;
   position: absolute;
   z-index: 999;
   bottom: 0px;
   right: 0px;
   padding: 6px;
-  border-radius: 999999px;
   cursor: default;
+
+  // ICON BOX
+  // the cloud player and app link bring their own gradient circle, so the box
+  // here just keeps a fixed square so the icon can't collapse width wise.
   > div,
   > a {
-    font-size: 8px;
-    width: 20px;
-    height: 20px;
-    padding: 3px;
-    color: rgba(#fff, 1);
-    background: rgba(#000, 0.9);
-    border-radius: 999999px;
-    border: 2px solid rgba($audibleOrange, 0.9);
-    box-shadow: 0px 0px 9px rgba(#000, 0.9);
+    flex: 0 0 auto;
+    width: 26px;
+    height: 26px;
     cursor: pointer;
     display: flex;
     justify-content: center;
@@ -451,8 +450,21 @@ export default {
     justify-items: center;
     align-items: center;
   }
+  :deep(.gr-icon) {
+    box-shadow: 0px 0px 9px rgba(#000, 0.5);
+  }
+}
+
+// PLAY SAMPLE: stylized to match the gradient circular cloud player and app link icons.
+.ale-play-sample {
   > div {
-    font-size: 0.8em;
+    font-size: 11px;
+    color: rgba(#fff, 1);
+    background: #ffc338;
+    background: linear-gradient(to bottom, #ffc338 0%, #f29a33 100%);
+    border: 1px solid #f29a33;
+    border-radius: 999999px;
+    box-shadow: 0px 0px 9px rgba(#000, 0.5);
     > svg {
       position: relative;
       left: 1px;
@@ -496,15 +508,15 @@ body.is-mobile .ale-click-wrap .ale-info-indicator.open-details-icon {
 
 @media (max-width: 640px) {
   
-  .ale-play-sample {
-    :deep(> div),
-    :deep(> a) {
-      width: 15px;
-      height: 15px;
-      font-size: .6em;
-      :deep(img) {
-        max-width: 70%;
-      }
+  .ale-cover-icon {
+    padding: 4px;
+    > div,
+    :deep(> a > div) {
+      width: 20px;
+      height: 20px;
+    }
+    &.ale-play-sample > div {
+      font-size: 9px;
     }
   }
   
