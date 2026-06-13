@@ -4,7 +4,7 @@
   <div >
     <img :src="img" alt="">
   </div>
-  <fa-solid-times class="hide" @click="hide" />
+  <fa-solid-times class="hide" @click="hide" @mousedown="$haptic(1)" />
 </div>
 </template>
 

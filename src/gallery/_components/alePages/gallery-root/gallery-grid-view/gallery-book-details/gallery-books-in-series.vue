@@ -3,6 +3,7 @@
     <div
     class="label hidden-section-label my-books-in-series-label"
     @click="booksInSeriesLabelClick"
+    @mousedown="$haptic(1)"
     >
       <!-- Had to change this to make it a bit shorter... -->
       <!-- <span class="heading">Books I own in the series</span> -->

@@ -2,6 +2,7 @@
   <div id="ale-gallery">
     
     <gallery-book-details-settings v-if="$store.state.bookDetailSettingsOpen" />
+    <gallery-global-settings v-if="$store.state.globalSettingsOpen" />
     
     <!-- <ale-breadcrumbs :library="library" :general="general"></ale-breadcrumbs> -->
     

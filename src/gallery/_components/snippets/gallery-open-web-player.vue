@@ -4,6 +4,7 @@
   :href="url"
   target="_blank" rel="noopener noreferrer"
   :class="{ 'top-right': topRight, 'no-bg': noBG }"
+  @mousedown="$haptic(1)"
   >
     <div
       v-if="icon"

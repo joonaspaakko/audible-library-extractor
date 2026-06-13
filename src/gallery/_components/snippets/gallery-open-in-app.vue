@@ -6,6 +6,7 @@
   class="audible-app-link"
   :class="{ 'muted': muted, 'placeholder': !book.asin }"
   :tabindex="muted ? 0 : -1"
+  @mousedown="$haptic(1)"
   >
     <div
       class="gr-icon"

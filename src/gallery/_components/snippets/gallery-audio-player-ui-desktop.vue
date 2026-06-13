@@ -14,11 +14,11 @@
         <div class="time-display right" v-if="store.audioPlayer.timeDisplayLeft">-{{ store.audioPlayer.timeDisplayLeft }}</div>
 
         <div class="player-buttons">
-          <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')"><fa6-solid-play/></div>
-          <div class="pause" v-else @click="$compEmitter.emit('audio-player-pause')"> <fa6-solid-pause/></div>
-          <div class="stop" @click="$compEmitter.emit('audio-player-stop')">          <fa-solid-times/></div>
-          <div class="back" @click="$compEmitter.emit('audio-player-seek-back')">      <ic-baseline-replay-30/></div>
-          <div class="forward" @click="$compEmitter.emit('audio-player-seek-forward')"><ic-baseline-forward-30/></div>
+          <div class="play" v-if="!$store.state.audioPlayer.playing" @click="$compEmitter.emit('audio-player-play')" @mousedown="$haptic(1)"><fa6-solid-play/></div>
+          <div class="pause" v-else @click="$compEmitter.emit('audio-player-pause')" @mousedown="$haptic(1)"> <fa6-solid-pause/></div>
+          <div class="stop" @click="$compEmitter.emit('audio-player-stop')" @mousedown="$haptic(1)">          <fa-solid-times/></div>
+          <div class="back" @click="$compEmitter.emit('audio-player-seek-back')" @mousedown="$haptic(1)">      <ic-baseline-replay-30/></div>
+          <div class="forward" @click="$compEmitter.emit('audio-player-seek-forward')" @mousedown="$haptic(1)"><ic-baseline-forward-30/></div>
         </div>
         
       </div>

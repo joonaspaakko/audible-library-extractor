@@ -53,6 +53,7 @@
 								refresh: true,
 							} 
 						}"
+						@mousedown="$haptic(1)"
 					>
 						book in library
 					</router-link>
@@ -73,6 +74,7 @@
 								scrolltop: true,
 							} 
 						}"
+						@mousedown="$haptic(1)"
 					>
 						series in library 
 						<span v-if="inSeries.ownedBooksLength">
@@ -92,6 +94,7 @@
 								refresh: true,
 							} 
 						}"
+						@mousedown="$haptic(1)"
 					>
 						book in wishlist 
 					</router-link>

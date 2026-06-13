@@ -27,9 +27,10 @@
       v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'], maxWidth: 400 }"
       :content="typeof route.tippy === 'function' ? route.tippy() : route.tippy"
       @click="route.click ? route.click( route ) : null"
+      @mousedown="$haptic(1)"
     >
         
-      <div class="menu-item-inner" @click="additionalClick(route)">
+      <div class="menu-item-inner" @click="additionalClick(route)" @mousedown="$haptic(1)">
         <span class="menu-item-icon" v-if="route.meta.icon" v-html="route.meta.icon"></span>
         <span class="menu-item-text" v-html="getRouteName(route)"></span>
       </div>
@@ -56,9 +57,18 @@
         <fa6-solid-link
         class="icon" 
         @click="copyToClipboard()"
+        @mousedown="$haptic(2)"
         v-tippy="{ trigger: 'manual' }"
         content="Page URL copied to clipboard!"
         ref="copyToClipboard"
+        />
+      </div>
+      <div>
+        <fa6-solid-gear
+          class="icon"
+          @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })"
+          @mousedown="$haptic(1)"
+          v-tippy content="Settings"
         />
       </div>
       

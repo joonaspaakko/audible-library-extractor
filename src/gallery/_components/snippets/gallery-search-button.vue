@@ -3,6 +3,7 @@
   class="search-btn icon" 
   :class="{ float: float }"
   @click="startSearching" 
+  @mousedown="$haptic(1)" 
   v-tippy="{ interactive: true, allowHTML: true }" 
   content='
     Click to scroll up and search. <br>

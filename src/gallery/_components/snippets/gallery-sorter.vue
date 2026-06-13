@@ -12,7 +12,7 @@
       }" 
       :content="item.tippy ? item.tippy : false"
     >
-      <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts }">
+      <label class="sorter-button" :class="{ ranged: item.range, 'faux-disabled': (item.type === 'filterExtras' ? filterAmounts < 1 : false), 'is-dropdown': item.dropdownOpts }" @mousedown="$haptic(1)">
 
         <!-- LABEL in the front -->
         <span v-if="label === false" class="input-label" :class="{ active: isActiveSortItem(item) }">
@@ -65,7 +65,7 @@
       </label>
 
       <div class="range-slider" v-if="item.range">
-        <span class="min-number" @click="adjustRange('left')">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
+        <span class="min-number" @click="adjustRange('left')" @mousedown="$haptic(1)">{{ range.value[0] }}{{ item.rangeSuffix }}</span>
         <vue-slider
         :disabled="range.disabled"
         :dragOnClick="true"
@@ -88,7 +88,7 @@
         @drag-start="$store.commit('prop', { key: 'searchOptCloseGuard', value: true })"
         @drag-end="$store.commit('prop', { key: 'searchOptCloseGuard', value: false })"
         ></vue-slider>
-        <span class="max-number" @click="adjustRange('right')">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
+        <span class="max-number" @click="adjustRange('right')" @mousedown="$haptic(1)">{{ range.value[1] }}{{ item.rangeSuffix }}</span>
       </div>
 
       <div v-if="!!item.dropdownOpts">

@@ -2,6 +2,7 @@
   <fa6-solid-circle-play
     class="pointer"
     @click="playSample(book, rowIndex)"
+    @mousedown="$haptic(1)"
     :class="{ 'top-right': topRight }"
     :style="{ width: (size || 30) + 'px', height: 'auto' }"
     v-tippy content="Play sample audio"

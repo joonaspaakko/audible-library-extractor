@@ -2,7 +2,7 @@
 <div class="list-filter-wrapper" :style="{ top: $store.state.sticky.viewMode === 'grid' ? $store.state.topNavOffset + 'px' : '31px' }">
   <div class="row">
     
-    <div class="show-all-toggle" v-if="showAllToggle" @click="clickedShowAll">
+    <div class="show-all-toggle" v-if="showAllToggle" @click="clickedShowAll" @mousedown="$haptic(1)">
       <div>
         <fa6-solid-ban style="padding-right: 4px;" :class="{ active: $store.state.sticky.booksInSeriesAll}" />
         <span v-if="!showFinishedToggle">Not in library:</span>
@@ -10,7 +10,7 @@
       </div>
     </div>
     
-    <div class="show-finished" v-if="showFinishedToggle" @click="clickedShowFinished">
+    <div class="show-finished" v-if="showFinishedToggle" @click="clickedShowFinished" @mousedown="$haptic(1)">
       <div>
         <fa6-solid-box-archive style="padding-right: 4px;" :class="{ active: $store.state.sticky.booksInSeriesFinished}" />
         <span v-if="!showAllToggle">Finished books:</span>
@@ -21,7 +21,7 @@
   <!-- </div>
   
   <div class="row"> -->
-    <div style="flex: unset; padding-left: 6px; padding-right: 6px; min-width: 30px;" @click="$store.commit('stickyProp', { key: 'booksInSeriesOpenInApp', value: !$store.state.sticky.booksInSeriesOpenInApp })"
+    <div style="flex: unset; padding-left: 6px; padding-right: 6px; min-width: 30px;" @click="$store.commit('stickyProp', { key: 'booksInSeriesOpenInApp', value: !$store.state.sticky.booksInSeriesOpenInApp })" @mousedown="$haptic(1)"
     >  
     <!-- v-tippy :content="$store.state.sticky.booksInSeriesOpenInApp ? 'Open in app' : 'Search in goodreads'" -->
       <span v-if="$store.state.sticky.booksInSeriesOpenInApp">

@@ -33,6 +33,7 @@ export default {
       carousel: true,
       playButton: true,
       cloudPlayer: false,
+      appLink: false,
       blurb: true,
       statusIndicators: true,
       whispersync: true,
@@ -57,6 +58,7 @@ export default {
   },
   // States that don't persist
   bookDetailSettingsOpen: false,
+  globalSettingsOpen: false,
   searchMounted: false,
   searchCollection: [],
   mutatingCollection: [],

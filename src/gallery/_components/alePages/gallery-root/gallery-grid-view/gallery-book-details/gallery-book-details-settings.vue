@@ -2,8 +2,8 @@
 <gallery-modal class="bookdetails-settings" @closeModal="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })">
   
   <div class="tabs">
-    <h3 @click="showSettings = true" :class="{ active: showSettings }">Settings</h3>
-    <h3 @click="showSettings = false" :class="{ active: !showSettings }">Shortcuts</h3>
+    <h3 @click="showSettings = true" :class="{ active: showSettings }" @mousedown="$haptic(1)">Settings</h3>
+    <h3 @click="showSettings = false" :class="{ active: !showSettings }" @mousedown="$haptic(1)">Shortcuts</h3>
   </div>
     
   <div>
@@ -25,7 +25,7 @@
           
           <div class="row-wrapper">
             <label>
-              <input type="checkbox" :checked="setting.value" @change="setting.event" :disabled="!setting.enabled">
+              <input type="checkbox" :checked="setting.value" @change="setting.event" @mousedown="$haptic(1)" :disabled="!setting.enabled">
               <div class="visual-checkbox">
                 <div class="switch"></div>
               </div>
@@ -34,7 +34,7 @@
               </div>
             </label>
             
-            <div class="more-info-icon" v-if="setting.info" @click="openInfo( setting )" :class="{ open: setting.infoOpen }">
+            <div class="more-info-icon" v-if="setting.info" @click="openInfo( setting )" @mousedown="$haptic(1)" :class="{ open: setting.infoOpen }">
               <fa6-solid-circle-question />
             </div>
           </div>

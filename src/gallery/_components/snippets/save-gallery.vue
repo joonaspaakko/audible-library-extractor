@@ -8,41 +8,110 @@
     
     <div class="top-wrapper">
       <div class="icon-wrapper" :style="{ fontSize: iconSize/1.2  + 'px', lineHeight: iconSize/1.2  + 'px', paddingRight: iconSize / 2.5 + 'px' }">
-        <ep-grid/>
+        <tabler-browser-share/>
       </div>
       <div class="text-wrapper" ref="textWrapper">
         <h2>Stand-alone gallery</h2>
         
         <div class="description">
-          Create a shareable website version of your library. Publish it online instantly, or download the files for manual hosting.
+          Create a shareable website version of your library. Publish it online instantly, or download the files for manual hosting. Choose what to include below.
         </div>
       </div>
     </div>
-    
-    <h3>Include:</h3>
 
-    <div class="options opt-groups">
-      <div class="opt-group" v-for="(group, groupIndex) in chunkSource" :key="groupIndex" :class="[ 'group-' + groupIndex ]">
-        <label 
-          v-for="(item, itemIndex) in group" 
-          :key="item.key" 
-          :class="[ 
-            'item-' + itemIndex, 
-            item.disabled ? 'disabled' : null, 
-            item.spacer ? 'hide-spacer': null
-          ]" 
-          :data-extra="item.extra"  
-          v-tippy :content="item.tippy"
-        >
-          <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)"> 
-          <div class="visual-checkbox">
-            <span class="icon">
-              <fa-solid-check/>
-            </span>
+    <div class="source-section">
+
+      <!-- Pages -->
+      <div class="source-section-header source-section-header-toggle" @click="pagesExpanded = !pagesExpanded">
+        <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: pagesExpanded }" />
+        Pages
+        <label class="group-toggle-all" @click.stop>
+          <input type="checkbox" :checked="groupState('allPages').allChecked" @change="toggleGroup('allPages')">
+          <div class="visual-checkbox group-cb" :class="{ all: groupState('allPages').allChecked, mixed: groupState('allPages').mixed, none: groupState('allPages').noneChecked }">
+            <span class="icon"><fa-solid-check/></span>
+            <span class="icon icon-mixed"><fa6-solid-minus/></span>
+            <span class="icon icon-none"><fa6-regular-square/></span>
           </div>
-          <span>{{ item.key }}</span>
         </label>
       </div>
+      <div class="source-section-body" v-show="pagesExpanded">
+        <div class="source-row">
+          <label
+            v-for="item in groupedSources.allPages"
+            :key="item.key"
+            :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
+            v-tippy :content="item.tippy"
+          >
+            <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
+            <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
+            <span>{{ item.key }}</span>
+          </label>
+        </div>
+      </div>
+
+      <!-- Sub-pages -->
+      <div class="source-section-divider"></div>
+      <div :class="{ 'source-group-faded': !libraryActive && !wishlistActive }">
+        <div class="source-section-header source-section-header-toggle" @click="subPagesExpanded = !subPagesExpanded">
+          <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: subPagesExpanded }" />
+          Sub-pages
+          <span class="source-section-header-note">(Library &amp; Wishlist)</span>
+          <label class="group-toggle-all" @click.stop>
+            <input type="checkbox" :checked="groupState('subPages').allChecked" @change="toggleGroup('subPages')">
+            <div class="visual-checkbox group-cb" :class="{ all: groupState('subPages').allChecked, mixed: groupState('subPages').mixed, none: groupState('subPages').noneChecked }">
+              <span class="icon"><fa-solid-check/></span>
+              <span class="icon icon-mixed"><fa6-solid-minus/></span>
+              <span class="icon icon-none"><fa6-regular-square/></span>
+            </div>
+          </label>
+        </div>
+        <div class="source-section-body" v-show="subPagesExpanded">
+          <div class="source-row source-row-grid">
+            <label
+              v-for="item in groupedSources.subPages"
+              :key="item.key"
+              :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
+              v-tippy :content="item.tippy"
+            >
+              <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
+              <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
+              <span>{{ item.key }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- Library extras -->
+      <div class="source-section-divider"></div>
+      <div :class="{ 'source-group-faded': !libraryActive }">
+        <div class="source-section-header source-section-header-toggle" @click="extrasExpanded = !extrasExpanded">
+          <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: extrasExpanded }" />
+          Library extras
+          <label class="group-toggle-all" @click.stop>
+            <input type="checkbox" :checked="groupState('extras').allChecked" @change="toggleGroup('extras')">
+            <div class="visual-checkbox group-cb" :class="{ all: groupState('extras').allChecked, mixed: groupState('extras').mixed, none: groupState('extras').noneChecked }">
+              <span class="icon"><fa-solid-check/></span>
+              <span class="icon icon-mixed"><fa6-solid-minus/></span>
+              <span class="icon icon-none"><fa6-regular-square/></span>
+            </div>
+          </label>
+        </div>
+        <div class="source-section-body" v-show="extrasExpanded">
+          <div class="source-row">
+            <label
+              v-for="item in groupedSources.extras"
+              :key="item.key"
+              :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
+              v-tippy :content="item.tippy"
+            >
+              <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
+              <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
+              <span>{{ item.key }}</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
     </div>
     
     <!-- <h3>Output:</h3>
@@ -127,14 +196,15 @@ export default {
         { checked: true, disabled: false, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export.', parent: 'Library' },
         { checked: true, disabled: false, key: 'Wishlist' },
         { checked: true, disabled: false, key: 'My Reviews', parent: ['Library'] },
-        { checked: true, disabled: false, key: 'spacer-1', spacer: true },
-        // { checked: true, disabled: false, key: 'spacer-2', spacer: true },
         
       ],
       zip: null,
       cacheBuster: null,
       bundling: false,
       githubSyncing: false,
+      pagesExpanded: true,
+      subPagesExpanded: false,
+      extrasExpanded: true,
       saveBtnEnabled: true,
       progressWidth: null,
       iconSize: 20,
@@ -164,6 +234,14 @@ export default {
     podcastsSource.disabled = _.isEmpty(this.$store.getters.podcasts);
     let myReviews = _.find( this.dataSources, { key: 'My Reviews' });
     myReviews.disabled = _.isEmpty(this.$store.state.audibledata.userReviews);
+
+    if ( librarySource.disabled ) {
+      _.each( this.dataSources, function( source ) {
+        const parent = source.parent;
+        const onlyLibraryParent = parent === 'Library' || (_.isArray(parent) && parent.length === 1 && parent[0] === 'Library');
+        if ( onlyLibraryParent ) source.disabled = true;
+      });
+    }
 
     // let archivedBookFound = _.find( this.$store.state.audibledata.library, o => _.includes(o.collectionIds, '__ARCHIVE') );
     // if ( !archivedBookFound ) {
@@ -203,13 +281,63 @@ export default {
   },
 
   computed: {
-    chunkSource: function() {
-      return _.chunk(this.dataSources, 4);
+
+    groupedSources: function() {
+      const pageOrder = ['Library', 'Collections', 'Podcasts', 'Wishlist'];
+      const allPages = _.sortBy(
+        _.filter(this.dataSources, s => !s.subPage && !s.extra && !s.spacer && _.includes(pageOrder, s.key)),
+        s => _.indexOf(pageOrder, s.key)
+      );
+      return {
+        allPages,
+        subPages: _.filter(this.dataSources, { subPage: true }),
+        extras:   _.filter(this.dataSources, s => s.extra || s.key === 'My Reviews'),
+      };
     },
+
+    libraryActive: function() {
+      const lib = _.find(this.dataSources, { key: 'Library' });
+      return lib && lib.checked && !lib.disabled;
+    },
+
+    wishlistActive: function() {
+      const wish = _.find(this.dataSources, { key: 'Wishlist' });
+      return wish && wish.checked && !wish.disabled;
+    },
+
+    allSubPagesChecked: function() {
+      return _.every(this.dataSources, s => !s.subPage || s.checked);
+    },
+
+    groupState: function() {
+      return (groupKey) => {
+        const items = this.groupedSources[groupKey];
+        const active = _.filter(items, s => !s.disabled);
+        const checkedCount = _.filter(active, 'checked').length;
+        return {
+          allChecked: active.length > 0 && checkedCount === active.length,
+          mixed:      checkedCount > 0 && checkedCount < active.length,
+          noneChecked: checkedCount === 0,
+        };
+      };
+    },
+
   },
 
   methods: {
-    
+
+    toggleGroup: function(groupKey) {
+      const items = this.groupedSources[groupKey];
+      const active = _.filter(items, s => !s.disabled);
+      const allChecked = _.every(active, 'checked');
+      _.each(active, s => { s.checked = !allChecked; });
+      this.$store.commit('stickyProp', { key: 'exportSettingsGallery', value: this.dataSources });
+    },
+
+    toggleAllSubPages: function() {
+      this.toggleGroup('subPages');
+    },
+
     cancelZipping: function() {
       window.location.reload();
     },
@@ -349,8 +477,9 @@ export default {
           }
         `;
         
-        const useServiceWorker = false;
-        loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker +'<\/script>' : '';
+        const useServiceWorker = true;
+        const sc = '<' + '/script>';
+        loadServiceWorker = useServiceWorker ? '<script>'+ loadServiceWorker + sc : '';
         
         const getFile = function( name, ext ) {
           let regex = "^assets\\/"+ name +"\\..+\\."+ (ext || "js") +"$";
@@ -358,71 +487,70 @@ export default {
           return _.find(vue.files, file => file.match(regex));
         };
         
-        const indexHTML =
-          "<!DOCTYPE html>" +
-          '<html lang="en" class="theme-dark standalone-gallery" style="background: #171717; min-height: 100%;">' +
-          "<head>" +
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2388-1668.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-1536.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2224.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2224-1668.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1620-2160.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2160-1620.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1290-2796.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2796-1290.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1179-2556.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2556-1179.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1284-2778.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2778-1284.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1170-2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2532-1170.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2436-1125.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2688-1242.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1792-828.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2208-1242.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1334-750.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">' + 
-            '<link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">' + 
-            '<meta charset="UTF-8">' +
-            // '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-            '<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">' +
-            '<meta http-equiv="X-UA-Compatible" content="ie=edge">' +
-            '<meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">' +
-            '<meta http-equiv="Pragma" content="no-cache">' +
-            '<meta name="apple-mobile-web-app-capable" content="yes">' +
-            '<meta name="mobile-web-app-capable" content="yes">' +
-            '<link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">' +
-            '<link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">' +
-            '<link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">' +
-            '<link rel="manifest" href="app.webmanifest">' +
-            '<link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">' +
-            '<link rel="shortcut icon" href="favicons/favicon.ico">' +
-            '<meta name="msapplication-TileColor" content="#222222">' +
-            '<meta name="msapplication-config" content="favicons/browserconfig.xml">' +
-            '<meta name="theme-color" content="#f29a33">' +
-            "<title>My Audible Library</title>" +
-            loadServiceWorker +
-            '<link id="ale-css" rel="stylesheet" href="'+ getFile('gallery', 'css') +'">' +
-          "</head>" +
-          "<body>" +
-          
-            '<div id="audible-library-extractor" data-version="'+ this.$store.state.version +'" data-cache-id="'+ vue.cacheBuster +'"></div>' +
-            '<script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js"><\/script>' +
-            // '<script type="module" src="'+ lodashJS +'"><\/script>' +
-            '<script id="ale-js" src="'+ getFile('gallery', 'js') +'" type="module"><\/script>' +
-            "<noscript>This library requires javascript to work!</noscript>" +
-            
-          "</body>" +
-            "</html>";
+        const indexHTML = `
+          <!DOCTYPE html>
+          <html lang="en" class="theme-dark standalone-gallery" style="background: #171717; min-height: 100%;">
+          <head>
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-2732.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2732-2048.jpg" media="(device-width: 1024px) and (device-height: 1366px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2388.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2388-1668.jpg" media="(device-width: 834px) and (device-height: 1194px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1536-2048.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2048-1536.jpg" media="(device-width: 768px) and (device-height: 1024px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1668-2224.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2224-1668.jpg" media="(device-width: 834px) and (device-height: 1112px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1620-2160.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2160-1620.jpg" media="(device-width: 810px) and (device-height: 1080px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1290-2796.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2796-1290.jpg" media="(device-width: 430px) and (device-height: 932px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1179-2556.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2556-1179.jpg" media="(device-width: 393px) and (device-height: 852px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1284-2778.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2778-1284.jpg" media="(device-width: 428px) and (device-height: 926px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1170-2532.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2532-1170.jpg" media="(device-width: 390px) and (device-height: 844px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1125-2436.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2436-1125.jpg" media="(device-width: 375px) and (device-height: 812px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2688.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2688-1242.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-828-1792.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1792-828.jpg" media="(device-width: 414px) and (device-height: 896px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1242-2208.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-2208-1242.jpg" media="(device-width: 414px) and (device-height: 736px) and (-webkit-device-pixel-ratio: 3) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-750-1334.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1334-750.jpg" media="(device-width: 375px) and (device-height: 667px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-640-1136.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: portrait)">
+            <link rel="apple-touch-startup-image" href="favicons/apple-splash-dark-1136-640.jpg" media="(device-width: 320px) and (device-height: 568px) and (-webkit-device-pixel-ratio: 2) and (orientation: landscape)">
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+            <meta http-equiv="X-UA-Compatible" content="ie=edge">
+            <meta http-equiv="Cache-control" content="no-cache, no-store, must-revalidate">
+            <meta http-equiv="Pragma" content="no-cache">
+            <meta name="apple-mobile-web-app-capable" content="yes">
+            <meta name="mobile-web-app-capable" content="yes">
+            <link rel="apple-touch-icon" sizes="180x180" href="favicons/apple-touch-icon.png">
+            <link rel="icon" type="image/png" sizes="32x32" href="favicons/favicon-32x32.png">
+            <link rel="icon" type="image/png" sizes="16x16" href="favicons/favicon-16x16.png">
+            <link rel="manifest" href="app.webmanifest">
+            <link rel="mask-icon" href="favicons/safari-pinned-tab.svg" color="#f29a33">
+            <link rel="shortcut icon" href="favicons/favicon.ico">
+            <meta name="msapplication-TileColor" content="#222222">
+            <meta name="msapplication-config" content="favicons/browserconfig.xml">
+            <meta name="theme-color" content="#f29a33">
+            <title>My Audible Library</title>
+            <script type="module" src="https://esm.sh/@khmyznikov/pwa-install">${sc}
+            ${loadServiceWorker}
+            <link id="ale-css" rel="stylesheet" href="${ getFile('gallery', 'css') }">
+          </head>
+          <body>
+            <div id="audible-library-extractor" data-version="${ this.$store.state.version }" data-cache-id="${ vue.cacheBuster }"></div>
+            <pwa-install use-local-storage manifest-url="app.webmanifest" icon="favicons/android-chrome-192x192.png" name="My Audible Library"></pwa-install>
+            <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js">${sc}
+            <script id="ale-js" src="${ getFile('gallery', 'js') }" type="module">${sc}
+            <noscript>This library requires javascript to work!</noscript>
+          </body>
+          </html>
+        `;
 
         files.add("index.html", indexHTML);
         
@@ -508,9 +636,9 @@ export default {
         // vue.files.push('app.webmanifest');
 
         // Service worker file
-        // if ( useServiceWorker ) {
-        //   files.add( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
-        // }
+        if ( useServiceWorker ) {
+          files.add( `service-worker.${vue.cacheBuster}.js`, this.serviceWorker( libraryData ) );
+        }
         
         const total = assetFiles.length;
         let done = 0;
@@ -708,7 +836,7 @@ export default {
       let vue = this;
 
       return `
-      importScripts('https://storage.googleapis.com/workbox-cdn/releases/6.1.5/workbox-sw.js');
+      importScripts('https://storage.googleapis.com/workbox-cdn/releases/7.3.0/workbox-sw.js');
 
       workbox.setConfig({
         debug: false,
@@ -830,42 +958,136 @@ export default {
   border-radius: 3px;
 }
 
-.opt-groups {
-  flex-direction: column !important;
-  .opt-group {
-    flex-direction: row !important;
-    justify-content: space-between !important;
-    margin: 0 !important;
-    
-    > div {
-      padding-top: 0px !important;
-    }
-    
-    .item-0 { width: 100px !important; }
-    .item-1 { width: 100px !important; }
-    .item-2 { width: 100px !important; }
-    .item-3 { width: 100px !important; }
-    [data-extra] { width: auto; }
+.source-section {
+  border-radius: 8px;
+  padding: 10px 12px 8px;
+  margin-bottom: 4px;
+  @include themify($themes) {
+    border: 1px solid rgba(themed(frontColor), .10);
   }
 }
 
-.opt-group label {
+.source-section-divider {
+  margin: 8px -12px;
+  @include themify($themes) {
+    border-top: 1px solid rgba(themed(frontColor), .07);
+  }
+}
+
+.source-group-faded {
+  opacity: 0.32;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.source-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), .45);
+  }
+}
+
+.source-section-header-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-chevron {
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+  font-size: 0.85em;
+  &.expanded {
+    transform: rotate(90deg);
+  }
+}
+
+.source-section-header-note {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.1em;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), .3);
+  }
+}
+
+.group-toggle-all {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 0;
+  input {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+  }
+}
+
+.group-cb {
+  .icon { display: none; }
+}
+
+.group-cb.all .icon:not(.icon-mixed):not(.icon-none) {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.group-cb.mixed .icon-mixed {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.group-cb.none .icon-none {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+
+.source-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.source-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0 4px;
+}
+
+.source-row-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+
+.opt-group {
   display: inline-flex !important;
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  // margin-bottom: 8px;
   padding: 6px !important;
-}
-
-.opt-group {
   position: relative;
   z-index: 0;
+  cursor: pointer;
 }
 
-.opt-group label {
-  position: relative;
-}
 .opt-group input {
   opacity: 0;
   position: absolute;
@@ -898,13 +1120,13 @@ export default {
   }
 }
 
-.opt-group label input:checked ~ .visual-checkbox .icon {
+.opt-group input:checked ~ .visual-checkbox .icon {
   display: inline-flex;
   justify-content: center;
   align-items: center;
 }
 
-.opt-group > .disabled {
+.opt-group.disabled {
   opacity: .6;
   cursor: default !important;
   .visual-checkbox .icon {
@@ -917,14 +1139,10 @@ export default {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  padding-bottom: 35px;
-  border-bottom: 2px solid rgba(#000, .15);
-  margin-bottom: 5px;
+  padding-bottom: 20px;
+  margin-bottom: 10px;
 }
 
-.hide-spacer {
-  visibility: hidden;
-}
 
 .bundling .save-gallery {
   span,
@@ -944,11 +1162,17 @@ export default {
   white-space: nowrap;
   cursor: pointer;
   @include themify($themes) {
-    background: themed(audibleOrange);
-    color: #fff;
+    background: rgba(themed(frontColor), .08);
+    color: rgba(themed(frontColor), .7);
+    border: 1px solid rgba(themed(frontColor), .2);
+    &:hover:not(:disabled) {
+      background: rgba(themed(frontColor), .13);
+      color: rgba(themed(frontColor), .9);
+      border-color: rgba(themed(frontColor), .35);
+    }
   }
-  border-width: medium;
-  border-style: none;
+  border-width: 1px;
+  border-style: solid;
   border-color: currentcolor;
   border-image: initial;
   padding: 7px 14px;
@@ -1013,6 +1237,12 @@ export default {
   font-size: 1em;
   a {
     text-decoration: underline !important;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), .6) !important;
+      &:hover {
+        color: rgba(themed(frontColor), .9) !important;
+      }
+    }
   }
 }
 

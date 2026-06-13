@@ -51,7 +51,7 @@ export default {
 }
 
 
-body:not(.is-mobile) .ale-book:hover .ale-play-sample {
+body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   display: inline-block;
 }
 
@@ -69,7 +69,7 @@ body:not(.is-mobile) .ale-book:hover .ale-play-sample {
   display: inline-block;
   // font-size: 0;
 
-  &.details-open .ale-play-sample {
+  &.details-open .ale-cover-icon {
     display: inline-block;
   }
 

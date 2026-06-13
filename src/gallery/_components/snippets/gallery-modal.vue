@@ -6,7 +6,7 @@
         
         <slot />
         
-        <div class="close-btn" @click="close" v-shortkey.once="['esc']" @shortkey="close">
+        <div class="close-btn" @click="close" @mousedown="$haptic(1)" v-shortkey.once="['esc']" @shortkey="close">
           <fa-solid-times/>
         </div>
         
