@@ -24,32 +24,15 @@ app.config.globalProperties.$compEmitter = new mitt();
 // VUEX store
 import store from "@output-modules/store/gallery-store-index.js";
 app.use(store);
-// Mobile haptics
-import { haptic } from 'ios-haptics';
+// Mobile haptics - DISABLED
+// The ios-haptics library (v0.1.5) relied on a bug where programmatically
+// clicking an <input type="checkbox" switch /> would trigger haptic feedback.
+// Apple patched this exploit in iOS 26.5, breaking the library.
+// https://github.com/tijnjh/ios-haptics
+// Keeping the $haptic function and all @mousedown handlers in place
+// in case something changes...
 app.config.globalProperties.$haptic = ( number ) => {
-  
-  if ( !store.state.sticky.useHaptics ) return;
-  
-  try {
-    switch ( number ) {
-      case 1:
-        haptic();
-        break;
-      
-      case 2:
-        haptic.confirm();
-        break;
-      
-      case 3:
-        haptic.error();
-        break;
-        
-      default:
-        haptic();
-        break;
-    }
-  } catch (e) {}
-  
+  // No-op - haptics disabled due to iOS 26.5+ restrictions
 };
 // VUE TIPPY
 import VueTippy from "vue-tippy";

@@ -56,7 +56,7 @@
         <div class="meta-padding"></div>
         
         <div class="my-review-wrapper" v-if="review">
-          <div class="my-review-btn" :class="{ active: showReview }" @click="clickedShowReview">
+          <div class="my-review-btn" :class="{ active: showReview }" @click="clickedShowReview" @mousedown="$haptic(1)">
             <fluent-document-one-page-sparkle-20-regular /> My review 
           </div>
           
@@ -80,6 +80,7 @@
     class="summary-read-more"
     ref="readMoreBtn"
     @click="summaryReadMoreclick"
+    @mousedown="$haptic(1)"
     v-if="showReadMore"
     >
       <!-- 

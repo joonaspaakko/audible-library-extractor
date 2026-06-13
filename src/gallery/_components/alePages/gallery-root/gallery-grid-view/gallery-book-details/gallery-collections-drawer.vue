@@ -3,6 +3,7 @@
     <div
     class="label hidden-section-label"
     @click="labelClick"
+    @mousedown="$haptic(1)"
     >
       <span class="heading">This book in collections</span>
       <span class="count">{{ collections.length }}</span>
@@ -13,7 +14,7 @@
         name: 'collection', 
         params: { collection: collection.id },
         query: { book: book.asin }
-      }">
+      }" @mousedown="$haptic(1)">
         <span class="text">{{ collection.title }}</span>
         <span class="total-books">{{ collection.books.length }}</span>
       </router-link>

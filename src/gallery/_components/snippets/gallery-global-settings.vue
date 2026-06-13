@@ -21,9 +21,11 @@
           <span>Install as app</span>
           <span class="setting-subtext">Add this gallery to your home screen for quick access without a browser.</span>
         </div>
-        <button class="pwa-install-btn" @click="showPwaDialog">Install</button>
+        <button class="pwa-install-btn" @click="showPwaDialog" @mousedown="$haptic(2)">Install</button>
       </div>
 
+      <!-- Haptics setting hidden - disabled due to iOS 26.5+ restrictions -->
+      <!--
       <div class="setting-row">
         <label class="setting-label-wrap">
           <div class="setting-label">
@@ -31,11 +33,12 @@
             <span class="setting-subtext">Vibration feedback on touch interactions.</span>
           </div>
           <div class="visual-toggle" :class="{ on: $store.state.sticky.useHaptics }">
-            <input type="checkbox" :checked="$store.state.sticky.useHaptics" @change="toggleHaptics">
+            <input type="checkbox" :checked="$store.state.sticky.useHaptics" @change="toggleHaptics" @mousedown="$haptic(1)">
             <div class="toggle-track"><div class="toggle-thumb"></div></div>
           </div>
         </label>
       </div>
+      -->
 
     </div>
 
@@ -43,7 +46,7 @@
     <div class="settings-section-divider"></div>
     <div class="settings-section">
 
-      <div class="collapsible-header" @click="bookDetailsExpanded = !bookDetailsExpanded">
+      <div class="collapsible-header" @click="bookDetailsExpanded = !bookDetailsExpanded" @mousedown="$haptic(1)">
         <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: bookDetailsExpanded }" />
         <span>Book details</span>
       </div>
@@ -57,7 +60,7 @@
           <label v-else-if="setting.sectionToggle" class="setting-section-label is-toggle" :class="{ disabled: !setting.enabled }">
             <span>{{ setting.sectionLabel }}</span>
             <div class="visual-toggle" :class="{ on: setting.value }">
-              <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" :disabled="!setting.enabled">
+              <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled">
               <div class="toggle-track"><div class="toggle-thumb"></div></div>
             </div>
           </label>
@@ -77,7 +80,7 @@
                 <fa6-regular-circle-question />
               </div>
               <div class="visual-toggle" :class="{ on: setting.value }">
-                <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" :disabled="!setting.enabled">
+                <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled">
                 <div class="toggle-track"><div class="toggle-thumb"></div></div>
               </div>
             </label>

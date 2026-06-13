@@ -1,9 +1,9 @@
 <template>
   <div id="library-wishlist-switcher" :class="{ 'above-search': aboveSearch }" v-if="($route.meta.subPage && !$route.meta.gallery) && ($store.state.audibledata.library || $store.state.audibledata.extras.pages.library) && ($store.state.audibledata.wishlist || $store.state.audibledata.extras.pages.wishlist)">
-    <button @click="switcher('library')" :class="{ active: isActive('library') }">
+    <button @click="switcher('library')" :class="{ active: isActive('library') }" @mousedown="$haptic(1)">
       Library
     </button>
-    <button @click="switcher('wishlist')" :class="{ active: isActive('wishlist') }">
+    <button @click="switcher('wishlist')" :class="{ active: isActive('wishlist') }" @mousedown="$haptic(1)">
       Wishlist
     </button>
   </div>

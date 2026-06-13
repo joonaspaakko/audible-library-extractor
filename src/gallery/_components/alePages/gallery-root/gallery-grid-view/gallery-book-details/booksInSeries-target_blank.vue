@@ -4,6 +4,7 @@
     v-if="inSeries"
     class="label hidden-section-label my-books-in-series-label"
     @click="booksInSeriesLabelClick"
+    @mousedown="$haptic(1)"
     >
       <!-- Had to change this to make it a bit shorter... -->
       <!-- <span class="heading">Books I own in the series</span> -->
@@ -26,7 +27,7 @@
           <div class="series-name">
             
             <router-link v-if="$route.name !== 'series'" 
-            :to="{ name: 'series', params: { series: series.asin } }" target="_blank" rel="noopener noreferrer">
+            :to="{ name: 'series', params: { series: series.asin } }" target="_blank" rel="noopener noreferrer" @mousedown="$haptic(1)">
               {{ series.name }}
             </router-link>
             <a v-else href="#" @click.prevent="goToBookInSeries( series )">
@@ -51,7 +52,7 @@
           name: 'series', 
           params: { series: series.asin }, 
           query: { book: book.asin }, 
-        }" target="_blank" rel="noopener noreferrer">
+        }" target="_blank" rel="noopener noreferrer" @mousedown="$haptic(1)">
           
           <span class="icon" :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'] }" v-html="booksInSeriesIcon(seriesBook)"></span>
           

@@ -5,6 +5,7 @@
   target="_blank" rel="noopener noreferrer"
   class="good-reads-icon"
   :class="{ 'muted': muted, 'placeholder': !goodreadsUrl }"
+  @mousedown="$haptic(1)"
   >
     <div
       v-if="icon"

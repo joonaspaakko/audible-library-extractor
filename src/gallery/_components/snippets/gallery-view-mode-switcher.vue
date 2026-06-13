@@ -1,5 +1,5 @@
 <template>
-  <div class="view-mode-switcher icon" :class="{ 'no-style': justIcon }" @click="changeViewMode"
+  <div class="view-mode-switcher icon" :class="{ 'no-style': justIcon }" @click="changeViewMode" @mousedown="$haptic(1)"
   v-tippy="{ allowHTML: true, }"
   :content="'Change to <strong>' + (sticky.viewMode === 'grid' ? 'spreadsheet' : 'grid')  + '</strong> view'"
   >

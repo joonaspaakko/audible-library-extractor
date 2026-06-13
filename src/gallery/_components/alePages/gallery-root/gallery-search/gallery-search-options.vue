@@ -4,7 +4,7 @@
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
       <ul v-if="listName === 'filter' && $store.getters.regularFilters" class="regular-filters" :style="{ top: $store.state.topNavOffset + 'px' }">
-        <li class="reset-filters" @click="resetFilters" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
+        <li class="reset-filters" @click="resetFilters" @mousedown="$haptic(1)" content="Reset filters" v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
           <fa-solid-redo-alt/>
         </li>
         <li class="total">
@@ -32,6 +32,7 @@
         <li v-if="listName === 'filter' && !$store.getters.regularFilters"
             class="reset-filters"
             @click="resetFilters"
+            @mousedown="$haptic(1)"
             content="Reset filters"
             v-tippy="{ placement: 'top', flipBehavior: ['top', 'right', 'bottom', 'left'] }">
           <fa-solid-redo-alt/>

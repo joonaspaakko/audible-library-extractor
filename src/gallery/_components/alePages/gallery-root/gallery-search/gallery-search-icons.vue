@@ -16,6 +16,7 @@
       v-tippy
       :content="item.tooltip"
       @click="openSearchOptions(item, $event)"
+      @mousedown="$haptic(1)"
     >
       <div
         class="search-opt-btn"

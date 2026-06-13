@@ -3,6 +3,7 @@
     <div
       class="icon"
       @click="lightSwitchToggle(false)"
+      @mousedown="$haptic(1)"
     >
       
       <fa6-solid-sun v-if="$store.state.sticky.lightSwitch" />

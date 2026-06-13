@@ -6,6 +6,7 @@
       v-tippy :content="(!sticky.bookDetailsCollapsedCover ? 'Collapse' : 'Expand') + ' cover image.'"
       :style="{ top: '5px' }"
       @click="collapseBtnClicked('bookDetailsCollapsedCover')"
+      @mousedown="$haptic(1)"
     >
       <gallery-vertical-chevron :up="!sticky.bookDetailsCollapsedCover" />
     </div>
@@ -45,7 +46,8 @@
       <div class="collapse-btn" 
       v-tippy :content="(!sticky.bookDetailsCollapsedDetails ? 'Collapse' : 'Expand') + ' book details.'"
       :style="{ top: !sticky.bookDetailsCollapsedDetails ? '25px' : '-10px' }" 
-      @click="collapseBtnClicked('bookDetailsCollapsedDetails')">
+      @click="collapseBtnClicked('bookDetailsCollapsedDetails')"
+      @mousedown="$haptic(1)">
         <gallery-vertical-chevron :up="!sticky.bookDetailsCollapsedDetails" />
       </div>
       
