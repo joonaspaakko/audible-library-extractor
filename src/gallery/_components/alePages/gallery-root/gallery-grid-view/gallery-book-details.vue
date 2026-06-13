@@ -44,7 +44,7 @@
           </div>
           <gallery-details-first-hider v-if="mobileWidth" />
           <gallery-sidebar-flipper />
-          <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'bookDetailSettingsOpen', value: !store.bookDetailSettingsOpen })" :class="{ active: store.bookDetailSettingsOpen }" />
+          <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })" />
         </div>
         
         <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">

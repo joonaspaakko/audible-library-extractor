@@ -61,6 +61,13 @@
         ref="copyToClipboard"
         />
       </div>
+      <div>
+        <fa6-solid-gear
+          class="icon"
+          @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })"
+          v-tippy content="Settings"
+        />
+      </div>
       
     </div>
     

@@ -11,6 +11,9 @@
       <div class="ale-play-sample cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
         <gallery-open-web-player :size="20" :book="book" :icon="true" :tooltip="false" :noBG="true" />
       </div>
+      <div class="ale-play-sample app-link-icon" v-else-if="book.asin && sticky.bookDetailSettings.appLink && $store.state.standalone">
+        <gallery-open-in-app :size="20" :book="book" />
+      </div>
 
       <div
         class="ale-click-wrap"
