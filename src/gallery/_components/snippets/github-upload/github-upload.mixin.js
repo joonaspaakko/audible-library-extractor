@@ -19,7 +19,6 @@ export default {
       failedMessage: '',
       completedPagesUrl: null,
       completedHashRoute: 'library',
-      uploadTimestamp: null,
       includeReadme: true,
       stages: ['Uploading files', 'Organizing files', 'Saving changes', 'Done'],
       progress: { stage: '', total: 0, done: 0, percent: 0 },
@@ -249,9 +248,8 @@ export default {
         await this.$nextTick(); // Force Vue to render the "Done" stage before sleeping
         await this.sleep( 1200 ); // Let the user see the completed progress bar
 
-        // Show the completion screen with the Pages URL and record the upload timestamp
+        // Show the completion screen with the Pages URL
         this.completedPagesUrl = repoEntry?.pagesUrl || null;
-        this.uploadTimestamp   = Date.now();
         this.uploadComplete    = true;
         // Monitor the GitHub Pages build status in the background; UI will update when it's built
         this.pollPagesBuild( owner, repo );
