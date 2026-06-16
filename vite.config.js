@@ -36,6 +36,7 @@ const root = function( path ) { return src(path, './'); };
 const devmode = process.env.development;
 const gallerySingleFile = process.env.gallerySingleFile;
 const wallpaperSingleFile = process.env.wallpaperSingleFile;
+const standaloneShuffle = process.env.standaloneShuffle;
 const buildSingleFile = gallerySingleFile || wallpaperSingleFile;
 
 const copyFilesBefore = [
@@ -144,6 +145,7 @@ export default defineConfig({
   // Basically string replacements. You can think of as a global immutable variable.
   define: {
     "$version": JSON.stringify(process.env.npm_package_version),
+    "$standaloneShuffle": JSON.stringify(standaloneShuffle === '1'),
   },
   plugins: [
     vue(),

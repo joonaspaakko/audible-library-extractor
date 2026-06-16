@@ -209,6 +209,7 @@ export default {
       progressWidth: null,
       iconSize: 20,
       githubApiProcessActive: false,
+      debugShuffleEnabled: $standaloneShuffle, // By default controlled by env variable.
     };
   },
 
@@ -485,6 +486,9 @@ export default {
         files.add(".nojekyll", '');
         
         let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.audibledata)) );
+
+        // DEBUG...
+        this.debugShuffle( libraryData );
 
         libraryData.extras.cacheID = vue.cacheBuster;
 
@@ -976,6 +980,24 @@ export default {
         })
       );
       `;
+    },
+
+    // DEBUG: reorder library and wishlist books to simulate new extraction with different
+    // data. All we need is to see the data get's loaded in a different order than before
+    // so we know it's loading properly...
+    debugShuffle: function( data ) {
+
+      if ( !this.debugShuffleEnabled ) return;
+
+      if ( _.isArray(data.library) ) {
+        data.library = _.shuffle( data.library );
+      }
+      if ( _.isArray(data.wishlist) ) {
+        data.wishlist = _.shuffle( data.wishlist );
+      }
+
+      console.warn('[ALE debug] Library/wishlist order shuffled before save.');
+
     },
 
     runCachebuster: function() {

@@ -8,6 +8,7 @@
     "dev2": "yarn vite build --watch",
     "build": "gallerySingleFile=true yarn vite build && wallpaperSingleFile=true yarn vite build && yarn vite build && node zipper.js",
     "build1": "yarn vite build",
+    "standalone-gallery-data-shuffle": "standaloneShuffle=1 yarn vite build",
     "preview": "yarn vite preview --port 4173",
     "clean-install": "rm -rf node_modules yarn.lock && yarn install",
     "backup-lock": "cp yarn.lock yarn.lock.backup"
