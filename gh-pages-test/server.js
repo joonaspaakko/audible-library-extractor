@@ -26,6 +26,7 @@ import fsp from 'node:fs/promises';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
+import { unzipGallery, newestZipInDownloads, downloadsDir, siteDir } from './unzip-gallery.js';
 
 const __dirname = path.dirname( fileURLToPath( import.meta.url ) );
 
@@ -54,6 +55,11 @@ const port = parseInt( getArg( '--port', '8000' ), 10 );
 // OFF by default so a normal run stays faithful to GitHub Pages caching.
 const fresh = hasFlag( '--fresh' );
 let freshCleared = false;
+
+// --watch: watch ~/Downloads for a freshly saved ALE-gallery.zip and auto-unzip it
+// into site/ so the testing loop becomes just "save in gallery, reload browser".
+// OFF by default so a normal run only serves what's already on disk.
+const watch = hasFlag( '--watch' );
 
 // Normalize the base path so it always looks like "/my-audible-library/"
 let base = getArg( '--base', '/my-audible-library/' );
@@ -210,6 +216,59 @@ const server = http.createServer( async ( req, res ) => {
 
 } );
 
+// WATCH DOWNLOADS
+// fs.watch fires several times while the browser writes the zip (and the file may
+// briefly be a partial .crdownload), so we debounce and only unzip once the file
+// size has stopped growing. Each new save replaces site/ and the next browser
+// reload picks it up.
+
+function startWatchingDownloads() {
+
+  if ( !fs.existsSync( downloadsDir ) ) {
+    console.log( `  Watch:    skipped, no Downloads folder at ${ downloadsDir }` );
+    return;
+  }
+
+  let debounceTimer = null;
+  let lastUnzippedMtime = 0;
+
+  const settleAndUnzip = async () => {
+
+    const zipPath = newestZipInDownloads();
+    if ( !zipPath ) return;
+
+    // Skip zips we've already extracted, so re-fired watch events don't loop.
+    const { mtimeMs } = await fsp.stat( zipPath );
+    if ( mtimeMs <= lastUnzippedMtime ) return;
+
+    // Wait until the file size holds steady, meaning the download has finished.
+    let previousSize = -1;
+    while ( true ) {
+      const { size } = await fsp.stat( zipPath );
+      if ( size === previousSize && size > 0 ) break;
+      previousSize = size;
+      await new Promise( resolve => setTimeout( resolve, 150 ) );
+    }
+
+    try {
+      const count = await unzipGallery( zipPath );
+      lastUnzippedMtime = mtimeMs;
+      console.log( `  Watch:    unzipped ${ path.basename( zipPath ) } (${ count } files). Reload the browser.` );
+    }
+    catch ( err ) {
+      console.log( `  Watch:    failed to unzip ${ path.basename( zipPath ) }: ${ err.message }` );
+    }
+
+  };
+
+  fs.watch( downloadsDir, ( eventType, filename ) => {
+    if ( !filename || !filename.startsWith( 'ALE-gallery' ) ) return;
+    clearTimeout( debounceTimer );
+    debounceTimer = setTimeout( settleAndUnzip, 250 );
+  });
+
+}
+
 server.listen( port, () => {
   console.log( '' );
   console.log( '  GitHub Pages emulator running' );
@@ -219,6 +278,10 @@ server.listen( port, () => {
   console.log( `  Headers:  Cache-Control: max-age=600, strong ETag, 304 on revalidate` );
   if ( fresh ) {
     console.log( `  Fresh:    first navigation sends Clear-Site-Data (wipes old SW + caches)` );
+  }
+  if ( watch ) {
+    console.log( `  Watch:    auto-unzipping new ALE-gallery.zip from ${ downloadsDir }` );
+    startWatchingDownloads();
   }
   console.log( '' );
   console.log( '  Service worker will register (localhost is a secure context).' );

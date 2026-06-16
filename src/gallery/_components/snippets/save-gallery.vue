@@ -982,21 +982,40 @@ export default {
       `;
     },
 
-    // DEBUG: reorder library and wishlist books to simulate new extraction with different
-    // data. All we need is to see the data get's loaded in a different order than before
-    // so we know it's loading properly...
+    // DEBUG: make each saved upload produce a visibly different order than the last, so we
+    // can tell at a glance whether the gallery loaded the new data or served stale data
+    // from IndexedDB / the cached index.html. This is a load-and-cache check, not a real
+    // data diff: the books and values are unchanged, only their order is reshuffled.
+    // The gallery re-sorts by the "added" property, so shuffling the array order alone is
+    // invisible under the default sort. We also reshuffle the "added" values among the
+    // books, which actually changes the on-screen order.
     debugShuffle: function( data ) {
 
       if ( !this.debugShuffleEnabled ) return;
 
       if ( _.isArray(data.library) ) {
         data.library = _.shuffle( data.library );
+        this.debugShuffleAdded( data.library );
       }
       if ( _.isArray(data.wishlist) ) {
         data.wishlist = _.shuffle( data.wishlist );
+        this.debugShuffleAdded( data.wishlist );
       }
 
-      console.warn('[ALE debug] Library/wishlist order shuffled before save.');
+      console.warn('[ALE debug] Library/wishlist order and "added" values shuffled before save.');
+
+    },
+
+    // DEBUG: redistribute the existing "added" values among the books so the sort produces
+    // a different order while the values stay realistic real timestamps.
+    debugShuffleAdded: function( books ) {
+
+      let addedValues = _.map( books, 'added' );
+      addedValues = _.shuffle( addedValues );
+
+      _.each( books, function( book, index ) {
+        book.added = addedValues[ index ];
+      });
 
     },
 
