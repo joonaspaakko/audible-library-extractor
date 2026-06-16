@@ -10,6 +10,10 @@
     "build1": "yarn vite build",
     "standalone-gallery-data-shuffle": "standaloneShuffle=1 yarn vite build",
     "preview": "yarn vite preview --port 4173",
+    "ghpages:unzip": "node gh-pages-test/unzip-gallery.js",
+    "ghpages:serve": "node gh-pages-test/server.js",
+    "ghpages": "node gh-pages-test/unzip-gallery.js && node gh-pages-test/server.js",
+    "ghpages:fresh": "node gh-pages-test/unzip-gallery.js && node gh-pages-test/server.js --fresh",
     "clean-install": "rm -rf node_modules yarn.lock && yarn install",
     "backup-lock": "cp yarn.lock yarn.lock.backup"
   },
