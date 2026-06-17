@@ -25,7 +25,7 @@
     "axios-retry": "^3.3.1",
     "bulma": "^0.9.4",
     "date-fns": "^4.1.0",
-    "dompurify": "^3.0.5",
+    "dompurify": "^3.4.9",
     "domurl": "^2.3.4",
     "downloadjs": "^1.4.7",
     "fflate": "^0.8.2",
