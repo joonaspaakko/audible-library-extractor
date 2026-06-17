@@ -53,7 +53,7 @@ const FIELD_ALIAS_GROUP = _( FIELD_ALIASES ).keys().sortBy( ( k ) => -k.length )
 // rather than listing every synonym. Each row carries the canonical alias to insert and
 // a label/icon for display. Icons are FontAwesome-solid (the gallery's existing set).
 const FIELD_SUGGESTIONS = [
-  { key: 'title',           alias: 'title',     label: 'Title',     icon: 'heading' },
+  { key: 'title',           alias: 'title',     label: 'Title',     icon: 'title' },
   { key: 'authors.name',    alias: 'authors',   label: 'Authors',   icon: 'user-pen' },
   { key: 'narrators.name',  alias: 'narrators', label: 'Narrators', icon: 'microphone' },
   { key: 'series.name',     alias: 'series',    label: 'Series',    icon: 'layer-group' },
@@ -571,11 +571,214 @@ export default {
 
     },
 
+    // Locates the plain word the caret sits on, for autosuggest. Returns the word and
+    // its [start, end) slice in the raw query, or null when the caret is not on a
+    // suggestable word. A word is the run of non-space characters around the caret. It is
+    // NOT suggestable when it is empty, carries a leading operator (-, ^, =, +) or trailing
+    // $, or is part of an '@field' token (starts with '@', or any earlier word in the
+    // query is an unfinished '@alias:...' the caret's word belongs to). Operator and
+    // '@field' / operator tokens get their own handling (or none) elsewhere; here we only
+    // complete a plain fragment.
+    //   'dresd', caret at end          ->  { typed: 'dresd', start: 0, end: 5 }
+    //   'storm front | jim but', end   ->  { typed: 'jim but', start: 14, end: 21 }
+    //   '@tags:re', caret at end       ->  null  ('@field' token)
+    //   '="wa', caret at end           ->  null  (operator token)
+    //
+    // The fragment is the trailing run from the last segment boundary up to the caret. A
+    // boundary is the query start or a '|' (OR). Spaces do NOT break the fragment, so a
+    // multi-word value like 'jim but' stays one fragment and can complete to 'Jim Butcher'.
+    suggestFragmentAt: function( raw, caret ) {
+
+      const before = ( raw || '' ).slice( 0, caret );
+
+      // Back up to just after the last '|' (the current OR-segment), then left-trim.
+      const bar   = before.lastIndexOf('|');
+      const segStart = bar < 0 ? 0 : bar + 1;
+      const segment  = before.slice( segStart );
+      const trimmed  = segment.replace( /^\s+/, '' );
+      const start    = segStart + ( segment.length - trimmed.length );
+      const typed    = trimmed;
+
+      // Empty (caret on whitespace after a boundary): nothing to complete.
+      if ( !typed ) return null;
+
+      // An '@field' or operator-prefixed fragment is not a plain value fragment. Bail so
+      // those keep their own (or no) handling. A trailing '$' is the ends-with operator.
+      if ( typed[0] === '@' ) return null;
+      if ( /^[-^=+]/.test( typed ) ) return null;
+      if ( typed[ typed.length - 1 ] === '$' ) return null;
+
+      return { typed, start, end: caret };
+
+    },
+
+    // The distinct values of a field across all books, with their normalized form for
+    // matching and original-cased text for display. Cached per (source, field) so the
+    // gather runs once. Multi-value fields (tags, authors, ...) contribute one entry per
+    // item; an empty normalized form is dropped.
+    //   fieldValues(books, 'series.name')  ->  [{ display:'Dresden Files', norm:'dresden files' }, ...]
+    fieldValues: function( books, fieldKey ) {
+
+      if ( !this.fieldValueCache || this.fieldValueSource !== books ) {
+        this.fieldValueCache  = {};
+        this.fieldValueSource = books;
+      }
+      if ( this.fieldValueCache[ fieldKey ] ) return this.fieldValueCache[ fieldKey ];
+
+      const seen   = new Set();
+      const values = [];
+      _.each( books, ( book ) => {
+        _.each( extractFieldItems( book, fieldKey ), ( item ) => {
+          const norm = this.normalizeText( item );
+          if ( !norm || seen.has( norm ) ) return;
+          seen.add( norm );
+          values.push({ display: item, norm });
+        });
+      });
+
+      this.fieldValueCache[ fieldKey ] = values;
+      return values;
+
+    },
+
+    // Returns whole-value completions for the plain fragment under the caret, drawn from
+    // the distinct values of the active scope fields. A value matches when the normalized
+    // fragment is a prefix of the value, or of any word inside it (so 'jim but' and 'but'
+    // both reach 'Jim Butcher', but a mid-word substring does not). Value prefixes rank
+    // ahead of word prefixes; within a tier, higher-weighted fields and shorter values
+    // come first, so the tightest, most-scoped value wins. Returns the display strings
+    // (original case) to splice over [start, end), quoted by the caller when multi-word.
+    //   { typed, start, end, suggestions: ['Dresden Files', ...] }
+    miniSuggest: function( books, query, caret, activeKeys ) {
+
+      const at = this.suggestFragmentAt( query, caret );
+      if ( !at ) return null;
+
+      const needle = this.normalizeText( at.typed );
+      if ( !needle ) return null;
+
+      // Active fields paired with their scope weight, for ranking.
+      const weightOf = _.reduce( activeKeys, ( acc, k ) => {
+        acc[ k.name ] = k.weight || 1;
+        return acc;
+      }, {} );
+
+      // Gather matches across the active fields. Tiers, tightest first:
+      //   -1  exact: the value EQUALS the fragment (you typed the whole thing). Kept and
+      //       ranked top so accepting it phrase-searches that value, no manual quotes.
+      //    0  value-prefix: the value starts with the fragment.
+      //    1  word-run: the fragment's words appear as a run inside the value (last word a
+      //       prefix), so a fragment crossing a word boundary still matches.
+      // Each match keeps the field it came from so the row can be labeled by scope.
+      const needleWords = needle.split(' ');
+      const matches = [];
+      _.each( _.keys( weightOf ), ( fieldKey ) => {
+        _.each( this.fieldValues( books, fieldKey ), ( value ) => {
+          let tier = null;
+          if ( value.norm === needle ) tier = -1;
+          else if ( _.startsWith( value.norm, needle ) ) tier = 0;
+          else if ( this.wordRunMatches( value.norm, needleWords ) ) tier = 1;
+          if ( tier === null ) return;
+          matches.push({ display: value.display, norm: value.norm, fieldKey, tier, weight: weightOf[ fieldKey ] });
+        });
+      });
+
+      // Rank within a scope: exact before value-prefix before word-run, then heavier scope,
+      // then shorter value, so the closest whole-value match leads. One row per value
+      // (uniqBy display after the sort keeps each value's best-ranked, highest-weighted
+      // field). The list is then shared fairly across scopes (see allotByScope), capped at
+      // the total budget.
+      const ranked = _( matches )
+        .orderBy( [ 'tier', ( m ) => -m.weight, ( m ) => m.norm.length ], [ 'asc', 'asc', 'asc' ] )
+        .uniqBy( 'display' )
+        .value();
+
+      const suggestions = _.map(
+        this.allotByScope( ranked, 8 ),
+        ( m ) => ({ value: m.display, fieldKey: m.fieldKey })
+      );
+
+      return { typed: at.typed, start: at.start, end: at.end, suggestions };
+
+    },
+
+    // Shares a 'limit' budget of rows fairly across the scopes present, round-robin: one
+    // row from each scope in turn (scopes ordered by their best row, so the scope holding
+    // the top-ranked match leads and an exact match stays row 1), then a second from each,
+    // and so on. A scope that runs out drops from the rotation and its slots flow to the
+    // others, so 1 series + many titles shows the 1 series and fills the rest with titles,
+    // while plenty of both lands roughly half and half. 'ranked' must already be in final
+    // within-scope order; this preserves that order inside each scope.
+    allotByScope: function( ranked, limit ) {
+
+      // Group into per-scope queues, keeping the input order (so each queue is pre-ranked).
+      // The groups are ordered by first appearance in 'ranked', which is global rank order,
+      // so the scope with the best overall row rotates first.
+      const queues = _.values( _.groupBy( ranked, 'fieldKey' ) );
+
+      const out = [];
+      // Round-robin: keep cycling the queues, taking one row from each, until the budget is
+      // full or every queue is empty.
+      while ( out.length < limit && _.some( queues, ( q ) => q.length ) ) {
+        _.each( queues, ( queue ) => {
+          if ( out.length >= limit ) return false;
+          if ( queue.length ) out.push( queue.shift() );
+        });
+      }
+
+      return out;
+
+    },
+
+    // True when the needle's words appear as a run of consecutive words anywhere in the
+    // value, with every needle word but the last matching a value word exactly and the
+    // last being a prefix of its value word. This is what lets a multi-word fragment that
+    // spans a word boundary still match: 'dresden fi' (['dresden','fi']) matches the value
+    // 'the dresden files' (dresden == dresden, files starts-with fi), even though the value
+    // does not start with the fragment and no single word starts with the whole fragment.
+    // Both value and needleWords are already normalized to single-spaced lowercase words.
+    wordRunMatches: function( value, needleWords ) {
+
+      const valueWords = value.split(' ');
+      const last       = needleWords.length - 1;
+
+      // Try each start offset where the run could begin and still fit.
+      for ( let offset = 0; offset + needleWords.length <= valueWords.length; offset++ ) {
+
+        let ok = true;
+        for ( let i = 0; i < needleWords.length; i++ ) {
+          const valueWord  = valueWords[ offset + i ];
+          // All but the last needle word must match exactly; the last is a prefix.
+          const matches = i < last ? valueWord === needleWords[ i ] : _.startsWith( valueWord, needleWords[ i ] );
+          if ( !matches ) {
+            ok = false;
+            break;
+          }
+        }
+        if ( ok ) return true;
+
+      }
+
+      return false;
+
+    },
+
+    // The display label and icon for a scope field key, for tagging a suggestion row with
+    // its scope. Reuses FIELD_SUGGESTIONS (the same labels/icons as the '@field' menu) so
+    // the two menus read consistently. Falls back to the bare key when unmapped.
+    fieldLabel: function( fieldKey ) {
+      const found = _.find( FIELD_SUGGESTIONS, { key: fieldKey } );
+      if ( found ) return { label: found.label, icon: found.icon };
+      return { label: fieldKey, icon: null };
+    },
+
     // Drops the cached index, forcing a rebuild on the next search. Call when the
     // underlying book data changes in place (e.g. summaries hydrated onto books).
     resetSearchIndex: function() {
       this.miniSearch = null;
       this.miniSearchSource = null;
+      this.fieldValueCache = null;
+      this.fieldValueSource = null;
     },
 
   },

@@ -25,10 +25,10 @@
             ref="searchInput"
             :value="$store.state.searchQuery"
             @input="onSearchInput"
-            @keydown="fieldMenuKeydown"
+            @keydown="searchKeydown"
             @keyup.enter="searchEnterBlur"
-            @click="updateFieldMenu"
-            @blur="closeFieldMenu"
+            @click="onSearchClick"
+            @blur="onSearchBlur"
             :placeholder="placeholder"
             @focus="listName = false"
           />
@@ -53,6 +53,23 @@
               <span class="field-menu-label">{{ item.label }}</span>
             </div>
           </div>
+
+          <!-- Autosuggest: completes the plain fragment under the caret to a whole field
+               value. Floats over the content (does not push the grid down). Each row is a
+               value with the typed fragment bolded, tagged with the scope it came from. -->
+          <div class="suggest-menu" v-if="suggestMenu.open" @mousedown.prevent>
+            <div
+              class="suggest-item"
+              :class="{ active: index === suggestMenu.index }"
+              v-for="(item, index) in suggestMenu.items" :key="item.value + '-' + item.fieldKey"
+              @click="acceptSuggestion( item.value )"
+              @mouseenter="suggestMenu.index = index"
+            >
+              <span class="suggest-icon" v-if="fieldLabel( item.fieldKey ).icon" v-html="fieldIcons[ fieldLabel( item.fieldKey ).icon ]"></span>
+              <span class="suggest-value" v-html="highlightTyped( item.value, suggestMenu.typed )"></span>
+              <span class="suggest-badge">{{ fieldLabel( item.fieldKey ).label }}</span>
+            </div>
+          </div>
         </div>
         
         <gallery-search-icons v-model:list-name="listName" /> 
@@ -67,29 +84,6 @@
       Preparing summary search...
     </div>
 
-    <div class="autocomplete" v-if="useAutocomplete && autocompleteResults && autocompleteResults.length">
-      <div class="header-wrapper">
-        <div class="title">Autocomplete: </div>
-        <div 
-        class="header" :class="{ active: item.active }"
-        v-for="item in autocompleteResults" :key="item.key+'-header'" 
-        @click="active_ac_item( item )"
-        >
-          <div>{{ item.name }}</div>
-        </div>
-      </div>
-      <div class="content-wrapper" v-for="item in autocompleteResults" :key="item.key" v-if="item.active">
-          <div class="content">
-            <div v-for="book in item.books" @click="searchAutocompleteResult(  book )">
-            <!-- <label> -->
-              <!-- <input type="checkbox" > -->
-              <span>{{ book.match.value }}</span>
-            <!-- </label> -->
-          </div>
-        </div>
-      </div>
-    </div>
-    
   </div>
 </template>
 
@@ -102,7 +96,7 @@ import { loadAllFieldData } from '@output-mixins/gallery-load-split-book-data.js
 // Raw SVGs for the '@field' autocomplete rows, keyed by the icon name each suggestion
 // carries (see FIELD_SUGGESTIONS in the minisearch mixin). Imported statically so the
 // build bundles them (a dynamic ':is' would not be picked up by unplugin-icons).
-import IconHeading    from '~icons/fa6-solid/heading?raw';
+import IconTitle      from '~icons/icon-park-solid/text?raw';
 import IconUserPen    from '~icons/fa6-solid/user-pen?raw';
 import IconMicrophone from '~icons/fa6-solid/microphone?raw';
 import IconLayerGroup from '~icons/fa6-solid/layer-group?raw';
@@ -139,8 +133,24 @@ export default {
       fixedSearch: false,
       highlightSearch: false,
       readyToCloseOpts: false,
-      autocompleteResults: [],
-      useAutocomplete: false,
+
+      // Autosuggest menu state. Completes the plain word under the caret (the '@field'
+      // menu, separate below, takes priority when the caret sits on an '@field' token).
+      // 'items' is the suggested words, 'index' the keyboard-highlighted row, 'typed' the
+      // fragment being completed, and 'start'/'end' the slice of the query that word
+      // occupies (so accepting splices the full suggestion in its place).
+      suggestMenu: {
+        open: false,
+        items: [],
+        index: 0,
+        typed: '',
+        start: 0,
+        end: 0,
+      },
+
+      // One-shot: set when a suggestion is accepted with Enter, so the keyup-Enter blur
+      // skips that one Enter and keeps focus for continued typing.
+      suggestAcceptedEnter: false,
 
       // '@field' autocomplete menu state. 'items' is the filtered suggestion list, 'index'
       // the keyboard-highlighted row, 'start'/'end' the slice of the query the typed
@@ -158,7 +168,7 @@ export default {
 
       // Raw SVG strings for the field-menu rows, keyed by suggestion icon name.
       fieldIcons: {
-        'heading':     IconHeading,
+        'title':       IconTitle,
         'user-pen':    IconUserPen,
         'microphone':  IconMicrophone,
         'layer-group': IconLayerGroup,
@@ -332,6 +342,7 @@ export default {
       this.$store.commit( "prop", { key: "searchQuery", value: e.target.value });
       this.search( e );
       this.updateFieldMenu();
+      this.updateSuggestMenu();
     },
 
     // Commits a new query value to the store synchronously (keeping the ':value'-bound
@@ -367,17 +378,29 @@ export default {
         top: coords.top,
       };
 
+      // The '@field' menu owns the caret now; never show both at once.
+      this.closeSuggestMenu();
+
     },
 
     closeFieldMenu: function() {
       if ( this.fieldMenu.open ) this.fieldMenu.open = false;
     },
 
-    // Keyboard navigation for the '@field' menu. Returns early (letting the keystroke
-    // through to the input) when the menu is closed, so normal typing is untouched.
+    // Keyboard navigation for whichever menu is open. The '@field' menu takes priority
+    // (the two never show at once, but guard the order anyway); the suggest menu is next.
+    // Returns early (letting the keystroke through to the input) when neither is open, so
+    // normal typing is untouched.
+    searchKeydown: function( e ) {
+
+      if ( this.fieldMenu.open ) return this.fieldMenuKeydown( e );
+      if ( this.suggestMenu.open ) return this.suggestMenuKeydown( e );
+
+    },
+
+    // Keyboard navigation for the '@field' menu.
     fieldMenuKeydown: function( e ) {
 
-      if ( !this.fieldMenu.open ) return;
       const count = this.fieldMenu.items.length;
 
       // Move the highlight.
@@ -404,6 +427,55 @@ export default {
         return;
       }
 
+    },
+
+    // Keyboard navigation for the autosuggest menu. Mirrors the '@field' menu: Enter or
+    // Tab accepts the highlighted word (accepting splices it in and runs the search via
+    // commitSearchValue, so the query updates on its own).
+    suggestMenuKeydown: function( e ) {
+
+      const count = this.suggestMenu.items.length;
+
+      // Move the highlight.
+      if ( e.key === 'ArrowDown' ) {
+        e.preventDefault();
+        this.suggestMenu.index = ( this.suggestMenu.index + 1 ) % count;
+        return;
+      }
+      if ( e.key === 'ArrowUp' ) {
+        e.preventDefault();
+        this.suggestMenu.index = ( this.suggestMenu.index - 1 + count ) % count;
+        return;
+      }
+      // Accept the highlighted word. Flag the accept so the keyup-Enter handler does not
+      // also blur the input: accepting keeps focus (caret after the inserted word) so the
+      // user can keep typing, unlike a plain Enter which blurs to dismiss the keyboard.
+      if ( e.key === 'Enter' || e.key === 'Tab' ) {
+        e.preventDefault();
+        if ( e.key === 'Enter' ) this.suggestAcceptedEnter = true;
+        this.acceptSuggestion( this.suggestMenu.items[ this.suggestMenu.index ].value );
+        return;
+      }
+      // Dismiss without choosing.
+      if ( e.key === 'Escape' ) {
+        e.preventDefault();
+        this.closeSuggestMenu();
+        return;
+      }
+
+    },
+
+    // Caret moved by click: recompute both menus from the new caret.
+    onSearchClick: function() {
+      this.updateFieldMenu();
+      this.updateSuggestMenu();
+    },
+
+    // Close both menus on blur. mousedown.prevent on the menu rows keeps a click on a
+    // suggestion from blurring the input before the click lands.
+    onSearchBlur: function() {
+      this.closeFieldMenu();
+      this.closeSuggestMenu();
     },
 
     // Replaces the typed '@fragment' with the full '@alias:' and drops the caret right
@@ -569,71 +641,86 @@ export default {
       
     }, 270, { leading: false, trailing: true }),
     
-    autocomplete: function( result ) {
-      
-      const vue = this;
-      let sections = _.map( JSON.parse(JSON.stringify(this.aliciaKeys)), function( o, index ) {
-        o.key = o.name;
-        o.name = o.name.replace('.name', '');
-        o.active = index < 1;
-        return o;
-      });
-      
-      _.each( result, function( item ) {
-        _.each( item.matches, function( match ) {
-          
-          const targetSection = _.find( sections, { key: match.key });
-          targetSection.books = targetSection.books || [];          
-          targetSection.books.push({
-            item: item.item,
-            match: match,
-            refIndex: item.refIndex,
-            score: item.score,
-          });
-          
-        });
-      });
-      
-      sections = _.filter( sections, 'books');
-      
-      _.each( sections, function( section, i ) {
-        section.books = _.uniqBy( section.books, 'match.value');
-        section.books = section.books.slice(0,5);
-        if ( section.books.length < 2 ) sections[i] = null;
-        section.active = false;
-      });
-      
-      sections = _.compact( sections );
-      if ( sections.length ) sections[0].active = true;
-      
-      console.log('sections', sections);
-      
-      // sections = _.orderBy( sections, function( sect ) {
-      //   return _.minBy( sect.books, 'score' ).score;
-      // }, 'asc');
-      
-      this.autocompleteResults = sections;
-      
-      console.log( sections );
-      
+    // Recomputes the autosuggest menu from the input's current value and caret. The
+    // '@field' menu wins: while it is open the suggest menu stays closed, so the two never
+    // show at once. Otherwise miniSuggest completes the plain word under the caret.
+    updateSuggestMenu: function() {
+
+      const input = this.$refs.searchInput;
+      if ( !input || this.fieldMenu.open ) return this.closeSuggestMenu();
+
+      const result = this.miniSuggest(
+        this.$store.state.mutatingCollection,
+        input.value,
+        input.selectionStart,
+        this.aliciaKeys
+      );
+      if ( !result || !result.suggestions.length ) return this.closeSuggestMenu();
+
+      // Keep the highlight in range when the list shrinks under the cursor.
+      const index = Math.min( this.suggestMenu.index, result.suggestions.length - 1 );
+
+      this.suggestMenu = {
+        open: true,
+        items: result.suggestions,
+        index: index < 0 ? 0 : index,
+        typed: result.typed,
+        start: result.start,
+        end: result.end,
+      };
+
     },
-    
-    active_ac_item: function( item ) {
-      _.each( this.autocompleteResults, function( o ) {
-        o.active = false;
-      });
-      item.active = true;
+
+    closeSuggestMenu: function() {
+      if ( this.suggestMenu.open ) this.suggestMenu.open = false;
     },
-    
-    searchAutocompleteResult: function( book ) {
-      
-      const searchQuery = book.match.value;
-      this.$store.commit('prop', { key: "searchQuery", value: searchQuery });
-      this.search();
-      
+
+    // Replaces the typed fragment with the chosen value (quoted when it contains spaces, so
+    // a multi-word value like Dresden Files stays one phrase term) plus a trailing space,
+    // and runs the search. Same commit + caret-restore path as accepting an '@field'
+    // suggestion, since both reassign the ':value'-bound input.
+    acceptSuggestion: function( value ) {
+
+      const input = this.$refs.searchInput;
+      if ( !input ) return;
+
+      const current  = input.value;
+      const phrase   = _.includes( value, ' ' ) ? '"' + value + '"' : value;
+      const inserted = phrase + ' ';
+      const newValue = current.slice( 0, this.suggestMenu.start ) + inserted + current.slice( this.suggestMenu.end );
+      const caret    = this.suggestMenu.start + inserted.length;
+
+      this.closeSuggestMenu();
+      this.commitSearchValue( newValue );
+      this.restoreCaret( newValue, caret );
+
+    },
+
+    // Bolds the typed fragment inside the suggested value, so each row reads as a
+    // completion of what the user is typing. The fragment matches at the value start or a
+    // word start (see wordStartsWith), so find its first occurrence and bold from there.
+    // Plain string match, HTML-escaped.
+    highlightTyped: function( value, typed ) {
+
+      const fragment = ( typed || '' ).trim();
+      const at = fragment ? value.toLowerCase().indexOf( fragment.toLowerCase() ) : -1;
+      if ( at < 0 ) return _.escape( value );
+
+      const before = _.escape( value.slice( 0, at ) );
+      const hit    = _.escape( value.slice( at, at + fragment.length ) );
+      const after  = _.escape( value.slice( at + fragment.length ) );
+
+      return before + '<strong>' + hit + '</strong>' + after;
+
     },
     
     searchEnterBlur: _.debounce( function(e) {
+      // Accepting a suggestion with Enter keeps focus so the user can keep typing; don't
+      // blur in that case. Consume the one-shot flag set by suggestMenuKeydown.
+      if ( this.suggestAcceptedEnter ) {
+        this.suggestAcceptedEnter = false;
+        return;
+      }
       this.$refs.searchInput.blur();
     }, 100, { leading: false, trailing: true }),
     
@@ -877,6 +964,103 @@ export default {
         }
       }
     }
+
+    // Autosuggest menu: full-width dropdown floating just under the input (absolute, so it
+    // overlays the grid instead of pushing it down). Shares the '@field' menu's panel look.
+    // Capped height with scroll so a long value list never runs off-screen.
+    .suggest-menu {
+      position: absolute;
+      z-index: 900;
+      left: 0;
+      right: 0;
+      top: 100%;
+      margin-top: 4px;
+      padding: 4px;
+      border-radius: 10px;
+      font-size: 0.9em;
+      text-align: left;
+      cursor: default;
+      max-height: 280px;
+      overflow-y: auto;
+      @include themify($themes) {
+        background: color.adjust(themed(backColor), $lightness: 10%);
+        color: themed(frontColor);
+        border: 1px solid rgba(themed(frontColor), 0.12);
+        box-shadow: 0 8px 24px rgba(themed(outerColor), 0.9);
+      }
+      @extend .no-selection;
+
+      .suggest-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 10px;
+        padding: 5px 10px;
+        border-radius: 6px;
+        cursor: pointer;
+
+        &.active {
+          @include themify($themes) {
+            background: rgba(themed(audibleOrange), 0.18);
+          }
+        }
+
+        // Scope icon leads the row as a meaningful bullet.
+        .suggest-icon {
+          display: inline-flex;
+          width: 14px;
+          flex-shrink: 0;
+          justify-content: center;
+          @include themify($themes) {
+            color: rgba(themed(frontColor), 0.55);
+          }
+        }
+
+        // The value text fills the row between the icon and the badge.
+        .suggest-value {
+          flex: 1;
+          min-width: 0;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+
+          strong {
+            font-weight: 700;
+            @include themify($themes) {
+              color: themed(audibleOrange);
+            }
+          }
+        }
+
+        // Scope name as a small rounded pill on the right, so it reads as a tag belonging
+        // to the row rather than floating form-label text. A thin border gives it a crisp
+        // edge instead of a soft fill blob.
+        .suggest-badge {
+          flex-shrink: 0;
+          padding: 2px 8px;
+          border-radius: 999px;
+          font-size: 0.66em;
+          line-height: 1.4;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.04em;
+          @include themify($themes) {
+            background: rgba(themed(frontColor), 0.05);
+            border: 1px solid rgba(themed(frontColor), 0.15);
+            color: rgba(themed(frontColor), 0.55);
+          }
+        }
+
+        // On the active (highlighted) row, tint the badge to match the accent.
+        &.active .suggest-badge {
+          @include themify($themes) {
+            background: rgba(themed(audibleOrange), 0.18);
+            border-color: rgba(themed(audibleOrange), 0.45);
+            color: rgba(themed(frontColor), 0.75);
+          }
+        }
+      }
+    }
   }
 
   .icons {
@@ -972,50 +1156,6 @@ export default {
   left: 0;
 }
 
-.autocomplete {
-  @include themify($themes) {
-    color: themed( frontColor );
-    max-width: 600px;
-    margin: 0 auto;
-    margin-bottom: 30px;
-    padding: 10px;
-    border-radius: 15px;
-    border: 1px solid themed( frontColor );
-    @extend .no-selection;
-  }
-  
-  .header-wrapper {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-start;
-    align-items: center;
-    padding: 5px;
-    .title {
-      font-weight: bold;
-    }
-    .header {
-      cursor: pointer;
-      padding: 2px 6px;
-      margin: 2px;
-      &.active {
-        @include themify($themes) {
-          color: themed(audibleOrange);
-        }
-      }
-    }
-  }
-  .content-wrapper {
-    cursor: pointer;
-    display: block;
-    padding: 5px;
-    .search-highlight {
-      @include themify($themes) {
-        background: rgba( themed(audibleOrange), .4);
-        color: #ffff;
-      }
-    }
-  }
-}
 
 .summary-search-preparing {
   max-width: 600px;
@@ -1025,16 +1165,6 @@ export default {
   @include themify($themes) {
     color: rgba( themed(frontColor), 0.6 );
   }
-}
-
-.theme-light .autocomplete {
-  background: #fff;
-  box-shadow: 0 3px 15px rgba(#000, 0.2);
-}
-
-.theme-dark .autocomplete {
-  background: color.adjust(#121517, $lightness: 4%);
-  box-shadow: 0 3px 15px rgba(#000, 1);
 }
 
 </style>
