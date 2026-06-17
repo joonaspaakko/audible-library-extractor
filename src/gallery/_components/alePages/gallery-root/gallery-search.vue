@@ -24,11 +24,35 @@
             type="search"
             ref="searchInput"
             :value="$store.state.searchQuery"
-            @input="search"
+            @input="onSearchInput"
+            @keydown="fieldMenuKeydown"
             @keyup.enter="searchEnterBlur"
+            @click="updateFieldMenu"
+            @blur="closeFieldMenu"
             :placeholder="placeholder"
             @focus="listName = false"
           />
+
+          <!-- @field autocomplete: a Github-style menu anchored under the caret. Shown
+               while the caret sits on an unfinished '@field' token. -->
+          <div
+            class="field-menu"
+            v-if="fieldMenu.open"
+            :style="{ left: fieldMenu.left + 'px', top: fieldMenu.top + 'px' }"
+            @mousedown.prevent
+          >
+            <div class="field-menu-header">Inline search scope</div>
+            <div
+              class="field-menu-item"
+              :class="{ active: index === fieldMenu.index }"
+              v-for="(item, index) in fieldMenu.items" :key="item.key"
+              @click="acceptFieldSuggestion( item )"
+              @mouseenter="fieldMenu.index = index"
+            >
+              <span class="field-menu-icon" v-html="fieldIcons[ item.icon ]"></span>
+              <span class="field-menu-label">{{ item.label }}</span>
+            </div>
+          </div>
         </div>
         
         <gallery-search-icons v-model:list-name="listName" /> 
@@ -75,6 +99,20 @@ import filterAndSort from '@output-mixins/gallery-filter-and-sort.js';
 import miniSearchMixin from '@output-mixins/gallery-minisearch.js';
 import { loadAllFieldData } from '@output-mixins/gallery-load-split-book-data.js';
 
+// Raw SVGs for the '@field' autocomplete rows, keyed by the icon name each suggestion
+// carries (see FIELD_SUGGESTIONS in the minisearch mixin). Imported statically so the
+// build bundles them (a dynamic ':is' would not be picked up by unplugin-icons).
+import IconHeading    from '~icons/fa6-solid/heading?raw';
+import IconUserPen    from '~icons/fa6-solid/user-pen?raw';
+import IconMicrophone from '~icons/fa6-solid/microphone?raw';
+import IconLayerGroup from '~icons/fa6-solid/layer-group?raw';
+import IconFolder     from '~icons/fa6-solid/folder?raw';
+import IconTag        from '~icons/fa6-solid/tag?raw';
+import IconBuilding   from '~icons/fa6-solid/building?raw';
+import IconAlignLeft  from '~icons/fa6-solid/align-left?raw';
+import IconFileLines  from '~icons/fa6-solid/file-lines?raw';
+import IconHashtag    from '~icons/fa6-solid/hashtag?raw';
+
 export default {
   name: "GallerySearch",
   mixins: [filterAndSort, miniSearchMixin],
@@ -103,6 +141,34 @@ export default {
       readyToCloseOpts: false,
       autocompleteResults: [],
       useAutocomplete: false,
+
+      // '@field' autocomplete menu state. 'items' is the filtered suggestion list, 'index'
+      // the keyboard-highlighted row, 'start'/'end' the slice of the query the typed
+      // '@fragment' occupies (so accepting can splice in the full '@alias:'), and
+      // 'left'/'top' the caret-anchored pixel position of the dropdown.
+      fieldMenu: {
+        open: false,
+        items: [],
+        index: 0,
+        start: 0,
+        end: 0,
+        left: 0,
+        top: 0,
+      },
+
+      // Raw SVG strings for the field-menu rows, keyed by suggestion icon name.
+      fieldIcons: {
+        'heading':     IconHeading,
+        'user-pen':    IconUserPen,
+        'microphone':  IconMicrophone,
+        'layer-group': IconLayerGroup,
+        'folder':      IconFolder,
+        'tag':         IconTag,
+        'building':    IconBuilding,
+        'align-left':  IconAlignLeft,
+        'file-lines':  IconFileLines,
+        'hashtag':     IconHashtag,
+      },
     };
   },
   
@@ -257,6 +323,182 @@ export default {
 
     },
 
+    // Input handler. The input is ':value'-bound to the store, so the store value must
+    // track the field synchronously, otherwise the next reactive re-render (e.g. the
+    // field menu opening) snaps the input back to the stale store value and eats the
+    // last character typed. So commit the value now and refresh the menu now; only the
+    // expensive matching stays debounced (via search()).
+    onSearchInput: function( e ) {
+      this.$store.commit( "prop", { key: "searchQuery", value: e.target.value });
+      this.search( e );
+      this.updateFieldMenu();
+    },
+
+    // Commits a new query value to the store synchronously (keeping the ':value'-bound
+    // input in sync) and runs the search against it. Used when code, not the user's
+    // typing, changes the value (accepting an '@field' suggestion).
+    commitSearchValue: function( value ) {
+      this.$store.commit( "prop", { key: "searchQuery", value: value });
+      this.search({ target: { value: value } });
+    },
+
+    // Recomputes the '@field' menu from the input's current value and caret. Opens it,
+    // anchored under the caret, when the caret sits on an unfinished '@field' token;
+    // closes it otherwise. Safe to call on input, click, and arrow-key navigation.
+    updateFieldMenu: function() {
+
+      const input = this.$refs.searchInput;
+      if ( !input ) return this.closeFieldMenu();
+
+      const state = this.fieldSuggestState( input.value, input.selectionStart );
+      if ( !state ) return this.closeFieldMenu();
+
+      // Keep the highlight in range when the filtered list shrinks under the cursor.
+      const index = Math.min( this.fieldMenu.index, state.suggestions.length - 1 );
+      const coords = this.caretCoords( input, state.start );
+
+      this.fieldMenu = {
+        open: true,
+        items: state.suggestions,
+        index: index < 0 ? 0 : index,
+        start: state.start,
+        end: state.end,
+        left: coords.left,
+        top: coords.top,
+      };
+
+    },
+
+    closeFieldMenu: function() {
+      if ( this.fieldMenu.open ) this.fieldMenu.open = false;
+    },
+
+    // Keyboard navigation for the '@field' menu. Returns early (letting the keystroke
+    // through to the input) when the menu is closed, so normal typing is untouched.
+    fieldMenuKeydown: function( e ) {
+
+      if ( !this.fieldMenu.open ) return;
+      const count = this.fieldMenu.items.length;
+
+      // Move the highlight.
+      if ( e.key === 'ArrowDown' ) {
+        e.preventDefault();
+        this.fieldMenu.index = ( this.fieldMenu.index + 1 ) % count;
+        return;
+      }
+      if ( e.key === 'ArrowUp' ) {
+        e.preventDefault();
+        this.fieldMenu.index = ( this.fieldMenu.index - 1 + count ) % count;
+        return;
+      }
+      // Accept the highlighted suggestion.
+      if ( e.key === 'Enter' || e.key === 'Tab' ) {
+        e.preventDefault();
+        this.acceptFieldSuggestion( this.fieldMenu.items[ this.fieldMenu.index ] );
+        return;
+      }
+      // Dismiss without choosing.
+      if ( e.key === 'Escape' ) {
+        e.preventDefault();
+        this.closeFieldMenu();
+        return;
+      }
+
+    },
+
+    // Replaces the typed '@fragment' with the full '@alias:' and drops the caret right
+    // after the colon, ready for the value. The store holds the input's value (the input
+    // is ':value'-bound to it), so we commit there first, then restore the caret on the
+    // next tick once Vue has reflected the new value back into the field.
+    acceptFieldSuggestion: function( item ) {
+
+      const input = this.$refs.searchInput;
+      if ( !input ) return;
+
+      const value    = input.value;
+      const inserted = '@' + item.alias + ':';
+      const newValue = value.slice( 0, this.fieldMenu.start ) + inserted + value.slice( this.fieldMenu.end );
+      const caret    = this.fieldMenu.start + inserted.length;
+
+      this.closeFieldMenu();
+      this.commitSearchValue( newValue );
+
+      // Drop the caret right after the inserted ':' and keep it there. The value commit
+      // above re-renders now (collapsing the caret), and the debounced search re-renders
+      // again ~270ms later (route/query update collapses it a second time), so a single
+      // $nextTick restore gets undone. restoreCaret re-applies the caret across both
+      // render passes until they settle.
+      this.restoreCaret( newValue, caret );
+
+    },
+
+    // Re-applies the caret position to the search input across the renders triggered by
+    // accepting an '@field' suggestion. The synchronous value commit and the debounced
+    // search each reassign the ':value'-bound input.value, which collapses the caret, so
+    // a single restore gets undone. This re-applies the caret on each animation frame
+    // through the debounce window, but bails the instant the value changes (the user
+    // typed) so it never fights real input.
+    restoreCaret: function( expectedValue, caret ) {
+
+      const input    = this.$refs.searchInput;
+      if ( !input ) return;
+      const deadline = Date.now() + 400;
+
+      const apply = () => {
+        const el = this.$refs.searchInput;
+        if ( !el ) return;
+        // The user typed (or cleared) since we accepted: leave their caret alone.
+        if ( el.value !== expectedValue ) return;
+        if ( document.activeElement !== el ) el.focus();
+        if ( el.selectionStart !== caret || el.selectionEnd !== caret ) {
+          el.setSelectionRange( caret, caret );
+        }
+        if ( Date.now() < deadline ) requestAnimationFrame( apply );
+      };
+
+      this.$nextTick( apply );
+
+    },
+
+    // Pixel position (relative to the input's offset parent) of the caret at character
+    // 'index', for anchoring the dropdown. A hidden mirror div copies the input's text
+    // styling so a marker span at the index reports the exact spot the glyph sits, then
+    // we offset by the input's own position and scroll. The menu is placed just under
+    // the text baseline.
+    caretCoords: function( input, index ) {
+
+      const mirror = document.createElement('div');
+      const style  = window.getComputedStyle( input );
+
+      // Copy the properties that affect where a glyph lands.
+      _.each(
+        [ 'fontFamily', 'fontSize', 'fontWeight', 'fontStyle', 'letterSpacing',
+          'textTransform', 'paddingLeft', 'paddingTop', 'paddingRight', 'borderLeftWidth',
+          'borderTopWidth', 'boxSizing' ],
+        ( prop ) => { mirror.style[ prop ] = style[ prop ]; }
+      );
+      mirror.style.position   = 'absolute';
+      mirror.style.visibility = 'hidden';
+      mirror.style.whiteSpace = 'pre';
+      mirror.style.top        = '0';
+      mirror.style.left       = '0';
+
+      mirror.textContent = input.value.slice( 0, index );
+      const marker = document.createElement('span');
+      marker.textContent = '​';
+      mirror.appendChild( marker );
+
+      document.body.appendChild( mirror );
+      const markerLeft = marker.offsetLeft;
+      document.body.removeChild( mirror );
+
+      return {
+        left: input.offsetLeft + markerLeft - input.scrollLeft,
+        top:  input.offsetTop + input.offsetHeight,
+      };
+
+    },
+
     search: _.debounce( function( e, onLoad ) {
       
       // Reset 
@@ -269,9 +511,16 @@ export default {
       
       const triggeredByEvent = e;
       if ( triggeredByEvent ) {
-        
+
         this.sortByRelevance = true;
-        this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
+        // The query is committed to the store synchronously upstream (onSearchInput /
+        // commitSearchValue) so the ':value'-bound input stays in sync. Only commit here
+        // when it actually differs: re-committing the same value still triggers Vue to
+        // reassign input.value, which collapses the caret. That late reassignment, firing
+        // when this debounce lands, was what dropped the caret after an '@field' insert.
+        if ( this.$store.state.searchQuery !== e.target.value ) {
+          this.$store.commit("prop", { key: "searchQuery", value: e.target.value });
+        }
         newQueries.search = encodeURIComponent(e.target.value);
         if ( !newQueries.search ) newQueries.search = null;
         
@@ -540,6 +789,8 @@ export default {
     padding-right: 0px;
     display: flex;
     cursor: text;
+    // Positioning context for the caret-anchored '@field' menu.
+    position: relative;
 
     input[type="search"] {
       background-color: transparent;
@@ -566,6 +817,65 @@ export default {
       background-position: center center;
       background-size: 10px;
       cursor: pointer;
+    }
+
+    // '@field' autocomplete menu, anchored under the caret. Rounded panel, each row an
+    // icon and a label, with the active row accented. Sized to its content.
+    .field-menu {
+      position: absolute;
+      z-index: 900;
+      margin-top: 4px;
+      width: max-content;
+      padding: 4px;
+      border-radius: 10px;
+      font-size: 0.85em;
+      text-align: left;
+      cursor: default;
+      @include themify($themes) {
+        background: color.adjust(themed(backColor), $lightness: 10%);
+        color: themed(frontColor);
+        border: 1px solid rgba(themed(frontColor), 0.12);
+        box-shadow: 0 8px 24px rgba(themed(outerColor), 0.9);
+      }
+
+      .field-menu-header {
+        padding: 4px 8px 5px;
+        font-size: 0.82em;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        @include themify($themes) {
+          color: rgba(themed(frontColor), 0.45);
+        }
+      }
+
+      .field-menu-item {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 8px;
+        border-radius: 6px;
+        cursor: pointer;
+        white-space: nowrap;
+
+        &.active {
+          @include themify($themes) {
+            background: rgba(themed(audibleOrange), 0.18);
+          }
+        }
+
+        .field-menu-icon {
+          display: inline-flex;
+          width: 14px;
+          justify-content: center;
+          @include themify($themes) {
+            color: rgba(themed(frontColor), 0.65);
+          }
+        }
+        .field-menu-label {
+          flex: 1;
+        }
+      }
     }
   }
 

@@ -24,21 +24,73 @@ const SEARCH_FIELDS = [
   'asin',
 ];
 
-// Pulls a scope key off a book as a flat string. Handles nested array keys
-// ('authors.name' -> "Name One Name Two") and plain keys ('title', 'summary').
-function extractField( book, fieldKey ) {
+// Aliases for @scope:searchQueries,can,be,comma,separated (no spaces) → @summary:mark,watney
+const FIELD_ALIASES = {
+  title:     'title',
+  author:    'authors.name',
+  authors:   'authors.name',
+  narrator:  'narrators.name',
+  narrators: 'narrators.name',
+  series:    'series.name',
+  category:  'categories.name',
+  categories:'categories.name',
+  tag:       'tags.name',
+  tags:      'tags.name',
+  publisher: 'publishers.name',
+  publishers:'publishers.name',
+  blurb:     'blurb',
+  summary:   'summary',
+  asin:      'asin',
+};
+
+// Alternation of every alias, for the @-field-query regex. Longer aliases first so
+// 'authors' wins over 'author' (regex alternation is left-biased).
+const FIELD_ALIAS_GROUP = _( FIELD_ALIASES ).keys().sortBy( ( k ) => -k.length ).join('|');
+
+// The aliases offered in the '@'-autocomplete dropdown, one row per scope key. Several
+// aliases map to the same key (author / authors); we surface only the plural form the
+// user is most likely to mean, in scope order, so the menu reads like the scope list
+// rather than listing every synonym. Each row carries the canonical alias to insert and
+// a label/icon for display. Icons are FontAwesome-solid (the gallery's existing set).
+const FIELD_SUGGESTIONS = [
+  { key: 'title',           alias: 'title',     label: 'Title',     icon: 'heading' },
+  { key: 'authors.name',    alias: 'authors',   label: 'Authors',   icon: 'user-pen' },
+  { key: 'narrators.name',  alias: 'narrators', label: 'Narrators', icon: 'microphone' },
+  { key: 'series.name',     alias: 'series',    label: 'Series',    icon: 'layer-group' },
+  { key: 'categories.name', alias: 'categories', label: 'Categories', icon: 'folder' },
+  { key: 'tags.name',       alias: 'tags',      label: 'Tags',      icon: 'tag' },
+  { key: 'publishers.name', alias: 'publishers', label: 'Publishers', icon: 'building' },
+  { key: 'blurb',           alias: 'blurb',     label: 'Blurb',     icon: 'align-left' },
+  { key: 'summary',         alias: 'summary',   label: 'Summary',   icon: 'file-lines' },
+  { key: 'asin',            alias: 'asin',      label: 'ASIN',      icon: 'hashtag' },
+];
+
+// Pulls a scope key off a book as the list of its individual values. A plain key
+// ('title', 'summary') yields a single-element list; a nested array key ('authors.name',
+// 'tags.name') yields one element PER item. Keeping items separate matters for matching:
+// joining tags into one string would let a phrase like "urban fantasy" match across two
+// unrelated tags ("gritty urban" + "fantasy world"). Callers join only when they want
+// that cross-item behavior (the MiniSearch index does; the cell matcher does not).
+function extractFieldItems( book, fieldKey ) {
 
   if ( !_.includes( fieldKey, '.' ) ) {
-    return book[ fieldKey ] ?? '';
+    const value = book[ fieldKey ];
+    return value ? [ value ] : [];
   }
 
   // Nested 'collection.prop' (authors.name, series.name, ...).
   const [ collectionKey, prop ] = fieldKey.split('.');
   const collection = book[ collectionKey ];
-  if ( !collection ) return '';
+  if ( !collection ) return [];
 
-  return _.map( _.castArray( collection ), prop ).filter( Boolean ).join(' ');
+  return _.map( _.castArray( collection ), prop ).filter( Boolean );
 
+}
+
+// Pulls a scope key off a book as a single flat string (items space-joined). Used for
+// the MiniSearch index, where cross-item matching for candidate gathering is fine.
+function extractField( book, fieldKey ) {
+  return extractFieldItems( book, fieldKey ).join(' ');
 }
 
 export default {
@@ -83,59 +135,372 @@ export default {
 
     },
 
-    // Parses a raw query into MiniSearch terms plus exclude terms.
-    //   "space -sun -moon"  ->  { include: "space", exclude: ['sun','moon'] }
-    // Exclude is the operator that mattered: it must remove matches across ALL keys.
-    parseSearchQuery: function( raw ) {
+    // Reads the text immediately left of the caret and, when it sits on an unfinished
+    // '@field' token, returns the autocomplete state for the dropdown. Returns null when
+    // the caret is not on such a token (no '@', already past the colon, or interrupted by
+    // a space). The token starts at the last '@' that is at the string start or right
+    // after whitespace, and runs to the caret; a colon inside it means the field is
+    // already chosen, so no suggestions.
+    //   'jim @aut' , caret at end  ->  { typed: 'aut', start: 4, end: 8, suggestions: [...] }
+    //   'jim @author:weir'         ->  null (past the colon)
+    fieldSuggestState: function( text, caret ) {
 
-      const tokens = _.compact( ( raw || '' ).trim().split(/\s+/) );
+      const before = ( text || '' ).slice( 0, caret );
+      const at     = before.lastIndexOf('@');
+      if ( at < 0 ) return null;
+      // The '@' only starts a field token at the string start or after whitespace.
+      if ( at > 0 && !/\s/.test( before[ at - 1 ] ) ) return null;
+      // The fragment between '@' and the caret; a space or colon means it's no longer an
+      // open field name being typed.
+      const typed = before.slice( at + 1 );
+      if ( /[\s:]/.test( typed ) ) return null;
 
-      const exclude = [];
-      const include = [];
+      const lower       = typed.toLowerCase();
+      const suggestions = _.filter( FIELD_SUGGESTIONS, ( s ) => _.startsWith( s.alias, lower ) );
+      if ( !suggestions.length ) return null;
 
-      _.each( tokens, ( token ) => {
-        if ( token.length > 1 && token[0] === '-' ) {
-          exclude.push( token.slice(1).toLowerCase() );
-        }
-        else {
-          include.push( token );
-        }
-      });
-
-      return { include: include.join(' '), exclude };
+      return { typed, start: at, end: caret, suggestions };
 
     },
 
+    // Splits a raw query into tokens, keeping "quoted phrases" together as one token.
+    // Leading operators (-, ^) and the trailing $ ride along on their token so the
+    // parser can read them off afterwards.
+    //   '^"Mark Watney" -moon base$'  ->  ['^"Mark Watney"', '-moon', 'base$']
+    tokenizeSearchQuery: function( raw ) {
+
+      // Match either a (possibly field- and operator-prefixed) "quoted phrase" with an
+      // optional trailing $, or a run of non-space characters. The quoted alternative
+      // comes first so spaces inside quotes don't split the phrase. Prefixes that ride
+      // along on a quoted phrase: an optional '@field:' then an operator, including the
+      // doubled whole-item forms (-- ==), so @author:"jim butcher", @tag:-"sci fi" and
+      // @tag:=="science fiction" all stay single tokens.
+      const matches = ( raw || '' ).match(/(?:@[a-z]+:)?(?:={1,3}|\+{1,3}|-{1,3}|\^)?"[^"]*"\$?|\S+/gi);
+
+      return matches || [];
+
+    },
+
+    // Classifies a single token into a typed term. Reads an optional 'field:' prefix
+    // (which overrides the active scopes for this term), then any leading/trailing
+    // operator, and lowercases/unquotes the value so matching is case-insensitive.
+    //   '-sun'              -> { type: 'exclude',    value: 'sun' }
+    //   '=exact'            -> { type: 'exact',      value: 'exact' }   ( + is an alias )
+    //   '^bran'             -> { type: 'startsWith', value: 'bran' }
+    //   'weir$'             -> { type: 'endsWith',   value: 'weir' }
+    //   '"the martian"'     -> { type: 'phrase',     value: 'the martian' }
+    //   'space'             -> { type: 'plain',      value: 'space' }
+    //   '@author:"jim b"'   -> { type: 'phrase',     value: 'jim b', fieldKey: 'authors.name' }
+    //   '@tag:-scifi'       -> { type: 'exclude',    value: 'scifi', fieldKey: 'tags.name' }
+    // Operators compose with quotes: ^"foo bar", "foo bar"$, -"foo bar", ="foo bar".
+    classifyTerm: function( token ) {
+
+      // FIELD PREFIX: '@alias:value'. Only an '@'-prefixed recognized alias is a field
+      // query; this is what keeps titles safe. A bare 'summary:murder' (no @), a colon
+      // inside a quoted phrase, or a stylized 'Warlock:' all stay literal text, because
+      // a book title never starts a word with '@alias:'. The '@'-list expansion (in
+      // expandFieldQueries) has already split any comma list, so here the value is a
+      // single member. Peel the '@alias:' off so the operator logic runs on the value.
+      let fieldKey = null;
+      if ( token[0] === '@' ) {
+        const colon = token.indexOf(':');
+        // 'colon > 1' needs a non-empty alias before it. A trailing colon with nothing
+        // after ('@authors:') is a field the user has chosen but not yet given a value,
+        // so it's an incomplete term, not a search: peel the prefix and let the empty
+        // value drop out below, rather than fuzzy-searching the alias word itself.
+        if ( colon > 1 ) {
+          const alias = token.slice( 1, colon ).toLowerCase();
+          if ( FIELD_ALIASES[ alias ] ) {
+            fieldKey = FIELD_ALIASES[ alias ];
+            token = token.slice( colon + 1 );
+          }
+        }
+      }
+
+      // A recognized field with no value yet ('@authors:'): nothing to match on, so emit
+      // no term. The caller drops null terms, so a half-typed field query matches nothing
+      // (it neither narrows nor widens the results) until a value is typed.
+      if ( fieldKey && token === '' ) return null;
+
+      const term = this.classifyBareTerm( token );
+      if ( fieldKey ) term.fieldKey = fieldKey;
+
+      return term;
+
+    },
+
+    // Inspects a leading run of the given operator chars. Returns { tier, run } where
+    // 'run' is how many operator chars actually lead the token and 'tier' is that capped
+    // at 3 (the deepest tier: 1 substring / 2 whole-word / 3 whole-value). Returns null
+    // when there's no leading operator or no value left after it (so a bare '==' is not
+    // an operator). The whole run is stripped from the value, so '====war' reads as tier
+    // 3 on 'war' rather than leaving a stray '='.
+    leadingOperator: function( token, chars ) {
+
+      let run = 0;
+      while ( run < token.length && _.includes( chars, token[ run ] ) ) run++;
+
+      if ( run < 1 || run >= token.length ) return null;
+
+      return { tier: Math.min( run, 3 ), run };
+
+    },
+
+    // Classifies a token that has already had any 'field:' prefix removed.
+    classifyBareTerm: function( token ) {
+
+      // INCLUDE / EXCLUDE tiers. Repeating the operator tightens the match by one level:
+      //   =  substring   ==  whole word        ===  whole value
+      //   -  substring   --  whole word         ---  whole value
+      // '+' is an alias of '=' at every tier ( +, ++, +++ ). 'whole word' means the term
+      // appears as a complete space-delimited word inside a value ('==war' matches the
+      // value 'my war lock' but not 'warlock'); 'whole value' means the value IS the term
+      // exactly. Longer runs are checked first so the tightest form wins.
+      const inc = this.leadingOperator( token, [ '=', '+' ] );
+      if ( inc ) {
+        const value = this.unquoteTerm( token.slice( inc.run ) );
+        if ( inc.tier === 1 ) return { type: 'exact', value };
+        if ( inc.tier === 2 ) return { type: 'exactWord', value };
+        return { type: 'exactValue', value };
+      }
+      const exc = this.leadingOperator( token, [ '-' ] );
+      if ( exc ) {
+        const value = this.unquoteTerm( token.slice( exc.run ) );
+        if ( exc.tier === 1 ) return { type: 'exclude', value };
+        if ( exc.tier === 2 ) return { type: 'excludeWord', value };
+        return { type: 'excludeValue', value };
+      }
+      // STARTS WITH: ^word or ^"phrase"
+      if ( token.length > 1 && token[0] === '^' ) {
+        return { type: 'startsWith', value: this.unquoteTerm( token.slice(1) ) };
+      }
+      // ENDS WITH: word$ or "phrase"$
+      if ( token.length > 1 && token[ token.length - 1 ] === '$' ) {
+        return { type: 'endsWith', value: this.unquoteTerm( token.slice( 0, -1 ) ) };
+      }
+      // PHRASE: "phrase" with no anchor (words must appear adjacent).
+      if ( token.length > 1 && token[0] === '"' && token[ token.length - 1 ] === '"' ) {
+        return { type: 'phrase', value: this.unquoteTerm( token ) };
+      }
+      // Plain fuzzy/prefix include word.
+      return { type: 'plain', value: this.unquoteTerm( token ) };
+
+    },
+
+    // Expands every '@alias:' field query in the raw string into one '@alias:member'
+    // token per comma-separated member, pre-tokenizing. This is what lets a single
+    // '@alias:' carry a list:
+    //   '@tag:a,b,-c'  ->  '@tag:a @tag:b @tag:-c'
+    // So a comma list means AND (each member becomes its own AND-cell downstream), with
+    // '-' members peeling off as their own excludes. The list runs to the first UNQUOTED
+    // space, so '@tag:a,b author x' ends the list at the space ('author x' stays its own
+    // terms), and a quoted member protects its spaces ('@tag:a,"what about",b'). Only
+    // '@'-prefixed recognized aliases are touched; a bare 'summary:murder' is left alone
+    // as literal text, which is what keeps colon-bearing titles safe.
+    expandFieldQueries: function( raw ) {
+
+      // @alias : then a comma-joined run of members, each member an optional '-' plus a
+      // quoted string or a run of non-space, non-comma chars. The run stops at a space.
+      const member = '-?(?:"[^"]*"|[^\\s,]+)';
+      const re = new RegExp( '@(' + FIELD_ALIAS_GROUP + '):(' + member + '(?:,' + member + ')*)', 'gi' );
+
+      return ( raw || '' ).replace( re, ( match, alias, list ) => {
+        // Split the list on commas outside quotes into individual members.
+        const members = list.match(/(?:"[^"]*"|[^,])+/g) || [];
+        return _.map( members, ( m ) => '@' + alias + ':' + m ).join(' ');
+      });
+
+    },
+
+    // Parses a raw query into OR-groups (each an AND-list of terms) plus a flat list of
+    // exclude terms.
+    //
+    // Spaces mean AND; '|' OR's its neighbouring terms into one cell (flat, Fuse-style,
+    // left to right). AND binds tighter than OR (the Fuse precedence): '|' separates the
+    // query into whole AND-groups, and a book matches when ANY group fully matches. So
+    // 'a b | c d' is '(a AND b) OR (c AND d)' -- the '|' divides two complete sub-queries,
+    // not just its two neighbouring words. Exclude (-) is never part of a group, it's
+    // always pulled out as a global filter applied on top of whichever group matched.
+    //   'storm front | "adam binder" -abridged'
+    //     -> groups:  [ [storm, front], ["adam binder"] ]   (each group is AND'd)
+    //        exclude: [ abridged ]
+    // Also returns 'includeWords' (every positive word/phrase) so the candidate search
+    // can be a broad OR before the groups trim it down.
+    parseSearchQuery: function( raw ) {
+
+      const tokens  = this.tokenizeSearchQuery( this.expandFieldQueries( raw ) );
+      const groups  = [ [] ];
+      const exclude = [];
+
+      _.each( tokens, ( token ) => {
+
+        // '|' starts a new AND-group.
+        if ( token === '|' ) {
+          groups.push( [] );
+          return;
+        }
+
+        const term = this.classifyTerm( token );
+
+        // An incomplete term (a field chosen but not yet given a value, '@authors:')
+        // classifies to null: skip it so it neither matches nor breaks the group.
+        if ( !term ) return;
+
+        // Exclude (any tier: substring / whole-word / whole-value) is global, never part
+        // of a group.
+        if ( term.type === 'exclude' || term.type === 'excludeWord' || term.type === 'excludeValue' ) {
+          exclude.push( term );
+          return;
+        }
+
+        _.last( groups ).push( term );
+
+      });
+
+      // Drop empty groups (e.g. a stray '|' or a group that held only excludes).
+      const nonEmptyGroups = _.filter( groups, ( g ) => g.length );
+
+      // Every positive word/phrase, for the broad candidate search up front.
+      const includeWords = _.map( _.flatten( nonEmptyGroups ), 'value' );
+
+      return { groups: nonEmptyGroups, exclude, includeWords };
+
+    },
+
+    // Reduces text to space-separated lowercase words for word-boundary matching:
+    // lowercases, then turns every run of non-alphanumeric characters (punctuation,
+    // and any whitespace including non-breaking spaces) into a single space, and trims.
+    // This is what makes the boundary checks robust. Scraped Audible titles glue
+    // punctuation to words ('Warlock:', 'Novels,') and use non-breaking spaces, so a
+    // raw ' word ' test would silently miss. Matching the fuzzy index's own tokenizing,
+    // 'White Trash Warlock: The Adam Binder Novels, Book 1' becomes
+    // 'white trash warlock the adam binder novels book 1', so =warlock now matches.
+    normalizeText: function( text ) {
+      return ( text || '' ).toLowerCase().replace( /[^\p{L}\p{N}]+/gu, ' ' ).trim();
+    },
+
+    // Strips wrapping double quotes (if present) then normalizes the term the same way
+    // as the field haystack, so operator matching is case-insensitive, quote-agnostic,
+    // and punctuation/whitespace line up on both sides of the comparison.
+    unquoteTerm: function( term ) {
+
+      let value = term || '';
+      if ( value.length > 1 && value[0] === '"' && value[ value.length - 1 ] === '"' ) {
+        value = value.slice( 1, -1 );
+      }
+
+      return this.normalizeText( value );
+
+    },
+
+    // Tests a single typed term against a book. The fields searched are the term's own
+    // 'field:' override when present, otherwise the active scope fields.
+    //   getFieldItems( fieldKeys )  returns the flat list of normalized item-strings for
+    //                               a book (one per tag/author, etc.), cached.
+    //   activeFields                the active scope fields, used when the term has no
+    //                               field override.
+    // Matching is per item, so a phrase or start/end test never spans two unrelated
+    // values (e.g. "urban fantasy" won't match across the tags "gritty urban" + "fantasy
+    // world"). Each item is anchored on its own.
+    termMatches: function( term, getFieldItems, activeFields ) {
+
+      const fieldKeys = term.fieldKey ? [ term.fieldKey ] : activeFields;
+      const items     = getFieldItems( fieldKeys );
+
+      // WHOLE-VALUE INCLUDE (===): an item must EQUAL the term exactly (the whole tag,
+      // author, etc), not merely contain it.
+      if ( term.type === 'exactValue' ) {
+        return _.some( items, ( v ) => v === term.value );
+      }
+      // WHOLE-WORD INCLUDE (==): the term must appear as a complete space-delimited word
+      // inside an item ('war' in 'my war lock', but not inside 'warlock').
+      if ( term.type === 'exactWord' ) {
+        return _.some( items, ( v ) => this.containsWholeWord( v, term.value ) );
+      }
+      // STARTS WITH: at least one item must begin with the term.
+      if ( term.type === 'startsWith' ) {
+        return _.some( items, ( v ) => _.startsWith( v, term.value ) );
+      }
+      // ENDS WITH: at least one item must end with the term.
+      if ( term.type === 'endsWith' ) {
+        return _.some( items, ( v ) => _.endsWith( v, term.value ) );
+      }
+      // EXACT, PLAIN and PHRASE all come down to "does some item contain this literal
+      // string". EXACT (= / +) is a literal substring with no fuzzy/prefix, so a copied
+      // fragment finds its book; PHRASE enforces adjacency within a single item via that
+      // containment; PLAIN here is the post-filter fallback for non-simple queries.
+      return _.some( items, ( v ) => _.includes( v, term.value ) );
+
+    },
+
+    // True when 'term' appears as a complete space-delimited word (or run of words)
+    // inside 'value'. Both are already normalized to single-spaced words, so padding
+    // each with spaces turns a whole-word test into a simple substring check on the
+    // padded strings: ' war ' is in ' my war lock ' but not in ' warlock '.
+    containsWholeWord: function( value, term ) {
+      return _.includes( ' ' + value + ' ', ' ' + term + ' ' );
+    },
+
     // Runs a search against the active scope keys. Returns book objects, ranked.
-    //   query       raw user input (may contain -exclude terms)
+    //   query       raw user input. Plain words are fuzzy/prefix includes; operators:
+    //                 -term / -"phrase"   exclude
+    //                 ^term / ^"phrase"   a field starts with term/phrase
+    //                 term$ / "phrase"$   a field ends with term/phrase
+    //                 =term / +term       exact literal substring (no fuzzy/prefix)
+    //                 "phrase"            words must appear adjacent
+    //                 a b | c d           OR of AND-groups: (a AND b) OR (c AND d)
+    //                 @field:a,b,-c       search only that field (overrides scopes);
+    //                                     comma list = AND, '-' member excludes, runs to
+    //                                     first unquoted space, composes with operators
     //   activeKeys  [{ name, weight }] from the active scope (aliciaKeys)
     //   opts.keepCollectionOrder  when true, return matches in the collection's
     //                             existing (sorted) order instead of relevance rank.
     miniSearchRun: function( books, query, activeKeys, opts = {} ) {
 
       const miniSearch = this.buildSearchIndex( books );
-      const { include, exclude } = this.parseSearchQuery( query );
+      const { groups, exclude, includeWords } = this.parseSearchQuery( query );
 
-      // Only search the fields the user currently has enabled, weighted by scope.
+      // The active scope fields, weighted by scope. Unprefixed terms search these.
       const fields = _.map( activeKeys, 'name' );
       const boost  = _.reduce( activeKeys, ( acc, k ) => {
         acc[ k.name ] = k.weight || 1;
         return acc;
       }, {} );
 
-      // Nothing to match on (e.g. query is only exclude terms): return everything,
-      // then let the exclude filter below trim it. Mirrors "show all, minus excluded".
+      // Candidate search fields: the active fields PLUS every field a 'field:' prefix
+      // targets. A field-scoped term overrides the active scopes, so its field must be
+      // searched for candidates even when that scope is toggled off (otherwise the group
+      // filter never sees those books, the bug where tags:"..." found nothing with tags
+      // disabled, or skewed results from whatever scopes happened to be on).
+      const prefixedFields = _.compact( _.uniq( _.map( _.flatten( groups ).concat( exclude ), 'fieldKey' ) ) );
+      const candidateFields = _.union( fields, prefixedFields );
+
+      // A "simple" query is the common case: a single AND-group of plain words, no OR and
+      // no operator terms (=, ^, $, phrase, field). There we let MiniSearch do the
+      // matching so its fuzzy/prefix typo tolerance is preserved. Anything with OR or an
+      // operator term drops to substring-based group filtering, where fuzzy doesn't apply.
+      const isSimpleQuery = !exclude.length
+        && groups.length === 1
+        && _.every( groups[0], ( term ) => term.type === 'plain' && !term.fieldKey );
+
+      // Candidate set from MiniSearch. Simple queries AND the words (the real match);
+      // otherwise it runs a broad OR purely to gather candidates and the cell logic
+      // below does the real AND/OR/operator filtering. With no positive words (query is
+      // only excludes) we start from every book.
       let results;
-      if ( include ) {
-        results = miniSearch.search( include, {
-          fields,
+      if ( includeWords.length ) {
+        results = miniSearch.search( includeWords.join(' '), {
+          fields: candidateFields,
           boost,
           prefix: true,
-          // Edit-distance typo tolerance: up to 30% of the term length, capped at 4
-          // edits so short words stay tight while longer titles tolerate real typos.
-          fuzzy: 0.3,
+          // Edit-distance typo tolerance, decided per term. Short words are skipped: a
+          // 1-2 edit allowance is a big fraction of a short word, so a single common one
+          // (like 'martian') fans out into dozens of loose matches. Words of 5+ chars get
+          // a 20% allowance (capped at 4 edits), which still catches real typos in longer
+          // titles and names without dragging in the noise.
+          fuzzy: ( term ) => ( term.length >= 5 ? 0.2 : false ),
           maxFuzzy: 4,
-          combineWith: 'AND',
+          combineWith: isSimpleQuery ? 'AND' : 'OR',
         });
       }
       else if ( exclude.length ) {
@@ -147,12 +512,51 @@ export default {
 
       let mapped = _.map( results, '__book' );
 
-      // Exclude: drop any book whose searched fields contain an excluded term. Checked
-      // across every active field at once, so exclude is consistent (the Fuse fix).
-      if ( exclude.length ) {
+      // Simple queries are fully matched by MiniSearch above, so skip group filtering
+      // (which would re-check by substring and strip fuzzy matches). Everything else gets
+      // group + exclude filtering: a book passes when ANY AND-group fully matches (every
+      // term in that group matches) and no exclude hits.
+      if ( !isSimpleQuery && ( groups.length || exclude.length ) ) {
         mapped = _.filter( mapped, ( book ) => {
-          const haystack = _.map( fields, ( f ) => extractField( book, f ) ).join(' ').toLowerCase();
-          return !_.some( exclude, ( term ) => _.includes( haystack, term ) );
+
+          // Per-book cache of a field's normalized item-strings, keyed by field key.
+          // Each tag/author/etc. stays a separate item so matching never bleeds across
+          // values. Normalizing (lowercase, punctuation/whitespace to single spaces)
+          // keeps substring and start/end checks reliable even when items glue
+          // punctuation to words or use non-breaking spaces. Empty items are dropped.
+          // Cached so a term's field set is extracted once per book.
+          const fieldCache = {};
+          const fieldItems = ( f ) => {
+            if ( !( f in fieldCache ) ) {
+              fieldCache[ f ] = _.compact( _.map( extractFieldItems( book, f ), ( v ) => this.normalizeText( v ) ) );
+            }
+            return fieldCache[ f ];
+          };
+          const getFieldItems = ( fieldKeys ) => _.flatMap( fieldKeys, fieldItems );
+
+          // EXCLUDE: drop the book if any excluded term hits an item in its searched
+          // fields (its own 'field:' override, or the active fields when unscoped). The
+          // three tiers mirror the include side: '-' substring, '--' whole word, '---'
+          // whole value.
+          const excluded = _.some( exclude, ( t ) => {
+            const fieldKeys = t.fieldKey ? [ t.fieldKey ] : fields;
+            const items     = getFieldItems( fieldKeys );
+            if ( t.type === 'excludeValue' ) return _.some( items, ( v ) => v === t.value );
+            if ( t.type === 'excludeWord' )  return _.some( items, ( v ) => this.containsWholeWord( v, t.value ) );
+            return _.some( items, ( v ) => _.includes( v, t.value ) );
+          });
+          if ( excluded ) return false;
+
+          // At least one AND-group must fully match: every term in that group matches
+          // (OR of ANDs). With no positive groups (query was only excludes), an empty
+          // groups list means "everything passes the include test".
+          const groupsPass = !groups.length || _.some( groups, ( group ) => {
+            return _.every( group, ( term ) => this.termMatches( term, getFieldItems, fields ) );
+          });
+          if ( !groupsPass ) return false;
+
+          return true;
+
         });
       }
 
