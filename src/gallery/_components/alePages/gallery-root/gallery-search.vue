@@ -41,7 +41,16 @@
             :style="{ left: fieldMenu.left + 'px', top: fieldMenu.top + 'px' }"
             @mousedown.prevent
           >
-            <div class="field-menu-header">Inline search scope</div>
+            <!-- The whole header is the help trigger; its tooltip explains how a scope value
+                 list is written. The icon is just a visual cue. Opens on hover/tap. -->
+            <div
+              class="field-menu-header"
+              :content="searchHelpTooltip"
+              v-tippy="{ allowHTML: true, interactive: true, placement: 'right-start', offset: [0, 22], hideOnClick: true, delay: [0, 0], maxWidth: 'none' }"
+            >
+              <span>Inline search scope</span>
+              <span class="field-menu-help" v-html="searchHelpIcon"></span>
+            </div>
             <div
               class="field-menu-item"
               :class="{ active: index === fieldMenu.index }"
@@ -65,9 +74,9 @@
               @click="acceptSuggestion( item.value )"
               @mouseenter="suggestMenu.index = index"
             >
-              <span class="suggest-icon" v-if="fieldLabel( item.fieldKey ).icon" v-html="fieldIcons[ fieldLabel( item.fieldKey ).icon ]"></span>
+              <span class="suggest-icon" v-if="item.icon" v-html="fieldIcons[ item.icon ]"></span>
               <span class="suggest-value" v-html="highlightTyped( item.value, suggestMenu.typed )"></span>
-              <span class="suggest-badge">{{ fieldLabel( item.fieldKey ).label }}</span>
+              <span class="suggest-badge">{{ item.label }}</span>
             </div>
           </div>
         </div>
@@ -93,9 +102,10 @@ import filterAndSort from '@output-mixins/gallery-filter-and-sort.js';
 import miniSearchMixin from '@output-mixins/gallery-minisearch.js';
 import { loadAllFieldData } from '@output-mixins/gallery-load-split-book-data.js';
 
-// Raw SVGs for the '@field' autocomplete rows, keyed by the icon name each suggestion
-// carries (see FIELD_SUGGESTIONS in the minisearch mixin). Imported statically so the
-// build bundles them (a dynamic ':is' would not be picked up by unplugin-icons).
+// Raw SVGs for the '@field' autocomplete rows, keyed by the 'icon' name each scope carries
+// (scopes declare their own alias/label/icon; see buildScopeVocabulary in the minisearch
+// mixin). Imported statically so the build bundles them (a dynamic ':is' would not be
+// picked up by unplugin-icons).
 import IconTitle      from '~icons/icon-park-solid/text?raw';
 import IconUserPen    from '~icons/fa6-solid/user-pen?raw';
 import IconMicrophone from '~icons/fa6-solid/microphone?raw';
@@ -106,6 +116,7 @@ import IconBuilding   from '~icons/fa6-solid/building?raw';
 import IconAlignLeft  from '~icons/fa6-solid/align-left?raw';
 import IconFileLines  from '~icons/fa6-solid/file-lines?raw';
 import IconHashtag    from '~icons/fa6-solid/hashtag?raw';
+import IconInfo       from '~icons/fa6-solid/circle-info?raw';
 
 export default {
   name: "GallerySearch",
@@ -146,6 +157,7 @@ export default {
         typed: '',
         start: 0,
         end: 0,
+        inList: false,
       },
 
       // One-shot: set when a suggestion is accepted with Enter, so the keyup-Enter blur
@@ -179,6 +191,9 @@ export default {
         'file-lines':  IconFileLines,
         'hashtag':     IconHashtag,
       },
+
+      // Raw SVG for the help marker beside the '@field' menu header.
+      searchHelpIcon: IconInfo,
     };
   },
   
@@ -361,7 +376,9 @@ export default {
       const input = this.$refs.searchInput;
       if ( !input ) return this.closeFieldMenu();
 
-      const state = this.fieldSuggestState( input.value, input.selectionStart );
+      // All page scopes (not just active): '@field:' is a scope override, so the menu offers
+      // every field you can target, including currently-unchecked ones.
+      const state = this.fieldSuggestState( input.value, input.selectionStart, this.allScopeKeys );
       if ( !state ) return this.closeFieldMenu();
 
       // Keep the highlight in range when the filtered list shrinks under the cursor.
@@ -627,7 +644,7 @@ export default {
           this.$store.state.mutatingCollection,
           query,
           this.aliciaKeys,
-          { keepCollectionOrder: !this.sortByRelevance }
+          { keepCollectionOrder: !this.sortByRelevance, scopeKeys: this.allScopeKeys }
         );
 
         this.$store.commit("prop", { key: 'searchCollection', value: result });
@@ -649,11 +666,13 @@ export default {
       const input = this.$refs.searchInput;
       if ( !input || this.fieldMenu.open ) return this.closeSuggestMenu();
 
+      // All page scopes (not just active) so a value inside an '@scope:' completes even for
+      // an unchecked scope, matching the '@'-override behaviour.
       const result = this.miniSuggest(
         this.$store.state.mutatingCollection,
         input.value,
         input.selectionStart,
-        this.aliciaKeys
+        this.allScopeKeys
       );
       if ( !result || !result.suggestions.length ) return this.closeSuggestMenu();
 
@@ -667,6 +686,7 @@ export default {
         typed: result.typed,
         start: result.start,
         end: result.end,
+        inList: result.inList,
       };
 
     },
@@ -675,20 +695,22 @@ export default {
       if ( this.suggestMenu.open ) this.suggestMenu.open = false;
     },
 
-    // Replaces the typed fragment with the chosen value (quoted when it contains spaces, so
-    // a multi-word value like Dresden Files stays one phrase term) plus a trailing space,
-    // and runs the search. Same commit + caret-restore path as accepting an '@field'
-    // suggestion, since both reassign the ':value'-bound input.
+    // Replaces the typed fragment with the chosen value (quoted when it contains spaces) and
+    // runs the search. A plain value gets a trailing space; inside an '@scope:' list nothing
+    // is appended, so the user adds a comma (another member) or a space (end the scope).
     acceptSuggestion: function( value ) {
 
       const input = this.$refs.searchInput;
       if ( !input ) return;
 
-      const current  = input.value;
-      const phrase   = _.includes( value, ' ' ) ? '"' + value + '"' : value;
-      const inserted = phrase + ' ';
-      const newValue = current.slice( 0, this.suggestMenu.start ) + inserted + current.slice( this.suggestMenu.end );
-      const caret    = this.suggestMenu.start + inserted.length;
+      const current   = input.value;
+      const phrase    = _.includes( value, ' ' ) ? '"' + value + '"' : value;
+      // Inside an '@scope:' list, append nothing so the user chooses what's next (a comma to
+      // add another, a space to end the scope); a plain value gets a trailing space.
+      const separator = this.suggestMenu.inList ? '' : ' ';
+      const inserted  = phrase + separator;
+      const newValue  = current.slice( 0, this.suggestMenu.start ) + inserted + current.slice( this.suggestMenu.end );
+      const caret     = this.suggestMenu.start + inserted.length;
 
       this.closeSuggestMenu();
       this.commitSearchValue( newValue );
@@ -775,14 +797,49 @@ export default {
     
   },
   computed: {
+    // HTML for the '@field' menu help tooltip: how a scope value list is written.
+    searchHelpTooltip: function() {
+      return [
+        '<div class="scope-help">',
+          '<div class="scope-help-title">Search for multiple:</div>',
+          '<div class="scope-help-row"><code>,</code> Match all <span class="scope-help-eg">@tags:a,b</span></div>',
+          '<div class="scope-help-row"><code>|</code> Match any <span class="scope-help-eg">@tags:a|b</span></div>',
+          '<div class="scope-help-note"><code>@authors:king,stephen</code> matches both words in any order; <code>@authors:"stephen king"</code> matches those words in that order. Advanced operators work here too.</div>',
+        '</div>',
+      ].join('');
+    },
+
+    // Maps a scope item to the shape the search engine expects. 'key' is the scope's display
+    // identity; 'field' is the book property actually searched (they differ for sub-page
+    // entity scopes, where the namesake key reads the entity's 'name', so default field to
+    // key). 'alias'/'label'/'icon' drive the '@'-autocomplete, derived from the scope rather
+    // than a static table.
+    scopeKey: function() {
+      return function( item ) {
+        return {
+          name    : item.key,
+          field   : item.field || item.key,
+          weight  : item.weight || 0,
+          alias   : item.alias,
+          label   : item.label,
+          icon    : item.icon,
+          wordMode: item.wordMode,
+        };
+      };
+    },
+
+    // The ACTIVE scopes: what plain (unprefixed) search matches, what the chips and the '@'
+    // dropdown show.
     aliciaKeys: function() {
-      const filteredKeys = _.filter(
-        this.$store.state.listRenderingOpts.scope,
-        ["active", true]
-      );
-      return _.map(filteredKeys, function(item) {
-        return { name: item.key, weight: item.weight || 0 };
-      });
+      const filteredKeys = _.filter( this.$store.state.listRenderingOpts.scope, [ "active", true ] );
+      return _.map( filteredKeys, this.scopeKey );
+    },
+
+    // EVERY scope on the page, active or not. Drives '@field:' resolution so a field-prefixed
+    // term overrides the scope checkboxes (e.g. @summary: works while summary is unchecked),
+    // the long-standing override behavior. Plain search still uses only aliciaKeys.
+    allScopeKeys: function() {
+      return _.map( this.$store.state.listRenderingOpts.scope, this.scopeKey );
     },
 
     placeholder: function() {
@@ -912,6 +969,8 @@ export default {
       position: absolute;
       z-index: 900;
       margin-top: 4px;
+      // Sized to the field rows. The legend fills this width (width: 100%) and wraps within
+      // it rather than dictating its own, so it never stretches the menu wide.
       width: max-content;
       padding: 4px;
       border-radius: 10px;
@@ -926,12 +985,31 @@ export default {
       }
 
       .field-menu-header {
+        display: flex;
+        align-items: center;
+        gap: 6px;
         padding: 4px 8px 5px;
         font-size: 0.82em;
-        text-transform: uppercase;
-        letter-spacing: 0.04em;
+        cursor: help;
         @include themify($themes) {
           color: rgba(themed(frontColor), 0.45);
+        }
+
+        .field-menu-help {
+          display: inline-flex;
+          cursor: help;
+          svg {
+            width: 12px;
+            height: 12px;
+          }
+          @include themify($themes) {
+            color: rgba(themed(frontColor), 0.4);
+          }
+          &:hover {
+            @include themify($themes) {
+              color: themed(audibleOrange);
+            }
+          }
         }
       }
 
@@ -963,6 +1041,7 @@ export default {
           flex: 1;
         }
       }
+
     }
 
     // Autosuggest menu: full-width dropdown floating just under the input (absolute, so it
@@ -1164,6 +1243,60 @@ export default {
   font-size: 0.9em;
   @include themify($themes) {
     color: rgba( themed(frontColor), 0.6 );
+  }
+}
+
+// '@field' menu help tooltip. Rendered inside the tippy (appended to body), so it lives at
+// the top level rather than nested under the search styles.
+.scope-help {
+  text-align: left;
+
+  code {
+    padding: 0 3px;
+    border-radius: 3px;
+    font-family: monospace;
+    background: rgba(#fff, 0.12);
+  }
+
+  .scope-help-title {
+    margin-bottom: 4px;
+    opacity: 0.6;
+    font-size: 0.9em;
+  }
+
+  .scope-help-row {
+    white-space: nowrap;
+    padding: 3px 0;
+
+    // The leading symbol reads as a fixed first column.
+    code {
+      display: inline-block;
+      min-width: 1.3em;
+      margin-right: 7px;
+      text-align: center;
+    }
+
+    .scope-help-eg {
+      margin-left: 4px;
+      font-family: monospace;
+      opacity: 0.5;
+    }
+  }
+
+  .scope-help-note {
+    max-width: 340px;
+    margin-top: 6px;
+    padding-top: 6px;
+    font-size: 0.9em;
+    line-height: 1.7;
+    opacity: 0.6;
+    border-top: 1px solid rgba(#fff, 0.15);
+
+    // Let a long example break anywhere so it flows into the line instead of jumping to the
+    // next one whole; keeps the chip background.
+    code {
+      word-break: break-all;
+    }
   }
 }
 
