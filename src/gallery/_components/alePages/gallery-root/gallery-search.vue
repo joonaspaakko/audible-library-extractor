@@ -410,10 +410,67 @@ export default {
     // normal typing is untouched.
     searchKeydown: function( e ) {
 
+      // if ( this.backspaceScopeToken( e ) ) return;
+
       if ( this.fieldMenu.open ) return this.fieldMenuKeydown( e );
       if ( this.suggestMenu.open ) return this.suggestMenuKeydown( e );
 
     },
+
+    // // A single Backspace deletes a whole '@scope:' token (the scope and all its values).
+    // // Basically pressing backspace with the text cursor at any position marked by a
+    // // vertical pipe would remove the entive scope and the value(s) (in this case
+    // // fiction): example @|t|a|g|s|:|fiction 
+    // //
+    // // UNUSED: sounded good on paper, but in practice it left too much room for accidental
+    // // deletions that could be far more frustrating than a few extra keystrokes.
+    // backspaceScopeToken: function( e ) {
+      
+    //   if ( e.key !== 'Backspace' ) return false;
+      
+    //   const input = this.$refs.searchInput;
+    //   if ( !input ) return false;
+      
+    //   const caret = input.selectionStart;
+    //   if ( caret !== input.selectionEnd || caret === 0 ) return false;
+      
+    //   const value = input.value;
+      
+    //   const at = value.lastIndexOf( '@', caret - 1 );
+    //   if ( at < 0 ) return false;
+    //   if ( at > 0 && !/\s/.test( value[ at - 1 ] ) ) return false;
+      
+    //   const colon = value.indexOf( ':', at );
+    //   if ( colon < 0 ) return false;
+    //   const alias = value.slice( at + 1, colon );
+    //   if ( !alias || /\s/.test( alias ) ) return false;
+      
+    //   if ( caret > colon + 1 ) return false;
+      
+    //   let end     = value.length;
+    //   let inQuote = false;
+    //   for ( let i = colon + 1; i < value.length; i++ ) {
+    //     if ( value[ i ] === '"' ) inQuote = !inQuote;
+    //     else if ( value[ i ] === ' ' && !inQuote ) {
+    //       end = i;
+    //       break;
+    //     }
+    //   }
+      
+    //   let cut = end;
+    //   if ( value[ end ] === ' ' ) cut = end + 1;
+      
+    //   e.preventDefault();
+    //   const newValue = value.slice( 0, at ) + value.slice( cut );
+      
+    //   this.closeFieldMenu();
+    //   this.closeSuggestMenu();
+    //   this.commitSearchValue( newValue );
+    //   this.restoreCaret( newValue, at );
+      
+    //   return true;
+      
+    // },
 
     // Keyboard navigation for the '@field' menu.
     fieldMenuKeydown: function( e ) {
