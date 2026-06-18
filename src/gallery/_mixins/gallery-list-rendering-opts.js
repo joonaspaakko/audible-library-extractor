@@ -79,8 +79,9 @@ export default {
             alias: 'blurb',
             label: 'Blurb',
             icon: 'align-left',
-            // Free text, so autosuggest offers individual words, not the whole blurb.
-            wordMode: true,
+            // Free text, so autosuggest offers a consecutive word run from the blurb that
+            // completes what's typed, not the whole blurb.
+            sentenceMode: true,
             // weight: .5,
             weight: 1,
           },
@@ -90,7 +91,7 @@ export default {
             alias: 'summary',
             label: 'Summary',
             icon: 'file-lines',
-            wordMode: true,
+            sentenceMode: true,
             // weight: .4,
             weight: 1,
           },

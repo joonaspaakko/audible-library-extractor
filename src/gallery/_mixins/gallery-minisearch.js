@@ -650,62 +650,104 @@ export default {
     // Locates the fragment the caret sits on, for autosuggest. Returns { typed, start, end },
     // plus 'scopeAlias' and 'inList' when the caret is inside an '@alias:value' field query
     // (so the caller scopes suggestions and appends a comma, not a space). Null when there's
-    // nothing plain to complete. Two cases, with the subtle behaviour spelled out:
-    //  - '@tags:urban,fant'      -> { typed:'fant', scopeAlias:'tags', inList:true }  (member
-    //                               after the last unquoted comma)
-    //  - 'a @tags:x someth'      -> { typed:'someth' }   a plain word after a completed
+    // nothing plain to complete.
+    //
+    // The fragment is the whole "section" the caret sits in, taken on BOTH sides of the caret,
+    // not just the text typed to its left: a '|' OR-divider and an '@scope' both split sections,
+    // and inside an '@scope:value' the list delimiters (',' '|' and quotes) split members. So a
+    // caret dropped into the middle of an already-typed run completes that whole run, not the
+    // half before the caret. Examples (the run the caret lands in is what's completed):
+    //  - '@tags:urban,fa|nt'     -> { typed:'fant', scopeAlias:'tags', inList:true }  (member
+    //                               around the caret, bounded by its commas)
+    //  - 'a @tags:x some|th'     -> { typed:'someth' }   a plain word after a completed
     //                               '@scope:' term still completes (the term is not absorbed)
-    //  - 'storm front | jim but' -> { typed:'jim but' }  spaces stay, so a multi-word value
+    //  - 'storm front | jim| but'-> { typed:'jim but' }  spaces stay, so a multi-word value
     //                               completes as one fragment
+    //  - 'author of the |iron druid' -> { typed:'author of the iron druid' }  the caret is
+    //                               inside the run, so its right side joins the fragment too
     suggestFragmentAt: function( raw, caret ) {
 
-      const before = ( raw || '' ).slice( 0, caret );
+      const text = raw || '';
 
-      // Current OR-segment: everything since the last '|'.
-      const bar      = before.lastIndexOf('|');
-      const segStart = bar < 0 ? 0 : bar + 1;
-      const segment  = before.slice( segStart );
+      // Quote-aware tokens of the whole query, each tagged with its absolute index, so a quoted
+      // phrase (and an '@scope:"two words"|b' value, whose own '|' stays inside the token) is one
+      // token. A standalone '|' token is the OR-divider between sections (matching the parser),
+      // so the section the caret sits in runs between the standalone '|' tokens on either side.
+      const allTokens = this.tokenizeSegment( text, 0 );
+      if ( !allTokens.length ) return null;
 
-      // Quote-aware tokens, so a quoted phrase (and an '@scope:"two words"' value) stays one
-      // token. The token under the caret is the last one.
-      const tokens = this.tokenizeSegment( segment, segStart );
+      const tokens = [];
+      for ( const t of allTokens ) {
+        // Keep only the tokens of the caret's section: reset the collected run at each
+        // standalone '|', and stop once a standalone '|' starts after the caret.
+        if ( t.text === '|' ) {
+          if ( t.index >= caret ) break;
+          tokens.length = 0;
+          continue;
+        }
+        tokens.push( t );
+      }
       if ( !tokens.length ) return null;
 
-      // Caret inside an '@alias:value'? Complete the member after the last unquoted list
-      // separator (',' for AND or '|' for OR).
-      const last = tokens[ tokens.length - 1 ];
-      const fieldMatch = last.text.match( /^@([a-z]+):/i );
+      // The token the caret sits in (or, between tokens, the last one starting before it).
+      const caretToken = _.findLast( tokens, ( t ) => t.index <= caret );
+      if ( !caretToken ) return null;
+
+      // Caret inside an '@alias:value'? Complete the member the caret sits in, bounded by the
+      // unquoted list separators (',' for AND, '|' is already a segment split) around it.
+      const fieldMatch = caretToken.text.match( /^@([a-z]+):/i );
       if ( fieldMatch ) {
         const alias       = fieldMatch[ 1 ].toLowerCase();
-        const valuePart   = last.text.slice( fieldMatch[ 0 ].length );
-        const memberStart = this.lastUnquotedSeparatorIndex( valuePart ) + 1;
-        const member      = valuePart.slice( memberStart );
+        const valueStart  = caretToken.index + fieldMatch[ 0 ].length;
+        const valuePart   = caretToken.text.slice( fieldMatch[ 0 ].length );
+        // Caret offset within the value part, and the member around it (between the unquoted
+        // separators on either side).
+        const caretInValue = Math.max( 0, Math.min( caret - valueStart, valuePart.length ) );
+        const memberStart  = this.lastUnquotedSeparatorIndex( valuePart.slice( 0, caretInValue ) ) + 1;
+        const sepAfter     = this.firstUnquotedSeparatorIndex( valuePart, caretInValue );
+        const memberEnd    = sepAfter < 0 ? valuePart.length : sepAfter;
+        const member       = valuePart.slice( memberStart, memberEnd );
         // Trailing '$' (ends-with) terminates the value, nothing to complete.
         if ( member[ member.length - 1 ] === '$' ) return null;
         // Peel a leading operator (-, =, ^, +) so an excluded/exact member still completes
         // against its bare value; start points past it, so accepting keeps the operator.
         const prefix = ( member.match( /^[-^=+]*/ ) || [ '' ] )[ 0 ];
-        const value  = member.slice( prefix.length );
-        // A closed quoted phrase is a finished value, nothing left to complete for it.
-        if ( /^"[^"]*"$/.test( value ) ) return null;
-        return { typed: value, start: caret - value.length, end: caret, scopeAlias: alias, inList: true };
+        let value    = member.slice( prefix.length );
+        let valueOffset = prefix.length;
+        // A quoted phrase (open '"iron' or closed '"iron"') still completes, just literally:
+        // peel the wrapping quotes so the fragment matches the unquoted value, and aim
+        // start/end at the inner text so accepting replaces only the phrase, quotes kept.
+        const open = value.match( /^"/ );
+        if ( open ) {
+          value       = value.replace( /^"/, '' ).replace( /"$/, '' );
+          valueOffset += open[ 0 ].length;
+        }
+        const start = valueStart + memberStart + valueOffset;
+        return { typed: value, start, end: start + value.length, scopeAlias: alias, inList: true };
       }
 
-      // Plain fragment: walk back over plain tokens, stopping at the first boundary (a
-      // completed '@alias:...' or an operator term) so it never merges into the fragment.
-      let runStart = last.index;
-      for ( let i = tokens.length - 1; i >= 0; i-- ) {
-        const t = tokens[ i ];
-        const isBoundary = /^@[a-z]+:/i.test( t.text ) || /^[-^=+]/.test( t.text ) || t.text[ t.text.length - 1 ] === '$';
-        if ( isBoundary ) break;
-        runStart = t.index;
-      }
+      // Plain fragment: the run of plain tokens the caret sits in. Walk LEFT from the caret
+      // token over plain tokens, and RIGHT over them too, stopping on either side at the first
+      // boundary (a completed '@alias:...', an operator term, or a '$'-terminated term) so the
+      // fragment never merges into a neighbouring scope/operator section.
+      const isBoundary = ( t ) => /^@[a-z]+:/i.test( t.text ) || /^[-^=+]/.test( t.text ) || t.text[ t.text.length - 1 ] === '$';
+      if ( isBoundary( caretToken ) ) return null;
 
-      const typed = before.slice( runStart );
+      const caretIdx = _.indexOf( tokens, caretToken );
+      let runStart   = caretToken.index;
+      for ( let i = caretIdx; i >= 0 && !isBoundary( tokens[ i ] ); i-- ) {
+        runStart = tokens[ i ].index;
+      }
+      let runEndToken = caretToken;
+      for ( let i = caretIdx; i < tokens.length && !isBoundary( tokens[ i ] ); i++ ) {
+        runEndToken = tokens[ i ];
+      }
+      const runEnd = runEndToken.index + runEndToken.text.length;
+
+      const typed = text.slice( runStart, runEnd );
       if ( !typed ) return null;
-      if ( typed[0] === '@' || /^[-^=+]/.test( typed ) || typed[ typed.length - 1 ] === '$' ) return null;
 
-      return { typed, start: runStart, end: caret };
+      return { typed, start: runStart, end: runEnd };
 
     },
 
@@ -746,39 +788,45 @@ export default {
       return last;
     },
 
+    // Index of the first list separator (',' or '|') outside double quotes at or after 'from'
+    // in 'text', or -1 if none. Marks where the current '@scope:' value member ends.
+    firstUnquotedSeparatorIndex: function( text, from ) {
+      let inQuote = false;
+      for ( let i = 0; i < text.length; i++ ) {
+        const char = text[ i ];
+        if ( char === '"' ) inQuote = !inQuote;
+        else if ( i >= from && ( char === ',' || char === '|' ) && !inQuote ) return i;
+      }
+      return -1;
+    },
+
     // The distinct values of a field across all books, with their normalized form for
     // matching and original-cased text for display. Cached per (source, field) so the
     // gather runs once. Multi-value fields (tags, authors, ...) contribute one entry per
-    // item; an empty normalized form is dropped. In word mode (free-text fields like blurb
-    // and summary) the entries are the distinct words instead of whole values, since a whole
-    // blurb is useless to suggest; HTML is stripped and very short words are dropped.
+    // item; an empty normalized form is dropped. In sentence mode (free-text fields like blurb
+    // and summary) the entries are the distinct normalized texts (each blurb/summary), since
+    // a whole blurb is useless to suggest as-is but its consecutive word runs are what feed
+    // multi-word completion (see sentenceModeRun); HTML is stripped first.
     //   fieldValues(books, 'series.name')  ->  [{ display:'Dresden Files', norm:'dresden files' }, ...]
-    fieldValues: function( books, fieldKey, wordMode ) {
+    fieldValues: function( books, fieldKey, sentenceMode ) {
 
       if ( !this.fieldValueCache || this.fieldValueSource !== books ) {
         this.fieldValueCache  = {};
         this.fieldValueSource = books;
       }
-      const cacheKey = wordMode ? fieldKey + '::words' : fieldKey;
+      const cacheKey = sentenceMode ? fieldKey + '::sentences' : fieldKey;
       if ( this.fieldValueCache[ cacheKey ] ) return this.fieldValueCache[ cacheKey ];
 
       const seen   = new Set();
       const values = [];
       _.each( books, ( book ) => {
         _.each( extractFieldItems( book, fieldKey ), ( item ) => {
-          if ( wordMode ) {
-            _.each( this.normalizeText( this.stripHtml( item ) ).split(' '), ( word ) => {
-              if ( word.length < 3 || seen.has( word ) ) return;
-              seen.add( word );
-              values.push({ display: word, norm: word });
-            });
-          }
-          else {
-            const norm = this.normalizeText( item );
-            if ( !norm || seen.has( norm ) ) return;
-            seen.add( norm );
-            values.push({ display: item, norm });
-          }
+          // Sentence mode keeps the whole normalized text (deduped): a single word is useless
+          // to display, so the run that matches the typed fragment is extracted at suggest time.
+          const norm = sentenceMode ? this.normalizeText( this.stripHtml( item ) ) : this.normalizeText( item );
+          if ( !norm || seen.has( norm ) ) return;
+          seen.add( norm );
+          values.push({ display: sentenceMode ? norm : item, norm });
         });
       });
 
@@ -822,10 +870,14 @@ export default {
       }
 
       // Gather matches across the scopes, each from its searched field, tagged with the scope
-      // for its row label. Tiers, tightest first:
+      // for its row label. Tiers, tightest first (so a clean prefix always outranks a scattered
+      // hit, but a scattered hit still appears rather than the menu lying that there's nothing):
       //   -1  exact: value EQUALS the fragment (kept top so accepting phrase-searches it)
       //    0  value-prefix: value starts with the fragment
-      //    1  word-run: the fragment's words appear as a run inside the value (last a prefix)
+      //    1  word-run: the fragment's words appear as an in-order run inside the value
+      //    2  scattered: the value contains every fragment word in ANY order (last a prefix),
+      //        matching how unquoted SEARCH treats the words, so the suggestion never goes blank
+      //        on a query the search would find. Highlighted per-word since the hits scatter.
       const needleWords = needle.split(' ');
       const matches = [];
       _.each( scopes, ( k ) => {
@@ -833,29 +885,50 @@ export default {
         const weight   = k.weight || 1;
         const label    = k.label || k.alias || k.name;
         const icon     = k.icon || null;
-        _.each( this.fieldValues( books, k.field || k.name, k.wordMode ), ( value ) => {
+        _.each( this.fieldValues( books, k.field || k.name, k.sentenceMode ), ( value ) => {
+          // Sentence-mode fields (free text like blurb/summary) suggest the smallest passage
+          // that contains every typed word (order-independent, like unquoted search), not the
+          // whole text. 'value' is that passage (what gets inserted); 'display' adds context
+          // words around it (preview only); 'highlightWords' are the words to bold individually.
+          if ( k.sentenceMode ) {
+            const match = this.sentenceModeRun( value.norm, needleWords );
+            if ( match ) matches.push({ value: match.run, display: match.display, highlightWords: match.highlightWords, norm: match.run, fieldKey: scopeKey, label, icon, tier: 0, weight });
+            return;
+          }
+          // Discrete-value scopes suggest the whole value. Tiers -1..1 are contiguous, so the
+          // caller highlights the typed fragment as one run (highlightWords stays null); tier 2
+          // is scattered, so the matched words are listed for per-word highlighting.
           let tier = null;
+          let highlightWords = null;
           if ( value.norm === needle ) tier = -1;
           else if ( _.startsWith( value.norm, needle ) ) tier = 0;
           else if ( this.wordRunMatches( value.norm, needleWords ) ) tier = 1;
+          else {
+            const scattered = this.wordsAllPresent( value.norm, needleWords );
+            if ( scattered ) {
+              tier = 2;
+              highlightWords = scattered;
+            }
+          }
           if ( tier === null ) return;
-          matches.push({ display: value.display, norm: value.norm, fieldKey: scopeKey, label, icon, tier, weight });
+          matches.push({ value: value.display, display: value.display, highlightWords, norm: value.norm, fieldKey: scopeKey, label, icon, tier, weight });
         });
       });
 
-      // Rank within a scope: exact before value-prefix before word-run, then heavier scope,
-      // then shorter value, so the closest whole-value match leads. One row per value
-      // (uniqBy display after the sort keeps each value's best-ranked, highest-weighted
-      // field). The list is then shared fairly across scopes (see allotByScope), capped at
-      // the total budget.
+      // Rank within a scope: by tier (exact, then value-prefix, then in-order run, then scattered
+      // any-order), then heavier scope, then shorter value, so the closest match leads and a
+      // scattered hit always falls below a clean prefix. One row per inserted value
+      // (uniqBy value after the sort keeps each value's best-ranked, highest-weighted field;
+      // for sentence mode that collapses two windows of the same run to one). The list is then
+      // shared fairly across scopes (see allotByScope), capped at the total budget.
       const ranked = _( matches )
         .orderBy( [ 'tier', ( m ) => -m.weight, ( m ) => m.norm.length ], [ 'asc', 'asc', 'asc' ] )
-        .uniqBy( 'display' )
+        .uniqBy( 'value' )
         .value();
 
       const suggestions = _.map(
         this.allotByScope( ranked, 8 ),
-        ( m ) => ({ value: m.display, fieldKey: m.fieldKey, label: m.label, icon: m.icon })
+        ( m ) => ({ value: m.value, display: m.display, highlightWords: m.highlightWords, fieldKey: m.fieldKey, label: m.label, icon: m.icon })
       );
 
       return { typed: at.typed, start: at.start, end: at.end, suggestions, inList: !!at.inList };
@@ -890,6 +963,83 @@ export default {
 
     },
 
+    // Finds the passage inside a sentence-mode value (blurb/summary text) that completes the
+    // typed fragment. Returns { run, display, highlightWords } (or null when the text has no
+    // such passage). Matching mirrors how the SEARCH treats unquoted words, so the suggestion
+    // never goes blank on a query the search would find: all the typed words must appear in the
+    // passage but ORDER DOES NOT MATTER (a literal in-order phrase is what double quotes are
+    // for), and each word matches by PREFIX (mirroring the search's `prefix: true`). Among all
+    // windows that hold every word, the smallest is chosen, so the run stays tight.
+    //   'run'            the smallest consecutive word window covering every typed word, in the
+    //                    text's own order (what gets inserted on accept; accepting snaps the
+    //                    user's possibly-reordered input to the real passage).
+    //   'display'        that run padded with a few context words on each side (preview only),
+    //                    the window shrinking as the typed phrase grows; '...' marks a clip.
+    //   'highlightWords' the set of value words that matched a typed word, so each is bolded on
+    //                    its own (scattered highlight, not one contiguous block).
+    // Both value and needleWords are already normalized to single-spaced lowercase words.
+    sentenceModeRun: function( value, needleWords ) {
+
+      const valueWords = value.split(' ');
+
+      // A value word is "relevant" when it prefix-matches at least one needle word. Each value
+      // index is tagged with the set of needle words it covers, so a sliding window can check
+      // coverage. Prefix (not whole-word) mirrors the search, so 'dru iro' still matches.
+      const covered = _.map( valueWords, ( vw ) => _.filter( needleWords, ( n ) => _.startsWith( vw, n ) ) );
+
+      // Smallest window [start, end] of value words that together cover every distinct needle
+      // word. Slide 'end' forward, growing a count of how many needle words the window covers,
+      // then pull 'start' in as far as coverage allows. Track the tightest window seen.
+      const distinct = _.uniq( needleWords );
+      const need     = {};
+      _.each( distinct, ( n ) => { need[ n ] = ( need[ n ] || 0 ) + 1; } );
+
+      let best  = null;
+      const have = {};
+      let satisfied = 0;
+      let start = 0;
+      for ( let end = 0; end < valueWords.length; end++ ) {
+        _.each( covered[ end ], ( n ) => {
+          have[ n ] = ( have[ n ] || 0 ) + 1;
+          if ( have[ n ] === need[ n ] ) satisfied++;
+        });
+        // Once every needle word is covered, shrink from the left while coverage holds.
+        while ( satisfied === distinct.length ) {
+          if ( !best || ( end - start ) < ( best.end - best.start ) ) best = { start, end };
+          _.each( covered[ start ], ( n ) => {
+            if ( have[ n ] === need[ n ] ) satisfied--;
+            have[ n ]--;
+          });
+          start++;
+        }
+      }
+      if ( !best ) return null;
+
+      const runStart = best.start;
+      const runEnd   = best.end + 1;
+      const run      = valueWords.slice( runStart, runEnd ).join(' ');
+
+      // The distinct value words inside the window that actually matched a typed word (checked
+      // by their window position, so a repeated word is judged where it sits), for highlighting.
+      const highlightWords = _.uniq(
+        _.filter( valueWords.slice( runStart, runEnd ), ( vw, i ) => covered[ runStart + i ].length )
+      );
+
+      // Context words per side: 4 for a single typed word, one fewer per extra word, floored
+      // at 1, so a longer query overflows less. Ellipsis marks a window clipped from the text.
+      const pad        = Math.max( 1, 4 - ( needleWords.length - 1 ) );
+      const fromStart  = Math.max( 0, runStart - pad );
+      const toEnd      = Math.min( valueWords.length, runEnd + pad );
+      const before     = valueWords.slice( fromStart, runStart ).join(' ');
+      const after      = valueWords.slice( runEnd, toEnd ).join(' ');
+      let   display    = run;
+      if ( before ) display = ( fromStart > 0 ? '... ' : '' ) + before + ' ' + display;
+      if ( after )  display = display + ' ' + after + ( toEnd < valueWords.length ? ' ...' : '' );
+
+      return { run, display, highlightWords };
+
+    },
+
     // True when the needle's words appear as a run of consecutive words anywhere in the
     // value, with every needle word but the last matching a value word exactly and the
     // last being a prefix of its value word. This is what lets a multi-word fragment that
@@ -920,6 +1070,29 @@ export default {
       }
 
       return false;
+
+    },
+
+    // Returns the distinct value words that match, when the value contains EVERY needle word in
+    // any order, or null when some needle word is missing. Each needle word matches a value word
+    // by PREFIX, exactly mirroring the search's `prefix: true` over AND'd terms, so the
+    // suggestion matches whatever unquoted search matches: 'druid iron' and 'dru iro' both cover
+    // 'the iron druid chronicles'. The returned words drive per-word highlighting. Both value and
+    // needleWords are normalized.
+    wordsAllPresent: function( value, needleWords ) {
+
+      const valueWords = value.split(' ');
+      const matched    = [];
+
+      const allPresent = _.every( needleWords, ( n ) => {
+        const hits = _.filter( valueWords, ( vw ) => _.startsWith( vw, n ) );
+        if ( !hits.length ) return false;
+        matched.push( ...hits );
+        return true;
+      });
+      if ( !allPresent ) return null;
+
+      return _.uniq( matched );
 
     },
 

@@ -75,7 +75,7 @@
               @mouseenter="suggestMenu.index = index"
             >
               <span class="suggest-icon" v-if="item.icon" v-html="fieldIcons[ item.icon ]"></span>
-              <span class="suggest-value" v-html="highlightTyped( item.value, suggestMenu.typed )"></span>
+              <span class="suggest-value" v-html="highlightSuggestion( item )"></span>
               <span class="suggest-badge">{{ item.label }}</span>
             </div>
           </div>
@@ -775,13 +775,24 @@ export default {
 
     },
 
-    // Bolds the typed fragment inside the suggested value, so each row reads as a
-    // completion of what the user is typing. The fragment matches at the value start or a
-    // word start (see wordStartsWith), so find its first occurrence and bold from there.
-    // Plain string match, HTML-escaped.
-    highlightTyped: function( value, typed ) {
+    // Builds the bolded HTML for a suggestion row. A sentence-mode row (blurb/summary preview)
+    // carries 'highlightWords', the individual matched words, so each is bolded on its own even
+    // when scattered through the passage (the words can match in any order). Any other row bolds
+    // the single typed fragment as a contiguous run.
+    highlightSuggestion: function( item ) {
+      if ( item.highlightWords && item.highlightWords.length ) {
+        return this.highlightWords( item.display, item.highlightWords );
+      }
+      return this.highlightTyped( item.display, this.suggestMenu.typed );
+    },
 
-      const fragment = ( typed || '' ).trim();
+    // Bolds 'fragment' inside the displayed value as one contiguous run, so the row reads as a
+    // completion of what the user is typing. Finds the first occurrence and bolds from there.
+    // Plain string match, HTML-escaped. Wrapping double quotes (a "phrase" fragment) are stripped
+    // first so the literal match lines up with the unquoted value.
+    highlightTyped: function( value, fragmentRaw ) {
+
+      const fragment = ( fragmentRaw || '' ).trim().replace( /^"+|"+$/g, '' ).trim();
       const at = fragment ? value.toLowerCase().indexOf( fragment.toLowerCase() ) : -1;
       if ( at < 0 ) return _.escape( value );
 
@@ -790,6 +801,23 @@ export default {
       const after  = _.escape( value.slice( at + fragment.length ) );
 
       return before + '<strong>' + hit + '</strong>' + after;
+
+    },
+
+    // Bolds each whole word of 'value' that matches (case-insensitively) one of 'words', so a
+    // scattered, any-order match still highlights every piece. Splits on whitespace, keeping the
+    // separators so the '...' clip markers and spacing survive; each word is HTML-escaped.
+    highlightWords: function( value, words ) {
+
+      const wanted = new Set( _.map( words, ( w ) => w.toLowerCase() ) );
+
+      return value.split( /(\s+)/ ).map( ( part ) => {
+        // Whitespace chunks pass through untouched. A word is bolded when its bare form (the
+        // normalized letters/digits, so trailing punctuation does not block the match) is wanted.
+        if ( /^\s+$/.test( part ) || part === '' ) return _.escape( part );
+        const bare = this.normalizeText( part );
+        return wanted.has( bare ) ? '<strong>' + _.escape( part ) + '</strong>' : _.escape( part );
+      }).join('');
 
     },
     
@@ -874,13 +902,13 @@ export default {
     scopeKey: function() {
       return function( item ) {
         return {
-          name    : item.key,
-          field   : item.field || item.key,
-          weight  : item.weight || 0,
-          alias   : item.alias,
-          label   : item.label,
-          icon    : item.icon,
-          wordMode: item.wordMode,
+          name        : item.key,
+          field       : item.field || item.key,
+          weight      : item.weight || 0,
+          alias       : item.alias,
+          label       : item.label,
+          icon        : item.icon,
+          sentenceMode: item.sentenceMode,
           active      : item.active,
         };
       };
@@ -1048,6 +1076,7 @@ export default {
         gap: 6px;
         padding: 4px 8px 5px;
         font-size: 0.82em;
+        text-transform: uppercase;
         cursor: help;
         @include themify($themes) {
           color: rgba(themed(frontColor), 0.45);
