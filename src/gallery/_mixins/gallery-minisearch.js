@@ -795,9 +795,10 @@ export default {
     // come first, so the tightest, most-scoped value wins. Returns the display strings
     // (original case) to splice over [start, end), quoted by the caller when multi-word.
     //   { typed, start, end, suggestions: ['Dresden Files', ...] }
-    //   activeKeys  should be ALL page scopes, so an '@scope:' value completes even for an
-    //               unchecked scope. When the caret is inside an '@alias:value' the gather is
-    //               narrowed to that one scope.
+    //   activeKeys  should be ALL page scopes (each carrying its own 'active' flag). A plain
+    //               fragment draws only from the active ones (what plain search matches); a
+    //               caret inside an '@alias:value' narrows to that one aliased scope, active or
+    //               not, so an '@scope:' value completes even for an unchecked scope.
     miniSuggest: function( books, query, caret, activeKeys ) {
 
       const at = this.suggestFragmentAt( query, caret );
@@ -806,11 +807,17 @@ export default {
       const needle = this.normalizeText( at.typed );
       if ( !needle ) return null;
 
-      // Inside an '@alias:value', draw only from that scope's field; an unknown alias matches
-      // none, so no suggestions.
-      let scopes = activeKeys;
+      // Inside an '@alias:value', draw only from that aliased scope's field (active or not:
+      // the '@'-prefix is a scope override); an unknown alias matches none, so no suggestions.
+      // A plain fragment (no alias) draws only from the ACTIVE scopes, matching what plain
+      // search actually searches, so the menu never offers values from an unchecked scope.
+      let scopes;
       if ( at.scopeAlias ) {
         scopes = _.filter( activeKeys, ( k ) => ( k.alias || '' ).toLowerCase() === at.scopeAlias );
+        if ( !scopes.length ) return null;
+      }
+      else {
+        scopes = _.filter( activeKeys, ( k ) => k.active );
         if ( !scopes.length ) return null;
       }
 

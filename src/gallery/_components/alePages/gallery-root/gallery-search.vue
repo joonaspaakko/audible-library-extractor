@@ -881,6 +881,7 @@ export default {
           label   : item.label,
           icon    : item.icon,
           wordMode: item.wordMode,
+          active      : item.active,
         };
       };
     },
