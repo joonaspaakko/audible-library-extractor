@@ -27,3 +27,6 @@ coverage
 *.sln
 *.sw?
 stats.html
+
+# Local GitHub Pages emulator extracted site
+gh-pages-test/site/

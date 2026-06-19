@@ -93,32 +93,25 @@ else {
   
   loadJSON();
   function loadJSON( afterError ) {
-    let scrpt = document.createElement("script");
-    let cacheID = document.querySelector('#audible-library-extractor').getAttribute('data-cache-id');
+    const cacheID = document.querySelector('#audible-library-extractor').getAttribute('data-cache-id');
     // Validate cacheID contains only digits to prevent injection
     if (!/^\d+$/.test(cacheID)) {
       console.error('Invalid cacheID format');
       return;
     }
-    scrpt.src = "data/temp-data."+ cacheID +".js";
-    scrpt.type = "text/javascript";
-    scrpt.onload = function() {
-      
-      let tempData = window.tempDataJSON;
-      window.bookSummaryJSON = true;
-      
-      scrpt = null;
+    fetch(`data/temp-data.${cacheID}.json`).then(res => {
+      if ( !res.ok ) throw new Error(res.status);
+      return res.json();
+    })
+    .then(tempData => {
       startVue( tempData );
-      
-    };
-    // Tries again if there's an error loading the files, but only once...
-    scrpt.onerror = function() {
-      scrpt = null;
+    })
+    .catch(() => {
+      // Tries again if there's an error loading the files, but only once...
       setTimeout(function() {
-        if ( !afterError ) loadJSON('afterError'); // Try twice...
+        if ( !afterError ) loadJSON('afterError');
       }, 1000);
-    };
-    document.head.appendChild(scrpt);
+    });
   }
   
 }

@@ -209,6 +209,7 @@ export default {
       progressWidth: null,
       iconSize: 20,
       githubApiProcessActive: false,
+      debugShuffleEnabled: $standaloneShuffle, // By default controlled by env variable.
     };
   },
 
@@ -361,9 +362,37 @@ export default {
     //   });
     // },
     
-    // Book ASIN is used to identify the correct file later
-    divideLargerDatapoints: function( files, books ) {
-      const extractableKeys = ['peopleAlsoBought', 'summary'];
+    // Book ASIN is used to identify the correct file later.
+    // Large per-book fields are chunked into their own file sets so the gallery can
+    // load (or prefetch) one field without dragging along the others. Each field is
+    // fully described by SPLIT_FIELDS, and that description is written into the export
+    // manifest (extras.splitFields) so the loader can drive everything generically.
+    //   key:          the book property being chunked out.
+    //   filePrefix:   chunk file name prefix under data/split-book-data/.
+    //   chunkIdProp:  book property that records which chunk holds this field.
+    //   splitDataProp: where the loaded value lands on the book-details splitData.
+    divideLargerDatapoints: function( files, books, manifest ) {
+
+      const SPLIT_FIELDS = [
+        { key: 'summary',          filePrefix: 'summary-chunk', chunkIdProp: 'summaryChunkId', splitDataProp: 'bookSummary' },
+        { key: 'peopleAlsoBought', filePrefix: 'pab-chunk',     chunkIdProp: 'pabChunkId',     splitDataProp: 'peopleAlsoBought' },
+      ];
+
+      _.each( SPLIT_FIELDS, ( field ) => {
+        const count = this.chunkBookField( files, books, field );
+        // Build (or extend) the manifest entry for this field. chunkCount accumulates
+        // in case divideLargerDatapoints is ever called more than once.
+        const entry = manifest[field.key] || { ...field, chunkCount: 0 };
+        entry.chunkCount += count;
+        manifest[field.key] = entry;
+      });
+
+    },
+
+    // Chunks a single field out of the books into ~1MB JSON files, writes the
+    // owning chunk index back onto each book, then strips the field from the book.
+    // Returns the number of chunks written.
+    chunkBookField: function( files, books, field ) {
       const maxChunkKB = 1000 * 1024;
 
       let chunkIndex = 0;
@@ -371,38 +400,43 @@ export default {
       let currentSize = 0;
 
       _.each(books, (book) => {
-      
-        const extracted = _.pick(book, extractableKeys);
 
-        if (_.isEmpty(extracted)) return;
+        const value = book[ field.key ];
+
+        if ( _.isEmpty(value) ) return;
 
         const entry = {
           asin: book.asin,
-          ...extracted,
+          [ field.key ]: value,
         };
 
         const entrySize = JSON.stringify(entry).length;
 
         if (chunkData.length > 0 && (currentSize + entrySize) > maxChunkKB) {
-          files.add(`data/split-book-data/chunk-${chunkIndex}.${this.cacheBuster}.json`, JSON.stringify(chunkData));
+          files.add(`data/split-book-data/${field.filePrefix}-${chunkIndex}.${this.cacheBuster}.json`, JSON.stringify(chunkData));
 
           chunkIndex++;
           chunkData = [];
           currentSize = 0;
         }
 
-        book.chunkId = chunkIndex;
+        book[ field.chunkIdProp ] = chunkIndex;
 
         chunkData.push(entry);
         currentSize += entrySize;
-        
-        _.each(extractableKeys, key => _.unset(book, key));
+
+        _.unset(book, field.key);
 
       });
 
       // Save final chunk
-      if ( chunkData.length > 0 ) files.add(`data/split-book-data/chunk-${chunkIndex}.${this.cacheBuster}.json`, JSON.stringify(chunkData));
-      
+      if ( chunkData.length > 0 ) {
+        files.add(`data/split-book-data/${field.filePrefix}-${chunkIndex}.${this.cacheBuster}.json`, JSON.stringify(chunkData));
+        return chunkIndex + 1;
+      }
+
+      return chunkIndex;
+
     },
 
     saveButtonClicked: async function (action = {}) {
@@ -452,6 +486,9 @@ export default {
         files.add(".nojekyll", '');
         
         let libraryData = this.excludeData( JSON.parse(JSON.stringify(this.$store.state.audibledata)) );
+
+        // DEBUG...
+        this.debugShuffle( libraryData );
 
         libraryData.extras.cacheID = vue.cacheBuster;
 
@@ -556,37 +593,43 @@ export default {
         
         files.add("ALE-Documentation.url", `[InternetShortcut]\nURL=https://joonaspaakko.gitbook.io/audible-library-extractor/`);
 
-        // Split "peopleAlsoBought" into separate files and exclude from book data because 
-        // it's a good amount of data that isn't necessarily needed immediately or all at once
-        
+        // Split large per-book fields into separate file sets and exclude them from
+        // the main book data because it's a good amount of data that isn't necessarily
+        // needed immediately or all at once. The resulting manifest (field prefixes,
+        // chunk-id props, chunk counts) is written into extras so the gallery loader
+        // and background prefetcher can drive everything generically.
+        const splitFields = {};
+
         if ( libraryData.wishlist && libraryData.library ) {
           // Just to make sure no data file is created twice...
           // Books are excluded during wishlist extraction if they exist in the library already,
           // but there are certain cases where that can change later....
-          this.divideLargerDatapoints(files, _.unionBy(libraryData.library, libraryData.wishlist, 'asin'));
+          this.divideLargerDatapoints(files, _.unionBy(libraryData.library, libraryData.wishlist, 'asin'), splitFields);
         }
         else {
-          if ( libraryData.wishlist ) this.divideLargerDatapoints(files, libraryData.wishlist);
-          if ( libraryData.library  ) this.divideLargerDatapoints(files, libraryData.library);
+          if ( libraryData.wishlist ) this.divideLargerDatapoints(files, libraryData.wishlist, splitFields);
+          if ( libraryData.library  ) this.divideLargerDatapoints(files, libraryData.library, splitFields);
         }
+
+        libraryData.extras.splitFields = splitFields;
 
         // Split page data into separate files...
-        files.add("data/temp-data."+ vue.cacheBuster +".js", "window.tempDataJSON = " + JSON.stringify(tempData) + ";");
+        files.add("data/temp-data."+ vue.cacheBuster +".json", JSON.stringify(tempData));
 
         if ( tempData.library     ) {
-          files.add("data/library."+ vue.cacheBuster +".js", "window.libraryJSON = " + JSON.stringify(libraryData.library) + ";");
+          files.add("data/library."+ vue.cacheBuster +".json", JSON.stringify(libraryData.library));
         }
         if ( tempData.collections ) {
-          files.add("data/collections."+ vue.cacheBuster +".js", "window.collectionsJSON = " + JSON.stringify(libraryData.collections) + ";");
+          files.add("data/collections."+ vue.cacheBuster +".json", JSON.stringify(libraryData.collections));
         }
         if ( tempData.series      ) {
-          files.add("data/series."+ vue.cacheBuster +".js", "window.seriesJSON = " + JSON.stringify(libraryData.series) + ";");
+          files.add("data/series."+ vue.cacheBuster +".json", JSON.stringify(libraryData.series));
         }
         if ( tempData.wishlist    ) {
-          files.add("data/wishlist."+ vue.cacheBuster +".js", "window.wishlistJSON = " + JSON.stringify(libraryData.wishlist) + ";");
+          files.add("data/wishlist."+ vue.cacheBuster +".json", JSON.stringify(libraryData.wishlist));
         }
         if ( tempData.userReviews    ) {
-          files.add("data/userReviews."+ vue.cacheBuster +".js", "window.userReviewsJSON = " + JSON.stringify(libraryData.userReviews) + ";");
+          files.add("data/userReviews."+ vue.cacheBuster +".json", JSON.stringify(libraryData.userReviews));
         }
         
         let assetFiles = _.cloneDeep(vue.files);
@@ -937,6 +980,43 @@ export default {
         })
       );
       `;
+    },
+
+    // DEBUG: make each saved upload produce a visibly different order than the last, so we
+    // can tell at a glance whether the gallery loaded the new data or served stale data
+    // from IndexedDB / the cached index.html. This is a load-and-cache check, not a real
+    // data diff: the books and values are unchanged, only their order is reshuffled.
+    // The gallery re-sorts by the "added" property, so shuffling the array order alone is
+    // invisible under the default sort. We also reshuffle the "added" values among the
+    // books, which actually changes the on-screen order.
+    debugShuffle: function( data ) {
+
+      if ( !this.debugShuffleEnabled ) return;
+
+      if ( _.isArray(data.library) ) {
+        data.library = _.shuffle( data.library );
+        this.debugShuffleAdded( data.library );
+      }
+      if ( _.isArray(data.wishlist) ) {
+        data.wishlist = _.shuffle( data.wishlist );
+        this.debugShuffleAdded( data.wishlist );
+      }
+
+      console.warn('[ALE debug] Library/wishlist order and "added" values shuffled before save.');
+
+    },
+
+    // DEBUG: redistribute the existing "added" values among the books so the sort produces
+    // a different order while the values stay realistic real timestamps.
+    debugShuffleAdded: function( books ) {
+
+      let addedValues = _.map( books, 'added' );
+      addedValues = _.shuffle( addedValues );
+
+      _.each( books, function( book, index ) {
+        book.added = addedValues[ index ];
+      });
+
     },
 
     runCachebuster: function() {

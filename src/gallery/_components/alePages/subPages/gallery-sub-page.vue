@@ -148,6 +148,20 @@ export default {
 
       const scope = this.mergeByKey( defaultConfig.scope, this.routeConfig.scope || [] );
 
+      // Prepend the namesake scope: the page's own entity, searched against each entity's
+      // 'name' but keyed per page ('series', 'authors') so the chip and @series alias read
+      // naturally and sit at the top, like 'title' does in the library. 'alias'/'label'/'icon'
+      // give it '@'-autocomplete support; label matches the key so the chip stays lowercase.
+      scope.unshift({
+        active: true,
+        key   : this.config.bookProp,
+        field : 'name',
+        alias : this.config.bookProp,
+        label : this.config.bookProp,
+        icon  : this.config.icon,
+        weight: 5,
+      });
+
       const sort = this.mergeByKey( defaultConfig.sort, this.routeConfig.sort || [] );
 
       const filter = _.cloneDeep( this.mergeByKey( defaultConfig.filters, this.routeConfig.filters || [] ) );

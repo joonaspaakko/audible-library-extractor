@@ -29,7 +29,6 @@
         v-if="uploadComplete"
         :pages-url="completedPagesUrl"
         :pages-status="selectedRepoInfo?.pagesStatus"
-        :timestamp="uploadTimestamp"
         :hash-route="completedHashRoute"
         @back="onCompleteBack"
       />
@@ -308,7 +307,6 @@ export default {
       if ( !this.isAuthenticated ) this.debugSetAuth();
       this.uploadComplete = true;
       this.completedPagesUrl = 'https://devuser.github.io/my-audible-library/';
-      this.uploadTimestamp = Date.now();
     },
     debugSetFailed() {
       if ( !this.isAuthenticated ) this.debugSetAuth();

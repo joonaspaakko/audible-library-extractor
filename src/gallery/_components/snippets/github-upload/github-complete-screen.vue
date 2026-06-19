@@ -16,7 +16,7 @@
       <!-- SITE CARD: status + URL in one clickable block -->
       <a
         v-if="pagesUrl"
-        :href="`${pagesUrl.replace(/\/$/, '')}/#/${hashRoute}?tt=${timestamp}`"
+        :href="`${pagesUrl.replace(/\/$/, '')}/#/${hashRoute}`"
         target="_blank"
         class="site-card"
         :class="statusClass"
@@ -47,7 +47,6 @@ export default {
   props: {
     pagesUrl   : { type: String, default: null },
     pagesStatus: { type: String, default: null },
-    timestamp  : { type: Number, default: null },
     hashRoute  : { type: String, default: 'library' },
   },
   emits: ['back'],

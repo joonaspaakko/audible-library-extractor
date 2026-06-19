@@ -1,5 +1,6 @@
 import { createRouter, createWebHashHistory } from 'vue-router';
 import store from "@output-modules/store/gallery-store-index.js";
+import { openDB, validateCache, db, prefetchSplitData } from '@output-mixins/gallery-load-split-book-data.js';
 
 import allRoutes from '@output-modules/gallery-routes.js';
 
@@ -81,55 +82,76 @@ export default function( libraryData, store ) {
     // Tries to load relevant JSON data from a file before each route change on the standalone site
     const standalone = document.querySelector("html.standalone-gallery");
     if ( standalone ) {
-      
-      function loadScript(file) {
-        return new Promise(function(resolve, reject) {
-          let script = document.createElement('script');
-          script.src = (file.prefix || "data/") + file.name +"."+ libraryData.extras.cacheID +".js";
-          script.type = "text/javascript";
-          script.onload = function() {
-            resolve(file);
-            script = null;
-          };
-          script.onerror = function() {
-            reject(file);
-            script = null;
-          };
-          document.body.appendChild(script);
-        });
+
+      let pageDbInstance = null;
+      let validatedCacheID = null;
+      const loadedPages = {};
+
+      async function getPageDatabase( cacheID ) {
+        if ( !pageDbInstance ) pageDbInstance = await openDB();
+        if ( validatedCacheID !== cacheID ) {
+          await validateCache( pageDbInstance, cacheID );
+          if ( validatedCacheID !== null ) {
+            _.each( loadedPages, (v, key) => delete loadedPages[key]);
+          }
+          validatedCacheID = cacheID;
+        }
+        return pageDbInstance;
       }
-      
-      let getJSON = function( to, from, next, files, afterError ) {
-        
-        // Exclude JSON that's already been loaded
-        files = _.filter( files, function( file ){ return window[file.name+'JSON'] !== true; });
-        
-        // save all Promises as array
-        let promises = [];
-        files.forEach(function(file) {
-          promises.push(loadScript(file));
+
+      async function loadPage( file, cacheID ) {
+        const key = file.keyOverride || file.name;
+
+        if ( loadedPages[key] ) return;
+
+        const database = await getPageDatabase( cacheID );
+
+        const tx = database.transaction(db.stores.pages, 'readonly');
+        const cached = await new Promise((resolve, reject) => {
+          const req = tx.objectStore(db.stores.pages).get(key);
+          req.onsuccess = () => resolve(req.result ?? null);
+          req.onerror   = () => reject(req.error);
         });
-        
-        Promise.all(promises).catch(function() {
+
+        let data;
+        if ( cached ) {
+          data = cached.data;
+        } else {
+          const res = await fetch(`data/${file.name}.${cacheID}.json`);
+          if ( !res.ok ) throw new Error(res.status);
+          data = await res.json();
+          const writeTx = database.transaction(db.stores.pages, 'readwrite');
+          await new Promise((resolve, reject) => {
+            const req = writeTx.objectStore(db.stores.pages).put({ name: key, data });
+            req.onsuccess = () => resolve();
+            req.onerror   = () => reject(req.error);
+          });
+        }
+
+        store.commit('buildStandaloneData', [{ key, value: data }]);
+        loadedPages[key] = true;
+      }
+
+      let getJSON = function( to, from, next, files, afterError ) {
+
+        const cacheID = libraryData.extras.cacheID;
+        const pending = _.filter( files, file => !loadedPages[file.keyOverride || file.name] );
+
+        Promise.all( pending.map(file => loadPage(file, cacheID)) ).catch(function() {
           if ( !afterError ) {
             setTimeout(function() {
               getJSON( to, from, next, files, 'afterError' );
             }, 1000);
           }
-        }).finally(function() {
-          
-          let storageArray = _.map( files, function( file ) { 
-            return {
-              key: (file.keyOverride || file.name),
-              value: window[file.name+'JSON'],
-            }; 
-          });
-          store.commit("buildStandaloneData", storageArray);
-          _.each( files, function( file ) { window[file.name+'JSON'] = true; });
+        })
+        .finally(function() {
           viewRefreshClean(to, from, next);
-          
+          // First route's data is in; warm summary chunks in the background so book
+          // details open instantly and summaries are ready for search. peopleAlsoBought
+          // is intentionally left lazy. Self-dedupes, so calling it each route is fine.
+          prefetchSplitData( libraryData.extras.splitFields, cacheID, { only: ['summary'] });
         });
-        
+
       };
       
       router.beforeEach((to, from, next) => {

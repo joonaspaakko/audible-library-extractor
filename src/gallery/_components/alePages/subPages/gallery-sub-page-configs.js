@@ -139,9 +139,12 @@ function addRatingFields( collection ) {
 export const defaultConfig = {
   booksTotalBorderless: false,
   booksTotalContent   : ( item ) => item.books.length,
+  // The namesake scope (the page's own entity name) is prepended per config below, since
+  // its key/label differ by page ('Authors', 'Series', ...). 'booktitle' is shared: it
+  // reads each entity's array of book titles ('books' field), labeled to avoid clashing
+  // with the ambiguous 'title' on entity pages.
   scope: [
-    { active: true, key: 'name',  weight: 5 },
-    { active: true, key: 'books', weight: 1 },
+    { active: true, key: 'booktitle', field: 'books', alias: 'booktitle', label: 'book title', icon: 'title', weight: 1 },
   ],
   filters: [
     {
@@ -706,11 +709,12 @@ export const defaultConfig = {
 export const authorsConfig = {
   bookProp      : 'authors',
   label         : 'author',
+  icon          : 'user-pen',
   resolveEntity : ( entity ) => ( entity.name && entity.url ) ? { name: entity.name, url: entity.url } : null,
   scope: [
-    { active: true, key: 'narrators.name',  tippy: 'Search authors by narrators',  weight: 1 },
-    { active: true, key: 'publishers.name', tippy: 'Search authors by publishers', weight: 1 },
-    { active: true, key: 'series.name',     tippy: 'Search authors by series',     weight: 1 },
+    { active: true, key: 'narrators.name',  alias: 'narrators',  label: 'narrators',  icon: 'microphone',  tippy: 'Search authors by narrators',  weight: 1 },
+    { active: true, key: 'publishers.name', alias: 'publishers', label: 'publishers', icon: 'building',    tippy: 'Search authors by publishers', weight: 1 },
+    { active: true, key: 'series.name',     alias: 'series',     label: 'series',     icon: 'layer-group', tippy: 'Search authors by series',     weight: 1 },
   ],
   filters: [
     { type: 'divider', key: 'divider-cross-ref' },
@@ -755,10 +759,11 @@ export const authorsConfig = {
 export const narratorsConfig = {
   bookProp      : 'narrators',
   label         : 'narrator',
+  icon          : 'microphone',
   scope: [
-    { active: true, key: 'authors.name',    tippy: 'Search narrators by authors',    weight: 1 },
-    { active: true, key: 'publishers.name', tippy: 'Search narrators by publishers', weight: 1 },
-    { active: true, key: 'series.name',     tippy: 'Search narrators by series',     weight: 1 },
+    { active: true, key: 'authors.name',    alias: 'authors',    label: 'authors',    icon: 'user-pen',    tippy: 'Search narrators by authors',    weight: 1 },
+    { active: true, key: 'publishers.name', alias: 'publishers', label: 'publishers', icon: 'building',    tippy: 'Search narrators by publishers', weight: 1 },
+    { active: true, key: 'series.name',     alias: 'series',     label: 'series',     icon: 'layer-group', tippy: 'Search narrators by series',     weight: 1 },
   ],
   filters: [
     { type: 'divider', key: 'divider-cross-ref' },
@@ -803,10 +808,11 @@ export const narratorsConfig = {
 export const publishersConfig = {
   bookProp        : 'publishers',
   label           : 'publisher',
+  icon            : 'building',
   scope: [
-    { active: true, key: 'authors.name',   tippy: 'Search publishers by authors',    weight: 1 },
-    { active: true, key: 'narrators.name', tippy: 'Search publishers by narrators',  weight: 1 },
-    { active: true, key: 'series.name',    tippy: 'Search publishers by series',     weight: 1 },
+    { active: true, key: 'authors.name',   alias: 'authors',   label: 'authors',   icon: 'user-pen',    tippy: 'Search publishers by authors',    weight: 1 },
+    { active: true, key: 'narrators.name', alias: 'narrators', label: 'narrators', icon: 'microphone',  tippy: 'Search publishers by narrators',  weight: 1 },
+    { active: true, key: 'series.name',    alias: 'series',    label: 'series',    icon: 'layer-group', tippy: 'Search publishers by series',     weight: 1 },
   ],
   filters: [
     { type: 'divider', key: 'divider-cross-ref' },
@@ -868,6 +874,7 @@ export const publishersConfig = {
 export const seriesConfig = {
   bookProp            : 'series',
   label               : 'series',
+  icon                : 'layer-group',
   booksTotalBorderless: true,
   booksTotalContent: function ( item ) {
     if ( item.allBooks && item.allBooks.length ) {
@@ -880,9 +887,9 @@ export const seriesConfig = {
     rowRoute: () => ( item, sourceName ) => ( { name: 'series', params: { series: item.asin }, query: { subPageSource: sourceName } } ),
   },
   scope: [
-    { active: true, key: 'authors.name',    tippy: 'Search series by authors',    weight: 1 },
-    { active: true, key: 'narrators.name',  tippy: 'Search series by narrators',  weight: 1 },
-    { active: true, key: 'publishers.name', tippy: 'Search series by publishers', weight: 1 },
+    { active: true, key: 'authors.name',    alias: 'authors',    label: 'authors',    icon: 'user-pen',   tippy: 'Search series by authors',    weight: 1 },
+    { active: true, key: 'narrators.name',  alias: 'narrators',  label: 'narrators',  icon: 'microphone', tippy: 'Search series by narrators',  weight: 1 },
+    { active: true, key: 'publishers.name', alias: 'publishers', label: 'publishers', icon: 'building',   tippy: 'Search series by publishers', weight: 1 },
   ],
 
   sort: [
