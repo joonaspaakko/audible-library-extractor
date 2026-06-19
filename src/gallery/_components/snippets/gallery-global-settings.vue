@@ -13,10 +13,52 @@
       </div>
     </div>
 
-    <!-- Miscellaneous -->
+    <!-- Appearance -->
     <div class="settings-section">
 
-      <div v-if="$store.state.standalone" class="setting-row pwa-row">
+      <div class="setting-row">
+        <label class="setting-label-wrap">
+          <div class="setting-icon">
+            <fa6-solid-sun v-if="$store.state.sticky.lightSwitch" />
+            <fa6-solid-moon v-else />
+          </div>
+          <div class="setting-label">
+            <span>Light theme</span>
+          </div>
+          <div class="visual-toggle" :class="{ on: $store.state.sticky.lightSwitch }">
+            <input type="checkbox" :checked="$store.state.sticky.lightSwitch" @change="toggleLightSwitch" @mousedown="$haptic(1)">
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </div>
+        </label>
+      </div>
+
+      <div class="setting-row" v-if="$store.state.searchMounted">
+        <label class="setting-label-wrap">
+          <div class="setting-icon">
+            <mdi-table-large v-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+            <ep-grid v-else />
+          </div>
+          <div class="setting-label">
+            <span>Spreadsheet view</span>
+          </div>
+          <div class="visual-toggle" :class="{ on: $store.state.sticky.viewMode === 'spreadsheet' }">
+            <input type="checkbox" :checked="$store.state.sticky.viewMode === 'spreadsheet'" @change="toggleViewMode" @mousedown="$haptic(1)">
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </div>
+        </label>
+      </div>
+
+    </div>
+
+    <!-- Miscellaneous -->
+    <template v-if="$store.state.standalone">
+    <div class="settings-section-divider"></div>
+    <div class="settings-section">
+
+      <div class="setting-row pwa-row">
+        <div class="setting-icon">
+          <fa6-solid-mobile-screen-button />
+        </div>
         <div class="setting-label">
           <span>Install as app</span>
           <span class="setting-subtext">Add this gallery to your home screen for quick access without a browser.</span>
@@ -41,6 +83,7 @@
       -->
 
     </div>
+    </template>
 
     <!-- Book details -->
     <div class="settings-section-divider"></div>
@@ -67,6 +110,9 @@
           <div v-else-if="setting.type === 'sectionLabel'" class="setting-section-label">{{ setting.sectionLabel }}</div>
           <div class="setting-row" v-else-if="!setting.standalone || $store.state.standalone" :class="{ 'setting-disabled': !setting.enabled }">
             <label class="setting-label-wrap">
+              <div class="setting-icon">
+                <component :is="setting.icon" v-if="setting.icon" />
+              </div>
               <div class="setting-label">
                 <span>{{ setting.label }}</span>
               </div>
@@ -117,6 +163,23 @@ import SidebarCollectionsList from '@output-pages/gallery-root/gallery-grid-view
 import SidebarSeriesList from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-sidebar-series-list.jpg';
 import Carousel from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-carousel.jpg';
 
+// SETTING ROW ICONS
+import IconPlay         from '~icons/fa6-solid/play';
+import IconCloud        from '~icons/fa6-solid/cloud';
+import IconAppLink      from '~icons/fa6-solid/mobile-screen-button';
+import IconBlurb        from '~icons/fa6-solid/align-left';
+import IconWhispersync  from '~icons/fa6-solid/rotate';
+import IconPlus         from '~icons/fa6-solid/plus';
+import IconHeart        from '~icons/fa6-solid/heart';
+import IconCheck        from '~icons/fa6-solid/check';
+import IconShortTitle   from '~icons/fa6-solid/heading';
+import IconCover        from '~icons/fa6-solid/image';
+import IconToolbar      from '~icons/fa6-solid/icons';
+import IconMainInfo     from '~icons/fa6-solid/circle-info';
+import IconCollections  from '~icons/fa6-solid/layer-group';
+import IconSeries       from '~icons/fa6-solid/list-ol';
+import IconCarousel     from '~icons/fa6-solid/images';
+
 export default {
   name: 'galleryGlobalSettings',
   components: { modal },
@@ -129,7 +192,7 @@ export default {
 
         { type: 'sectionLabel', sectionLabel: 'Book cover' },
         {
-          enabled: true, type: 'checkbox', label: 'Show sample play button',
+          enabled: true, type: 'checkbox', label: 'Show sample play button', icon: IconPlay,
           info: `Plays a short audio sample directly from the book cover.<br><img src="${SamplePlayButton}" class="tippy-info-image" />`,
           parent: 'sampleButton',
           value: sticky.bookDetailSettings.playButton,
@@ -149,7 +212,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show cloud player button',
+          enabled: true, type: 'checkbox', label: 'Show cloud player button', icon: IconCloud,
           info: `Opens the Audible cloud player. Cannot be enabled at the same time as the sample play button. Requires being logged in to Audible.<br><img src="${BookCoverCloudPlayerButton}" class="tippy-info-image" />`,
           parent: 'cloudButton',
           value: sticky.bookDetailSettings.cloudPlayer,
@@ -169,7 +232,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show open in app button',
+          enabled: true, type: 'checkbox', label: 'Show open in app button', icon: IconAppLink,
           info: 'Shows a button on the book cover to open the book in the Audible mobile app. Only available in the standalone gallery. Cannot be enabled at the same time as the other cover buttons.',
           standalone: true,
           parent: 'appLinkButton',
@@ -190,7 +253,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show blurb on hover',
+          enabled: true, type: 'checkbox', label: 'Show blurb on hover', icon: IconBlurb,
           info: `Shows the book description as an overlay when hovering the cover. Not visible on mobile.<br><img src="${BlurbHoverCorner}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.blurb,
           event: function( e ) {
@@ -198,7 +261,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show whispersync indicator',
+          enabled: true, type: 'checkbox', label: 'Show whispersync indicator', icon: IconWhispersync,
           info: `Shows a small badge on the cover if you own a Whispersync (Kindle) version of the book.<br><img src="${CoverWhispersyncIndicator}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.whispersync,
           event: function( e ) {
@@ -206,7 +269,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show plus catalog indicator',
+          enabled: true, type: 'checkbox', label: 'Show plus catalog indicator', icon: IconPlus,
           info: `Shows a badge on the cover for books available in the Audible Plus catalog.<br><img src="${CoverPlusCalatogIndicator}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.plusCatalog,
           event: function( e ) {
@@ -214,7 +277,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show favorite indicator',
+          enabled: true, type: 'checkbox', label: 'Show favorite indicator', icon: IconHeart,
           info: `<strong>The RED dot</strong> shows on covers for books marked as favorite.<br><img src="${CoverFavoriteFinishedIndicators}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.favorite,
           event: function( e ) {
@@ -222,7 +285,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show finished indicator',
+          enabled: true, type: 'checkbox', label: 'Show finished indicator', icon: IconCheck,
           info: `<strong>The GREEN dot</strong> shows on covers for books you have finished.<br><img src="${CoverFavoriteFinishedIndicators}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.finished,
           event: function( e ) {
@@ -231,7 +294,7 @@ export default {
         },
         { type: 'sectionLabel', sectionLabel: 'Above summary' },
         {
-          enabled: true, type: 'checkbox', label: 'Prefer short title',
+          enabled: true, type: 'checkbox', label: 'Prefer short title', icon: IconShortTitle,
           info: `Displays the short title when available, with the subtitle shown below in a smaller font, similar to Audible store pages.<br><img src="${PreferShortTitle}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.titleShort,
           event: function( e ) {
@@ -254,7 +317,7 @@ export default {
           init: function() { vue.mutateChildren('sidebar', 'enabled', sticky.bookDetailSettings.sidebar.show); },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show book cover',
+          enabled: true, type: 'checkbox', label: 'Show book cover', icon: IconCover,
           info: `Shows the book cover at the top of the sidebar. Can also be toggled via the arrow button on the sidebar.<br><img src="${SidebarCover}" class="tippy-info-image" />`,
           parent: 'sidebar',
           value: !sticky.bookDetailsCollapsedCover,
@@ -264,7 +327,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show icon toolbar',
+          enabled: true, type: 'checkbox', label: 'Show icon toolbar', icon: IconToolbar,
           info: `Shows the row of action icons (share, open in Audible, etc.) in the sidebar.<br><img src="${SidebarToolbar}" class="tippy-info-image" />`,
           parent: 'sidebar',
           value: sticky.bookDetailSettings.sidebar.iconToolbar,
@@ -274,7 +337,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show main details',
+          enabled: true, type: 'checkbox', label: 'Show main details', icon: IconMainInfo,
           info: `Shows the main info block (author, narrator, series, etc.) in the sidebar. Can also be toggled via the arrow button on the sidebar.<br><img src="${SidebarMainInfo}" class="tippy-info-image" />`,
           parent: 'sidebar',
           value: !sticky.bookDetailsCollapsedDetails,
@@ -284,7 +347,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show collections list',
+          enabled: true, type: 'checkbox', label: 'Show collections list', icon: IconCollections,
           info: `Shows which collections the book belongs to, if any.<br><img src="${SidebarCollectionsList}" class="tippy-info-image" />`,
           parent: 'sidebar',
           value: sticky.bookDetailSettings.sidebar.collectionsList,
@@ -294,7 +357,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show series list',
+          enabled: true, type: 'checkbox', label: 'Show series list', icon: IconSeries,
           info: `Shows which series the book belongs to, if any.<br><img src="${SidebarSeriesList}" class="tippy-info-image" />`,
           parent: 'sidebar',
           value: sticky.bookDetailSettings.sidebar.seriesList,
@@ -306,7 +369,7 @@ export default {
 
         { type: 'sectionLabel', sectionLabel: 'Bottom' },
         {
-          enabled: true, type: 'checkbox', label: 'Show carousel',
+          enabled: true, type: 'checkbox', label: 'Show carousel', icon: IconCarousel,
           info: `Shows a carousel of related books (same series or author) at the bottom of the details view.<br><img src="${Carousel}" class="tippy-info-image" />`,
           value: sticky.bookDetailSettings.carousel,
           event: function( e ) {
@@ -327,6 +390,26 @@ export default {
 
     toggleHaptics: function( e ) {
       this.$store.commit('stickyProp', { key: 'useHaptics', value: e.target.checked });
+    },
+
+    toggleLightSwitch: function() {
+
+      this.$store.commit('stickyProp', { key: 'lightSwitch', value: this.$store.state.sticky.lightSwitch ? 0 : 1 });
+      if ( !this.$store.state.sticky.lightSwitchSetByUser ) this.$store.commit('stickyProp', { key: 'lightSwitchSetByUser', value: true });
+
+      const html = document.querySelector('html');
+      html.classList.remove('theme-light');
+      html.classList.remove('theme-dark');
+      html.classList.add( !this.$store.state.sticky.lightSwitch ? 'theme-dark' : 'theme-light' );
+
+    },
+
+    toggleViewMode: function() {
+
+      const newViewMode = this.$store.state.sticky.viewMode === 'grid' ? 'spreadsheet' : 'grid';
+      this.$store.commit('stickyProp', { key: 'viewMode', value: newViewMode });
+      this.$updateQueries({ y: null, view: newViewMode });
+
     },
 
     showPwaDialog: function() {
@@ -424,6 +507,18 @@ export default {
   gap: 10px;
   cursor: pointer;
   input { display: none; }
+}
+
+.setting-icon {
+  flex-shrink: 0;
+  width: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.95em;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), .45);
+  }
 }
 
 .setting-label {
@@ -529,8 +624,9 @@ export default {
 .pwa-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  gap: 10px;
   padding: 6px 0 10px;
+  .setting-label { flex: 1; }
 }
 
 .attribution {

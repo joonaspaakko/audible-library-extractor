@@ -44,15 +44,21 @@
     <!-- This is rendered only on the first level -->
     <div v-if="inRoot" class="menu-icon-toolbar">
       
+      <!-- Moved to global settings -->
+      <!--
       <div>
         <gallery-light-switch />
       </div>
+      -->
       <div v-if="!mobileMenuOpen">
         <gallery-search-button />
       </div>
+      <!-- Moved to global settings -->
+      <!--
       <div v-if="mobileMenuOpen">
         <gallery-view-mode-switcher :justIcon="true" v-if="$store.state.searchMounted" />
       </div>
+      -->
       <div v-if="mobileMenuOpen">
         <fa6-solid-link
         class="icon" 

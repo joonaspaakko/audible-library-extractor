@@ -85,7 +85,8 @@
         <gallery-search-options v-model:list-name="listName" v-if="listName" />
       </div> <!-- #ale-search -->
       
-      <gallery-view-mode-switcher v-if="$route.meta.gallery && $store.state.windowWidth >= 450" />
+      <!-- Moved to global settings -->
+      <!-- <gallery-view-mode-switcher v-if="$route.meta.gallery && $store.state.windowWidth >= 450" /> -->
       
     </div> <!-- #ale-search-wrap -->
 

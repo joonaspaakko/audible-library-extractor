@@ -42,12 +42,15 @@ export default {
   
   created: function() {
     
-    if ( !this.$store.state.sticky.lightSwitchSetByUser ) {
-      const html = document.querySelector('html');
-      html.classList.remove("theme-dark");
-      html.classList.add("theme-light");
-    }
-    
+    // LOAD-TIME THEME INIT
+    // moved here from the (now hidden) gallery-light-switch component, which used to
+    // apply the theme class on load. The light/dark toggle lives in global settings now.
+    this.autoLightsOff();
+    const html = document.querySelector('html');
+    html.classList.remove("theme-light");
+    html.classList.remove("theme-dark");
+    html.classList.add( !this.$store.state.sticky.lightSwitch ? "theme-dark" : "theme-light" );
+
     let vue = this;
     
     // var isbn = _.filter(this.$store.state.audibledata.books, 'isbns');
@@ -79,7 +82,17 @@ export default {
   },
 
   methods: {
-    
+
+    autoLightsOff: function() {
+      if (
+        window.matchMedia("(prefers-color-scheme)").media !== "not all" &&
+        this.$store.state.sticky.lightSwitch &&
+        !this.$store.state.sticky.lightSwitchSetByUser
+      ) {
+        this.$store.commit("stickyProp", { key: "lightSwitch", value: 0 });
+      }
+    },
+
     checkIf_iOS: function() {
       return [
         'iPad',
