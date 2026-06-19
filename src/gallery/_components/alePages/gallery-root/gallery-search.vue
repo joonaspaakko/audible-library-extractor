@@ -147,13 +147,14 @@ export default {
 
       // Autosuggest menu state. Completes the plain word under the caret (the '@field'
       // menu, separate below, takes priority when the caret sits on an '@field' token).
-      // 'items' is the suggested words, 'index' the keyboard-highlighted row, 'typed' the
-      // fragment being completed, and 'start'/'end' the slice of the query that word
-      // occupies (so accepting splices the full suggestion in its place).
+      // 'items' is the suggested words, 'index' the keyboard-highlighted row (-1 means
+      // nothing highlighted, so Enter runs the typed query instead of accepting a row),
+      // 'typed' the fragment being completed, and 'start'/'end' the slice of the query
+      // that word occupies (so accepting splices the full suggestion in its place).
       suggestMenu: {
         open: false,
         items: [],
-        index: 0,
+        index: -1,
         typed: '',
         start: 0,
         end: 0,
@@ -510,7 +511,8 @@ export default {
 
       const count = this.suggestMenu.items.length;
 
-      // Move the highlight.
+      // Move the highlight. From the unselected state (-1), ArrowDown lands on the first
+      // row and ArrowUp on the last.
       if ( e.key === 'ArrowDown' ) {
         e.preventDefault();
         this.suggestMenu.index = ( this.suggestMenu.index + 1 ) % count;
@@ -518,13 +520,18 @@ export default {
       }
       if ( e.key === 'ArrowUp' ) {
         e.preventDefault();
-        this.suggestMenu.index = ( this.suggestMenu.index - 1 + count ) % count;
+        // -1 wraps to the last row, not second-to-last.
+        const from = this.suggestMenu.index < 0 ? count : this.suggestMenu.index;
+        this.suggestMenu.index = ( from - 1 + count ) % count;
         return;
       }
       // Accept the highlighted word. Flag the accept so the keyup-Enter handler does not
       // also blur the input: accepting keeps focus (caret after the inserted word) so the
       // user can keep typing, unlike a plain Enter which blurs to dismiss the keyboard.
+      // With nothing highlighted, let Enter/Tab fall through so the typed query runs (and
+      // Enter blurs to dismiss the keyboard on mobile) instead of forcing a suggestion.
       if ( e.key === 'Enter' || e.key === 'Tab' ) {
+        if ( this.suggestMenu.index < 0 ) return;
         e.preventDefault();
         if ( e.key === 'Enter' ) this.suggestAcceptedEnter = true;
         this.acceptSuggestion( this.suggestMenu.items[ this.suggestMenu.index ].value );
@@ -733,13 +740,15 @@ export default {
       );
       if ( !result || !result.suggestions.length ) return this.closeSuggestMenu();
 
-      // Keep the highlight in range when the list shrinks under the cursor.
+      // Nothing is highlighted by default (-1) so Enter runs the typed query rather than
+      // forcing a suggestion. Once the user has navigated to a row, keep that highlight in
+      // range when the list shrinks under the cursor.
       const index = Math.min( this.suggestMenu.index, result.suggestions.length - 1 );
 
       this.suggestMenu = {
         open: true,
         items: result.suggestions,
-        index: index < 0 ? 0 : index,
+        index: index,
         typed: result.typed,
         start: result.start,
         end: result.end,
