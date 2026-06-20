@@ -10,10 +10,8 @@
     "build": "gallerySingleFile=true yarn vite build && wallpaperSingleFile=true yarn vite build && yarn vite build && node zipper.js",
     "build1": "yarn vite build",
     "preview": "yarn vite preview --port 4173",
-
     "─────── shuffle build ───────": "true",
     "shuffle-build": "standaloneShuffle=1 yarn vite build --watch",
-
     "─────── ghpages test server ───────": "true",
     "ghpages": "node gh-pages-test/unzip-gallery.js && node gh-pages-test/server.js",
     "ghpages:serve": "node gh-pages-test/server.js",
@@ -21,7 +19,6 @@
     "ghpages:fresh": "node gh-pages-test/unzip-gallery.js && node gh-pages-test/server.js --fresh",
     "ghpages:unzip": "node gh-pages-test/unzip-gallery.js",
     "ghpages:shuffle-test": "trap 'kill 0' INT TERM EXIT; yarn shuffle-build & yarn ghpages:watch & wait",
-
     "─────── utils ───────": "true",
     "clean-install": "rm -rf node_modules yarn.lock && yarn install",
     "backup-lock": "cp yarn.lock yarn.lock.backup"
@@ -32,6 +29,7 @@
     "@panzoom/panzoom": "^4.5.1",
     "@splidejs/vue-splide": "^0.6.12",
     "@supabase/supabase-js": "^2.104.1",
+    "@tanstack/vue-virtual": "^3.13.29",
     "@vueform/multiselect": "^2.5.6",
     "async-es": "^3.2.4",
     "axios": "^1.17.0",

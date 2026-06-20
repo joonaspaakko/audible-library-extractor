@@ -22,7 +22,8 @@
       <div :style="galleryStyle">
         <gallery-grid-view @vue:mounted="gridViewMounted" @vue:beforeUnmount="viewsbeforeUnmount" v-if="$store.state.sticky.viewMode === 'grid'" />
         <gallery-list-view @vue:mounted="listViewMounted" @vue:beforeUnmount="viewsbeforeUnmount" v-else-if="$store.state.sticky.viewMode === 'spreadsheet'" />
-        <gallery-book-details v-if="mountedChildren && $route.query.book" :key="$route.query.book" :asin="$route.query.book" />
+        <!-- Spreadsheet renders book details in-flow itself (virtualized). Grid still renders it here until it is virtualized. -->
+        <gallery-book-details v-if="mountedChildren && $route.query.book && $store.state.sticky.viewMode === 'grid'" :key="$route.query.book" :asin="$route.query.book" />
       </div>
     </div>
     <div v-else-if="errorMessage" id="nothing-here-404">
@@ -146,7 +147,11 @@ export default {
   
   watch: {
     '$store.getters.collection': function() {
-      
+
+      // The list view is virtualized and reads getters.collection directly,
+      // so the chunk system is only needed for the (still chunk-based) grid view.
+      if ( this.$store.state.sticky.viewMode !== 'grid' ) return;
+
       this.$store.commit("chunkCollectionReset");
       
       // if ( this.pageLoadBook && this.$route.name === 'series' ) {
@@ -274,16 +279,16 @@ export default {
     },
     listViewMounted: function() {
       
-      this.scrollContainer = document.querySelector('.list-view-inner-wrap');
-      this.scrollContainer.removeEventListener('scroll', this.addDomItems);
-      this.scrollContainer.addEventListener('scroll', this.addDomItems, { passive: true });
-      
-      this.childrenMounted();
+      // The list view is virtualized and owns its own scroll save/restore.
+      // It just needs mountedChildren flipped so book details can render.
+      this.$nextTick(function() {
+        this.mountedChildren = true;
+      });
       
     },
     viewsbeforeUnmount: function() {
       
-      this.scrollContainer.removeEventListener('scroll', this.addDomItems);
+      if ( this.scrollContainer ) this.scrollContainer.removeEventListener('scroll', this.addDomItems);
       this.mountedChildren = false;
       
     },
@@ -291,9 +296,9 @@ export default {
     addDomItems: _.throttle( function(e) {
       if ( this.$store.state.lazyScroll ) {
         
-        const gridView = this.$store.state.sticky.viewMode === 'grid';
-        let bottomOffset = gridView ? 550 + (window.innerHeight/2) : (this.scrollContainer.clientHeight/3);
-        let container = gridView ? document.documentElement : this.scrollContainer;
+        // Grid view only: the list view is virtualized and handles its own scrolling.
+        let container = document.documentElement;
+        let bottomOffset = 550 + (window.innerHeight/2);
         let atTheBottom = container.scrollTop + (container.innerHeight || container.clientHeight) + bottomOffset >= container.scrollHeight;
         
         // At the bottom of currently rendered chunk

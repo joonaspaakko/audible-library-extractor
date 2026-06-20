@@ -5,28 +5,34 @@ ref="listView"
 :style="{ top: spreadsheetTop + 'px' }"
 >
 
-  <div class="list-view-inner-wrap">
+  <div class="list-view-inner-wrap" ref="scrollWrap">
     <table>
       <thead>
         <gallery-header :keys="keys"></gallery-header>
       </thead>
       <tbody>
-        
-        <!-- :class="{ 'details-open': detailsBook && detailsBook.asin === book.asin }" -->
-        <gallery-lazy
-          v-for="(book, index) in $store.state.chunkCollection"
-          class="ale-row"
-          :data-asin="book.asin"
-          :key="'book:'+book.asin"
-          ref="domBooks"
-        >
+
+        <tr v-if="paddingTop" class="virtual-spacer" :style="{ height: paddingTop + 'px' }" aria-hidden="true"></tr>
+
+        <template v-for="row in virtualRows" :key="'book:'+ collection[ row.index ].asin">
           <gallery-row
-            :book="book"
-            :rowIndex="index"
+            class="ale-row mounted"
+            :class="{ odd: row.index % 2, 'details-open': openIndex === row.index }"
+            :data-asin="collection[ row.index ].asin"
+            :book="collection[ row.index ]"
+            :rowIndex="row.index"
             :keys="keys"
           ></gallery-row>
-        </gallery-lazy>
-        
+          <!-- Book details rendered in-flow at the open row, inside the gap the virtualizer reserves for it -->
+          <tr v-if="openIndex === row.index && $route.query.book" class="details-gap-row">
+            <td :colspan="keys.length">
+              <gallery-book-details :key="$route.query.book" :asin="$route.query.book" />
+            </td>
+          </tr>
+        </template>
+
+        <tr v-if="paddingBottom" class="virtual-spacer" :style="{ height: paddingBottom + 'px' }" aria-hidden="true"></tr>
+
       </tbody>
     </table>
   </div>
@@ -35,25 +41,94 @@ ref="listView"
 </template>
 
 <script>
+import { useVirtualizer } from "@tanstack/vue-virtual";
+import { useStore } from "vuex";
+import { useRoute } from "vue-router";
+import { computed, shallowRef } from "vue";
+import bookDetails from "@output-pages/gallery-root/gallery-grid-view/gallery-book-details.vue";
 import loaderLight from "@output-images/gallery-table-loader-light.gif";
 import loaderDark  from "@output-images/gallery-table-loader-dark.gif";
 import stringifyArray from "@output-mixins/gallery-stringifyArray.js";
 import prepareKeys from "@output-mixins/gallery-prepareKeys.js";
 
+// FIXED ROW HEIGHT
+// keep in sync with .ale-row height in the styles below
+const ROW_HEIGHT = 28;
+
 export default {
   name: "aleBooks",
+  components: { galleryBookDetails: bookDetails },
   mixins: [stringifyArray, prepareKeys],
+
+  setup: function() {
+
+    const store = useStore();
+    const scrollWrap = shallowRef( null );
+
+    // The full sorted/filtered list the virtualizer iterates
+    const collection = computed(function() {
+      return store.getters.collection;
+    });
+
+    // The open book's row index (derived reactively from the route + collection,
+    // so it resolves correctly no matter the order collection/route settle) and
+    // the panel height to reserve after it (reported by the panel's ResizeObserver).
+    const route = useRoute();
+    const openIndex = computed(function() {
+      const asin = route.query.book;
+      if ( !asin ) return -1;
+      return _.findIndex( collection.value, { asin: asin } );
+    });
+    const gapHeight = computed(function() { return store.state.openDetails.gapHeight; });
+
+    const virtualizerOptions = computed(function() {
+      // Referenced so the size function recomputes when the open row / gap changes
+      const open = openIndex.value;
+      const gap = gapHeight.value;
+      return {
+        count: collection.value.length,
+        getScrollElement: function() { return scrollWrap.value; },
+        estimateSize: function( index ) {
+          return index === open ? ROW_HEIGHT + gap : ROW_HEIGHT;
+        },
+        overscan: 8,
+      };
+    });
+
+    const virtualizer = useVirtualizer( virtualizerOptions );
+
+    const virtualRows = computed(function() { return virtualizer.value.getVirtualItems(); });
+    const paddingTop = computed(function() {
+      const rows = virtualRows.value;
+      return rows.length ? rows[ 0 ].start : 0;
+    });
+    const paddingBottom = computed(function() {
+      const rows = virtualRows.value;
+      return rows.length ? virtualizer.value.getTotalSize() - rows[ rows.length - 1 ].end : 0;
+    });
+
+    return { scrollWrap, collection, virtualizer, virtualRows, paddingTop, paddingBottom, openIndex };
+
+  },
+
   data: function() {
     return {
       spreadsheetTop: 170,
       keys: "",
-      prevScrollTop: 0,
+      restoringScroll: false,
     };
   },
   
   watch: {
     '$store.state.desktopPlayerHeight'() {
       this.setSpreadsheetOffset();
+    },
+    '$route.query.book': function( asin ) {
+      this.syncOpenDetails( asin );
+    },
+    '$store.state.openDetails.gapHeight': function() {
+      // Panel changed height: recompute virtual offsets so rows below shift to match.
+      this.virtualizer.measure();
     },
   },
 
@@ -64,9 +139,17 @@ export default {
   mounted: function() {
     this.setSpreadsheetOffset();
     this.$compEmitter.on('afterWindowResize', this.setSpreadsheetOffset);
+
+    this.$nextTick(function() {
+      this.restoreScrollPosition();
+      this.syncOpenDetails( this.$route.query.book );
+      this.scrollWrap.addEventListener('scroll', this.saveScrollPosition, { passive: true });
+    });
   },
   beforeUnmount: function() {
     this.$compEmitter.off('afterWindowResize', this.setSpreadsheetOffset);
+    if ( this.scrollWrap ) this.scrollWrap.removeEventListener('scroll', this.saveScrollPosition);
+    this.$store.commit('prop', { key: 'openDetails', value: { index: -1, gapHeight: 0 } });
   },
 
   methods: {
@@ -81,7 +164,56 @@ export default {
         
       });
     },
-    
+
+    // SCROLL RESTORE
+    // book details takes precedence: scroll to the open book, otherwise restore the saved row
+    restoreScrollPosition: function() {
+
+      // Suppress save while the programmatic restore scroll settles
+      this.restoringScroll = true;
+      const vue = this;
+      setTimeout(function() { vue.restoringScroll = false; }, 250);
+
+      const bookParam = this.$route.query.book;
+      if ( bookParam ) {
+        const bookIndex = _.findIndex( this.collection, { asin: bookParam } );
+        if ( bookIndex > -1 ) this.virtualizer.scrollToIndex( bookIndex, { align: 'center' } );
+        return;
+      }
+
+      const row = this.$route.query.row ? parseInt( this.$route.query.row, 10 ) : 0;
+      if ( row > 0 ) this.virtualizer.scrollToIndex( row, { align: 'start' } );
+
+    },
+
+    saveScrollPosition: _.throttle( function() {
+      if ( !this.$store.state.lazyScroll ) return;
+      // Ignore the programmatic scroll triggered by restore, so it doesn't write
+      // a transient position back over the value we just restored.
+      if ( this.restoringScroll ) return;
+      // The row actually at the top of the viewport (not the first overscan row,
+      // which sits above it - using that would drift the saved index upward on
+      // every save/restore cycle).
+      const scrollTop = this.scrollWrap ? this.scrollWrap.scrollTop : 0;
+      const topItem = this.virtualizer.getVirtualItemForOffset( scrollTop );
+      const topRow = topItem ? topItem.index : 0;
+      this.$updateQueries({ row: topRow || null });
+    }, 450, { leading: false, trailing: true }),
+
+    // OPEN DETAILS
+    // openIndex is derived reactively (computed) from the route + collection.
+    // Here we just reset the reserved gap and scroll the open row into view so
+    // the panel mounts where it can measure itself (ResizeObserver reports height back).
+    syncOpenDetails: function( asin ) {
+
+      // Reset the gap; the panel re-measures and reports its real height
+      this.$store.commit('prop', { key: 'openDetails', value: { index: this.openIndex, gapHeight: 0 } });
+
+      if ( !asin ) return;
+      if ( this.openIndex > -1 ) this.virtualizer.scrollToIndex( this.openIndex, { align: 'start' } );
+
+    },
+
   }
 };
 </script>
@@ -142,6 +274,22 @@ export default {
     position: sticky;
     left: 0px;
     z-index: 2;
+  }
+
+  // Virtual scroller spacer rows (top/bottom of the rendered window)
+  .virtual-spacer {
+    padding: 0;
+    border: none;
+  }
+
+  // In-flow book-details gap row: the panel breaks out to full width itself,
+  // so this row/cell must impose no table width, border, or background.
+  .details-gap-row,
+  .details-gap-row > td {
+    padding: 0;
+    border: none;
+    background: none !important;
+    width: auto;
   }
 
   .ale-row {
@@ -286,7 +434,7 @@ export default {
       background: #fff;
     }
     color: color.adjust($lightFrontColor, $lightness: -2%);
-    &:nth-child(odd) .ale-col {
+    &.odd .ale-col {
       background: #f8f8f8;
     }
     &:hover .ale-col {
@@ -327,7 +475,7 @@ export default {
       background: #15171a;
     }
     color: color.adjust($darkFrontColor, $lightness: -10%);
-    &:nth-child(odd) .ale-col {
+    &.odd .ale-col {
       background: color.adjust(#15171a, $lightness: 2%);
     }
     &:hover .ale-col {

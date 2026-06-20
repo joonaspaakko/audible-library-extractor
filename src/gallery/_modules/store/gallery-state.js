@@ -89,6 +89,13 @@ export default {
     book: null,
     index: -1,
   },
+  // Open book-details panel coordination for the virtualized views:
+  // index = the open book's index in getters.collection, gapHeight = the panel's
+  // measured height so the virtualizer can reserve space for it at that row.
+  openDetails: {
+    index: -1,
+    gapHeight: 0,
+  },
   searchOptOpenHeight: null,
   devMode: import.meta.env.MODE === 'development',
   lazyScroll: true,

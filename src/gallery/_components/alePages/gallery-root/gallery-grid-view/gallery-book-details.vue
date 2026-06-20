@@ -171,6 +171,7 @@ export default {
       firstClientX: 0,
       firstClientY: 0,
       animate_detailLinksToAudible: true,
+      panelObserver: null,
     };
   },
   
@@ -188,10 +189,12 @@ export default {
   },
 
   created: function() {
-    
-    this.index = _.findIndex( this.$store.state.chunkCollection, { asin: this.asin });
-    this.book = this.$store.state.chunkCollection[this.index];
-    
+
+    // Index into the full sorted collection. The views are virtualized, so we
+    // can no longer rely on chunkCollection (only a window of it is in the DOM).
+    this.index = _.findIndex( this.$store.getters.collection, { asin: this.asin });
+    this.book = this.$store.getters.collection[this.index];
+
     this.loadJSON();
     
   },
@@ -206,7 +209,9 @@ export default {
       this.$store.commit('prop', { key: 'timeStamp', value: new Date().getTime() });
       this.$compEmitter.on("afterWindowResize", this.onWindowResize);
       this.loading = false;
-      
+
+      this.observePanelHeight();
+
       this.scrollToCarousel();
       this.scrollToMyBooksInTheSeries();
       
@@ -224,10 +229,14 @@ export default {
     // this.closeBookDetails();
     
     this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
-    
-    const bookDetailsEl = document.querySelector('#ale-bookdetails');
-    if ( bookDetailsEl ) bookDetailsEl.remove();
-    
+
+    // The panel is now rendered in-flow by the view, so Vue owns its teardown.
+    // (Previously it was insertBefore'd outside Vue and had to be removed by hand.)
+    if ( this.panelObserver ) {
+      this.panelObserver.disconnect();
+      this.panelObserver = null;
+    }
+
     // window.removeEventListener('touchstart', this.touchStart);
     // window.removeEventListener('touchmove', this.preventTouch, {passive: false});
       
@@ -332,51 +341,52 @@ export default {
       });
     },
 
+    // Watch the panel's live height and feed it into the store so the virtualized
+    // view can reserve a matching gap. One observer catches every cause of a height
+    // change (summary/sidebar/series/settings collapse-expand, image loads, reflow).
+    observePanelHeight: function() {
+
+      const el = this.$refs.bookDetails;
+      if ( !el || typeof ResizeObserver === 'undefined' ) return;
+
+      let frame = null;
+      const vue = this;
+      this.panelObserver = new ResizeObserver(function() {
+        if ( frame ) return;
+        frame = requestAnimationFrame(function() {
+          frame = null;
+          const height = el.getBoundingClientRect().height;
+          const current = vue.$store.state.openDetails;
+          if ( Math.round(current.gapHeight) === Math.round(height) ) return;
+          vue.$store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
+        });
+      });
+      this.panelObserver.observe( el );
+
+    },
+
     repositionBookDetails: function() {
-      
-      const gridView = document.querySelector(".ale-books");
-      const domBooks = gridView.querySelector(".ale-book") ? gridView.querySelectorAll(".ale-book") : gridView.querySelector('table tbody').querySelectorAll(".ale-row");
 
-      const target = {};
-      
-      target.el = domBooks[this.index];
-      target.index = this.index;
-      target.width = target.el.getBoundingClientRect().width;
-      target.siblings = domBooks; // + target.el
+      // The panel is rendered in-flow by the view at the open row's reserved gap,
+      // so we no longer move it around the DOM. This only computes the inner-wrap
+      // max-width and re-aims the arrow at the clicked cover.
 
-      const wrapper = {};
-      wrapper.el = gridView;
-      wrapper.width = wrapper.el.getBoundingClientRect().width;
-      const info = {};
-      info.cols = Math.floor(wrapper.width / target.width) || 1;
-      
-      if (info.cols < 2) {
-        info.rowEndEl = target.el;
-      } else {
-        info.currentRow = Math.floor(target.index / info.cols) + 1;
-        info.rowEnd = info.currentRow * info.cols;
-        // Rolls back if the last element is not at the end of the row
-        info.getRowEndEl = function(index) {
-          let el = target.siblings[index];
-          if (!el) {
-            el = info.getRowEndEl(--index);
-          }
-          return el;
-        };
-        info.rowEndEl = info.getRowEndEl(info.rowEnd - 1);
+      const wrapperEl = document.querySelector(".ale-books");
+      const wrapperWidth = wrapperEl ? wrapperEl.getBoundingClientRect().width : 0;
+
+      // Spreadsheet: panel spans the table width (minus padding).
+      if ( this.sticky.viewMode === 'spreadsheet' ) {
+        return wrapperWidth - 60;
       }
-      
-      let lastRowEndEl = document.querySelector('.target-row-end');
-      if ( lastRowEndEl ) lastRowEndEl.classList.remove('target-row-end');
-      info.rowEndEl.classList.add("target-row-end");
-      info.rowEndEl.parentNode.insertBefore(
-        this.$refs.bookDetails,
-        info.rowEndEl.nextSibling
-      );
 
-      if ( this.sticky.viewMode !== 'spreadsheet' ) this.repositionBookDetailsArrow(target.el);
-      
-      return (this.sticky.viewMode === 'spreadsheet') ? wrapper.width-60 : (target.width * info.cols);
+      // Grid: panel inner-wrap spans the full row of covers (cols * cellWidth).
+      const target = this.clickedBook;
+      const cellWidth = target ? target.getBoundingClientRect().width : 0;
+      const cols = cellWidth ? ( Math.floor(wrapperWidth / cellWidth) || 1 ) : 1;
+
+      if ( target ) this.repositionBookDetailsArrow(target);
+
+      return cellWidth * cols;
     },
 
     repositionBookDetailsArrow: function(clickedEl) {
@@ -426,21 +436,14 @@ export default {
     }, 70, { leading: false, trailing: true }),
     
     keyboardMove( direction ) {
-      
+
+      const collection = this.$store.getters.collection;
       const prev = direction === 'prev';
       const nextIndex = prev ? this.index-1 : this.index+1;
-      const nextBook = this.store.chunkCollection[ nextIndex ];
-      const condition = prev ? (nextIndex > -1) : (nextIndex < this.store.chunkCollection.length);
+      const nextBook = collection[ nextIndex ];
+      const condition = prev ? (nextIndex > -1) : (nextIndex < collection.length);
       if ( condition ) {
-        if ( !prev && (nextIndex > this.store.chunkCollection.length-2) ) {
-          this.$store.commit('chunkCollectionAdd');
-          this.$nextTick(function() {
-            this.$compEmitter.emit("book-clicked", nextBook.asin);
-          });
-        }
-        else {
-          this.$compEmitter.emit("book-clicked", nextBook.asin);
-        }
+        this.$compEmitter.emit("book-clicked", nextBook.asin);
       }
       
     },
@@ -462,6 +465,8 @@ export default {
       // const currentRowLast = (currentRow*cols)-1;
       // const previousRowLast = ((currentRow-1)*cols)-1;
       
+      const collection = vue.$store.getters.collection;
+
       const getVerticalIndex = function() {
         
         const direction = e.srcKey;
@@ -472,7 +477,7 @@ export default {
         }
         else {
           index = vue.index + cols;
-          const booksLength = vue.store.chunkCollection.length-1;
+          const booksLength = collection.length-1;
           if ( index > booksLength ) index = booksLength;
         }
         return index;
@@ -482,22 +487,14 @@ export default {
       // this.closeBookDetails();
       
       const nextIndex = getVerticalIndex();
-      const nextBook = vue.store.chunkCollection[ nextIndex ];
-      const lastIndex = this.store.chunkCollection.length-1;
-      const condition = e.srcKey === 'up' ? 
-                        !(vue.index === 0 && nextIndex == 0) : 
+      const nextBook = collection[ nextIndex ];
+      const lastIndex = collection.length-1;
+      const condition = e.srcKey === 'up' ?
+                        !(vue.index === 0 && nextIndex == 0) :
                         !(vue.index === lastIndex && nextIndex === lastIndex);
       
       if ( condition ) {
-        if ( e.srcKey === 'down' && (nextIndex > vue.store.chunkCollection.length-2) ) {
-          this.$store.commit('chunkCollectionAdd');
-          this.$nextTick(function() {
-            this.$compEmitter.emit("book-clicked", nextBook.asin);
-          });
-        }
-        else {
-          this.$compEmitter.emit("book-clicked", nextBook.asin);
-        }
+        this.$compEmitter.emit("book-clicked", nextBook.asin);
       }
       
     },
