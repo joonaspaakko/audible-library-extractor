@@ -119,6 +119,9 @@ else {
 import vuexPrep from '@output-modules/gallery-vuex-prep.js';
 
 function startVue( libraryData ) {
+
+  // Strip cache-bust query param added by the upload link before the router initializes
+  if ( location.search ) history.replaceState( null, '', location.pathname + location.hash );
   
   let standaloneRouteData;
   _.set(libraryData, 'extras.pages', {});

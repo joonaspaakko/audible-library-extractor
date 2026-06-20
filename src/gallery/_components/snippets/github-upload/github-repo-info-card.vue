@@ -4,7 +4,7 @@
     <!-- PAGES LINK -->
     <a
       v-if="repoInfo.pagesUrl"
-      :href="`${repoInfo.pagesUrl.replace(/\/$/, '')}/#/${hashRoute}`"
+      :href="`${repoInfo.pagesUrl.replace(/\/$/, '')}/?v=${new Date(repoInfo.pushedAt).getTime()}#/${hashRoute}`"
       target="_blank"
       class="pages-url-prominent"
     >
