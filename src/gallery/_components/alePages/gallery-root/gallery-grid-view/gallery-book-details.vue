@@ -289,10 +289,11 @@ export default {
           // The clicked cover/row can be virtualized out momentarily; bail rather than throw.
           if ( !this.clickedBook ) return;
 
-          // Grid view
-          if ( this.sticky.viewMode !== 'grid' ) {
-            document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 45 });
-          }
+          // Spreadsheet: the list view already scrolls the open row into view via
+          // virtualizer.scrollToIndex when the book opens. Running another scroll here
+          // on every panel mount (which happens when the row scrolls back into the
+          // virtual window) causes a jarring jump.
+          if ( this.sticky.viewMode !== 'grid' ) return;
 
         });
       });
@@ -346,11 +347,21 @@ export default {
         if ( frame ) return;
         frame = requestAnimationFrame(function() {
           frame = null;
-          const height = el.getBoundingClientRect().height;
+          const box = el.getBoundingClientRect();
+          const height = box.height;
           // Ignore ~0 measurements (e.g. while the panel is detached/unmounting as
           // its row scrolls out of the virtual window) so the reserved gap doesn't
           // collapse and yank the scroll. The real reset happens on close.
           if ( height < 1 ) return;
+          // Only react to height changes while the panel is actually within the
+          // viewport. When its row is scrolled out of the virtual window the panel
+          // unmounts and remounts, reporting transient (partly-settled) heights as it
+          // re-renders. Feeding those into the reserved gap shrinks then re-grows it,
+          // which shifts the rows below across the overscan boundary and bounces the
+          // scroll back and forth in a narrow zone a few rows past book-details.
+          // Offscreen, the last good gap already holds the right space, so leave it.
+          const inViewport = box.bottom > 0 && box.top < window.innerHeight;
+          if ( !inViewport ) return;
           const current = vue.$store.state.openDetails;
           if ( Math.round(current.gapHeight) === Math.round(height) ) return;
           vue.$store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
