@@ -3,38 +3,53 @@
 
     <gallery-search collectionSource="pageCollection"></gallery-search>
 
-    <div :style="galleryStyle" class="page-content">
-      <gallery-lazy
-        v-for="item in $store.getters.collection"
-        class="single-box"
-        :data-id="item.asin || item.name"
-        :key="config.pageId + ':' + ( item.asin || item.name )"
-      >
-        <router-link :to="itemRoute( item )">
+    <div :style="galleryStyle" class="page-content" ref="pageContent">
 
-          <h2>{{ item.name }}</h2>
+      <div v-if="paddingTop" class="virtual-spacer" :style="{ height: paddingTop + 'px' }" aria-hidden="true"></div>
+
+      <div
+        v-for="vItem in virtualRows"
+        :key="config.pageId + ':' + ( collection[ vItem.index ].asin || collection[ vItem.index ].name )"
+        class="single-box"
+        :data-index="vItem.index"
+        :data-id="collection[ vItem.index ].asin || collection[ vItem.index ].name"
+        :ref="measureElement"
+      >
+        <router-link :to="itemRoute( collection[ vItem.index ] )">
+
+          <h2>{{ collection[ vItem.index ].name }}</h2>
 
           <div
             class="books-total"
             :class="{ 'books-total--borderless': config.booksTotalBorderless }"
-            v-if="item.books && item.books.length"
+            v-if="collection[ vItem.index ].books && collection[ vItem.index ].books.length"
             :content="config.booksTotalTippy"
             v-tippy="{ placement: 'right' }"
-            v-html="config.booksTotalContent( item )"
+            v-html="config.booksTotalContent( collection[ vItem.index ] )"
           ></div>
 
         </router-link>
-      </gallery-lazy>
+      </div>
+
+      <div v-if="paddingBottom" class="virtual-spacer" :style="{ height: paddingBottom + 'px' }" aria-hidden="true"></div>
+
     </div>
 
   </div>
 </template>
 
 <script>
+import { useWindowVirtualizer } from "@tanstack/vue-virtual";
+import { useStore } from "vuex";
+import { computed, shallowRef, ref } from "vue";
 import findSubPageSource from "@output-mixins/gallery-findSubPageSource.js";
 import slugify from "@output-mixins/gallery-slugify.js";
 import { defaultConfig } from "@output-pages/subPages/gallery-sub-page-configs.js";
 
+// FALLBACK BOX HEIGHT
+// only an initial estimate; real heights are measured per box (names wrap to
+// 1-3 lines), so the virtualizer corrects this as boxes render.
+const BOX_HEIGHT = 75;
 
 export default {
   name: "GallerySubPage",
@@ -47,10 +62,81 @@ export default {
     },
   },
 
+  setup: function() {
+
+    const store = useStore();
+    const pageContent = shallowRef( null );
+
+    // The full sorted/filtered list the virtualizer iterates
+    const collection = computed(function() {
+      return store.getters.collection;
+    });
+
+    // Distance from the document top to the box list (the window virtualizer
+    // measures offsets in document space, so it needs this). Set on mount/resize.
+    const scrollMargin = ref( 0 );
+
+    const virtualizerOptions = computed(function() {
+      return {
+        count: collection.value.length,
+        estimateSize: function() { return BOX_HEIGHT; },
+        overscan: 6,
+        scrollMargin: scrollMargin.value,
+        // Boxes are spaced with margin-top, which getBoundingClientRect (and the
+        // default measureElement) does not include. Measuring height alone would
+        // leave that gap uncounted and drift the layout downward, so fold the
+        // vertical margins into each item's measured size.
+        measureElement: function( el ) {
+          const style = window.getComputedStyle( el );
+          const margins = parseFloat( style.marginTop ) + parseFloat( style.marginBottom );
+          return el.getBoundingClientRect().height + margins;
+        },
+      };
+    });
+
+    const virtualizer = useWindowVirtualizer( virtualizerOptions );
+
+    // Per-box measurement so wrapped names (1-3 lines) reserve their real height
+    const measureElement = function( el ) {
+      if ( el ) virtualizer.value.measureElement( el );
+    };
+
+    const virtualRows = computed(function() { return virtualizer.value.getVirtualItems(); });
+    // Spacers are relative to the container, so subtract scrollMargin from the
+    // document-space offsets the window virtualizer reports.
+    const paddingTop = computed(function() {
+      const r = virtualRows.value;
+      return r.length ? Math.max( 0, r[ 0 ].start - scrollMargin.value ) : 0;
+    });
+    const paddingBottom = computed(function() {
+      const r = virtualRows.value;
+      if ( !r.length ) return 0;
+      return Math.max( 0, virtualizer.value.getTotalSize() - r[ r.length - 1 ].end );
+    });
+
+    return { store, pageContent, collection, scrollMargin, virtualizer, measureElement, virtualRows, paddingTop, paddingBottom };
+
+  },
+
   data: function () {
     return {
       listReady: false,
     };
+  },
+
+  watch: {
+    // Sort/filter/search rebuilds the collection: heights change, so re-measure
+    // the list position and reset the virtualizer's cached measurements.
+    '$store.getters.collection': function() {
+      this.$nextTick( this.measureSubPage );
+    },
+  },
+
+  mounted: function() {
+    this.$compEmitter.on('afterWindowResize', this.measureSubPage);
+  },
+  beforeUnmount: function() {
+    this.$compEmitter.off('afterWindowResize', this.measureSubPage);
   },
 
   computed: {
@@ -138,6 +224,21 @@ export default {
       this.$store.commit( "prop", { key: "pageCollection", value: result } );
       this.updateListRenderingOptions();
       this.listReady = true;
+      this.$nextTick( this.measureSubPage );
+    },
+
+    // LIST METRICS
+    // The window virtualizer reports offsets in document space, so it needs the
+    // box list's distance from the document top (scrollMargin). Re-measure on
+    // mount, resize, and collection changes, then let it re-measure offsets.
+    measureSubPage: function () {
+
+      const list = this.pageContent;
+      if ( !list ) return;
+
+      this.scrollMargin = list.getBoundingClientRect().top + window.scrollY;
+      this.virtualizer.measure();
+
     },
 
     updateListRenderingOptions: function () {
@@ -187,6 +288,17 @@ export default {
 <style lang="scss" scoped>
 
 @use "@gallery/box-layout.scss" as *;
+
+// Virtual scroller spacers (top/bottom of the rendered window). Height only,
+// no box-layout styling so they reserve space without showing.
+.virtual-spacer {
+  width: 100%;
+  background: none;
+  border: none;
+  box-shadow: none;
+  margin: 0;
+  padding: 0;
+}
 
 .single-box {
   min-height: 35px !important;
