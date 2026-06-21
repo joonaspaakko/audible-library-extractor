@@ -39,7 +39,9 @@
       <gallery-categories-page-tags v-if="parent.books" :parent="parent" :books="parent.books" :subPageSource="subPageSource" :parentCategoryIndex="parentCategoryIndex" />
 
     </div> <!-- .single-box -->
-    
+
+    <gallery-segment-rail target="window" :fixed="true" />
+
   </div>
 </template>
 

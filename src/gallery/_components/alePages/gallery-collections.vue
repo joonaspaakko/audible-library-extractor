@@ -60,6 +60,7 @@
 
     </div>
 
+    <gallery-segment-rail target="window" :fixed="true" />
 
   </div>
 </template>

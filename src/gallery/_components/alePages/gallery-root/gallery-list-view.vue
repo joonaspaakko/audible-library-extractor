@@ -5,6 +5,9 @@ ref="listView"
 :style="{ top: spreadsheetTop + 'px' }"
 >
 
+  <!-- Position jump rail (inner-container scrolled). -->
+  <gallery-segment-rail target=".list-view-inner-wrap" />
+
   <div class="list-view-inner-wrap" ref="scrollWrap">
     <table>
       <thead>
