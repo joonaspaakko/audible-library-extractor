@@ -48,6 +48,36 @@
         </label>
       </div>
 
+      <!-- Grid covers per row, via the grid's max width (grid view only) -->
+      <div class="setting-row" v-if="$store.state.searchMounted && $store.state.sticky.viewMode === 'grid' && coversPerRowMax > coversPerRowMin">
+        <div class="setting-label-wrap covers-per-row-row">
+          <div class="setting-icon">
+            <ep-grid />
+          </div>
+          <div class="setting-label">
+            <span>Covers per row</span>
+          </div>
+          <div class="covers-per-row-value" :class="{ auto: !$store.state.sticky.gridMaxWidth }">
+            {{ coversPerRowCurrent }}
+          </div>
+          <button
+            class="covers-per-row-auto"
+            :class="{ active: !$store.state.sticky.gridMaxWidth }"
+            @click="setGridWidth( null )"
+            @mousedown="$haptic(1)"
+          >Default</button>
+        </div>
+        <input
+          class="covers-per-row-slider"
+          type="range"
+          :min="coversPerRowMin"
+          :max="coversPerRowMax"
+          :value="coversPerRowCurrent"
+          @input="setCoversPerRow( parseInt( $event.target.value, 10 ) )"
+          @mousedown="$haptic(1)"
+        >
+      </div>
+
     </div>
 
     <!-- Miscellaneous -->
@@ -386,7 +416,43 @@ export default {
     _.each(hasInits, s => s.init(s));
   },
 
+  computed: {
+
+    // The covers-per-row slider works in whole covers. Its range runs from however
+    // many fit at the grid's default width up to however many fit across the
+    // viewport (minus the page side padding the grid leaves around itself).
+    coversPerRowMin: function() {
+      const coverWidth = this.$store.state.gridCoverWidth || 1;
+      return Math.max( 1, Math.floor( this.$store.state.gridDefaultMaxWidth / coverWidth ) );
+    },
+    coversPerRowMax: function() {
+      const coverWidth = this.$store.state.gridCoverWidth || 1;
+      return Math.max( this.coversPerRowMin, Math.floor( this.$store.state.gridAvailableWidth / coverWidth ) );
+    },
+    coversPerRowCurrent: function() {
+      const coverWidth = this.$store.state.gridCoverWidth || 1;
+      const width = this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth;
+      return _.clamp( Math.floor( width / coverWidth ), this.coversPerRowMin, this.coversPerRowMax );
+    },
+
+  },
+
   methods: {
+
+    setCoversPerRow: function( count ) {
+      // Convert the whole-cover count to a max width. At the minimum (default)
+      // count, clear the override so the grid returns to its CSS default.
+      if ( count <= this.coversPerRowMin ) {
+        this.setGridWidth( null );
+      }
+      else {
+        this.setGridWidth( count * this.$store.state.gridCoverWidth );
+      }
+    },
+
+    setGridWidth: function( value ) {
+      this.$store.commit('stickyProp', { key: 'gridMaxWidth', value: value });
+    },
 
     toggleHaptics: function( e ) {
       this.$store.commit('stickyProp', { key: 'useHaptics', value: e.target.checked });
@@ -618,6 +684,54 @@ export default {
   .visual-toggle.on & {
     transform: translateX(13px);
   }
+}
+
+// Covers per row
+.covers-per-row-row {
+  cursor: default;
+}
+
+.covers-per-row-value {
+  flex-shrink: 0;
+  min-width: 32px;
+  text-align: right;
+  font-size: 0.85em;
+  font-variant-numeric: tabular-nums;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), .7);
+  }
+  &.auto {
+    @include themify($themes) {
+      color: rgba(themed(frontColor), .4);
+    }
+  }
+}
+
+.covers-per-row-auto {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border-radius: 6px;
+  font-size: 0.75em;
+  cursor: pointer;
+  @include themify($themes) {
+    background: rgba(themed(frontColor), .08);
+    color: rgba(themed(frontColor), .7);
+    border: 1px solid rgba(themed(frontColor), .15);
+    &:hover { background: rgba(themed(frontColor), .14); }
+  }
+  &.active {
+    @include themify($themes) {
+      background: rgba(themed(frontColor), .18);
+      color: rgba(themed(frontColor), .9);
+    }
+  }
+}
+
+.covers-per-row-slider {
+  width: 100%;
+  margin: 10px 0 2px;
+  cursor: pointer;
+  accent-color: #00c853;
 }
 
 // PWA install button

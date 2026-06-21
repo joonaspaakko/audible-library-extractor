@@ -6,6 +6,7 @@ export default {
     lightSwitchSetByUser: false,
     // sortValues: false,
     viewMode: 'grid',
+    gridMaxWidth: null,
     booksInSeriesToggle: false,
     collectionsDrawerToggle: true,
     exportSettingsGallery: null,
@@ -96,6 +97,9 @@ export default {
   // Grid columns measured by the grid view, shared so book-details vertical arrow
   // nav steps by the correct number of covers per row.
   gridCols: 1,
+  gridCoverWidth: 182,
+  gridDefaultMaxWidth: 728,
+  gridAvailableWidth: 728,
   searchOptOpenHeight: null,
   devMode: import.meta.env.MODE === 'development',
   lazyScroll: true,

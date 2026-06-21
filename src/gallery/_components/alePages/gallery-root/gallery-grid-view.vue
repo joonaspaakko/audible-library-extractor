@@ -2,6 +2,7 @@
   <div
     class="ale-books grid-view"
     :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ) }"
+    :style="gridStyle"
     ref="booksWrapper"
   >
 
@@ -59,6 +60,15 @@ export default {
     // Distance from the document top to the grid container (the window virtualizer
     // measures offsets in document space, so it needs this).
     const scrollMargin = ref( 0 );
+
+    // The user can widen the grid past its default max so more covers fit per row
+    // at their natural size. It's a max-width, so the viewport still bounds it on
+    // narrow screens (the wrapper is centered with side padding from the page).
+    const gridStyle = computed(function() {
+      const max = store.state.sticky.gridMaxWidth;
+      if ( !max ) return null;
+      return { maxWidth: max + 'px' };
+    });
 
     const collection = computed(function() {
       return store.getters.collection;
@@ -118,7 +128,7 @@ export default {
       return Math.max( 0, virtualizer.value.getTotalSize() - r[ r.length - 1 ].end );
     });
 
-    return { store, booksWrapper, collection, rows, cols, cellHeight, scrollMargin, openRowIndex, virtualizer, virtualRows, paddingTop, paddingBottom };
+    return { store, booksWrapper, collection, rows, cols, cellHeight, gridStyle, scrollMargin, openRowIndex, virtualizer, virtualRows, paddingTop, paddingBottom };
 
   },
 
@@ -152,6 +162,11 @@ export default {
       // Collection changed (sort/filter/search): re-measure the grid metrics
       this.$nextTick( this.measureGrid );
     },
+    '$store.state.sticky.gridMaxWidth': function() {
+      // Grid width changed: re-measure so the new column count is picked up and the
+      // virtualizer re-rows the collection. Wait for the style to apply first.
+      this.$nextTick( this.measureGrid );
+    },
   },
 
   mounted: function() {
@@ -173,7 +188,8 @@ export default {
   methods: {
 
     // GRID METRICS
-    // Measure columns + cell height from a real rendered cover, and the container's
+    // Measure columns + cell height from a real rendered cover (covers keep their
+    // natural CSS size; the grid's max width is what changes), plus the container's
     // distance from the document top (scrollMargin for the window virtualizer).
     measureGrid: function() {
 
@@ -187,9 +203,26 @@ export default {
         const cellBox = cell.getBoundingClientRect();
         this.cols = Math.floor( wrapperWidth / cellBox.width ) || 1;
         this.cellHeight = cellBox.height;
-        // Share the measured column count so book-details vertical arrow nav steps
-        // by the right number of covers (it can't reliably measure this itself).
-        this.$store.commit('prop', { key: 'gridCols', value: this.cols });
+        // Share the metrics the covers-per-row (max width) slider needs:
+        // - gridCols: book-details arrow nav steps by it
+        // - gridCoverWidth: the slider's step / unit
+        // - gridDefaultMaxWidth: the slider's minimum (the unoverridden width). Read
+        //   from the parent so an active override on the wrapper doesn't skew it.
+        // - gridAvailableWidth: the slider's maximum (how wide the grid can grow).
+        const parent = wrapper.parentElement;
+        const parentStyle = window.getComputedStyle( parent );
+        const parentPadding = parseFloat( parentStyle.paddingLeft ) + parseFloat( parentStyle.paddingRight );
+        const available = parent.getBoundingClientRect().width - parentPadding;
+        // The default (no-override) max width is the smaller of the CSS default and
+        // the space available, so it matches what the grid shows at rest.
+        const cssDefault = 728;
+        const updates = [
+          { key: 'gridCols', value: this.cols },
+          { key: 'gridCoverWidth', value: cellBox.width },
+          { key: 'gridDefaultMaxWidth', value: Math.min( cssDefault, available ) },
+          { key: 'gridAvailableWidth', value: available },
+        ];
+        this.$store.commit('prop', updates);
       }
 
       this.scrollMargin = wrapper.getBoundingClientRect().top + window.scrollY;
