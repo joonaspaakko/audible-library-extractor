@@ -6,7 +6,6 @@ export default {
     lightSwitchSetByUser: false,
     // sortValues: false,
     viewMode: 'grid',
-    chunkLocation: 0,
     booksInSeriesToggle: false,
     collectionsDrawerToggle: true,
     exportSettingsGallery: null,
@@ -74,8 +73,6 @@ export default {
   listRenderingOpts: null,
   windowWidth: window.innerWidth,
   showBackground: false,
-  chunkCollection: [],
-  chunkDistance: 40,
   refreshViewTimeStamp: new Date().getTime(),
   showRoute: true,
   pageTitle: null,
@@ -96,6 +93,9 @@ export default {
     index: -1,
     gapHeight: 0,
   },
+  // Grid columns measured by the grid view, shared so book-details vertical arrow
+  // nav steps by the correct number of covers per row.
+  gridCols: 1,
   searchOptOpenHeight: null,
   devMode: import.meta.env.MODE === 'development',
   lazyScroll: true,

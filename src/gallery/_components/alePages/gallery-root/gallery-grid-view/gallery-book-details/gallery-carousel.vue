@@ -73,6 +73,7 @@ export default {
 				lazyLoad    : 'nearby',
 				preloadPages: 1,
 				perPage     : 5,
+				keyboard    : false,
 			},
 			coverSize: 127,
 			scrolling: false,

@@ -201,10 +201,10 @@ export default {
   
   mounted: function() {
     this.$nextTick(function() {
-      
-      this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
+
+      this.findClickedBook();
       this.resetScroll();
-      
+
       this.maxWidth = this.repositionBookDetails() + "px";
       this.$store.commit('prop', { key: 'timeStamp', value: new Date().getTime() });
       this.$compEmitter.on("afterWindowResize", this.onWindowResize);
@@ -215,6 +215,8 @@ export default {
       this.scrollToCarousel();
       this.scrollToMyBooksInTheSeries();
       
+      this.ensureArrowAimed();
+
     });
     
     // window.addEventListener('touchstart', this.touchStart);
@@ -283,14 +285,15 @@ export default {
     resetScroll: function() {
       this.$nextTick(function() {
         this.$nextTick(function() {
-          
-          if ( this.sticky.viewMode === 'grid' ) {
-            scroll({ top: this.clickedBook.offsetTop - this.store.topNavOffset - 25, behavior: 'auto' });
-          }
-          else {
+
+          // The clicked cover/row can be virtualized out momentarily; bail rather than throw.
+          if ( !this.clickedBook ) return;
+
+          // Grid view
+          if ( this.sticky.viewMode !== 'grid' ) {
             document.querySelector('.list-view-inner-wrap').scroll({ top: this.clickedBook.offsetTop - 45 });
           }
-          
+
         });
       });
     },
@@ -299,19 +302,7 @@ export default {
       
       if ( !this.$route.query.carousel ) return;
       this.$updateQueries({ carousel: null });
-      
-      this.$nextTick(function() {
-      
-        const scrollPosition = parseFloat(this.$route.query.y);
-        if ( this.sticky.viewMode === 'grid' ) {
-          scroll({ top: scrollPosition });
-        }
-        else {
-          const listInnerWrap = document.querySelector('.list-view-inner-wrap');
-          listInnerWrap.scroll({ top: scrollPosition });
-        }
-        
-      });
+
     },
     
     scrollToMyBooksInTheSeries: function() {
@@ -356,6 +347,10 @@ export default {
         frame = requestAnimationFrame(function() {
           frame = null;
           const height = el.getBoundingClientRect().height;
+          // Ignore ~0 measurements (e.g. while the panel is detached/unmounting as
+          // its row scrolls out of the virtual window) so the reserved gap doesn't
+          // collapse and yank the scroll. The real reset happens on close.
+          if ( height < 1 ) return;
           const current = vue.$store.state.openDetails;
           if ( Math.round(current.gapHeight) === Math.round(height) ) return;
           vue.$store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
@@ -365,21 +360,49 @@ export default {
 
     },
 
+    findClickedBook: function() {
+      this.clickedBook = document.querySelector('.ale-book[data-asin="'+ this.book.asin +'"]') || document.querySelector('.ale-row[data-asin="'+ this.book.asin +'"]');
+      return this.clickedBook;
+    },
+
+    // Grid only: re-aim the details arrow once the clicked cover is actually laid out.
+    // On a fresh reload the cover can mount a few frames after the panel, so poll
+    // briefly until it has a real width, then position the arrow.
+    ensureArrowAimed: function( attempt ) {
+      if ( this.sticky.viewMode === 'spreadsheet' ) return;
+      attempt = attempt || 0;
+
+      this.findClickedBook();
+      const ready = this.clickedBook && this.clickedBook.getBoundingClientRect().width > 0;
+
+      if ( ready ) {
+        this.repositionBookDetailsArrow( this.clickedBook );
+        return;
+      }
+
+      // Give up after ~10 frames so we never loop forever.
+      if ( attempt < 10 ) {
+        const vue = this;
+        requestAnimationFrame(function() { vue.ensureArrowAimed( attempt + 1 ); });
+      }
+    },
+
     repositionBookDetails: function() {
 
       // The panel is rendered in-flow by the view at the open row's reserved gap,
       // so we no longer move it around the DOM. This only computes the inner-wrap
       // max-width and re-aims the arrow at the clicked cover.
 
-      const wrapperEl = document.querySelector(".ale-books");
-      const wrapperWidth = wrapperEl ? wrapperEl.getBoundingClientRect().width : 0;
-
       // Spreadsheet: panel spans the table width (minus padding).
       if ( this.sticky.viewMode === 'spreadsheet' ) {
-        return wrapperWidth - 60;
+        const tableEl = document.querySelector(".ale-books");
+        const tableWidth = tableEl ? tableEl.getBoundingClientRect().width : 0;
+        return tableWidth - 60;
       }
 
       // Grid: panel inner-wrap spans the full row of covers (cols * cellWidth).
+      const gridEl = document.querySelector(".ale-books.grid-view");
+      const wrapperWidth = gridEl ? gridEl.getBoundingClientRect().width : 0;
       const target = this.clickedBook;
       const cellWidth = target ? target.getBoundingClientRect().width : 0;
       const cols = cellWidth ? ( Math.floor(wrapperWidth / cellWidth) || 1 ) : 1;
@@ -388,11 +411,14 @@ export default {
 
       return cellWidth * cols;
     },
-
+    
     repositionBookDetailsArrow: function(clickedEl) {
-      const leftOffset =
-        clickedEl.getBoundingClientRect().left + window.scrollX;
-      const targetCenter = leftOffset + clickedEl.offsetWidth / 2;
+      if ( !this.$refs.arrow ) return;
+
+      const parent = this.$refs.arrow.offsetParent || document.querySelector('.ale-books.grid-view');
+      const parentLeft = parent ? parent.getBoundingClientRect().left : 0;
+      const coverBox = clickedEl.getBoundingClientRect();
+      const targetCenter = ( coverBox.left - parentLeft ) + coverBox.width / 2;
 
       this.$refs.arrow.style.left = targetCenter + "px";
     },
@@ -449,22 +475,10 @@ export default {
     },
     
     keyboardMove_inGrid_vertically( e ) {
-      
+
       const vue = this;
-      const wrapper = {};
-      wrapper.el = document.querySelector(".ale-books");
-      wrapper.width = wrapper.el.offsetWidth;
-      
-      const target = {};
-      target.el = this.clickedBook;
-      target.index = this.index;
-      target.width = target.el.offsetWidth;
-      
-      const cols = Math.floor(wrapper.width / target.width);
-      // const currentRow = Math.floor(this.index / cols) + 1;
-      // const currentRowLast = (currentRow*cols)-1;
-      // const previousRowLast = ((currentRow-1)*cols)-1;
-      
+      const cols = this.$store.state.gridCols || 1;
+
       const collection = vue.$store.getters.collection;
 
       const getVerticalIndex = function() {

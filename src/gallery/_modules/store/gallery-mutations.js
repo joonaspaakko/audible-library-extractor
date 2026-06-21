@@ -112,37 +112,6 @@ export default {
 
   },
 
-  chunkCollectionReset: function( state ) {
-    state.chunkDistance = state.sticky.viewMode === 'grid' ? 52 : 80;
-    state.sticky.chunkLocation = 0;
-    state.chunkCollection = [];
-  },
-
-  chunkCollectionAdd: function( state, config ) {
-
-    config = config || {};
-
-    const searchIsActive = state.searchQuery.trim() !== "";
-    const source = searchIsActive ? state.searchCollection : state.mutatingCollection;
-    if ( source.length > 0 ) {
-      const location = config.chunkDistance ? config.chunkDistance : parseFloat( state.sticky.chunkLocation );
-      let sliceOfLife = config.chunkDistance ? source.slice( 0, location ) : source.slice( location, location+state.chunkDistance );
-      if ( sliceOfLife.length > 0 ) {
-
-        if ( config.chunkDistance ) {
-          state.chunkCollection = sliceOfLife;
-        }
-        else {
-          state.chunkCollection = state.chunkCollection.concat( sliceOfLife );
-        }
-
-        state.sticky.chunkLocation = location + state.chunkDistance;
-
-      }
-    }
-
-  },
-  
   navHistory: function( state, config ) {
     
     const direction = config.pushOnly ? config.key : (config.key === 'back' ? 'forward' : 'back');
