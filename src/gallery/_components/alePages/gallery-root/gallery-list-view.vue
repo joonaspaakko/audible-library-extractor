@@ -6,7 +6,7 @@ ref="listView"
 >
 
   <!-- Position jump rail (inner-container scrolled). -->
-  <gallery-segment-rail target=".list-view-inner-wrap" />
+  <gallery-segment-rail target=".list-view-inner-wrap" :total="$store.getters.collection.length" />
 
   <div class="list-view-inner-wrap" ref="scrollWrap">
     <table>

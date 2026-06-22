@@ -30,7 +30,7 @@
     <div v-if="paddingBottom" class="grid-spacer" :style="{ height: paddingBottom + 'px' }" aria-hidden="true"></div>
 
     <!-- Position jump rail (window-scrolled, so fixed to the viewport). -->
-    <gallery-segment-rail target="window" :fixed="true" />
+    <gallery-segment-rail target="window" :fixed="true" :total="$store.getters.collection.length" />
 
   </div>
 </template>

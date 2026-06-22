@@ -60,7 +60,7 @@
 
     </div>
 
-    <gallery-segment-rail target="window" :fixed="true" />
+    <gallery-segment-rail target="window" :fixed="true" :total="flatCollections.length" />
 
   </div>
 </template>

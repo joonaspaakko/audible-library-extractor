@@ -35,7 +35,7 @@
 
     </div>
 
-    <gallery-segment-rail target="window" :fixed="true" />
+    <gallery-segment-rail target="window" :fixed="true" :total="collection.length" />
 
   </div>
 </template>

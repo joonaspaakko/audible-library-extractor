@@ -40,7 +40,7 @@
 
     </div> <!-- .single-box -->
 
-    <gallery-segment-rail target="window" :fixed="true" />
+    <gallery-segment-rail target="window" :fixed="true" :total="categories ? categories.length : 0" />
 
   </div>
 </template>

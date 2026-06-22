@@ -18,6 +18,14 @@
     <div class="segment-block-fill" :style="{ height: ( segmentFill( n - 1 ) * 100 ) + '%' }"></div>
   </div>
 
+  <!-- Running count of items scrolled past. -->
+  <div
+    v-if="total > 0"
+    v-show="showLabel"
+    class="segment-rail-label"
+    :style="{ top: ( scrollFraction * 100 ) + '%' }"
+  >~{{ Math.round( scrollFraction * total ) }}</div>
+
 </div>
 </template>
 
@@ -48,6 +56,12 @@ export default {
       type: Boolean,
       default: false,
     },
+    // Drives the running count label. When 0 the label never shows, so call sites
+    // without a meaningful count can simply omit it.
+    total: {
+      type: Number,
+      default: 0,
+    },
   },
 
   data: function() {
@@ -68,6 +82,7 @@ export default {
       // stores the latest Y and the actual jump runs once per animation frame.
       pendingY: null,
       rafId: null,
+      showLabel: false,
     };
   },
 
@@ -111,6 +126,7 @@ export default {
   },
   beforeUnmount: function() {
     clearTimeout( this.settleTimer );
+    clearTimeout( this.labelTimer );
     if ( this.rafId !== null ) cancelAnimationFrame( this.rafId );
     this.$compEmitter.off('afterWindowResize', this.measure);
     window.removeEventListener('pointermove', this.onPointerMove);
@@ -186,6 +202,21 @@ export default {
       // Don't fight the user's own drag; the drag already sets the fraction.
       if ( this.dragging ) return;
       this.measure();
+      this.flashLabel();
+    },
+
+    // Show the count label and (re)arm the fade-out timer, so it fades once the
+    // interaction stops.
+    flashLabel: function() {
+      if ( this.total <= 0 ) return;
+      this.showLabel = true;
+      this.armLabelHide();
+    },
+
+    armLabelHide: function() {
+      const vue = this;
+      clearTimeout( this.labelTimer );
+      this.labelTimer = setTimeout(function() { vue.showLabel = false; }, 700);
     },
 
     // Map a pointer's Y over the rail to a scroll fraction and jump there. Uses the
@@ -220,6 +251,11 @@ export default {
       this.dragging = true;
       this.railBox = rail.getBoundingClientRect();
       this.dragScrollable = this.metrics().scrollable;
+      // Keep the label up for the whole drag; the timer is armed on release.
+      if ( this.total > 0 ) {
+        clearTimeout( this.labelTimer );
+        this.showLabel = true;
+      }
       this.jumpToPointer( e.clientY );
       e.preventDefault();
     },
@@ -262,6 +298,8 @@ export default {
       this.dragging = false;
       this.railBox = null;
       this.measure();
+      // Drag finished: let the label linger briefly, then fade.
+      if ( this.total > 0 ) this.armLabelHide();
     },
 
   },
@@ -347,6 +385,31 @@ export default {
   pointer-events: none;
   @include themify($themes) {
     background: themed(audibleOrange);
+  }
+}
+
+// Running count pill, sitting just to the right of the rail and tracking the fill
+// position vertically. Purely informational so it never intercepts pointer events.
+.segment-rail-label {
+  position: absolute;
+  z-index: 1;
+  left: 9px;
+  // Size to the text, not the 5px-wide flex rail it lives in.
+  width: max-content;
+  min-width: max-content;
+  flex: none;
+  transform: translateY(-50%);
+  padding: 2px 7px;
+  border-radius: 999px;
+  white-space: nowrap;
+  font-size: 12px;
+  line-height: 1;
+  font-weight: 600;
+  pointer-events: none;
+  transition: opacity .15s ease;
+  @include themify($themes) {
+    background: rgba( themed(backColor), .9 );
+    color: themed(audibleOrange);
   }
 }
 
