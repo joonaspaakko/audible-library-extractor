@@ -1196,6 +1196,7 @@ export default {
         sort: [{
             active: false,
             sticky: true,
+            displayKey: null,
             key: 'sortValues',
             label: 'Show sort values',
             type: 'sortExtras',
@@ -1472,10 +1473,6 @@ export default {
       };
       
       this.removeArchived( list );
-      
-      // FIXME: thinking about adding a dropdown that allows sorting with A and showing value from B
-      // For example, sort by "Added" and show "Author" as the 'sort value'
-      // this.addSortValueDropdown( list );
 
       this.addExcludeDropdowns( list );
       
@@ -1546,49 +1543,7 @@ export default {
       }
       
     },
-    
-    // addSortValueDropdown: function( list) {
-      
-    //   // Obviously this is not complete in any way... but...
-    //   // FIXME: Make sure series/subpage sorter "bookNumbers" is moved
-    //   // FIXME: Not sure why yet, but the options list's arrow is not getting a new position when this dropdown makes it wider....
-      
-    //   let vue = this;
-    //   let newItem = {
-    //     active: false,
-    //     sticky: true,
-    //     key: 'sortValues-list',
-    //     label: 'Show value from a',
-    //     type: 'sortExtras',
-    //     tippy: "Shows the active sorter's value on top of the cover in the grid view.",
-    //     dropdownOpts: function(type) {
-    //       let allTags = _.filter(list.sort, { type: 'sort' });
-    //       allTags = _.map( allTags, 'label');
-    //       return allTags;
-    //     },
-    //     value: [],
-    //     condition: function(book) {
-    //       if ( book.authors ) {
-    //         let bookTags = _.map(book.authors, 'name');
-    //         let selectedTags = this.value;
-    //         if ( selectedTags.length > 0 ) {
-    //           let found = false;
-    //           _.each(selectedTags, function(selectedTag) {
-    //             if (_.includes(bookTags, selectedTag)) {
-    //               found = true;
-    //               return false;
-    //             }
-    //           });
-    //           return found;
-    //         }
-    //       }
-    //     }
-    //   };
-      
-    //   list.sort.splice(1,0, newItem);
-      
-    // },
-    
+
   }
 };
 

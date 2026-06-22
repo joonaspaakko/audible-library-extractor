@@ -7,7 +7,12 @@ setListRenderingOpts.install = function (app, options) {
       const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });
       list.sort[ sortValuesIndex ].active = this.$route.query.sortValues;
     }
-    
+
+    if ( this.$route.query.sortValuesDisplayKey ) {
+      const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });
+      list.sort[ sortValuesIndex ].displayKey = decodeURIComponent( this.$route.query.sortValuesDisplayKey );
+    }
+
     if ( this.$route.query.sort ) {
       let currentSorter = _.find( list.sort, { current: true });
       currentSorter.current = false;

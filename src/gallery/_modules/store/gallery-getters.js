@@ -11,6 +11,13 @@ export default {
     const sortValues = _.find( _.get(state,'listRenderingOpts.sort'), { key: "sortValues" });
     return _.get(sortValues, 'active');
   },
+
+  // The sort key whose value is locked into the grid display, independent of the active
+  // sorter. null means "Follow sort" (show whatever's being sorted by).
+  sortValuesKey: function( state ) {
+    const sortValues = _.find( _.get(state,'listRenderingOpts.sort'), { key: "sortValues" });
+    return _.get(sortValues, 'displayKey') || null;
+  },
   sortBy: function( state ) {
     const sort = _.find( _.get(state,'listRenderingOpts.sort'), 'current');
     return _.get(sort,'key');

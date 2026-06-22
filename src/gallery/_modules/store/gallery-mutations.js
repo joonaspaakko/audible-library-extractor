@@ -78,6 +78,12 @@ export default {
       if ( sortValues ) sortValues.active = o.sortValues;
     }
 
+    // null = "Follow sort"; any sort key = lock the displayed value to that field.
+    if ( o.sortValuesDisplayKey !== undefined ) {
+      let sortValues = _.find( state.listRenderingOpts.sort, { key: 'sortValues' });
+      if ( sortValues ) sortValues.displayKey = o.sortValuesDisplayKey;
+    }
+
     // if ( o.group ) {
     //   let groupies = _.filter( currentList, { group: currentItem.group });
     //   _.each( groupies, function( groupie, index ) {

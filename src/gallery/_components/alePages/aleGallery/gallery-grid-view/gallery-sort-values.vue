@@ -1,27 +1,33 @@
 <template>
   <div class="sort-values-container">
     
-    <div class="ratings" v-if="($store.getters.sortBy === 'myRating' || $store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && sortContent !== '&nbsp;'"
-    v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
-    :content="
-      ($store.getters.sortBy !== 'myRating' && book.myRating ? ('My rating: ' + book.myRating + '<br>') : '') + 
-      ($store.getters.sortBy === 'myRating' && book.rating ? ('Average rating: ' + book.rating + '<br>') : '') + 
-      ($store.getters.sortBy === 'myRating' && book.ratings ? ('Number of ratings: ' + book.ratings + '<br>') : '') + 
-      ''
-    "
-    >
-      <gallery-star-ratings :prioritizeRatingsText="$store.getters.sortBy === 'ratings'" :size="10" :rating="sortContent" :number="true" :ratingsText="false" :ratings="($store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && book.ratings ? book.ratings : null"></gallery-star-ratings>
-    </div>
-    <div 
-      v-else-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContent"
+    <!-- One value row per key: the locked override (when it differs) on top, the active
+         sort value below it so it still reads as the sort legend. -->
+    <template v-for="key in valueKeys" :key="key">
+
+      <div class="ratings" :class="{ locked: key === lockedKey }" v-if="(key === 'myRating' || key === 'rating' || key === 'ratings') && sortContent[key] !== '&nbsp;'"
       v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
-      :content=" ($store.getters.sortBy === 'progress' ? book.progress : '' ) + ''"
-    ></div>
-    <div v-else :class="'sort-'+$store.getters.sortBy">
-      <fa6-solid-heart v-if="book.favorite" />
-      <span v-else>&nbsp;</span>
-    </div>
-    
+      :content="
+        (key !== 'myRating' && book.myRating ? ('My rating: ' + book.myRating + '<br>') : '') +
+        (key === 'myRating' && book.rating ? ('Average rating: ' + book.rating + '<br>') : '') +
+        (key === 'myRating' && book.ratings ? ('Number of ratings: ' + book.ratings + '<br>') : '') +
+        ''
+      "
+      >
+        <gallery-star-ratings :prioritizeRatingsText="key === 'ratings'" :size="10" :rating="sortContent[key]" :number="true" :ratingsText="false" :ratings="(key === 'rating' || key === 'ratings') && book.ratings ? book.ratings : null"></gallery-star-ratings>
+      </div>
+      <div
+        v-else-if="key !== 'favorite'" :class="['sort-'+key, { locked: key === lockedKey }]" v-html="sortContent[key]"
+        v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
+        :content=" (key === 'progress' ? book.progress : '' ) + ''"
+      ></div>
+      <div v-else :class="['sort-'+key, { locked: key === lockedKey }]">
+        <fa6-solid-heart v-if="book.favorite" />
+        <span v-else>&nbsp;</span>
+      </div>
+
+    </template>
+
   </div>
 </template>
 
@@ -43,11 +49,38 @@ export default {
   
   computed: {
 
-    // Cached so virtual scrolling doesn't re-run this lodash/regex/time work on every
-    // render (it's referenced in three template spots and methods aren't memoized).
+    // The active sort key, and the optional locked override shown above it. The locked
+    // value is only its own row when it actually differs from the sort, so a matching
+    // pick (or no extra value) just shows the single sort value as before.
+    sortKey: function() {
+      return this.$store.getters.sortBy;
+    },
+    lockedKey: function() {
+      const locked = this.$store.getters.sortValuesKey;
+      return ( locked && locked !== this.sortKey ) ? locked : null;
+    },
+
+    // The value rows to render, locked on top. The sort value always renders; the legend
+    // for "which way is it sorted" stays intact.
+    valueKeys: function() {
+      return _.compact([ this.lockedKey, this.sortKey ]);
+    },
+
+    // Precomputed per rendered key so virtual scrolling doesn't re-run this lodash/regex/
+    // time work on every template reference (each key is read three times in the markup).
     sortContent: function() {
-      let sortKey = this.$store.getters.sortBy;
-      
+      return _.reduce( this.valueKeys, ( map, key ) => {
+        map[ key ] = this.sortValueFor( key );
+        return map;
+      }, {});
+    },
+
+  },
+
+  methods: {
+
+    sortValueFor: function( sortKey ) {
+
       switch( sortKey ) {
         
         case "bookNumbers":
@@ -186,13 +219,9 @@ export default {
         default:
           if ( this.book[sortKey] ) return this.book[sortKey]
           else return this.notAvailable;
-      
+
       }
     },
-
-  },
-
-  methods: {
 
     progress: function(book) {
       
@@ -277,6 +306,27 @@ export default {
   color: #fff;
   background: #202020;
   border-color: color.adjust(#202020, $lightness: 5%);
+}
+
+// The locked override sits on top of the sort value. It's muted and squared at the
+// bottom so the two read as one connected stack, with the sort value as the anchor.
+.ale-book .sort-values-container > div.locked {
+  margin-bottom: 0;
+  border-bottom: none;
+  border-radius: 2px 2px 0 0;
+  font-size: .8em;
+  font-weight: 600;
+  opacity: .8;
+}
+.theme-dark .ale-book .sort-values-container > div.locked {
+  background: color.adjust($darkBackColor, $lightness: 5%);
+}
+.theme-light .ale-book .sort-values-container > div.locked {
+  background: #2c2c2c;
+}
+// With a locked row above it, the sort value squares off its top so they butt together.
+.ale-book .sort-values-container > div.locked + div {
+  border-radius: 0;
 }
 
 .ale-book.details-open .sort-values-container > div {

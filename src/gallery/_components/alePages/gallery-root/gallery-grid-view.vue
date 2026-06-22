@@ -1,7 +1,10 @@
 <template>
   <div
     class="ale-books grid-view"
-    :class="{ 'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ) }"
+    :class="{
+      'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ),
+      'sort-values-stacked': $store.getters.sortValues && $store.getters.sortValuesKey && $store.getters.sortValuesKey !== $store.getters.sortBy
+    }"
     :style="gridStyle"
     ref="booksWrapper"
   >
@@ -185,6 +188,11 @@ export default {
     '$store.state.sticky.gridMaxWidth': function() {
       // Grid width changed: re-measure so the new column count is picked up and the
       // virtualizer re-rows the collection. Wait for the style to apply first.
+      this.$nextTick( this.measureGrid );
+    },
+    '$store.getters.sortValuesKey': function() {
+      // The locked value stacks a second strip, growing the cell height. The collection
+      // is unchanged so its watcher won't fire; re-measure once the class has applied.
       this.$nextTick( this.measureGrid );
     },
   },
@@ -423,6 +431,10 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 .sort-values-on .ale-book {
   height: $thumbnailSize + 2 + 27;
 }
+// A locked value stacks a second strip above the sort value, so reserve room for it.
+.sort-values-stacked .ale-book {
+  height: $thumbnailSize + 2 + 27 + 22;
+}
 
 @media (max-width: 767px) {
   .ale-book {
@@ -431,6 +443,9 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   }
   .sort-values-on .ale-book {
     height: calc(26.3vw - 20px + 27px);
+  }
+  .sort-values-stacked .ale-book {
+    height: calc(26.3vw - 20px + 27px + 22px);
   }
 }
 
@@ -442,6 +457,9 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   }
   .sort-values-on .ale-book {
     height: calc(34.4vw - 24px + 27px);
+  }
+  .sort-values-stacked .ale-book {
+    height: calc(34.4vw - 24px + 27px + 22px);
   }
 
 }
@@ -485,6 +503,9 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   }
   .sort-values-on .ale-book {
     height: calc(50vw - 25px + 27px);
+  }
+  .sort-values-stacked .ale-book {
+    height: calc(50vw - 25px + 27px + 22px);
   }
 }
 

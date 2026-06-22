@@ -42,11 +42,23 @@
           :class="{ extras: item.type && item.type.match(/extra/i), divider: item.type === 'divider' }"
           v-for="(item, index) in filteredOptionsList" :key="item.key"
         >
-          <gallery-sorter v-if="item.type !== 'divider'" 
-          :label="item.label" :item="item" :index="index" 
+          <gallery-sorter v-if="item.type !== 'divider'"
+          :label="item.label" :item="item" :index="index"
           :currentList="optionsList" :listName="listName"
           @vue:mounted="sortersMounted"
           />
+
+          <!-- Show an extra value from any field above the sort value. The sort value
+               itself always stays, so it still reads as the sort legend. -->
+          <select
+            v-if="item.key === 'sortValues' && $store.getters.sortValues"
+            class="sort-value-display"
+            :value="$store.getters.sortValuesKey || ''"
+            @change="displayKeyChanged"
+          >
+            <option value="">No extra value</option>
+            <option v-for="sortItem in displayKeyOptions" :key="sortItem.key" :value="sortItem.key">{{ sortItem.label }}</option>
+          </select>
         </li>
       </ul>
       
@@ -115,9 +127,17 @@ export default {
       });
       
     },
-    
-  },
 
+    // The sort fields offered as a display-value override. seriesOrder/bookNumbers are
+    // left out since they only render meaningfully on the series subpage.
+    displayKeyOptions: function() {
+      return _.filter( this.$store.state.listRenderingOpts.sort, ( item ) => {
+        return item.type === 'sort' && item.key !== 'seriesOrder' && item.key !== 'bookNumbers';
+      });
+    },
+      
+  },
+    
   created: function() {
     
     this.$store.commit('prop', { key: 'lazyScroll', value: false });
@@ -163,6 +183,15 @@ export default {
       this.$store.commit("resetFilters");
       this.$compEmitter.emit("start-filter");
       
+    },
+    
+    displayKeyChanged: function( event ) {
+      
+      // Empty value means no extra value, stored as null.
+      const key = event.target.value || null;
+      this.$store.commit("updateListRenderingOpts", { listName: 'sort', key: 'sortValues', sortValuesDisplayKey: key });
+      this.$updateQueries({ sortValuesDisplayKey: key });
+    
     },
     
     repositionSearchOptions: _.debounce(function() {
@@ -425,6 +454,22 @@ export default {
     
   } // .search-option
   
+  .sort-value-display {
+    display: block;
+    width: 100%;
+    margin: 4px 0 2px 0;
+    padding: 3px 6px;
+    font-size: .85em;
+    border-radius: 3px;
+    outline: none;
+    cursor: pointer;
+    @include themify($themes) {
+      color: themed(frontColor);
+      background: color.adjust(themed(backColor), $lightness: 4%);
+      border: 1px solid rgba(themed(frontColor), 0.2);
+    }
+  }
+
   .search-option.divider{
     padding-top: 9px;
     margin-top: 9px;
