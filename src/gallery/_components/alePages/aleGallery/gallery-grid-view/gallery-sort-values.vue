@@ -1,7 +1,7 @@
 <template>
   <div class="sort-values-container">
     
-    <div class="ratings" v-if="($store.getters.sortBy === 'myRating' || $store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && sortContents() !== '&nbsp;'"
+    <div class="ratings" v-if="($store.getters.sortBy === 'myRating' || $store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && sortContent !== '&nbsp;'"
     v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
     :content="
       ($store.getters.sortBy !== 'myRating' && book.myRating ? ('My rating: ' + book.myRating + '<br>') : '') + 
@@ -10,10 +10,10 @@
       ''
     "
     >
-      <gallery-star-ratings :prioritizeRatingsText="$store.getters.sortBy === 'ratings'" :size="10" :rating="sortContents()" :number="true" :ratingsText="false" :ratings="($store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && book.ratings ? book.ratings : null"></gallery-star-ratings>
+      <gallery-star-ratings :prioritizeRatingsText="$store.getters.sortBy === 'ratings'" :size="10" :rating="sortContent" :number="true" :ratingsText="false" :ratings="($store.getters.sortBy === 'rating' || $store.getters.sortBy === 'ratings') && book.ratings ? book.ratings : null"></gallery-star-ratings>
     </div>
     <div 
-      v-else-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContents()"
+      v-else-if="$store.getters.sortBy !== 'favorite'" :class="'sort-'+$store.getters.sortBy" v-html="sortContent"
       v-tippy="{ trigger: 'click mouseenter', allowHTML: true }"
       :content=" ($store.getters.sortBy === 'progress' ? book.progress : '' ) + ''"
     ></div>
@@ -41,9 +41,11 @@ export default {
     };
   },
   
-  methods: {
-    
-    sortContents: function() {
+  computed: {
+
+    // Cached so virtual scrolling doesn't re-run this lodash/regex/time work on every
+    // render (it's referenced in three template spots and methods aren't memoized).
+    sortContent: function() {
       let sortKey = this.$store.getters.sortBy;
       
       switch( sortKey ) {
@@ -187,7 +189,11 @@ export default {
       
       }
     },
-    
+
+  },
+
+  methods: {
+
     progress: function(book) {
       
       if (book.progress && book.length) {

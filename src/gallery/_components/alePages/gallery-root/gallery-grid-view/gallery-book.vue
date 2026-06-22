@@ -72,7 +72,7 @@
         </div>
         <div v-else class="cover-img-wrapper">
           <transition name="fade">
-            <img v-show="imageLoaded" @load="$emit('update:imageLoaded', true)" class="ale-cover-image" :class="{ loaded: imageLoaded }" crossorigin="anonymous" draggable="false" @touchstart.prevent :src="makeCoverUrl(book.cover, 280)" alt="" />
+            <img v-show="imageLoaded" @load="imageLoaded = true" class="ale-cover-image" :class="{ loaded: imageLoaded }" crossorigin="anonymous" draggable="false" @touchstart.prevent :src="makeCoverUrl(book.cover, 280)" alt="" />
           </transition>
         </div>
       </div>
@@ -85,13 +85,14 @@ import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 
 export default {
   name: "book",
-  props: ["book", "index", "sortValuesEnabled", "imageLoaded"],
+  props: ["book", "index", "sortValuesEnabled"],
   mixins: [ makeCoverUrl ],
   data: function() {
     return {
       store: this.$store.state,
       sticky: this.$store.state.sticky,
       smartLink: "https://smart.link/o3waqx4wg1gdn?asin=",
+      imageLoaded: false,
     };
   },
   methods: {

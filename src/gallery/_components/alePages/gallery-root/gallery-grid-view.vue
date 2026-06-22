@@ -10,15 +10,15 @@
 
     <template v-for="vRow in virtualRows" :key="'row:'+ vRow.index">
       <div class="ale-grid-row">
-        <gallery-lazy
+        <div
           v-for="(book, colIndex) in rows[ vRow.index ]"
           class="ale-book"
-          :class="{ 'details-open': !!$route.query.book && $route.query.book === book.asin, 'image-loaded': imageLoaded }"
+          :class="{ 'details-open': !!$route.query.book && $route.query.book === book.asin }"
           :data-asin="book.asin"
           :key="'book:'+book.asin"
         >
-          <gallery-book :book="book" :index="vRow.index * cols + colIndex" :sortValuesEnabled="$store.getters.sortValues" v-model:imageLoaded="imageLoaded"></gallery-book>
-        </gallery-lazy>
+          <gallery-book :book="book" :index="vRow.index * cols + colIndex" :sortValuesEnabled="$store.getters.sortValues"></gallery-book>
+        </div>
       </div>
 
       <!-- Book details rendered in-flow under the open book's row. -->
@@ -41,8 +41,6 @@ import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { computed, shallowRef, ref } from "vue";
 import bookDetails from "@output-pages/gallery-root/gallery-grid-view/gallery-book-details.vue";
-import loaderLight from "@output-images/gallery-table-loader-light.gif";
-import loaderDark  from "@output-images/gallery-table-loader-dark.gif";
 import slugify from "@output-mixins/gallery-slugify.js";
 
 export default {
@@ -137,7 +135,6 @@ export default {
 
   data: function() {
     return {
-      imageLoaded: false,
       restoringScroll: false,
       pendingOpenScroll: false,
     };
@@ -395,45 +392,6 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
       display: none !important;
     }
   }
-
-
-  // Lazyload placeholder
-  &:before {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: 5px;
-    right: 5px;
-    bottom: 5px;
-    left: 5px;
-    border-radius: 5px;
-    @include themify($themes) {
-      background-color: themed(backColor);
-      border: 1px solid rgba(themed(outerColor), 0.3);
-    }
-  }
-  &:after {
-    content: "";
-    position: absolute;
-    z-index: -1;
-    top: 5px;
-    right: 5px;
-    bottom: 5px;
-    left: 5px;
-    border-radius: 5px;
-    @include themify($themes) {
-      background-color: themed(backColor);
-      border: 1px solid rgba(themed(outerColor), 0.3);
-    }
-    background-repeat: no-repeat;
-    background-position: center center;
-    // Image set a few lines down...
-  }
-
-  &.mounted.image-loaded:before,
-  &.mounted.image-loaded:after {
-    display: none !important;
-  }
 }
 
 
@@ -444,16 +402,6 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 // For showing sort values correctly...
 .sort-values-on .ale-book {
   height: $thumbnailSize + 2 + 27;
-}
-
-.ale-book:after {
-  z-index: 0 !important;
-}
-.theme-light .ale-book:after {
-  background-image: url(@output-images/gallery-table-loader-light.gif);
-}
-.theme-dark .ale-book:after {
-  background-image: url("@output-images/gallery-table-loader-dark.gif");
 }
 
 @media (max-width: 767px) {

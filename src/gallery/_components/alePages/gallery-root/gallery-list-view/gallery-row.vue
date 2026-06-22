@@ -21,8 +21,6 @@
        
     -->
     
-    <!-- <gallery-lazy
-    tag="td" -->
     <td
     v-for="col in columns"
     :key="col.key"
@@ -46,8 +44,7 @@
         <span class="text-container"> {{ col.text || "&nbsp;" }}</span>
       </div>
     </td>
-    <!-- </gallery-lazy> -->
-    
+
   </tr>
 </template>
 
