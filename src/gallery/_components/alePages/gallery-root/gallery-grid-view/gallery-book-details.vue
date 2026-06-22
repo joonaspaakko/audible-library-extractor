@@ -411,14 +411,27 @@ export default {
         return tableWidth - 60;
       }
 
-      // Grid: panel inner-wrap spans the full row of covers (cols * cellWidth).
       const gridEl = document.querySelector(".ale-books.grid-view");
-      const wrapperWidth = gridEl ? gridEl.getBoundingClientRect().width : 0;
       const target = this.clickedBook;
-      const cellWidth = target ? target.getBoundingClientRect().width : 0;
-      const cols = cellWidth ? ( Math.floor(wrapperWidth / cellWidth) || 1 ) : 1;
 
       if ( target ) this.repositionBookDetailsArrow(target);
+
+      // List: the cards cap their width and the row centers within the full-width flex row,
+      // so the row element itself spans the container. Measure the actual cards instead, from
+      // the first card's left edge to the last card's right edge, so the panel matches them.
+      if ( gridEl && gridEl.classList.contains('details-list') ) {
+        const rowEl = target ? target.closest('.ale-grid-row') : gridEl.querySelector('.ale-grid-row');
+        const cards = rowEl ? rowEl.querySelectorAll('.ale-book') : [];
+        if ( !cards.length ) return 0;
+        const firstLeft = cards[ 0 ].getBoundingClientRect().left;
+        const lastRight = cards[ cards.length - 1 ].getBoundingClientRect().right;
+        return lastRight - firstLeft;
+      }
+
+      // Grid: panel inner-wrap spans the full row of covers (cols * cellWidth).
+      const wrapperWidth = gridEl ? gridEl.getBoundingClientRect().width : 0;
+      const cellWidth = target ? target.getBoundingClientRect().width : 0;
+      const cols = cellWidth ? ( Math.floor(wrapperWidth / cellWidth) || 1 ) : 1;
 
       return cellWidth * cols;
     },

@@ -3,9 +3,11 @@ const setListRenderingOpts = {};
 setListRenderingOpts.install = function (app, options) {
   app.config.globalProperties.$setListRenderingOpts = function( list ) {
     
-    if ( this.$route.query.sortValues ) {
+    // Query values are strings, so "false" would be truthy and re-enable sort values on
+    // every refresh. Restore only when the key is present, and compare to the string.
+    if ( this.$route.query.sortValues !== undefined ) {
       const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });
-      list.sort[ sortValuesIndex ].active = this.$route.query.sortValues;
+      list.sort[ sortValuesIndex ].active = this.$route.query.sortValues === 'true';
     }
 
     if ( this.$route.query.sortValuesDisplayKey ) {

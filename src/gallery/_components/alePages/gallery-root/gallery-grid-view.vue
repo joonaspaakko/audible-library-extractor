@@ -3,7 +3,9 @@
     class="ale-books grid-view"
     :class="{
       'sort-values-on': $store.getters.sortValues && ($store.getters.sortBy !== 'bookNumbers' && $store.getters.sortBy !== 'seriesOrder' ),
-      'sort-values-stacked': $store.getters.sortValues && $store.getters.sortValuesKey && $store.getters.sortValuesKey !== $store.getters.sortBy
+      'sort-values-stacked': $store.getters.sortValues && $store.getters.sortValuesKey && $store.getters.sortValuesKey !== $store.getters.sortBy,
+      'details-stacked': $store.state.sticky.gridDetailsMode === 'stacked',
+      'details-list': $store.state.sticky.gridDetailsMode === 'list'
     }"
     :style="gridStyle"
     ref="booksWrapper"
@@ -20,7 +22,7 @@
           :data-asin="book.asin"
           :key="'book:'+book.asin"
         >
-          <gallery-book :book="book" :index="vRow.index * cols + colIndex" :sortValuesEnabled="$store.getters.sortValues"></gallery-book>
+          <gallery-book :book="book" :index="vRow.index * cols + colIndex" :sortValuesEnabled="$store.getters.sortValues" :detailsMode="$store.state.sticky.gridDetailsMode"></gallery-book>
         </div>
       </div>
 
@@ -49,6 +51,16 @@ import { computed, shallowRef, ref } from "vue";
 import bookDetails from "@output-pages/gallery-root/gallery-grid-view/gallery-book-details.vue";
 import slugify from "@output-mixins/gallery-slugify.js";
 
+// Default list cover edge, kept in sync with $detailsListCover in the styles below.
+const LIST_COVER_DEFAULT = 90;
+// Space a list card reserves for the title/author/length text beside the cover. The
+// card's minimum width is cover + this, so bigger covers fit fewer per row and smaller
+// covers fit more, the same way the cover slider drives the plain grid.
+const LIST_TEXT_MIN_WIDTH = 200;
+// Default cards per row in list mode when the covers-per-row slider hasn't been set. Capped
+// to what fits, so it still drops to fewer columns as the viewport narrows.
+const LIST_DEFAULT_COLS = 3;
+
 export default {
   name: "aleBooks",
   components: { galleryBookDetails: bookDetails },
@@ -73,8 +85,11 @@ export default {
     // narrow screens (the wrapper is centered with side padding from the page).
     const gridStyle = computed(function() {
       const style = {};
+      // List cards manage their own width (they flex to fill the row), so the covers-per-row
+      // max width doesn't apply there. Let the grid run full width in list mode instead.
+      const listMode = store.state.sticky.gridDetailsMode === 'list';
       const max = store.state.sticky.gridMaxWidth;
-      if ( max ) style.maxWidth = max + 'px';
+      if ( max && !listMode ) style.maxWidth = max + 'px';
       // An explicit cover size feeds a CSS variable the cover cells read; when null the
       // cells fall back to their responsive default sizes.
       const coverSize = store.state.sticky.coverSize;
@@ -205,6 +220,15 @@ export default {
       // different number of columns fits. Re-measure once the style has applied.
       this.$nextTick( this.measureGrid );
     },
+    '$store.state.sticky.gridListCols': function() {
+      // The list covers-per-row slider sets the column count directly. Re-row to it.
+      this.$nextTick( this.measureGrid );
+    },
+    '$store.state.sticky.gridDetailsMode': function() {
+      // Each details layout changes the cell size: stacked makes cells taller, list makes
+      // them wider and shorter. Both shift the column count, so re-measure once applied.
+      this.$nextTick( this.measureGrid );
+    },
   },
 
   mounted: function() {
@@ -239,7 +263,25 @@ export default {
 
       if ( cell ) {
         const cellBox = cell.getBoundingClientRect();
-        this.cols = Math.floor( wrapperWidth / cellBox.width ) || 1;
+        // List cards stretch to fill the row, so their measured width is already the full
+        // share and dividing by it always yields one column. Derive the count from a
+        // minimum card width instead, so cards never get narrower than that before another
+        // column drops off.
+        if ( this.$store.state.sticky.gridDetailsMode === 'list' ) {
+          // How many cards fit at their minimum width is the ceiling for any width. The
+          // minimum grows with the cover size, so bigger covers fit fewer per row.
+          const listCover = this.$store.state.sticky.coverSize || LIST_COVER_DEFAULT;
+          const listCardMin = listCover + LIST_TEXT_MIN_WIDTH;
+          const fits = Math.floor( wrapperWidth / listCardMin ) || 1;
+          // An explicit count (the covers-per-row slider) wins, but never beyond what fits,
+          // so the row still drops columns as the viewport narrows. Without one, default to
+          // three per row, also capped to what fits so it drops on narrow viewports.
+          const listCols = this.$store.state.sticky.gridListCols || LIST_DEFAULT_COLS;
+          this.cols = Math.min( listCols, fits );
+        }
+        else {
+          this.cols = Math.floor( wrapperWidth / cellBox.width ) || 1;
+        }
         this.cellHeight = cellBox.height;
         // Share the metrics the covers-per-row (max width) slider needs:
         // - gridCols: book-details arrow nav steps by it
@@ -403,6 +445,18 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 .theme-light  .ale-book.details-open .details-inner-wrap {
   background: #202020;
 }
+// In list mode the inner wrap is the whole card, not just the cover, so the open-book
+// background fill above would darken the entire card. Keep the card's own panel background
+// (the orange highlight border still applies). The .details-list ancestor outranks the
+// theme rules above.
+.theme-light.details-list .ale-book.details-open .details-inner-wrap,
+.theme-light .details-list .ale-book.details-open .details-inner-wrap {
+  background: #fff;
+}
+.theme-dark.details-list .ale-book.details-open .details-inner-wrap,
+.theme-dark .details-list .ale-book.details-open .details-inner-wrap {
+  background: #171717;
+}
 
 .ale-book {
   position: relative;
@@ -448,6 +502,152 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   height: calc(var(--cover-size, #{$thumbnailSize + 2}) + 27px + 22px);
 }
 
+// DETAILS: STACKED
+// Title/author/length strip under the cover, so the cell grows by the strip height. The
+// cover stays square (its own width), so the wrapper becomes a column and the cover sits
+// on top with the strip filling the rest.
+$detailsStripHeight: 58px;
+.details-stacked .ale-book {
+  height: calc(var(--cover-size, #{$thumbnailSize + 2}) + #{$detailsStripHeight});
+}
+.details-stacked .details-inner-wrap {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  // The strip sits below the cover, so lift the wrapper's rounded clip or it's hidden
+  // (the cover keeps its own rounding).
+  overflow: visible;
+}
+// The cover keeps its square aspect (its img wrapper pads to 100% of its own width), so
+// don't pin a height here, just stop it from stretching to fill the taller cell.
+.details-stacked .ale-cover {
+  flex: 0 0 auto;
+}
+.details-stacked .book-details-strip {
+  padding: 6px 4px 0;
+}
+
+// DETAILS: LIST
+// A wide, short card: square cover on the left, text to the right. Cards stretch to fill
+// the row (the row is a flexbox, each card flexes equally), so the covers-per-row column
+// count decides how many cards share the width, edge to edge. A single column gives one
+// full-width row. The cover is a fixed square; the text column takes the rest.
+$detailsListCover: 90px;
+// The widest a single card grows to. Cards flex to fill a narrow row (so there are no dead
+// gaps on small screens), but stop here once the row is wide, so on a big screen they keep
+// the fixed feel of the plain grid instead of stretching liquid edge to edge. Scales with
+// the cover so a bigger cover gets a proportionally roomier text column. This is the max
+// text reserve, larger than the LIST_TEXT_MIN_WIDTH used to count columns, so a card has
+// room to stretch from its minimum up to this cap before going fixed.
+$detailsListCardMax: 300px;
+// List cards cap their own width, so let the container run the full available width (the
+// column count is measured from this width). The card row centers within it, and the open
+// details panel sizes itself to the rendered card span (see repositionBookDetails in
+// gallery-book-details.vue) so the two line up. Drop the cover grid's default 728px cap.
+.ale-books.grid-view.details-list {
+  max-width: none;
+}
+.details-list .ale-grid-row {
+  display: flex;
+  flex-direction: row;
+  gap: 4px;
+  // Cards cap their width rather than stretching, so a wide row has leftover space. Center
+  // the cards so that slack splits evenly instead of all trailing right, matching how the
+  // plain grid sits centered on the page.
+  justify-content: center;
+}
+.details-list .ale-book {
+  flex: 1 1 0;
+  min-width: 0;
+  width: auto;
+  // Grow to fill a narrow row, but stop at the cap so a wide row leaves a trailing gap
+  // (the fixed-grid feel) instead of stretching each card edge to edge.
+  max-width: calc(var(--cover-size, #{$detailsListCover}) + #{$detailsListCardMax});
+  // Cover, plus the card's padding (8px each side), margin (5px each side) and border.
+  // The cover follows the cover-size slider (var) and falls back to the default otherwise.
+  height: calc(var(--cover-size, #{$detailsListCover}) + 28px);
+}
+.details-list .details-inner-wrap {
+  display: flex;
+  flex-direction: row;
+  // Sort values (when shown) wrap onto their own full-width line above the cover|text row.
+  flex-wrap: wrap;
+  align-items: center;
+}
+// Sort values stack above the cover|text row: force them to a full-width first line.
+.details-list .sort-values-container {
+  flex: 0 0 100%;
+  width: 100%;
+}
+// With sort values on, the card gains the extra strip on top, so let it grow past the
+// cover height. The virtualizer measures the real rendered height, so auto is safe.
+.details-list.sort-values-on .ale-book {
+  height: auto;
+}
+// Fixed square cover. align-self stops the flex row from stretching it to the card height
+// (which would give it an indefinite height that the percentage-sized image can't resolve,
+// collapsing the cover). Everything below is sized in explicit pixels for the same reason:
+// no percentage chain that depends on an indefinite parent.
+.details-list .ale-cover {
+  flex: 0 0 var(--cover-size, #{$detailsListCover});
+  align-self: flex-start;
+  width: var(--cover-size, #{$detailsListCover});
+  height: var(--cover-size, #{$detailsListCover});
+}
+// The base cover sizing builds its square from width-percentages and padding tricks that
+// assume an auto-height parent. Here the box is a fixed square (sized by the cover-size
+// slider via the var), so size the wrapper and image to that explicit square directly. The
+// .ale-book ancestor keeps these ahead of gallery-book's scoped base rules regardless of
+// stylesheet order.
+.details-list .ale-book .ale-cover .cover-img-wrapper,
+.details-list .ale-book .ale-cover .placeholder-cover {
+  width: var(--cover-size, #{$detailsListCover});
+  height: var(--cover-size, #{$detailsListCover});
+  padding-bottom: 0;
+}
+.details-list .ale-book .ale-cover img.ale-cover-image {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--cover-size, #{$detailsListCover});
+  height: var(--cover-size, #{$detailsListCover});
+  padding-top: 0;
+}
+// The text block fills the column to the right of the cover, centered vertically.
+.details-list .book-details-strip {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding: 0 10px;
+}
+// Each card gets a panel background, border and padding so it reads as its own card rather
+// than a bare cover with floating text.
+.details-list .details-inner-wrap {
+  border-radius: 8px;
+  padding: 8px;
+  box-sizing: border-box;
+}
+.theme-light .details-list .details-inner-wrap {
+  background: #fff;
+  border: 1px solid rgba($lightFrontColor, .18);
+}
+.theme-dark .details-list .details-inner-wrap {
+  background: #171717;
+  border: 1px solid rgba($darkFrontColor, .12);
+}
+// The cover-only views show a hover overlay (the open-details icon and its lightening
+// wash) over the whole cover. In list mode the whole card opens the book, so the wash
+// over just the cover reads as a stray highlight. Suppress the overlay here.
+.details-list .ale-click-wrap:hover .ale-info-indicator {
+  display: none;
+}
+// The whole card opens the book, not just the cover, so the pointer cursor covers it all.
+.details-list .details-inner-wrap {
+  cursor: pointer;
+}
+
 @media (max-width: 767px) {
   .ale-book {
     width: var(--cover-size, calc(26.3vw - 20px));
@@ -458,6 +658,9 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   }
   .sort-values-stacked .ale-book {
     height: calc(var(--cover-size, calc(26.3vw - 20px)) + 27px + 22px);
+  }
+  .details-stacked .ale-book {
+    height: calc(var(--cover-size, calc(26.3vw - 20px)) + #{$detailsStripHeight});
   }
 }
 
@@ -472,6 +675,9 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   }
   .sort-values-stacked .ale-book {
     height: calc(var(--cover-size, calc(34.4vw - 24px)) + 27px + 22px);
+  }
+  .details-stacked .ale-book {
+    height: calc(var(--cover-size, calc(34.4vw - 24px)) + #{$detailsStripHeight});
   }
 
 }
@@ -519,6 +725,14 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   .sort-values-stacked .ale-book {
     height: calc(var(--cover-size, calc(50vw - 25px)) + 27px + 22px);
   }
+  // Stacked: single full-width column on the narrowest screens (the cover stays square,
+  // so the cell height tracks the full width plus the strip).
+  .details-stacked .ale-book {
+    width: var(--cover-size, calc(100vw - 30px));
+    height: calc(var(--cover-size, calc(100vw - 30px)) + #{$detailsStripHeight});
+  }
+  // List cards already flex to fill the row, so at this width the column count falls to
+  // one on its own (the wrapper is narrower than the min card width). Nothing to override.
 }
 
 </style>

@@ -8,6 +8,8 @@ export default {
     viewMode: 'grid',
     gridMaxWidth: null,
     coverSize: null,
+    gridDetailsMode: 'off',
+    gridListCols: null,
     booksInSeriesToggle: false,
     collectionsDrawerToggle: true,
     exportSettingsGallery: null,

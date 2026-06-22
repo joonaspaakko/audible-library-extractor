@@ -65,13 +65,13 @@
           <div class="setting-label">
             <span>Covers per row</span>
           </div>
-          <div class="covers-per-row-value" :class="{ auto: !$store.state.sticky.gridMaxWidth }">
+          <div class="covers-per-row-value" :class="{ auto: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }">
             {{ coversPerRowCurrent }}
           </div>
           <button
             class="covers-per-row-auto"
-            :class="{ active: !$store.state.sticky.gridMaxWidth }"
-            @click="setGridWidth( null )"
+            :class="{ active: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }"
+            @click="resetCoversPerRow"
             @mousedown="$haptic(1)"
           >Default</button>
         </div>
@@ -114,6 +114,30 @@
           @input="setCoverSize( parseInt( $event.target.value, 10 ) )"
           @mousedown="$haptic(1)"
         >
+      </div>
+
+      <!-- Adds title, author and length to each cell. Stacked puts them under the cover, list
+           puts them beside it. The two layouts are mutually exclusive (grid view only). -->
+      <div class="setting-row" v-if="$store.state.searchMounted && $store.state.sticky.viewMode === 'grid'">
+        <div class="setting-label-wrap segmented-row">
+          <div class="setting-icon">
+            <fa6-solid-list />
+          </div>
+          <div class="setting-label">
+            <span>Details</span>
+          </div>
+          <div class="segmented">
+            <button :class="{ active: $store.state.sticky.gridDetailsMode === 'off' }" @click="setDetailsMode( 'off' )" @mousedown="$haptic(1)">
+              <span>Off</span>
+            </button>
+            <button :class="{ active: $store.state.sticky.gridDetailsMode === 'stacked' }" @click="setDetailsMode( 'stacked' )" @mousedown="$haptic(1)">
+              <span>Stacked</span>
+            </button>
+            <button :class="{ active: $store.state.sticky.gridDetailsMode === 'list' }" @click="setDetailsMode( 'list' )" @mousedown="$haptic(1)">
+              <span>List</span>
+            </button>
+          </div>
+        </div>
       </div>
 
     </div>
@@ -251,6 +275,14 @@ import IconCarousel     from '~icons/fa6-solid/images';
 // Cover size slider bounds, in pixels. Default matches $thumbnailSize; small is half.
 const COVER_SIZE_DEFAULT = 180;
 const COVER_SIZE_SMALL = 90;
+
+// List card sizing, kept in sync with gallery-grid-view.vue: the default list cover edge
+// and the text reserve beside it that together set a card's minimum width.
+const LIST_COVER_DEFAULT = 90;
+const LIST_TEXT_MIN_WIDTH = 200;
+// Default cards per row in list mode, kept in sync with LIST_DEFAULT_COLS in
+// gallery-grid-view.vue. Clearing the covers-per-row override falls back to this.
+const LIST_DEFAULT_COLS = 3;
 
 export default {
   name: 'galleryGlobalSettings',
@@ -463,15 +495,29 @@ export default {
     // The covers-per-row slider works in whole covers. Its range runs from however
     // many fit at the grid's default width up to however many fit across the
     // viewport (minus the page side padding the grid leaves around itself).
+    // In list mode the slider sets the number of cards per row directly, so it runs
+    // from a single full-width card up to however many cards fit at their minimum width.
+    listMode: function() {
+      return this.$store.state.sticky.gridDetailsMode === 'list';
+    },
     coversPerRowMin: function() {
+      if ( this.listMode ) return 1;
       const coverWidth = this.$store.state.gridCoverWidth || 1;
       return Math.max( 1, Math.floor( this.$store.state.gridDefaultMaxWidth / coverWidth ) );
     },
     coversPerRowMax: function() {
+      if ( this.listMode ) {
+        const coverSize = this.$store.state.sticky.coverSize || LIST_COVER_DEFAULT;
+        const cardMin = coverSize + LIST_TEXT_MIN_WIDTH;
+        return Math.max( 1, Math.floor( this.$store.state.gridAvailableWidth / cardMin ) );
+      }
       const coverWidth = this.$store.state.gridCoverWidth || 1;
       return Math.max( this.coversPerRowMin, Math.floor( this.$store.state.gridAvailableWidth / coverWidth ) );
     },
     coversPerRowCurrent: function() {
+      if ( this.listMode ) {
+        return _.clamp( this.$store.state.sticky.gridListCols || LIST_DEFAULT_COLS, this.coversPerRowMin, this.coversPerRowMax );
+      }
       const coverWidth = this.$store.state.gridCoverWidth || 1;
       const width = this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth;
       return _.clamp( Math.floor( width / coverWidth ), this.coversPerRowMin, this.coversPerRowMax );
@@ -484,8 +530,14 @@ export default {
     coverSizeMax: function() {
       return Math.round( COVER_SIZE_DEFAULT * 1.5 );
     },
+    // The unset (default) cover size differs by layout: the plain grid falls back to the
+    // full thumbnail, list cards fall back to the small list cover. The slider and readout
+    // follow that so clearing the override shows the size the cover actually renders at.
+    coverSizeDefault: function() {
+      return this.listMode ? LIST_COVER_DEFAULT : COVER_SIZE_DEFAULT;
+    },
     coverSizeCurrent: function() {
-      return this.$store.state.sticky.coverSize || COVER_SIZE_DEFAULT;
+      return this.$store.state.sticky.coverSize || this.coverSizeDefault;
     },
 
   },
@@ -493,13 +545,29 @@ export default {
   methods: {
 
     setCoversPerRow: function( count ) {
-      // Convert the whole-cover count to a max width. At the minimum (default)
-      // count, clear the override so the grid returns to its CSS default.
-      if ( count <= this.coversPerRowMin ) {
+      // List mode: the slider is a direct cards-per-row count. At the default count,
+      // clear the override so it tracks the default again.
+      if ( this.listMode ) {
+        const value = count === LIST_DEFAULT_COLS ? null : count;
+        this.$store.commit('stickyProp', { key: 'gridListCols', value: value });
+      }
+      // Grid mode: convert the whole-cover count to a max width. At the minimum
+      // (default) count, clear the override so the grid returns to its CSS default.
+      else if ( count <= this.coversPerRowMin ) {
         this.setGridWidth( null );
       }
       else {
         this.setGridWidth( count * this.$store.state.gridCoverWidth );
+      }
+    },
+
+    resetCoversPerRow: function() {
+      // List mode clears the cards-per-row override; grid mode clears the max width.
+      if ( this.listMode ) {
+        this.$store.commit('stickyProp', { key: 'gridListCols', value: null });
+      }
+      else {
+        this.setGridWidth( null );
       }
     },
 
@@ -508,13 +576,19 @@ export default {
     },
 
     setCoverSize: function( value ) {
-      // null clears the override so the grid returns to its default cover size.
-      if ( value === COVER_SIZE_DEFAULT ) value = null;
+      // Dragging to the layout's default size clears the override so the cover returns to
+      // its CSS fallback (full thumbnail in the grid, small cover in list mode).
+      if ( value === this.coverSizeDefault ) value = null;
       this.$store.commit('stickyProp', { key: 'coverSize', value: value });
     },
 
     toggleHaptics: function( e ) {
       this.$store.commit('stickyProp', { key: 'useHaptics', value: e.target.checked });
+    },
+
+    setDetailsMode: function( mode ) {
+      if ( this.$store.state.sticky.gridDetailsMode === mode ) return;
+      this.$store.commit('stickyProp', { key: 'gridDetailsMode', value: mode });
     },
 
     setTheme: function( light ) {

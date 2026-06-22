@@ -76,6 +76,33 @@
         </div>
       </div>
     </div>
+
+    <!-- WHOLE-CARD CLICK TARGET (details modes)
+         The cover's ale-click-wrap can't stretch past the cover: .ale-cover clips to its
+         own bounds with overflow hidden. So in the details modes, where the whole card
+         opens the book, lay a transparent overlay over the entire card to catch clicks on
+         the text and the padding gaps too. It sits below the cover icons (z-index 999), so
+         the play sample / cloud player buttons stay clickable, and carries the same press
+         and click handlers so the blurb peek gesture works anywhere on the card. -->
+    <div
+      v-if="detailsMode && detailsMode !== 'off'"
+      class="card-click-overlay"
+      @mousedown="onPressStart"
+      @touchstart="onPressStart"
+      @click="openBook"
+    ></div>
+
+    <!-- Title/author/length card text. Stacked lays it under the cover, list beside it;
+         the layout is driven by the wrapper class, this just renders the lines. The
+         card-click-overlay above sits over this, so the strip itself needs no handler. -->
+    <div v-if="detailsMode && detailsMode !== 'off'" class="book-details-strip">
+      <div class="book-title" v-if="book.titleShort || book.title" v-html="book.titleShort || book.title"></div>
+      <div class="book-author" v-if="book.authors && book.authors[0]">{{ book.authors[0].name }}</div>
+      <!-- Discontinued books have no length. Render a non-breaking space so the row still
+           exists and the block stays top-aligned with other cards rather than re-centering. -->
+      <div class="book-length" v-html="book.length || '&nbsp;'"></div>
+    </div>
+
   </div>
 </template>
 
@@ -84,7 +111,7 @@ import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 
 export default {
   name: "book",
-  props: ["book", "index", "sortValuesEnabled"],
+  props: ["book", "index", "sortValuesEnabled", "detailsMode"],
   mixins: [ makeCoverUrl ],
   // Provided by the blurb-peek overlay mounted in the grid view; null elsewhere.
   inject: {
@@ -152,6 +179,23 @@ export default {
   border-radius: 5px;
   overflow: hidden;
   background-clip: padding-box;
+  position: relative;
+
+  // Whole-card click target for the details modes. Fills the card above the text and the
+  // padding gaps. The cover is lifted above it (below) so the cover keeps its own click
+  // wrap and its play sample / cloud player buttons stay clickable, and this overlay only
+  // catches the regions the cover does not cover (text, padding).
+  .card-click-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 5;
+    cursor: pointer;
+  }
+  // Keep the cover and its buttons above the overlay.
+  .ale-cover {
+    position: relative;
+    z-index: 6;
+  }
 
   .info-icons-wrapper {
     position: absolute;
@@ -230,6 +274,43 @@ export default {
         padding-left: 3px;
         &:first-child { padding-left: 0; }
       }
+    }
+  }
+}
+
+// DETAILS CARD TEXT
+// The title/author/length block. This styles the lines themselves; the per-layout
+// placement (stacked under the cover vs. list beside it) and the card background live in
+// grid-view.vue, where the .details-stacked / .details-list ancestor classes are plain
+// globals and need no scope workarounds.
+.book-details-strip {
+  text-align: left;
+  line-height: 1.3;
+  overflow: hidden;
+
+  .book-title {
+    font-size: 0.82em;
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    @include themify($themes) {
+      color: themed(frontColor);
+    }
+  }
+  .book-author {
+    font-size: 0.75em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), .65);
+    }
+  }
+  .book-length {
+    font-size: 0.72em;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), .45);
     }
   }
 }
