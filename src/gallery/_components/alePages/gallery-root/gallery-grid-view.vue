@@ -72,9 +72,14 @@ export default {
     // at their natural size. It's a max-width, so the viewport still bounds it on
     // narrow screens (the wrapper is centered with side padding from the page).
     const gridStyle = computed(function() {
+      const style = {};
       const max = store.state.sticky.gridMaxWidth;
-      if ( !max ) return null;
-      return { maxWidth: max + 'px' };
+      if ( max ) style.maxWidth = max + 'px';
+      // An explicit cover size feeds a CSS variable the cover cells read; when null the
+      // cells fall back to their responsive default sizes.
+      const coverSize = store.state.sticky.coverSize;
+      if ( coverSize ) style['--cover-size'] = coverSize + 'px';
+      return _.isEmpty( style ) ? null : style;
     });
 
     const collection = computed(function() {
@@ -193,6 +198,11 @@ export default {
     '$store.getters.sortValuesKey': function() {
       // The locked value stacks a second strip, growing the cell height. The collection
       // is unchanged so its watcher won't fire; re-measure once the class has applied.
+      this.$nextTick( this.measureGrid );
+    },
+    '$store.state.sticky.coverSize': function() {
+      // A new cover size changes the cell size while the grid width stays the same, so a
+      // different number of columns fits. Re-measure once the style has applied.
       this.$nextTick( this.measureGrid );
     },
   },
@@ -423,43 +433,45 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 }
 
 
+// Cover size: the covers-per-row slider sets --cover-size when overridden; otherwise the
+// per-breakpoint default below is the fallback, so resizing keeps the responsive behavior.
 .ale-book {
-  width: $thumbnailSize + 2;
-  height: $thumbnailSize + 2;
+  width: var(--cover-size, #{$thumbnailSize + 2});
+  height: var(--cover-size, #{$thumbnailSize + 2});
 }
 // For showing sort values correctly...
 .sort-values-on .ale-book {
-  height: $thumbnailSize + 2 + 27;
+  height: calc(var(--cover-size, #{$thumbnailSize + 2}) + 27px);
 }
 // A locked value stacks a second strip above the sort value, so reserve room for it.
 .sort-values-stacked .ale-book {
-  height: $thumbnailSize + 2 + 27 + 22;
+  height: calc(var(--cover-size, #{$thumbnailSize + 2}) + 27px + 22px);
 }
 
 @media (max-width: 767px) {
   .ale-book {
-    width: calc( 26.3vw - 20px);
-    height: calc( 26.3vw - 20px);
+    width: var(--cover-size, calc(26.3vw - 20px));
+    height: var(--cover-size, calc(26.3vw - 20px));
   }
   .sort-values-on .ale-book {
-    height: calc(26.3vw - 20px + 27px);
+    height: calc(var(--cover-size, calc(26.3vw - 20px)) + 27px);
   }
   .sort-values-stacked .ale-book {
-    height: calc(26.3vw - 20px + 27px + 22px);
+    height: calc(var(--cover-size, calc(26.3vw - 20px)) + 27px + 22px);
   }
 }
 
 @media (max-width: 630px) {
 
   .ale-book {
-    width: calc( 34.4vw - 24px);
-    height: calc( 34.4vw - 24px);
+    width: var(--cover-size, calc(34.4vw - 24px));
+    height: var(--cover-size, calc(34.4vw - 24px));
   }
   .sort-values-on .ale-book {
-    height: calc(34.4vw - 24px + 27px);
+    height: calc(var(--cover-size, calc(34.4vw - 24px)) + 27px);
   }
   .sort-values-stacked .ale-book {
-    height: calc(34.4vw - 24px + 27px + 22px);
+    height: calc(var(--cover-size, calc(34.4vw - 24px)) + 27px + 22px);
   }
 
 }
@@ -498,14 +510,14 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 @media (max-width: 504px) {
 
   .ale-book {
-    width: calc( 50vw - 25px);
-    height: calc( 50vw - 25px);
+    width: var(--cover-size, calc(50vw - 25px));
+    height: var(--cover-size, calc(50vw - 25px));
   }
   .sort-values-on .ale-book {
-    height: calc(50vw - 25px + 27px);
+    height: calc(var(--cover-size, calc(50vw - 25px)) + 27px);
   }
   .sort-values-stacked .ale-book {
-    height: calc(50vw - 25px + 27px + 22px);
+    height: calc(var(--cover-size, calc(50vw - 25px)) + 27px + 22px);
   }
 }
 

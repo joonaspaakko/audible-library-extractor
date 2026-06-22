@@ -7,6 +7,7 @@ export default {
     // sortValues: false,
     viewMode: 'grid',
     gridMaxWidth: null,
+    coverSize: null,
     booksInSeriesToggle: false,
     collectionsDrawerToggle: true,
     exportSettingsGallery: null,

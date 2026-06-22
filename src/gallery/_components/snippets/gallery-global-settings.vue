@@ -17,42 +17,50 @@
     <div class="settings-section">
 
       <div class="setting-row">
-        <label class="setting-label-wrap">
+        <div class="setting-label-wrap segmented-row">
           <div class="setting-icon">
             <fa6-solid-sun v-if="$store.state.sticky.lightSwitch" />
             <fa6-solid-moon v-else />
           </div>
           <div class="setting-label">
-            <span>Light theme</span>
+            <span>Theme</span>
           </div>
-          <div class="visual-toggle" :class="{ on: $store.state.sticky.lightSwitch }">
-            <input type="checkbox" :checked="$store.state.sticky.lightSwitch" @change="toggleLightSwitch" @mousedown="$haptic(1)">
-            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <div class="segmented">
+            <button :class="{ active: !$store.state.sticky.lightSwitch }" @click="setTheme( false )" @mousedown="$haptic(1)">
+              <fa6-solid-moon /><span>Dark</span>
+            </button>
+            <button :class="{ active: !!$store.state.sticky.lightSwitch }" @click="setTheme( true )" @mousedown="$haptic(1)">
+              <fa6-solid-sun /><span>Light</span>
+            </button>
           </div>
-        </label>
+        </div>
       </div>
 
       <div class="setting-row" v-if="$store.state.searchMounted">
-        <label class="setting-label-wrap">
+        <div class="setting-label-wrap segmented-row">
           <div class="setting-icon">
-            <mdi-table-large v-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+            <material-symbols-table-outline v-if="$store.state.sticky.viewMode === 'spreadsheet'" />
             <ep-grid v-else />
           </div>
           <div class="setting-label">
-            <span>Spreadsheet view</span>
+            <span>View</span>
           </div>
-          <div class="visual-toggle" :class="{ on: $store.state.sticky.viewMode === 'spreadsheet' }">
-            <input type="checkbox" :checked="$store.state.sticky.viewMode === 'spreadsheet'" @change="toggleViewMode" @mousedown="$haptic(1)">
-            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          <div class="segmented">
+            <button :class="{ active: $store.state.sticky.viewMode === 'grid' }" @click="setViewMode( 'grid' )" @mousedown="$haptic(1)">
+              <ep-grid /><span>Grid</span>
+            </button>
+            <button :class="{ active: $store.state.sticky.viewMode === 'spreadsheet' }" @click="setViewMode( 'spreadsheet' )" @mousedown="$haptic(1)">
+              <material-symbols-table-outline /><span>Spreadsheet</span>
+            </button>
           </div>
-        </label>
+        </div>
       </div>
 
       <!-- Grid covers per row, via the grid's max width (grid view only) -->
       <div class="setting-row" v-if="$store.state.searchMounted && $store.state.sticky.viewMode === 'grid' && coversPerRowMax > coversPerRowMin">
         <div class="setting-label-wrap covers-per-row-row">
           <div class="setting-icon">
-            <ep-grid />
+            <fluent-dock-row-20-filled />
           </div>
           <div class="setting-label">
             <span>Covers per row</span>
@@ -74,6 +82,36 @@
           :max="coversPerRowMax"
           :value="coversPerRowCurrent"
           @input="setCoversPerRow( parseInt( $event.target.value, 10 ) )"
+          @mousedown="$haptic(1)"
+        >
+      </div>
+
+      <!-- Cover size shrinks/grows the covers themselves while the grid width stays put (grid view only) -->
+      <div class="setting-row" v-if="$store.state.searchMounted && $store.state.sticky.viewMode === 'grid'">
+        <div class="setting-label-wrap covers-per-row-row">
+          <div class="setting-icon">
+            <fluent-resize-image-20-filled />
+          </div>
+          <div class="setting-label">
+            <span>Cover size</span>
+          </div>
+          <div class="covers-per-row-value" :class="{ auto: !$store.state.sticky.coverSize }">
+            {{ coverSizeCurrent }}
+          </div>
+          <button
+            class="covers-per-row-auto"
+            :class="{ active: !$store.state.sticky.coverSize }"
+            @click="setCoverSize( null )"
+            @mousedown="$haptic(1)"
+          >Default</button>
+        </div>
+        <input
+          class="covers-per-row-slider"
+          type="range"
+          :min="coverSizeMin"
+          :max="coverSizeMax"
+          :value="coverSizeCurrent"
+          @input="setCoverSize( parseInt( $event.target.value, 10 ) )"
           @mousedown="$haptic(1)"
         >
       </div>
@@ -209,6 +247,10 @@ import IconMainInfo     from '~icons/fa6-solid/circle-info';
 import IconCollections  from '~icons/fa6-solid/layer-group';
 import IconSeries       from '~icons/fa6-solid/list-ol';
 import IconCarousel     from '~icons/fa6-solid/images';
+
+// Cover size slider bounds, in pixels. Default matches $thumbnailSize; small is half.
+const COVER_SIZE_DEFAULT = 180;
+const COVER_SIZE_SMALL = 90;
 
 export default {
   name: 'galleryGlobalSettings',
@@ -435,6 +477,17 @@ export default {
       return _.clamp( Math.floor( width / coverWidth ), this.coversPerRowMin, this.coversPerRowMax );
     },
 
+    // Cover size runs from the small preset up to 150% of the default, in pixels.
+    coverSizeMin: function() {
+      return COVER_SIZE_SMALL;
+    },
+    coverSizeMax: function() {
+      return Math.round( COVER_SIZE_DEFAULT * 1.5 );
+    },
+    coverSizeCurrent: function() {
+      return this.$store.state.sticky.coverSize || COVER_SIZE_DEFAULT;
+    },
+
   },
 
   methods: {
@@ -454,13 +507,22 @@ export default {
       this.$store.commit('stickyProp', { key: 'gridMaxWidth', value: value });
     },
 
+    setCoverSize: function( value ) {
+      // null clears the override so the grid returns to its default cover size.
+      if ( value === COVER_SIZE_DEFAULT ) value = null;
+      this.$store.commit('stickyProp', { key: 'coverSize', value: value });
+    },
+
     toggleHaptics: function( e ) {
       this.$store.commit('stickyProp', { key: 'useHaptics', value: e.target.checked });
     },
 
-    toggleLightSwitch: function() {
+    setTheme: function( light ) {
 
-      this.$store.commit('stickyProp', { key: 'lightSwitch', value: this.$store.state.sticky.lightSwitch ? 0 : 1 });
+      const value = light ? 1 : 0;
+      if ( this.$store.state.sticky.lightSwitch === value ) return;
+
+      this.$store.commit('stickyProp', { key: 'lightSwitch', value: value });
       if ( !this.$store.state.sticky.lightSwitchSetByUser ) this.$store.commit('stickyProp', { key: 'lightSwitchSetByUser', value: true });
 
       const html = document.querySelector('html');
@@ -470,11 +532,11 @@ export default {
 
     },
 
-    toggleViewMode: function() {
+    setViewMode: function( mode ) {
 
-      const newViewMode = this.$store.state.sticky.viewMode === 'grid' ? 'spreadsheet' : 'grid';
-      this.$store.commit('stickyProp', { key: 'viewMode', value: newViewMode });
-      this.$updateQueries({ y: null, view: newViewMode });
+      if ( this.$store.state.sticky.viewMode === mode ) return;
+      this.$store.commit('stickyProp', { key: 'viewMode', value: mode });
+      this.$updateQueries({ y: null, view: mode });
 
     },
 
@@ -648,6 +710,50 @@ export default {
 .setting-disabled {
   opacity: 0.4;
   pointer-events: none;
+}
+
+// Segmented control: two labeled buttons for an either/or choice (theme, view mode).
+// The active segment is highlighted so both options stay visible and named.
+.segmented-row {
+  cursor: default;
+}
+
+.segmented {
+  flex-shrink: 0;
+  display: flex;
+  border-radius: 7px;
+  overflow: hidden;
+  @include themify($themes) {
+    border: 1px solid rgba(themed(frontColor), .15);
+  }
+
+  button {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 10px;
+    font-size: 0.78em;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), .55);
+      &:hover { background: rgba(themed(frontColor), .08); }
+    }
+
+    & + button {
+      @include themify($themes) {
+        border-left: 1px solid rgba(themed(frontColor), .15);
+      }
+    }
+
+    &.active {
+      @include themify($themes) {
+        background: rgba(themed(frontColor), .16);
+        color: rgba(themed(frontColor), .95);
+      }
+    }
+  }
 }
 
 // Toggle switch
