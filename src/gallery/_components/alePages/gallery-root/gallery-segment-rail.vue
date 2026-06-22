@@ -25,9 +25,10 @@
 
 // VISUAL SEGMENT COUNT
 // Purely cosmetic blocks. The count scales with how many screenfuls there are to
-// scroll (one pill per viewport-ish), clamped between these bounds so a short page
-// isn't littered with pills and a huge library doesn't explode the count.
-const SEGMENT_MIN = 3;
+// scroll (one pill per viewport-ish), clamped between these bounds. The min is 1 so a
+// page with barely any scrolling doesn't show 3 pills implying multiple screenfuls
+// that aren't there; the max keeps a huge library from exploding the count.
+const SEGMENT_MIN = 1;
 const SEGMENT_MAX = 12;
 
 export default {
@@ -56,6 +57,17 @@ export default {
       viewport: 0,
       dragging: false,
       scrollEl: null,
+      // Cached at pointerdown so each move maps the pointer without reading layout
+      // (getBoundingClientRect mid-drag forces a reflow and, on phones, thrashes hard
+      // enough to make scrubbing jump). Refreshed if the rail can't be measured.
+      railBox: null,
+      dragScrollable: 0,
+      pointerId: null,
+      // Touch fires pointermove far faster than the screen paints (and a resting
+      // finger still jitters out a stream of moves), so coalesce them: a move only
+      // stores the latest Y and the actual jump runs once per animation frame.
+      pendingY: null,
+      rafId: null,
     };
   },
 
@@ -68,10 +80,13 @@ export default {
     },
 
     // One pill per screenful of scrolling (scrollable / viewport), clamped to the
-    // min/max so short pages stay clean and long ones don't over-segment.
+    // min/max so short pages stay clean and long ones don't over-segment. Fall back to
+    // the live window height if viewport hasn't been measured yet, so a barely-
+    // scrollable page doesn't floor at SEGMENT_MIN as if it had multiple screenfuls.
     segmentCount: function() {
-      if ( this.viewport <= 0 ) return SEGMENT_MIN;
-      const screens = Math.round( this.scrollable / this.viewport );
+      const viewport = this.viewport > 0 ? this.viewport : window.innerHeight;
+      if ( viewport <= 0 ) return SEGMENT_MIN;
+      const screens = Math.round( this.scrollable / viewport );
       return _.clamp( screens, SEGMENT_MIN, SEGMENT_MAX );
     },
 
@@ -90,12 +105,17 @@ export default {
     // pointer leaves the thin rail.
     window.addEventListener('pointermove', this.onPointerMove, { passive: false });
     window.addEventListener('pointerup', this.onPointerUp, { passive: true });
+    // If the browser hijacks the touch for its own gesture it sends pointercancel
+    // instead of pointerup; without this the drag would stay stuck on.
+    window.addEventListener('pointercancel', this.onPointerUp, { passive: true });
   },
   beforeUnmount: function() {
     clearTimeout( this.settleTimer );
+    if ( this.rafId !== null ) cancelAnimationFrame( this.rafId );
     this.$compEmitter.off('afterWindowResize', this.measure);
     window.removeEventListener('pointermove', this.onPointerMove);
     window.removeEventListener('pointerup', this.onPointerUp);
+    window.removeEventListener('pointercancel', this.onPointerUp);
     const source = this.scrollSource();
     if ( source ) source.removeEventListener('scroll', this.onScroll);
   },
@@ -168,16 +188,16 @@ export default {
       this.measure();
     },
 
-    // Map a pointer's Y over the rail to a scroll fraction and jump there.
+    // Map a pointer's Y over the rail to a scroll fraction and jump there. Uses the
+    // rail box and scrollable height cached at pointerdown so the drag never reads
+    // layout mid-move.
     jumpToPointer: function( clientY ) {
-      const rail = this.$refs.rail;
-      if ( !rail ) return;
-      const box = rail.getBoundingClientRect();
+      const box = this.railBox;
+      if ( !box || box.height <= 0 ) return;
       const fraction = _.clamp( ( clientY - box.top ) / box.height, 0, 1 );
       this.scrollFraction = fraction;
 
-      const m = this.metrics();
-      const top = fraction * m.scrollable;
+      const top = fraction * this.dragScrollable;
       const source = this.scrollSource();
       if ( !source ) return;
       if ( this.target === 'window' ) {
@@ -189,22 +209,58 @@ export default {
     },
 
     onPointerDown: function( e ) {
+      const rail = this.$refs.rail;
+      if ( !rail ) return;
+      // Capture the pointer so every move routes here (and the browser stops trying to
+      // scroll the page under the touch). Without this, a touch-drag fights native
+      // scrolling and, at the top of the page, can trigger pull-to-refresh.
+      this.pointerId = e.pointerId;
+      try { rail.setPointerCapture( e.pointerId ); } catch ( err ) {}
+
       this.dragging = true;
-      this.$haptic( 1 );
+      this.railBox = rail.getBoundingClientRect();
+      this.dragScrollable = this.metrics().scrollable;
       this.jumpToPointer( e.clientY );
       e.preventDefault();
+    },
+
+    // Coalesce the burst of pointermoves into one jump per frame: remember the latest
+    // Y and schedule a single rAF that does the reactive write + scroll. This keeps a
+    // jittery, high-frequency touch stream from re-rendering the rail and recomputing
+    // the virtual scroller many times per frame (which is what chokes weak phones).
+    flushDrag: function() {
+      this.rafId = null;
+      if ( !this.dragging || this.pendingY === null ) return;
+      this.jumpToPointer( this.pendingY );
     },
 
     onPointerMove: function( e ) {
       if ( !this.dragging ) return;
-      this.jumpToPointer( e.clientY );
-      // Stop the page/container from scrolling under a touch-drag on the rail.
+      // Only the captured pointer drives the drag (ignore a second finger).
+      if ( this.pointerId !== null && e.pointerId !== this.pointerId ) return;
+      this.pendingY = e.clientY;
+      if ( this.rafId === null ) this.rafId = requestAnimationFrame( this.flushDrag );
       e.preventDefault();
     },
 
-    onPointerUp: function() {
+    onPointerUp: function( e ) {
       if ( !this.dragging ) return;
+      if ( this.pointerId !== null && e && e.pointerId !== this.pointerId ) return;
+      const rail = this.$refs.rail;
+      if ( rail && this.pointerId !== null ) {
+        try { rail.releasePointerCapture( this.pointerId ); } catch ( err ) {}
+      }
+      this.pointerId = null;
+      // Land on the final pointer position (a pending move may not have flushed yet),
+      // then drop the coalescing state. railBox/dragScrollable are still set here.
+      if ( this.rafId !== null ) {
+        cancelAnimationFrame( this.rafId );
+        this.rafId = null;
+      }
+      if ( this.pendingY !== null ) this.jumpToPointer( this.pendingY );
+      this.pendingY = null;
       this.dragging = false;
+      this.railBox = null;
       this.measure();
     },
 
