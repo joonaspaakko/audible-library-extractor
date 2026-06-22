@@ -30,6 +30,7 @@ export default {
         blurb: "",
         x: 0,
         y: 0,
+        isTouch: false,
       },
 
       // Non-reactive gesture bookkeeping (changes every pointermove, not template-bound).
@@ -99,6 +100,7 @@ export default {
       if ( this.gesture.inBlurbMode ) return;
       this.gesture.inBlurbMode = true;
       this.suppressClick = true;
+      this.peek.isTouch = this.gesture.isTouch;
 
       // Touch is both the pointer and the scroll mechanism, so on mobile the page has to
       // be locked (not merely stopped) for the whole press, letting one finger sweep
@@ -118,6 +120,16 @@ export default {
 
       if ( !this.gesture.inBlurbMode ) {
         const moved = Math.abs( point.clientX - this.gesture.startX ) + Math.abs( point.clientY - this.gesture.startY );
+
+        // On touch the finger is also the scroll mechanism, so a moving press has to be
+        // left alone to pan the page. Only the stationary hold timer enters blurb mode,
+        // and any drag before it fires cancels the press so a swipe just scrolls.
+        if ( this.gesture.isTouch ) {
+          if ( moved >= DRAG_THRESHOLD ) this.end();
+          return;
+        }
+
+        // Mouse has a separate scroll mechanism, so a quick drag can enter blurb mode early.
         if ( moved < DRAG_THRESHOLD ) return;
         this.enterBlurbMode( point.clientX, point.clientY );
       }

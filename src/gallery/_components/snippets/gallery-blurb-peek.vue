@@ -17,14 +17,17 @@ export default {
   computed: {
 
     // Sit just above the pointer, clamped so the panel never runs off either edge.
+    // On touch the finger covers the pointer, so lift the panel another 1.5 text rows
+    // (line-height 1.4 at 13px ≈ 18px/row) clear of the fingertip.
     panelStyle: function() {
       const width = 280;
       const margin = 10;
       let left = this.peek.x - ( width / 2 );
       left = Math.max( margin, Math.min( left, window.innerWidth - width - margin ) );
+      const top = this.peek.isTouch ? this.peek.y - 27 : this.peek.y;
       return {
         left: left + 'px',
-        top: this.peek.y + 'px',
+        top: top + 'px',
         width: width + 'px',
       };
     },
