@@ -17,12 +17,11 @@
 
       <div
         class="ale-click-wrap"
-        @mousedown="$haptic(1)"
-        @click="!book.asin ? null : $compEmitter.emit('book-clicked', book.asin)"
+        @mousedown="onPressStart"
+        @touchstart="onPressStart"
+        @click="openBook"
       >
-        
-        <div class="blurb-tooltip" v-if="book.blurb && sticky.bookDetailSettings.blurb" v-tippy="{ delay: 150, placement: 'left', flipBehavior: ['left', 'right', 'top', 'bottom'], maxWidth: 300 }" :content="book.blurb"></div>
-      
+
         <div class="info-icons-wrapper">
           <!-- FAVORITE -->
           <div class="favorite-marker" v-if="book.favorite && sticky.bookDetailSettings.favorite">
@@ -87,6 +86,10 @@ export default {
   name: "book",
   props: ["book", "index", "sortValuesEnabled"],
   mixins: [ makeCoverUrl ],
+  // Provided by the blurb-peek overlay mounted in the grid view; null elsewhere.
+  inject: {
+    blurbPeek: { default: null },
+  },
   data: function() {
     return {
       store: this.$store.state,
@@ -96,7 +99,22 @@ export default {
     };
   },
   methods: {
-    
+
+    onPressStart: function( event ) {
+      this.$haptic( 1 );
+      if ( !this.book.asin || !this.blurbPeek ) return;
+      // Only arm the blurb gesture when blurbs are actually enabled, so a plain tap
+      // path is untouched when the feature is off.
+      if ( this.blurbPeek.blurbEnabled() ) this.blurbPeek.start( event );
+    },
+
+    openBook: function() {
+      if ( !this.book.asin ) return;
+      // The press that just ended was a blurb peek, not a tap: swallow the open.
+      if ( this.blurbPeek && this.blurbPeek.consumeClick() ) return;
+      this.$compEmitter.emit( 'book-clicked', this.book.asin );
+    },
+
     // imageAlt: function(book, index) {
     //   return book.authors[0].name + " - " + book.title;
     // },
@@ -484,24 +502,6 @@ export default {
   height: 0;
   overflow: hidden;
 }
-
-.blurb-tooltip {
-  display: none;
-  position: absolute;
-  top: 0px;
-  left: 0px;
-  z-index: 10;
-  width: 0;
-  height: 0;
-  border-style: solid;
-  border-width: 35px 35px 0 0;
-  border-color: rgba(#000000, .7) transparent transparent transparent;
-  outline: none;
-  border-radius: 0 0 100% 0;
-}
-
-.ale-click-wrap:hover .blurb-tooltip { display: block !important; }
-body.is-mobile .blurb-tooltip { display: none !important; }
 
 body.is-mobile .ale-click-wrap .ale-info-indicator.open-details-icon {
   display: none !important;

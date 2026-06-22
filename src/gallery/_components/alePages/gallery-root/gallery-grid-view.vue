@@ -32,6 +32,9 @@
     <!-- Position jump rail (window-scrolled, so fixed to the viewport). -->
     <gallery-segment-rail target="window" :fixed="true" :total="$store.getters.collection.length" />
 
+    <!-- Shared overlay for the press-and-hold blurb peek. -->
+    <gallery-blurb-peek ref="blurbPeek" :lookupBook="lookupBook" />
+
   </div>
 </template>
 
@@ -129,7 +132,10 @@ export default {
       return Math.max( 0, virtualizer.value.getTotalSize() - r[ r.length - 1 ].end );
     });
 
-    return { store, booksWrapper, collection, rows, cols, cellHeight, gridStyle, scrollMargin, openRowIndex, virtualizer, virtualRows, paddingTop, paddingBottom };
+    // Resolves an asin under the pointer to its book for the blurb-peek overlay.
+    const lookupBook = ( asin ) => _.find( collection.value, { asin: asin } );
+
+    return { store, booksWrapper, collection, rows, cols, cellHeight, gridStyle, scrollMargin, openRowIndex, virtualizer, virtualRows, paddingTop, paddingBottom, lookupBook };
 
   },
 
@@ -137,6 +143,20 @@ export default {
     return {
       restoringScroll: false,
       pendingOpenScroll: false,
+    };
+  },
+
+  // Hand the blurb-peek overlay down to the covers. They're siblings of the overlay
+  // (both children here), so the shared ancestor provides it. A thin proxy reads the
+  // ref lazily, since it isn't populated until after this provide() runs.
+  provide: function() {
+    const vue = this;
+    return {
+      blurbPeek: {
+        blurbEnabled: function() { return vue.$refs.blurbPeek.blurbEnabled(); },
+        start: function( event ) { vue.$refs.blurbPeek.start( event ); },
+        consumeClick: function() { return vue.$refs.blurbPeek.consumeClick(); },
+      },
     };
   },
 
