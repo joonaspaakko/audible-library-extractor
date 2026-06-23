@@ -35,7 +35,7 @@
     <div v-if="paddingBottom" class="grid-spacer" :style="{ height: paddingBottom + 'px' }" aria-hidden="true"></div>
 
     <!-- Position jump rail (window-scrolled, so fixed to the viewport). -->
-    <gallery-segment-rail target="window" :fixed="true" :total="$store.getters.collection.length" />
+    <gallery-segment-rail target="window" :fixed="true" :total="$store.getters.collection.length" :virtualItems="virtualRows" :cols="cols" />
 
     <!-- Shared overlay for the press-and-hold blurb peek. -->
     <gallery-blurb-peek ref="blurbPeek" :lookupBook="lookupBook" />
@@ -245,6 +245,7 @@ export default {
     this.$compEmitter.off('afterWindowResize', this.measureGrid);
     window.removeEventListener('scroll', this.saveScrollPosition);
     this.$store.commit('prop', { key: 'openDetails', value: { index: -1, gapHeight: 0 } });
+    this.$store.commit('prop', { key: 'scrollVisibleIndex', value: -1 });
   },
 
   methods: {

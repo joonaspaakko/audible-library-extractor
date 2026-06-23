@@ -20,11 +20,11 @@
 
   <!-- Running count of items scrolled past. -->
   <div
-    v-if="total > 0"
+    v-if="total > 0 && $store.state.scrollVisibleIndex >= 0"
     v-show="showLabel"
     class="segment-rail-label"
     :style="{ top: ( scrollFraction * 100 ) + '%' }"
-  >~{{ Math.round( scrollFraction * total ) }}</div>
+  >{{ $store.state.scrollVisibleIndex + 1 }}</div>
 
 </div>
 </template>
@@ -61,6 +61,18 @@ export default {
     total: {
       type: Number,
       default: 0,
+    },
+    // Raw virtual items array from the active virtualizer. When provided, the rail
+    // filters them to the visible viewport and commits the last visible index to
+    // the store, replacing the per-view duplicate filtering logic.
+    virtualItems: {
+      type: Array,
+      default: null,
+    },
+    // Number of books per virtualizer row (grid view: cols; list view: 1).
+    cols: {
+      type: Number,
+      default: 1,
     },
   },
 
@@ -140,6 +152,9 @@ export default {
     target: function() {
       this.bindScrollSource();
     },
+    virtualItems: function() {
+      this.updateVisibleIndex();
+    },
   },
 
   methods: {
@@ -202,7 +217,23 @@ export default {
       // Don't fight the user's own drag; the drag already sets the fraction.
       if ( this.dragging ) return;
       this.measure();
+      this.updateVisibleIndex();
       this.flashLabel();
+    },
+
+    // Filter virtualItems to only rows intersecting the current viewport and
+    // commit the last visible flat-book index to the store. Both grid and list
+    // views pass their raw virtualizer array; the rail handles the rest.
+    updateVisibleIndex: function() {
+      const items = this.virtualItems;
+      if ( !items || !items.length || this.total <= 0 ) return;
+      const m = this.metrics();
+      const scrollTop = m.top;
+      const viewEnd = scrollTop + m.viewport;
+      const inView = items.filter(function( r ) { return r.end > scrollTop && r.start < viewEnd; });
+      const lastRow = inView.length ? inView[ inView.length - 1 ].index : items[ items.length - 1 ].index;
+      const lastIndex = Math.min( lastRow * this.cols + this.cols - 1, this.total - 1 );
+      this.$store.commit('prop', { key: 'scrollVisibleIndex', value: lastIndex });
     },
 
     // Show the count label and (re)arm the fade-out timer, so it fades once the
@@ -232,7 +263,7 @@ export default {
       const source = this.scrollSource();
       if ( !source ) return;
       if ( this.target === 'window' ) {
-        window.scrollTo({ top: top });
+        window.scrollTo( 0, top );
       }
       else {
         source.scrollTop = top;
@@ -251,7 +282,6 @@ export default {
       this.dragging = true;
       this.railBox = rail.getBoundingClientRect();
       this.dragScrollable = this.metrics().scrollable;
-      // Keep the label up for the whole drag; the timer is armed on release.
       if ( this.total > 0 ) {
         clearTimeout( this.labelTimer );
         this.showLabel = true;
@@ -272,7 +302,6 @@ export default {
 
     onPointerMove: function( e ) {
       if ( !this.dragging ) return;
-      // Only the captured pointer drives the drag (ignore a second finger).
       if ( this.pointerId !== null && e.pointerId !== this.pointerId ) return;
       this.pendingY = e.clientY;
       if ( this.rafId === null ) this.rafId = requestAnimationFrame( this.flushDrag );
@@ -297,8 +326,11 @@ export default {
       this.pendingY = null;
       this.dragging = false;
       this.railBox = null;
-      this.measure();
-      // Drag finished: let the label linger briefly, then fade.
+      // Don't call measure() here — the scroll event fired by the final
+      // jumpToPointer already triggers onScroll → measure() naturally, and
+      // reading scroll position synchronously here can return a stale value
+      // before the browser has committed the scrollTo, causing a snap-back.
+      this.updateVisibleIndex();
       if ( this.total > 0 ) this.armLabelHide();
     },
 
@@ -414,3 +446,4 @@ export default {
 }
 
 </style>
+

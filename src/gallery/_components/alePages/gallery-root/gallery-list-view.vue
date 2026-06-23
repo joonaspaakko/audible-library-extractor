@@ -6,7 +6,7 @@ ref="listView"
 >
 
   <!-- Position jump rail (inner-container scrolled). -->
-  <gallery-segment-rail target=".list-view-inner-wrap" :total="$store.getters.collection.length" />
+  <gallery-segment-rail target=".list-view-inner-wrap" :total="$store.getters.collection.length" :virtualItems="virtualRows" />
 
   <div class="list-view-inner-wrap" ref="scrollWrap">
     <table>
@@ -153,6 +153,7 @@ export default {
     this.$compEmitter.off('afterWindowResize', this.setSpreadsheetOffset);
     if ( this.scrollWrap ) this.scrollWrap.removeEventListener('scroll', this.saveScrollPosition);
     this.$store.commit('prop', { key: 'openDetails', value: { index: -1, gapHeight: 0 } });
+    this.$store.commit('prop', { key: 'scrollVisibleIndex', value: -1 });
   },
 
   methods: {

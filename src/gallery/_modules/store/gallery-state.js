@@ -130,4 +130,7 @@ export default {
   showMobilePlayer: false,
   desktopPlayerHeight: null,
   mobileWidth: 630,
+  // Last visible item index written by the active virtualizer, used by the segment
+  // rail label. -1 means not yet measured (label stays hidden until set).
+  scrollVisibleIndex: -1,
 };

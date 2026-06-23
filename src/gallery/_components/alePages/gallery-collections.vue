@@ -60,7 +60,7 @@
 
     </div>
 
-    <gallery-segment-rail target="window" :fixed="true" :total="flatCollections.length" />
+    <gallery-segment-rail target="window" :fixed="true" :total="flatCollections.length" :virtualItems="virtualRows" />
 
   </div>
 </template>
@@ -154,6 +154,7 @@ export default {
   },
   beforeUnmount: function() {
     this.$compEmitter.off('afterWindowResize', this.measureCollections);
+    this.$store.commit('prop', { key: 'scrollVisibleIndex', value: -1 });
   },
 
   computed: {
