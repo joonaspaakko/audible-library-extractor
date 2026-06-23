@@ -84,8 +84,11 @@ export default {
         // "storePageMissing",
         // "storePageChanged",
       ];
+      // An explicitly passed removeKeys (even an empty array) wins, so a caller can opt
+      // out of the structural exclusions entirely and surface every key.
+      const exclude = config.removeKeys !== undefined ? config.removeKeys : removeKeys;
       keys = _.remove(keys, function(key) {
-        return !_.includes( (config.removeKeys || removeKeys), key);
+        return !_.includes( exclude, key);
       });
 
       return keys;

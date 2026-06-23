@@ -663,9 +663,11 @@ export default {
       }
       transition: all 120ms ease-in-out;
     }
+    // Inactive sorter: both arrows dimmed so the active sorter's full-strength arrows
+    // stand out. The .active rules below restore strength to the relevant direction.
     &.sortbox [data-icon] {
       @include themify($themes) {
-        color: rgba( themed(frontColor), 1);
+        color: rgba( themed(frontColor), .35);
       }
     }
     &.sortbox.active {

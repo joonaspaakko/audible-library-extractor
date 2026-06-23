@@ -55,7 +55,7 @@ import makeFullUrl from "@output-mixins/gallery-makeFullUrl.js";
 
 export default {
   name: "aleListItem",
-  props: ["book", "rowIndex", "keys"],
+  props: ["book", "rowIndex", "keys", "frozenKeys"],
   mixins: [stringifyArray, makeCoverUrl, makeFullUrl],
   data: function() {
     return {
@@ -65,7 +65,6 @@ export default {
       coverUrl27: "",
       bookTitle: "",
       goodreadsUrl: "",
-      columns: null,
       imageLoading: true,
     };
   },
@@ -76,8 +75,14 @@ export default {
     this.coverUrl = this.makeCoverUrl(this.book.cover);
     if (this.coverUrl) this.coverUrl27 = this.coverUrl.replace("_SL500_", "_SL54_");
     this.bookTitle = this.book.title || this.book.titleShort;
-    this.columns = this.prepareColumns();
     
+  },
+
+  computed: {
+    // Recomputes when the keys prop changes so rows track live column visibility.
+    columns: function() {
+      return this.prepareColumns();
+    },
   },
 
   mounted: function() {
@@ -94,12 +99,16 @@ export default {
     prepareColumns: function() {
       
       const vue = this;
+      const frozen = this.frozenKeys || [];
       return _.map(this.keys, function(key) {
         
         let col = {};
         col.key = key;
         col.class = "col-" + _.kebabCase(key);
         
+        // Frozen columns carry sticky-col; the generated stylesheet sets each one's left offset.
+        if ( _.includes( frozen, key ) ) col.class += " sticky-col";
+
         switch (key) {
           case "authors":
           case "narrators":
@@ -124,7 +133,6 @@ export default {
             
           case "title":
             col.text = vue.book[ key ] || vue.book.titleShort;
-            col.class += " sticky-col";
             break;
 
           case "bookNumbers":

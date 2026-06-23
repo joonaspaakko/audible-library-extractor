@@ -6,6 +6,8 @@
         :key="item.label"
         class="header-item ale-col"
         :class="item.class"
+        @contextmenu.prevent="$emit('open-column-menu', $event)"
+        @mousedown.right.stop
       >
         <gallery-col-resizer :identifier="item.class"></gallery-col-resizer>
         <div class="ale-col-inner">
@@ -31,23 +33,30 @@
 <script>
 export default {
   name: "aleHeader",
-  props: ["keys"],
+  props: ["keys", "frozenKeys"],
+  emits: ["open-column-menu"],
   data: function() {
     return {
       listName: 'sort',
       optionsList: null,
-      headers: null
     };
   },
 
   created: function() {
     this.optionsList = this.$store.state.listRenderingOpts[ this.listName ];
-    this.headers = this.prepareHeaders(this.keys);
+  },
+
+  computed: {
+    // Recomputes when the keys prop changes so the header tracks live column visibility.
+    headers() {
+      return this.prepareHeaders(this.keys);
+    },
   },
 
   methods: {
     prepareHeaders: function(keys) {
       const vue = this;
+      const frozen = this.frozenKeys || [];
       return _.map(keys, function(key) {
         const header = {
           key: key,
@@ -56,11 +65,10 @@ export default {
           class: "col-" + _.kebabCase(key)
         };
 
+        // Frozen columns carry sticky-col; the generated stylesheet sets each one's left offset.
+        if ( _.includes( frozen, key ) ) header.class = header.class + " sticky-col";
+
         switch (key) {
-          case "titleShort":
-          case "title":
-            header.class = header.class + " sticky-col";
-            break;
           case "authors":
           case "narrators":
           case "publishers":
