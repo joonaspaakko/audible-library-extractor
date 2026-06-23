@@ -46,6 +46,9 @@ const copyFilesBefore = [
 const copyFilesAfter = [
   { src: src('extension-js'),            dest: 'assets' },
   { src: src('assets/js'),               dest: 'assets' },
+  // Lodash is used as a bare global `_` across the app. Copy it from node_modules
+  // so it can load as a classic script before any module chunk runs.
+  { src: root('node_modules/lodash/lodash.min.js'), dest: 'assets/js' },
   { src: src('gallery/app.webmanifest'), dest: dist('') },
   { src: src('gallery/images'),          dest: dist('assets') },
   { src: src('gallery/favicons'),        dest: dist('') },

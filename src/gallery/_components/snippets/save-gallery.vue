@@ -577,12 +577,12 @@ export default {
             <title>My Audible Library</title>
             <script type="module" src="https://esm.sh/@khmyznikov/pwa-install">${sc}
             ${loadServiceWorker}
+            <script src="assets/js/lodash.min.js">${sc}
             <link id="ale-css" rel="stylesheet" href="${ getFile('gallery', 'css') }">
           </head>
           <body>
             <div id="audible-library-extractor" data-version="${ this.$store.state.version }" data-cache-id="${ vue.cacheBuster }"></div>
             <pwa-install use-local-storage manifest-url="app.webmanifest" icon="favicons/android-chrome-192x192.png" name="My Audible Library"></pwa-install>
-            <script src="https://cdn.jsdelivr.net/npm/lodash@4.17.21/lodash.min.js">${sc}
             <script id="ale-js" src="${ getFile('gallery', 'js') }" type="module">${sc}
             <noscript>This library requires javascript to work!</noscript>
           </body>
@@ -635,6 +635,7 @@ export default {
         let assetFiles = _.cloneDeep(vue.files);
         
         assetFiles = assetFiles.concat([
+          "assets/js/lodash.min.js",
           "favicons/android-chrome-192x192.png",
           "favicons/android-chrome-512x512.png",
           "favicons/apple-touch-icon.png",
