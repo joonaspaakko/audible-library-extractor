@@ -10,7 +10,19 @@
     >
       <mdi:web class="pages-url-icon" />
       <span>{{ repoInfo.pagesUrl.replace(/^https?:\/\//, '').replace(/\/$/, '') }}</span>
-      <span v-if="repoInfo.pagesStatus" class="pages-status" :class="repoInfo.pagesStatus">{{ repoInfo.pagesStatus }}</span>
+      <span
+        v-if="repoInfo.pagesStatus"
+        class="pages-status"
+        :class="[ repoInfo.pagesStatus, { 'just-checked': justChecked } ]"
+      >{{ repoInfo.pagesStatus }}</span>
+      <!-- Manual single re-check of the publish status. Stops propagation so it doesn't open the link.
+           Disabled while a check is in flight and during the cooldown after one. -->
+      <mdi:refresh
+        v-if="repoInfo.pagesStatus && repoInfo.pagesStatus !== 'none'"
+        class="pages-refresh"
+        :class="{ disabled: recheckDisabled, checking: repoInfo.pagesChecking }"
+        @click.prevent.stop="recheck"
+      />
     </a>
     <!-- Fallback: pages not set up -->
     <div v-else class="repo-info-row">
@@ -115,15 +127,72 @@ export default {
     hashRoute: { type: String, default: 'library' },
   },
 
-  emits: ['tag-add', 'tag-remove'],
+  emits: ['tag-add', 'tag-remove', 'recheck'],
+
+  data() {
+    return {
+      justChecked: false,
+      justCheckedTimer: null,
+      cooldown: false,
+      cooldownTimer: null,
+    };
+  },
+
+  watch: {
+    // When a manual re-check finishes ( pagesChecking flips back to false ): flash the status badge
+    // so the user gets feedback even when the status came back unchanged, and start a short cooldown
+    // so a spam-clicker can't keep re-firing the moment each fast response lands.
+    'repoInfo.pagesChecking'( checking, wasChecking ) {
+
+      if ( wasChecking && !checking ) {
+
+        // Badge flash
+        this.justChecked = false; // Reset first so re-triggering restarts the animation
+        clearTimeout( this.justCheckedTimer );
+
+        this.$nextTick( () => {
+          this.justChecked = true;
+          this.justCheckedTimer = setTimeout( () => { this.justChecked = false; }, 900 );
+        });
+
+        // Cooldown
+        this.cooldown = true;
+        clearTimeout( this.cooldownTimer );
+        this.cooldownTimer = setTimeout( () => { this.cooldown = false; }, 5000 );
+
+      }
+
+    },
+  },
+
+  beforeUnmount() {
+    clearTimeout( this.justCheckedTimer );
+    clearTimeout( this.cooldownTimer );
+  },
 
   computed: {
+    recheckDisabled() {
+      return this.repoInfo.pagesChecking || this.cooldown;
+    },
+
     nonAleTopics() {
       return this.repoInfo.topics.filter( t => !this.aleTopics.includes( t ) );
     },
 
     aleRepoTopics() {
       return this.repoInfo.topics.filter( t => this.aleTopics.includes( t ) );
+    },
+  },
+
+  methods: {
+    recheck() {
+
+      // pointer-events: none already blocks clicks while disabled, but guard here too in case the
+      // event still slips through ( touch, keyboard ).
+      if ( this.recheckDisabled ) return;
+
+      this.$emit( 'recheck', this.repoInfo.name );
+
     },
   },
 };
@@ -187,7 +256,11 @@ export default {
   }
 
   .info-link {
-    color: #4ade80;
+    // Reads like the other info rows ( green is reserved for the .io status link ). The
+    // global #audible-library-extractor a:visited rule wins on specificity ( id selector ),
+    // so the visited override needs !important.
+    @include themify($themes) { color: themed(frontColor); }
+    &:visited { @include themify($themes) { color: themed(frontColor) !important; } }
     text-decoration: none;
     font-size: 0.92em;
     opacity: 0.85;
@@ -229,6 +302,7 @@ export default {
     
     .pages-url-icon { flex-shrink: 0; font-size: 1.17em; }
 
+    // Bold so the URL itself stands out; the globe and status badge keep their own colors.
     span:nth-child(2) {
       flex: 1;
       overflow: hidden;
@@ -237,6 +311,10 @@ export default {
       direction: rtl;
       text-align: left;
       unicode-bidi: plaintext;
+      font-weight: 600;
+
+      .theme-dark & { color: #fff; }
+      .theme-light & { color: #151515; }
     }
   }
 
@@ -247,6 +325,10 @@ export default {
     flex-shrink: 0;
 
     @include themify($themes) { background: rgba( themed(frontColor), .12 ); }
+
+    // One-shot flash after a manual re-check, so the user sees something happened even if the status
+    // came back unchanged.
+    &.just-checked { animation: pages-status-flash 0.9s ease-out; }
 
     &.built    { 
       @include themify($themes) { background: rgba(themed(greenColor), 0.12); color: themed(greenColor); } 
@@ -277,6 +359,27 @@ export default {
         color:  color.adjust($color, $lightness: 100%);
       }
     }
+  }
+
+  .pages-refresh {
+    flex-shrink: 0;
+    cursor: pointer;
+    opacity: 0.5;
+    font-size: 1.08em;
+    outline: none;
+    -webkit-tap-highlight-color: transparent;
+
+    &:hover:not(.disabled) { opacity: 1; }
+
+    // Disabled: in flight, or in the cooldown right after. Dimmed so it reads as resting. Clicks are
+    // gated in the recheck handler, not via pointer-events ( that would also kill hover ).
+    &.disabled {
+      opacity: 0.3;
+      cursor: default;
+    }
+
+    // Only spins while the request is actually in flight, not during the cooldown that follows.
+    &.checking { animation: pages-refresh-spin 0.7s linear infinite; }
   }
 
   .repo-topic {
@@ -323,5 +426,15 @@ export default {
   
   &.add { color: #4ade80; }
   &.remove { color: #ef4444; }
+}
+
+@keyframes pages-refresh-spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+@keyframes pages-status-flash {
+  0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.5); }
+  100% { box-shadow: 0 0 0 6px rgba(255, 255, 255, 0); }
 }
 </style>

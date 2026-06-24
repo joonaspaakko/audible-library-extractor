@@ -10,6 +10,8 @@ export default {
       rateLimitResolve: null,
       rateLimitController: null,
       isPolling: false,
+      pollAborted: false,
+      pollTimedOut: false,
       statusMessage: '',
       commitMessage: '',
       showCommitMessage: false,
@@ -27,7 +29,7 @@ export default {
   },
 
   beforeUnmount() {
-    this._pollAborted = true;
+    this.pollAborted = true;
     this.cancel();
   },
 
@@ -82,6 +84,8 @@ export default {
     onCompleteBack() {
     
       this.uploadComplete = false;
+      this.pollAborted = true; // Leaving the complete screen stops the background build poll; no point checking a site the user walked away from
+      this.pollTimedOut = false;
       this.resetProgress(); // just to be safe, though it should already be reset by the time we show the complete screen
       
       // Refresh the commit count so the next default message is correct (e.g. "Upload #2" instead of "Upload #1" on the next upload)
@@ -253,8 +257,9 @@ export default {
         this.completedPagesUrl = repoEntry?.pagesUrl || null;
         this.uploadTimestamp   = Date.now();
         this.uploadComplete    = true;
-        // Monitor the GitHub Pages build status in the background; UI will update when it's built
-        this.pollPagesBuild( owner, repo );
+        // Monitor the GitHub Pages build status in the background; UI will update when it's built.
+        // Pass the commit we just pushed so the poll waits for THIS build, not a stale previous one.
+        this.pollPagesBuild( owner, repo, commit.sha );
 
       }
       // Any error that lands here is unexpected and unrecoverable, so we show the error screen with instructions to retry.
@@ -566,46 +571,78 @@ export default {
     },
 
     /**
-     * Polls the GitHub Pages build status every 5 seconds until it resolves, errors, or times out at 2 minutes.
-     * GitHub Pages doesn't deploy instantly after a push; it kicks off a build job that takes a moment.
+     * Polls the GitHub Pages BUILD status at a steady 10s cadence (measured from the start of each
+     * request, so a slow request doesn't add to the gap) until it resolves, errors, or times out at 5 minutes.
+     * GitHub Pages doesn't deploy instantly after a push; it kicks off a build job that takes a few minutes.
+     *
+     * We poll `pages/builds/latest`, not `pages`. The `pages` endpoint reports the status of the site as a
+     * whole, which stays "built" from the previous deploy while a new build is still running, so it would
+     * report success way too early. The build endpoint reflects the actual in-progress build.
+     *
      * @param {string} owner
      * @param {string} repo
+     * @param {string} [commitSha] The commit we just pushed. When given, we wait for the build of THIS commit
+     *                             so a leftover "built" from the previous deploy doesn't end the poll early.
      */
-    async pollPagesBuild( owner, repo ) {
+    async pollPagesBuild( owner, repo, commitSha ) {
 
       // Prevent concurrent polls; only one poll sequence should run at a time
       if ( this.isPolling ) return;
       this.isPolling = true;
-      const MAX_POLLS = 24; // 24 × 5s = 2 minutes before we stop checking
+      this.pollAborted = false;
+      const POLL_INTERVAL = 10000; // Target one request per 10s, measured from the start of each request
+      const MAX_POLLS = 30; // 30 × 10s = 5 minutes before we give up. A normal build finishes well within this.
+      this.pollTimedOut = false; // Reset; set true below if we hit the cap while the build is still running
+
+      // The build endpoint has no site URL and the Pages URL is stable across deploys, so resolve it
+      // once up front. This keeps the poll loop at exactly one request per tick instead of paying a
+      // second request on whichever iteration first needs the URL, including the final "built" one.
+      const repoEntry = this.repos.find( r => r.name === repo );
+      if ( repoEntry && !repoEntry.pagesUrl ) {
+        try {
+          const pagesRes = await this.ghGet( `repos/${owner}/${repo}/pages` );
+          repoEntry.pagesUrl = pagesRes.data.html_url;
+        }
+        catch {} // Non-fatal: the build status is what matters here
+      }
 
       try {
         for ( let i = 0; i < MAX_POLLS; i++ ) {
-        
-          // Wait 5 seconds before checking the build status
-          await new Promise( r => setTimeout( r, 5000 ) );
 
           // Stop polling if the component unmounted or the user navigated away
-          if ( this._pollAborted ) break;
+          if ( this.pollAborted ) break;
+
+          // Time each request so we can hold a steady 10s cadence: the next request fires
+          // 10s after this one started, or immediately if this one already took longer.
+          const requestStart = Date.now();
 
           try {
-            // Fetch the current Pages deployment status
-            const res   = await this.ghGet( `repos/${owner}/${repo}/pages` );
-            const pages = res.data;
-            const repoEntry = this.repos.find( r => r.name === repo );
+            // Fetch the latest Pages build for this repo. GitHub sends a cacheable response, so the
+            // browser would otherwise serve stale build status from disk cache between revalidations,
+            // lagging the real status by up to a minute. A unique param per poll forces a fresh read.
+            const res   = await this.ghGet( `repos/${owner}/${repo}/pages/builds/latest`, { t: Date.now() } );
+            const build = res.data;
 
-            // Update the repo entry with the latest Pages URL and status
+            // When we know the commit we pushed, ignore any build that isn't for it.
+            // A build for the previous commit can still be reported as the "latest" for a
+            // moment before GitHub queues ours, so treat that window as "still building".
+            const isOurBuild = !commitSha || build.commit === commitSha;
+
+            // GitHub's build status is null until it picks up, then building, then built/errored.
+            // Map it onto the status the UI already understands.
+            const pagesStatus = build.status === null ? 'building' : build.status;
+
+            // Update the repo entry status from the build, and keep the complete screen URL live
             if ( repoEntry ) {
-              repoEntry.pagesUrl    = pages.html_url;
-              repoEntry.pagesStatus = pages.status;
-              // Keep the complete screen URL live as the Pages URL comes in
-              if ( this.uploadComplete && pages.html_url ) {
-                this.completedPagesUrl = pages.html_url;
+              repoEntry.pagesStatus = isOurBuild ? pagesStatus : 'building';
+              if ( this.uploadComplete && repoEntry.pagesUrl ) {
+                this.completedPagesUrl = repoEntry.pagesUrl;
               }
             }
 
-            // Stop polling once the build completes or fails
-            if ( pages.status === 'built' || pages.status === 'errored' ) {
-              if ( pages.status === 'errored' ) {
+            // Stop polling once OUR build completes or fails
+            if ( isOurBuild && ( build.status === 'built' || build.status === 'errored' ) ) {
+              if ( build.status === 'errored' ) {
                 this.statusMessage = 'Site publish failed. Check GitHub Pages settings.';
               }
               break;
@@ -613,7 +650,35 @@ export default {
           }
           // Stop polling on any API error (auth, rate limit, 404, etc.)
           catch { break; }
-          
+
+          // Wait out the rest of the 10s interval before the next request. If the request
+          // already took 10s or more, the remainder is zero and the next one fires right away.
+          // The wait resolves early on abort so closing the modal stops polling immediately
+          // instead of firing one more request after the remaining time elapses.
+          const remaining = POLL_INTERVAL - ( Date.now() - requestStart );
+          if ( remaining > 0 ) {
+            await new Promise( resolve => {
+              const timer = setTimeout( () => {
+                clearInterval( abortCheck );
+                resolve();
+              }, remaining );
+              const abortCheck = setInterval( () => {
+                if ( this.pollAborted ) {
+                  clearTimeout( timer );
+                  clearInterval( abortCheck );
+                  resolve();
+                }
+              }, 250 );
+            });
+          }
+
+        }
+
+        // If we ran out of polls while the build was still going (not built/errored, not aborted by the
+        // user leaving), we've stopped listening. Flag it so the complete screen can say so plainly.
+        const repoStillBuilding = repoEntry && repoEntry.pagesStatus === 'building';
+        if ( repoStillBuilding && !this.pollAborted ) {
+          this.pollTimedOut = true;
         }
       }
       finally {

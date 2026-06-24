@@ -80,6 +80,7 @@ export default {
             topics,
             pagesUrl   : null,
             pagesStatus: null,
+            pagesChecking: false,
             commitCount: null,
           };
         });
@@ -140,6 +141,28 @@ export default {
         repoEntry.pagesStatus = 'none';
         
       }
+    },
+
+    /**
+     * Manual single re-check of a repo's Pages status, fired from the refresh icon on the
+     * info card. One ping, not a poll. The in-flight flag spins the icon and blocks overlapping
+     * requests so a spam-clicker can't stack calls.
+     * @param {string} repoName
+     */
+    async recheckRepoPages( repoName ) {
+
+      const repoEntry = this.repos.find( r => r.name === repoName );
+      if ( !repoEntry || repoEntry.pagesChecking ) return;
+
+      repoEntry.pagesChecking = true;
+
+      try {
+        await this.fetchRepoPages( repoEntry );
+      }
+      finally {
+        repoEntry.pagesChecking = false;
+      }
+
     },
 
     /**

@@ -29,6 +29,7 @@
         v-if="uploadComplete"
         :pages-url="completedPagesUrl"
         :pages-status="selectedRepoInfo?.pagesStatus"
+        :timed-out="pollTimedOut"
         :timestamp="uploadTimestamp"
         :hash-route="completedHashRoute"
         @back="onCompleteBack"
@@ -101,6 +102,7 @@
             :hash-route="completedHashRoute"
             @tag-add="tagRepoWithAle($event, { action: 'add' })"
             @tag-remove="tagRepoWithAle($event, { action: 'remove' })"
+            @recheck="recheckRepoPages"
           />
           
         </div> <!-- /.repo-section -->

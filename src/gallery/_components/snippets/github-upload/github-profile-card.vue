@@ -105,18 +105,25 @@ export default {
     min-width: 0;
   }
 
+  // Set the text color on the children directly. They only render brown because they
+  // inherit it from the parent <a> once the global a:visited rule kicks in; pinning their
+  // own color stops that inheritance.
   .profile-name {
     font-weight: 600;
     font-size: 1.08em;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+
+    @include themify($themes) { color: themed(frontColor); }
   }
 
   .profile-meta {
     font-size: 0.92em;
     opacity: 0.5;
     margin-top: 1px;
+
+    @include themify($themes) { color: themed(frontColor); }
   }
 
   .auth-check {
