@@ -78,10 +78,11 @@ export default {
             // A repo is an ALE repo if it has any of our marker topics tagged on it
             isAleRepo: !!_.intersection( topics, this.aleTopics ).length,
             topics,
-            pagesUrl   : null,
-            pagesStatus: null,
+            pagesUrl     : null,
+            pagesStatus  : null,
+            pagesMode    : null,
             pagesChecking: false,
-            commitCount: null,
+            commitCount  : null,
           };
         });
 
@@ -133,6 +134,7 @@ export default {
         const res = await this.ghGet( `repos/${this.profile.login}/${repoEntry.name}/pages` );
         repoEntry.pagesUrl    = res.data.html_url;
         repoEntry.pagesStatus = res.data.status;
+        repoEntry.pagesMode   = res.data.build_type || 'legacy';
         
       }
       catch {
@@ -222,40 +224,23 @@ export default {
         // Tag repo with ale topic automatically for easy discovery in the repo dropdown.
         await this.tagRepoWithAle( name );
 
-        // STARTING PAGES SETUP (RETRY LOOP)
+        // STARTING PAGES SETUP
         this.statusMessage = `Setting up website for "${name}"...`;
-        
-        // Pages setup can fail if the initial commit isn't ready yet, so retry with a short delay
+
+        // workflow build_type doesn't require a prior commit to exist, so a single call is enough.
+        // 409 means Pages was already enabled (shouldn't happen on a brand-new repo, but guard anyway).
         let pagesEnabled = false;
-        for ( let attempt = 0; attempt < 6; attempt++ ) {
-          try {
-          
-            const res = await this.ghPost(`repos/${this.profile.login}/${name}/pages`, { source: { branch, path: '/' } });
-            
-            // 201 = created, 409 = already enabled; either way we're good
-            if ( res.status === 201 || res.status === 409 ) {
-              pagesEnabled = true;
-              break;
-            }
-            
-          }
-          catch ( err ) {
-          
-            // If it's a 409, it means Pages is already enabled, so we can stop retrying. Any other error is worth retrying over.
-            if ( err.response?.status === 409 ) {
-              pagesEnabled = true;
-              break;
-            }
-            
-          }
-          
-          // Wait 2 seconds before trying again...
-          await new Promise( r => setTimeout( r, 2000 ) );
-          
+        try {
+          const res = await this.ghPost( `repos/${this.profile.login}/${name}/pages`, { build_type: 'workflow' } );
+          if ( res.status === 201 || res.status === 409 ) pagesEnabled = true;
+        }
+        catch ( err ) {
+          if ( err.response?.status === 409 ) pagesEnabled = true;
+          else console.warn( 'Could not enable Pages automatically:', err );
         }
 
         // FINISHED PAGES SETUP: if it still isn't enabled, show a warning but continue anyway.
-        if ( !pagesEnabled ) console.warn( 'Could not enable Pages automatically after retries' );
+        if ( !pagesEnabled ) console.warn( 'Could not enable Pages automatically' );
         
         // Reload repo list to include the new repo
         await this.loadRepos();
@@ -319,6 +304,39 @@ export default {
       catch ( err ) {
         console.error( 'Failed to update topics:', err );
       }
+    },
+
+    /**
+     * Switches a repo's Pages build source between 'workflow' (GitHub Actions) and 'legacy' (deploy from branch).
+     * Also persists the user's preference so it survives page reloads.
+     * @param {string} repoName
+     * @param {'workflow'|'legacy'} mode
+     */
+    async setPagesMode( repoName, mode ) {
+
+      const repoEntry = this.repos.find( r => r.name === repoName );
+      if ( !repoEntry ) return;
+
+      try {
+
+        try {
+          await this.ghPut( `repos/${this.profile.login}/${repoName}/pages`, { build_type: mode } );
+        }
+        catch ( err ) {
+          if ( err.response?.status === 404 ) {
+            await this.ghPost( `repos/${this.profile.login}/${repoName}/pages`, { build_type: mode } );
+          }
+          else {
+            throw err;
+          }
+        }
+        repoEntry.pagesMode = mode;
+
+      }
+      catch ( err ) {
+        console.error( `Failed to switch Pages mode for ${repoName}:`, err );
+      }
+
     },
 
     /**

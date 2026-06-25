@@ -167,6 +167,50 @@ export default {
         // keeping the branch history intact instead of creating an orphan commit.
         const { data: repoData } = await this.octokit.rest.repos.get( { owner, repo } );
         const branch = repoData.default_branch;
+
+        // WORKFLOW FILE
+        // Always inject the GitHub Actions Pages workflow, migrating legacy repos on their next upload.
+        const repoEntry = this.repos.find( r => r.name === repo );
+        files.push({
+          path: '.github/workflows/deploy.yml',
+          content: [
+            'name: Deploy to GitHub Pages',
+            'on:',
+            `  push:`,
+            `    branches: ["${branch}"]`,
+            '  workflow_dispatch:',
+            '',
+            'permissions:',
+            '  contents: read',
+            '  pages: write',
+            '  id-token: write',
+            '',
+            'concurrency:',
+            '  group: "pages"',
+            '  cancel-in-progress: false',
+            '',
+            'jobs:',
+            '  deploy:',
+            '    environment:',
+            '      name: github-pages',
+            '      url: ${{ steps.deployment.outputs.page_url }}',
+            '    runs-on: ubuntu-latest',
+            '    steps:',
+            '      - name: Checkout',
+            '        uses: actions/checkout@v7',
+            '      - name: Setup Pages',
+            '        uses: actions/configure-pages@v6',
+            '      - name: Upload artifact',
+            '        uses: actions/upload-pages-artifact@v5',
+            '        with:',
+            "          path: '.'",
+            '      - name: Deploy to GitHub Pages',
+            '        id: deployment',
+            '        uses: actions/deploy-pages@v5',
+          ].join( '\n' ),
+        });
+        // Update the total now that we've added the workflow file
+        this.progress.total = files.length;
         const { data: ref } = await this.octokit.rest.git.getRef( { owner, repo, ref: `heads/${branch}` } );
         const latestCommitSha = ref.object.sha;
 
@@ -208,7 +252,7 @@ export default {
           // Create the tree in GitHub, which gives us a new tree SHA that represents the
           // directory structure for all files uploaded so far. The final tree SHA after
           // the last chunk is what we point the commit to.
-          const { data: tree } = await this.octokit.rest.git.createTree( treeParams );
+          const { data: tree } = await this.ghPost( `repos/${owner}/${repo}/git/trees`, treeParams );
 
           // Store the tree SHA for the next chunk's base_tree
           currentTreeSha = tree.sha;
@@ -237,10 +281,14 @@ export default {
         // Move the branch pointer to the new commit, which publishes the changes to GitHub
         await this.octokit.rest.git.updateRef({ owner, repo, ref: `heads/${branch}`, sha: commit.sha });
 
+        // Migrate to Actions-powered Pages if not already on it
+        if ( repoEntry?.pagesMode !== 'workflow' ) {
+          await this.setPagesMode( repo, 'workflow' );
+        }
+
         // Optimistically update the (local) repo state so the UI reflects the new state immediately,
         // rather than waiting for the Pages poll to confirm (provides faster user feedback).
         // The pollPagesBuild will verify and correct this if needed.
-        const repoEntry = this.repos.find( r => r.name === repo );
         if ( repoEntry ) {
           repoEntry.pushedAt    = new Date().toISOString(); // Mark when we just pushed
           repoEntry.pagesStatus = 'building'; // GitHub Pages auto-builds after a push
@@ -575,9 +623,10 @@ export default {
      * request, so a slow request doesn't add to the gap) until it resolves, errors, or times out at 5 minutes.
      * GitHub Pages doesn't deploy instantly after a push; it kicks off a build job that takes a few minutes.
      *
-     * We poll `pages/builds/latest`, not `pages`. The `pages` endpoint reports the status of the site as a
-     * whole, which stays "built" from the previous deploy while a new build is still running, so it would
-     * report success way too early. The build endpoint reflects the actual in-progress build.
+     * We poll `pages/builds/latest` for legacy (classic) Pages repos, and the Deployments API for
+     * workflow (GitHub Actions) Pages repos. The `pages` endpoint itself reports the overall site
+     * status and stays "built" from the previous deploy while a new build runs, so it would report
+     * success too early — both alternate endpoints reflect the actual in-progress build.
      *
      * @param {string} owner
      * @param {string} repo
@@ -606,6 +655,8 @@ export default {
         catch {} // Non-fatal: the build status is what matters here
       }
 
+      const useWorkflowPoll = repoEntry?.pagesMode === 'workflow';
+
       try {
         for ( let i = 0; i < MAX_POLLS; i++ ) {
 
@@ -617,20 +668,66 @@ export default {
           const requestStart = Date.now();
 
           try {
-            // Fetch the latest Pages build for this repo. GitHub sends a cacheable response, so the
-            // browser would otherwise serve stale build status from disk cache between revalidations,
-            // lagging the real status by up to a minute. A unique param per poll forces a fresh read.
-            const res   = await this.ghGet( `repos/${owner}/${repo}/pages/builds/latest`, { t: Date.now() } );
-            const build = res.data;
 
-            // When we know the commit we pushed, ignore any build that isn't for it.
-            // A build for the previous commit can still be reported as the "latest" for a
-            // moment before GitHub queues ours, so treat that window as "still building".
-            const isOurBuild = !commitSha || build.commit === commitSha;
+            let pagesStatus, isOurBuild, buildErrored;
 
-            // GitHub's build status is null until it picks up, then building, then built/errored.
-            // Map it onto the status the UI already understands.
-            const pagesStatus = build.status === null ? 'building' : build.status;
+            if ( useWorkflowPoll ) {
+
+              // WORKFLOW POLL: Actions-powered Pages deploys via the Deployments API.
+              // Get the latest deployment for the github-pages environment, then its latest status.
+              const deploymentsRes = await this.ghGet(
+                `repos/${owner}/${repo}/deployments`,
+                { environment: 'github-pages', per_page: 1, t: Date.now() }
+              );
+              const deployment = deploymentsRes.data[0];
+
+              // No deployment yet means GitHub hasn't picked up the push — treat as still building
+              if ( !deployment ) {
+                pagesStatus = 'building';
+                isOurBuild  = false;
+              }
+              else {
+                isOurBuild = !commitSha || deployment.sha === commitSha;
+
+                const statusesRes = await this.ghGet(
+                  `repos/${owner}/${repo}/deployments/${deployment.id}/statuses`,
+                  { per_page: 1, t: Date.now() }
+                );
+                const deployStatus = statusesRes.data[0]?.state;
+
+                // Map GitHub deployment states onto the status values the UI already understands
+                if ( deployStatus === 'success' ) {
+                  pagesStatus  = 'built';
+                  buildErrored = false;
+                }
+                else if ( deployStatus === 'failure' || deployStatus === 'error' ) {
+                  pagesStatus  = 'errored';
+                  buildErrored = true;
+                }
+                else {
+                  // queued, in_progress, pending, inactive, etc.
+                  pagesStatus = 'building';
+                }
+              }
+
+            }
+            else {
+
+              // LEGACY POLL: classic branch-based Pages builds via pages/builds/latest.
+              // GitHub sends a cacheable response, so a unique param per poll forces a fresh read.
+              const res   = await this.ghGet( `repos/${owner}/${repo}/pages/builds/latest`, { t: Date.now() } );
+              const build = res.data;
+
+              // When we know the commit we pushed, ignore any build that isn't for it.
+              // A build for the previous commit can still be reported as the "latest" for a
+              // moment before GitHub queues ours, so treat that window as "still building".
+              isOurBuild = !commitSha || build.commit === commitSha;
+
+              // GitHub's build status is null until it picks up, then building, then built/errored.
+              pagesStatus  = build.status === null ? 'building' : build.status;
+              buildErrored = build.status === 'errored';
+
+            }
 
             // Update the repo entry status from the build, and keep the complete screen URL live
             if ( repoEntry ) {
@@ -641,12 +738,13 @@ export default {
             }
 
             // Stop polling once OUR build completes or fails
-            if ( isOurBuild && ( build.status === 'built' || build.status === 'errored' ) ) {
-              if ( build.status === 'errored' ) {
+            if ( isOurBuild && ( pagesStatus === 'built' || pagesStatus === 'errored' ) ) {
+              if ( buildErrored ) {
                 this.statusMessage = 'Site publish failed. Check GitHub Pages settings.';
               }
               break;
             }
+
           }
           // Stop polling on any API error (auth, rate limit, 404, etc.)
           catch { break; }

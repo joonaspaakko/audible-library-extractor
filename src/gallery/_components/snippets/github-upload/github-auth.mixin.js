@@ -75,7 +75,7 @@ export default {
           options: {
             redirectTo: chrome.identity.getRedirectURL(),
             skipBrowserRedirect: true,
-            scopes: 'public_repo',
+            scopes: 'public_repo workflow',
           },
         });
         
@@ -167,16 +167,25 @@ export default {
 
     /** Fetches the authenticated user's GitHub profile and stores it in `profile`. */
     async loadProfile() {
-    
-      const { data } = await this.octokit.rest.users.getAuthenticated();
-      
+
+      const res = await this.ghGet( 'user' );
+
+      // If the token is missing the workflow scope (e.g. authorized before we added it),
+      // silently clear the session and re-trigger OAuth so the user gets a fresh token.
+      const scopes = ( res.headers['x-oauth-scopes'] || '' ).split( ',' ).map( s => s.trim() );
+      if ( !scopes.includes( 'workflow' ) ) {
+        await this.clearSession();
+        await this.auth();
+        return;
+      }
+
       this.profile = {
-        login      : data.login,
-        name       : data.name,
-        avatar     : data.avatar_url,
-        publicRepos: data.public_repos,
+        login      : res.data.login,
+        name       : res.data.name,
+        avatar     : res.data.avatar_url,
+        publicRepos: res.data.public_repos,
       };
-      
+
     },
   },
 };

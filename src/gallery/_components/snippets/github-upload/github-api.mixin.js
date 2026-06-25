@@ -33,5 +33,8 @@ export default {
 
     /** @param {string} path @param {Object} data */
     ghPut( path, data ) { return this.ghRequest( 'put', path, data ); },
+
+    /** @param {string} path @param {Object} data */
+    ghPatch( path, data ) { return this.ghRequest( 'patch', path, data ); },
   },
 };
