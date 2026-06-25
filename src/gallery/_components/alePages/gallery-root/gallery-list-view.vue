@@ -169,7 +169,10 @@ export default {
 
     const virtualizer = useVirtualizer( virtualizerOptions );
 
-    const virtualRows = computed(function() { return virtualizer.value.getVirtualItems(); });
+    const virtualRows = computed(() => {
+      const len = collection.value.length;
+      return virtualizer.value.getVirtualItems().filter( ( item ) => item.index < len );
+    });
     const paddingTop = computed(function() {
       const rows = virtualRows.value;
       return rows.length ? rows[ 0 ].start : 0;

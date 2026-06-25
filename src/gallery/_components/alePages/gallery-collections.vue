@@ -116,7 +116,10 @@ export default {
       if ( el ) virtualizer.value.measureElement( el );
     };
 
-    const virtualRows = computed(function() { return virtualizer.value.getVirtualItems(); });
+    const virtualRows = computed(() => {
+      const len = flatCount.value;
+      return virtualizer.value.getVirtualItems().filter( ( item ) => item.index < len );
+    });
     const paddingTop = computed(function() {
       const r = virtualRows.value;
       return r.length ? Math.max( 0, r[ 0 ].start - scrollMargin.value ) : 0;

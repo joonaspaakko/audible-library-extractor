@@ -103,7 +103,10 @@ export default {
       if ( el ) virtualizer.value.measureElement( el );
     };
 
-    const virtualRows = computed(function() { return virtualizer.value.getVirtualItems(); });
+    const virtualRows = computed(() => {
+      const len = collection.value.length;
+      return virtualizer.value.getVirtualItems().filter( ( item ) => item.index < len );
+    });
     // Spacers are relative to the container, so subtract scrollMargin from the
     // document-space offsets the window virtualizer reports.
     const paddingTop = computed(function() {
