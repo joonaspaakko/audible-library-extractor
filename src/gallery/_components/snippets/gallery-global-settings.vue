@@ -1,4 +1,5 @@
 <template>
+<Teleport to="body">
 <n-config-provider :theme="naiveTheme" :theme-overrides="naiveThemeOverrides" class="global-settings-drawer-provider">
 <n-drawer
   :show="true"
@@ -6,7 +7,7 @@
   :width="340"
   :height="isMobile ? '50%' : undefined"
   :mask-closable="true"
-  :show-mask="false"
+  :show-mask="true"
   :lock-scroll="false"
   :auto-focus="false"
   :trap-focus="false"
@@ -88,16 +89,18 @@
             @mousedown="$haptic(1)"
           >Default</button>
         </div>
-        <input
+        <n-slider
           class="covers-per-row-slider"
-          type="range"
           :min="coversPerRowMin"
           :max="coversPerRowMax"
           :value="coversPerRowCurrent"
-          @input="onCoversPerRowInput"
-          @mousedown="$haptic(1)"
-          @change="onSliderDragEnd"
-        >
+          :step="1"
+          :tooltip="true"
+          :marks="coversPerRowMarks"
+          @update:value="onCoversPerRowInput"
+          @dragstart="$haptic(1)"
+          @dragend="onSliderDragEnd"
+        />
       </div>
 
       <!-- Cover size shrinks/grows the covers themselves while the grid width stays put (grid view only) -->
@@ -119,16 +122,18 @@
             @mousedown="$haptic(1)"
           >Default</button>
         </div>
-        <input
+        <n-slider
           class="covers-per-row-slider"
-          type="range"
           :min="coverSizeMin"
           :max="coverSizeMax"
           :value="coverSizeCurrent"
-          @input="onCoverSizeInput"
-          @mousedown="$haptic(1)"
-          @change="onSliderDragEnd"
-        >
+          :step="1"
+          :tooltip="true"
+          :format-tooltip="val => val + 'px'"
+          @update:value="onCoverSizeInput"
+          @dragstart="$haptic(1)"
+          @dragend="onSliderDragEnd"
+        />
       </div>
 
       <!-- Adds title, author and length to each cell. Stacked puts them under the cover, list
@@ -253,10 +258,11 @@
   </n-drawer-content>
 </n-drawer>
 </n-config-provider>
+</Teleport>
 </template>
 
 <script>
-import { NConfigProvider, NDrawer, NDrawerContent, darkTheme, lightTheme } from 'naive-ui';
+import { NConfigProvider, NDrawer, NDrawerContent, NSlider, darkTheme, lightTheme } from 'naive-ui';
 import SamplePlayButton from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-sample-play-button.jpg';
 import BookCoverCloudPlayerButton from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-book-cover-cloud-player-button.jpg';
 import BlurbHoverCorner from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-blurb-hover-corner.jpg';
@@ -303,7 +309,7 @@ const LIST_DEFAULT_COLS = 3;
 
 export default {
   name: 'galleryGlobalSettings',
-  components: { NConfigProvider, NDrawer, NDrawerContent },
+  components: { NConfigProvider, NDrawer, NDrawerContent, NSlider },
   data: function() {
     const vue = this;
     const sticky = this.$store.state.sticky;
@@ -507,16 +513,6 @@ export default {
     _.each(hasInits, s => s.init(s));
   },
 
-  mounted: function() {
-    document.addEventListener('mouseup', this.onSliderDragEnd, { passive: true });
-    document.addEventListener('touchend', this.onSliderDragEnd, { passive: true });
-  },
-
-  beforeUnmount: function() {
-    document.removeEventListener('mouseup', this.onSliderDragEnd);
-    document.removeEventListener('touchend', this.onSliderDragEnd);
-  },
-
   computed: {
 
     isMobile: function() {
@@ -528,9 +524,19 @@ export default {
     },
 
     naiveThemeOverrides: function() {
-      if ( !this.$store.state.globalSettingsDrawerHidden ) return {};
+      const sliderOverrides = {
+        Slider: {
+          fillColor: '#00c853',
+          fillColorHover: '#00c853',
+          dotBorderActive: '2px solid #00c853',
+          thumbColor: '#00c853',
+          thumbColorHover: '#00c853',
+        },
+      };
+      if ( !this.$store.state.globalSettingsDrawerHidden ) return sliderOverrides;
       const isLight = this.$store.state.sticky.lightSwitch;
       return {
+        ...sliderOverrides,
         Drawer: {
           color: isLight ? 'rgba(255,255,255,0.82)' : 'rgba(44,44,50,0.82)',
         },
@@ -585,17 +591,21 @@ export default {
       return this.$store.state.sticky.coverSize || this.coverSizeDefault;
     },
 
+    coversPerRowMarks: function() {
+      return _.fromPairs( _.range( this.coversPerRowMin, this.coversPerRowMax + 1 ).map( i => [ i, '' ] ) );
+    },
+
   },
 
   methods: {
 
-    onCoverSizeInput: function( e ) {
-      this.setCoverSize( parseInt( e.target.value, 10 ) );
+    onCoverSizeInput: function( value ) {
+      this.setCoverSize( value );
       this.setDrawerPeek( true );
     },
 
-    onCoversPerRowInput: function( e ) {
-      this.setCoversPerRow( parseInt( e.target.value, 10 ) );
+    onCoversPerRowInput: function( value ) {
+      this.setCoversPerRow( value );
       this.setDrawerPeek( true );
     },
 
@@ -709,6 +719,12 @@ export default {
 // Fade the drawer while covers-per-row is dragged past the visible threshold.
 // Opacity transitions in/out; the push (padding-right) on the app root is
 // toggled without transition so the layout snaps immediately.
+// Naive-ui renders the mask as position:absolute which only covers its container.
+// Fix it to cover the full viewport.
+.n-drawer-mask {
+  position: fixed;
+}
+
 body.settings-drawer-peek-hidden .n-drawer {
   opacity: 0.9;
   transition: opacity 150ms ease;
@@ -975,8 +991,6 @@ body:not(.settings-drawer-peek-hidden) .n-drawer {
 .covers-per-row-slider {
   width: 100%;
   margin: 10px 0 2px;
-  cursor: pointer;
-  accent-color: #00c853;
 }
 
 // PWA install button
