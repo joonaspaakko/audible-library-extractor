@@ -63,25 +63,27 @@
             </div>
           </div>
 
-          <!-- Autosuggest: completes the plain fragment under the caret to a whole field
-               value. Floats over the content (does not push the grid down). Each row is a
-               value with the typed fragment bolded, tagged with the scope it came from. -->
-          <div class="suggest-menu" v-if="suggestMenu.open" @mousedown.prevent>
-            <div
-              class="suggest-item"
-              :class="{ active: index === suggestMenu.index }"
-              v-for="(item, index) in suggestMenu.items" :key="item.value + '-' + item.fieldKey"
-              @click="acceptSuggestion( item.value )"
-              @mouseenter="suggestMenu.index = index"
-            >
-              <span class="suggest-icon" v-if="item.icon" v-html="fieldIcons[ item.icon ]"></span>
-              <span class="suggest-value" v-html="highlightSuggestion( item )"></span>
-              <span class="suggest-badge">{{ item.label }}</span>
-            </div>
+        </div>
+
+        <!-- Autosuggest: completes the plain fragment under the caret to a whole field
+             value. Floats over the content (does not push the grid down). Each row is a
+             value with the typed fragment bolded, tagged with the scope it came from.
+             Sits directly in #ale-search so left:0/right:0 spans the full pill width. -->
+        <div class="suggest-menu" v-if="suggestMenu.open" @mousedown.prevent>
+          <div
+            class="suggest-item"
+            :class="{ active: index === suggestMenu.index }"
+            v-for="(item, index) in suggestMenu.items" :key="item.value + '-' + item.fieldKey"
+            @click="acceptSuggestion( item.value )"
+            @mouseenter="suggestMenu.index = index"
+          >
+            <span class="suggest-icon" v-if="item.icon" v-html="fieldIcons[ item.icon ]"></span>
+            <span class="suggest-value" v-html="highlightSuggestion( item )"></span>
+            <span class="suggest-badge">{{ item.label }}</span>
           </div>
         </div>
-        
-        <gallery-search-icons v-model:list-name="listName" /> 
+
+        <gallery-search-icons v-model:list-name="listName" />
         <gallery-search-options v-model:list-name="listName" v-if="listName" />
       </div> <!-- #ale-search -->
       
@@ -1141,99 +1143,99 @@ export default {
 
     }
 
-    // Autosuggest menu: full-width dropdown floating just under the input (absolute, so it
-    // overlays the grid instead of pushing it down). Shares the '@field' menu's panel look.
-    // Capped height with scroll so a long value list never runs off-screen.
-    .suggest-menu {
-      position: absolute;
-      z-index: 900;
-      left: 0;
-      right: 0;
-      top: 100%;
-      margin-top: 4px;
-      padding: 4px;
-      border-radius: 10px;
-      font-size: 0.9em;
-      text-align: left;
-      cursor: default;
-      max-height: 280px;
-      overflow-y: auto;
-      @include themify($themes) {
-        background: color.adjust(themed(backColor), $lightness: 10%);
-        color: themed(frontColor);
-        border: 1px solid rgba(themed(frontColor), 0.12);
-        box-shadow: 0 8px 24px rgba(themed(outerColor), 0.9);
+  }
+
+  // Autosuggest menu: full-width dropdown spanning the whole pill (left:0/right:0 relative
+  // to #ale-search), floating just under it. Capped height with scroll for long value lists.
+  .suggest-menu {
+    position: absolute;
+    z-index: 900;
+    left: 0;
+    right: 0;
+    top: 100%;
+    margin-top: 4px;
+    padding: 4px;
+    border-radius: 10px;
+    font-size: 0.9em;
+    text-align: left;
+    cursor: default;
+    max-height: 280px;
+    overflow-y: auto;
+    @include themify($themes) {
+      background: color.adjust(themed(backColor), $lightness: 10%);
+      color: themed(frontColor);
+      border: 1px solid rgba(themed(frontColor), 0.12);
+      box-shadow: 0 8px 24px rgba(themed(outerColor), 0.9);
+    }
+    @extend .no-selection;
+
+    .suggest-item {
+      display: flex;
+      flex-direction: row;
+      align-items: center;
+      gap: 10px;
+      padding: 5px 10px;
+      border-radius: 6px;
+      cursor: pointer;
+
+      &.active {
+        @include themify($themes) {
+          background: rgba(themed(audibleOrange), 0.18);
+        }
       }
-      @extend .no-selection;
 
-      .suggest-item {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        gap: 10px;
-        padding: 5px 10px;
-        border-radius: 6px;
-        cursor: pointer;
+      // Scope icon leads the row as a meaningful bullet.
+      .suggest-icon {
+        display: inline-flex;
+        width: 14px;
+        flex-shrink: 0;
+        justify-content: center;
+        @include themify($themes) {
+          color: rgba(themed(frontColor), 0.55);
+        }
+      }
 
-        &.active {
+      // The value text fills the row between the icon and the badge.
+      .suggest-value {
+        flex: 1;
+        min-width: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        strong {
+          font-weight: 700;
           @include themify($themes) {
-            background: rgba(themed(audibleOrange), 0.18);
+            color: themed(audibleOrange);
           }
         }
+      }
 
-        // Scope icon leads the row as a meaningful bullet.
-        .suggest-icon {
-          display: inline-flex;
-          width: 14px;
-          flex-shrink: 0;
-          justify-content: center;
-          @include themify($themes) {
-            color: rgba(themed(frontColor), 0.55);
-          }
+      // Scope name as a small rounded pill on the right, so it reads as a tag belonging
+      // to the row rather than floating form-label text. A thin border gives it a crisp
+      // edge instead of a soft fill blob.
+      .suggest-badge {
+        flex-shrink: 0;
+        padding: 2px 8px;
+        border-radius: 999px;
+        font-size: 0.66em;
+        line-height: 1.4;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+        @include themify($themes) {
+          background: rgba(themed(frontColor), 0.05);
+          border: 1px solid rgba(themed(frontColor), 0.15);
+          color: rgba(themed(frontColor), 0.55);
         }
+      }
 
-        // The value text fills the row between the icon and the badge.
-        .suggest-value {
-          flex: 1;
-          min-width: 0;
-          white-space: nowrap;
-          overflow: hidden;
-          text-overflow: ellipsis;
-
-          strong {
-            font-weight: 700;
-            @include themify($themes) {
-              color: themed(audibleOrange);
-            }
-          }
-        }
-
-        // Scope name as a small rounded pill on the right, so it reads as a tag belonging
-        // to the row rather than floating form-label text. A thin border gives it a crisp
-        // edge instead of a soft fill blob.
-        .suggest-badge {
-          flex-shrink: 0;
-          padding: 2px 8px;
-          border-radius: 999px;
-          font-size: 0.66em;
-          line-height: 1.4;
-          font-weight: 600;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          @include themify($themes) {
-            background: rgba(themed(frontColor), 0.05);
-            border: 1px solid rgba(themed(frontColor), 0.15);
-            color: rgba(themed(frontColor), 0.55);
-          }
-        }
-
-        // On the active (highlighted) row, tint the badge to match the accent.
-        &.active .suggest-badge {
-          @include themify($themes) {
-            background: rgba(themed(audibleOrange), 0.18);
-            border-color: rgba(themed(audibleOrange), 0.45);
-            color: rgba(themed(frontColor), 0.75);
-          }
+      // On the active (highlighted) row, tint the badge to match the accent.
+      &.active .suggest-badge {
+        @include themify($themes) {
+          background: rgba(themed(audibleOrange), 0.18);
+          border-color: rgba(themed(audibleOrange), 0.45);
+          color: rgba(themed(frontColor), 0.75);
         }
       }
     }
