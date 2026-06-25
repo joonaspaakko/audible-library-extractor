@@ -66,6 +66,7 @@ export default {
   // States that don't persist
   bookDetailSettingsOpen: false,
   globalSettingsOpen: false,
+  globalSettingsDrawerHidden: false,
   searchMounted: false,
   searchCollection: [],
   mutatingCollection: [],

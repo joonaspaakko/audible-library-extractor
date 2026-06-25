@@ -1,17 +1,30 @@
 <template>
-<gallery-modal class="global-settings-modal" @closeModal="$store.commit('prop', { key: 'globalSettingsOpen', value: false })">
+<n-config-provider :theme="naiveTheme" :theme-overrides="naiveThemeOverrides" class="global-settings-drawer-provider">
+<n-drawer
+  :show="true"
+  :placement="isMobile ? 'bottom' : 'right'"
+  :width="340"
+  :height="isMobile ? '50%' : undefined"
+  :mask-closable="true"
+  :show-mask="false"
+  :lock-scroll="false"
+  :auto-focus="false"
+  :trap-focus="false"
+  :close-on-esc="true"
+  @update:show="val => { if ( !val ) $store.commit('prop', { key: 'globalSettingsOpen', value: false }); }"
+>
+  <n-drawer-content closable :native-scrollbar="false">
+    <template #header>
+      <div class="drawer-header-inner">
+        <fa6-solid-gear class="drawer-header-icon" />
+        <div>
+          <div class="drawer-header-title">Settings</div>
+          <div class="drawer-header-sub">Global gallery preferences. Remembered in your browser.</div>
+        </div>
+      </div>
+    </template>
 
   <div class="global-settings">
-
-    <div class="top-wrapper">
-      <div class="icon-wrapper">
-        <fa6-solid-gear />
-      </div>
-      <div class="text-wrapper">
-        <h2>Settings</h2>
-        <div class="description">Global gallery preferences. These are remembered in your browser.</div>
-      </div>
-    </div>
 
     <!-- Appearance -->
     <div class="settings-section">
@@ -81,8 +94,9 @@
           :min="coversPerRowMin"
           :max="coversPerRowMax"
           :value="coversPerRowCurrent"
-          @input="setCoversPerRow( parseInt( $event.target.value, 10 ) )"
+          @input="onCoversPerRowInput"
           @mousedown="$haptic(1)"
+          @change="onSliderDragEnd"
         >
       </div>
 
@@ -111,8 +125,9 @@
           :min="coverSizeMin"
           :max="coverSizeMax"
           :value="coverSizeCurrent"
-          @input="setCoverSize( parseInt( $event.target.value, 10 ) )"
+          @input="onCoverSizeInput"
           @mousedown="$haptic(1)"
+          @change="onSliderDragEnd"
         >
       </div>
 
@@ -235,11 +250,13 @@
 
   </div>
 
-</gallery-modal>
+  </n-drawer-content>
+</n-drawer>
+</n-config-provider>
 </template>
 
 <script>
-import modal from '@output-snippets/gallery-modal.vue';
+import { NConfigProvider, NDrawer, NDrawerContent, darkTheme, lightTheme } from 'naive-ui';
 import SamplePlayButton from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-sample-play-button.jpg';
 import BookCoverCloudPlayerButton from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-book-cover-cloud-player-button.jpg';
 import BlurbHoverCorner from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-blurb-hover-corner.jpg';
@@ -286,7 +303,7 @@ const LIST_DEFAULT_COLS = 3;
 
 export default {
   name: 'galleryGlobalSettings',
-  components: { modal },
+  components: { NConfigProvider, NDrawer, NDrawerContent },
   data: function() {
     const vue = this;
     const sticky = this.$store.state.sticky;
@@ -490,7 +507,35 @@ export default {
     _.each(hasInits, s => s.init(s));
   },
 
+  mounted: function() {
+    document.addEventListener('mouseup', this.onSliderDragEnd, { passive: true });
+    document.addEventListener('touchend', this.onSliderDragEnd, { passive: true });
+  },
+
+  beforeUnmount: function() {
+    document.removeEventListener('mouseup', this.onSliderDragEnd);
+    document.removeEventListener('touchend', this.onSliderDragEnd);
+  },
+
   computed: {
+
+    isMobile: function() {
+      return this.$store.getters.mobileThreshold;
+    },
+
+    naiveTheme: function() {
+      return this.$store.state.sticky.lightSwitch ? lightTheme : darkTheme;
+    },
+
+    naiveThemeOverrides: function() {
+      if ( !this.$store.state.globalSettingsDrawerHidden ) return {};
+      const isLight = this.$store.state.sticky.lightSwitch;
+      return {
+        Drawer: {
+          color: isLight ? 'rgba(255,255,255,0.82)' : 'rgba(44,44,50,0.82)',
+        },
+      };
+    },
 
     // The covers-per-row slider works in whole covers. Its range runs from however
     // many fit at the grid's default width up to however many fit across the
@@ -543,6 +588,26 @@ export default {
   },
 
   methods: {
+
+    onCoverSizeInput: function( e ) {
+      this.setCoverSize( parseInt( e.target.value, 10 ) );
+      this.setDrawerPeek( true );
+    },
+
+    onCoversPerRowInput: function( e ) {
+      this.setCoversPerRow( parseInt( e.target.value, 10 ) );
+      this.setDrawerPeek( true );
+    },
+
+    onSliderDragEnd: function() {
+      this.setDrawerPeek( false );
+    },
+
+    setDrawerPeek: function( hidden ) {
+      if ( hidden === this.$store.state.globalSettingsDrawerHidden ) return;
+      this.$store.commit('prop', { key: 'globalSettingsDrawerHidden', value: hidden });
+      document.body.classList.toggle('settings-drawer-peek-hidden', hidden);
+    },
 
     setCoversPerRow: function( count ) {
       // List mode: the slider is a direct cards-per-row count. At the default count,
@@ -640,50 +705,50 @@ export default {
   max-width: 100%;
   margin-top: 8px;
 }
+
+// Fade the drawer while covers-per-row is dragged past the visible threshold.
+// Opacity transitions in/out; the push (padding-right) on the app root is
+// toggled without transition so the layout snaps immediately.
+body.settings-drawer-peek-hidden .n-drawer {
+  opacity: 0.9;
+  transition: opacity 150ms ease;
+}
+body:not(.settings-drawer-peek-hidden) .n-drawer {
+  opacity: 1;
+  transition: opacity 250ms ease;
+}
 </style>
 
 <style lang="scss" scoped>
 
-:global(.global-settings-modal .inner-wrap) {
-  padding: 25px;
-  box-sizing: border-box;
-}
-
-.global-settings {
-  min-width: 300px;
-}
-
-.top-wrapper {
+// Drawer header: gear icon left of title + subtitle
+.drawer-header-inner {
   display: flex;
   flex-direction: row;
   align-items: center;
-  gap: 14px;
-  padding-bottom: 18px;
-  margin-bottom: 16px;
-  @include themify($themes) {
-    border-bottom: 1px solid rgba(themed(frontColor), .08);
-  }
+  gap: 12px;
 }
 
-.icon-wrapper {
-  font-size: 28px;
-  line-height: 1;
+.drawer-header-icon {
+  font-size: 22px;
   flex-shrink: 0;
-  @include themify($themes) {
-    color: rgba(themed(frontColor), .4);
-  }
+  opacity: 0.45;
 }
 
-.text-wrapper h2 {
-  margin: 0 0 3px;
-  font-size: 1.15em;
+.drawer-header-title {
+  font-size: 1em;
+  font-weight: 600;
 }
 
-.description {
-  font-size: 0.82em;
-  @include themify($themes) {
-    color: rgba(themed(frontColor), .5);
-  }
+.drawer-header-sub {
+  font-size: 0.76em;
+  opacity: 0.5;
+  margin-top: 2px;
+}
+
+.global-settings {
+  font-size: 14px;
+  line-height: 1.4;
 }
 
 .settings-section {

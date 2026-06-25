@@ -72,7 +72,7 @@
       <div>
         <fa6-solid-gear
           class="icon"
-          @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })"
+          @click="openSettings"
           @mousedown="$haptic(1)"
           v-tippy content="Settings"
         />
@@ -101,7 +101,12 @@ export default {
   },
   
   methods: {
-    
+
+    openSettings: function() {
+      if ( this.mobileMenuOpen ) this.$emit('update:mobileMenuOpen', false);
+      this.$store.commit('prop', { key: 'globalSettingsOpen', value: true });
+    },
+
     getHrefAttr( route ) {
       return route.tag === 'a' ? 'href' : 'to';
     },
