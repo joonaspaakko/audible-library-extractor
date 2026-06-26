@@ -122,17 +122,26 @@ export default {
     },
     
     getRoutes() {
-      
+
       let routes = _.filter( this.$router.options.routes, 'meta.icon' );
           routes = JSON.parse(JSON.stringify( routes ));
-      
+
       if ( !this.mobileThreshold ) {
         this.getExtraItems( routes );
         this.getNestedGroups( routes );
       }
-      
+      else {
+        // On mobile sub-pages appear flat, so sort them by meta.order so the order
+        // matches the desktop dropdown regardless of router registration order.
+        const subPages = _.remove( routes, ( r ) => _.get( r, 'meta.nestedGroup' ) === 'subPages' );
+        if ( subPages.length ) {
+          // Re-insert after Library (index 0), sorted, keeping everything else after.
+          routes.splice( 1, 0, ..._.orderBy( subPages, 'meta.order', 'asc' ) );
+        }
+      }
+
       return routes;
-      
+
     },
     
     getNestedGroups( routes ) {

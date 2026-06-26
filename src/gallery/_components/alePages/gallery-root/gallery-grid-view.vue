@@ -446,10 +446,9 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 .theme-light  .ale-book.details-open .details-inner-wrap {
   background: #202020;
 }
-// In list mode the inner wrap is the whole card, not just the cover, so the open-book
-// background fill above would darken the entire card. Keep the card's own panel background
-// (the orange highlight border still applies). The .details-list ancestor outranks the
-// theme rules above.
+// In list and stacked mode the inner wrap covers the whole card including the text strip,
+// so the open-book dark fill would make the strip text unreadable. Keep a neutral card
+// background instead (the orange highlight border still marks the open book).
 .theme-light.details-list .ale-book.details-open .details-inner-wrap,
 .theme-light .details-list .ale-book.details-open .details-inner-wrap {
   background: #fff;
@@ -457,6 +456,14 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 .theme-dark.details-list .ale-book.details-open .details-inner-wrap,
 .theme-dark .details-list .ale-book.details-open .details-inner-wrap {
   background: #171717;
+}
+.theme-light.details-stacked .ale-book.details-open .details-inner-wrap,
+.theme-light .details-stacked .ale-book.details-open .details-inner-wrap {
+  background: #e8e8e8;
+}
+.theme-dark.details-stacked .ale-book.details-open .details-inner-wrap,
+.theme-dark .details-stacked .ale-book.details-open .details-inner-wrap {
+  background: color.adjust($darkBackColor, $lightness: 9%);
 }
 
 .ale-book {
@@ -495,28 +502,27 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
   height: var(--cover-size, #{$thumbnailSize + 2});
 }
 // For showing sort values correctly...
-.sort-values-on .ale-book {
-  height: calc(var(--cover-size, #{$thumbnailSize + 2}) + 27px);
-}
-// A locked value stacks a second strip above the sort value, so reserve room for it.
+.sort-values-on .ale-book,
 .sort-values-stacked .ale-book {
-  height: calc(var(--cover-size, #{$thumbnailSize + 2}) + 27px + 22px);
+  height: auto;
 }
 
 // DETAILS: STACKED
 // Title/author/length strip under the cover, so the cell grows by the strip height. The
 // cover stays square (its own width), so the wrapper becomes a column and the cover sits
 // on top with the strip filling the rest.
-$detailsStripHeight: 58px;
-.details-stacked .ale-book {
-  height: calc(var(--cover-size, #{$thumbnailSize + 2}) + #{$detailsStripHeight});
+// Strip height scales with cover size to match the scaled font size, with the same
+// clamp bounds as the font-size rule in gallery-book.vue.
+// 3 lines * line-height 1.3 * font-size + top padding (6px).
+.details-stacked .ale-book,
+.sort-values-on.details-stacked .ale-book,
+.sort-values-stacked.details-stacked .ale-book {
+  height: auto;
 }
 .details-stacked .details-inner-wrap {
   display: flex;
   flex-direction: column;
   height: 100%;
-  // The strip sits below the cover, so lift the wrapper's rounded clip or it's hidden
-  // (the cover keeps its own rounding).
   overflow: visible;
 }
 // The cover keeps its square aspect (its img wrapper pads to 100% of its own width), so
@@ -654,14 +660,9 @@ $detailsListCardMax: 300px;
     width: var(--cover-size, calc(26.3vw - 20px));
     height: var(--cover-size, calc(26.3vw - 20px));
   }
-  .sort-values-on .ale-book {
-    height: calc(var(--cover-size, calc(26.3vw - 20px)) + 27px);
-  }
+  .sort-values-on .ale-book,
   .sort-values-stacked .ale-book {
-    height: calc(var(--cover-size, calc(26.3vw - 20px)) + 27px + 22px);
-  }
-  .details-stacked .ale-book {
-    height: calc(var(--cover-size, calc(26.3vw - 20px)) + #{$detailsStripHeight});
+    height: auto;
   }
 }
 
@@ -671,14 +672,9 @@ $detailsListCardMax: 300px;
     width: var(--cover-size, calc(34.4vw - 24px));
     height: var(--cover-size, calc(34.4vw - 24px));
   }
-  .sort-values-on .ale-book {
-    height: calc(var(--cover-size, calc(34.4vw - 24px)) + 27px);
-  }
+  .sort-values-on .ale-book,
   .sort-values-stacked .ale-book {
-    height: calc(var(--cover-size, calc(34.4vw - 24px)) + 27px + 22px);
-  }
-  .details-stacked .ale-book {
-    height: calc(var(--cover-size, calc(34.4vw - 24px)) + #{$detailsStripHeight});
+    height: auto;
   }
 
 }
@@ -720,17 +716,14 @@ $detailsListCardMax: 300px;
     width: var(--cover-size, calc(50vw - 25px));
     height: var(--cover-size, calc(50vw - 25px));
   }
-  .sort-values-on .ale-book {
-    height: calc(var(--cover-size, calc(50vw - 25px)) + 27px);
-  }
+  .sort-values-on .ale-book,
   .sort-values-stacked .ale-book {
-    height: calc(var(--cover-size, calc(50vw - 25px)) + 27px + 22px);
+    height: auto;
   }
-  // Stacked: single full-width column on the narrowest screens (the cover stays square,
-  // so the cell height tracks the full width plus the strip).
+  // Stacked: use the same 2-up fallback as the plain grid so the default auto size
+  // matches the flowing layout an explicit cover-size value would give.
   .details-stacked .ale-book {
-    width: var(--cover-size, calc(100vw - 30px));
-    height: calc(var(--cover-size, calc(100vw - 30px)) + #{$detailsStripHeight});
+    width: var(--cover-size, calc(50vw - 25px));
   }
   // List cards already flex to fill the row, so at this width the column count falls to
   // one on its own (the wrapper is narrower than the min card width). Nothing to override.

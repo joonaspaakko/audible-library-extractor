@@ -1031,12 +1031,14 @@ export default {
 <style lang="scss" scoped>
 .cancel-packaging {
   cursor: pointer;
-  border: 1px dashed rgba(#fff, .4);
   background: transparent;
-  color: #fff;
   float: right;
   padding: 1px 6px;
   border-radius: 3px;
+  @include themify($themes) {
+    border: 1px dashed rgba(themed(frontColor), .4);
+    color: themed(frontColor);
+  }
 }
 
 .source-section {
@@ -1046,6 +1048,7 @@ export default {
   @include themify($themes) {
     border: 1px solid rgba(themed(frontColor), .10);
   }
+  .theme-light & { border-color: rgba($lightFrontColor, .22); }
 }
 
 .source-section-divider {
@@ -1053,6 +1056,7 @@ export default {
   @include themify($themes) {
     border-top: 1px solid rgba(themed(frontColor), .07);
   }
+  .theme-light & { border-top-color: rgba($lightFrontColor, .14); }
 }
 
 .source-group-faded {
@@ -1097,6 +1101,7 @@ export default {
   @include themify($themes) {
     color: rgba(themed(frontColor), .3);
   }
+  .theme-light & { color: rgba($lightFrontColor, .55); }
 }
 
 .group-toggle-all {

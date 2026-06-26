@@ -5,13 +5,13 @@
     
     <div class="ale-cover">
       
-      <div class="ale-cover-icon ale-play-sample" v-if="sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
+      <div class="ale-cover-icon ale-play-sample" v-if="!coverButtonsHidden && sticky.bookDetailSettings.playButton" @click="playSample(book, index)">
         <div><fa6-solid-play/></div>
       </div>
-      <div class="ale-cover-icon cloud-player-icon" v-else-if="book.asin && sticky.bookDetailSettings.cloudPlayer">
+      <div class="ale-cover-icon cloud-player-icon" v-else-if="!coverButtonsHidden && book.asin && sticky.bookDetailSettings.cloudPlayer">
         <gallery-open-web-player :size="20" :book="book" :icon="true" :tooltip="false" />
       </div>
-      <div class="ale-cover-icon app-link-icon" v-else-if="book.asin && sticky.bookDetailSettings.appLink && $store.state.standalone">
+      <div class="ale-cover-icon app-link-icon" v-else-if="!coverButtonsHidden && book.asin && sticky.bookDetailSettings.appLink && $store.state.standalone">
         <gallery-open-in-app :size="20" :book="book" />
       </div>
 
@@ -71,7 +71,7 @@
         </div>
         <div v-else class="cover-img-wrapper">
           <transition name="fade">
-            <img v-show="imageLoaded" @load="imageLoaded = true" class="ale-cover-image" :class="{ loaded: imageLoaded }" crossorigin="anonymous" draggable="false" @touchstart.prevent :src="makeCoverUrl(book.cover, 280)" alt="" />
+            <img v-show="imageLoaded" @load="imageLoaded = true" class="ale-cover-image" :class="{ loaded: imageLoaded }" crossorigin="anonymous" draggable="false" @touchstart.prevent :src="makeCoverUrl(book.cover)" alt="" />
           </transition>
         </div>
       </div>
@@ -125,6 +125,14 @@ export default {
       imageLoaded: false,
     };
   },
+  computed: {
+
+    coverButtonsHidden: function() {
+      return ( this.$store.state.sticky.coverSize || 180 ) < 110;
+    },
+
+  },
+
   methods: {
 
     onPressStart: function( event ) {
@@ -287,6 +295,7 @@ export default {
   text-align: left;
   line-height: 1.3;
   overflow: hidden;
+  font-size: clamp(11px, calc(var(--cover-size, 180px) * 0.08), 20px);
 
   .book-title {
     font-size: 0.82em;

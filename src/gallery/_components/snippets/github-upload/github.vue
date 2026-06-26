@@ -395,6 +395,7 @@ export default {
     cursor: pointer;
 
     @include themify($themes) { color: rgba( themed(frontColor), .55 ); }
+    .theme-light & { color: rgba( $lightFrontColor, .7 ); }
     &:hover { @include themify($themes) { color: themed(frontColor); } }
   }
 
@@ -425,6 +426,10 @@ export default {
     @include themify($themes) {
       border: 1px solid rgba( themed(frontColor), .15 );
       color: rgba( themed(frontColor), .4 );
+    }
+    .theme-light & {
+      border-color: rgba( $lightFrontColor, .25 );
+      color: rgba( $lightFrontColor, .6 );
     }
 
     &:hover {

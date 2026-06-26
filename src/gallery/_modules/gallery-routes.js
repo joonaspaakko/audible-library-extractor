@@ -11,10 +11,13 @@ import IconFaSolidBook         from '~icons/fa6-solid/book?raw';
 import IconFaRegularFolderOpen from '~icons/fa6-regular/folder-open?raw';
 import IconFaSolidBookmark     from '~icons/fa6-solid/bookmark?raw';
 import IconFaSolidPodcast      from '~icons/fa6-solid/podcast?raw';
-import IconFaSolidIndent       from '~icons/fa6-solid/indent?raw';
-import IconFaSolidListOl       from '~icons/fa6-solid/list-ol?raw';
-import IconFaSolidUsers        from '~icons/fa6-solid/users?raw';
 import IconFaSolidHome         from '~icons/fa6-solid/house?raw';
+// Sub-page icons — kept in sync with the search scope icons in gallery-search.vue
+import IconFaSolidFolder       from '~icons/fa6-solid/folder?raw';
+import IconFaSolidLayerGroup   from '~icons/fa6-solid/layer-group?raw';
+import IconFaSolidUserPen      from '~icons/fa6-solid/user-pen?raw';
+import IconFaSolidMicrophone   from '~icons/fa6-solid/microphone?raw';
+import IconFaSolidBuilding     from '~icons/fa6-solid/building?raw';
 
 export default {
   library: { 
@@ -59,7 +62,7 @@ export default {
     categories: {
       path: "/categories",
       meta: {
-        icon: IconFaSolidIndent,
+        icon: IconFaSolidFolder,
         nestedGroup: 'subPages',
         order: 0,
       },
@@ -73,7 +76,7 @@ export default {
       path: "/series",
       component: aleLibraryView,
       meta: {
-        icon: IconFaSolidListOl,
+        icon: IconFaSolidLayerGroup,
         nestedGroup: 'subPages',
         order: 1,
       },
@@ -85,8 +88,8 @@ export default {
     authors: {
       path: "/authors",
       component: aleLibraryView,
-      meta: { 
-        icon: IconFaSolidUsers,
+      meta: {
+        icon: IconFaSolidUserPen,
         nestedGroup: 'subPages',
         order: 2,
       },
@@ -99,7 +102,7 @@ export default {
       path: "/narrators",
       component: aleLibraryView,
       meta: {
-        icon: IconFaSolidUsers,
+        icon: IconFaSolidMicrophone,
         nestedGroup: 'subPages',
         order: 3,
       },
@@ -112,7 +115,7 @@ export default {
       path: "/publishers",
       component: aleLibraryView,
       meta: {
-        icon: IconFaSolidBook,
+        icon: IconFaSolidBuilding,
         nestedGroup: 'subPages',
         order: 4,
       },

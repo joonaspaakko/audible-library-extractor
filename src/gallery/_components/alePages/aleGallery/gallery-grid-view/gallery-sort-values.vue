@@ -275,12 +275,12 @@ export default {
     margin-left: 1px;
     margin-right: 1px;
     margin-bottom: -4px;
-    padding: 3px 6px;
-    padding-bottom: (3px+3px);
-    font-size: .9em;
+    padding: clamp(1px, calc(var(--cover-size, 180px) * 0.022), 5px) clamp(4px, calc(var(--cover-size, 180px) * 0.05), 10px);
+    font-size: clamp(9px, calc(var(--cover-size, 180px) * 0.075), 13px);
+    line-height: 1.4;
     font-weight: 700;
     border-radius: 2px 2px 0 0;
-    border: 1px solid red;
+    border: 1px solid transparent;
     box-sizing: border-box;
     color: #fff;
     @include themify($themes) {
@@ -303,9 +303,61 @@ export default {
   border-color: color.adjust($darkBackColor, $lightness: 14%);
 }
 .theme-light .ale-book .sort-values-container > div {
-  color: #fff;
-  background: #202020;
-  border-color: color.adjust(#202020, $lightness: 5%);
+  color: rgba($lightFrontColor, .85);
+  background: #fff;
+  border-color: rgba($lightFrontColor, .18);
+}
+
+// In details-list mode the sort value strip sits at the top of a card, so it should
+// blend into the card rather than contrast with it. Transparent background, card's own
+// text color (muted), and a hairline bottom border as the only visual division.
+.details-list .ale-book .sort-values-container > div {
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  border-radius: 0;
+  margin-left: 0;
+  margin-right: 0;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+}
+.theme-light .details-list .ale-book .sort-values-container > div {
+  background: #fff;
+  color: rgba($lightFrontColor, .75);
+  border-bottom-color: rgba($lightFrontColor, .12);
+}
+.theme-dark .details-list .ale-book .sort-values-container > div {
+  background: #171717;
+  color: rgba($darkFrontColor, .55);
+  border-bottom-color: rgba($darkFrontColor, .1);
+}
+.details-list .ale-book .sort-values-container > div.locked {
+  margin-bottom: 0;
+  padding-bottom: 3px;
+  border-bottom: none;
+  opacity: 1;
+}
+.theme-light .details-list .ale-book .sort-values-container > div.locked {
+  background: #fff;
+  color: rgba($lightFrontColor, .5);
+}
+.theme-dark .details-list .ale-book .sort-values-container > div.locked {
+  background: #171717;
+  color: rgba($darkFrontColor, .4);
+}
+// The sort value below a locked row gets the separator instead.
+.details-list .ale-book .sort-values-container > div.locked + div {
+  border-radius: 0;
+  border-bottom: 1px solid;
+  padding-bottom: 5px;
+  margin-bottom: 6px;
+}
+.theme-light .details-list .ale-book .sort-values-container > div.locked + div {
+  border-bottom-color: rgba($lightFrontColor, .12);
+}
+.theme-dark .details-list .ale-book .sort-values-container > div.locked + div {
+  border-bottom-color: rgba($darkFrontColor, .1);
 }
 
 // The locked override sits on top of the sort value. It's muted and squared at the
@@ -314,7 +366,9 @@ export default {
   margin-bottom: 0;
   border-bottom: none;
   border-radius: 2px 2px 0 0;
-  font-size: .8em;
+  padding: clamp(1px, calc(var(--cover-size, 180px) * 0.011), 3px) clamp(4px, calc(var(--cover-size, 180px) * 0.05), 10px);
+  font-size: clamp(8px, calc(var(--cover-size, 180px) * 0.055), 12px);
+  line-height: 1.4;
   font-weight: 600;
   opacity: .8;
 }
@@ -322,7 +376,7 @@ export default {
   background: color.adjust($darkBackColor, $lightness: 5%);
 }
 .theme-light .ale-book .sort-values-container > div.locked {
-  background: #2c2c2c;
+  background: #f2f2f2;
 }
 // With a locked row above it, the sort value squares off its top so they butt together.
 .ale-book .sort-values-container > div.locked + div {

@@ -696,9 +696,10 @@ export default {
       
       this.$updateQueries( newQueries );
       
-      // Gate: summary scope is active but its text isn't hydrated yet. Kick off (or
-      // wait on) hydration; hydrateSummaries re-runs search() once it's ready.
-      if ( this.summaryScopeActive && !this.summarySearchReady ) {
+      // Gate: summary scope is active (via checkbox or inline @summary:) but its text
+      // isn't hydrated yet. Kick off (or wait on) hydration; hydrateSummaries re-runs
+      // search() once it's ready.
+      if ( ( this.summaryScopeActive || this.summaryInlineActive ) && !this.summarySearchReady ) {
         this.hydrateSummaries();
         return;
       }
@@ -957,10 +958,17 @@ export default {
       return !!( summaryScope && summaryScope.active );
     },
 
+    // True when the query contains an inline @summary: override, even if the scope
+    // checkbox is off. Hydration must run in this case too.
+    summaryInlineActive: function() {
+      const query = this.$store.state.searchQuery || '';
+      return /@summary:/i.test( query );
+    },
+
     // Show a "preparing" hint while summary data is still loading behind an active
     // summary search.
     summarySearchPreparing: function() {
-      return this.summaryScopeActive && this.summarySearchHydrating && this.$store.getters.searchIsActive;
+      return ( this.summaryScopeActive || this.summaryInlineActive ) && this.summarySearchHydrating && this.$store.getters.searchIsActive;
     },
   },
 
@@ -972,6 +980,10 @@ export default {
       handler: function( active ) {
         if ( active ) this.hydrateSummaries();
       },
+    },
+    // Also hydrate when @summary: appears in the query while the scope is inactive.
+    summaryInlineActive: function( active ) {
+      if ( active ) this.hydrateSummaries();
     },
   },
 };

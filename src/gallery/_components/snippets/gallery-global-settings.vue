@@ -77,7 +77,8 @@
             <fluent-dock-row-20-filled />
           </div>
           <div class="setting-label">
-            <span>Covers per row</span>
+            <span>Max covers per row</span>
+            <span class="setting-subtext">Limited by browser width</span>
           </div>
           <div class="covers-per-row-value" :class="{ auto: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }">
             {{ coversPerRowCurrent }}
@@ -128,6 +129,7 @@
           :max="coverSizeMax"
           :value="coverSizeCurrent"
           :step="1"
+          :marks="coverSizeMarks"
           :tooltip="true"
           :format-tooltip="val => val + 'px'"
           @update:value="onCoverSizeInput"
@@ -196,6 +198,50 @@
 
     </div>
     </template>
+
+    <!-- Book cover -->
+    <div class="settings-section-divider"></div>
+    <div class="settings-section">
+
+      <div class="collapsible-header" @click="bookCoverExpanded = !bookCoverExpanded" @mousedown="$haptic(1)">
+        <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: bookCoverExpanded }" />
+        <span>Book cover</span>
+      </div>
+
+      <div v-show="bookCoverExpanded" class="no-selection">
+        <div
+          v-for="setting in bookCoverSettings"
+          :key="setting.sectionLabel || setting.label"
+        >
+          <div class="setting-divider" v-if="setting.type === 'divider'"></div>
+          <div v-else-if="setting.type === 'sectionLabel'" class="setting-section-label">{{ setting.sectionLabel }}</div>
+          <div class="setting-row" v-else-if="!setting.standalone || $store.state.standalone" :class="{ 'setting-disabled': !setting.enabled || (setting.coverButtonSetting && coverButtonsDisabled) }">
+            <label class="setting-label-wrap">
+              <div class="setting-icon">
+                <component :is="setting.icon" v-if="setting.icon" />
+              </div>
+              <div class="setting-label">
+                <span>{{ setting.label }}</span>
+              </div>
+              <div
+                v-if="setting.info"
+                class="info-icon"
+                v-tippy="{ placement: 'left', maxWidth: 220, interactive: true, trigger: 'mouseenter', hideOnClick: false }"
+                :content="setting.info"
+                @click.prevent
+              >
+                <fa6-regular-circle-question />
+              </div>
+              <div class="visual-toggle" :class="{ on: setting.value }">
+                <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled || (setting.coverButtonSetting && coverButtonsDisabled)">
+                <div class="toggle-track"><div class="toggle-thumb"></div></div>
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+
+    </div>
 
     <!-- Book details -->
     <div class="settings-section-divider"></div>
@@ -295,9 +341,10 @@ import IconCollections  from '~icons/fa6-solid/layer-group';
 import IconSeries       from '~icons/fa6-solid/list-ol';
 import IconCarousel     from '~icons/fa6-solid/images';
 
-// Cover size slider bounds, in pixels. Default matches $thumbnailSize; small is half.
+// Cover size slider bounds, in pixels. Default matches $thumbnailSize.
 const COVER_SIZE_DEFAULT = 180;
-const COVER_SIZE_SMALL = 90;
+const COVER_SIZE_MIN = 50;
+const COVER_SIZE_MAX = 500;
 
 // List card sizing, kept in sync with gallery-grid-view.vue: the default list cover edge
 // and the text reserve beside it that together set a card's minimum width.
@@ -314,12 +361,12 @@ export default {
     const vue = this;
     const sticky = this.$store.state.sticky;
     return {
+      bookCoverExpanded: true,
       bookDetailsExpanded: true,
-      bookDetailSettings: [
+      bookCoverSettings: [
 
-        { type: 'sectionLabel', sectionLabel: 'Book cover' },
         {
-          enabled: true, type: 'checkbox', label: 'Show sample play button', icon: IconPlay,
+          enabled: true, coverButtonSetting: true, type: 'checkbox', label: 'Show sample play button', icon: IconPlay,
           info: `Plays a short audio sample directly from the book cover.<br><img src="${SamplePlayButton}" class="tippy-info-image" />`,
           parent: 'sampleButton',
           value: sticky.bookDetailSettings.playButton,
@@ -339,7 +386,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show cloud player button', icon: IconCloud,
+          enabled: true, coverButtonSetting: true, type: 'checkbox', label: 'Show cloud player button', icon: IconCloud,
           info: `Opens the Audible cloud player. Cannot be enabled at the same time as the sample play button. Requires being logged in to Audible.<br><img src="${BookCoverCloudPlayerButton}" class="tippy-info-image" />`,
           parent: 'cloudButton',
           value: sticky.bookDetailSettings.cloudPlayer,
@@ -359,7 +406,7 @@ export default {
           },
         },
         {
-          enabled: true, type: 'checkbox', label: 'Show open in app button', icon: IconAppLink,
+          enabled: true, coverButtonSetting: true, type: 'checkbox', label: 'Show open in app button', icon: IconAppLink,
           info: 'Shows a button on the book cover to open the book in the Audible mobile app. Only available in the standalone gallery. Cannot be enabled at the same time as the other cover buttons.',
           standalone: true,
           parent: 'appLinkButton',
@@ -419,6 +466,9 @@ export default {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.finished', value: e.target.checked });
           },
         },
+      ],
+      bookDetailSettings: [
+
         { type: 'sectionLabel', sectionLabel: 'Above summary' },
         {
           enabled: true, type: 'checkbox', label: 'Prefer short title', icon: IconShortTitle,
@@ -509,7 +559,7 @@ export default {
   },
 
   created: function() {
-    const hasInits = _.filter(this.bookDetailSettings, 'init');
+    const hasInits = _.filter( [ ...this.bookCoverSettings, ...this.bookDetailSettings ], 'init' );
     _.each(hasInits, s => s.init(s));
   },
 
@@ -574,12 +624,15 @@ export default {
       return _.clamp( Math.floor( width / coverWidth ), this.coversPerRowMin, this.coversPerRowMax );
     },
 
-    // Cover size runs from the small preset up to 150% of the default, in pixels.
+    // Cover size runs from the minimum usable size up to the max, in pixels.
+    // The upper bound is also capped to the available container width so the cover
+    // can never be set wider than what physically fits on screen.
     coverSizeMin: function() {
-      return COVER_SIZE_SMALL;
+      return COVER_SIZE_MIN;
     },
     coverSizeMax: function() {
-      return Math.round( COVER_SIZE_DEFAULT * 1.5 );
+      const containerCap = this.$store.state.gridAvailableWidth;
+      return containerCap ? Math.min( COVER_SIZE_MAX, Math.floor( containerCap ) ) : COVER_SIZE_MAX;
     },
     // The unset (default) cover size differs by layout: the plain grid falls back to the
     // full thumbnail, list cards fall back to the small list cover. The slider and readout
@@ -591,8 +644,38 @@ export default {
       return this.$store.state.sticky.coverSize || this.coverSizeDefault;
     },
 
+    // Cover overlay buttons (sample, cloud player, open in app) are not usable
+    // when covers are too small to interact with comfortably.
+    coverButtonsDisabled: function() {
+      return this.coverSizeCurrent < 110;
+    },
+
     coversPerRowMarks: function() {
       return _.fromPairs( _.range( this.coversPerRowMin, this.coversPerRowMax + 1 ).map( i => [ i, '' ] ) );
+    },
+
+    // Snap points for the cover size slider: one per column count, from 1 cover filling
+    // the full width down to however many fit at the minimum size. Each value is the
+    // largest cover size that still lets exactly N covers fit side by side.
+    // In list mode the full-width (N=1) step is skipped since list cards don't go full width.
+    coverSizeSteps: function() {
+      if ( !this.isMobile ) return null;
+      const available = this.$store.state.gridAvailableWidth;
+      if ( !available ) return null;
+      const steps = [];
+      let n = this.listMode ? 2 : 1;
+      while ( true ) {
+        const size = Math.floor( available / n );
+        if ( size < COVER_SIZE_MIN ) break;
+        steps.push( Math.min( size, COVER_SIZE_MAX ) );
+        n++;
+      }
+      return steps.length ? steps : null;
+    },
+
+    coverSizeMarks: function() {
+      if ( !this.coverSizeSteps ) return {};
+      return _.fromPairs( this.coverSizeSteps.map( s => [ s, '' ] ) );
     },
 
   },
@@ -600,6 +683,9 @@ export default {
   methods: {
 
     onCoverSizeInput: function( value ) {
+      if ( this.coverSizeSteps ) {
+        value = _.minBy( this.coverSizeSteps, s => Math.abs( s - value ) );
+      }
       this.setCoverSize( value );
       this.setDrawerPeek( true );
     },
@@ -700,10 +786,22 @@ export default {
     },
 
     mutateChildren: function( parentKey, propKey, value ) {
-      const children = _.filter(this.bookDetailSettings, { parent: parentKey });
+      const children = _.filter( [ ...this.bookCoverSettings, ...this.bookDetailSettings ], { parent: parentKey } );
       _.each(children, c => { c[propKey] = value; });
     },
 
+  },
+
+  watch: {
+    coverSizeMax: function( max ) {
+      const current = this.$store.state.sticky.coverSize;
+      if ( current && current > max ) {
+        const snapped = this.coverSizeSteps
+          ? _.minBy( this.coverSizeSteps, s => Math.abs( s - current ) )
+          : max;
+        this.setCoverSize( snapped );
+      }
+    },
   },
 };
 </script>
@@ -834,6 +932,7 @@ body:not(.settings-drawer-peek-hidden) .n-drawer {
   @include themify($themes) {
     color: rgba(themed(frontColor), .35);
   }
+  .theme-light & { color: rgba($lightFrontColor, .55); }
   &.is-toggle {
     cursor: pointer;
     input { display: none; }
@@ -853,6 +952,7 @@ body:not(.settings-drawer-peek-hidden) .n-drawer {
     color: rgba(themed(frontColor), .3);
     &:hover { color: rgba(themed(frontColor), .7); }
   }
+  .theme-light & { color: rgba($lightFrontColor, .5); }
 }
 
 .setting-divider {
