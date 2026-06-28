@@ -210,6 +210,10 @@ export default {
       // virtualizer re-rows the collection. Wait for the style to apply first.
       this.$nextTick( this.measureGrid );
     },
+    '$store.getters.sortValues': function() {
+      // Toggling sort values on/off adds/removes the sort strip, changing cell height.
+      this.$nextTick( this.measureGrid );
+    },
     '$store.getters.sortValuesKey': function() {
       // The locked value stacks a second strip, growing the cell height. The collection
       // is unchanged so its watcher won't fire; re-measure once the class has applied.
