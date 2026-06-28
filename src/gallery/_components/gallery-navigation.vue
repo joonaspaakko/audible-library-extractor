@@ -31,7 +31,7 @@ import IconFaSolidChevronDown   from '~icons/fa6-solid/chevron-down?raw';
 import IconFaBrandsAudible      from '~icons/fa6-brands/audible?raw';
 import IconFaSolidGraduationCap from '~icons/fa6-solid/graduation-cap?raw';
 import IconFaSolidDownload      from '~icons/fa6-solid/download?raw';
-import IconFaSolidFileCsv       from '~icons/fa6-solid/file-csv?raw';
+import IconFaSolidFileExcel     from '~icons/fa6-solid/file-excel?raw';
 import IconFaRegularImage       from '~icons/fa6-regular/image?raw';
 import IconFaSolidHouseUser     from '~icons/fa6-solid/house-user?raw';
 import IconFaSolidHome          from '~icons/fa6-solid/house?raw';
@@ -276,11 +276,11 @@ export default {
           {
             highlight: true,
             tag: 'div',
-            name: 'CSV export&nbsp;<small>(spreadsheet)</small>',
+            name: 'Spreadsheet export',
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: IconFaSolidFileCsv,
+              icon: IconFaSolidFileExcel,
               nestedGroup: 'extension-tools',
               component: saveCSV,
             },

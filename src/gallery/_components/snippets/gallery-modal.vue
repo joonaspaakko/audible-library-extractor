@@ -155,7 +155,6 @@ export default {
       padding: 55px 60px;
       padding-bottom: 50px;
       border-top: 1px solid rgba(#fff, 0.07);
-      border-bottom: 1px solid rgba(#000, 0.25);
       &:first-child {
         border-top: none;
       }

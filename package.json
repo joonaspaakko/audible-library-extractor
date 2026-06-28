@@ -67,7 +67,8 @@
     "vue3-shortkey": "https://github.com/BlazL/vue3-shortkey",
     "vue3-touch-events": "^4.1.2",
     "vuedraggable": "^4.1.0",
-    "vuex": "^4.0.2"
+    "vuex": "^4.0.2",
+    "write-excel-file": "^4.1.1"
   },
   "devDependencies": {
     "@iconify/json": "^2.2.484",

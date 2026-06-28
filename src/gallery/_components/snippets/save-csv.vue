@@ -1,109 +1,133 @@
 <template>
 <gallery-modal @closeModal="$emit('closeComp')">
-  
+
   <div class="export-group">
 
     <div class="top-wrapper">
       <div class="icon-wrapper" :style="{ fontSize: iconSize/1.2  + 'px', lineHeight: iconSize/1.2  + 'px', paddingRight: iconSize / 2.5 + 'px' }">
-        <fa6-solid-file-csv/>
+        <fa6-solid-file-excel/>
       </div>
       <div class="text-wrapper" ref="textWrapper">
-        <h2> Spreadsheet</h2>
+        <h2>Spreadsheet export</h2>
 
         <div class="description">
-          CSV is a generic file format for tabular data that is supported by any proper spreadsheet application. 
+          Export your library as a spreadsheet. Downloads as XLSX by default, which is supported by Google Sheets, Excel, and most other spreadsheet apps.
         </div>
       </div>
     </div>
 
-    <h3>Data source:</h3>
+    <fieldset class="option-fieldset">
+      <legend>What to export</legend>
 
-    <div class="options">
-      <label v-for="source in settings.dataSources" :key="source.key">
-        <input type="radio" name="dataSources" v-model="settings.dataSourcesChecked" :value="source.key" @change="inputChanged"> 
-        <div class="visual-radiobutton">
-          <div class="icon">
-            <ic-baseline-circle/>
-          </div>
-        </div>
-        <span>{{ source.key }}</span>
-      </label>
-    </div>
-    
-    <div class="description" style="margin-top: 10px;">
-      {{ dataSourceActive.description }}
-    </div>
-
-    <h3>Format:</h3>
-
-    <div class="options">
-      <label v-for="item in settings.compatibility" :key="item.key">
-        <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged"> 
-        <div class="visual-radiobutton">
-          <div class="icon">
-            <ic-baseline-circle/>
-          </div>
-        </div>
-        <span>{{ item.label || item.key }}</span>
-      </label>
-    </div>
-    
-    <div class="description" style="margin-top: 10px;">
-      {{ compatibilityActive.description }}
-    </div>
-    
-    <div v-if="settings.compatibilityChecked === 'Goodreads'">
-      <h3>Goodreads identifier:</h3>
-  
-      <!-- <div class="warning">
-        If you have already imported books with ISBN, you may want to exclude ASIN, because books imported (and matched) with ASIN will be added as a duplicate entry.
-      </div> -->
-      
       <div class="options">
-        <label v-for="item in settings.goodreadsIdentifier" :key="item.key">
-          <input type="checkbox" name="goodreadsIdentifier" v-model="item.checked" @change="inputChanged($event, item, settings.goodreadsIdentifier)"> 
-          <div class="visual-checkbox">
-              <span class="icon">
-                <fa-solid-check/>
-              </span>
+        <label v-for="source in settings.dataSources" :key="source.key">
+          <input type="radio" name="dataSources" v-model="settings.dataSourcesChecked" :value="source.key" @change="inputChanged">
+          <div class="visual-radiobutton">
+            <div class="icon">
+              <ic-baseline-circle/>
             </div>
-          <span>{{ item.label || item.key }}</span>
+          </div>
+          <span>{{ source.key }}</span>
         </label>
       </div>
-      
-      <div class="description" style="margin-top: 10px;" v-if="GoodreadsIdentifiersClicked">
-        <strong>{{ GoodreadsIdentifiersClicked.key }}:</strong> <span v-html="GoodreadsIdentifiersClicked.description"></span>
+
+      <div class="format-callout">
+        <div class="format-callout-body">{{ dataSourceActive.description }}</div>
+      </div>
+
+    </fieldset>
+
+    <fieldset class="option-fieldset">
+      <legend>How to export</legend>
+
+      <div class="options format-options">
+        <label v-for="item in settings.compatibility" :key="item.key">
+          <input type="radio" name="compatibility" v-model="settings.compatibilityChecked" :value="item.key" @change="inputChanged">
+          <div class="visual-radiobutton">
+            <div class="icon">
+              <ic-baseline-circle/>
+            </div>
+          </div>
+          <span class="option-label">
+            {{ item.label || item.key }}
+            <span v-if="item.subtext" class="option-subtext">{{ item.subtext }}</span>
+          </span>
+        </label>
+      </div>
+
+    <div class="format-callout">
+      <div class="format-callout-body">
+        <template v-if="settings.compatibilityChecked === 'Goodreads'">
+          {{ compatibilityActive.description }}
+          <span v-if="goodreadsUseISBN"> ISBN detected in your library — using ISBN for matching.</span>
+          <span v-else> No ISBNs found in your library — using ASIN for matching.</span>
+          <div class="format-callout-links">
+            <a class="callout-link-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/goodreads-import">
+              <span>Learn how to import into Goodreads</span>
+              <mdi-open-in-new/>
+            </a>
+          </div>
+        </template>
+        <template v-else-if="settings.compatibilityChecked === 'With formulas'">
+          {{ compatibilityActive.description }}
+          <div class="format-callout-links">
+            <a class="callout-link-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/google-sheets-import">
+              <span>Learn how to import into Google Sheets</span>
+              <mdi-open-in-new/>
+            </a>
+          </div>
+        </template>
+        <template v-else>
+          {{ compatibilityActive.description }}
+        </template>
       </div>
     </div>
+
+    </fieldset>
 
     <div class="buttons-footer">
       <div class="btn-wrapper">
-        <button class="save-btn save-csv" @click="saveButtonClicked"  :class="{ saving: bundling }" :disabled="bundling || !saveBtnEnabled">
-          <span>{{ filename}}</span>
-          <fa6-solid-circle-notch v-if="bundling" spin />
-          <fa6-solid-download v-else />
-        </button>
-        
-        <div>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/google-sheets-import"> 
-            <span>Google Sheets import</span>
-            <fa6-solid-share-from-square/>
-          </a>
-          <a class="github-btn" target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/gallery/csv-export/goodreads-import"> 
-            <span>Goodreads import</span>
-            <fa6-solid-share-from-square/>
-          </a>
+
+        <div class="split-btn-wrapper" :class="{ saving: !!bundling, disabled: !!bundling || !saveBtnEnabled }">
+
+          <button class="save-btn save-csv split-btn-main" @click="saveButtonClicked( saveFormat )" :class="{ saving: !!bundling }" :disabled="!!bundling || !saveBtnEnabled">
+            <fa6-solid-circle-notch v-if="bundling" spin />
+            <fa6-solid-download v-else />
+            <span class="btn-label">
+              Download {{ saveFormat.toUpperCase() }}
+              <span class="btn-filename">{{ filename( saveFormat ) }}</span>
+            </span>
+          </button>
+
+          <button v-if="settings.compatibilityChecked !== 'Goodreads'" class="split-btn-chevron" @click="formatDropdownOpen = !formatDropdownOpen" :disabled="!!bundling || !saveBtnEnabled">
+            <fa6-solid-chevron-down />
+          </button>
+
+          <div v-if="formatDropdownOpen" class="format-dropdown" v-click-outside="() => formatDropdownOpen = false">
+            <button @click="pickFormat('xlsx')" :class="{ selected: saveFormat === 'xlsx' }">
+              <span>XLSX</span>
+              <span class="format-dropdown-sub">Excel, Google Sheets, etc.</span>
+            </button>
+            <button @click="pickFormat('csv')" :class="{ selected: saveFormat === 'csv' }">
+              <span>CSV</span>
+              <span class="format-dropdown-sub">Plain text, any app</span>
+            </button>
+          </div>
+
         </div>
-        
+
+
       </div>
     </div>
-    
+
   </div>
-  
+
 </gallery-modal>
 </template>
 
 <script>
+import writeXlsxFile from 'write-excel-file/browser';
+import { downloadBlob } from '@utils/download.js';
 import stringifyArray from "@output-mixins/gallery-stringifyArray.js";
 import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 import makeUrl from "@output-mixins/gallery-makeFullUrl.js";
@@ -125,6 +149,20 @@ export default {
   components: {
     modal,
   },
+
+  directives: {
+    clickOutside: {
+      mounted( el, binding ) {
+        el.clickOutsideHandler = ( event ) => {
+          if ( !el.contains( event.target ) ) binding.value( event );
+        };
+        document.addEventListener( 'mousedown', el.clickOutsideHandler );
+      },
+      unmounted( el ) {
+        document.removeEventListener( 'mousedown', el.clickOutsideHandler );
+      },
+    },
+  },
   data: function() {
     return {
       settings: {
@@ -134,20 +172,17 @@ export default {
           { key: 'Wishlist', description: 'Export wishlist data as spreadsheet.  Uses default sorting "added": new books at the top.'},
           { key: 'Current page', description: 'Export contents from any page with books. Active: search, filtering, and sorting affect this source.' },
         ],
-        compatibilityChecked: 'Google Sheets',
+        compatibilityChecked: 'With formulas',
         compatibility: [
-          { key: 'Raw data', description: "Raw data with no special formulas, so it will work in any spreadsheet application." },
-          { key: 'Google Sheets', description: `Adds Google Sheets compatible formulas that add icons and links. If you don't like the formulas, you can use of course "raw data" instead.` },
-          { key: 'Goodreads', description: "This spreadsheet includes Goodreads relevant columns and removes any books that don't have ISBNs since Goodreads won't import books without them. Book status determines the bookshelve: not started (to-read), started(currently-reading), finished (read). Book categories are divided into shelves as well." },
+          { key: 'Default',      label: 'Default',       subtext: 'No formulas',                              description: "Plain data, works in any spreadsheet app." },
+          { key: 'With formulas', label: 'With formulas', subtext: 'Cover images and hyperlinks',              description: "Adds cover images and hyperlinks using spreadsheet formulas. Compatible with Google Sheets and Excel." },
+          { key: 'Goodreads',    label: 'Goodreads',     subtext: 'For Goodreads import',                     description: "Goodreads-compatible columns. Book status maps to shelves: not started (to-read), started (currently-reading), finished (read). Categories become shelves too." },
         ],
-        goodreadsIdentifier: [
-          { key: 'ISBN',  checked: true, clicked: false, description: `You need to do the ISBN extraction in your Audible Library in order to use this.` },
-          { key: 'ASIN',  checked: true,  clicked: false, description: `These days Goodreads accepts imports with ASIN, which in this case will give you an exact match.` },
-          { key: 'MERGE', checked: true, clicked: false, description: `Goodreads will add one book per matched identifier, so with all 3 you can potentially add 3 duplicate entries. This merge option will pick just one of them in this order of priority: ISBN 10, ISBN 13, ASIN. <br><br>The potential issue with this is that we have no way of knowing which one of these identifiers actually matches a book. So you by <strong>unchecking</strong> this option you risk getting multiple duplicates and by cecking <strong>checking</strong> it, you risk getting less matches with fewer duplicates. <br><br>Removing duplicates in Goodreads is very time consuming when you have more than like 10. I have ~1000 books and I got like 300 duplicates without this merge option.` },
-        ] 
       },
-      bundling: false,
+      bundling: null,
       iconSize: 20,
+      formatDropdownOpen: false,
+      preferredFormat: 'xlsx',
     };
   },
   
@@ -159,10 +194,6 @@ export default {
     if ( this.$store.state.sticky.exportSettingsCSVcompatibility ) {
       this.settings.compatibilityChecked = this.$store.state.sticky.exportSettingsCSVcompatibility;
     }
-    if ( this.$store.state.sticky.exportSettingsGoodreadsIdentifier ) {
-      this.settings.goodreadsIdentifier = this.$store.state.sticky.exportSettingsGoodreadsIdentifier;
-    }
-    
     this.iconSize = this.$refs.textWrapper.offsetHeight;
     
   },
@@ -176,37 +207,21 @@ export default {
       return _.find( this.settings.compatibility, { key: this.settings.compatibilityChecked });
     },
     
-    activeGoodreadsIdentifiers() {
-      return _.filter(this.settings.goodreadsIdentifier, { checked: true });
+    goodreadsUseISBN: function() {
+      return _.some( this.dataSource, function( book ) {
+        return _.find( book.isbns, { type: 'ISBN_10' }) || _.find( book.isbns, { type: 'ISBN_13' });
+      });
     },
-    GoodreadsIdentifiersClicked() {
-      return _.find( this.settings.goodreadsIdentifier, { clicked: true });
-    },
-    
+
     googleSheets: function() {
-      return this.settings.compatibilityChecked === 'Google Sheets';
+      return this.settings.compatibilityChecked === 'With formulas';
+    },
+
+    saveFormat: function() {
+      if ( this.settings.compatibilityChecked === 'Goodreads' ) return 'csv';
+      return this.preferredFormat;
     },
     
-    filename: function() {
-      
-      let suffix = '';
-      if ( this.settings.dataSourcesChecked === 'Library' ) {
-        suffix = 'library';
-      }
-      else if ( this.settings.dataSourcesChecked === 'Wishlist' ) {
-        suffix = 'wishlist';
-      }
-      else if ( this.settings.dataSourcesChecked === 'Current page' ) {
-        let pageTitle = this.$store.state.pageTitle ? this.slugify( this.$store.state.pageTitle ) : null;
-        let routeName =  this.$route.name;
-        suffix = pageTitle || routeName;
-      }
-      
-      if ( suffix !== '' ) suffix = '-' + suffix;
-      
-      return "ALE-spreadsheet"+suffix+".csv";
-      
-    },
     
     dataSource: function() {
       switch ( this.settings.dataSourcesChecked ) {
@@ -238,39 +253,97 @@ export default {
   },
   
   methods: {
-    saveButtonClicked: function() {
+    pickFormat: function( format ) {
+      this.preferredFormat = format;
+      this.formatDropdownOpen = false;
+      this.saveButtonClicked( format );
+    },
+
+    filename: function( format ) {
+
+      let suffix = '';
+      if ( this.settings.dataSourcesChecked === 'Library' ) {
+        suffix = 'library';
+      }
+      else if ( this.settings.dataSourcesChecked === 'Wishlist' ) {
+        suffix = 'wishlist';
+      }
+      else if ( this.settings.dataSourcesChecked === 'Current page' ) {
+        let pageTitle = this.$store.state.pageTitle ? this.slugify( this.$store.state.pageTitle ) : null;
+        let routeName = this.$route.name;
+        suffix = pageTitle || routeName;
+      }
+
+      if ( suffix !== '' ) suffix = '-' + suffix;
+
+      return 'ALE-spreadsheet' + suffix + '.' + format;
+
+    },
+
+    saveButtonClicked: function( format ) {
       if ( !this.bundling ) {
-        
+
         const vue = this;
-        vue.bundling = true;
-        
-        let dataSource = JSON.parse(JSON.stringify(this.dataSource));
+        vue.bundling = format;
+
+        let dataSource = JSON.parse( JSON.stringify( this.dataSource ) );
         let keys = this.prepKeys( dataSource );
-        
-        let csv = Papa.unparse({
-          fields: _.map( keys, function( key ) { return _.includes(['isbn', 'isbn10', 'isbn13', 'asin'], key) ? key.toUpperCase() : _.startCase(key); }),
-          data: this.processData( keys, dataSource ),
-          quotes: false, //or array of booleans
-          quoteChar: '"',
-          escapeChar: '"',
-          delimiter: ",",
-          header: true,
-          newline: "\r\n",
-          skipEmptyLines: false, //other option is 'greedy', meaning skip delimiters, quotes, and whitespace.
-          columns: null, //or array of strings
-        });
-        
-        // saveAs(new Blob([csv], {type: "text/csv;charset=utf-8"}), this.filename);
-        saveAs(new File([csv], this.filename, {type: "text/csv;charset=utf-8"}));
-        
-        setTimeout(function() {
-          vue.bundling = false;
-        }, 1000);
-        
+        let rows = this.processData( keys, dataSource );
+        let headers = _.map( keys, function( key ) { return _.includes(['isbn', 'isbn10', 'isbn13', 'asin'], key) ? key.toUpperCase() : _.startCase(key); });
+
+        if ( format === 'xlsx' ) {
+          this.saveXlsx( headers, rows ).then( function() {
+            vue.bundling = null;
+          });
+        }
+        else {
+          let csv = Papa.unparse({
+            fields: headers,
+            data: rows,
+            quotes: false,
+            quoteChar: '"',
+            escapeChar: '"',
+            delimiter: ",",
+            header: true,
+            newline: "\r\n",
+            skipEmptyLines: false,
+            columns: null,
+          });
+
+          downloadBlob( new Blob([csv], { type: "text/csv;charset=utf-8" }), this.filename( format ) );
+
+          setTimeout( function() {
+            vue.bundling = null;
+          }, 1000);
+        }
+
       }
     },
+
+    saveXlsx: function( headers, rows ) {
+
+      const vue = this;
+
+      const headerRow = _.map( headers, function( h ) {
+        return { type: String, value: h, fontWeight: 'bold' };
+      });
+
+      const dataRows = _.map( rows, function( row ) {
+        return _.map( row, function( cell ) {
+          let value = ( cell == null ? '' : String( cell ) );
+          if ( value.startsWith('=') ) return { type: 'Formula', value: value.slice(1) };
+          if ( value.startsWith("'") ) return { type: String, value: value.slice(1) };
+          return { type: String, value: value };
+        });
+      });
+
+      return writeXlsxFile( [ headerRow, ...dataRows ] ).toBlob().then( function( blob ) {
+        downloadBlob( blob, vue.filename('xlsx') );
+      });
+
+    },
     
-    inputChanged: function( e, item, items ) {
+    inputChanged: function() {
       
       if ( this.$store.state.sticky.exportSettingsCSVdataSources !== this.settings.dataSourcesChecked ) {
         this.$store.commit('stickyProp', { key: 'exportSettingsCSVdataSources', value: this.settings.dataSourcesChecked });
@@ -278,15 +351,8 @@ export default {
       if ( this.$store.state.sticky.exportSettingsCSVcompatibility !== this.settings.compatibilityChecked ) {
         this.$store.commit('stickyProp', { key: 'exportSettingsCSVcompatibility', value: this.settings.compatibilityChecked });
       }
-      
-      if ( item && items ) {
-        _.each(items, ( item ) => {
-          item.clicked = false;
-        });
-        item.clicked = true;
-        this.$store.commit('stickyProp', { key: 'exportSettingsGoodreadsIdentifier', value: this.settings.goodreadsIdentifier });
-      }
-      
+
+
     },
     
     processData: function( keys, dataSource ) {
@@ -460,50 +526,15 @@ export default {
       
       let vue = this;
       
-      const identifier = {
-        merge: _.find(this.activeGoodreadsIdentifiers, { key: 'MERGE', checked: true }),
-        ASIN : _.find(this.activeGoodreadsIdentifiers, { key: 'ASIN', checked: true }),
-        ISBN : _.find(this.activeGoodreadsIdentifiers, { key: 'ISBN', checked: true }),
-      };
-      
-      // // Filter out titles without ISBNs
-      // dataSource = _.filter( dataSource, function( book ) {
-      //   const isbn10 = _.find( book.isbns, { type: "ISBN_10" });
-      //   const isbn13 = _.find( book.isbns, { type: "ISBN_13" });
-      //   const asin = book.asin;
-      //   return isbn10 || isbn13 || asin;
-      // });
-      
-      
+      const useISBN = this.goodreadsUseISBN;
+
       return _.map( dataSource, function( book ) {
-        
-        let exportIDs = [];
-        
+
         const get = {
           isbn10: _.get(_.find( book.isbns, { type: "ISBN_10" }), 'identifier'),
           isbn13: _.get(_.find( book.isbns, { type: "ISBN_13" }), 'identifier'),
           asin  : book.asin,
         };
-        
-        if ( identifier.merge && identifier.ASIN && identifier.ISBN ) {
-               if ( get.isbn10 ) exportIDs.push('isbn10');
-          else if ( get.isbn13 ) exportIDs.push('isbn13');
-          else if ( get.asin ) exportIDs.push('asin');
-        }
-        else if ( identifier.merge && identifier.ISBN ) {
-               if ( get.isbn10 ) exportIDs.push('isbn10');
-          else if ( get.isbn13 ) exportIDs.push('isbn13');
-        }
-        else if ( identifier.ISBN ) {
-          if ( get.isbn10 ) exportIDs.push('isbn10');
-          if ( get.isbn13 ) exportIDs.push('isbn13');
-        }
-        else if ( identifier.asin ) {
-          if ( get.asin ) exportIDs.push('asin');
-        }
-        else {
-          exportIDs = ['asin', 'isbn10', 'isbn13'];
-        }
         
         return _.map(keys, function( key ) {
           
@@ -562,14 +593,14 @@ export default {
               break;
             
             case "isbn":
-              return _.includes(exportIDs, 'isbn10') ? get.isbn10 : '';
+              return useISBN ? ( get.isbn10 || '' ) : '';
               break;
             case "isbn13":
-              return _.includes(exportIDs, 'isbn13') ? get.isbn13 : '';
+              return useISBN ? ( get.isbn13 || '' ) : '';
               break;
-              
+
             case "asin":
-              return _.includes(exportIDs, 'asin') ? get.asin : '';
+              return !useISBN ? ( get.asin || '' ) : '';
               break;
               
             default:
@@ -587,8 +618,8 @@ export default {
       let keys = [];
       
       switch ( this.settings.compatibilityChecked ) {
-        case 'Google Sheets':
-        case 'Raw data':  
+        case 'With formulas':
+        case 'Default':
           let priorityKeys = [
             "added",
             "cover",
@@ -630,7 +661,7 @@ export default {
             "peopleAlsoBought",
           ];
           
-          const rawData = this.settings.compatibilityChecked === 'Raw data';
+          const rawData = this.settings.compatibilityChecked === 'Default';
           
           // Add extra column(s)
           if ( rawData ) priorityKeys.push('storePageUrl');
@@ -672,9 +703,205 @@ export default {
 
 
 <style scoped lang="scss">
+.option-fieldset {
+  border-radius: 6px;
+  padding: 10px 12px 12px;
+  margin-bottom: 10px;
+  @include themify($themes) {
+    border: 1px solid rgba(themed(frontColor), .15);
+  }
+
+  legend {
+    padding: 0 6px;
+    font-size: .8em;
+    font-weight: 600;
+    letter-spacing: .03em;
+    text-transform: uppercase;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), .4);
+    }
+  }
+}
+
 .options {
   display: flex;
-  flex-direction: row;  
+  flex-direction: row;
+}
+
+.format-options {
+  gap: 8px;
+
+  label {
+    align-items: flex-start !important;
+    flex: 1;
+
+    .visual-radiobutton {
+      margin-top: 3px;
+    }
+  }
+}
+
+.option-label {
+  display: flex;
+  flex-direction: column;
+}
+
+.option-subtext {
+  font-size: .75em;
+  opacity: .6;
+  margin-top: 1px;
+  white-space: nowrap;
+}
+
+.btn-label {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  flex: 1;
+  padding-right: 10px;
+}
+
+.btn-filename {
+  font-size: .7em;
+  opacity: .7;
+  font-weight: normal;
+  margin-top: 1px;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.split-btn-wrapper {
+  display: flex;
+  flex-direction: row;
+  position: relative;
+  flex: 1;
+
+  .split-btn-main {
+    flex: 1;
+    justify-content: flex-start !important;
+    border-radius: 3px 0 0 3px !important;
+    padding-right: 12px !important;
+    gap: 10px;
+  }
+
+  &:not(:has(.split-btn-chevron)) .split-btn-main {
+    border-radius: 3px !important;
+  }
+
+  .split-btn-chevron {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 12px;
+    border: none;
+    border-left: 1px solid rgba(#fff, .2);
+    border-radius: 0 3px 3px 0;
+    cursor: pointer;
+    color: #fff;
+    background: #0e9d59;
+    &:hover { background: #0b8a4e; }
+    &:disabled { cursor: not-allowed; opacity: .6; }
+
+    svg {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .format-dropdown {
+    position: absolute;
+    bottom: calc( 100% + 6px );
+    left: 0;
+    right: 0;
+    border-radius: 4px;
+    overflow: hidden;
+    z-index: 10;
+    @include themify($themes) {
+      background: themed(backColor);
+      border: 1px solid rgba(themed(frontColor), .15);
+      box-shadow: themed(shadowSmall);
+    }
+
+    button {
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      width: 100%;
+      padding: 9px 14px;
+      border: none;
+      cursor: pointer;
+      background: transparent;
+      @include themify($themes) {
+        color: themed(frontColor);
+        &:hover { background: rgba(themed(frontColor), .07); }
+      }
+      &.selected {
+        @include themify($themes) { background: rgba(themed(frontColor), .05); }
+        > span:first-child::after {
+          content: ' ✓';
+          opacity: .5;
+        }
+      }
+      & + button {
+        @include themify($themes) {
+          border-top: 1px solid rgba(themed(frontColor), .1);
+        }
+      }
+    }
+
+    .format-dropdown-sub {
+      font-size: .75em;
+      opacity: .55;
+      margin-top: 1px;
+    }
+  }
+}
+
+.format-callout {
+  margin-top: 13px;
+
+  .format-callout-body {
+    padding: 6px 10px;
+    font-size: .85em;
+    line-height: 1.5;
+    border-radius: 0 4px 4px 0;
+    @include themify($themes) {
+      border-left: 2px solid rgba(themed(frontColor), .2);
+      background: rgba(themed(frontColor), .04);
+      color: rgba(themed(frontColor), .6);
+    }
+  }
+
+  .format-callout-links {
+    margin-top: 8px;
+
+    .callout-link-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 9px;
+      border-radius: 3px;
+      font-size: .85em;
+      text-decoration: none !important;
+      @include themify($themes) {
+        color: rgba(themed(frontColor), .8) !important;
+        background: rgba(themed(frontColor), .09);
+        &:hover {
+          color: rgba(themed(frontColor), 1) !important;
+          background: rgba(themed(frontColor), .15);
+        }
+      }
+
+      svg {
+        width: .9em;
+        height: .9em;
+        flex-shrink: 0;
+      }
+    }
+  }
 }
 
 .options label {
@@ -765,8 +992,7 @@ export default {
   flex-direction: row;
   justify-content: flex-start;
   align-items: center;
-  padding-bottom: 35px;
-  border-bottom: 2px solid rgba(#000, .15);
+  padding-bottom: 20px;
   margin-bottom: 5px;
 }
 
