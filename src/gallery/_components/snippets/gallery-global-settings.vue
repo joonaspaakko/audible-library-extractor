@@ -50,122 +50,137 @@
         </div>
       </div>
 
-      <div class="setting-row" v-if="$store.state.searchMounted">
-        <div class="setting-label-wrap segmented-row">
-          <div class="setting-icon">
-            <material-symbols-table-outline v-if="$store.state.sticky.viewMode === 'spreadsheet'" />
-            <ep-grid v-else />
-          </div>
-          <div class="setting-label">
-            <span>View</span>
-          </div>
-          <div class="segmented">
-            <button :class="{ active: $store.state.sticky.viewMode === 'grid' }" @click="setViewMode( 'grid' )" @mousedown="$haptic(1)">
-              <ep-grid /><span>Grid</span>
-            </button>
-            <button :class="{ active: $store.state.sticky.viewMode === 'spreadsheet' }" @click="setViewMode( 'spreadsheet' )" @mousedown="$haptic(1)">
-              <material-symbols-table-outline /><span>Spreadsheet</span>
-            </button>
+      <div :class="{ 'book-page-only-wrap': !$store.state.searchMounted }">
+
+        <div v-if="!$store.state.searchMounted" class="book-page-only-note">
+          <fa6-solid-circle-info />
+          <span>Only available on book pages.</span>
+        </div>
+
+        <div>
+
+        <div class="setting-row" :class="{ 'setting-disabled': !$store.state.searchMounted }">
+          <div class="setting-label-wrap segmented-row">
+            <div class="setting-icon">
+              <material-symbols-table-outline v-if="$store.state.sticky.viewMode === 'spreadsheet'" />
+              <ep-grid v-else />
+            </div>
+            <div class="setting-label">
+              <span>View</span>
+            </div>
+            <div class="segmented">
+              <button :class="{ active: $store.state.sticky.viewMode === 'grid' }" @click="setViewMode( 'grid' )" @mousedown="$haptic(1)">
+                <ep-grid /><span>Grid</span>
+              </button>
+              <button :class="{ active: $store.state.sticky.viewMode === 'spreadsheet' }" @click="setViewMode( 'spreadsheet' )" @mousedown="$haptic(1)">
+                <material-symbols-table-outline /><span>Spreadsheet</span>
+              </button>
+            </div>
           </div>
         </div>
+
+        <!-- Adds title, author and length to each cell. Stacked puts them under the cover, list
+             puts them beside it. The two layouts are mutually exclusive (grid view only). -->
+        <div class="setting-row" v-if="$store.state.sticky.viewMode === 'grid'" :class="{ 'setting-disabled': !$store.state.searchMounted }">
+          <div class="setting-label-wrap segmented-row">
+            <div class="setting-icon">
+              <fa6-solid-list />
+            </div>
+            <div class="setting-label">
+              <span>Details</span>
+            </div>
+            <div class="segmented">
+              <button :class="{ active: $store.state.sticky.gridDetailsMode === 'off' }" @click="setDetailsMode( 'off' )" @mousedown="$haptic(1)">
+                <span>Off</span>
+              </button>
+              <button :class="{ active: $store.state.sticky.gridDetailsMode === 'stacked' }" @click="setDetailsMode( 'stacked' )" @mousedown="$haptic(1)">
+                <span>Stacked</span>
+              </button>
+              <button :class="{ active: $store.state.sticky.gridDetailsMode === 'list' }" @click="setDetailsMode( 'list' )" @mousedown="$haptic(1)">
+                <span>List</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Grid covers per row, via the grid's max width (grid view only) -->
+        <div class="setting-row" v-if="$store.state.sticky.viewMode === 'grid' && ( !$store.state.searchMounted || coversPerRowMax > coversPerRowMin )" :class="{ 'setting-disabled': !$store.state.searchMounted }">
+          <div class="setting-label-wrap covers-per-row-row">
+            <div class="setting-icon">
+              <fluent-dock-row-20-filled />
+            </div>
+            <div class="setting-label">
+              <span>Max covers per row</span>
+              <span class="setting-subtext">Limited by browser width</span>
+            </div>
+            <div class="covers-per-row-value" :class="{ auto: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }">
+              {{ coversPerRowCurrent }}
+            </div>
+            <button
+              class="covers-per-row-auto"
+              :class="{ active: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }"
+              @click="resetCoversPerRow"
+              @mousedown="$haptic(1)"
+            >Default</button>
+          </div>
+          <n-slider
+            v-if="$store.state.searchMounted && coversPerRowMax > coversPerRowMin"
+            class="covers-per-row-slider"
+            :min="coversPerRowMin"
+            :max="coversPerRowMax"
+            :value="coversPerRowCurrent"
+            :step="1"
+            :tooltip="true"
+            :marks="coversPerRowMarks"
+            @update:value="onCoversPerRowInput"
+            @dragstart="$haptic(1)"
+            @dragend="onSliderDragEnd"
+          />
+        </div>
+
+        <!-- Cover size shrinks/grows the covers themselves while the grid width stays put (grid view only) -->
+        <div class="setting-row" v-if="$store.state.sticky.viewMode === 'grid'" :class="{ 'setting-disabled': !$store.state.searchMounted }">
+          <div class="setting-label-wrap covers-per-row-row">
+            <div class="setting-icon">
+              <fluent-resize-image-20-filled />
+            </div>
+            <div class="setting-label">
+              <span>Cover size</span>
+            </div>
+            <div class="covers-per-row-value" :class="{ auto: !$store.state.sticky.coverSize }">
+              {{ coverSizeSteps ? '1/' + coverSizeSteps[ coverSizeSliderValue ].n : coverSizeCurrent }}
+            </div>
+            <button
+              class="covers-per-row-auto"
+              :class="{ active: !$store.state.sticky.coverSize }"
+              @click="setCoverSize( null )"
+              @mousedown="$haptic(1)"
+            >Default</button>
+          </div>
+          <n-slider
+            v-if="$store.state.searchMounted"
+            class="covers-per-row-slider"
+            :min="coverSizeSliderMin"
+            :max="coverSizeSliderMax"
+            :value="coverSizeSliderValue"
+            :step="1"
+            :marks="coverSizeMarks"
+            :tooltip="true"
+            :format-tooltip="i => coverSizeSteps ? '1/' + coverSizeSteps[ i ].n : i"
+            @update:value="onCoverSizeInput"
+            @dragstart="$haptic(1)"
+            @dragend="onSliderDragEnd"
+          />
+        </div>
+
       </div>
 
-      <!-- Grid covers per row, via the grid's max width (grid view only) -->
-      <div class="setting-row" v-if="$store.state.searchMounted && $store.state.sticky.viewMode === 'grid' && coversPerRowMax > coversPerRowMin">
-        <div class="setting-label-wrap covers-per-row-row">
-          <div class="setting-icon">
-            <fluent-dock-row-20-filled />
-          </div>
-          <div class="setting-label">
-            <span>Max covers per row</span>
-            <span class="setting-subtext">Limited by browser width</span>
-          </div>
-          <div class="covers-per-row-value" :class="{ auto: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }">
-            {{ coversPerRowCurrent }}
-          </div>
-          <button
-            class="covers-per-row-auto"
-            :class="{ active: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }"
-            @click="resetCoversPerRow"
-            @mousedown="$haptic(1)"
-          >Default</button>
-        </div>
-        <n-slider
-          class="covers-per-row-slider"
-          :min="coversPerRowMin"
-          :max="coversPerRowMax"
-          :value="coversPerRowCurrent"
-          :step="1"
-          :tooltip="true"
-          :marks="coversPerRowMarks"
-          @update:value="onCoversPerRowInput"
-          @dragstart="$haptic(1)"
-          @dragend="onSliderDragEnd"
-        />
-      </div>
-
-      <!-- Cover size shrinks/grows the covers themselves while the grid width stays put (grid view only) -->
-      <div class="setting-row" v-if="$store.state.searchMounted && $store.state.sticky.viewMode === 'grid'">
-        <div class="setting-label-wrap covers-per-row-row">
-          <div class="setting-icon">
-            <fluent-resize-image-20-filled />
-          </div>
-          <div class="setting-label">
-            <span>Cover size</span>
-          </div>
-          <div class="covers-per-row-value" :class="{ auto: !$store.state.sticky.coverSize }">
-            {{ coverSizeCurrent }}
-          </div>
-          <button
-            class="covers-per-row-auto"
-            :class="{ active: !$store.state.sticky.coverSize }"
-            @click="setCoverSize( null )"
-            @mousedown="$haptic(1)"
-          >Default</button>
-        </div>
-        <n-slider
-          class="covers-per-row-slider"
-          :min="coverSizeMin"
-          :max="coverSizeMax"
-          :value="coverSizeCurrent"
-          :step="1"
-          :marks="coverSizeMarks"
-          :tooltip="true"
-          :format-tooltip="val => val + 'px'"
-          @update:value="onCoverSizeInput"
-          @dragstart="$haptic(1)"
-          @dragend="onSliderDragEnd"
-        />
-      </div>
-
-      <!-- Adds title, author and length to each cell. Stacked puts them under the cover, list
-           puts them beside it. The two layouts are mutually exclusive (grid view only). -->
-      <div class="setting-row" v-if="$store.state.searchMounted && $store.state.sticky.viewMode === 'grid'">
-        <div class="setting-label-wrap segmented-row">
-          <div class="setting-icon">
-            <fa6-solid-list />
-          </div>
-          <div class="setting-label">
-            <span>Details</span>
-          </div>
-          <div class="segmented">
-            <button :class="{ active: $store.state.sticky.gridDetailsMode === 'off' }" @click="setDetailsMode( 'off' )" @mousedown="$haptic(1)">
-              <span>Off</span>
-            </button>
-            <button :class="{ active: $store.state.sticky.gridDetailsMode === 'stacked' }" @click="setDetailsMode( 'stacked' )" @mousedown="$haptic(1)">
-              <span>Stacked</span>
-            </button>
-            <button :class="{ active: $store.state.sticky.gridDetailsMode === 'list' }" @click="setDetailsMode( 'list' )" @mousedown="$haptic(1)">
-              <span>List</span>
-            </button>
-          </div>
-        </div>
       </div>
 
     </div>
 
     <!-- Miscellaneous -->
-    <template v-if="$store.state.standalone">
+    <template v-if="$store.state.standalone && !$store.state.displayMode">
     <div class="settings-section-divider"></div>
     <div class="settings-section">
 
@@ -199,7 +214,8 @@
     </div>
     </template>
 
-    <!-- Book cover -->
+    <!-- Book cover (hidden in spreadsheet mode) -->
+    <template v-if="$store.state.sticky.viewMode !== 'spreadsheet'">
     <div class="settings-section-divider"></div>
     <div class="settings-section">
 
@@ -209,39 +225,48 @@
       </div>
 
       <div v-show="bookCoverExpanded" class="no-selection">
-        <div
-          v-for="setting in bookCoverSettings"
-          :key="setting.sectionLabel || setting.label"
-        >
-          <div class="setting-divider" v-if="setting.type === 'divider'"></div>
-          <div v-else-if="setting.type === 'sectionLabel'" class="setting-section-label">{{ setting.sectionLabel }}</div>
-          <div class="setting-row" v-else-if="!setting.standalone || $store.state.standalone" :class="{ 'setting-disabled': !setting.enabled || (setting.coverButtonSetting && coverButtonsDisabled) }">
-            <label class="setting-label-wrap">
-              <div class="setting-icon">
-                <component :is="setting.icon" v-if="setting.icon" />
-              </div>
-              <div class="setting-label">
-                <span>{{ setting.label }}</span>
-              </div>
-              <div
-                v-if="setting.info"
-                class="info-icon"
-                v-tippy="{ placement: 'left', maxWidth: 220, interactive: true, trigger: 'mouseenter', hideOnClick: false }"
-                :content="setting.info"
-                @click.prevent
-              >
-                <fa6-regular-circle-question />
-              </div>
-              <div class="visual-toggle" :class="{ on: setting.value }">
-                <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled || (setting.coverButtonSetting && coverButtonsDisabled)">
-                <div class="toggle-track"><div class="toggle-thumb"></div></div>
-              </div>
-            </label>
+
+        <div :class="{ 'book-page-only-wrap': !$store.state.searchMounted }">
+          <div v-if="!$store.state.searchMounted" class="book-page-only-note">
+            <fa6-solid-circle-info />
+            <span>Best adjusted on a page with book covers.</span>
+          </div>
+          <div
+            v-for="setting in bookCoverSettings"
+            :key="setting.sectionLabel || setting.label"
+          >
+            <div class="setting-divider" v-if="setting.type === 'divider'"></div>
+            <div v-else-if="setting.type === 'sectionLabel'" class="setting-section-label">{{ setting.sectionLabel }}</div>
+            <div class="setting-row" v-else-if="!setting.standalone || $store.state.standalone" :class="{ 'setting-disabled': !setting.enabled || (setting.coverButtonSetting && coverButtonsDisabled) }">
+              <label class="setting-label-wrap">
+                <div class="setting-icon">
+                  <component :is="setting.icon" v-if="setting.icon" />
+                </div>
+                <div class="setting-label">
+                  <span>{{ setting.label }}</span>
+                </div>
+                <div
+                  v-if="setting.info"
+                  class="info-icon"
+                  v-tippy="{ placement: 'left', maxWidth: 220, interactive: true, trigger: 'mouseenter', hideOnClick: false }"
+                  :content="setting.info"
+                  @click.prevent
+                >
+                  <fa6-regular-circle-question />
+                </div>
+                <div class="visual-toggle" :class="{ on: setting.value }">
+                  <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled || (setting.coverButtonSetting && coverButtonsDisabled)">
+                  <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
+
       </div>
 
     </div>
+    </template>
 
     <!-- Book details -->
     <div class="settings-section-divider"></div>
@@ -253,43 +278,51 @@
       </div>
 
       <div v-show="bookDetailsExpanded" class="no-selection">
-        <div
-          v-for="setting in bookDetailSettings"
-          :key="setting.sectionLabel || setting.label"
-        >
-          <div class="setting-divider" v-if="setting.type === 'divider'"></div>
-          <label v-else-if="setting.sectionToggle" class="setting-section-label is-toggle" :class="{ disabled: !setting.enabled }">
-            <span>{{ setting.sectionLabel }}</span>
-            <div class="visual-toggle" :class="{ on: setting.value }">
-              <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled">
-              <div class="toggle-track"><div class="toggle-thumb"></div></div>
-            </div>
-          </label>
-          <div v-else-if="setting.type === 'sectionLabel'" class="setting-section-label">{{ setting.sectionLabel }}</div>
-          <div class="setting-row" v-else-if="!setting.standalone || $store.state.standalone" :class="{ 'setting-disabled': !setting.enabled }">
-            <label class="setting-label-wrap">
-              <div class="setting-icon">
-                <component :is="setting.icon" v-if="setting.icon" />
-              </div>
-              <div class="setting-label">
-                <span>{{ setting.label }}</span>
-              </div>
-              <div
-                v-if="setting.info"
-                class="info-icon"
-                v-tippy="{ placement: 'left', maxWidth: 220, interactive: true, trigger: 'mouseenter', hideOnClick: false }"
-                :content="setting.info"
-                @click.prevent
-              >
-                <fa6-regular-circle-question />
-              </div>
+
+        <div :class="{ 'book-page-only-wrap': $store.state.openDetails.index < 0 }">
+          <div v-if="$store.state.openDetails.index < 0" class="book-page-only-note">
+            <fa6-solid-circle-info />
+            <span>Best adjusted with book details open.</span>
+          </div>
+          <div
+            v-for="setting in bookDetailSettings"
+            :key="setting.sectionLabel || setting.label"
+          >
+            <div class="setting-divider" v-if="setting.type === 'divider'"></div>
+            <label v-else-if="setting.sectionToggle" class="setting-section-label is-toggle" :class="{ disabled: !setting.enabled }">
+              <span>{{ setting.sectionLabel }}</span>
               <div class="visual-toggle" :class="{ on: setting.value }">
                 <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled">
                 <div class="toggle-track"><div class="toggle-thumb"></div></div>
               </div>
             </label>
+            <div v-else-if="setting.type === 'sectionLabel'" class="setting-section-label">{{ setting.sectionLabel }}</div>
+            <div class="setting-row" v-else-if="!setting.standalone || $store.state.standalone" :class="{ 'setting-disabled': !setting.enabled }">
+              <label class="setting-label-wrap">
+                <div class="setting-icon">
+                  <component :is="setting.icon" v-if="setting.icon" />
+                </div>
+                <div class="setting-label">
+                  <span>{{ setting.label }}</span>
+                </div>
+                <div
+                  v-if="setting.info"
+                  class="info-icon"
+                  v-tippy="{ placement: 'left', maxWidth: 220, interactive: true, trigger: 'mouseenter', hideOnClick: false }"
+                  :content="setting.info"
+                  @click.prevent
+                >
+                  <fa6-regular-circle-question />
+                </div>
+                <div class="visual-toggle" :class="{ on: setting.value }">
+                  <input type="checkbox" :checked="setting.value" @change="handleSetting(setting, $event)" @mousedown="$haptic(1)" :disabled="!setting.enabled">
+                  <div class="toggle-track"><div class="toggle-thumb"></div></div>
+                </div>
+              </label>
+            </div>
           </div>
         </div>
+
       </div>
 
     </div>
@@ -343,7 +376,8 @@ import IconCarousel     from '~icons/fa6-solid/images';
 
 // Cover size slider bounds, in pixels. Default matches $thumbnailSize.
 const COVER_SIZE_DEFAULT = 180;
-const COVER_SIZE_MIN = 50;
+const COVER_SIZE_MIN = 80;
+const COVER_SIZE_MIN_MOBILE = 50;
 const COVER_SIZE_MAX = 500;
 
 // List card sizing, kept in sync with gallery-grid-view.vue: the default list cover edge
@@ -628,11 +662,15 @@ export default {
     // The upper bound is also capped to the available container width so the cover
     // can never be set wider than what physically fits on screen.
     coverSizeMin: function() {
-      return COVER_SIZE_MIN;
+      return this.$store.getters.mobileThreshold ? COVER_SIZE_MIN_MOBILE : COVER_SIZE_MIN;
     },
     coverSizeMax: function() {
-      const containerCap = this.$store.state.gridAvailableWidth;
-      return containerCap ? Math.min( COVER_SIZE_MAX, Math.floor( containerCap ) ) : COVER_SIZE_MAX;
+      const available = this.$store.state.gridAvailableWidth;
+      if ( !available ) return COVER_SIZE_MAX;
+      const gridWidth = this.listMode
+        ? available
+        : Math.min( this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth, available );
+      return Math.min( COVER_SIZE_MAX, Math.floor( gridWidth ) );
     },
     // The unset (default) cover size differs by layout: the plain grid falls back to the
     // full thumbnail, list cards fall back to the small list cover. The slider and readout
@@ -655,37 +693,63 @@ export default {
     },
 
     // Snap points for the cover size slider: one per column count, from 1 cover filling
-    // the full width down to however many fit at the minimum size. Each value is the
-    // largest cover size that still lets exactly N covers fit side by side.
-    // In list mode the full-width (N=1) step is skipped since list cards don't go full width.
+    // the grid width down to however many fit at the minimum size. Each value is the
+    // largest cover size that still lets exactly N covers fit side by side within the
+    // current effective grid width (not the full viewport).
+    // In list mode and on desktop the full-width (N=1) step is skipped — list cards don't go
+    // full width, and a single desktop cover looks odd left-aligned in a wide grid.
+    // Steps that are too close together (less than MIN_STEP_GAP px apart) are dropped so
+    // the crowded small-cover end of the slider stays navigable.
     coverSizeSteps: function() {
-      if ( !this.isMobile ) return null;
+      const MIN_STEP_GAP = 10;
       const available = this.$store.state.gridAvailableWidth;
       if ( !available ) return null;
-      const steps = [];
-      let n = this.listMode ? 2 : 1;
+      const gridWidth = this.listMode
+        ? available
+        : Math.min( this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth, available );
+      const raw = [];
+      let n = ( !this.listMode && !this.$store.getters.mobileThreshold ) ? 2 : 1;
       while ( true ) {
-        const size = Math.floor( available / n );
-        if ( size < COVER_SIZE_MIN ) break;
-        steps.push( Math.min( size, COVER_SIZE_MAX ) );
+        const size = Math.floor( gridWidth / n );
+        if ( size < this.coverSizeMin ) break;
+        raw.push( { size: Math.min( size, COVER_SIZE_MAX ), n } );
         n++;
       }
-      return steps.length ? steps : null;
+      // Walk descending (large → small), keeping a step only when it differs from the
+      // last kept step by at least MIN_STEP_GAP px. Always keep the first and last.
+      const steps = raw.reduce(function( kept, entry, i ) {
+        if ( i === 0 || i === raw.length - 1 ) return kept.concat( entry );
+        if ( kept[ kept.length - 1 ].size - entry.size >= MIN_STEP_GAP ) return kept.concat( entry );
+        return kept;
+      }, [] );
+      return steps.length ? steps.reverse() : null;
     },
 
     coverSizeMarks: function() {
       if ( !this.coverSizeSteps ) return {};
-      return _.fromPairs( this.coverSizeSteps.map( s => [ s, '' ] ) );
+      return _.fromPairs( this.coverSizeSteps.map( ( s, i ) => [ i, '' ] ) );
+    },
+
+    coverSizeSliderMin: function() {
+      return 0;
+    },
+
+    coverSizeSliderMax: function() {
+      return this.coverSizeSteps ? this.coverSizeSteps.length - 1 : 0;
+    },
+
+    coverSizeSliderValue: function() {
+      if ( !this.coverSizeSteps ) return 0;
+      const current = this.coverSizeCurrent;
+      return _.minBy( _.range( this.coverSizeSteps.length ), i => Math.abs( this.coverSizeSteps[ i ].size - current ) );
     },
 
   },
 
   methods: {
 
-    onCoverSizeInput: function( value ) {
-      if ( this.coverSizeSteps ) {
-        value = _.minBy( this.coverSizeSteps, s => Math.abs( s - value ) );
-      }
+    onCoverSizeInput: function( index ) {
+      const value = this.coverSizeSteps ? this.coverSizeSteps[ index ].size : index;
       this.setCoverSize( value );
       this.setDrawerPeek( true );
     },
@@ -737,8 +801,9 @@ export default {
     },
 
     setCoverSize: function( value ) {
-      // Dragging to the layout's default size clears the override so the cover returns to
-      // its CSS fallback (full thumbnail in the grid, small cover in list mode).
+      if ( value === null && this.coverSizeSteps ) {
+        value = _.minBy( this.coverSizeSteps, s => Math.abs( s.size - this.coverSizeDefault ) ).size;
+      }
       if ( value === this.coverSizeDefault ) value = null;
       this.$store.commit('stickyProp', { key: 'coverSize', value: value });
     },
@@ -793,14 +858,13 @@ export default {
   },
 
   watch: {
-    coverSizeMax: function( max ) {
+    coverSizeSteps: function( steps, oldSteps ) {
       const current = this.$store.state.sticky.coverSize;
-      if ( current && current > max ) {
-        const snapped = this.coverSizeSteps
-          ? _.minBy( this.coverSizeSteps, s => Math.abs( s - current ) )
-          : max;
-        this.setCoverSize( snapped );
-      }
+      if ( !current || !steps ) return;
+      const currentN = oldSteps ? _.minBy( oldSteps, s => Math.abs( s.size - current ) ).n : null;
+      const sameN = currentN ? _.find( steps, { n: currentN } ) : null;
+      const snapped = sameN ? sameN.size : _.minBy( steps, s => Math.abs( s.size - current ) ).size;
+      if ( snapped !== current ) this.setCoverSize( snapped );
     },
   },
 };
@@ -855,9 +919,9 @@ body:not(.settings-drawer-peek-hidden) .n-drawer {
 }
 
 .drawer-header-sub {
-  font-size: 0.76em;
+  font-size: 0.66em;
   opacity: 0.5;
-  margin-top: 2px;
+  margin-top: 3px;
 }
 
 .global-settings {
@@ -965,6 +1029,32 @@ body:not(.settings-drawer-peek-hidden) .n-drawer {
 .setting-disabled {
   opacity: 0.4;
   pointer-events: none;
+}
+
+.book-page-only-wrap {
+  position: relative;
+  border-radius: 8px;
+  padding: 8px 10px 4px;
+  margin: 8px -10px 4px;
+  @include themify($themes) {
+    border: 1px solid rgba(themed(audibleOrange), .35);
+  }
+}
+
+.book-page-only-note {
+  position: absolute;
+  top: -0.65em;
+  left: 10px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 6px;
+  font-size: 0.78em;
+  line-height: 1;
+  @include themify($themes) { color: themed(audibleOrange); }
+  .theme-dark & { background: rgb(44,44,50); }
+  .theme-light & { background: rgb(255,255,255); }
+  svg { flex-shrink: 0; }
 }
 
 // Segmented control: two labeled buttons for an either/or choice (theme, view mode).

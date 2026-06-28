@@ -22,7 +22,7 @@
         @click="openBook"
       >
 
-        <div class="info-icons-wrapper">
+        <div class="info-icons-wrapper" v-if="!indicatorsHidden">
           <!-- FAVORITE -->
           <div class="favorite-marker" v-if="book.favorite && sticky.bookDetailSettings.favorite">
             <span><fa-solid-heart/></span>
@@ -97,7 +97,12 @@
          card-click-overlay above sits over this, so the strip itself needs no handler. -->
     <div v-if="detailsMode && detailsMode !== 'off'" class="book-details-strip">
       <div class="book-title" v-if="book.titleShort || book.title" v-html="book.titleShort || book.title"></div>
-      <div class="book-author" v-if="book.authors && book.authors[0]">{{ book.authors[0].name }}</div>
+      <div class="book-author" v-if="book.authors && book.authors[0]">
+        <fa6-solid-user-pen v-if="detailsMode === 'list'" class="strip-icon" />{{ book.authors[0].name }}
+      </div>
+      <div class="book-narrator" v-if="detailsMode === 'list' && book.narrators && book.narrators[0]">
+        <fa6-solid-microphone class="strip-icon" />{{ book.narrators[0].name }}
+      </div>
       <!-- Discontinued books have no length. Render a non-breaking space so the row still
            exists and the block stays top-aligned with other cards rather than re-centering. -->
       <div class="book-length" v-html="book.length || '&nbsp;'"></div>
@@ -129,6 +134,10 @@ export default {
 
     coverButtonsHidden: function() {
       return ( this.$store.state.sticky.coverSize || 180 ) < 110;
+    },
+
+    indicatorsHidden: function() {
+      return ( this.$store.state.sticky.coverSize || 180 ) < 80;
     },
 
   },
@@ -316,12 +325,33 @@ export default {
       color: rgba(themed(frontColor), .65);
     }
   }
+  .book-narrator {
+    font-size: 0.75em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), .5);
+    }
+  }
   .book-length {
     font-size: 0.72em;
     @include themify($themes) {
       color: rgba(themed(frontColor), .45);
     }
   }
+  .strip-icon {
+    margin-right: 4px;
+    font-size: 0.8em;
+    opacity: 0.5;
+    vertical-align: middle;
+    position: relative;
+    top: -0.05em;
+  }
+}
+
+.details-list .book-details-strip {
+  font-size: clamp(15px, calc(var(--cover-size, #{$detailsListCover}) * 0.17), 22px);
 }
 
 .smart-link {
