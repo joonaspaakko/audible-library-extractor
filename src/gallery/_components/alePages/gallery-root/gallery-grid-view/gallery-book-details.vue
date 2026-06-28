@@ -341,33 +341,28 @@ export default {
       const el = this.$refs.bookDetails;
       if ( !el || typeof ResizeObserver === 'undefined' ) return;
 
-      let frame = null;
       const vue = this;
-      this.panelObserver = new ResizeObserver(function() {
-        if ( frame ) return;
-        frame = requestAnimationFrame(function() {
-          frame = null;
-          const box = el.getBoundingClientRect();
-          const height = box.height;
-          // Ignore ~0 measurements (e.g. while the panel is detached/unmounting as
-          // its row scrolls out of the virtual window) so the reserved gap doesn't
-          // collapse and yank the scroll. The real reset happens on close.
-          if ( height < 1 ) return;
-          // Only react to height changes while the panel is actually within the
-          // viewport. When its row is scrolled out of the virtual window the panel
-          // unmounts and remounts, reporting transient (partly-settled) heights as it
-          // re-renders. Feeding those into the reserved gap shrinks then re-grows it,
-          // which shifts the rows below across the overscan boundary and bounces the
-          // scroll back and forth in a narrow zone a few rows past book-details.
-          // Offscreen, the last good gap already holds the right space, so leave it.
-          const inViewport = box.bottom > 0 && box.top < window.innerHeight;
-          if ( !inViewport ) return;
-          const current = vue.$store.state.openDetails;
-          if ( Math.round(current.gapHeight) === Math.round(height) ) return;
-          vue.$store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
-        });
+      this.panelObserver = new ResizeObserver(function( entries ) {
+        // Read height directly from the entry — no rAF, no getBoundingClientRect.
+        // Safari delays rAF until after paint, so deferring here causes a visible
+        // one-frame jump where the virtualizer row is the wrong size. Reading from
+        // the entry synchronously inside the ResizeObserver callback fires before
+        // the browser commits the next paint, giving the virtualizer time to
+        // correct the row size in the same frame.
+        const entry = entries[0];
+        if ( !entry ) return;
+        const height = entry.borderBoxSize
+          ? entry.borderBoxSize[0].blockSize
+          : entry.contentRect.height;
+        // Ignore ~0 measurements (e.g. while the panel is detached/unmounting as
+        // its row scrolls out of the virtual window) so the reserved gap doesn't
+        // collapse and yank the scroll. The real reset happens on close.
+        if ( height < 1 ) return;
+        const current = vue.$store.state.openDetails;
+        if ( Math.round(current.gapHeight) === Math.round(height) ) return;
+        vue.$store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
       });
-      this.panelObserver.observe( el );
+      this.panelObserver.observe( el, { box: 'border-box' } );
 
     },
 
