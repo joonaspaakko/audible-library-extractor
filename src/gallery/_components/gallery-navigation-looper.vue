@@ -35,7 +35,12 @@
         <span class="menu-item-text" v-html="getRouteName(route)"></span>
       </div>
       
-      <div class="sub-menu" v-if="route.childItems">
+      <gallery-extension-tools-menu
+        v-if="route.childItems && route.meta.groupName === 'extension-tools'"
+        :items="route.childItems"
+        @itemClick="closeMenu"
+      />
+      <div class="sub-menu" v-else-if="route.childItems">
         <menuLooper :routes="route.childItems" :childRoutes="route.childItems" @closeMenu="closeMenu" />
       </div>
       
@@ -324,17 +329,21 @@ export default {
     font-size: .85em;
   }
   @include themify($themes) {
-    // color: themed(audibleOrange);
     border: 2px solid themed(audibleOrange);
     background: rgba(themed(audibleOrange), .1);
     color: themed(front_color);
   }
 }
 
-.extension-tools > .sub-menu .menu-item:active {
-  @include themify($themes) {
-    background: themed(audibleOrange);
-  }
+// Hide the mega menu by default; show on hover/focus of the parent trigger
+.extension-tools :deep(.extension-mega-menu) {
+  display: none;
+}
+.extension-tools:hover :deep(.extension-mega-menu),
+.extension-tools:focus :deep(.extension-mega-menu) {
+  display: block;
+  -webkit-animation: swing-in-top-fwd 300ms cubic-bezier(.175, .885, .32, 1.275) both;
+          animation: swing-in-top-fwd 300ms cubic-bezier(.175, .885, .32, 1.275) both;
 }
 
 .menu-icon-toolbar {
