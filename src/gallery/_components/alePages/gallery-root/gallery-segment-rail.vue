@@ -3,19 +3,19 @@
   v-show="visible"
   class="segment-rail"
   :class="{ fixed: fixed }"
-  ref="rail"
-  @pointerdown="onPointerDown"
 >
   <!-- Cosmetic, fixed-count segment blocks. They are NOT jump targets: the jump is
        continuous (proportional to pointer position). Each block fills itself by how
        far the scroll fraction has passed through it, so the gaps between pills stay
        visible at any scroll position (the rail always reads as segmented). -->
-  <div
-    v-for="n in segmentCount"
-    :key="n"
-    class="segment-block"
-  >
-    <div class="segment-block-fill" :style="{ height: ( segmentFill( n - 1 ) * 100 ) + '%' }"></div>
+  <div class="segment-blocks" aria-hidden="true">
+    <div
+      v-for="n in segmentCount"
+      :key="n"
+      class="segment-block"
+    >
+      <div class="segment-block-fill" :style="{ height: ( segmentFill( n - 1 ) * 100 ) + '%' }"></div>
+    </div>
   </div>
 
   <!-- Running count of items scrolled past. -->
@@ -26,10 +26,31 @@
     :style="{ top: ( scrollFraction * 100 ) + '%' }"
   >{{ $store.state.scrollVisibleIndex + 1 }}</div>
 
+  <!-- Naive-ui slider handles all touch/pointer routing correctly on iOS —
+       its internal pointer tracking doesn't fight native scroll the way our
+       custom rAF loop did. Track and thumb are made transparent via theme
+       overrides; the segment blocks above are the visual. -->
+  <n-config-provider :theme="naiveTheme" :theme-overrides="naiveThemeOverrides">
+    <n-slider
+      class="segment-rail-slider"
+      :value="sliderValue"
+      :min="0"
+      :max="SLIDER_MAX"
+      :step="1"
+      :tooltip="false"
+      :vertical="true"
+      :reverse="true"
+      @update:value="onSliderUpdate"
+      @dragstart="onDragStart"
+      @dragend="onDragEnd"
+    />
+  </n-config-provider>
+
 </div>
 </template>
 
 <script>
+import { NConfigProvider, NSlider, darkTheme, lightTheme } from 'naive-ui';
 
 // VISUAL SEGMENT COUNT
 // Purely cosmetic blocks. The count scales with how many screenfuls there are to
@@ -39,8 +60,28 @@
 const SEGMENT_MIN = 1;
 const SEGMENT_MAX = 12;
 
+const SLIDER_MAX = 10000;
+
+// Naive-ui theme overrides that make the slider's own track and thumb invisible
+// so only our segment blocks show. The slider still handles all pointer/touch events.
+const TRANSPARENT_OVERRIDES = {
+  Slider: {
+    railColor: 'transparent',
+    railColorHover: 'transparent',
+    fillColor: 'transparent',
+    fillColorHover: 'transparent',
+    handleColor: 'transparent',
+    dotBorderActive: 'none',
+    handleBoxShadow: 'none',
+    handleBoxShadowHover: 'none',
+    handleBoxShadowActive: 'none',
+    handleBoxShadowFocus: 'none',
+  },
+};
+
 export default {
   name: 'gallerySegmentRail',
+  components: { NConfigProvider, NSlider },
 
   // target: 'window' (grid, window-scrolled) or a CSS selector for the scroll
   // container (spreadsheet's '.list-view-inner-wrap').
@@ -78,38 +119,22 @@ export default {
 
   data: function() {
     return {
+      SLIDER_MAX: SLIDER_MAX,
       scrollFraction: 0,
       scrollable: 0,
       viewport: 0,
       dragging: false,
       scrollEl: null,
-      // Cached at pointerdown so each move maps the pointer without reading layout
-      // (getBoundingClientRect mid-drag forces a reflow and, on phones, thrashes hard
-      // enough to make scrubbing jump). Refreshed if the rail can't be measured.
-      railBox: null,
-      dragScrollable: 0,
-      pointerId: null,
-      // Touch fires pointermove far faster than the screen paints (and a resting
-      // finger still jitters out a stream of moves), so coalesce them: a move only
-      // stores the latest Y and the actual jump runs once per animation frame.
-      pendingY: null,
-      rafId: null,
       showLabel: false,
     };
   },
 
   computed: {
 
-    // Hide the rail when there is nothing meaningful to jump through (content fits
-    // within roughly one viewport).
     visible: function() {
       return this.scrollable > 50;
     },
 
-    // One pill per screenful of scrolling (scrollable / viewport), clamped to the
-    // min/max so short pages stay clean and long ones don't over-segment. Fall back to
-    // the live window height if viewport hasn't been measured yet, so a barely-
-    // scrollable page doesn't floor at SEGMENT_MIN as if it had multiple screenfuls.
     segmentCount: function() {
       const viewport = this.viewport > 0 ? this.viewport : window.innerHeight;
       if ( viewport <= 0 ) return SEGMENT_MIN;
@@ -117,33 +142,34 @@ export default {
       return _.clamp( screens, SEGMENT_MIN, SEGMENT_MAX );
     },
 
+    // Only push a value to the slider when not dragging — let naive-ui own the
+    // value during drag so its internal state doesn't fight Vue's binding.
+    sliderValue: function() {
+      return this.dragging ? undefined : Math.round( this.scrollFraction * SLIDER_MAX );
+    },
+
+    naiveTheme: function() {
+      return this.$store.state.sticky.lightSwitch ? lightTheme : darkTheme;
+    },
+
+    naiveThemeOverrides: function() {
+      return TRANSPARENT_OVERRIDES;
+    },
+
   },
 
   mounted: function() {
     this.bindScrollSource();
-    // Content height settles across a few frames (virtualized rows, spacers, image
-    // loads), so re-measure shortly after mount to catch the final scrollable size.
     const vue = this;
     this.$nextTick(function() { vue.measure(); });
     clearTimeout( this.settleTimer );
     this.settleTimer = setTimeout(function() { vue.measure(); }, 300);
     this.$compEmitter.on('afterWindowResize', this.measure);
-    // Pointer move/up live on the window so a drag keeps tracking even if the
-    // pointer leaves the thin rail.
-    window.addEventListener('pointermove', this.onPointerMove, { passive: false });
-    window.addEventListener('pointerup', this.onPointerUp, { passive: true });
-    // If the browser hijacks the touch for its own gesture it sends pointercancel
-    // instead of pointerup; without this the drag would stay stuck on.
-    window.addEventListener('pointercancel', this.onPointerUp, { passive: true });
   },
   beforeUnmount: function() {
     clearTimeout( this.settleTimer );
     clearTimeout( this.labelTimer );
-    if ( this.rafId !== null ) cancelAnimationFrame( this.rafId );
     this.$compEmitter.off('afterWindowResize', this.measure);
-    window.removeEventListener('pointermove', this.onPointerMove);
-    window.removeEventListener('pointerup', this.onPointerUp);
-    window.removeEventListener('pointercancel', this.onPointerUp);
     const source = this.scrollSource();
     if ( source ) source.removeEventListener('scroll', this.onScroll);
   },
@@ -159,16 +185,12 @@ export default {
 
   methods: {
 
-    // How much of segment `i` is filled (0-1): how far the current scroll fraction
-    // has travelled through this segment's slice of the rail. Fully filled above the
-    // current position, partially at the current segment, empty below.
     segmentFill: function( i ) {
       const span = 1 / this.segmentCount;
       const start = i * span;
       return _.clamp( ( this.scrollFraction - start ) / span, 0, 1 );
     },
 
-    // The element (or window) whose scroll the rail reflects and drives.
     scrollSource: function() {
       if ( this.target === 'window' ) return window;
       return this.scrollEl;
@@ -178,7 +200,6 @@ export default {
       const old = this.scrollSource();
       if ( old ) old.removeEventListener('scroll', this.onScroll);
 
-      // For an element target, resolve it now (the view that owns it is mounted).
       this.scrollEl = this.target === 'window' ? null : document.querySelector( this.target );
 
       const source = this.scrollSource();
@@ -187,7 +208,6 @@ export default {
       this.measure();
     },
 
-    // Current scroll metrics (window vs element have different property names).
     metrics: function() {
       if ( this.target === 'window' ) {
         const doc = document.documentElement;
@@ -214,17 +234,13 @@ export default {
     },
 
     onScroll: function() {
-      // Don't fight the user's own drag; the drag already sets the fraction.
       if ( this.dragging ) return;
       this.measure();
       this.updateVisibleIndex();
       this.flashLabel();
     },
 
-    // Filter virtualItems to only rows intersecting the current viewport and
-    // commit the last visible flat-book index to the store. Both grid and list
-    // views pass their raw virtualizer array; the rail handles the rest.
-    updateVisibleIndex: function() {
+    updateVisibleIndex: _.throttle( function() {
       const items = this.virtualItems;
       if ( !items || !items.length || this.total <= 0 ) return;
       const m = this.metrics();
@@ -234,10 +250,8 @@ export default {
       const lastRow = inView.length ? inView[ inView.length - 1 ].index : items[ items.length - 1 ].index;
       const lastIndex = Math.min( lastRow * this.cols + this.cols - 1, this.total - 1 );
       this.$store.commit('prop', { key: 'scrollVisibleIndex', value: lastIndex });
-    },
+    }, 100, { leading: true, trailing: true } ),
 
-    // Show the count label and (re)arm the fade-out timer, so it fades once the
-    // interaction stops.
     flashLabel: function() {
       if ( this.total <= 0 ) return;
       this.showLabel = true;
@@ -250,16 +264,9 @@ export default {
       this.labelTimer = setTimeout(function() { vue.showLabel = false; }, 700);
     },
 
-    // Map a pointer's Y over the rail to a scroll fraction and jump there. Uses the
-    // rail box and scrollable height cached at pointerdown so the drag never reads
-    // layout mid-move.
-    jumpToPointer: function( clientY ) {
-      const box = this.railBox;
-      if ( !box || box.height <= 0 ) return;
-      const fraction = _.clamp( ( clientY - box.top ) / box.height, 0, 1 );
-      this.scrollFraction = fraction;
-
-      const top = fraction * this.dragScrollable;
+    jumpToFraction: function( fraction ) {
+      const m = this.metrics();
+      const top = _.clamp( fraction, 0, 1 ) * m.scrollable;
       const source = this.scrollSource();
       if ( !source ) return;
       if ( this.target === 'window' ) {
@@ -270,67 +277,23 @@ export default {
       }
     },
 
-    onPointerDown: function( e ) {
-      const rail = this.$refs.rail;
-      if ( !rail ) return;
-      // Capture the pointer so every move routes here (and the browser stops trying to
-      // scroll the page under the touch). Without this, a touch-drag fights native
-      // scrolling and, at the top of the page, can trigger pull-to-refresh.
-      this.pointerId = e.pointerId;
-      try { rail.setPointerCapture( e.pointerId ); } catch ( err ) {}
-
+    onDragStart: function() {
       this.dragging = true;
-      this.railBox = rail.getBoundingClientRect();
-      this.dragScrollable = this.metrics().scrollable;
       if ( this.total > 0 ) {
         clearTimeout( this.labelTimer );
         this.showLabel = true;
       }
-      this.jumpToPointer( e.clientY );
-      e.preventDefault();
     },
 
-    // Coalesce the burst of pointermoves into one jump per frame: remember the latest
-    // Y and schedule a single rAF that does the reactive write + scroll. This keeps a
-    // jittery, high-frequency touch stream from re-rendering the rail and recomputing
-    // the virtual scroller many times per frame (which is what chokes weak phones).
-    flushDrag: function() {
-      this.rafId = null;
-      if ( !this.dragging || this.pendingY === null ) return;
-      this.jumpToPointer( this.pendingY );
-    },
-
-    onPointerMove: function( e ) {
-      if ( !this.dragging ) return;
-      if ( this.pointerId !== null && e.pointerId !== this.pointerId ) return;
-      this.pendingY = e.clientY;
-      if ( this.rafId === null ) this.rafId = requestAnimationFrame( this.flushDrag );
-      e.preventDefault();
-    },
-
-    onPointerUp: function( e ) {
-      if ( !this.dragging ) return;
-      if ( this.pointerId !== null && e && e.pointerId !== this.pointerId ) return;
-      const rail = this.$refs.rail;
-      if ( rail && this.pointerId !== null ) {
-        try { rail.releasePointerCapture( this.pointerId ); } catch ( err ) {}
-      }
-      this.pointerId = null;
-      // Land on the final pointer position (a pending move may not have flushed yet),
-      // then drop the coalescing state. railBox/dragScrollable are still set here.
-      if ( this.rafId !== null ) {
-        cancelAnimationFrame( this.rafId );
-        this.rafId = null;
-      }
-      if ( this.pendingY !== null ) this.jumpToPointer( this.pendingY );
-      this.pendingY = null;
-      this.dragging = false;
-      this.railBox = null;
-      // Don't call measure() here — the scroll event fired by the final
-      // jumpToPointer already triggers onScroll → measure() naturally, and
-      // reading scroll position synchronously here can return a stale value
-      // before the browser has committed the scrollTo, causing a snap-back.
+    onSliderUpdate: function( value ) {
+      const fraction = value / SLIDER_MAX;
+      this.scrollFraction = fraction;
+      this.jumpToFraction( fraction );
       this.updateVisibleIndex();
+    },
+
+    onDragEnd: function() {
+      this.dragging = false;
       if ( this.total > 0 ) this.armLabelHide();
     },
 
@@ -342,43 +305,22 @@ export default {
 
 .segment-rail {
   position: absolute;
-  // Above the open book-details panel (which breaks out to full viewport width and
-  // would otherwise paint its orange border over the rail).
   z-index: 20;
   top: 50%;
   left: -14px;
   transform: translateY(-50%);
   height: 80%;
   width: 5px;
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-  cursor: pointer;
-  touch-action: none;
   -webkit-user-select: none;
   user-select: none;
 
-  // Window-scrolled (grid): pin to the viewport's left edge so it stays put while
-  // the page scrolls, and keep it clear of the scrollbar on the right.
   &.fixed {
     position: fixed;
     left: 6px;
     height: 80vh;
   }
 
-  // Bigger invisible hitbox without fattening the visible line.
-  &:before {
-    content: '';
-    position: absolute;
-    z-index: 1;
-    top: -10px;
-    bottom: -10px;
-    left: -12px;
-    right: -12px;
-  }
-
-  // Backing so content sliding under the rail (covers, the open details panel)
-  // doesn't bleed through and muddy the pills. Slightly larger than the line.
+  // Backing so content sliding under the rail doesn't bleed through the pills.
   &:after {
     content: '';
     position: absolute;
@@ -394,6 +336,16 @@ export default {
   }
 }
 
+// Cosmetic segment blocks sit behind the invisible slider.
+.segment-blocks {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  pointer-events: none;
+}
+
 .segment-block {
   position: relative;
   z-index: 0;
@@ -401,14 +353,10 @@ export default {
   border-radius: 999px;
   overflow: hidden;
   @include themify($themes) {
-    // Toned-down track each pill fills over.
     background: rgba( themed(audibleOrange), .22 );
   }
 }
 
-// Per-pill fill: grows from the top of its own block by how far the scroll fraction
-// has passed through that segment, so the gaps between pills stay visible at any
-// position (the rail always reads as segmented, never one solid bar).
 .segment-block-fill {
   position: absolute;
   top: 0;
@@ -420,13 +368,10 @@ export default {
   }
 }
 
-// Running count pill, sitting just to the right of the rail and tracking the fill
-// position vertically. Purely informational so it never intercepts pointer events.
 .segment-rail-label {
   position: absolute;
   z-index: 1;
   left: 9px;
-  // Size to the text, not the 5px-wide flex rail it lives in.
   width: max-content;
   min-width: max-content;
   flex: none;
@@ -445,5 +390,18 @@ export default {
   }
 }
 
+// The slider fills the full rail and extends the hitbox on all sides.
+// Its track/thumb are invisible (theme overrides); it only provides touch handling.
+.segment-rail-slider {
+  position: absolute !important;
+  top: -10px !important;
+  bottom: -10px !important;
+  left: -12px !important;
+  right: -12px !important;
+  width: calc( 100% + 24px ) !important;
+  height: calc( 100% + 20px ) !important;
+}
+
 </style>
+
 

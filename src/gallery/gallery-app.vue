@@ -161,7 +161,7 @@ export default {
         
       }
       
-    }, 320, { leading: true, trailing: true }),
+    }, 320, { leading: false, trailing: true }),
     
   },
 
