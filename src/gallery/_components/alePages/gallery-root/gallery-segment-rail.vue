@@ -2,7 +2,7 @@
 <div
   v-show="visible"
   class="segment-rail"
-  :class="{ fixed: fixed }"
+  :class="{ fixed: fixed, mobile: $store.getters.mobileThreshold }"
 >
   <!-- Cosmetic, fixed-count segment blocks. They are NOT jump targets: the jump is
        continuous (proportional to pointer position). Each block fills itself by how
@@ -139,7 +139,8 @@ export default {
       const viewport = this.viewport > 0 ? this.viewport : window.innerHeight;
       if ( viewport <= 0 ) return SEGMENT_MIN;
       const screens = Math.round( this.scrollable / viewport );
-      return _.clamp( screens, SEGMENT_MIN, SEGMENT_MAX );
+      const max = this.$store.getters.mobileThreshold ? 9 : SEGMENT_MAX;
+      return _.clamp( screens, SEGMENT_MIN, max );
     },
 
     // Only push a value to the slider when not dragging — let naive-ui own the
@@ -320,6 +321,10 @@ export default {
     height: 80vh;
   }
 
+  &.fixed.mobile {
+    height: 40vh;
+  }
+
   // Backing so content sliding under the rail doesn't bleed through the pills.
   &:after {
     content: '';
@@ -354,6 +359,9 @@ export default {
   overflow: hidden;
   @include themify($themes) {
     background: rgba( themed(audibleOrange), .22 );
+  }
+  .theme-light & {
+    background: rgba( $audibleOrange, .45 );
   }
 }
 

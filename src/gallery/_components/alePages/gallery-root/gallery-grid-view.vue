@@ -51,7 +51,7 @@ import { computed, shallowRef, ref } from "vue";
 import bookDetails from "@output-pages/gallery-root/gallery-grid-view/gallery-book-details.vue";
 import slugify from "@output-mixins/gallery-slugify.js";
 
-// Default list cover edge, kept in sync with $detailsListCover in the styles below.
+// Default list cover edge, kept in sync with $detailsListCover in _variables.scss.
 const LIST_COVER_DEFAULT = 90;
 // Space a list card reserves for the title/author/length text beside the cover. The
 // card's minimum width is cover + this, so bigger covers fit fewer per row and smaller
@@ -400,7 +400,7 @@ export default {
   position: relative;
   max-width: 728px;
   margin: 0 auto 350px auto;
-  text-align: center;
+  text-align: left;
   font-size: 0px;
   line-height: 0px;
   -webkit-user-select: none;
@@ -414,7 +414,7 @@ export default {
 .ale-grid-row {
   font-size: 0px;
   line-height: 0px;
-  text-align: center;
+  text-align: left;
 }
 
 // Reset the font context inside each cover cell (the grid container / row wrappers
@@ -543,7 +543,7 @@ body:not(.is-mobile) .ale-book:hover .ale-cover-icon {
 // the row (the row is a flexbox, each card flexes equally), so the covers-per-row column
 // count decides how many cards share the width, edge to edge. A single column gives one
 // full-width row. The cover is a fixed square; the text column takes the rest.
-$detailsListCover: 90px;
+// $detailsListCover is defined in _variables.scss
 // The widest a single card grows to. Cards flex to fill a narrow row (so there are no dead
 // gaps on small screens), but stop here once the row is wide, so on a big screen they keep
 // the fixed feel of the plain grid instead of stretching liquid edge to edge. Scales with

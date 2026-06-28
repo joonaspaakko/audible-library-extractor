@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="{ 'mobile-threshold': $store.state.windowWidth < 630 }"
+    :class="{ 'mobile-threshold': $store.getters.mobileThreshold }"
     :data-version="$store.state.version"
     :data-prevent-scrolling="$store.state.preventScrolling"
     :style="{
@@ -10,6 +10,7 @@
     
     <gallery-background v-if="$store.state.showBackground && !($store.state.standalone && !$store.state.siteOnline)"></gallery-background>
     <gallery-navigation></gallery-navigation>
+    <gallery-global-settings v-if="$store.state.globalSettingsOpen" />
     
     <div v-if="$route.name !== '404' && $store.state.showRoute">
       <router-view :key="$route.name+'-'+$store.state.routeParams+'-'+$store.state.refreshViewTimeStamp"></router-view>
