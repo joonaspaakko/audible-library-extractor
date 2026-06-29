@@ -99,7 +99,7 @@
             </span>
           </button>
 
-          <button v-if="settings.compatibilityChecked !== 'Goodreads'" class="split-btn-chevron" @click="formatDropdownOpen = !formatDropdownOpen" :disabled="!!bundling || !saveBtnEnabled">
+          <button v-if="settings.compatibilityChecked === 'Default'" class="split-btn-chevron" @click="formatDropdownOpen = !formatDropdownOpen" :disabled="!!bundling || !saveBtnEnabled">
             <fa6-solid-chevron-down />
           </button>
 
@@ -219,6 +219,7 @@ export default {
 
     saveFormat: function() {
       if ( this.settings.compatibilityChecked === 'Goodreads' ) return 'csv';
+      if ( this.settings.compatibilityChecked === 'With formulas' ) return 'xlsx';
       return this.preferredFormat;
     },
     
