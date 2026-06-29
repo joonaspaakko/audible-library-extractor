@@ -499,7 +499,46 @@ export default {
               return !book.archived;
             }
           },
-          
+
+          {
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
+            type: 'divider',
+            key: 'divider-purchase-date',
+          },
+
+          {
+            active: false,
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
+            type: 'filterExtras',
+            label: 'Purchase year',
+            key: 'purchaseDate',
+            group: 'filterExtras',
+            range: true,
+            rangeMinDist: 0,
+            rangeSuffix: '',
+            rangeInterval: 1,
+            rangeMin: function() {
+              let books = vue.$store.getters.collectionSource;
+              let earliest = _.minBy( _.filter( books, 'purchaseDate' ), function( book ) {
+                return new Date( book.purchaseDate ).getFullYear();
+              });
+              return earliest ? new Date( earliest.purchaseDate ).getFullYear() : new Date().getFullYear();
+            },
+            rangeMax: function() {
+              return new Date().getFullYear();
+            },
+            condition: function( book ) {
+              if ( book.purchaseDate ) {
+                let min = this.range[0];
+                let max = this.range[1];
+                let year = new Date( book.purchaseDate ).getFullYear();
+                return year >= min && year <= max;
+              }
+            },
+          },
+
           {
             excludeFromPodcasts: true,
             type: 'divider',
@@ -1231,6 +1270,15 @@ export default {
             label: 'Added',
             type: 'sort',
             tippy: '<small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top'
+          },
+          {
+            active: true,
+            current: false,
+            key: 'purchaseDate',
+            label: 'Purchase date',
+            type: 'sort',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
           },
           {
             onlyWishlist: true,

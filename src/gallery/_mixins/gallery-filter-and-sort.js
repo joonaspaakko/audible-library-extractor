@@ -8,6 +8,7 @@ import sortRatings from "@output-mixins/sort/gallery-ratings.js";
 import sortByLength from "@output-mixins/sort/gallery-byLength.js";
 import sortProgress from "@output-mixins/sort/gallery-progress.js";
 import sortDateAdded from "@output-mixins/sort/gallery-dateAdded.js";
+import sortPurchaseDate from "@output-mixins/sort/gallery-purchaseDate.js";
 import sortFavorites from "@output-mixins/sort/gallery-favorites.js";
 import sortWhispersync from "@output-mixins/sort/gallery-whispersync.js";
 import sortBookNumbers from "@output-mixins/sort/gallery-bookNumbers.js";
@@ -27,6 +28,7 @@ export default {
     sortProgress,
     sortByLength,
     sortDateAdded,
+    sortPurchaseDate,
     sortFavorites,
     sortWhispersync,
     sortBookNumbers,
@@ -91,6 +93,9 @@ export default {
             break;
           case "added":
             books = this.sortDateAdded(sortOptions);
+            break;
+          case "purchaseDate":
+            books = this.sortPurchaseDate(sortOptions);
             break;
           case "releaseDate":
             books = this.sortReleaseDate(sortOptions);
