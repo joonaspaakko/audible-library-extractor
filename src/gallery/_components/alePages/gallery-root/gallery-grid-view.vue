@@ -61,6 +61,7 @@ const LIST_TEXT_MIN_WIDTH = 200;
 // to what fits, so it still drops to fewer columns as the viewport narrows.
 const LIST_DEFAULT_COLS = 3;
 
+
 export default {
   name: "aleBooks",
   components: { galleryBookDetails: bookDetails },
@@ -308,6 +309,7 @@ export default {
           { key: 'gridAvailableWidth', value: available },
         ];
         this.$store.commit('prop', updates);
+        this.$store.commit('snapCoverSize');
       }
 
       this.scrollMargin = wrapper.getBoundingClientRect().top + window.scrollY;
