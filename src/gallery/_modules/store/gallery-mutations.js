@@ -36,6 +36,46 @@ export default {
     state.sticky[o.key] = o.value;
   },
 
+  // Re-validates the saved cover size against the grid's current measurements, so a size
+  // saved under a different viewport/layout snaps to the nearest size that still fits.
+  // Runs whenever the grid re-measures (mount, resize, layout change), not just when the
+  // settings panel happens to be open, since that's the only place this used to apply.
+  snapCoverSize: function(state) {
+
+    const current = state.sticky.coverSize;
+    if ( !current ) return;
+
+    const listMode = state.sticky.gridDetailsMode === 'list';
+    const available = state.gridAvailableWidth;
+    if ( !available ) return;
+
+    const gridWidth = listMode
+      ? available
+      : Math.min( state.sticky.gridMaxWidth || state.gridDefaultMaxWidth, available );
+
+    const coverSizeMin = ( state.windowWidth < state.mobileWidth ) ? state.coverSizeMinMobile : state.coverSizeMin;
+
+    const MIN_STEP_GAP = 10;
+    const raw = [];
+    let n = ( !listMode && state.windowWidth >= state.mobileWidth ) ? 2 : 1;
+    while ( true ) {
+      const size = Math.floor( gridWidth / n );
+      if ( size < coverSizeMin ) break;
+      raw.push( { size: Math.min( size, state.coverSizeMax ), n } );
+      n++;
+    }
+    const steps = raw.reduce(function( kept, entry, i ) {
+      if ( i === 0 || i === raw.length - 1 ) return kept.concat( entry );
+      if ( kept[ kept.length - 1 ].size - entry.size >= MIN_STEP_GAP ) return kept.concat( entry );
+      return kept;
+    }, [] ).reverse();
+    if ( !steps.length ) return;
+
+    const snapped = _.minBy( steps, s => Math.abs( s.size - current ) ).size;
+    if ( snapped !== current ) state.sticky.coverSize = snapped;
+
+  },
+
   addListRenderingOpts: function(state, o) {
 
     if ( o.sortValues !== undefined ) {

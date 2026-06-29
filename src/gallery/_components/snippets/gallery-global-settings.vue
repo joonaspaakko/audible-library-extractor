@@ -374,11 +374,8 @@ import IconCollections  from '~icons/fa6-solid/layer-group';
 import IconSeries       from '~icons/fa6-solid/list-ol';
 import IconCarousel     from '~icons/fa6-solid/images';
 
-// Cover size slider bounds, in pixels. Default matches $thumbnailSize.
+// Cover size slider default, in pixels. Matches $thumbnailSize.
 const COVER_SIZE_DEFAULT = 180;
-const COVER_SIZE_MIN = 80;
-const COVER_SIZE_MIN_MOBILE = 50;
-const COVER_SIZE_MAX = 500;
 
 // List card sizing, kept in sync with gallery-grid-view.vue: the default list cover edge
 // and the text reserve beside it that together set a card's minimum width.
@@ -662,15 +659,15 @@ export default {
     // The upper bound is also capped to the available container width so the cover
     // can never be set wider than what physically fits on screen.
     coverSizeMin: function() {
-      return this.$store.getters.mobileThreshold ? COVER_SIZE_MIN_MOBILE : COVER_SIZE_MIN;
+      return this.$store.getters.mobileThreshold ? this.$store.state.coverSizeMinMobile : this.$store.state.coverSizeMin;
     },
     coverSizeMax: function() {
       const available = this.$store.state.gridAvailableWidth;
-      if ( !available ) return COVER_SIZE_MAX;
+      if ( !available ) return this.$store.state.coverSizeMax;
       const gridWidth = this.listMode
         ? available
         : Math.min( this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth, available );
-      return Math.min( COVER_SIZE_MAX, Math.floor( gridWidth ) );
+      return Math.min( this.$store.state.coverSizeMax, Math.floor( gridWidth ) );
     },
     // The unset (default) cover size differs by layout: the plain grid falls back to the
     // full thumbnail, list cards fall back to the small list cover. The slider and readout
@@ -712,7 +709,7 @@ export default {
       while ( true ) {
         const size = Math.floor( gridWidth / n );
         if ( size < this.coverSizeMin ) break;
-        raw.push( { size: Math.min( size, COVER_SIZE_MAX ), n } );
+        raw.push( { size: Math.min( size, this.$store.state.coverSizeMax ), n } );
         n++;
       }
       // Walk descending (large → small), keeping a step only when it differs from the
