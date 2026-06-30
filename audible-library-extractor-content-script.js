@@ -94,9 +94,6 @@ app.config.globalProperties.$dataChecker = function( data, store ) {
   
 };
 
-import Toaster from "@meforma/vue-toaster";
-app.use(Toaster);
-
 // VUE-TIPPY
 import VueTippy from "vue-tippy";
 app.use(VueTippy, {
