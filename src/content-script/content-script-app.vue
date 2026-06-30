@@ -1,7 +1,6 @@
 <template>
   <cont-overlay>
-    <cont-menu-screen v-if="ui === 'menu-screen'" :domainExtension="domainExtension" :wishlistUrl="wishlistUrl" />
-    <cont-scraping-progress v-else-if="ui === 'scraping'" :domainExtension="domainExtension" />
+    <cont-scraping-progress :domainExtension="domainExtension" />
   </cont-overlay>
 </template>
 
@@ -70,7 +69,6 @@ export default {
         books: [],
         storePageMissing: []
       },
-      ui: "menu-screen",
       doStorePageTest: [
         // { storePageRequestUrl: "https://www.audible.com/pd/B08N8452GZ" },
       ],
@@ -109,8 +107,7 @@ export default {
         // Always unglue: this also flattens metadata back to root and clears out a
         // stale empty audibledata ({}) that would otherwise block re-chunking below.
         vue.glueFriesBackTogether(hotpotato);
-        
-        vue.ui = "scraping";
+
         vue.$nextTick(function() {
           
           hotpotato = hotpotato || {};

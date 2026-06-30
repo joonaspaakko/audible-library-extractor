@@ -9,27 +9,31 @@
   size="medium"
   @update:show="$emit('update:show', $event)"
 >
-  <n-timeline class="changelog-body">
-    <n-timeline-item
+  <n-collapse class="changelog-body" :default-expanded-names="allVersionNames">
+    <n-collapse-item
       v-for="versionBlock in changeLog"
       :key="versionBlock.version"
       :title="versionBlock.version"
-      type="info"
+      :name="versionBlock.version"
     >
       <div v-if="versionBlock.highlights" class="version-highlights">{{ versionBlock.highlights }}</div>
-      <ul class="ale-changelog-list">
-        <template v-for="(change, index) in versionBlock.changes" :key="index">
-          <li v-if="change.divider" class="changelog-divider"></li>
-          <li v-else :class="change.class">
-            <a v-if="change.link" target="_blank" rel="noopener noreferrer" :href="change.link.href">
-              <strong v-if="change.highlight">{{ change.link.text }}</strong>
-              <template v-else>{{ change.link.text }}</template>
-            </a><template v-if="change.link">: </template>{{ change.description }}
-          </li>
-        </template>
-      </ul>
-    </n-timeline-item>
-  </n-timeline>
+      <n-timeline class="ale-changelog-list">
+        <n-timeline-item
+          v-for="(change, index) in versionBlock.changes"
+          :key="index"
+          :color="changeColors[change.class]"
+        >
+          <template #icon>
+            <div class="changelog-dot"></div>
+          </template>
+          <a v-if="change.link" target="_blank" rel="noopener noreferrer" :href="change.link.href">
+            <strong v-if="change.highlight">{{ change.link.text }}</strong>
+            <template v-else>{{ change.link.text }}</template>
+          </a><template v-if="change.link">: </template>{{ change.description }}
+        </n-timeline-item>
+      </n-timeline>
+    </n-collapse-item>
+  </n-collapse>
 
   <div class="project-info">
     <a target="_blank" rel="noopener noreferrer" href="https://github.com/joonaspaakko/audible-library-extractor">Source</a>
@@ -59,43 +63,52 @@
 </template>
 
 <script>
-import { NConfigProvider, NModal, NTimeline, NTimelineItem, lightTheme } from 'naive-ui';
+import { NConfigProvider, NModal, NCollapse, NCollapseItem, NTimeline, NTimelineItem, lightTheme } from 'naive-ui';
 import changelog from "@output-mixins/changelog.js";
 
 export default {
   props: [ 'show' ],
   emits: [ 'update:show' ],
   mixins: [ changelog ],
-  components: { NConfigProvider, NModal, NTimeline, NTimelineItem },
+  components: { NConfigProvider, NModal, NCollapse, NCollapseItem, NTimeline, NTimelineItem },
+  data: function() {
+    return {
+      changeColors: {
+        fixed: '#f25954',
+        improved: '#ba23ca',
+        added: '#10c064',
+        removed: '#f25500',
+      },
+    };
+  },
+  computed: {
+    allVersionNames: function() {
+      return _.map( this.changeLog, 'version' );
+    },
+  },
 }
 </script>
 
 <style lang="scss">
 
 .ale-changelog-list {
-  li { position: relative; z-index: 1; }
-  li:before {
-    content: '';
-    position: absolute;
-    z-index: 4;
-    top: 4px;
-    height: 9px;
-    width: 9px;
-    left: -16px;
-    display: none;
-    border-radius: 9999999px;
-    background: red;
-  }
-  li.fixed:before    { background: #f25954; display: block; }
-  li.improved:before { background: #ba23ca; display: block; }
-  li.added:before    { background: #10c064; display: block; }
-  li.removed:before    { background: #f25500; display: block; }
+  margin-top: 6px;
 }
 
-.changelog-divider {
-  height: 0;
-  border-top: 1px dashed #f1f1f1;
-  margin: 5px 0;
+.changelog-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 9999px;
+  background: currentColor;
+}
+
+.changelog-body {
+  --n-title-font-size: 17px !important;
+  --n-title-font-weight: 700 !important;
+  text-align: left;
+  max-height: 50vh;
+  overflow: auto;
+  padding: 4px 4px 4px 0;
 }
 
 .version-highlights {
@@ -105,13 +118,6 @@ export default {
   background: rgb(246, 153, 50, .06);
   border: 1px solid rgb(246, 153, 50, .2);
   font-size: 0.85em;
-}
-
-.changelog-body {
-  text-align: left;
-  max-height: 50vh;
-  overflow: auto;
-  padding: 4px 4px 4px 0;
 }
 
 .project-info {
