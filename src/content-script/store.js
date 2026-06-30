@@ -56,7 +56,7 @@ export default createStore({
           name: "library",
           value: true,
           type: "is-success",
-          tippy: "",
+          tippy: "Your full library of books: titles, authors, narrators, series, and other details.",
           trashTippy: 'This will also remove Collections, My Reviews, Purchase History, and ISBN data.',
           kind: 'main',
           deleteChunks: ['library', 'series', 'collections'],
@@ -76,9 +76,9 @@ export default createStore({
           label: "My Reviews",
           name: "userReviews",
           parent: 'library',
-          value: false,
+          value: true,
           type: "is-success",
-          tippy: "",
+          tippy: "Your written reviews for books in your library.",
           kind: 'main',
           partialData: false,
         },
@@ -86,7 +86,7 @@ export default createStore({
           label: "Purchase History",
           name: "purchaseHistory",
           parent: 'library',
-          value: false,
+          value: true,
           type: "is-success",
           tippy: "Adds purchase date to library books. Slower for older libraries.",
           kind: 'main',
@@ -95,7 +95,7 @@ export default createStore({
         {
           label: "Wishlist",
           name: "wishlist",
-          value: false,
+          value: true,
           type: "is-success",
           tippy: "Similar to library extraction but series order is not fetched. Books that also exist in your library are dropped off as long as you also extract library data.",
           kind: 'main',
@@ -111,6 +111,10 @@ export default createStore({
           tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. ISBNs are fetched for library books only. Very slow extraction time.",
           kind: 'main',
           partialData: true,
+          // Slow and a niche need (Goodreads import) - checking its parent ("Library")
+          // shouldn't silently opt people into it. Still gets unchecked if Library is
+          // unchecked (its data depends on Library's), and still checkable on its own.
+          excludeFromParentCascade: true,
         },
         {
           name: "saveStandaloneAfter",
