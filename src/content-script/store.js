@@ -55,10 +55,9 @@ export default createStore({
           label: "Library",
           name: "library",
           value: true,
-          disabled: true,
           type: "is-success",
-          tippy: "Library is required in order to extract collections and isbn.",
-          trashTippy: 'This will also remove Collections and ISBN data.',
+          tippy: "Your full library of books: titles, authors, narrators, series, and other details.",
+          trashTippy: 'This will also remove Collections, My Reviews, Purchase History, and ISBN data.',
           kind: 'main',
           deleteChunks: ['library', 'series', 'collections'],
           partialData: true,
@@ -68,7 +67,6 @@ export default createStore({
           name: "collections",
           parent: 'library',
           value: true,
-          disabled: false,
           type: "is-success",
           tippy: "Very quick extraction that just needs to check the first page of each collection to find out the title and description",
           kind: 'main',
@@ -77,19 +75,27 @@ export default createStore({
         {
           label: "My Reviews",
           name: "userReviews",
-          // parent: 'books',
-          value: false,
-          disabled: false,
+          parent: 'library',
+          value: true,
           type: "is-success",
-          tippy: "",
+          tippy: "Your written reviews for books in your library.",
+          kind: 'main',
+          partialData: false,
+        },
+        {
+          label: "Purchase History",
+          name: "purchaseHistory",
+          parent: 'library',
+          value: true,
+          type: "is-success",
+          tippy: "Adds purchase date to library books. Slower for older libraries.",
           kind: 'main',
           partialData: false,
         },
         {
           label: "Wishlist",
           name: "wishlist",
-          value: false,
-          disabled: false,
+          value: true,
           type: "is-success",
           tippy: "Similar to library extraction but series order is not fetched. Books that also exist in your library are dropped off as long as you also extract library data.",
           kind: 'main',
@@ -101,11 +107,14 @@ export default createStore({
           name: "isbn",
           parent: 'library',
           value: false,
-          disabled: false,
           type: "is-danger",
           tippy: "International Standard Book Numbers (ISBN) are required if you want to try importing your library to Goodreads. ISBNs are fetched for library books only. Very slow extraction time.",
           kind: 'main',
           partialData: true,
+          // Slow and a niche need (Goodreads import) - checking its parent ("Library")
+          // shouldn't silently opt people into it. Still gets unchecked if Library is
+          // unchecked (its data depends on Library's), and still checkable on its own.
+          excludeFromParentCascade: true,
         },
         {
           name: "saveStandaloneAfter",
@@ -133,9 +142,8 @@ export default createStore({
         lsState = JSON.parse( lsState );
         
         const settings = _.map( lsState.extractSettings, function(o) {
-          return { 
-            disabled: o.disabled,
-            value   : o.value,
+          return {
+            value: o.value,
           };
         });
         
@@ -222,23 +230,6 @@ export default createStore({
     
     setting: ( state ) => ( settingName ) => {
       return _.find(state.sticky.extractSettings, { name: settingName });
-    },
-    
-    partialDataSettings( state, getters ) {
-      
-      const partalData_Settings = _.filter( getters.settings_mainSteps, { partialData: true });
-      const keys = _.map( partalData_Settings, 'name');
-      
-      
-      // hasData.books || hasData.wishlist || hasData.isbn
-      // console.log( keys );
-      
-      const mainStepsData = _.map( keys, ( settingKey ) =>  {
-        return _.get( state.storageHasData, settingKey );
-      });
-      
-      return _.every( mainStepsData, true );
-      
     },
     
     partialDataSettings( state, getters ) {
