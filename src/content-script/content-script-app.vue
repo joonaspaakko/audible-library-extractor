@@ -134,7 +134,8 @@ export default {
             },
             vue.getDataFromCollections,     // Can be scraped alone (but requires library data in the gallery...)
             vue.getDataFrompUserReviews,
-            function(hotpotato, callback) { 
+            vue.getDataFromPurchaseHistory,
+            function(hotpotato, callback) {
               
               vue.saveExtractionSoFar( hotpotato, ( hotpotato ) => {
                 
