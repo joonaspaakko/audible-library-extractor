@@ -171,7 +171,6 @@ export default {
       firstClientX: 0,
       firstClientY: 0,
       animate_detailLinksToAudible: true,
-      panelObserver: null,
     };
   },
   
@@ -210,8 +209,6 @@ export default {
       this.$compEmitter.on("afterWindowResize", this.onWindowResize);
       this.loading = false;
 
-      this.observePanelHeight();
-
       this.scrollToCarousel();
       this.scrollToMyBooksInTheSeries();
       
@@ -227,17 +224,10 @@ export default {
   beforeUnmount: function() {
     
     this.$compEmitter.off("afterWindowResize", this.onWindowResize);
-    
-    // this.closeBookDetails();
-    
-    this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
 
-    // The panel is now rendered in-flow by the view, so Vue owns its teardown.
-    // (Previously it was insertBefore'd outside Vue and had to be removed by hand.)
-    if ( this.panelObserver ) {
-      this.panelObserver.disconnect();
-      this.panelObserver = null;
-    }
+    // this.closeBookDetails();
+
+    this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
 
     // window.removeEventListener('touchstart', this.touchStart);
     // window.removeEventListener('touchmove', this.preventTouch, {passive: false});
@@ -331,39 +321,6 @@ export default {
         }
         
       });
-    },
-
-    // Watch the panel's live height and feed it into the store so the virtualized
-    // view can reserve a matching gap. One observer catches every cause of a height
-    // change (summary/sidebar/series/settings collapse-expand, image loads, reflow).
-    observePanelHeight: function() {
-
-      const el = this.$refs.bookDetails;
-      if ( !el || typeof ResizeObserver === 'undefined' ) return;
-
-      const vue = this;
-      this.panelObserver = new ResizeObserver(function( entries ) {
-        // Read height directly from the entry — no rAF, no getBoundingClientRect.
-        // Safari delays rAF until after paint, so deferring here causes a visible
-        // one-frame jump where the virtualizer row is the wrong size. Reading from
-        // the entry synchronously inside the ResizeObserver callback fires before
-        // the browser commits the next paint, giving the virtualizer time to
-        // correct the row size in the same frame.
-        const entry = entries[0];
-        if ( !entry ) return;
-        const height = entry.borderBoxSize
-          ? entry.borderBoxSize[0].blockSize
-          : entry.contentRect.height;
-        // Ignore ~0 measurements (e.g. while the panel is detached/unmounting as
-        // its row scrolls out of the virtual window) so the reserved gap doesn't
-        // collapse and yank the scroll. The real reset happens on close.
-        if ( height < 1 ) return;
-        const current = vue.$store.state.openDetails;
-        if ( Math.round(current.gapHeight) === Math.round(height) ) return;
-        vue.$store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
-      });
-      this.panelObserver.observe( el, { box: 'border-box' } );
-
     },
 
     findClickedBook: function() {
@@ -681,8 +638,8 @@ export default {
   box-sizing: border-box;
   // font-size: 14px;
   padding: 40px 35px;
-  margin-top: 12px;
-  margin-bottom: 35px;
+  margin-top: 0;
+  margin-bottom: 0;
   position: relative;
   left: 50%;
   right: 50%;
