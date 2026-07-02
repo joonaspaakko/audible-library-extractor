@@ -784,11 +784,13 @@ export default {
     },
 
     resetCoversPerRow: function() {
-      // List mode clears the cards-per-row override; grid mode clears the max width.
+      // List mode clears the cards-per-row override; grid mode clears the max width AND
+      // cover size so both return to CSS defaults together, giving the factory layout.
       if ( this.listMode ) {
         this.$store.commit('stickyProp', { key: 'gridListCols', value: null });
       }
       else {
+        this.$store.commit('stickyProp', { key: 'coverSize', value: null });
         this.setGridWidth( null );
       }
     },

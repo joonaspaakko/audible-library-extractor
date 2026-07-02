@@ -132,7 +132,11 @@ export default {
         estimateSize: function( index ) {
           return index === open ? rowH + gap : rowH;
         },
-        overscan: 4,
+        // When a book is open, the panel row is ~1000-1400px tall. A normal overscan of 4
+        // rows (4 * ~182px = ~728px) virtualizes the open row away while the user is still
+        // scrolling through the panel, causing a flash as the spacer swaps for real DOM.
+        // Keep overscan large enough to hold the open row in the DOM throughout the panel.
+        overscan: open > -1 ? Math.ceil( ( gap + rowH ) / rowH ) + 4 : 4,
         scrollMargin: scrollMargin.value,
         // Keep an opened row clear of the fixed top nav (0 on mobile). scrollToIndex
         // with align:'start' lands the row at item.start - scrollPaddingStart, so this
@@ -167,6 +171,7 @@ export default {
     return {
       restoringScroll: false,
       pendingOpenScroll: false,
+      detailsWrapObserver: null,
     };
   },
 
@@ -209,7 +214,9 @@ export default {
     '$store.state.sticky.gridMaxWidth': function() {
       // Grid width changed: re-measure so the new column count is picked up and the
       // virtualizer re-rows the collection. Wait for the style to apply first.
-      this.$nextTick( this.measureGrid );
+      // Skip snapCoverSize: the user is adjusting covers-per-row explicitly, so snapping
+      // the cover size to the new grid width would cause the two sliders to fight.
+      this.$nextTick(() => this.measureGrid( true ) );
     },
     '$store.getters.sortValues': function() {
       // Toggling sort values on/off adds/removes the sort strip, changing cell height.
@@ -248,6 +255,10 @@ export default {
   },
   beforeUnmount: function() {
     this.$compEmitter.off('afterWindowResize', this.measureGrid);
+    if ( this.detailsWrapObserver ) {
+      this.detailsWrapObserver.disconnect();
+      this.detailsWrapObserver = null;
+    }
     window.removeEventListener('scroll', this.saveScrollPosition);
     this.$store.commit('prop', { key: 'openDetails', value: { index: -1, gapHeight: 0 } });
     this.$store.commit('prop', { key: 'scrollVisibleIndex', value: -1 });
@@ -255,11 +266,42 @@ export default {
 
   methods: {
 
+    // GAP HEIGHT
+    // Watches .grid-details-wrap with a ResizeObserver so gapHeight always matches
+    // the wrapper's actual flow height (including the panel's margins). Called from
+    // syncOpenDetails after the wrapper is in the DOM, and torn down on close.
+    // The wrapper is a sibling of the virtualizer's padding spacers — not inside them
+    // — so the spacers resizing does not trigger this observer. No feedback loop.
+    observeDetailsWrap: function( el ) {
+
+      if ( this.detailsWrapObserver ) {
+        this.detailsWrapObserver.disconnect();
+        this.detailsWrapObserver = null;
+      }
+
+      if ( !el ) return;
+
+      const store = this.$store;
+      this.detailsWrapObserver = new ResizeObserver(function( entries ) {
+        const entry = entries[0];
+        if ( !entry ) return;
+        const height = entry.borderBoxSize
+          ? entry.borderBoxSize[0].blockSize
+          : entry.contentRect.height;
+        if ( height < 1 ) return;
+        const current = store.state.openDetails;
+        if ( Math.abs( current.gapHeight - height ) < 2 ) return;
+        store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
+      });
+      this.detailsWrapObserver.observe( el, { box: 'border-box' } );
+
+    },
+
     // GRID METRICS
     // Measure columns + cell height from a real rendered cover (covers keep their
     // natural CSS size; the grid's max width is what changes), plus the container's
     // distance from the document top (scrollMargin for the window virtualizer).
-    measureGrid: function() {
+    measureGrid: function( skipSnapCoverSize ) {
 
       const wrapper = this.booksWrapper;
       if ( !wrapper ) return;
@@ -309,7 +351,7 @@ export default {
           { key: 'gridAvailableWidth', value: available },
         ];
         this.$store.commit('prop', updates);
-        this.$store.commit('snapCoverSize');
+        if ( !skipSnapCoverSize ) this.$store.commit('snapCoverSize');
       }
 
       this.scrollMargin = wrapper.getBoundingClientRect().top + window.scrollY;
@@ -352,11 +394,9 @@ export default {
     // panel re-mounting when its row scrolls back into view won't re-scroll the page.
     syncOpenDetails: function( asin ) {
 
-      // Closed (no book): clear the reserved gap and re-measure so the row that had
-      // the panel collapses back to a normal row immediately. Without this the
-      // virtualizer keeps the stale gap in its cached total until those rows happen
-      // to re-render on scroll (the gap lingered until you scrolled past it).
+      // Closed (no book): stop observing, clear the reserved gap, re-measure.
       if ( !asin || this.openRowIndex < 0 ) {
+        this.observeDetailsWrap( null );
         if ( this.$store.state.openDetails.gapHeight !== 0 ) {
           this.$store.commit('prop', { key: 'openDetails', value: { index: -1, gapHeight: 0 } });
         }
@@ -380,6 +420,7 @@ export default {
       const vue = this;
       this.$nextTick(function() {
         vue.virtualizer.scrollToIndex( vue.openRowIndex, { align: 'start' } );
+        vue.observeDetailsWrap( vue.$el.querySelector('.grid-details-wrap') );
       });
       // Safety: if the gap doesn't change (next book's panel is the same height) the
       // watcher won't fire - clear the flag so a later in-panel collapse/expand isn't
@@ -434,11 +475,16 @@ export default {
   line-height: 0px;
 }
 
-// In-flow book-details under the open row; the panel breaks out to full width itself
+// In-flow book-details under the open row; the panel breaks out to full width itself.
+// display:flow-root establishes a BFC so the panel's top margin doesn't collapse out
+// of this wrapper, keeping the measured height stable across mount/unmount cycles.
 .grid-details-wrap {
   font-size: 14px;
   line-height: 1.55em;
   text-align: left;
+  display: flow-root;
+  padding-top: 12px;
+  padding-bottom: 35px;
 }
 
 
