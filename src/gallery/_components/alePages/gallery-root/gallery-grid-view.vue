@@ -244,7 +244,10 @@ export default {
   },
 
   mounted: function() {
-    this.$compEmitter.on('afterWindowResize', this.measureGrid);
+    // Not this.measureGrid directly: mitt calls handlers with the event payload as the
+    // first argument, which would land in measureGrid's skipSnapCoverSize parameter and
+    // make it truthy, silently skipping snapCoverSize on every resize.
+    this.$compEmitter.on('afterWindowResize', this.onWindowResizeMeasure);
 
     this.$nextTick(function() {
       this.measureGrid();
@@ -254,7 +257,7 @@ export default {
     });
   },
   beforeUnmount: function() {
-    this.$compEmitter.off('afterWindowResize', this.measureGrid);
+    this.$compEmitter.off('afterWindowResize', this.onWindowResizeMeasure);
     if ( this.detailsWrapObserver ) {
       this.detailsWrapObserver.disconnect();
       this.detailsWrapObserver = null;
@@ -297,6 +300,12 @@ export default {
 
     },
 
+    // Window resize handler: measureGrid takes skipSnapCoverSize as its first argument,
+    // so it can't be registered on the emitter directly (mitt passes the event payload).
+    onWindowResizeMeasure: function() {
+      this.measureGrid();
+    },
+
     // GRID METRICS
     // Measure columns + cell height from a real rendered cover (covers keep their
     // natural CSS size; the grid's max width is what changes), plus the container's
@@ -308,6 +317,22 @@ export default {
 
       const wrapperWidth = wrapper.getBoundingClientRect().width;
       const cell = wrapper.querySelector('.ale-book');
+
+      // Covers-per-row / cover size slider bounds. Only depend on the parent, not a
+      // rendered cover, so run unconditionally (a resize during zero results shouldn't
+      // leave these stale).
+      const parent = wrapper.parentElement;
+      const parentStyle = window.getComputedStyle( parent );
+      const parentPadding = parseFloat( parentStyle.paddingLeft ) + parseFloat( parentStyle.paddingRight );
+      const available = parent.getBoundingClientRect().width - parentPadding;
+      // The default (no-override) max width is the smaller of the CSS default and
+      // the space available, so it matches what the grid shows at rest.
+      const cssDefault = 728;
+      this.$store.commit('prop', [
+        { key: 'gridDefaultMaxWidth', value: Math.min( cssDefault, available ) },
+        { key: 'gridAvailableWidth', value: available },
+      ]);
+      if ( !skipSnapCoverSize ) this.$store.commit('snapCoverSize');
 
       if ( cell ) {
         const cellBox = cell.getBoundingClientRect();
@@ -331,27 +356,12 @@ export default {
           this.cols = Math.floor( wrapperWidth / cellBox.width ) || 1;
         }
         this.cellHeight = cellBox.height;
-        // Share the metrics the covers-per-row (max width) slider needs:
-        // - gridCols: book-details arrow nav steps by it
-        // - gridCoverWidth: the slider's step / unit
-        // - gridDefaultMaxWidth: the slider's minimum (the unoverridden width). Read
-        //   from the parent so an active override on the wrapper doesn't skew it.
-        // - gridAvailableWidth: the slider's maximum (how wide the grid can grow).
-        const parent = wrapper.parentElement;
-        const parentStyle = window.getComputedStyle( parent );
-        const parentPadding = parseFloat( parentStyle.paddingLeft ) + parseFloat( parentStyle.paddingRight );
-        const available = parent.getBoundingClientRect().width - parentPadding;
-        // The default (no-override) max width is the smaller of the CSS default and
-        // the space available, so it matches what the grid shows at rest.
-        const cssDefault = 728;
-        const updates = [
+        // gridCols: book-details arrow nav steps by it. gridCoverWidth: the
+        // covers-per-row slider's step / unit.
+        this.$store.commit('prop', [
           { key: 'gridCols', value: this.cols },
           { key: 'gridCoverWidth', value: cellBox.width },
-          { key: 'gridDefaultMaxWidth', value: Math.min( cssDefault, available ) },
-          { key: 'gridAvailableWidth', value: available },
-        ];
-        this.$store.commit('prop', updates);
-        if ( !skipSnapCoverSize ) this.$store.commit('snapCoverSize');
+        ]);
       }
 
       this.scrollMargin = wrapper.getBoundingClientRect().top + window.scrollY;
