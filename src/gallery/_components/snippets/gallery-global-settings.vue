@@ -121,7 +121,9 @@
               :class="{ active: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }"
               @click="resetCoversPerRow"
               @mousedown="$haptic(1)"
-            >Default</button>
+            >
+              <mdi-refresh /> Reset
+            </button>
           </div>
           <n-slider
             v-if="$store.state.searchMounted && coversPerRowMax > coversPerRowMin"
@@ -153,9 +155,11 @@
             <button
               class="covers-per-row-auto"
               :class="{ active: !$store.state.sticky.coverSize }"
-              @click="setCoverSize( null )"
+              @click="resetCoversPerRow"
               @mousedown="$haptic(1)"
-            >Default</button>
+            >
+              <mdi-refresh /> Reset
+            </button>
           </div>
           <n-slider
             v-if="$store.state.searchMounted"
@@ -784,13 +788,14 @@ export default {
     },
 
     resetCoversPerRow: function() {
-      // List mode clears the cards-per-row override; grid mode clears the max width AND
-      // cover size so both return to CSS defaults together, giving the factory layout.
+      // Clears the covers-per-row override AND cover size so both return to CSS defaults
+      // together, giving the factory layout. List mode uses cards-per-row, grid mode uses
+      // max width.
+      this.$store.commit('stickyProp', { key: 'coverSize', value: null });
       if ( this.listMode ) {
         this.$store.commit('stickyProp', { key: 'gridListCols', value: null });
       }
       else {
-        this.$store.commit('stickyProp', { key: 'coverSize', value: null });
         this.setGridWidth( null );
       }
     },
@@ -800,9 +805,6 @@ export default {
     },
 
     setCoverSize: function( value ) {
-      if ( value === null && this.coverSizeSteps ) {
-        value = _.minBy( this.coverSizeSteps, s => Math.abs( s.size - this.coverSizeDefault ) ).size;
-      }
       if ( value === this.coverSizeDefault ) value = null;
       this.$store.commit('stickyProp', { key: 'coverSize', value: value });
     },
@@ -1158,8 +1160,13 @@ body:not(.settings-drawer-peek-hidden) .n-drawer {
 }
 
 .covers-per-row-auto {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
   flex-shrink: 0;
-  padding: 3px 9px;
+  padding: 3px 5px;
   border-radius: 6px;
   font-size: 0.75em;
   cursor: pointer;
