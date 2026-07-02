@@ -65,7 +65,7 @@
     "vue-tippy": "^6.0.0-alpha.65",
     "vue3-moveable": "^0.26.1",
     "vue3-shortkey": "https://github.com/BlazL/vue3-shortkey",
-    "vue3-touch-events": "^4.1.2",
+    "vue3-touch-events": "^5.0.15",
     "vuedraggable": "^4.1.0",
     "vuex": "^4.0.2",
     "write-excel-file": "^4.1.1"
