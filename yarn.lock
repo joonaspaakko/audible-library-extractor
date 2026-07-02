@@ -249,10 +249,10 @@
   resolved "https://registry.yarnpkg.com/@esbuild/win32-x64/-/win32-x64-0.25.12.tgz#9bdad8176be7811ad148d1f8772359041f46c6c5"
   integrity sha512-alJC0uCZpTFrSL0CCDjcgleBXPnCrEAhTBILpeAp7M/OFgoqtAetfBzX0xM00MUsVVPpVjlPuMbREqnZCXaTnA==
 
-"@iconify/json@^2.2.484":
-  version "2.2.488"
-  resolved "https://registry.npmjs.org/@iconify/json/-/json-2.2.488.tgz"
-  integrity sha512-W2MfGS0n1GugWhQn7SLgRKNH1JonVsKG/O9vO/htP7j3k1bGt54R1mbN9uaZlQ99uCCu65IR5UgQM66E8Cm+Fw==
+"@iconify/json@^2.2.494":
+  version "2.2.494"
+  resolved "https://registry.yarnpkg.com/@iconify/json/-/json-2.2.494.tgz#8b731936b5d5358e6bfa7210fa76db04ac913aff"
+  integrity sha512-ssY0bQgG+W2uAd4G+iK/FhjiUu4UG/wdCTIt6dqItBO6DFTtvkHo2nQqWOJTG0orNFl9eDxB+YgVUzXnpvAhkw==
   dependencies:
     "@iconify/types" "*"
     pathe "^2.0.3"
