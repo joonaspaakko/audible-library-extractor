@@ -30,11 +30,14 @@ import { storageSet } from '@utils/chrome-storage.js';
 import IconFaSolidChevronDown   from '~icons/fa6-solid/chevron-down?raw';
 import IconFaBrandsAudible      from '~icons/fa6-brands/audible?raw';
 import IconFaSolidGraduationCap from '~icons/fa6-solid/graduation-cap?raw';
-import IconFaSolidDownload      from '~icons/fa6-solid/download?raw';
-import IconFaSolidFileExcel     from '~icons/fa6-solid/file-excel?raw';
-import IconFaRegularImage       from '~icons/fa6-regular/image?raw';
+import IconFluentColorCloud     from '~icons/fluent-color/cloud-16?raw';
+import IconVscodeFileTypeExcel  from '~icons/vscode-icons/file-type-excel?raw';
 import IconFaSolidHouseUser     from '~icons/fa6-solid/house-user?raw';
 import IconFaSolidHome          from '~icons/fa6-solid/house?raw';
+
+// Recolored streamline-color:screensaver-monitor-wallpaper-flat: white screen with a neutral gray
+// border/stand (instead of the set's stock blue), orange sun, teal mountains.
+const IconWallpaperMonitor = `<svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 14 14"><g fill="none"><path fill="#8a8f98" fill-rule="evenodd" d="M5.635 10.332a.5.5 0 0 1 .47-.332h1.79a.5.5 0 0 1 .47.332l.687 1.918H10a.75.75 0 0 1 0 1.5H4a.75.75 0 0 1 0-1.5h.948z" clip-rule="evenodd"/><path fill="#ffffff" stroke="#8a8f98" stroke-width="0.6" fill-rule="evenodd" d="M1.457.25C.652.25 0 .902 0 1.707v7.586c0 .805.652 1.457 1.457 1.457h11.086c.805 0 1.457-.652 1.457-1.457V1.707C14 .902 13.348.25 12.543.25z" clip-rule="evenodd"/><path fill="#f79a1c" d="M3.945 5.008a1.5 1.5 0 1 0 0-3a1.5 1.5 0 0 0 0 3"/><path fill="#2ba58c" fill-rule="evenodd" d="M12 6.334L9.422 4.48a1.18 1.18 0 0 0-1.52.032L3.377 8.75H12z" clip-rule="evenodd"/></g></svg>`;
 
 export default {
   name: "aleMenuActions",
@@ -267,7 +270,8 @@ export default {
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: IconFaSolidDownload,
+              icon: IconFluentColorCloud,
+              multicolorIcon: true,
               nestedGroup: 'extension-tools',
               // component: () => import( /* webpackChunkName: "save-locally" */ "@output-comps/aleSaveLocally.vue"),
               component: saveGallery,
@@ -280,7 +284,8 @@ export default {
             disabled: false,
             click: this.routeClick, 
             meta: {
-              icon: IconFaSolidFileExcel,
+              icon: IconVscodeFileTypeExcel,
+              multicolorIcon: true,
               nestedGroup: 'extension-tools',
               component: saveCSV,
             },
@@ -328,7 +333,8 @@ export default {
               return txt;  
             },
             meta: {
-              icon: IconFaRegularImage,
+              icon: IconWallpaperMonitor,
+              multicolorIcon: true,
               nestedGroup: 'extension-tools'
             },
           },

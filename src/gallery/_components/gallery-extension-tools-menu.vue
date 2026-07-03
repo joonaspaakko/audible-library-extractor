@@ -5,65 +5,66 @@
     <!-- TOOLS -->
     <div class="mega-section">
       <div class="mega-section-label">Tools</div>
-      <div class="mega-section-items">
+      <div class="mega-well">
         <div
           v-for="item in toolItems"
           :key="item.name"
-          class="mega-item mega-item--tool"
+          class="mega-row mega-row--tool"
           :class="{ 'is-disabled': item.condition && !item.condition() }"
           @mousedown="$haptic(1)"
           @click="onItemClick(item)"
         >
-          <span class="mega-item-icon" v-html="item.meta.icon"></span>
-          <div class="mega-item-body">
-            <span class="mega-item-text">{{ item.name }}</span>
-            <span class="mega-item-desc" v-html="toolDescriptions[item.name]"></span>
+          <span
+            class="mega-row-icon"
+            :class="{ 'mega-row-icon--multicolor': item.meta.multicolorIcon }"
+            v-html="item.meta.icon"
+          ></span>
+          <div class="mega-row-body">
+            <span class="mega-row-text">{{ item.name }}</span>
+            <span class="mega-row-desc" v-html="toolDescriptions[item.name]"></span>
           </div>
+          <span class="mega-row-chevron"><fa6-solid-chevron-right /></span>
         </div>
       </div>
     </div>
-
-    <div class="mega-divider"></div>
 
     <!-- LANDING PAGE TOGGLE -->
     <div class="mega-section">
       <div class="mega-section-label">Landing page</div>
-      <div class="mega-section-items">
+      <div class="mega-well">
         <div
-          class="mega-item mega-item--landing"
+          class="mega-row mega-row--landing"
           :class="{ 'is-active': customLandingSet }"
           @mousedown="$haptic(1)"
           @click="toggleLandingPage"
         >
-          <span class="mega-item-icon" v-html="landingIcon"></span>
-          <div class="mega-item-body">
-            <span class="mega-item-text">{{ customLandingSet ? 'Reset landing page' : 'Set as landing page' }}</span>
-            <span class="mega-item-desc">{{ customLandingSet ? 'Currently opening to a custom page. Click to go back to the default.' : 'Save this page as the default opening view, including any active filters, search, or sorting. For example, filter out finished books so the gallery always opens without you having to filter them out manually.' }}</span>
+          <span class="mega-row-icon" v-html="landingIcon"></span>
+          <div class="mega-row-body">
+            <span class="mega-row-text">{{ customLandingSet ? 'Reset landing page' : 'Set as landing page' }}</span>
+            <span class="mega-row-desc">{{ customLandingSet ? 'Currently opening to a custom page. Click to go back to the default.' : 'Open gallery to this page, including any active filters, search, and sorting.' }}</span>
           </div>
-          <span class="mega-item-toggle" :class="{ 'is-on': customLandingSet }"></span>
+          <span class="mega-row-toggle" :class="{ 'is-on': customLandingSet }"></span>
         </div>
       </div>
     </div>
 
-    <div class="mega-divider"></div>
-
     <!-- LINKS -->
     <div class="mega-section">
       <div class="mega-section-label">Resources</div>
-      <div class="mega-section-items">
+      <div class="mega-well">
         <component
           v-for="item in linkItems"
           :key="item.name"
           :is="item.tag"
           :href="item.href"
           target="_blank"
-          class="mega-item mega-item--link"
+          class="mega-row mega-row--link"
           @mousedown="$haptic(1)"
           @click="onItemClick(item)"
         >
-          <span class="mega-item-icon" v-html="item.meta.icon"></span>
-          <span class="mega-item-text">{{ item.name }}</span>
-          <span class="mega-item-external-icon"><fa6-solid-arrow-up-right-from-square /></span>
+          <span class="mega-row-icon" v-html="item.meta.icon"></span>
+          <span class="mega-row-text">{{ item.name }}</span>
+          <span class="mega-row-external-icon"><fa6-solid-arrow-up-right-from-square /></span>
         </component>
       </div>
     </div>
@@ -84,9 +85,9 @@ export default {
     return {
       customLandingSet: false,
       toolDescriptions: {
-        'Save gallery website': 'Publish online to browse on mobile or show friends your library and wishlist.',
-        'Spreadsheet export':   'Export your library data to an Excel or CSV spreadsheet.',
-        'Wallpaper creator':    'Turn your book covers into a desktop wallpaper, card for online posts, tier list, or even animated wallpaper/screensaver. Books are pulled from the current page with whatever search, filters, and sorting you have active.',
+        'Save gallery website': 'Publish online to browse on mobile or show off your library or wishlist to your friends.',
+        'Spreadsheet export':   'Export to an Excel or CSV spreadsheet.',
+        'Wallpaper creator':    'Turn your book covers into a animated desktop wallpaper or screensaver, card, or tier list.',
       },
     };
   },
@@ -175,20 +176,16 @@ export default {
 .mega-menu-inner {
   display: flex;
   flex-direction: column;
-}
-
-.mega-divider {
-  @include themify($themes) {
-    border-top: 1px solid rgba( themed(frontColor), .1 );
-  }
+  gap: 4px;
+  padding-bottom: 4px;
 }
 
 .mega-section {
-  padding: 8px 0 4px;
+  padding: 8px 0 0;
 }
 
 .mega-section-label {
-  padding: 0 14px 5px;
+  padding: 0 14px 6px;
   font-size: .7em;
   letter-spacing: .06em;
   text-transform: uppercase;
@@ -198,28 +195,65 @@ export default {
   }
 }
 
-.mega-section-items {
+// WELL: recessed tray that groups a section's rows
+.mega-well {
   display: flex;
   flex-direction: column;
+  gap: 6px;
+  margin: 0 10px;
+  padding: 6px;
+  border-radius: 12px;
+  @include themify($themes) {
+    background: rgba( themed(outerColor), .25 );
+  }
 }
 
-// SHARED ITEM BASE
-.mega-item {
+// SHARED ROW BASE
+.mega-row {
   display: flex;
   flex-direction: row;
   align-items: center;
-  padding: 7px 14px;
+  padding: 9px 10px;
+  border-radius: 8px;
   cursor: pointer;
   text-decoration: none;
-  gap: 10px;
+  gap: 12px;
   @include themify($themes) {
     color: themed(frontColor);
+    background: themed(elementColor);
+    box-shadow: 0 1px 2px rgba( themed(outerColor), .3 );
+  }
+
+  .theme-light & {
     &:hover,
     &:focus {
-      background: rgba( themed(frontColor), .07 );
+      background: #f5f5f5;
     }
     &:active {
-      background: rgba( themed(audibleOrange), .15 );
+      background: #ededed;
+    }
+    &:hover .mega-row-icon,
+    &:focus .mega-row-icon {
+      color: #fff;
+      background: $audibleOrange;
+    }
+    &:hover .mega-row-icon--multicolor,
+    &:focus .mega-row-icon--multicolor {
+      background: rgba(0, 0, 0, .05);
+    }
+  }
+
+  .theme-dark & {
+    &:hover,
+    &:focus {
+      background: #333;
+    }
+    &:active {
+      background: #3d3d3d;
+    }
+    &:hover .mega-row-icon,
+    &:focus .mega-row-icon {
+      color: #fff;
     }
   }
 
@@ -230,16 +264,30 @@ export default {
   }
 }
 
-.mega-item-icon {
+.mega-row-icon {
   flex-shrink: 0;
-  width: 16px;
-  height: 16px;
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  font-size: 1.3em;
   display: inline-flex;
   justify-content: center;
   align-items: center;
+  transition: color 120ms, background 120ms;
+  @include themify($themes) {
+    color: themed(audibleOrange);
+    background: rgba( themed(audibleOrange), .13 );
+  }
+
+  &--multicolor {
+    font-size: 1.5em;
+    @include themify($themes) {
+      background: rgba( themed(frontColor), .06 );
+    }
+  }
 }
 
-.mega-item-body {
+.mega-row-body {
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -247,18 +295,49 @@ export default {
   min-width: 0;
 }
 
-.mega-item-desc {
-  font-size: .78em;
-  line-height: 1.35;
+.mega-row-chevron {
+  flex-shrink: 0;
+  align-self: center;
+  font-size: .7em;
+  opacity: .3;
+  display: inline-flex;
+  align-items: center;
+  transition: opacity 120ms;
+}
+
+.mega-row--tool:hover .mega-row-chevron,
+.mega-row--tool:focus .mega-row-chevron {
+  opacity: .7;
+}
+
+.mega-row-text {
+  font-size: .85em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.mega-row-desc {
+  font-size: .74em;
+  line-height: 1.3;
   white-space: normal;
   @include themify($themes) {
     color: rgba( themed(frontColor), .5 );
   }
 }
 
-// LINK ITEMS
-.mega-item--link {
-  .mega-item-external-icon {
+// LINK ROWS
+.mega-row--link {
+  .mega-row-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 1em;
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .6 );
+      background: rgba( themed(frontColor), .07 );
+    }
+  }
+
+  .mega-row-external-icon {
     margin-left: auto;
     opacity: .3;
     font-size: .7em;
@@ -266,85 +345,66 @@ export default {
     align-items: center;
   }
   @include themify($themes) {
-    &:hover .mega-item-external-icon,
-    &:focus .mega-item-external-icon {
+    &:hover .mega-row-external-icon,
+    &:focus .mega-row-external-icon {
       opacity: .7;
     }
   }
-}
 
-// TOOL ITEMS
-.mega-item--tool {
-  padding: 9px 14px;
-  align-items: flex-start;
-
-  .mega-item-icon {
-    margin-top: 2px;
-    @include themify($themes) {
-      color: themed(audibleOrange);
+  .theme-light & {
+    &:hover .mega-row-icon,
+    &:focus .mega-row-icon {
+      color: #fff;
+      background: $audibleOrange;
     }
   }
 
-  .mega-item-text {
-    font-weight: 600;
-    line-height: 1.2;
-  }
-
-  @include themify($themes) {
-    background: rgba( themed(frontColor), .04 );
-    border-bottom: 1px solid rgba( themed(frontColor), .07 );
-    &:last-child {
-      border-bottom: none;
-    }
-    &:hover,
-    &:focus {
-      background: rgba( themed(frontColor), .08 );
+  .theme-dark & {
+    &:hover .mega-row-icon,
+    &:focus .mega-row-icon {
+      color: #fff;
     }
   }
 }
 
 // LANDING PAGE TOGGLE
-.mega-item--landing {
-  padding: 8px 14px;
-  align-items: flex-start;
-
-  .mega-item-icon {
-    margin-top: 2px;
-    flex-shrink: 0;
-    @include themify($themes) {
-      color: rgba( themed(frontColor), .45 );
-    }
+.mega-row--landing {
+  .mega-row-icon {
+    width: 30px;
+    height: 30px;
+    font-size: 1em;
   }
 
-  &.is-active .mega-item-icon {
+  &.is-active .mega-row-icon {
     @include themify($themes) {
       color: themed(audibleOrange);
+      background: rgba( themed(audibleOrange), .13 );
     }
   }
 
-  .mega-item-text {
-    font-size: .88em;
-    line-height: 1.2;
-    @include themify($themes) {
-      color: rgba( themed(frontColor), .75 );
+  .theme-light & {
+    &:hover.is-active .mega-row-icon,
+    &:focus.is-active .mega-row-icon {
+      color: #fff;
+      background: $audibleOrange;
     }
   }
 
-  &.is-active .mega-item-text {
-    @include themify($themes) {
-      color: themed(frontColor);
+  .theme-dark & {
+    &:hover.is-active .mega-row-icon,
+    &:focus.is-active .mega-row-icon {
+      color: #fff;
     }
   }
 }
 
 // TOGGLE PILL
-.mega-item-toggle {
+.mega-row-toggle {
   flex-shrink: 0;
   width: 28px;
   height: 16px;
   border-radius: 9999px;
   position: relative;
-  margin-top: 2px;
   transition: background 180ms;
   @include themify($themes) {
     background: rgba( themed(frontColor), .15 );
