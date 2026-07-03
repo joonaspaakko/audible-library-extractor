@@ -1,5 +1,14 @@
 <template>
-<div>
+<div class="cover-grid" v-if="$store.state.sticky.booksInSeriesCoverGrid">
+  <div
+    :data-series-name="series.name" class="cover-grid-item" :class="numbersClass(seriesBook)"
+    :content="iconTippyContent(seriesBook)" v-tippy="{ placement: 'top' }"
+    v-for="(seriesBook, index) in filteredBooks" :key="seriesBook.asin"
+  >
+    <gallery-books-in-series-link :series="series" :book="seriesBook" :index="index" :cover="true" />
+  </div>
+</div>
+<div v-else>
   <div
     :data-series-name="series.name" class="numbers-list-item" :class="numbersClass(seriesBook)"
     v-for="(seriesBook, index) in filteredBooks" :key="seriesBook.asin"

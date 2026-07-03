@@ -23,6 +23,7 @@ export default {
     booksInSeriesAll: true,
     booksInSeriesFinished: true,
     booksInSeriesOpenInApp: true,
+    booksInSeriesCoverGrid: false,
     subPageSource: 'library',
     bookDetailsCollapsedCover: false,
     bookDetailsCollapsedDetails: false,

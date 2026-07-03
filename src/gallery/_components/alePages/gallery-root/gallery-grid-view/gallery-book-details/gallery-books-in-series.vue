@@ -315,6 +315,30 @@ export default {
 
   }
 
+  .cover-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    gap: 8px;
+  }
+
+  .cover-grid-item {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    -khtml-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+
+    &.current {
+      .cover-wrap {
+        @include themify($themes) {
+          border-color: themed(audibleOrange);
+          box-shadow: 0 0 0 1px themed(audibleOrange);
+        }
+      }
+    }
+  }
+
 }
 
 div.hidden-section-label {
