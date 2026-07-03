@@ -42,10 +42,7 @@ export default {
   
   methods: {
     flip() {
-      this.$store.commit('prop', { 
-        key: 'sticky.bookDetailSettings.reverseDirection', 
-        value: !this.detailSettings.reverseDirection 
-      });
+      this.$emit('flip');
     },
   }
 };

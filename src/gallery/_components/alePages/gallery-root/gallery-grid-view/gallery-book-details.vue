@@ -42,13 +42,17 @@
             <ion-library-sharp v-if="!sticky.detailLinksToAudible" />
             <fa6-brands-audible v-else />
           </div>
-          <gallery-details-first-hider v-if="mobileWidth" />
-          <gallery-sidebar-flipper />
+          <gallery-sidebar-flipper @flip="flipPanels" />
           <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })" />
         </div>
-        
-        <div class="top details-wrap" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">
-          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
+
+        <div
+          class="top details-wrap"
+          :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }"
+          @touchstart="touchStart"
+          @touchend="touchEnd"
+        >
+          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(mobileWidth && sticky.bookDetailSettings.reverseDirection)">
             
             <div class="collapse-btn" 
               v-if="!mobileWidth"
@@ -107,7 +111,7 @@
             <gallery-books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
-          <gallery-book-summary v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth"></gallery-book-summary>
+          <gallery-book-summary v-if="!loading && !(mobileWidth && !sticky.bookDetailSettings.reverseDirection)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth"></gallery-book-summary>
         </div>
 
         <div class="carousel-wrap" v-if="sticky.bookDetailSettings.carousel && !loading">
@@ -166,11 +170,12 @@ export default {
          bookSummary: null,
       }, 
       imageLoaded: false,
-      clientX: 0,
-      clientY: 0,
-      firstClientX: 0,
-      firstClientY: 0,
       animate_detailLinksToAudible: true,
+      touchStartPoint: null,
+      panelScroll: {
+        information: null,
+        summary: null,
+      },
     };
   },
   
@@ -216,9 +221,6 @@ export default {
 
     });
     
-    // window.addEventListener('touchstart', this.touchStart);
-    // window.addEventListener('touchmove', this.preventTouch, {passive: false});
-      
   },
 
   beforeUnmount: function() {
@@ -229,9 +231,6 @@ export default {
 
     this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
 
-    // window.removeEventListener('touchstart', this.touchStart);
-    // window.removeEventListener('touchmove', this.preventTouch, {passive: false});
-      
   },
 
   computed: {
@@ -540,43 +539,67 @@ export default {
       }
     },
     
-    swipeHandler( direction ) {
-      
-      if ( !this.mobileWidth ) return;
-      
-      this.$store.commit('prop', { 
-        key: 'sticky.bookDetailSettings.reverseDirection', 
-        value: !this.$store.state.sticky.bookDetailSettings.reverseDirection 
-      });
-      
-    },
-    
-    touchStart(e) {
-      
-      if ( !this.mobileWidth ) return;
-      
-      this.firstClientX = e.touches[0].clientX;
-      this.firstClientY = e.touches[0].clientY;
-      
-    },
+    // On mobile, remembers which panel is first before flipping, saves the
+    // current scroll position under that panel's key, then restores (or tops
+    // out) the scroll position of whichever panel becomes first. Desktop just
+    // flips, since sidebar/summary sit side by side there.
+    flipPanels() {
 
-    preventTouch(e) {
-    
-      if ( !this.mobileWidth ) return;
-    
-      const minValue = 5; // threshold
-
-      this.clientX = e.touches[0].clientX - this.firstClientX;
-      this.clientY = e.touches[0].clientY - this.firstClientY;
-
-      // Vertical scrolling does not work when you start swiping horizontally.
-      if( Math.abs(this.clientX) > minValue ){ 
-        e.preventDefault();
-        e.returnValue = false;
-        return false;
+      if ( this.mobileWidth ) {
+        const currentFirstPanel = this.sticky.bookDetailSettings.reverseDirection ? 'summary' : 'information';
+        this.panelScroll[ currentFirstPanel ] = window.scrollY;
       }
+
+      this.$store.commit('prop', {
+        key: 'sticky.bookDetailSettings.reverseDirection',
+        value: !this.sticky.bookDetailSettings.reverseDirection
+      });
+
+      if ( !this.mobileWidth ) return;
+
+      this.$nextTick(() => {
+        const nextFirstPanel = this.sticky.bookDetailSettings.reverseDirection ? 'summary' : 'information';
+        const savedY = this.panelScroll[ nextFirstPanel ];
+        if ( savedY !== null ) window.scrollTo(0, savedY);
+        else this.scrollToBookDetailsTop();
+      });
+
     },
-    
+
+    scrollToBookDetailsTop() {
+      if ( this.$refs.bookDetails ) this.$refs.bookDetails.scrollIntoView({ block: 'start' });
+    },
+
+    touchStart(e) {
+
+      if ( !this.mobileWidth ) return;
+
+      this.touchStartPoint = {
+        x: e.changedTouches[0].clientX,
+        y: e.changedTouches[0].clientY,
+        time: Date.now(),
+      };
+
+    },
+
+    // Passive, post-hoc swipe classifier. Only looks at where a touch started
+    // and where it ended, never at touchmove, so it can never call
+    // preventDefault and can never fight native vertical scrolling mid-gesture
+    // (unlike the vue3-touch-events directive this replaces, see 060708a2).
+    touchEnd(e) {
+
+      if ( !this.mobileWidth || !this.touchStartPoint ) return;
+
+      const deltaX = e.changedTouches[0].clientX - this.touchStartPoint.x;
+      const deltaY = e.changedTouches[0].clientY - this.touchStartPoint.y;
+      const elapsed = Date.now() - this.touchStartPoint.time;
+      this.touchStartPoint = null;
+
+      const isHorizontalSwipe = Math.abs(deltaX) > 60 && Math.abs(deltaX) > Math.abs(deltaY) * 2;
+      if ( isHorizontalSwipe && elapsed < 600 ) this.flipPanels();
+
+    },
+
     detailLinksToAudible() {
       
       this.$store.commit('prop', { key: 'sticky.detailLinksToAudible', value: !this.sticky.detailLinksToAudible })
