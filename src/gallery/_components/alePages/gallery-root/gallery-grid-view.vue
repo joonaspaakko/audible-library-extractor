@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { useWindowVirtualizer } from "@tanstack/vue-virtual";
+import { useWindowVirtualizer, defaultRangeExtractor } from "@tanstack/vue-virtual";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { computed, shallowRef, ref } from "vue";
@@ -132,11 +132,23 @@ export default {
         estimateSize: function( index ) {
           return index === open ? rowH + gap : rowH;
         },
-        // When a book is open, the panel row is ~1000-1400px tall. A normal overscan of 4
-        // rows (4 * ~182px = ~728px) virtualizes the open row away while the user is still
-        // scrolling through the panel, causing a flash as the spacer swaps for real DOM.
-        // Keep overscan large enough to hold the open row in the DOM throughout the panel.
-        overscan: open > -1 ? Math.ceil( ( gap + rowH ) / rowH ) + 4 : 4,
+        overscan: 4,
+        // gapHeight is 0 until the ResizeObserver's first callback lands, which the browser
+        // can delay for seconds - during that window estimateSize thinks the open row is a
+        // normal cover row, so scrolling into the panel can push it out of the calculated
+        // range and unmount it, collapsing the document and snapping the scroll back. Force
+        // the open row into the range unconditionally so it can never be unmounted while
+        // open, regardless of how stale the estimate is.
+        rangeExtractor: function( range ) {
+          
+          const base = defaultRangeExtractor( range );
+          if ( open < 0 || _.includes( base, open ) ) return base;
+          
+          const start = Math.min( base[ 0 ], open );
+          const end = Math.max( base[ base.length - 1 ], open );
+          return _.range( start, end + 1 );
+          
+        },
         scrollMargin: scrollMargin.value,
         // Keep an opened row clear of the fixed top nav (0 on mobile). scrollToIndex
         // with align:'start' lands the row at item.start - scrollPaddingStart, so this
@@ -430,6 +442,11 @@ export default {
       const vue = this;
       this.$nextTick(function() {
         vue.virtualizer.scrollToIndex( vue.openRowIndex, { align: 'start' } );
+        // gapHeight stays 0 until the ResizeObserver's first (async, sometimes delayed)
+        // callback lands. That's fine now: the rangeExtractor keeps the open row rendered
+        // regardless of its estimated size, so a stale gap only leaves the rows below it
+        // momentarily mis-spaced (the observer corrects that) - it can no longer virtualize
+        // the panel away mid-scroll and snap the view back.
         vue.observeDetailsWrap( vue.$el.querySelector('.grid-details-wrap') );
       });
       // Safety: if the gap doesn't change (next book's panel is the same height) the
@@ -762,10 +779,6 @@ $detailsListCardMax: 300px;
     padding-right: 10px;
   }
   #ale-search {
-    > .icons {
-      padding-left: 0px;
-      .icon-wrap:first-child > div { padding-left: 0px; }
-    }
     > .icons {
       font-size: 0.9em;
     }

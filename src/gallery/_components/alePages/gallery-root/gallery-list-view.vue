@@ -67,7 +67,7 @@ ref="listView"
 </template>
 
 <script>
-import { useVirtualizer } from "@tanstack/vue-virtual";
+import { useVirtualizer, defaultRangeExtractor } from "@tanstack/vue-virtual";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { computed, shallowRef } from "vue";
@@ -164,6 +164,19 @@ export default {
           return index === open ? ROW_HEIGHT + gap : ROW_HEIGHT;
         },
         overscan: 8,
+        // gapHeight is 0 until the ResizeObserver's first callback lands, which the browser
+        // can delay for seconds - during that window estimateSize thinks the open row is a
+        // normal list row, so scrolling into the panel can push it out of the calculated
+        // range and unmount it, collapsing the document and snapping the scroll back. Force
+        // the open row into the range unconditionally so it can never be unmounted while
+        // open, regardless of how stale the estimate is.
+        rangeExtractor: function( range ) {
+          const base = defaultRangeExtractor( range );
+          if ( open < 0 || _.includes( base, open ) ) return base;
+          const start = Math.min( base[ 0 ], open );
+          const end = Math.max( base[ base.length - 1 ], open );
+          return _.range( start, end + 1 );
+        },
       };
     });
 

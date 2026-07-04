@@ -1,39 +1,54 @@
 <template>
 <div class="list-filter-wrapper" :style="{ top: $store.state.sticky.viewMode === 'grid' ? $store.state.topNavOffset + 'px' : '31px' }">
   <div class="row">
-    
-    <div class="show-all-toggle" v-if="showAllToggle" @click="clickedShowAll" @mousedown="$haptic(1)">
+
+    <div class="show-finished" v-if="showFinishedToggle" @click="clickedShowFinished" @mousedown="$haptic(1)" v-tippy content="Finished books">
       <div>
-        <fa6-solid-ban style="padding-right: 4px;" :class="{ active: $store.state.sticky.booksInSeriesAll}" />
-        <span v-if="!showFinishedToggle">Not in library:</span>
+        <fa6-solid-box-archive style="padding-right: 4px;" :class="{ active: !$store.state.sticky.booksInSeriesFinished}" />
+        <span>{{ count.finished }}</span>
+      </div>
+    </div>
+
+    <div class="show-all-toggle" v-if="showAllToggle" @click="clickedShowAll" @mousedown="$haptic(1)" v-tippy content="Not in your library">
+      <div>
+        <fa6-solid-ban style="padding-right: 4px;" :class="{ active: !$store.state.sticky.booksInSeriesAll}" />
         <span>{{ count.notInLibrary }}</span>
       </div>
     </div>
     
-    <div class="show-finished" v-if="showFinishedToggle" @click="clickedShowFinished" @mousedown="$haptic(1)">
+    <div class="hide-unavailable" v-if="showUnavailableToggle" @click="clickedHideUnavailable" @mousedown="$haptic(1)" v-tippy content="Not in your library and not purchasable on Audible">
       <div>
-        <fa6-solid-box-archive style="padding-right: 4px;" :class="{ active: $store.state.sticky.booksInSeriesFinished}" />
-        <span v-if="!showAllToggle">Finished books:</span>
-        <span>{{ count.finished }}</span>
+        <fa6-solid-triangle-exclamation style="padding-right: 4px;" :class="{ active: $store.state.sticky.booksInSeriesHideUnavailable}" />
+        <span>{{ count.unavailable }}</span>
       </div>
     </div>
-    
+
   <!-- </div>
   
   <div class="row"> -->
-    <div style="flex: unset; padding-left: 6px; padding-right: 6px; min-width: 30px;" @click="$store.commit('stickyProp', { key: 'booksInSeriesOpenInApp', value: !$store.state.sticky.booksInSeriesOpenInApp })" @mousedown="$haptic(1)"
-    >  
-    <!-- v-tippy :content="$store.state.sticky.booksInSeriesOpenInApp ? 'Open in app' : 'Search in goodreads'" -->
-      <span v-if="$store.state.sticky.booksInSeriesOpenInApp">
+    <div style="flex: 0.5; padding-left: 6px; padding-right: 6px; min-width: 30px;" @click="cycleLinkMode" @mousedown="$haptic(1)"
+    v-tippy :content="linkModeTooltip"
+    >
+      <span v-if="$store.state.sticky.booksInSeriesLinkMode === 'app'">
         <!-- open in app -->
         <img class="img-icon" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxNTEuNSA5My43IiB3aWR0aD0iMTUxLjUiIGhlaWdodD0iOTMuNyI+PGRlZnM+PHN0eWxlPi5jbHMtMXtmaWxsOiNmZmY7fTwvc3R5bGU+PC9kZWZzPjxnPjxnPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggODAuN2w3NS43LTQ3LjJ2MTIuOEw3NS44IDkzLjcgMCA0Ni4zVjMzLjVsNzUuOCA0Ny4yeiIvPjxwYXRoIGNsYXNzPSJjbHMtMSIgZD0iTTc1LjggMjEuNWE0OC4xNyA0OC4xNyAwIDAgMC00MC43IDIxLjkgMTIuOTQgMTIuOTQgMCAwIDEgMS44LTEuNmMyMS4zLTE3LjcgNTItMTMuNyA2OC43IDguNmwxMS4xLTcuMWE0OS44MiA0OS44MiAwIDAgMC00MC45LTIxLjgiLz48cGF0aCBjbGFzcz0iY2xzLTEiIGQ9Ik03NS44IDQzLjRhMjcuNzIgMjcuNzIgMCAwIDAtMjIuNCAxMS41IDIyLjcgMjIuNyAwIDAgMSAxMy41LTQuNGM4LjIgMCAxNS41IDQuMiAyMC40IDExLjNsMTAuNi02LjZhMjUuNzkgMjUuNzkgMCAwIDAtMjIuMS0xMS44TTI0LjYgMjQuMkM1NS44LS40IDk5LjkgNi4zIDEyMy40IDM5bC4yLjIgMTEuNS03LjFhNzAuODIgNzAuODIgMCAwIDAtMTE4LjYgMCA2MC42MyA2MC42MyAwIDAgMSA4LjEtNy45Ii8+PC9nPjwvZz48L3N2Zz4=" alt="" />
       </span>
-      <span v-else>
+      <span v-else-if="$store.state.sticky.booksInSeriesLinkMode === 'goodreads'">
         <!-- goodreads -->
         <img class="img-icon" src="data:image/svg+xml;base64,PHN2ZyBoZWlnaHQ9IjUxMiIgdmlld0JveD0iMCAwIDI0IDI0IiB3aWR0aD0iNTEyIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPjxwYXRoIGQ9Ik01LjExMSAxOC45MDdoLjEyOWMuNTg1IDAgMS4xNzYgMCAxLjc2Mi4wMDUuMDc0IDAgLjE0My0uMDE5LjE2Ni4wOTguMzI4IDEuNjM2IDEuMzgzIDIuNTU5IDIuOSAyLjk5NSAxLjI0MS4zNTYgMi40OTUuMzY2IDMuNzQ5LjA4NCAxLjU1OC0uMzQ3IDIuNTgyLTEuMzI3IDMuMTM2LTIuODMxLjM2OS0xLjAwOC40OTQtMi4wNTMuNTA4LTMuMTE3LjAwNS0uMjcyLjAxNC0yLjIwMy0uMDA5LTIuNDc1bC0uMDQxLS4wMTRjLS4wMzcuMDctLjA3OS4xMzYtLjExNS4yMDYtMS4wMTkgMi4wMi0yLjgyNiAzLjE1OS00Ljg2MSAzLjIzOS00Ljc1LjE4OC03LjgxMi0yLjY3Mi03LjkzMi04LjI1OS0uMDIzLTEuMTExLjA4My0yLjE5OC4zODMtMy4yNjcuOTUtMy4zMzMgMy40NC01LjU0MSA3LjA5Ny01LjU2OSAyLjgyNi0uMDE5IDQuNjgxIDEuODE0IDUuMzU5IDMuMjk1LjAyMy4wNTIuMDYuMTA4LjExLjA4OVYuNDk4aDIuMDQzYzAgMTMuMTM5LjAwNSAxNS41NzIuMDA1IDE1LjU3Mi0uMDA1IDMuNjgtMS4yMzIgNi43MzYtNC43NSA3LjYwMy0zLjIwNS43OTItNy4zMzIuMjI1LTkuMDM5LTIuNjgxLS4zNjktLjYzMy0uNTQ0LTEuMzI3LS41OTktMi4wODZ6bTYuNzQ3LTE3LjE5NEM5LjQzNyAxLjY5IDYuODU0IDMuNjIxIDYuNTU0IDcuOTg1Yy0uMTg5IDIuNzY2LjY4MyA1LjcyOCAzLjI5OCA2Ljk2NiAxLjI3My42MDUgMy40MjcuNzAzIDQuOTk1LS40MDggMi4xOTUtMS41NTYgMi44OTEtNC41NDcgMi41MjctNy4yMTktLjQ0OC0zLjMzMy0yLjIwNS01LjYyNS01LjUxNi01LjYxMXoiIGZpbGw9IiNmZmYiLz48L3N2Zz4=" />
       </span>
+      <fa6-solid-link-slash v-else />
     </div>
-    
+
+    <div
+    style="flex: 0.5; padding-left: 6px; padding-right: 6px; min-width: 30px;"
+    @click="$store.commit('stickyProp', { key: 'booksInSeriesCoverGrid', value: !$store.state.sticky.booksInSeriesCoverGrid })" @mousedown="$haptic(1)"
+    v-tippy :content="$store.state.sticky.booksInSeriesCoverGrid ? 'Switch to list view' : 'Switch to cover grid'"
+    >
+      <flowbite-grid-solid v-if="$store.state.sticky.booksInSeriesCoverGrid" />
+      <fa6-solid-list-ul v-else />
+    </div>
+
   </div>
   
   <!-- <div class="shadow-box"></div> -->
@@ -51,13 +66,27 @@ export default {
       store: this.$store.state,
       showAllToggle: false,
       showFinishedToggle: false,
+      showUnavailableToggle: false,
+      linkModes: ['app', 'goodreads', 'off'],
       count: {
         notInLibrary: 0,
         finished: 0,
+        unavailable: 0,
       },
     };
   },
-  
+
+  computed: {
+    linkModeTooltip: function() {
+      const labels = {
+        app: 'Open in app',
+        goodreads: 'Search in Goodreads',
+        off: 'Off',
+      };
+      return labels[this.$store.state.sticky.booksInSeriesLinkMode];
+    },
+  },
+
   created: function() {
     if ( this.series.collection ) {
       
@@ -66,7 +95,10 @@ export default {
       
       this.count.notInLibrary = this.countNotInLibrary();
       this.showAllToggle = this.count.notInLibrary > 0;
-      
+
+      this.count.unavailable = this.countUnavailable();
+      this.showUnavailableToggle = this.count.unavailable > 0;
+
     }
   },
   
@@ -102,7 +134,21 @@ export default {
       return count;
       
     },
-    
+
+    countUnavailable: function() {
+
+      let count = 0;
+      _.each(this.series.collection, function(o) {
+        if ( o.books ) {
+          let bookCount = _.filter(o.books, function(o) { return o.notInLibrary && !o.inWishlist && !_.get(o, 'obj.cover') && !o.cover; });
+          count += bookCount.length;
+        }
+      });
+
+      return count;
+
+    },
+
     clickedShowAll() {
       this.$store.commit('stickyProp', { key: 'booksInSeriesAll', value: !this.$store.state.sticky.booksInSeriesAll });
       this.$nextTick(function() {
@@ -115,6 +161,19 @@ export default {
       this.$nextTick(function() {
         this.$compEmitter.emit("resizeSummary");
       });
+    },
+
+    clickedHideUnavailable() {
+      this.$store.commit('stickyProp', { key: 'booksInSeriesHideUnavailable', value: !this.$store.state.sticky.booksInSeriesHideUnavailable });
+      this.$nextTick(function() {
+        this.$compEmitter.emit("resizeSummary");
+      });
+    },
+
+    cycleLinkMode() {
+      const currentIndex = this.linkModes.indexOf(this.$store.state.sticky.booksInSeriesLinkMode);
+      const nextMode = this.linkModes[(currentIndex + 1) % this.linkModes.length];
+      this.$store.commit('stickyProp', { key: 'booksInSeriesLinkMode', value: nextMode });
     },
 
   },
