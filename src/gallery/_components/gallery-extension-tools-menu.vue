@@ -373,26 +373,23 @@ export default {
     width: 30px;
     height: 30px;
     font-size: 1em;
-  }
-
-  &.is-active .mega-row-icon {
     @include themify($themes) {
-      color: themed(audibleOrange);
-      background: rgba( themed(audibleOrange), .13 );
+      color: rgba( themed(frontColor), .6 );
+      background: rgba( themed(frontColor), .07 );
     }
   }
 
   .theme-light & {
-    &:hover.is-active .mega-row-icon,
-    &:focus.is-active .mega-row-icon {
+    &:hover .mega-row-icon,
+    &:focus .mega-row-icon {
       color: #fff;
       background: $audibleOrange;
     }
   }
 
   .theme-dark & {
-    &:hover.is-active .mega-row-icon,
-    &:focus.is-active .mega-row-icon {
+    &:hover .mega-row-icon,
+    &:focus .mega-row-icon {
       color: #fff;
     }
   }
