@@ -138,10 +138,11 @@ export default {
       // Prevent multiple simultaneous uploads or a repo isn't selected (if that could happen, it would be a bug).
       if ( this.isSyncing || !this.canUpload ) return;
       
+      // Clear any leftover state from a previous run (a stalled progress bar, a stale error) before
+      // we start, so a fresh upload never briefly shows the old run's percentage or result screen.
+      this.resetProgress();
+
       this.isSyncing       = true;
-      this.wasCancelled    = false;
-      this.uploadFailed    = false;
-      this.uploadComplete  = false;
       this.abortController = new AbortController();
       const { signal }     = this.abortController;
 
@@ -271,15 +272,40 @@ export default {
         this.statusMessage    = 'Saving...';
         this.progress.percent = 88;
 
-        // Create the commit object linking the tree, parent commit, and message
-        const { data: commit } = await this.octokit.rest.git.createCommit({
-          owner, repo,
-          message: this.commitMessage.trim() || this.defaultCommitMessage,
-          tree: currentTreeSha,
-          parents: [latestCommitSha], // Link to the previous commit to maintain history
-        });
-        // Move the branch pointer to the new commit, which publishes the changes to GitHub
-        await this.octokit.rest.git.updateRef({ owner, repo, ref: `heads/${branch}`, sha: commit.sha });
+        // Create the commit object linking the tree, parent commit, and message, then move the
+        // branch pointer to it, which publishes the changes to GitHub.
+        // If the branch moved since we grabbed latestCommitSha (the Pages workflow committed,
+        // or a prior upload landed while this one was running), updateRef fails as a non-fast-forward.
+        // Our tree is a full snapshot, so we recover by re-parenting onto the real tip and retrying.
+        let parentSha = latestCommitSha;
+        let commit;
+        for ( let attempt = 0; ; attempt++ ) {
+
+          const { data: newCommit } = await this.octokit.rest.git.createCommit({
+            owner, repo,
+            message: this.commitMessage.trim() || this.defaultCommitMessage,
+            tree: currentTreeSha,
+            parents: [parentSha], // Link to the previous commit to maintain history
+          });
+
+          try {
+            await this.octokit.rest.git.updateRef({ owner, repo, ref: `heads/${branch}`, sha: newCommit.sha });
+            commit = newCommit;
+            break;
+          }
+          catch ( err ) {
+
+            // Only a non-fast-forward is recoverable, and only a couple of times before we give up.
+            const notFastForward = err?.response?.status === 422 && /fast forward/i.test( err?.message || '' );
+            if ( !notFastForward || attempt >= 2 ) throw err;
+
+            // Re-read the branch tip and loop to rebuild the commit on top of it.
+            const { data: freshRef } = await this.octokit.rest.git.getRef( { owner, repo, ref: `heads/${branch}` } );
+            parentSha = freshRef.object.sha;
+
+          }
+
+        }
 
         // Migrate to Actions-powered Pages if not already on it
         if ( repoEntry?.pagesMode !== 'workflow' ) {
@@ -316,29 +342,17 @@ export default {
         if ( signal.aborted ) return;
         console.error( err );
 
-        // Network errors and 401/404 responses are unrecoverable, so surface them to the user.
-        // Rate limit errors that timed out also land here via the "after" message check.
-        // Anything else (e.g. a transient 5xx) is logged but doesn't kill the upload.
-        const isNetworkError = err instanceof TypeError && !err.response;
-        const isFatal = isNetworkError ||
-                        err?.message?.includes( 'after' ) ||
-                        err?.response?.status === 401 ||
-                        err?.response?.status === 404;
+        // Transient per-request failures (5xx, rate limits) are already retried inside uploadSingleBlob,
+        // so anything reaching here means the upload didn't finish and nothing new was published.
+        // Surface it so the user sees the error screen instead of a run that silently stalls at 88%.
+        this.uploadFailed = true;
 
-        if ( isFatal ) {
-        
-          this.uploadFailed = true;
-          
-          if ( isNetworkError ) {
-            this.failedMessage = 'Network connection lost. Check your connection and retry.';
-          }
-          else {
-            this.failedMessage = err?.message || 'Unknown error';
-          }
-          
+        const isNetworkError = err instanceof TypeError && !err.response;
+        if ( isNetworkError ) {
+          this.failedMessage = 'Network connection lost. Check your connection and retry.';
         }
         else {
-          console.warn( 'Recovered upload error:', err );
+          this.failedMessage = err?.message || 'Unknown error';
         }
         
       }
