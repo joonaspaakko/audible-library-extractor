@@ -5,7 +5,7 @@
     <!-- TOOLS -->
     <div class="mega-section">
       <div class="mega-section-label">Tools</div>
-      <div class="mega-well">
+      <div class="mega-well mega-well--tools">
         <div
           v-for="item in toolItems"
           :key="item.name"
@@ -206,6 +206,11 @@ export default {
   @include themify($themes) {
     background: rgba( themed(outerColor), .25 );
   }
+
+  // darker moat so the bordered tool cards pop on light mode
+  .theme-light &--tools {
+    background: rgba(0, 0, 0, .16);
+  }
 }
 
 // SHARED ROW BASE
@@ -215,6 +220,7 @@ export default {
   align-items: center;
   padding: 9px 10px;
   border-radius: 8px;
+  border: 1px solid transparent;
   cursor: pointer;
   text-decoration: none;
   gap: 12px;
@@ -227,7 +233,8 @@ export default {
   .theme-light & {
     &:hover,
     &:focus {
-      background: #f5f5f5;
+      background: #fff;
+      border-color: rgba(0, 0, 0, .3);
     }
     &:active {
       background: #ededed;
@@ -261,6 +268,33 @@ export default {
     cursor: default;
     opacity: .35;
     pointer-events: none;
+  }
+}
+
+// TOOL ROWS
+.mega-row--tool {
+  @include themify($themes) {
+    border: 1px solid rgba( themed(frontColor), .15 );
+  }
+
+  // stronger passive border against the darker light-mode moat
+  .theme-light & {
+    border-color: rgba(0, 0, 0, .28);
+  }
+
+  @include themify($themes) {
+    &:hover,
+    &:focus {
+      border-color: rgba( themed(frontColor), .3 );
+    }
+  }
+
+  // stronger hover border to stand out against the darker light-mode moat
+  .theme-light & {
+    &:hover,
+    &:focus {
+      border-color: rgba(0, 0, 0, .45);
+    }
   }
 }
 
