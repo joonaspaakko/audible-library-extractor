@@ -327,9 +327,9 @@ export default {
           let coverUrl = coverImg.getAttribute('src');
           coverUrl = DOMPurify.sanitize( coverUrl );
           if ( coverUrl.lastIndexOf("img-coverart-prod-unavailable") < 0 ) {
-          let coverId = coverUrl.match(/\/images\/I\/(.*)._SL/);
-          coverId = _.get( coverId, '[1]');
-          if ( coverId ) aBook.cover = coverId;
+            let coverId = coverUrl.match(/\/images\/I\/(.*)._SL/);
+            coverId = _.get( coverId, '[1]');
+            if ( coverId ) aBook.cover = coverId;
           }
         }
         

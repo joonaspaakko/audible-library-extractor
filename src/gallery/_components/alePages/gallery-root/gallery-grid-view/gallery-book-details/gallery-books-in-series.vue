@@ -7,7 +7,7 @@
     >
       <!-- Had to change this to make it a bit shorter... -->
       <!-- <span class="heading">Books I own in the series</span> -->
-      <span class="heading">My books in the series</span>
+      <span class="heading">Books in series</span>
       <span class="count">{{ series.count }}</span>
       <gallery-vertical-chevron :up="$store.state.sticky.booksInSeriesToggle" />
     </div>
@@ -230,6 +230,7 @@ export default {
         cursor: pointer;
         display: flex;
         flex-direction: row;
+        align-items: center;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -317,11 +318,12 @@ export default {
 
   .cover-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(56px, 1fr));
+    grid-template-columns: repeat(4, 1fr);
     gap: 8px;
   }
 
   .cover-grid-item {
+    min-width: 0;
     -webkit-touch-callout: none;
     -webkit-user-select: none;
     -khtml-user-select: none;
@@ -335,6 +337,37 @@ export default {
           border-color: themed(audibleOrange);
           box-shadow: 0 0 0 1px themed(audibleOrange);
         }
+      }
+    }
+
+    .cover-open-link {
+      position: relative;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding-top: 4px;
+      font-size: 11px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      @include themify($themes) {
+        color: rgba(themed(frontColor), 0.6);
+      }
+      > a div {
+        margin: 0;
+      }
+      > a:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        right: 0;
+        bottom: 0;
+        left: 0;
+      }
+      .cover-open-link-label {
+        margin-left: 2px;
+        overflow: hidden;
+        text-overflow: ellipsis;
       }
     }
   }

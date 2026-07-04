@@ -6,7 +6,7 @@
     >
       <span v-if="cover" class="cover-wrap" :class="{ 'not-in-library': book.notInLibrary }">
         <img crossorigin="anonymous" draggable="false" :src="coverUrl" alt="" />
-        <div class="cover-number" v-if="book.bookNumbers">{{ book.bookNumbers }}</div>
+        <div class="cover-number" v-if="book.bookNumbers" :title="book.bookNumbers">{{ book.bookNumbers }}</div>
         <div class="cover-dots" v-if="coverDots.length">
           <div v-for="dot in coverDots" :key="dot.key" :class="dot.key"></div>
         </div>
@@ -14,6 +14,7 @@
       <template v-else>
         <span class="numbers">{{ book.bookNumbers }}</span>
         <span class="title">{{ book.titleShort || book.title  }}</span>
+        <fa6-solid-arrow-up-right-from-square class="external-link-icon" />
       </template>
     </a>
     <router-link v-else 
@@ -28,7 +29,7 @@
       </span>
       <span v-if="!seriesName && cover" class="cover-wrap" :class="{ 'not-in-library': book.notInLibrary }">
         <img crossorigin="anonymous" draggable="false" :src="coverUrl" alt="" />
-        <div class="cover-number" v-if="book.bookNumbers">{{ book.bookNumbers }}</div>
+        <div class="cover-number" v-if="book.bookNumbers" :title="book.bookNumbers">{{ book.bookNumbers }}</div>
         <div class="cover-dots" v-if="coverDots.length">
           <div v-for="dot in coverDots" :key="dot.key" :class="dot.key"></div>
         </div>
@@ -125,6 +126,19 @@ export default {
   overflow: hidden;
   text-overflow: ellipsis;
   flex: 1;
+  .title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .external-link-icon {
+    flex-shrink: 0;
+    margin-left: auto;
+    padding-left: 4px;
+    font-size: 10px;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), 0.4);
+    }
+  }
 }
 .series-name .linky {
   white-space: normal;
@@ -171,6 +185,11 @@ export default {
     z-index: 2;
     top: 4px;
     right: 4px;
+    box-sizing: border-box;
+    max-width: calc(100% - 8px);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
     padding: 2px 4px;
     font-size: 10px;
     font-weight: 700;
@@ -179,6 +198,10 @@ export default {
     background: #c30d2d;
     box-shadow: -1px 1px 2px rgba(#000, 0.25);
     border-radius: 3px;
+
+    .not-in-library & {
+      background: #666;
+    }
   }
 
   .cover-dots {
