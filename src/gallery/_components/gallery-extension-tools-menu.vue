@@ -10,7 +10,6 @@
           v-for="item in toolItems"
           :key="item.name"
           class="mega-row mega-row--tool"
-          :class="{ 'is-disabled': item.condition && !item.condition() }"
           @mousedown="$haptic(1)"
           @click="onItemClick(item)"
         >
@@ -20,7 +19,16 @@
             v-html="item.meta.icon"
           ></span>
           <div class="mega-row-body">
-            <span class="mega-row-text">{{ item.name }}</span>
+            <span class="mega-row-title-line">
+              <span class="mega-row-text">{{ item.name }}</span>
+              <span
+                v-if="item.condition"
+                class="mega-row-badge"
+                :class="{ 'mega-row-badge--empty': !wallpaperCurrentPageCount }"
+              >
+                {{ wallpaperCurrentPageCount ? wallpaperCurrentPageCount + ' covers' : 'Pick a source' }}
+              </span>
+            </span>
             <span class="mega-row-desc" v-html="toolDescriptions[item.name]"></span>
           </div>
           <span class="mega-row-chevron"><fa6-solid-chevron-right /></span>
@@ -70,20 +78,80 @@
     </div>
 
   </div>
+
+  <!-- WALLPAPER SOURCE PROMPT: shown when the current page has no importable books -->
+  <Teleport to="body">
+  <n-config-provider :theme="naiveTheme">
+    <n-modal
+      v-model:show="wallpaperPromptOpen"
+      preset="card"
+      :bordered="false"
+      :auto-focus="false"
+      title="Open wallpaper creator"
+      size="small"
+      style="max-width: 420px;"
+    >
+      <p class="wallpaper-source-lead">
+        This page has no book covers to import. Pick a source to open the wallpaper creator with.
+      </p>
+
+      <div class="wallpaper-source-options">
+        <div
+          v-for="source in wallpaperSources"
+          :key="source.key"
+          class="wallpaper-source-option"
+          @mousedown="$haptic(1)"
+          @click="pickWallpaperSource( source )"
+        >
+          <span class="wallpaper-source-icon" v-html="source.icon"></span>
+          <div class="wallpaper-source-body">
+            <span class="wallpaper-source-title">{{ source.label }}</span>
+            <span class="wallpaper-source-count">{{ source.count }} book covers</span>
+          </div>
+          <span class="wallpaper-source-chevron"><fa6-solid-chevron-right /></span>
+        </div>
+
+        <div
+          class="wallpaper-source-option wallpaper-source-option--cancel"
+          @mousedown="$haptic(1)"
+          @click="wallpaperPromptOpen = false"
+        >
+          <span class="wallpaper-source-icon" v-html="IconFaSolidSliders"></span>
+          <div class="wallpaper-source-body">
+            <span class="wallpaper-source-title">Cancel, let me pick the books first</span>
+            <span class="wallpaper-source-count">Close this, open a page with a grid, then use search, filters, and sorting to shape the import before launching again.</span>
+          </div>
+        </div>
+      </div>
+    </n-modal>
+  </n-config-provider>
+  </Teleport>
+
 </div>
 </template>
 
 <script>
 import { storageGet, storageSet } from '@utils/chrome-storage.js';
+import { NConfigProvider, NModal, darkTheme, lightTheme } from 'naive-ui';
+import openWallpaperCreator from '@output-mixins/gallery-open-wallpaper-creator.js';
+
+// SOURCE ICONS (raw svg for v-html)
+import IconFaBrandsAudible from '~icons/fa6-brands/audible?raw';
+import IconFaSolidHeart     from '~icons/fa6-solid/heart?raw';
+import IconFaSolidSliders   from '~icons/fa6-solid/sliders?raw';
 
 export default {
   name: 'galleryExtensionToolsMenu',
   props: ['items'],
   emits: ['itemClick'],
+  mixins: [ openWallpaperCreator ],
+  components: { NConfigProvider, NModal },
 
   data: function() {
     return {
       customLandingSet: false,
+      wallpaperPromptOpen: false,
+      IconFaSolidSliders,
       toolDescriptions: {
         'Save gallery website': 'Publish online to browse on mobile or show off your library or wishlist to your friends.',
         'Spreadsheet export':   'Export to an Excel or CSV spreadsheet.',
@@ -109,12 +177,45 @@ export default {
     },
 
     landingIcon() {
-    
+
       const setItem   = _.find( this.items, item => item.name === 'Set as gallery landing page' );
       const resetItem = _.find( this.items, item => item.name === 'Reset gallery landing page' );
-      
+
       return this.customLandingSet ? _.get( resetItem, 'meta.icon' ) : _.get( setItem,  'meta.icon' );
-      
+
+    },
+
+    naiveTheme() {
+      return this.$store.state.sticky.lightSwitch ? lightTheme : darkTheme;
+    },
+
+    // Importable covers on the current page: what the wallpaper creator would grab
+    // if opened right now, honoring the active search, filters, and sorting.
+    wallpaperCurrentPageCount() {
+      return _.filter( this.$store.getters.collection, 'cover' ).length;
+    },
+
+    // Extracted sources the wallpaper creator can fall back to when the current page
+    // has nothing to import. Only lists what was actually extracted, and counts the
+    // books that carry a cover since those are the ones the creator can use.
+    wallpaperSources() {
+
+      const sources = [];
+      const library = this.$store.getters.regularBooks;
+      const wishlist = _.get( this.$store.state, 'audibledata.wishlist' );
+
+      const withCovers = books => _.filter( books, 'cover' ).length;
+
+      if ( library && library.length ) {
+        sources.push({ key: 'library', label: 'Library', icon: IconFaBrandsAudible, books: library, count: withCovers( library ) });
+      }
+
+      if ( wishlist && wishlist.length ) {
+        sources.push({ key: 'wishlist', label: 'Wishlist', icon: IconFaSolidHeart, books: wishlist, count: withCovers( wishlist ) });
+      }
+
+      return sources;
+
     },
 
   },
@@ -122,9 +223,27 @@ export default {
   methods: {
 
     onItemClick( item ) {
-      if ( item.condition && !item.condition() ) return;
+
+      // Wallpaper creator on a page with no importable books: prompt for a
+      // whole library or wishlist source instead of doing nothing.
+      if ( item.condition && !item.condition() ) {
+
+        if ( this.wallpaperSources.length ) this.wallpaperPromptOpen = true;
+        return;
+
+      }
+
       if ( item.click ) item.click( item );
       this.$emit('itemClick');
+
+    },
+
+    pickWallpaperSource( source ) {
+
+      this.wallpaperPromptOpen = false;
+      this.openWallpaperCreator( source.books );
+      this.$emit('itemClick');
+
     },
 
     toggleLandingPage() {
@@ -344,6 +463,33 @@ export default {
   opacity: .7;
 }
 
+.mega-row-title-line {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.mega-row-badge {
+  flex-shrink: 0;
+  white-space: nowrap;
+  font-size: .62em;
+  font-weight: 700;
+  line-height: 1;
+  padding: 2px 6px;
+  border-radius: 9999px;
+  color: $audibleOrange;
+  background: rgba( $audibleOrange, .14 );
+
+  // Nothing on this page: the click will offer a source instead, so read as a nudge.
+  &--empty {
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .6 );
+      background: rgba( themed(frontColor), .1 );
+    }
+  }
+}
+
 .mega-row-text {
   font-size: .85em;
   font-weight: 600;
@@ -427,6 +573,106 @@ export default {
       color: #fff;
     }
   }
+}
+
+// WALLPAPER SOURCE PROMPT
+.wallpaper-source-lead {
+  margin: 0 0 14px;
+  font-size: .9em;
+  line-height: 1.4;
+}
+
+.wallpaper-source-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wallpaper-source-option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  border: 1px solid rgba(128, 128, 128, .25);
+  transition: border-color 120ms, background 120ms;
+
+  &:hover {
+    border-color: $audibleOrange;
+    background: rgba( $audibleOrange, .08 );
+  }
+}
+
+// The manual escape hatch: closes the prompt so the user can shape a grid first.
+// Muted so it reads as secondary to the two real source picks above it.
+.wallpaper-source-option--cancel {
+  margin-top: 4px;
+  align-items: flex-start;
+  border-style: dashed;
+
+  .wallpaper-source-icon {
+    color: inherit;
+    opacity: .55;
+    background: rgba(128, 128, 128, .12);
+  }
+
+  .wallpaper-source-title {
+    opacity: .85;
+  }
+
+  &:hover {
+    border-color: rgba(128, 128, 128, .55);
+    background: rgba(128, 128, 128, .08);
+  }
+}
+
+.wallpaper-source-icon {
+  flex-shrink: 0;
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  font-size: 1.2em;
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  color: $audibleOrange;
+  background: rgba( $audibleOrange, .13 );
+}
+
+.wallpaper-source-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+}
+
+.wallpaper-source-title {
+  font-size: .95em;
+  font-weight: 600;
+  line-height: 1.2;
+}
+
+.wallpaper-source-count {
+  font-size: .78em;
+  opacity: .6;
+}
+
+.wallpaper-source-chevron {
+  flex-shrink: 0;
+  font-size: .7em;
+  opacity: .3;
+  display: inline-flex;
+  align-items: center;
+}
+
+.wallpaper-source-note {
+  margin: 16px 0 0;
+  font-size: .78em;
+  line-height: 1.45;
+  opacity: .6;
 }
 
 // TOGGLE PILL

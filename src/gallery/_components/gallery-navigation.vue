@@ -25,6 +25,7 @@
 import saveGallery from '@output-snippets/save-gallery.vue';
 import saveCSV from '@output-snippets/save-csv.vue';
 import { storageSet } from '@utils/chrome-storage.js';
+import openWallpaperCreator from '@output-mixins/gallery-open-wallpaper-creator.js';
 
 // ICON IMPORTS
 import IconFaSolidChevronDown   from '~icons/fa6-solid/chevron-down?raw';
@@ -41,6 +42,7 @@ const IconWallpaperMonitor = `<svg xmlns="http://www.w3.org/2000/svg" width="1em
 
 export default {
   name: "aleMenuActions",
+  mixins: [ openWallpaperCreator ],
   data: function() {
     return {
       store: this.$store.state,
@@ -296,30 +298,13 @@ export default {
             name: 'Wallpaper creator',
             disabled: false,
             click: function( route ) {
-              
+
+              // When the current page has no importable books the mega menu handles
+              // the click itself, prompting for a library/wishlist source instead.
               if ( !route.condition() ) return;
-              
-              try {
-                
-                let covers = _.filter( vue.$store.getters.collection, 'asin' );
-                covers = JSON.parse(JSON.stringify(covers));
-                covers = _.chunk(covers, 50);
-                
-                let imageEditor = {
-                  chunks: covers,
-                  chunksLength: covers.length,
-                  timeCode: new Date().getTime(),
-                };
 
-                if ( vue.$store.state.pageTitle    ) imageEditor.pageTitle = vue.$store.state.pageTitle;
-                if ( vue.$store.state.pageSubTitle ) imageEditor.pageSubTitle = vue.$store.state.pageSubTitle;
+              vue.openWallpaperCreator( vue.$store.getters.collection, vue.$store.state.pageTitle, vue.$store.state.pageSubTitle );
 
-                chrome.storage.local.set({ imageEditor }).then(() => {
-                  chrome.runtime.sendMessage({ action: "openImageEditor" });
-                });
-                
-                
-              } catch (e) {}
             },
             condition: function() {
               return vue.$route.meta.gallery && vue.$store.getters.collection && vue.$store.getters.collection.length; // Collection being an array, not Audible collections
