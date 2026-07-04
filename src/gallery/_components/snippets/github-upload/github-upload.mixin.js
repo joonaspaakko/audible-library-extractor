@@ -629,7 +629,85 @@ export default {
 
       // Return the array of blob SHAs, populated atomically by all workers during the upload
       return blobShas;
-      
+
+    },
+
+    /**
+     * Reads the actual in-progress Pages BUILD status once and maps it onto the status values the UI
+     * understands ( building / built / errored ). Shared by the background poll and the manual refresh
+     * button so both read the same thing. The overall `pages` endpoint isn't used here: it stays "built"
+     * from the previous deploy while a new build runs, so it reports success too early.
+     *
+     * @param {string} owner
+     * @param {string} repo
+     * @param {boolean} useWorkflowPoll True for Actions-powered Pages ( Deployments API ), false for legacy branch builds.
+     * @param {string} [commitSha] When given, only a build for THIS commit counts as ours; anything else reads as still building.
+     * @returns {Promise<{ pagesStatus: string, isOurBuild: boolean, buildErrored: boolean }>}
+     */
+    async fetchPagesBuildStatus( owner, repo, useWorkflowPoll, commitSha ) {
+
+      let pagesStatus, isOurBuild, buildErrored;
+
+      if ( useWorkflowPoll ) {
+
+        // WORKFLOW POLL: Actions-powered Pages deploys via the Deployments API.
+        // Get the latest deployment for the github-pages environment, then its latest status.
+        const deploymentsRes = await this.ghGet(
+          `repos/${owner}/${repo}/deployments`,
+          { environment: 'github-pages', per_page: 1, t: Date.now() }
+        );
+        const deployment = deploymentsRes.data[0];
+
+        // No deployment yet means GitHub hasn't picked up the push — treat as still building
+        if ( !deployment ) {
+          pagesStatus = 'building';
+          isOurBuild  = false;
+        }
+        else {
+          isOurBuild = !commitSha || deployment.sha === commitSha;
+
+          const statusesRes = await this.ghGet(
+            `repos/${owner}/${repo}/deployments/${deployment.id}/statuses`,
+            { per_page: 1, t: Date.now() }
+          );
+          const deployStatus = statusesRes.data[0]?.state;
+
+          // Map GitHub deployment states onto the status values the UI already understands
+          if ( deployStatus === 'success' ) {
+            pagesStatus  = 'built';
+            buildErrored = false;
+          }
+          else if ( deployStatus === 'failure' || deployStatus === 'error' ) {
+            pagesStatus  = 'errored';
+            buildErrored = true;
+          }
+          else {
+            // queued, in_progress, pending, inactive, etc.
+            pagesStatus = 'building';
+          }
+        }
+
+      }
+      else {
+
+        // LEGACY POLL: classic branch-based Pages builds via pages/builds/latest.
+        // GitHub sends a cacheable response, so a unique param per poll forces a fresh read.
+        const res   = await this.ghGet( `repos/${owner}/${repo}/pages/builds/latest`, { t: Date.now() } );
+        const build = res.data;
+
+        // When we know the commit we pushed, ignore any build that isn't for it.
+        // A build for the previous commit can still be reported as the "latest" for a
+        // moment before GitHub queues ours, so treat that window as "still building".
+        isOurBuild = !commitSha || build.commit === commitSha;
+
+        // GitHub's build status is null until it picks up, then building, then built/errored.
+        pagesStatus  = build.status === null ? 'building' : build.status;
+        buildErrored = build.status === 'errored';
+
+      }
+
+      return { pagesStatus, isOurBuild, buildErrored };
+
     },
 
     /**
@@ -637,10 +715,8 @@ export default {
      * request, so a slow request doesn't add to the gap) until it resolves, errors, or times out at 5 minutes.
      * GitHub Pages doesn't deploy instantly after a push; it kicks off a build job that takes a few minutes.
      *
-     * We poll `pages/builds/latest` for legacy (classic) Pages repos, and the Deployments API for
-     * workflow (GitHub Actions) Pages repos. The `pages` endpoint itself reports the overall site
-     * status and stays "built" from the previous deploy while a new build runs, so it would report
-     * success too early — both alternate endpoints reflect the actual in-progress build.
+     * Each tick reads the real in-progress build via fetchPagesBuildStatus, which the manual refresh
+     * button shares so both agree on the status.
      *
      * @param {string} owner
      * @param {string} repo
@@ -683,65 +759,7 @@ export default {
 
           try {
 
-            let pagesStatus, isOurBuild, buildErrored;
-
-            if ( useWorkflowPoll ) {
-
-              // WORKFLOW POLL: Actions-powered Pages deploys via the Deployments API.
-              // Get the latest deployment for the github-pages environment, then its latest status.
-              const deploymentsRes = await this.ghGet(
-                `repos/${owner}/${repo}/deployments`,
-                { environment: 'github-pages', per_page: 1, t: Date.now() }
-              );
-              const deployment = deploymentsRes.data[0];
-
-              // No deployment yet means GitHub hasn't picked up the push — treat as still building
-              if ( !deployment ) {
-                pagesStatus = 'building';
-                isOurBuild  = false;
-              }
-              else {
-                isOurBuild = !commitSha || deployment.sha === commitSha;
-
-                const statusesRes = await this.ghGet(
-                  `repos/${owner}/${repo}/deployments/${deployment.id}/statuses`,
-                  { per_page: 1, t: Date.now() }
-                );
-                const deployStatus = statusesRes.data[0]?.state;
-
-                // Map GitHub deployment states onto the status values the UI already understands
-                if ( deployStatus === 'success' ) {
-                  pagesStatus  = 'built';
-                  buildErrored = false;
-                }
-                else if ( deployStatus === 'failure' || deployStatus === 'error' ) {
-                  pagesStatus  = 'errored';
-                  buildErrored = true;
-                }
-                else {
-                  // queued, in_progress, pending, inactive, etc.
-                  pagesStatus = 'building';
-                }
-              }
-
-            }
-            else {
-
-              // LEGACY POLL: classic branch-based Pages builds via pages/builds/latest.
-              // GitHub sends a cacheable response, so a unique param per poll forces a fresh read.
-              const res   = await this.ghGet( `repos/${owner}/${repo}/pages/builds/latest`, { t: Date.now() } );
-              const build = res.data;
-
-              // When we know the commit we pushed, ignore any build that isn't for it.
-              // A build for the previous commit can still be reported as the "latest" for a
-              // moment before GitHub queues ours, so treat that window as "still building".
-              isOurBuild = !commitSha || build.commit === commitSha;
-
-              // GitHub's build status is null until it picks up, then building, then built/errored.
-              pagesStatus  = build.status === null ? 'building' : build.status;
-              buildErrored = build.status === 'errored';
-
-            }
+            const { pagesStatus, isOurBuild, buildErrored } = await this.fetchPagesBuildStatus( owner, repo, useWorkflowPoll, commitSha );
 
             // Update the repo entry status from the build, and keep the complete screen URL live
             if ( repoEntry ) {

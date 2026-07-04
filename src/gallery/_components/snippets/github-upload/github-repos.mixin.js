@@ -149,6 +149,10 @@ export default {
      * Manual single re-check of a repo's Pages status, fired from the refresh icon on the
      * info card. One ping, not a poll. The in-flight flag spins the icon and blocks overlapping
      * requests so a spam-clicker can't stack calls.
+     *
+     * Reads the real in-progress build via the shared fetchPagesBuildStatus so the refresh button
+     * agrees with the background poll, instead of the site-level `pages` endpoint that lingers on
+     * "built" from the previous deploy while a new build is still running.
      * @param {string} repoName
      */
     async recheckRepoPages( repoName ) {
@@ -159,8 +163,19 @@ export default {
       repoEntry.pagesChecking = true;
 
       try {
-        await this.fetchRepoPages( repoEntry );
+
+        // Resolve the URL and build mode first if we've never loaded them ( the helper branches on mode ).
+        if ( !repoEntry.pagesUrl || !repoEntry.pagesMode ) await this.fetchRepoPages( repoEntry );
+
+        // Pages not set up: nothing to poll, fetchRepoPages already left the status as 'none'.
+        if ( repoEntry.pagesStatus === 'none' ) return;
+
+        const useWorkflowPoll = repoEntry.pagesMode === 'workflow';
+        const { pagesStatus } = await this.fetchPagesBuildStatus( this.profile.login, repoEntry.name, useWorkflowPoll );
+        repoEntry.pagesStatus = pagesStatus;
+
       }
+      catch {} // Non-fatal: leave the last known status in place if the check fails
       finally {
         repoEntry.pagesChecking = false;
       }
