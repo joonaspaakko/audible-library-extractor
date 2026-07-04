@@ -8,24 +8,32 @@
       </div>
     </div>
 
-    <div
-      v-for="item in filteredItems"
-      :key="item.name"
-      class="icon-wrap"
-      :class="{ disabled: !item.on }"
-      v-tippy
-      :content="item.tooltip"
-      @click="openSearchOptions(item, $event)"
-      @mousedown="$haptic(1)"
-    >
+    <template v-if="!collapseIcons">
       <div
-        class="search-opt-btn"
-        :data-option="item.name"
-        :class="{ active: listName === item.name, 'active-filters': item.name === 'filter' && filtersActive }"
+        v-for="item in filteredItems"
+        :key="item.name"
+        class="icon-wrap"
+        :class="{ disabled: !item.on }"
+        v-tippy
+        :content="item.tooltip"
+        @click="openSearchOptions(item, $event)"
+        @mousedown="$haptic(1)"
       >
-        <span v-html="item.icon"></span>
+        <div
+          class="search-opt-btn"
+          :data-option="item.name"
+          :class="{ active: listName === item.name, 'active-filters': item.name === 'filter' && filtersActive }"
+        >
+          <span v-html="item.icon"></span>
+        </div>
       </div>
-    </div>
+    </template>
+
+    <!-- On mobile, while the input is focused, the option icons collapse to this inert
+         3-dot glyph so the field has room. It has no handler on purpose: it isn't
+         focusable, so tapping it blurs the input, which dismisses the keyboard and brings
+         the real icons back. -->
+    <div class="icons-collapsed-dots" v-if="collapseIcons" v-html="dotsIcon"></div>
   </div>
 </template>
 
@@ -34,12 +42,15 @@
 import IconMicroscope from '~icons/fa6-solid/microscope?raw';
 import IconFilter     from '~icons/fa6-solid/filter?raw';
 import IconSort       from '~icons/fa6-solid/sort?raw';
+import IconEllipsis   from '~icons/fa6-solid/ellipsis?raw';
 
 export default {
   name: "searchIcons",
-  props: ["listName"],
+  props: ["listName", "searchFocused"],
   data: function() {
     return {
+      // Raw SVG for the inert mobile-collapse 3-dot glyph.
+      dotsIcon: IconEllipsis,
       items: [
         {
           name: "scope",
@@ -79,7 +90,13 @@ export default {
         return this.showIcon( item );
       });
     },
-    
+
+    // On mobile, collapse the option icons to the inert 3-dot while the input is focused,
+    // so the search field has room. Desktop always shows the full row.
+    collapseIcons() {
+      return this.searchFocused && this.$store.getters.mobileThreshold;
+    },
+
   },
   
   methods: {
@@ -141,4 +158,19 @@ export default {
     user-select: none; 
   }
   
+  // Inert 3-dot standing in for the collapsed option icons. Roughly the footprint of one
+  // icon; no pointer cursor since it does nothing but drop focus when tapped.
+  .icons-collapsed-dots {
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    -webkit-user-select: none;
+    user-select: none;
+    opacity: 0.5;
+    svg {
+      width: 16px;
+      height: 16px;
+    }
+  }
+
 </style>

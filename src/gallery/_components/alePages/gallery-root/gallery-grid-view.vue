@@ -780,10 +780,6 @@ $detailsListCardMax: 300px;
   }
   #ale-search {
     > .icons {
-      padding-left: 0px;
-      .icon-wrap:first-child > div { padding-left: 0px; }
-    }
-    > .icons {
       font-size: 0.9em;
     }
   }
