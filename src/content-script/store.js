@@ -50,7 +50,6 @@ export default createStore({
     noWishlistAccess: false,
     checkingWishlistAccess: false,
     sticky: {
-      openOnLoad: false,
       extractSettings: [
         {
           label: "Library",

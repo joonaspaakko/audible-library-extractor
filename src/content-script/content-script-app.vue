@@ -381,8 +381,6 @@ export default {
       
       const pageAddress = window.location.origin + window.location.pathname;
       
-      this.$store.commit('update', { key: 'sticky.openOnLoad', value: true });
-      
       // No need to save anything...
       if ( hotpotato.useStorageData ) {
         chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });

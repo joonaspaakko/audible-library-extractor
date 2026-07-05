@@ -648,9 +648,9 @@ export default {
     documentation: function() {
       window.open('https://joonaspaakko.gitbook.io/audible-library-extractor/', '_blank');
     },
-
+    
     openGallery: function() {
-      this.$takeNextStep('output');
+      chrome.runtime.sendMessage({ action: "openGallery" });
     },
 
   },

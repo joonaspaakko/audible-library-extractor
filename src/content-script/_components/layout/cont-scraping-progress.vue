@@ -110,7 +110,6 @@ export default {
   methods: {
     wishlistLinkClicked( e ) {
       
-      this.$store.commit('update', { key: 'sticky.openOnLoad', value: true });
       chrome.runtime.sendMessage({ action: "refresh", url: window.location.origin + window.location.pathname });
       chrome.runtime.sendMessage({ action: "newPage", url: e.target.href });      
       

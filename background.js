@@ -98,6 +98,15 @@ chrome.runtime.onMessage.addListener( async (message, sender) => {
     });
     
   }
+  else if (message.action === "openGallery") {
+
+    chrome.tabs.create({
+      url: galleryUrl || "./gallery.html",
+      active: true,
+      index: sender.tab.index + 1,
+    });
+
+  }
   else if (message.action === "openOutput") {
     
     // Close the tab where extraction started

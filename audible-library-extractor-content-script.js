@@ -213,14 +213,6 @@ function takeNextStep( step ) {
 
 }
 
-// Open ALE on page load
-if ( store.state.sticky.openOnLoad ) {
-  chrome.storage.local.get(null).then(() => {
-    store.commit('update', { key: 'sticky.openOnLoad', value: false });
-    takeNextStep('extract');
-  });
-}
-
 // LISTENING FOR MESSAGES FROM BACKGROUND.JS
 // - Clicking the extension icon sends a message "iconClicked"
 // https://developer.chrome.com/apps/messaging#simple
