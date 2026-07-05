@@ -1,12 +1,23 @@
 <template>
   <div class="icons">
-    <div class="icon-wrap" v-tippy="{ trigger: 'click mouseenter' }" :content="'Items in current selection: <strong>'+ $store.getters.collection.length +'</strong> / <strong>' + $store.getters.collectionTotal +'</strong>.' + (!$store.getters.collectionHours ? '' : '<br> That amounts to: ' + $store.getters.collectionHours + ' ' + `or ${$store.getters.collectionDuration}.`) + ' ' + ($route.name === 'series' ? 'Owned books only!' : '')">
+    <tippy tag="div" class="icon-wrap" trigger="click mouseenter" interactive>
       <div class="book-in-selection">
         <div class="inner-wrap">
           {{ $store.getters.collection.length }}
         </div>
       </div>
-    </div>
+
+      <template #content>
+        <div class="selection-tooltip">
+          <div class="selection-tooltip-summary">
+            <strong>{{ $store.getters.collection.length }}</strong> / {{ $store.getters.collectionTotal }} books in current view<template v-if="$store.getters.collectionHours">, <strong>{{ collectionHoursRounded }}</strong> of listening <span class="dim">(or {{ $store.getters.collectionDuration }})</span></template>
+          </div>
+          <div class="selection-tooltip-note" v-if="$route.name === 'series'">
+            Owned books only
+          </div>
+        </div>
+      </template>
+    </tippy>
 
     <template v-if="!collapseIcons">
       <div
@@ -97,6 +108,14 @@ export default {
       return this.searchFocused && this.$store.getters.mobileThreshold;
     },
 
+    // Whole-hours summary for the selection tooltip. collectionHours carries minutes down
+    // to the last straggler (216h 49m); this rounds that away for the headline figure, the
+    // exact breakdown still shows in the dimmed collectionDuration next to it.
+    collectionHoursRounded() {
+      const hours = Math.round( this.$store.getters.collectionDuration_inSeconds / 3600 );
+      return hours + ' hours';
+    },
+
   },
   
   methods: {
@@ -172,5 +191,38 @@ export default {
       height: 16px;
     }
   }
+
+</style>
+
+<style lang="scss">
+
+// Selection-count tooltip content. Rendered inside the tippy (appended to body), so it
+// lives at the top level rather than nested under the scoped styles above.
+.selection-tooltip {
+  user-select: text;
+  cursor: text;
+  text-align: left;
+  width: max-content;
+  max-width: 60vw;
+  
+  @media (max-width: 600px) {
+    max-width: 80vw;
+  }
+
+  .selection-tooltip-summary {
+    font-size: 1em;
+
+    .dim {
+      opacity: 0.6;
+    }
+  }
+
+  .selection-tooltip-note {
+    margin-top: 6px;
+    font-style: italic;
+    opacity: 0.7;
+  }
+
+}
 
 </style>
