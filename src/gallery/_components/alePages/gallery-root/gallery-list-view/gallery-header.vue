@@ -1,33 +1,31 @@
 <template>
-  <div class="list-view-header ale-row">
-    <tr class="ale-row-inner">
-      <th
-        v-for="(item, index) in headers"
-        :key="item.label"
-        class="header-item ale-col"
-        :class="item.class"
-        @contextmenu.prevent="$emit('open-column-menu', $event)"
-        @mousedown.right.stop
-      >
-        <gallery-col-resizer :identifier="item.class"></gallery-col-resizer>
-        <div class="ale-col-inner">
-          
-          <gallery-sorter
-            v-if="sorterIndex(item) > -1" 
-            :label="false"
-            :item="sorterItem(item.key)"
-            :index="sorterIndex(item)"
-            :currentList="optionsList" 
-            :listName="listName"
-            :tippyTop="true"
-          >
-            {{ item.label }}
-          </gallery-sorter>
-          <span v-else class="text-container">{{ item.label }}</span>
-        </div>
-      </th>
-    </tr>
-  </div>
+  <tr class="list-view-header ale-row ale-row-inner">
+    <th
+      v-for="(item, index) in headers"
+      :key="item.label"
+      class="header-item ale-col"
+      :class="item.class"
+      @contextmenu.prevent="$emit('open-column-menu', $event)"
+      @mousedown.right.stop
+    >
+      <gallery-col-resizer :identifier="item.class"></gallery-col-resizer>
+      <div class="ale-col-inner">
+
+        <gallery-sorter
+          v-if="sorterIndex(item) > -1"
+          :label="false"
+          :item="sorterItem(item.key)"
+          :index="sorterIndex(item)"
+          :currentList="optionsList"
+          :listName="listName"
+          :tippyTop="true"
+        >
+          {{ item.label }}
+        </gallery-sorter>
+        <span v-else class="text-container">{{ item.label }}</span>
+      </div>
+    </th>
+  </tr>
 </template>
 
 <script>
