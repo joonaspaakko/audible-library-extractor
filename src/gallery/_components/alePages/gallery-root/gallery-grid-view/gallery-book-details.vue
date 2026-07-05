@@ -229,8 +229,6 @@ export default {
 
     // this.closeBookDetails();
 
-    this.$store.commit('prop', { key: 'bookDetailSettingsOpen', value: false });
-
   },
 
   computed: {
