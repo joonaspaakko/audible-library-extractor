@@ -109,6 +109,7 @@
 
         <!-- Upload progress (bottom) -->
         <github-upload-progress
+          v-if="isSyncing"
           :statusMessage
           :progress
           :isSyncing

@@ -121,7 +121,9 @@
               :class="{ active: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }"
               @click="resetCoversPerRow"
               @mousedown="$haptic(1)"
-            >Default</button>
+            >
+              <mdi-refresh /> Reset
+            </button>
           </div>
           <n-slider
             v-if="$store.state.searchMounted && coversPerRowMax > coversPerRowMin"
@@ -153,9 +155,11 @@
             <button
               class="covers-per-row-auto"
               :class="{ active: !$store.state.sticky.coverSize }"
-              @click="setCoverSize( null )"
+              @click="resetCoversPerRow"
               @mousedown="$haptic(1)"
-            >Default</button>
+            >
+              <mdi-refresh /> Reset
+            </button>
           </div>
           <n-slider
             v-if="$store.state.searchMounted"
@@ -647,12 +651,18 @@ export default {
       return Math.max( this.coversPerRowMin, Math.floor( this.$store.state.gridAvailableWidth / coverWidth ) );
     },
     coversPerRowCurrent: function() {
+    
       if ( this.listMode ) {
         return _.clamp( this.$store.state.sticky.gridListCols || LIST_DEFAULT_COLS, this.coversPerRowMin, this.coversPerRowMax );
       }
+      
       const coverWidth = this.$store.state.gridCoverWidth || 1;
       const width = this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth;
-      return _.clamp( Math.floor( width / coverWidth ), this.coversPerRowMin, this.coversPerRowMax );
+      
+      // gridMaxWidth is set as an exact multiple of the cover width; round the read-back so a
+      // sub-pixel measurement drift can't drop the count by one and make the slider fight.
+      return _.clamp( Math.round( width / coverWidth ), this.coversPerRowMin, this.coversPerRowMax );
+      
     },
 
     // Cover size runs from the minimum usable size up to the max, in pixels.
@@ -784,13 +794,14 @@ export default {
     },
 
     resetCoversPerRow: function() {
-      // List mode clears the cards-per-row override; grid mode clears the max width AND
-      // cover size so both return to CSS defaults together, giving the factory layout.
+      // Clears the covers-per-row override AND cover size so both return to CSS defaults
+      // together, giving the factory layout. List mode uses cards-per-row, grid mode uses
+      // max width.
+      this.$store.commit('stickyProp', { key: 'coverSize', value: null });
       if ( this.listMode ) {
         this.$store.commit('stickyProp', { key: 'gridListCols', value: null });
       }
       else {
-        this.$store.commit('stickyProp', { key: 'coverSize', value: null });
         this.setGridWidth( null );
       }
     },
@@ -800,9 +811,6 @@ export default {
     },
 
     setCoverSize: function( value ) {
-      if ( value === null && this.coverSizeSteps ) {
-        value = _.minBy( this.coverSizeSteps, s => Math.abs( s.size - this.coverSizeDefault ) ).size;
-      }
       if ( value === this.coverSizeDefault ) value = null;
       this.$store.commit('stickyProp', { key: 'coverSize', value: value });
     },
@@ -857,13 +865,19 @@ export default {
   },
 
   watch: {
-    coverSizeSteps: function( steps, oldSteps ) {
+    coverSizeSteps: function( steps ) {
+    
       const current = this.$store.state.sticky.coverSize;
       if ( !current || !steps ) return;
-      const currentN = oldSteps ? _.minBy( oldSteps, s => Math.abs( s.size - current ) ).n : null;
-      const sameN = currentN ? _.find( steps, { n: currentN } ) : null;
-      const snapped = sameN ? sameN.size : _.minBy( steps, s => Math.abs( s.size - current ) ).size;
-      if ( snapped !== current ) this.setCoverSize( snapped );
+      
+      // Only re-snap when the saved size no longer lines up with any available step, which
+      // happens when the viewport actually changes size and the cover falls off the grid.
+      // Do NOT chase a step that merely resized in place: the covers-per-row slider widens
+      // the grid, which grows the same-column step's pixel size, and snapping the cover to
+      // that would enlarge it and make the two sliders fight.
+      const nearest = _.minBy( steps, s => Math.abs( s.size - current ) );
+      if ( Math.abs( nearest.size - current ) > 1 ) this.setCoverSize( nearest.size );
+      
     },
   },
 };
@@ -1158,8 +1172,13 @@ body:not(.settings-drawer-peek-hidden) .n-drawer {
 }
 
 .covers-per-row-auto {
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  align-items: center;
+  gap: 5px;
   flex-shrink: 0;
-  padding: 3px 9px;
+  padding: 3px 5px;
   border-radius: 6px;
   font-size: 0.75em;
   cursor: pointer;

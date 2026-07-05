@@ -8,7 +8,7 @@
     >
       <!-- Had to change this to make it a bit shorter... -->
       <!-- <span class="heading">Books I own in the series</span> -->
-      <span class="heading">My books in the series</span>
+      <span class="heading">Series</span>
       <span class="count">{{ series.count }}</span>
       <gallery-vertical-chevron :up="series.toggle" />
     </div>

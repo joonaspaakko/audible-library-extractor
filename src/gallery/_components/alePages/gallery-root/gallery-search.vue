@@ -30,8 +30,18 @@
             @click="onSearchClick"
             @blur="onSearchBlur"
             :placeholder="placeholder"
-            @focus="listName = false"
+            @focus="onSearchFocus"
           />
+
+          <!-- Custom clear button. Replaces the native ::-webkit-search-cancel-button (which is
+               unreliable on iOS). mousedown.prevent fires before blur, so focus/selection state
+               is still valid when clearSearch runs and can refocus the input. -->
+          <div
+            class="search-clear"
+            v-if="$store.state.searchQuery"
+            @mousedown.prevent="clearSearch"
+            v-html="searchClearIcon"
+          ></div>
 
           <!-- @field autocomplete: a Github-style menu anchored under the caret. Shown
                while the caret sits on an unfinished '@field' token. -->
@@ -83,7 +93,7 @@
           </div>
         </div>
 
-        <gallery-search-icons v-model:list-name="listName" />
+        <gallery-search-icons v-model:list-name="listName" :search-focused="searchFocused" />
         <gallery-search-options v-model:list-name="listName" v-if="listName" />
       </div> <!-- #ale-search -->
       
@@ -120,6 +130,7 @@ import IconAlignLeft  from '~icons/fa6-solid/align-left?raw';
 import IconFileLines  from '~icons/fa6-solid/file-lines?raw';
 import IconHashtag    from '~icons/fa6-solid/hashtag?raw';
 import IconInfo       from '~icons/fa6-solid/circle-info?raw';
+import IconXmark      from '~icons/fa6-solid/xmark?raw';
 
 export default {
   name: "GallerySearch",
@@ -128,6 +139,10 @@ export default {
   data: function() {
     return {
       enableZoomTimer: null,
+
+      // Whether the search input currently holds focus. Drives the iOS resume-blur (below)
+      // and, passed down to the icons, the mobile collapse of the scope/filter/sort row.
+      searchFocused: false,
 
       // Summary text is chunked out of the book objects at save time, so summary
       // search needs it hydrated back into memory first. These track that one-time
@@ -169,13 +184,14 @@ export default {
       suggestAcceptedEnter: false,
 
       // '@field' autocomplete menu state. 'items' is the filtered suggestion list, 'index'
-      // the keyboard-highlighted row, 'start'/'end' the slice of the query the typed
+      // the keyboard-highlighted row (-1 means nothing highlighted, so nothing is accepted
+      // until the user arrows to a row), 'start'/'end' the slice of the query the typed
       // '@fragment' occupies (so accepting can splice in the full '@alias:'), and
       // 'left'/'top' the caret-anchored pixel position of the dropdown.
       fieldMenu: {
         open: false,
         items: [],
-        index: 0,
+        index: -1,
         start: 0,
         end: 0,
         left: 0,
@@ -198,6 +214,9 @@ export default {
 
       // Raw SVG for the help marker beside the '@field' menu header.
       searchHelpIcon: IconInfo,
+
+      // Raw SVG for the custom clear (X) button.
+      searchClearIcon: IconXmark,
     };
   },
   
@@ -235,6 +254,10 @@ export default {
     this.$compEmitter.on("search-focus", this.focusOnSearch);
     this.$store.commit('prop', { key: 'searchMounted', value: true });
     
+    // Blur the search on app-resume so iOS doesn't zoom the field when coming back from
+    // the background with search focused.
+    document.addEventListener( "visibilitychange", this.blurSearchOnResume );
+
   },
 
   beforeUnmount: function() {
@@ -246,6 +269,7 @@ export default {
     this.$compEmitter.off("start-sort", this.sort);
     this.$compEmitter.off("start-filter", this.filter);
     this.$compEmitter.off("search-focus", this.focusOnSearch);
+    document.removeEventListener( "visibilitychange", this.blurSearchOnResume );
     this.$store.commit('prop', { key: 'searchMounted', value: false });
     
   },
@@ -385,14 +409,16 @@ export default {
       const state = this.fieldSuggestState( input.value, input.selectionStart, this.allScopeKeys );
       if ( !state ) return this.closeFieldMenu();
 
-      // Keep the highlight in range when the filtered list shrinks under the cursor.
+      // Nothing is highlighted by default (-1) so a stray Enter/Tab runs the typed query
+      // rather than accepting the first row. Once the user has arrowed to a row, keep that
+      // highlight in range when the list shrinks under the cursor.
       const index = Math.min( this.fieldMenu.index, state.suggestions.length - 1 );
       const coords = this.caretCoords( input, state.start );
 
       this.fieldMenu = {
         open: true,
         items: state.suggestions,
-        index: index < 0 ? 0 : index,
+        index: index,
         start: state.start,
         end: state.end,
         left: coords.left,
@@ -406,6 +432,8 @@ export default {
 
     closeFieldMenu: function() {
       if ( this.fieldMenu.open ) this.fieldMenu.open = false;
+      // Drop the highlight so a reopened menu starts with nothing selected.
+      this.fieldMenu.index = -1;
     },
 
     // Keyboard navigation for whichever menu is open. The '@field' menu takes priority
@@ -481,7 +509,8 @@ export default {
 
       const count = this.fieldMenu.items.length;
 
-      // Move the highlight.
+      // Move the highlight. From the unselected state (-1), ArrowDown lands on the first
+      // row and ArrowUp on the last.
       if ( e.key === 'ArrowDown' ) {
         e.preventDefault();
         this.fieldMenu.index = ( this.fieldMenu.index + 1 ) % count;
@@ -489,11 +518,15 @@ export default {
       }
       if ( e.key === 'ArrowUp' ) {
         e.preventDefault();
-        this.fieldMenu.index = ( this.fieldMenu.index - 1 + count ) % count;
+        // -1 wraps to the last row, not second-to-last.
+        const from = this.fieldMenu.index < 0 ? count : this.fieldMenu.index;
+        this.fieldMenu.index = ( from - 1 + count ) % count;
         return;
       }
-      // Accept the highlighted suggestion.
+      // Accept the highlighted suggestion. With nothing highlighted, let Enter/Tab fall
+      // through so the typed query runs instead of forcing the first row.
       if ( e.key === 'Enter' || e.key === 'Tab' ) {
+        if ( this.fieldMenu.index < 0 ) return;
         e.preventDefault();
         this.acceptFieldSuggestion( this.fieldMenu.items[ this.fieldMenu.index ] );
         return;
@@ -555,11 +588,62 @@ export default {
       this.updateSuggestMenu();
     },
 
+    // Focus handler. Closes the options dropdown, tracks focus for the mobile icon
+    // collapse and the resume-blur, and on iOS re-syncs the caret and scroll: refocusing
+    // there can leave the text scrolled out of view with the caret detached, so once focus
+    // has settled we drop the caret at the end and scroll it into view. requestAnimationFrame
+    // is unreliable on Safari for this, so a plain setTimeout is used.
+    onSearchFocus: function() {
+
+      this.listName = false;
+      this.searchFocused = true;
+
+      if ( !document.querySelector('.is-ios') ) return;
+
+      setTimeout(() => {
+        const el = this.$refs.searchInput;
+        if ( !el || document.activeElement !== el ) return;
+        const len = el.value.length;
+        el.scrollLeft = el.scrollWidth;
+        el.setSelectionRange( len, len );
+      }, 0 );
+
+    },
+
     // Close both menus on blur. mousedown.prevent on the menu rows keeps a click on a
     // suggestion from blurring the input before the click lands.
     onSearchBlur: function() {
+      this.searchFocused = false;
       this.closeFieldMenu();
       this.closeSuggestMenu();
+    },
+
+    // Coming back to the app with search focused makes iOS zoom the field, which it never
+    // does on a normal focus. Blur it on resume so the keyboard just dismisses instead.
+    blurSearchOnResume: function() {
+      if ( document.hidden ) return;
+      if ( !document.querySelector('.is-ios') ) return;
+      const el = this.$refs.searchInput;
+      if ( el && document.activeElement === el ) el.blur();
+    },
+
+    // Empties the search. Bound with mousedown.prevent so it runs before the input blurs
+    // and its focus/selection is still valid. Reuses commitSearchValue to keep the store
+    // (and the ':value'-bound input) in sync and run the search, then refocuses with the
+    // caret at the start so the field is ready for typing (and iOS doesn't strand the caret).
+    clearSearch: function() {
+
+      this.closeFieldMenu();
+      this.closeSuggestMenu();
+      this.commitSearchValue( '' );
+
+      this.$nextTick(() => {
+        const el = this.$refs.searchInput;
+        if ( !el ) return;
+        el.focus();
+        el.setSelectionRange( 0, 0 );
+      });
+
     },
 
     // Replaces the typed '@fragment' with the full '@alias:' and drops the caret right
@@ -763,6 +847,8 @@ export default {
 
     closeSuggestMenu: function() {
       if ( this.suggestMenu.open ) this.suggestMenu.open = false;
+      // Drop the highlight so a reopened menu starts with nothing selected.
+      this.suggestMenu.index = -1;
     },
 
     // Replaces the typed fragment with the chosen value (quoted when it contains spaces) and
@@ -1060,17 +1146,40 @@ export default {
       width: 100%;
     }
 
+    // Native cancel button is unreliable on iOS; hidden in favour of the custom .search-clear.
     input[type="search"]::-webkit-search-cancel-button {
       -webkit-appearance: none;
-      height: 10px;
-      width: 10px;
-      padding: 5px;
-      display: block;
-      background-image: url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMCAyMCI+PGRlZnM+PHN0eWxlPi5je2ZpbGw6IzZmNmY2Zjt9PC9zdHlsZT48L2RlZnM+PGc+PGc+PGc+PHBhdGggY2xhc3M9ImMiIGQ9Ik0yMCwxNi4wOWExLjU1LDEuNTUsMCwwLDEtLjQ3LDEuMTVsLTIuMjksMi4yOWExLjU1LDEuNTUsMCwwLDEtMS4xNS40N0ExLjYsMS42LDAsMCwxLDE1LDE5LjUzbC00Ljk1LTUtNSw1QTEuNTUsMS41NSwwLDAsMSwzLjkxLDIwYTEuNTUsMS41NSwwLDAsMS0xLjE1LS40N0wuNDcsMTcuMjRBMS41NSwxLjU1LDAsMCwxLDAsMTYuMDksMS42LDEuNiwwLDAsMSwuNDcsMTVsNS00Ljk1LTUtNUExLjUzLDEuNTMsMCwwLDEsMCwzLjkxLDEuNTUsMS41NSwwLDAsMSwuNDcsMi43NkwyLjc2LjQ3QTEuNTUsMS41NSwwLDAsMSwzLjkxLDAsMS41MywxLjUzLDAsMCwxLDUuMDUuNDdsNSw1TDE1LC40N0ExLjYsMS42LDAsMCwxLDE2LjA5LDBhMS41NSwxLjU1LDAsMCwxLDEuMTUuNDdsMi4yOSwyLjI5QTEuNTUsMS41NSwwLDAsMSwyMCwzLjkxYTEuNTMsMS41MywwLDAsMS0uNDcsMS4xNGwtNSw1LDUsNC45NUExLjYsMS42LDAsMCwxLDIwLDE2LjA5WiIvPjwvZz48L2c+PC9nPjwvc3ZnPg==");
-      background-repeat: no-repeat;
-      background-position: center center;
-      background-size: 10px;
+      display: none;
+    }
+
+    // Custom clear (X). Sits at the right edge of the text area, before the icons row. The
+    // pill is always white, so this stays a fixed grey rather than a themed colour.
+    .search-clear {
+      position: relative;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 20px;
+      margin-left: 6px;
       cursor: pointer;
+      color: #6f6f6f;
+      &:hover {
+        color: #333;
+      }
+      // Invisible tap target padded out past the glyph, so the layout stays put.
+      &:before {
+        content: "";
+        position: absolute;
+        top: -12px;
+        right: -6px;
+        bottom: -12px;
+        left: -6px;
+      }
+      svg {
+        width: 15px;
+        height: 15px;
+      }
     }
 
     // '@field' autocomplete menu, anchored under the caret. Rounded panel, each row an
@@ -1273,6 +1382,10 @@ export default {
       > div {
         padding: 0px 10px;
         outline: none;
+        > span {
+          display: flex;
+          align-items: center;
+        }
       }
       position: relative;
       z-index: 0;

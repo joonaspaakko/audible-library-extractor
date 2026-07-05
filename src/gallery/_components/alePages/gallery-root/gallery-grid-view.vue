@@ -44,7 +44,7 @@
 </template>
 
 <script>
-import { useWindowVirtualizer } from "@tanstack/vue-virtual";
+import { useWindowVirtualizer, defaultRangeExtractor } from "@tanstack/vue-virtual";
 import { useStore } from "vuex";
 import { useRoute } from "vue-router";
 import { computed, shallowRef, ref } from "vue";
@@ -132,11 +132,23 @@ export default {
         estimateSize: function( index ) {
           return index === open ? rowH + gap : rowH;
         },
-        // When a book is open, the panel row is ~1000-1400px tall. A normal overscan of 4
-        // rows (4 * ~182px = ~728px) virtualizes the open row away while the user is still
-        // scrolling through the panel, causing a flash as the spacer swaps for real DOM.
-        // Keep overscan large enough to hold the open row in the DOM throughout the panel.
-        overscan: open > -1 ? Math.ceil( ( gap + rowH ) / rowH ) + 4 : 4,
+        overscan: 4,
+        // gapHeight is 0 until the ResizeObserver's first callback lands, which the browser
+        // can delay for seconds - during that window estimateSize thinks the open row is a
+        // normal cover row, so scrolling into the panel can push it out of the calculated
+        // range and unmount it, collapsing the document and snapping the scroll back. Force
+        // the open row into the range unconditionally so it can never be unmounted while
+        // open, regardless of how stale the estimate is.
+        rangeExtractor: function( range ) {
+          
+          const base = defaultRangeExtractor( range );
+          if ( open < 0 || _.includes( base, open ) ) return base;
+          
+          const start = Math.min( base[ 0 ], open );
+          const end = Math.max( base[ base.length - 1 ], open );
+          return _.range( start, end + 1 );
+          
+        },
         scrollMargin: scrollMargin.value,
         // Keep an opened row clear of the fixed top nav (0 on mobile). scrollToIndex
         // with align:'start' lands the row at item.start - scrollPaddingStart, so this
@@ -244,7 +256,10 @@ export default {
   },
 
   mounted: function() {
-    this.$compEmitter.on('afterWindowResize', this.measureGrid);
+    // Not this.measureGrid directly: mitt calls handlers with the event payload as the
+    // first argument, which would land in measureGrid's skipSnapCoverSize parameter and
+    // make it truthy, silently skipping snapCoverSize on every resize.
+    this.$compEmitter.on('afterWindowResize', this.onWindowResizeMeasure);
 
     this.$nextTick(function() {
       this.measureGrid();
@@ -254,7 +269,7 @@ export default {
     });
   },
   beforeUnmount: function() {
-    this.$compEmitter.off('afterWindowResize', this.measureGrid);
+    this.$compEmitter.off('afterWindowResize', this.onWindowResizeMeasure);
     if ( this.detailsWrapObserver ) {
       this.detailsWrapObserver.disconnect();
       this.detailsWrapObserver = null;
@@ -297,6 +312,12 @@ export default {
 
     },
 
+    // Window resize handler: measureGrid takes skipSnapCoverSize as its first argument,
+    // so it can't be registered on the emitter directly (mitt passes the event payload).
+    onWindowResizeMeasure: function() {
+      this.measureGrid();
+    },
+
     // GRID METRICS
     // Measure columns + cell height from a real rendered cover (covers keep their
     // natural CSS size; the grid's max width is what changes), plus the container's
@@ -308,6 +329,22 @@ export default {
 
       const wrapperWidth = wrapper.getBoundingClientRect().width;
       const cell = wrapper.querySelector('.ale-book');
+
+      // Covers-per-row / cover size slider bounds. Only depend on the parent, not a
+      // rendered cover, so run unconditionally (a resize during zero results shouldn't
+      // leave these stale).
+      const parent = wrapper.parentElement;
+      const parentStyle = window.getComputedStyle( parent );
+      const parentPadding = parseFloat( parentStyle.paddingLeft ) + parseFloat( parentStyle.paddingRight );
+      const available = parent.getBoundingClientRect().width - parentPadding;
+      // The default (no-override) max width is the smaller of the CSS default and
+      // the space available, so it matches what the grid shows at rest.
+      const cssDefault = 728;
+      this.$store.commit('prop', [
+        { key: 'gridDefaultMaxWidth', value: Math.min( cssDefault, available ) },
+        { key: 'gridAvailableWidth', value: available },
+      ]);
+      if ( !skipSnapCoverSize ) this.$store.commit('snapCoverSize');
 
       if ( cell ) {
         const cellBox = cell.getBoundingClientRect();
@@ -331,27 +368,12 @@ export default {
           this.cols = Math.floor( wrapperWidth / cellBox.width ) || 1;
         }
         this.cellHeight = cellBox.height;
-        // Share the metrics the covers-per-row (max width) slider needs:
-        // - gridCols: book-details arrow nav steps by it
-        // - gridCoverWidth: the slider's step / unit
-        // - gridDefaultMaxWidth: the slider's minimum (the unoverridden width). Read
-        //   from the parent so an active override on the wrapper doesn't skew it.
-        // - gridAvailableWidth: the slider's maximum (how wide the grid can grow).
-        const parent = wrapper.parentElement;
-        const parentStyle = window.getComputedStyle( parent );
-        const parentPadding = parseFloat( parentStyle.paddingLeft ) + parseFloat( parentStyle.paddingRight );
-        const available = parent.getBoundingClientRect().width - parentPadding;
-        // The default (no-override) max width is the smaller of the CSS default and
-        // the space available, so it matches what the grid shows at rest.
-        const cssDefault = 728;
-        const updates = [
+        // gridCols: book-details arrow nav steps by it. gridCoverWidth: the
+        // covers-per-row slider's step / unit.
+        this.$store.commit('prop', [
           { key: 'gridCols', value: this.cols },
           { key: 'gridCoverWidth', value: cellBox.width },
-          { key: 'gridDefaultMaxWidth', value: Math.min( cssDefault, available ) },
-          { key: 'gridAvailableWidth', value: available },
-        ];
-        this.$store.commit('prop', updates);
-        if ( !skipSnapCoverSize ) this.$store.commit('snapCoverSize');
+        ]);
       }
 
       this.scrollMargin = wrapper.getBoundingClientRect().top + window.scrollY;
@@ -420,6 +442,11 @@ export default {
       const vue = this;
       this.$nextTick(function() {
         vue.virtualizer.scrollToIndex( vue.openRowIndex, { align: 'start' } );
+        // gapHeight stays 0 until the ResizeObserver's first (async, sometimes delayed)
+        // callback lands. That's fine now: the rangeExtractor keeps the open row rendered
+        // regardless of its estimated size, so a stale gap only leaves the rows below it
+        // momentarily mis-spaced (the observer corrects that) - it can no longer virtualize
+        // the panel away mid-scroll and snap the view back.
         vue.observeDetailsWrap( vue.$el.querySelector('.grid-details-wrap') );
       });
       // Safety: if the gap doesn't change (next book's panel is the same height) the
@@ -752,10 +779,6 @@ $detailsListCardMax: 300px;
     padding-right: 10px;
   }
   #ale-search {
-    > .icons {
-      padding-left: 0px;
-      .icon-wrap:first-child > div { padding-left: 0px; }
-    }
     > .icons {
       font-size: 0.9em;
     }
