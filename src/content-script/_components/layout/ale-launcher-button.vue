@@ -1,34 +1,70 @@
 <template>
 <n-config-provider :theme="lightTheme" :theme-overrides="themeOverrides" class="ale-launcher-provider">
 <div class="ale-launcher-outer">
-<div class="ale-launcher" :class="{ open: treeOpen, 'has-selection': !!selectionSummary }">
-
-  <button ref="mainTrigger" class="ale-launcher-main" :disabled="store.extractionButtonDisabled" @click="extract">
-    <ph-download-bold class="ale-launcher-main-icon" />
-    <span class="ale-launcher-main-text">
-      <span class="ale-launcher-label">{{ $store.getters.partialDataSettings_any ? 'Partial extract' : 'Extract' }}</span>
-      <span class="ale-launcher-selection" v-if="selectionSummary">{{ selectionSummary }}</span>
-    </span>
-  </button>
+<div class="ale-launcher" :class="{ open: treeOpen }">
 
   <n-popover
     trigger="manual"
     :show="treeOpen"
     @update:show="treeOpen = $event"
+    :on-clickoutside="handleTreeClickOutside"
     placement="bottom-end"
     :show-arrow="false"
     style="padding: 0;"
   >
     <template #trigger>
-      <button class="ale-launcher-menu-btn" @click="treeOpen = !treeOpen">
-        <ph-sliders-bold />
+      <button ref="mainTrigger" class="ale-launcher-main" :disabled="store.extractionButtonDisabled" @click="treeOpen = !treeOpen">
+        <svg class="ale-launcher-mark" viewBox="0 0 151.5 93.7">
+          <path d="M75.8 80.7l75.7-47.2v12.8L75.8 93.7 0 46.3V33.5l75.8 47.2z"/>
+          <path d="M75.8 21.5a48.17 48.17 0 0 0-40.7 21.9 12.94 12.94 0 0 1 1.8-1.6c21.3-17.7 52-13.7 68.7 8.6l11.1-7.1a49.82 49.82 0 0 0-40.9-21.8"/>
+          <path d="M75.8 43.4a27.72 27.72 0 0 0-22.4 11.5 22.7 22.7 0 0 1 13.5-4.4c8.2 0 15.5 4.2 20.4 11.3l10.6-6.6a25.79 25.79 0 0 0-22.1-11.8M24.6 24.2C55.8-.4 99.9 6.3 123.4 39l.2.2 11.5-7.1a70.82 70.82 0 0 0-118.6 0 60.63 60.63 0 0 1 8.1-7.9"/>
+        </svg>
+        <span class="ale-launcher-label">Audible Library Extractor</span>
       </button>
     </template>
     <div class="ale-launcher-menu">
       <div class="ale-launcher-tree-pane">
         <div class="ale-launcher-tree-heading">
-          <div class="ale-launcher-tree-title">Data sources</div>
-          <div class="ale-launcher-tree-subtitle">Choose what to extract from your library.</div>
+          <div>
+            <div class="ale-launcher-tree-subtitle">Choose what to extract:</div>
+          </div>
+          <n-popover
+            trigger="manual"
+            :show="moreOpen"
+            @update:show="moreOpen = $event"
+            :on-clickoutside="handleMoreClickOutside"
+            placement="right-start"
+            :flip="true"
+            :show-arrow="false"
+            style="padding: 0;"
+          >
+            <template #trigger>
+              <button class="ale-launcher-more-btn" @click="moreOpen = !moreOpen">
+                <ph-dots-three-bold />
+              </button>
+            </template>
+            <div class="ale-launcher-actions">
+              <template v-for="action in actionOptions" :key="action.key">
+                <button
+                  class="ale-launcher-action"
+                  :disabled="action.disabled"
+                  @click="handleMoreSelect( action.key )"
+                >
+                  <component :is="action.icon" />
+                  <template v-if="action.key === 'toggleSlowExtract'">
+                    <span class="ale-launcher-action-label">Slow extraction</span>
+                    <div class="mini-switch" :class="{ on: store.sticky.slowExtract }"><div class="mini-switch-thumb"></div></div>
+                  </template>
+                  <template v-else-if="action.key === 'whatsNew'">
+                    <span class="ale-launcher-action-label">{{ action.label }}</span>
+                    <span class="ale-launcher-version-pill">v{{ $store.state.appVersion }}</span>
+                  </template>
+                  <span v-else class="ale-launcher-action-label">{{ action.label }}</span>
+                </button>
+                <div v-if="action.divider" class="ale-launcher-action-divider"></div>
+              </template>
+            </div>
+          </n-popover>
         </div>
         <n-tree
           checkable
@@ -54,28 +90,22 @@
             <ph-square-bold /> Unselect all
           </button>
         </div>
-      </div>
-      <div class="ale-launcher-menu-divider"></div>
-      <div class="ale-launcher-actions">
-        <template v-for="action in actionOptions" :key="action.key">
-          <button
-            class="ale-launcher-action"
-            :disabled="action.disabled"
-            @click="handleMoreSelect( action.key )"
-          >
-            <component :is="action.icon" />
-            <template v-if="action.key === 'toggleSlowExtract'">
-              <span class="ale-launcher-action-label">Slow extraction</span>
-              <div class="mini-switch" :class="{ on: store.sticky.slowExtract }"><div class="mini-switch-thumb"></div></div>
-            </template>
-            <template v-else-if="action.key === 'whatsNew'">
-              <span class="ale-launcher-action-label">{{ action.label }}</span>
-              <span class="ale-launcher-version-pill">v{{ $store.state.appVersion }}</span>
-            </template>
-            <span v-else class="ale-launcher-action-label">{{ action.label }}</span>
+        <div class="ale-launcher-extract-actions">
+          <template v-if="$store.getters.partialDataSettings_any">
+            <button class="ale-launcher-extract-primary" @click="extract">
+              <ph-lightning-bold /> Quick extraction
+            </button>
+            <button class="ale-launcher-extract-secondary" @click="handleMoreSelect('fullExtraction')">
+              <ph-cloud-arrow-down-bold /> Full extraction
+            </button>
+          </template>
+          <button v-else class="ale-launcher-extract-primary" @click="handleMoreSelect('fullExtraction')">
+            <ph-cloud-arrow-down-bold /> Full extraction
           </button>
-          <div v-if="action.divider" class="ale-launcher-action-divider"></div>
-        </template>
+          <button v-if="$store.getters.mainDataExists" class="ale-launcher-gallery-link" @click="openGallery">
+            Open gallery
+          </button>
+        </div>
       </div>
     </div>
   </n-popover>
@@ -95,7 +125,7 @@
   <n-modal
     v-model:show="showRemoveAllConfirm"
     preset="dialog"
-    title="Remove all extracted data"
+    title="Remove all data"
     content="Clears all extracted data from storage without re-extracting. You can always extract again afterwards."
     positive-text="Remove"
     negative-text="Cancel"
@@ -117,7 +147,6 @@
   <cont-changelog v-model:show="showWhatsNew" />
 
 </div>
-<span class="ale-launcher-menu-badge">{{ selectedCount }}/{{ settings.length }}</span>
 </div>
 </n-config-provider>
 </template>
@@ -132,13 +161,11 @@ import IconTrash from '~icons/bi/trash3';
 import IconInfo from '~icons/fa6-solid/circle-info';
 import IconSpeedSlow from '~icons/mdi/speedometer-slow';
 import IconRestore from '~icons/mdi/restore';
-import IconPartialExtract from '~icons/ph/download-bold';
 import IconExport from '~icons/mdi/tray-arrow-down';
 import IconImport from '~icons/mdi/tray-arrow-up';
 import IconDocs from '~icons/ri/external-link-line';
 import IconGallery from '~icons/ri/external-link-line';
 import IconWhatsNew from '~icons/ph/code-bold';
-import IconFullExtract from '~icons/mdi/restart';
 
 export default {
   name: 'aleLauncherButton',
@@ -150,11 +177,20 @@ export default {
       store: this.$store.state,
       exportRawDataDisabled: false,
       treeOpen: false,
+      moreOpen: false,
       showResetConfirm: false,
       showRemoveAllConfirm: false,
       showFullExtractConfirm: false,
       showWhatsNew: false,
     };
+  },
+
+  mounted: function() {
+    document.addEventListener( 'keydown', this.handleEscKey );
+  },
+
+  unmounted: function() {
+    document.removeEventListener( 'keydown', this.handleEscKey );
   },
 
   computed: {
@@ -165,16 +201,6 @@ export default {
 
     selectedKeys: function() {
       return _.map( _.filter( this.settings, 'value' ), 'name' );
-    },
-
-    selectedCount: function() {
-      return _.filter( this.settings, 'value' ).length;
-    },
-
-    // Compact summary of the currently checked settings, shown inside the button in
-    // place of the always-visible separate tag row. Truncates with an ellipsis via CSS.
-    selectionSummary: function() {
-      return _.map( _.filter( this.settings, 'value' ), 'label' ).join(', ');
     },
 
     // Settings with a `parent` nest under that parent's tree node; everything else
@@ -223,8 +249,6 @@ export default {
     actionOptions: function() {
 
       return [
-        { label: 'Partial extraction', key: 'partialExtraction', icon: IconPartialExtract },
-        { label: 'Full extraction', key: 'fullExtraction', icon: IconFullExtract, divider: true },
         { label: 'Slow extraction', key: 'toggleSlowExtract', icon: IconSpeedSlow },
         { label: 'Reset new books', key: 'resetNewBooks', disabled: !this.store.storageHasData.library, icon: IconRestore },
         { label: 'Remove all extracted data', key: 'removeAllExtractedData', icon: IconTrash, divider: true },
@@ -240,6 +264,53 @@ export default {
   },
 
   methods: {
+
+    // naive-ui's clickoutside check only looks at the popover's own DOM node, so a
+    // click landing in a nested popover/popconfirm/tooltip/modal (the per-row delete
+    // button, its info tooltip, the "more" menu, the what's new dialog) reads as
+    // "outside" since those float as separate elements teleported to <body>. Without
+    // this, clicking their content closes the whole tree popover before the nested one
+    // can register the click. And while any of those overlays are open, an outside
+    // click should only close that overlay, never cascade into closing this whole tree
+    // popover underneath it - so the click needs a full "anything else open" bail-out,
+    // not just a same-click DOM-containment check.
+    handleTreeClickOutside: function( e ) {
+      if ( e.target.closest('.n-popover, .n-popover-shared, .n-modal-container') ) return;
+      if ( this.moreOpen || this.showWhatsNew || this.showResetConfirm || this.showRemoveAllConfirm || this.showFullExtractConfirm ) return;
+      // The main trigger button owns its own open/close toggle via @click - letting
+      // this handler also react to the same click would race with that toggle and
+      // immediately reopen what the click just closed.
+      if ( e.target.closest('.ale-launcher-main') ) return;
+      this.treeOpen = false;
+    },
+
+    // Same reasoning as handleTreeClickOutside: the what's new modal opens from a menu
+    // item inside this popover, so a click inside it must not count as "outside" this
+    // menu, otherwise opening what's new immediately closes the menu underneath it.
+    // The "more" trigger button also owns its own toggle via @click, so it's excluded
+    // here too, otherwise clicking it again to close would race with this handler and
+    // flicker back open.
+    handleMoreClickOutside: function( e ) {
+      if ( e.target.closest('.n-modal-container') ) return;
+      if ( e.target.closest('.ale-launcher-more-btn') ) return;
+      this.moreOpen = false;
+    },
+
+    // A DOM-bubbling @keydown.esc on the tree's own content wouldn't reliably catch
+    // Escape pressed while focus sits inside a nested popover/modal, since those
+    // teleport to <body> as siblings rather than DOM descendants. A single
+    // document-level listener with the same "topmost overlay only" precedence as the
+    // clickoutside handlers above avoids that, and avoids Escape cascading down to
+    // close everything at once.
+    handleEscKey: function( e ) {
+      if ( e.key !== 'Escape' ) return;
+      if ( this.showWhatsNew ) { this.showWhatsNew = false; return; }
+      if ( this.showResetConfirm ) { this.showResetConfirm = false; return; }
+      if ( this.showRemoveAllConfirm ) { this.showRemoveAllConfirm = false; return; }
+      if ( this.showFullExtractConfirm ) { this.showFullExtractConfirm = false; return; }
+      if ( this.moreOpen ) { this.moreOpen = false; return; }
+      if ( this.treeOpen ) { this.treeOpen = false; return; }
+    },
 
     renderLabel: function({ option }) {
 
@@ -269,15 +340,19 @@ export default {
         }));
       }
 
-      buttons.push( h(NPopconfirm, {
-        onPositiveClick: () => vue.deleteChunkData( setting ),
-      }, {
-        trigger: () => h('button', {
-          class: 'delete-btn',
-          onClick: ( e ) => e.stopPropagation(),
-        }, h(IconTrash)),
-        default: () => `Delete "${ setting.label }" data?${ setting.trashTippy ? ' ' + setting.trashTippy : '' }`,
-      }));
+      // Nothing to delete if this setting has no stored data yet.
+      const hasData = !!_.get( this.$store.state.storageHasData, setting.name );
+      if ( hasData ) {
+        buttons.push( h(NPopconfirm, {
+          onPositiveClick: () => vue.deleteChunkData( setting ),
+        }, {
+          trigger: () => h('button', {
+            class: 'delete-btn',
+            onClick: ( e ) => e.stopPropagation(),
+          }, h(IconTrash)),
+          default: () => `Delete "${ setting.label }" data?${ setting.trashTippy ? ' ' + setting.trashTippy : '' }`,
+        }));
+      }
 
       if ( !buttons.length ) return null;
 
@@ -419,11 +494,6 @@ export default {
       if ( key === 'fullExtraction' ) { this.showFullExtractConfirm = true; return; }
       if ( key === 'whatsNew' ) { this.showWhatsNew = true; return; }
 
-      // Same action the main orange button performs - a convenience duplicate inside
-      // the menu, since once someone's in here adjusting checkboxes the main button
-      // sitting outside the popover is easy to lose track of.
-      if ( key === 'partialExtraction' ) { this.extract(); return; }
-
       this[ key ]();
 
     },
@@ -444,7 +514,11 @@ export default {
 
       const vue = this;
 
+      // Same as checking "Library" directly: settings flagged excludeFromParentCascade
+      // (ISBN, for instance) are niche/slow enough that "select all" shouldn't silently
+      // opt people into them. Still checkable manually.
       _.each( this.settings, function( setting ) {
+        if ( setting.excludeFromParentCascade ) return;
         vue.$store.commit('updateSetting', { item: setting, obj: { value: true } });
       });
 
@@ -597,133 +671,90 @@ export default {
 
 .ale-launcher {
   display: inline-flex;
-  flex-direction: row;
-  align-items: stretch;
-  width: 232px;
-  height: 33px;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 2px 4px rgb(0 0 0 / 10%), 0 2px 10px rgb(0 0 0 / 10%);
   font-family: "Audible Sans", Arial, sans-serif;
-
-  // Taller to fit the selection subtext line once any data source is checked.
-  &.has-selection { height: 43px; }
 }
 
 .ale-launcher-main {
   display: inline-flex;
-  flex: 1 1 auto;
   align-items: center;
   gap: 8px;
-  min-width: 0;
-  padding: 0 8px 0 12px;
+  height: 33px;
+  padding: 0 12px;
   border: none;
-  background: #f7991c;
+  background: linear-gradient(135deg, #f9a13c, #f0790a);
   color: #fff;
   cursor: pointer;
 
-  &:hover { background: #f8a93d; }
+  &:hover { background: linear-gradient(135deg, #fab158, #f28a26); }
   &:disabled { opacity: .6; cursor: default; }
 }
 
-.ale-launcher-main-icon {
+.ale-launcher-mark {
   flex-shrink: 0;
-  font-size: 15px;
-  opacity: .85;
-}
-
-.ale-launcher-main-text {
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  min-width: 0;
+  width: 14px;
+  height: auto;
+  fill: #fff;
+  opacity: .9;
 }
 
 .ale-launcher-label {
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
-  max-width: 100%;
-  font-weight: 900;
-  font-size: 14px;
-  line-height: 16px;
-}
-
-.ale-launcher-selection {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  max-width: 100%;
-  font-weight: 400;
-  font-size: 11px;
-  line-height: 13px;
-  opacity: .85;
-}
-
-.ale-launcher-menu-btn {
-  display: inline-flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  border: none;
-  border-left: 1px solid rgba(255, 255, 255, .25);
-  background: #f7991c;
-  color: #fff;
-  font-size: 16px;
-  cursor: pointer;
-
-  &:hover { background: #f8a93d; }
-}
-
-// Sits in .ale-launcher-outer (not .ale-launcher itself, which clips via
-// overflow:hidden for its own rounded corners) so it can overlap the button's
-// outer edge like a typical notification badge instead of being clipped flush to it.
-.ale-launcher-menu-badge {
-  position: absolute;
-  top: -6px;
-  right: -6px;
-  padding: 0 4px;
-  pointer-events: none;
-  border-radius: 999px;
-  background: #fff;
-  color: #2a2a2a;
-  font-weight: 700;
-  font-size: 9px;
-  line-height: 13px;
-  white-space: nowrap;
-  box-shadow: 0 0 0 1px rgba(0, 0, 0, .12), 0 1px 2px rgba(0, 0, 0, .15);
+  font-weight: 800;
+  font-size: 12.5px;
 }
 
 .ale-launcher-menu {
   display: flex;
-  flex-direction: row;
-  align-items: stretch;
 }
 
 .ale-launcher-tree-pane {
+  position: relative;
   display: flex;
   flex-direction: column;
-  width: 270px;
-  padding: 15px;
+  width: 310px;
+  padding: 20px;
 }
 
 .ale-launcher-tree-heading {
+  display: flex;
   flex-shrink: 0;
-  padding-bottom: 8px;
-}
-
-.ale-launcher-tree-title {
-  color: #2a2a2a;
-  font-weight: 700;
-  font-size: 13px;
+  align-items: flex-start;
+  padding-right: 40px;
+  padding-bottom: 12px;
+  padding-top: 3px;
 }
 
 .ale-launcher-tree-subtitle {
-  margin-top: 2px;
-  color: #888;
-  font-size: 11px;
-  line-height: 14px;
+  color: #2a2a2a;
+  font-weight: 700;
+  font-size: 13.5px;
+  line-height: 17px;
+}
+
+.ale-launcher-more-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid #e1e1e1;
+  border-radius: 6px;
+  background: #fff;
+  color: #777;
+  cursor: pointer;
+  appearance: none;
+  box-shadow: 0 1px 2px rgb(0 0 0 / 8%), 0 1px 3px rgb(0 0 0 / 6%);
+
+  svg { width: 18px; height: 18px; }
+
+  &:hover { background: #f7f7f7; color: #555; }
 }
 
 .ale-launcher-tree {
@@ -760,10 +791,69 @@ export default {
   &:hover { background: rgba(0, 0, 0, .08); }
 }
 
-.ale-launcher-menu-divider {
+.ale-launcher-extract-actions {
+  display: flex;
+  flex-direction: column;
   flex-shrink: 0;
-  width: 1px;
-  background: #e1e1e1;
+  gap: 6px;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e1e1e1;
+}
+
+.ale-launcher-extract-primary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 6px;
+  background: #f7991c;
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  cursor: pointer;
+  appearance: none;
+
+  svg { width: 14px; height: 14px; }
+
+  &:hover { background: #f8a93d; }
+}
+
+.ale-launcher-extract-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: none;
+  border-radius: 6px;
+  background: rgba(0, 0, 0, .045);
+  color: #2a2a2a;
+  font-size: 12.5px;
+  cursor: pointer;
+  appearance: none;
+
+  svg { width: 13px; height: 13px; color: #777; }
+
+  &:hover { background: rgba(0, 0, 0, .09); }
+}
+
+.ale-launcher-gallery-link {
+  margin-top: 2px;
+  padding: 4px;
+  border: none;
+  background: none;
+  color: #999;
+  font-size: 11.5px;
+  text-align: center;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+  appearance: none;
+
+  &:hover { color: #666; }
 }
 
 .ale-launcher-actions {

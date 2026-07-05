@@ -84,12 +84,17 @@ function dataChecker( data, targetStore ) {
     { key: 'storageHasData.wishlist', 	 value: !!audibledata.wishlist },
     { key: 'storageHasData.collections', value: !!audibledata.collections },
     { key: 'storageHasData.userReviews', value: !!audibledata.userReviews },
+    { key: 'storageHasData.purchaseHistory', value: !!audibledata.library && checkPurchaseHistory( audibledata.library ) },
     { key: 'storageConfig', value: metadata.config || {} },
     { key: 'dataVersion', value: metadata.version || null },
   ]);
 
   function checkISBNs( libraryChunks ) {
     return _.some( libraryChunks, chunk => _.some( chunk, 'isbns' ) );
+  }
+
+  function checkPurchaseHistory( libraryChunks ) {
+    return _.some( libraryChunks, chunk => _.some( chunk, 'purchaseDate' ) );
   }
 
 }
