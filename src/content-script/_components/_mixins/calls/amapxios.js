@@ -17,22 +17,33 @@ export default {
 
     },
 
-    amapxios: function( options ) {
+    // One rate-limited axios shared by every amapxios call for the whole extraction. The rate window
+    // lives inside this single instance, so no matter how many batches run (nested or parallel) they
+    // all draw from one budget and can never exceed the configured requests/second against Audible.
+    getSharedAxios: function() {
 
-      const limiter = _.cloneDeep( options.rateLimit || this.$store.state.axiosRateLimit );
-      if ( this.$store.state.sticky.slowExtract ) {
-        limiter.perMilliseconds *= 2;
+      if ( !this.sharedAxios ) {
+        const limiter = _.cloneDeep( this.$store.state.axiosRateLimit );
+        if ( this.$store.state.sticky.slowExtract ) limiter.perMilliseconds *= 2;
+        const cAxios = rateLimit( axios.create(), limiter );
+        axiosRetry( cAxios, {
+          retries: 1,
+          retryDelay: retryCount => retryCount * 1000,
+          retryCondition: e => e.response?.status === 503,
+        });
+        this.sharedAxios = cAxios;
       }
 
+      return this.sharedAxios;
+
+    },
+
+    amapxios: function( options ) {
+
+      const limiter = this.$store.state.axiosRateLimit;
       const maxTimeout = this.minutesToMilliseconds( 1 );
 
-      // AXIOS — rate-limited instance with one automatic retry on 503
-      const cAxios = rateLimit( axios.create(), limiter );
-      axiosRetry( cAxios, {
-        retries: 1,
-        retryDelay: retryCount => retryCount * 1000,
-        retryCondition: e => e.response?.status === 503,
-      });
+      const cAxios = this.getSharedAxios();
 
       asyncMapLimit( options.requests, limiter.concurrency || limiter.maxRequests, async ( request ) => {
 
