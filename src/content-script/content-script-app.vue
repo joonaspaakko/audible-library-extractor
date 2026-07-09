@@ -234,7 +234,7 @@ export default {
       
     },
     
-    outputCleanup( hotpotato ) {
+    outputCleanup( hotpotato, isFinal ) {
       
       let collections = hotpotato.collections;
       let archive = collections ? _.find( collections, { id: '__ARCHIVE' }) : null;
@@ -313,8 +313,11 @@ export default {
         
       // return;
       
-      // Make sure library books are excluded from the wishlist no matter hwhat...
-      if ( _.get(hotpotato, 'library.0') && _.get(hotpotato, 'wishlist.0') ) {
+      // Make sure library books are excluded from the wishlist no matter hwhat. Only run on the
+      // final save, not the mid-waterfall checkpoint saves: pruning overlap early can strip owned
+      // books out of hotpotato.wishlist before the wishlist step gets a chance to match them
+      // against storage for its own old/new bookkeeping.
+      if ( isFinal && _.get(hotpotato, 'library.0') && _.get(hotpotato, 'wishlist.0') ) {
         _.remove( hotpotato.wishlist, function( book ) {
           if ( book.asin ) return _.find( hotpotato.library, { asin: book.asin });
         });
@@ -322,11 +325,11 @@ export default {
       
     },
     
-    saveExtractionSoFar( hotpotato, callback ) {
+    saveExtractionSoFar( hotpotato, callback, isFinal ) {
       
       let vue = this;
       
-      this.outputCleanup( hotpotato );
+      this.outputCleanup( hotpotato, isFinal );
 
       if ( hotpotato.config ) {
         if ( hotpotato.config.steps || hotpotato.config.extraSettings ) {
@@ -386,9 +389,10 @@ export default {
         chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
       }
       else {
+        // isFinal: safe to prune wishlist/library overlap now that every step is done
         this.saveExtractionSoFar( hotpotato, () => {
           chrome.runtime.sendMessage({ action: "openOutput", url: pageAddress });
-        }); 
+        }, true );
       }
       
     },
