@@ -135,6 +135,7 @@ export default {
                 let asin = book.asin || book;
                 let inLibrary = _.includes( allBooksInSeries.books, asin );
                 const wishlistBook = _.find(vue.$store.state.audibledata.wishlist, { asin: asin });
+                const preorder = _.find(vue.$store.state.audibledata.preorders, { asin: asin });
                 if ( inLibrary ) {
                   let libBook = _.find(vue.$store.state.audibledata.library, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
@@ -156,6 +157,17 @@ export default {
                     obj: wishlistBook,
                     bookNumbers: book.bookNumbers,
                     inWishlist: true,
+                    notInLibrary: true,
+                  }
+                }
+                else if (preorder) {
+                  return {
+                    asin,
+                    title: book.title,
+                    titleShort: book.titleShort,
+                    obj: { authors: vue.book.authors, notInLibrary: true },
+                    bookNumbers: book.bookNumbers,
+                    preorder: preorder,
                     notInLibrary: true,
                   }
                 }
@@ -291,6 +303,11 @@ export default {
     &.not-in-library {
       .icon { color: #e75551; }
       .title { text-decoration: none; }
+      .numbers { opacity: 0.5; }
+    }
+    &.preorder {
+      .icon { color: #8e44ec; }
+      .title { text-decoration: none; opacity: 1; }
       .numbers { opacity: 0.5; }
     }
 

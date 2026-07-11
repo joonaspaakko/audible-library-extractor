@@ -50,6 +50,7 @@ export default {
       plusCatalog: true,
       favorite: true,
       finished: true,
+      preorder: true,
       reverseDirection: false,
       hideFirstSection: true,
     },

@@ -43,6 +43,11 @@
               <fa6-solid-headphones-simple/>
               whispersync
             </div>
+
+            <div class="info-tag preorder" v-if="book.notInLibrary && book.preorder" v-tippy="{ maxWidth: 300 }" :content="book.preorder.releaseDate ? ('Pre-ordered. Releases ' + book.preorder.releaseDate) : 'Pre-ordered'">
+              <fa6-solid-clock/>
+              preorder
+            </div>
           </div>
           
           <div class="release-date" v-if="book.releaseDate" v-tippy content="YYYY-MM-DD">
@@ -396,6 +401,10 @@ export default {
       &.owned {
         background: #61bd34;
       }
+    }
+
+    &.preorder {
+      background: #8e44ec;
     }
   }
   

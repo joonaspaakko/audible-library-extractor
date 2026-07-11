@@ -82,16 +82,22 @@ export default {
               return true;
             });
 
+            // Pre-orders show up as regular rows in the same tf=orders pages (no release yet,
+            // so no purchaseDate), just flagged with a releaseDate by processPurchaseHistoryPage.
+            const preorders = _.filter( deduped, 'releaseDate' );
+            const purchases = _.reject( deduped, 'releaseDate' );
+
             // MERGE purchaseDate into library books
             if ( hotpotato.library ) {
-              _.each( deduped, ( item ) => {
+              _.each( purchases, ( item ) => {
                 const book = _.find( hotpotato.library, { asin: item.asin });
                 if ( book ) book.purchaseDate = item.purchaseDate;
               });
             }
 
-            // STORE raw list and finish
-            hotpotato.purchaseHistory = deduped;
+            // STORE raw lists and finish
+            hotpotato.purchaseHistory = purchases;
+            hotpotato.preorders = _.map( preorders, ( item ) => _.pick( item, [ 'asin', 'releaseDate' ]) );
 
             this.$nextTick( () => {
               purchaseHistoryFetched( null, hotpotato );
@@ -258,6 +264,17 @@ export default {
 
         const asin = DOMPurify.sanitize( returnLink.dataset.orderItemAsin || '' );
         if ( !asin ) return;
+
+        // PRE-ORDER: no purchase date yet, just a scheduled release date instead, like
+        // "Scheduled release: In 103 days, 10-20-2026". Only the trailing date is kept.
+        const titleBlock = row.querySelector('.ui-it-purchasehistory-item-title');
+        const titleText = titleBlock ? DOMPurify.sanitize( titleBlock.textContent ) : '';
+        const rawReleaseDate = ( titleText.match( /Scheduled release:.*?(\d{1,2}-\d{1,2}-\d{4})/ ) || [] )[ 1 ];
+
+        if ( rawReleaseDate ) {
+          items.push({ asin, releaseDate: vue.fixDates( rawReleaseDate ) });
+          return;
+        }
 
         const dateEl = row.querySelector('.ui-it-purchasehistory-item-purchasedate');
         const rawDate = dateEl ? DOMPurify.sanitize( dateEl.textContent.trim() ) : null;

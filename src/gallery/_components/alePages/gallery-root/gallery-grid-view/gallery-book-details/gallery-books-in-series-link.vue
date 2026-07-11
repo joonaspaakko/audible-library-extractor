@@ -71,6 +71,7 @@ export default {
         obj.progress === 'Finished' && { key: 'finished-marker' },
         obj.fromPlusCatalog && { key: 'plus-catalog-marker' },
         obj.whispersync === 'owned' && { key: 'kindle-marker' },
+        this.book.preorder && { key: 'preorder-marker' },
       ]);
     },
   },
@@ -225,6 +226,7 @@ export default {
       @include themify($themes) { background: themed(audibleOrange); }
     }
     .kindle-marker { background: #106be6; }
+    .preorder-marker { background: #8e44ec; }
   }
 }
 
