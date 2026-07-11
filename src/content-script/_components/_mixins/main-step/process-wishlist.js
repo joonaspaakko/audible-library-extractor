@@ -24,6 +24,8 @@ export default {
         ]);
 
         const vue = this;
+        const bookCounts = { new: 0, old: 0 };
+
         waterfall(
           [
             function(callback) {
@@ -62,7 +64,7 @@ export default {
                   return prep.urlObj.toString();
                 }),
                 step: function(response, stepCallback) {
-                  vue.getBooksWishlist(response, hotpotato, stepCallback);
+                  vue.getBooksWishlist(response, hotpotato, bookCounts, stepCallback);
                 },
                 flatten: true,
                 done: function(books) {
@@ -73,7 +75,7 @@ export default {
           ],
           function(err, books) {
             
-            if ( books.length ) hotpotato.wishlist = books;
+            hotpotato.wishlist = books;
             
             vue.$nextTick(function() {
               hotpotato.config.getStorePages = 'wishlist';
@@ -85,7 +87,7 @@ export default {
       }
     },
     
-    getBooksWishlist: function(response, hotpotato, completeStep) {
+    getBooksWishlist: function(response, hotpotato, bookCounts, completeStep) {
       let vue = this;
       const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
       response.data = null;
@@ -293,11 +295,16 @@ export default {
             if ( newAddition || newFromStorage ) book.isNew = true;
           }
           
-          if (fullScan_ALL_partialScan_NEW) {
-            book.isNewThisRound = true;
-            vue.$store.commit('update', { key: 'progress.max', add: 1 });
+          if (fullScan_ALL_partialScan_NEW) book.isNewThisRound = true;
+
+          // Only a partial scan shows a live count. A full scan keeps the static "Scanning..."
+          // text, since every book counts as "new" there and the count would be meaningless.
+          if ( vue.$store.state.storageHasData.wishlist ) {
+            if ( fullScan_ALL_partialScan_NEW ) bookCounts.new++;
+            else bookCounts.old++;
+            vue.$store.commit('update', { key: 'progress.text', value: vue.buildLibraryProgressText( bookCounts ) });
           }
-          
+
           wishlist.push(book);
           
         }

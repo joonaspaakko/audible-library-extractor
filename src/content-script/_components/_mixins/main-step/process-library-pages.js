@@ -19,9 +19,11 @@ export default {
           { key: 'subStep.max', value: 4 },
           { key: 'progress.step', value: 0 },
           { key: 'progress.max', value: 0 },
-          { key: 'progress.text', value: this.$store.state.storageHasData.library ? "Adding new books " : "Scanning library for books..." },
+          { key: 'progress.text', value: this.$store.state.storageHasData.library ? "Updating old books and adding new books..." : "Scanning library for books..." },
         ]);
         
+        const bookCounts = { new: 0, old: 0 };
+
         vue.scrapingPrep({
           url: vue.libraryUrl, 
           maxSize: 20,
@@ -38,7 +40,7 @@ export default {
                 requestId: 'library-page-' + page,
               })),
               step: function(response, stepCallback) {
-                vue.processLibraryPage(response, hotpotato, stepCallback);
+                vue.processLibraryPage(response, hotpotato, bookCounts, stepCallback);
               },
               flatten: true,
               done: function(books) {
@@ -79,8 +81,6 @@ export default {
                      
                   // });
                   
-                  vue.$store.commit('update', { key: 'progress.textsuffix', value: null });
-
                   hotpotato.config.getStorePages = 'library';
                   vue.$nextTick(function() {
                     libraryPagesFetched(null, hotpotato);
@@ -103,7 +103,21 @@ export default {
       
     },
     
-    processLibraryPage: function(response, hotpotato, stepCallback) {
+    // Builds the "Updating old books (N) and adding new books (N)" progress sentence. Either half
+    // is dropped while its count is still 0, so an idle count never shows a stray "(0)".
+    buildLibraryProgressText: function( bookCounts ) {
+
+      const oldClause = bookCounts.old > 0 ? 'Updating old books (' + bookCounts.old + ')' : '';
+      const newClause = bookCounts.new > 0 ? 'adding new books (' + bookCounts.new + ')' : '';
+
+      if ( oldClause && newClause ) return oldClause + ' and ' + newClause;
+      if ( oldClause ) return oldClause;
+      if ( newClause ) return 'Adding new books (' + bookCounts.new + ')';
+      return 'Updating old books and adding new books...';
+
+    },
+
+    processLibraryPage: function(response, hotpotato, bookCounts, stepCallback) {
       
       let vue = this;
   
@@ -294,17 +308,16 @@ export default {
           if ( newAddition || newFromStorage ) book.isNew = true;
         }
 
-        if (fullScan_ALL_partialScan_NEW) {
-          book.isNewThisRound = true;
-          vue.$store.commit('update', { key: 'progress.max', add: 1 });
+        if ( fullScan_ALL_partialScan_NEW ) book.isNewThisRound = true;
+
+        // Only a partial scan shows a live count. A full scan keeps the static "Scanning..."
+        // text, since every book counts as "new" there and the count would be meaningless.
+        if ( vue.$store.state.storageHasData.library ) {
+          if ( fullScan_ALL_partialScan_NEW ) bookCounts.new++;
+          else bookCounts.old++;
+          vue.$store.commit('update', { key: 'progress.text', value: vue.buildLibraryProgressText( bookCounts ) });
         }
-        else if ( vue.$store.state.storageHasData.library ) {
-          let previousTotal = (vue.$store.state.progress.textsuffix || '').match(/\d+/im);
-              previousTotal = _.first(previousTotal) || 0;
-          const booksTotal = _.toNumber(previousTotal) + 1;
-          vue.$store.commit('update', { key: 'progress.textsuffix', value: 'Updating old books ' + booksTotal });
-        }        
-        
+
         books.push(book);
         
       });

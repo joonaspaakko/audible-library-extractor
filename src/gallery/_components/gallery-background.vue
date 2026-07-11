@@ -295,7 +295,7 @@ export default {
 }
 
 #ale-background.is-loaded {
-  opacity: 0.18;
+  opacity: .25;
   transition: opacity 1500ms ease;
 }
 
