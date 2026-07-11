@@ -257,6 +257,10 @@ export default {
       padding-right: 8px;
     }
     
+    .external-link-icon {
+      font-size: .6em;
+    }
+    
     &.in-wishlist,
     &.not-in-library,
     &.finished {

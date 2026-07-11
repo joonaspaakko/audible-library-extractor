@@ -5,6 +5,7 @@
       <a :href="audibleURL" target="_blank" rel="noopener noreferrer">
         <span v-if="!$store.state.sticky.bookDetailSettings.titleShort" v-html="book.title || book.titleShort"></span>
         <span v-else v-html="book.titleShort || book.title"></span>
+        <fa6-solid-arrow-up-right-from-square class="external-link-icon" />
       </a>
     </h2>
     
@@ -60,6 +61,20 @@ h2.book-title {
     }
     &:hover {
       text-decoration: underline;
+    }
+    svg {
+      display: inline-block;
+      position: relative;
+      top: .7em;
+      padding-left: .5em;
+    }
+  }
+  .external-link-icon {
+    font-size: 0.4em;
+    padding-left: 0.3em;
+    vertical-align: super;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), 0.4);
     }
   }
 }

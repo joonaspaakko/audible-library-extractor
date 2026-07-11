@@ -29,7 +29,7 @@ export default {
     bookDetailsCollapsedCover: false,
     bookDetailsCollapsedDetails: false,
     contextMenuReminder: true,
-    detailLinksToAudible: true,
+    detailLinksToAudible: false,
     bookDetailSettings: {
       minHeight: null,
       titleShort: true,
@@ -50,7 +50,7 @@ export default {
       favorite: true,
       finished: true,
       reverseDirection: false,
-      hideFirstSection: false,
+      hideFirstSection: true,
     },
     collectionsHidePremade: false,
     player: {

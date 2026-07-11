@@ -465,6 +465,9 @@ export default {
   .categories {
     line-height: 1.2em;
     margin-top: 4px;
+    svg {
+      font-size: .5em;
+    }
   }
   .smoll-text {
     font-size: 0.8em;

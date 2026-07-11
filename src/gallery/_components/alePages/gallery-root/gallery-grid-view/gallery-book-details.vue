@@ -5,10 +5,9 @@
     v-if="book"
     v-shortkey.once="['esc']"
     @shortkey="closeBookDetails"
-    :class="{ 
-      'spreadsheet-details': sticky.viewMode === 'spreadsheet', 
+    :class="{
+      'spreadsheet-details': sticky.viewMode === 'spreadsheet',
       'mobile-width': mobileWidth,
-      'links-lead-to-library': !sticky.detailLinksToAudible && animate_detailLinksToAudible,
     }"
   > 
     
@@ -32,18 +31,21 @@
       <div v-else class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
         
         <div class="details-toolbar">
-          <div 
-            class="audible-vs-local-links" 
+          <div
+            class="audible-vs-local-links"
             @click="detailLinksToAudible()"
-            v-tippy="{ trigger: 'manual' }"
+            v-tippy
             :content="sticky.detailLinksToAudible ? 'Links lead to Audible' : 'Links lead to my library'"
-            ref="detailLinksToAudible"
           >
-            <ion-library-sharp v-if="!sticky.detailLinksToAudible" />
-            <fa6-brands-audible v-else />
+            <mingcute:link-fill/>
+            <span class="label">{{ sticky.detailLinksToAudible ? 'Audible' : 'Gallery' }} links</span>
           </div>
+          <gallery-details-first-hider v-if="mobileWidth" />
           <gallery-sidebar-flipper @flip="flipPanels" />
-          <uil-cog class="book-details-info" @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })" />
+          <div class="book-details-info" @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })">
+            <uil-cog />
+            <span class="label">Settings</span>
+          </div>
         </div>
 
         <div
@@ -52,7 +54,7 @@
           @touchstart="touchStart"
           @touchend="touchEnd"
         >
-          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(mobileWidth && sticky.bookDetailSettings.reverseDirection)">
+          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
             
             <div class="collapse-btn" 
               v-if="!mobileWidth"
@@ -111,7 +113,7 @@
             <gallery-books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
-          <gallery-book-summary v-if="!loading && !(mobileWidth && !sticky.bookDetailSettings.reverseDirection)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth"></gallery-book-summary>
+          <gallery-book-summary v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth"></gallery-book-summary>
         </div>
 
         <div class="carousel-wrap" v-if="sticky.bookDetailSettings.carousel && !loading">
@@ -170,26 +172,12 @@ export default {
          bookSummary: null,
       }, 
       imageLoaded: false,
-      animate_detailLinksToAudible: true,
       touchStartPoint: null,
       panelScroll: {
         information: null,
         summary: null,
       },
     };
-  },
-  
-  watch: {
-    // 'sticky.detailLinksToAudible'( value ) {
-    //   if ( !value ) {
-        
-    //     this.animate_detailLinksToAudible = true;
-    //     setTimeout(() => {
-    //       this.animate_detailLinksToAudible = false;
-    //     }, 3000);
-        
-    //   }
-    // },
   },
 
   created: function() {
@@ -599,16 +587,7 @@ export default {
     },
 
     detailLinksToAudible() {
-      
       this.$store.commit('prop', { key: 'sticky.detailLinksToAudible', value: !this.sticky.detailLinksToAudible })
-      
-      const el = _.get( this.$refs, 'detailLinksToAudible' );
-      el._tippy.show();
-      
-      setTimeout(() => {
-        el._tippy.hide();
-      }, 2000);
-      
     },
   }
 };
@@ -620,23 +599,59 @@ export default {
   @extend .no-selection;
   position: absolute;
   z-index: 2;
-  top: -30px;
+  top: -44px;
   right: 0px;
   display: flex;
   flex-direction: row;
-  gap: 30px;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  border-radius: 99999px;
+  .mobile-width & {
+    right: auto;
+    left: 50%;
+    transform: translateX(-50%);
+  }
 }
 
-.audible-vs-local-links, 
-.book-details-info {
-  font-size: 18px;
+.theme-dark .details-toolbar {
+  background: color.adjust($darkBackColor, $lightness: 6%);
+  box-shadow: inset 0 3px 10px rgba($darkBackColor, .8);
+}
+.theme-light .details-toolbar {
+  background: color.adjust($lightBackColor, $lightness: -1%);
+  box-shadow: inset 0 3px 10px rgba( color.adjust($lightBackColor, $lightness: -30%), 0.4);
+}
+
+.audible-vs-local-links,
+.book-details-info,
+:deep(.action-reverse-direction),
+:deep(.details-first-hider) {
+  &, * {
+    line-height: 1;
+    font-size: 1em;
+  }
+  display: flex;
+  align-items: center;
+  gap: 5px;
   cursor: pointer;
-  transition: color 200ms cubic-bezier(0, 0, 0, .1);
+  padding: 4px 8px;
+  border-radius: 99999px;
+  transition: color 200ms cubic-bezier(0, 0, 0, .1), background-color 200ms cubic-bezier(0, 0, 0, .1);
   @include themify($themes) {
-    color: rgba(themed(frontColor), 0.4);
+    color: rgba(themed(frontColor), 0.7);
     &.active,
     &:hover {
       color: themed(frontColor);
+      background: rgba(themed(frontColor), 0.1);
+    }
+  }
+
+  .label {
+    font-size: 11px;
+    white-space: nowrap;
+    @media (max-width: 440px) {
+      display: none;
     }
   }
 }
@@ -659,6 +674,7 @@ export default {
   box-sizing: border-box;
   // font-size: 14px;
   padding: 40px 35px;
+  padding-top: 50px;
   margin-top: 0;
   margin-bottom: 0;
   position: relative;
@@ -996,38 +1012,5 @@ export default {
   width: 100%;
 }
 
-.links-lead-to-library {
-  :deep(.book-tags),
-  :deep(.basic-info),
-  :deep(.categories) {
-    a {
-      @include themify($themes) {
-        color: color.complement(themed(audibleOrange)) !important;
-        // &:before {
-        //   content: '\02022';
-        //   padding: 0 .1em 0 0;
-        //   color: complement(themed(audibleOrange)) !important;
-        //   font-size: 1.9em;
-        //   line-height: 0px;
-        //   position: relative;
-        //   top: .2em;
-        // }
-      }
-    }
-    a:visited {
-      @include themify($themes) {
-        color: color.complement(color.adjust(color.adjust(themed(audibleOrange), $saturation: -5%), $lightness: -15%)) !important;
-        // &:before {
-        //   color: complement(darken(color.adjust(themed(audibleOrange), $saturation: -5%), 15)) !important;
-        // }
-      }
-    }
-    a:hover {
-      @include themify($themes) {
-        // color: themed(frontColor) !important;
-      }
-    }
-  }
-}
 
 </style>
