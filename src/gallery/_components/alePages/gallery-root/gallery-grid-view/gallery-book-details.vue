@@ -9,7 +9,9 @@
       'spreadsheet-details': sticky.viewMode === 'spreadsheet',
       'mobile-width': mobileWidth,
     }"
-  > 
+    @touchstart="touchStart"
+    @touchend="touchEnd"
+  >
     
     <div v-if="sticky.viewMode !== 'spreadsheet'" class="arrow" ref="arrow"></div>
     <div
@@ -51,8 +53,6 @@
         <div
           class="top details-wrap"
           :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }"
-          @touchstart="touchStart"
-          @touchend="touchEnd"
         >
           <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
             
@@ -113,7 +113,7 @@
             <gallery-books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
-          <gallery-book-summary v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth"></gallery-book-summary>
+          <gallery-book-summary ref="summary" v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth" :readmoreOpen="panelSummaryOpen" @update:readmoreOpen="panelSummaryOpen = $event"></gallery-book-summary>
         </div>
 
         <div class="carousel-wrap" v-if="sticky.bookDetailSettings.carousel && !loading">
@@ -177,6 +177,10 @@ export default {
         information: null,
         summary: null,
       },
+      // Kept here (rather than in gallery-book-summary's own data) because
+      // hideFirstSection unmounts/remounts that panel on every flip, which
+      // would otherwise reset "read more" back to closed each time.
+      panelSummaryOpen: false,
     };
   },
 
@@ -525,15 +529,32 @@ export default {
       }
     },
     
-    // On mobile, remembers which panel is first before flipping, saves the
-    // current scroll position under that panel's key, then restores (or tops
-    // out) the scroll position of whichever panel becomes first. Desktop just
-    // flips, since sidebar/summary sit side by side there.
+    // Scroll preservation only matters when hideFirstSection is on: that's
+    // the only mode where flipping actually swaps which panel is in the DOM
+    // (v-if, "Show one"). With it off, both panels stay visible side by side
+    // (or stacked) and flipping is a pure CSS reorder, so scroll is left
+    // alone. When it's on, remembers which panel is first before flipping,
+    // saves the current scroll position under that panel's key, then
+    // restores it (or, on the first-ever flip to that side, maps how far
+    // you'd scrolled through the outgoing panel proportionally onto the
+    // incoming one, clamped to its tail end) for whichever panel becomes
+    // first. If book details has scrolled fully out of view, snaps back to
+    // its top instead, since there's nothing on screen worth preserving.
     flipPanels() {
 
-      if ( this.mobileWidth ) {
-        const currentFirstPanel = this.sticky.bookDetailSettings.reverseDirection ? 'summary' : 'information';
+      const adjustsScroll = this.mobileWidth && this.sticky.bookDetailSettings.hideFirstSection;
+
+      // hideFirstSection unmounts the outgoing panel once reverseDirection
+      // flips, so its scroll range has to be read now, before that happens,
+      // or mapScrollProgress would have nothing left to read it from.
+      let currentFirstPanel = null;
+      let currentPanelRange = null;
+
+      if ( adjustsScroll ) {
+        currentFirstPanel = this.sticky.bookDetailSettings.reverseDirection ? 'summary' : 'information';
         this.panelScroll[ currentFirstPanel ] = window.scrollY;
+        const currentPanelEl = this.getPanelEl( currentFirstPanel );
+        if ( currentPanelEl ) currentPanelRange = this.panelScrollRange( currentPanelEl );
       }
 
       this.$store.commit('prop', {
@@ -541,13 +562,22 @@ export default {
         value: !this.sticky.bookDetailSettings.reverseDirection
       });
 
-      if ( !this.mobileWidth ) return;
+      if ( !adjustsScroll ) return;
 
       this.$nextTick(() => {
+
+        if ( !this.isBookDetailsInViewport() ) {
+          this.scrollToBookDetailsTop();
+          return;
+        }
+
         const nextFirstPanel = this.sticky.bookDetailSettings.reverseDirection ? 'summary' : 'information';
         const savedY = this.panelScroll[ nextFirstPanel ];
-        if ( savedY !== null ) window.scrollTo(0, savedY);
-        else this.scrollToBookDetailsTop();
+
+        const targetY = savedY !== null ? savedY : this.mapScrollProgress( nextFirstPanel, currentPanelRange );
+
+        window.scrollTo(0, this.clampToPanelTail( nextFirstPanel, targetY ));
+
       });
 
     },
@@ -556,9 +586,64 @@ export default {
       if ( this.$refs.bookDetails ) this.$refs.bookDetails.scrollIntoView({ block: 'start' });
     },
 
+    isBookDetailsInViewport() {
+      if ( !this.$refs.bookDetails ) return false;
+      const rect = this.$refs.bookDetails.getBoundingClientRect();
+      return rect.bottom > 0 && rect.top < window.innerHeight;
+    },
+
+    getPanelEl( panelKey ) {
+      return panelKey === 'summary' ? _.get(this.$refs, 'summary.$el') : this.$refs.information;
+    },
+
+    // How far scrollY can travel while panelEl's bottom is still reaching down
+    // past the top of the viewport. This is the panel's own scrollable range.
+    panelScrollRange( panelEl ) {
+      const panelBottom = panelEl.getBoundingClientRect().bottom + window.scrollY;
+      return Math.max(0, panelBottom - window.innerHeight);
+    },
+
+    // First flip to a side this session (no remembered position yet): scales
+    // how far through the outgoing panel's own content you'd scrolled onto
+    // the incoming panel's range, rather than carrying over the raw scrollY,
+    // so a much shorter/taller panel doesn't just inherit an arbitrary pixel
+    // offset. fromRange is captured by the caller before the flip, since
+    // hideFirstSection may have already unmounted the outgoing panel by now.
+    mapScrollProgress( toPanelKey, fromRange ) {
+
+      const toEl = this.getPanelEl( toPanelKey );
+      if ( !toEl || !fromRange ) return window.scrollY;
+
+      const progress = _.clamp(window.scrollY / fromRange, 0, 1);
+      const toRange = this.panelScrollRange( toEl );
+
+      return progress * toRange;
+
+    },
+
+    // Keeps a scroll target from overshooting past the bottom of the panel
+    // that's about to become first (say the sidebar was scrolled way past
+    // where a shorter summary ends), landing a bit above its tail end instead
+    // so the end of the content is still visible on screen.
+    clampToPanelTail( panelKey, targetY ) {
+
+      const panelEl = this.getPanelEl( panelKey );
+      if ( !panelEl ) return targetY;
+
+      const tailOffset = 100;
+      const maxY = this.panelScrollRange( panelEl ) + tailOffset;
+
+      return Math.min(targetY, maxY);
+
+    },
+
     touchStart(e) {
 
       if ( !this.mobileWidth ) return;
+
+      // The carousel has its own horizontal drag/swipe handling (Splide), so
+      // a swipe starting there shouldn't also flip the panels.
+      if ( e.target.closest('.lazyboy') ) return;
 
       this.touchStartPoint = {
         x: e.changedTouches[0].clientX,

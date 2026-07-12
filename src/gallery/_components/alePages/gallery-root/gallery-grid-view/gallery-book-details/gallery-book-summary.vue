@@ -99,13 +99,17 @@ import makeUrl from "@output-mixins/gallery-makeFullUrl.js";
 
 export default {
   name: "bookSummary",
-  props: ["book", "bookSummary", "mobileWidth"],
+  props: ["book", "bookSummary", "mobileWidth", "readmoreOpen"],
+  emits: ["update:readmoreOpen"],
   mixins: [makeUrl],
   data: function() {
     return {
       summary: {
         readmore: {
-          toggle: false,  
+          // Kept alive by the parent (panelSummaryOpen) so re-reading it on
+          // remount (hideFirstSection unmounts this panel on flip) doesn't
+          // lose whether the reader had it expanded.
+          toggle: this.readmoreOpen || false,
           exists: false
         },
         maxHeight: null,
@@ -179,7 +183,7 @@ export default {
         let maxHeight = sidebarHeight;
         if ( this.mobileWidth || summaryFullHeight > minHeightExtra && minHeightExtra > sidebarHeight ) maxHeight = minHeightExtra; 
         
-        this.summary.maxHeight = maxHeight;
+        this.summary.maxHeight = this.summary.readmore.toggle ? "none" : maxHeight;
         this.summary.maxHeightTemp = maxHeight;
         // console.log( minHeightExtra )
         // console.log('%c' + ' ' + '', 'background: #003191; color: #fff; padding: 2px 5px; border-radius: 8px;', _.clone(this.summary));
@@ -196,7 +200,8 @@ export default {
       
       this.summary.readmore.toggle = !this.summary.readmore.toggle ? true : false;
       this.summary.maxHeight = this.summary.readmore.toggle ? "none" : this.summary.maxHeightTemp;
-      
+      this.$emit("update:readmoreOpen", this.summary.readmore.toggle);
+
       // Scrolls up in an attempt to retain the scroll position in relation to the readmore button
       if ( !this.summary.readmore.toggle ) {
         const btnOffset = this.$refs.readMoreBtn.getBoundingClientRect().top;
