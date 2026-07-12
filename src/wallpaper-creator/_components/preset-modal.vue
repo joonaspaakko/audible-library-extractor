@@ -100,19 +100,19 @@
             desc: "Starts with a 1920x1080 canvas with a dark overlay so that icons can be seen on top of it.",
           },
           {
+            key: 'card',
+            image: image_card,
+            preset: 'card',
+            title: "Card",
+            desc: "Great starting point for online posts and other generic images.",
+          },
+          {
             key: 'wallpaper-animated',
             image: image_wallpaper_animated,
             preset: 'wallpaper',
             mode: 'animatedWallpaperMode',
             title: "Animated wallpaper",
             desc: "A moving version of the desktop wallpaper. Exports a web page you can run as a live wallpaper or screensaver.",
-          },
-          {
-            key: 'card',
-            image: image_card,
-            preset: 'card',
-            title: "Card",
-            desc: "Great starting point for online posts and other generic images.",
           },
           {
             key: 'tierlist',
