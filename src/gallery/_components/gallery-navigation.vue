@@ -295,7 +295,7 @@ export default {
           {
             highlight: true,
             tag: 'div',
-            name: 'Wallpaper creator',
+            name: 'Collage maker',
             disabled: false,
             click: function( route ) {
 
@@ -310,7 +310,7 @@ export default {
               return vue.$route.meta.gallery && vue.$store.getters.collection && vue.$store.getters.collection.length; // Collection being an array, not Audible collections
             },
             tippy: function() {
-              let txt = "When you open wallpaper creator, books are imported from the current page with the active sorting. Search and filters also affect what gets imported.";
+              let txt = "When you open the collage maker, books are imported from the current page with the active sorting. Search and filters also affect what gets imported.";
               const nobooks = !(vue.$route.meta.gallery && vue.$store.getters.collection && vue.$store.getters.collection.length);
               const booksWithCovers = _.filter( vue.$store.getters.collection, 'cover');
               if ( nobooks ) txt += "<br><br> <strong style='color: #db7e00; font-size: 19px;'>Can't be opened on pages that don't have any books.</strong>";

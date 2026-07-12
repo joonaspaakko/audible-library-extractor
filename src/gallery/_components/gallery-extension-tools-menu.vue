@@ -87,12 +87,12 @@
       preset="card"
       :bordered="false"
       :auto-focus="false"
-      title="Open wallpaper creator"
+      title="Open collage maker"
       size="small"
       style="max-width: 420px;"
     >
       <p class="wallpaper-source-lead">
-        This page has no book covers to import. Pick a source to open the wallpaper creator with.
+        This page has no book covers to import. Pick a source to open the collage maker with.
       </p>
 
       <div class="wallpaper-source-options">
@@ -155,7 +155,7 @@ export default {
       toolDescriptions: {
         'Save gallery website': 'Publish online to browse on mobile or show off your library or wishlist to your friends.',
         'Spreadsheet export':   'Export to an Excel or CSV spreadsheet.',
-        'Wallpaper creator':    'Turn your book covers into a animated desktop wallpaper or screensaver, card, or tier list.',
+        'Collage maker':        'Turn your book covers into a animated desktop wallpaper or screensaver, card, or tier list.',
       },
     };
   },

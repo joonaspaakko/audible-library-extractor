@@ -30,7 +30,7 @@ export default {
           icon: IconFaSolidSave,
         },
         { 
-          label: 'Wallpaper creator',
+          label: 'Collage maker',
           icon: IconFa6RegularImages,
         },
         { 
