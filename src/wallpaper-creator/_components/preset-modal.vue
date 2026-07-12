@@ -31,7 +31,11 @@
           class="card"
           v-for="card in cards" :key="card.key"
           @click="cardChosen( card )"
+          @mousemove="tilt( $event )"
+          @mouseleave="untilt( $event )"
         >
+          <!-- GLARE: cursor-following highlight -->
+          <div class="glare"></div>
           <!-- IMAGE -->
           <div class="image" v-if="card.image">
             <img draggable="false" :src="card.image" alt="">
@@ -146,6 +150,35 @@
 
     methods: {
 
+      // POINTER TILT: rotate the card toward the cursor and move the glare highlight with it
+      tilt( event ) {
+
+        const card = event.currentTarget;
+        const rect = card.getBoundingClientRect();
+
+        const px = ( event.clientX - rect.left ) / rect.width;
+        const py = ( event.clientY - rect.top ) / rect.height;
+
+        const maxTilt = 3;
+        const rotateY = ( px - 0.5 ) * 2 * maxTilt;
+        const rotateX = ( 0.5 - py ) * 2 * maxTilt;
+
+        card.style.setProperty( '--rotate-x', rotateX + 'deg' );
+        card.style.setProperty( '--rotate-y', rotateY + 'deg' );
+        card.style.setProperty( '--glare-x', ( px * 100 ) + '%' );
+        card.style.setProperty( '--glare-y', ( py * 100 ) + '%' );
+
+      },
+
+      untilt( event ) {
+
+        const card = event.currentTarget;
+
+        card.style.setProperty( '--rotate-x', '0deg' );
+        card.style.setProperty( '--rotate-y', '0deg' );
+
+      },
+
       cardChosen( card ) {
         
         this.reset();
@@ -238,10 +271,18 @@
   grid-template-columns: 1fr 1fr;
   gap: 30px;
   align-items: stretch;
+  perspective: 1200px;
 }
 
 .card {
+  --rotate-x: 0deg;
+  --rotate-y: 0deg;
+  --glare-x: 50%;
+  --glare-y: 50%;
+  --scale: 1;
   cursor: pointer;
+  position: relative;
+  overflow: hidden;
   border: 1px solid rgba(#fff, .2);
   border-radius: 5px;
   box-sizing: border-box;
@@ -251,20 +292,34 @@
   flex-direction: column;
   justify-content: center;
   align-items: center;
-  transition: all 200ms ease;
-  
-  // background: rgba(#fff, .1);
-  // background: rgba(#171e29, .6);
-  // backdrop-filter: blur(5px);
+  transform-style: preserve-3d;
+  transform: perspective(1200px) rotateX(var(--rotate-x)) rotateY(var(--rotate-y)) scale(var(--scale));
+  transition: transform 120ms ease-out, box-shadow 200ms ease, border-color 200ms ease;
+
   box-shadow: 0 2px 30px rgba(#000, .2);
   
   &:hover {
-    box-shadow: 0 2px 25px rgba(#000, 1);
-    // background: rgba(#fff, .01);
-    transform: scale(1.05);
+    --scale: 1.05;
+    box-shadow: 0 12px 40px rgba(#000, 1);
     border-color: #ffbf2c;
+    .glare { opacity: 1; }
   }
-  
+
+  // GLARE: soft spotlight that tracks the cursor
+  .glare {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 200ms ease;
+    background: radial-gradient(
+      circle at var(--glare-x) var(--glare-y),
+      rgba(cyan, .065),
+      rgba(cyan, 0) 90%
+    );
+  }
+
   .image {
     display: inline-flex;
     justify-content: center;
