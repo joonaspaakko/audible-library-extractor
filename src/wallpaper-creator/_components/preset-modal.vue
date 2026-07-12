@@ -21,7 +21,7 @@
       </div>
       
       <h2 class="heading">
-        Select a starting point
+        Choose a mode
       </h2>
       
       <div class="flex-row">
@@ -30,34 +30,16 @@
         <div 
           class="card"
           v-for="card in cards" :key="card.key"
-          @mouseenter="card.enabled = true" 
-          @mouseleave="card.enabled = false"
+          @click="cardChosen( card )"
         >
           <!-- IMAGE -->
-          <div class="image" v-if="card.images">
-            <img draggable="false" :src="card.images.extras" alt="" v-if="card.images.extras">
-            <img draggable="false" :src="card.images.regular" alt="" v-else>
+          <div class="image" v-if="card.image">
+            <img draggable="false" :src="card.image" alt="">
           </div>
           <!-- TITLE -->
           <div class="title">{{ card.title }}</div>
           <!-- DESCRIPTION -->
-          <div class="desc"> {{ card.desc }}</div> 
-          <!-- EXtRA SETTINGS -->
-          <div class="additional-settings">
-            <n-checkbox 
-              size="large" 
-              v-for="extra in card.extras" :key="extra.label"
-              v-model:checked="extra.checked" 
-              :label="extra.label" 
-              :disabled="!card.enabled" 
-              @update:checked="extrasChecked( card, extra )"
-            />
-          </div>
-          <div class="additional-settings full-width">
-            <n-button type="primary" :disabled="!card.enabled" @click="cardChosen( card )">
-              {{ card.startBtn || 'Start' }}
-            </n-button>
-          </div>
+          <div class="desc"> {{ card.desc }}</div>
         </div>
         
       </div> <!-- .flex-row -->
@@ -84,8 +66,6 @@
     NRadioButton,
     NRadioGroup,
     NTooltip,
-    NCheckbox,
-    NButton,
   } from 'naive-ui';
   
   import image_wallpaper from '@editor-images/wallpaper.jpg';
@@ -110,57 +90,33 @@
         cards: [
           {
             key: 'wallpaper',
-            enabled: false,
-            images: {
-              regular: image_wallpaper,
-              extras: null,
-            },
+            image: image_wallpaper,
+            preset: 'wallpaper',
             title: "Desktop wallpaper",
             desc: "Starts with a 1920x1080 canvas with a dark overlay so that icons can be seen on top of it.",
-            method: ( card, vue ) => {
-              
-              vue.changeCanvasPreset( card.key );
-              
-            },
-            extras: {
-              animated: { 
-                checked: false,
-                label: 'Animated wallpaper',
-                image: image_wallpaper_animated,
-                method: ( card, extra, vue ) => {
-                  
-                  vue.$store.commit('update', { key: 'animatedWallpaperMode', value: true });
-                  
-                },
-              },
-            }
+          },
+          {
+            key: 'wallpaper-animated',
+            image: image_wallpaper_animated,
+            preset: 'wallpaper',
+            mode: 'animatedWallpaperMode',
+            title: "Animated wallpaper",
+            desc: "A moving version of the desktop wallpaper. Exports a web page you can run as a live wallpaper or screensaver.",
           },
           {
             key: 'card',
-            enabled: false,
-            images: {
-              regular: image_card,
-              extras: null,
-            },
+            image: image_card,
+            preset: 'card',
             title: "Card",
             desc: "Great starting point for online posts and other generic images.",
-            method: ( card, vue ) => {
-              
-              this.changeCanvasPreset( card.key );
-              
-            },
-            extras: {
-              animated: { 
-                checked: false,
-                label: 'Tier list',
-                image: image_card_tierlist,
-                method: ( card, extra, vue ) => {
-                  
-                  vue.$store.commit('update', { key: 'tierListMode', value: true });
-                  
-                },
-              },
-            }
+          },
+          {
+            key: 'tierlist',
+            image: image_card_tierlist,
+            preset: 'card',
+            mode: 'tierListMode',
+            title: "Tier list",
+            desc: "A segmented card where you place your covers into S, A, B, C and D tiers.",
           },
         ],
       }
@@ -174,8 +130,6 @@
       NRadioButton,
       NRadioGroup,
       NTooltip,
-      NCheckbox,
-      NButton,
     },
     
     mounted() {
@@ -192,28 +146,15 @@
 
     methods: {
 
-      extrasChecked( card, extra ) {
-        
-        card.images.extras = extra.checked ? extra.image : null;
-        
-      },
-      
       cardChosen( card ) {
         
         this.reset();
-        
-        const checkedExtras = _.filter( card.extras, { checked: true });
-        if ( checkedExtras.length ) {
-          console.log( checkedExtras )
-          _.each( checkedExtras, ( extra ) => {
-            
-            if ( extra.method ) extra.method( card, extra, this );
-            
-          });
-        }
-        
-        if ( card.method ) card.method( card, this );
-        
+
+        // MODE FLAG: animated wallpaper / tier list variants set their store flag
+        if ( card.mode ) this.$store.commit('update', { key: card.mode, value: true });
+
+        this.changeCanvasPreset( card.preset );
+
         this.$store.commit('update', { key: 'presetModalOpen', value: false });
         
         this.$nextTick(function() {
@@ -293,15 +234,14 @@
 }
 
 .flex-row {
-  display: flex;
-  flex-direction: row;
-  justify-content: space-around;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 30px;
   align-items: stretch;
 }
 
 .card {
-  cursor: default;
-  margin-left: 30px; &:first-child { margin-left: 0; }
+  cursor: pointer;
   border: 1px solid rgba(#fff, .2);
   border-radius: 5px;
   box-sizing: border-box;
@@ -360,21 +300,6 @@
   margin-top: 20px;
   font-size: 13px;
   color: rgba(#fff, .5);
-}
-
-.additional-settings {
-  margin-top: 25px;
-}
-
-.full-width {
-  display: flex;
-  flex: 1;
-  width: 100%;
-  justify-content: stretch;
-  align-items: center;
-  > * {
-    flex: 1;
-  }
 }
 
 .heading {
