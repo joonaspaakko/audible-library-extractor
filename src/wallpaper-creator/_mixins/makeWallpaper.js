@@ -62,7 +62,7 @@ export default {
         });
 
         const pageTitle = this.store.gallery.pageTitle ? '-' + _.kebabCase(this.store.gallery.pageTitle) : '';
-        downloadBlob( new Blob([data], { type: 'application/zip' }), "ale-animated-wallpaper"+ pageTitle +".zip" );
+        downloadBlob( new Blob([data], { type: 'application/zip' }), "ale-collage-maker"+ pageTitle +".zip" );
 
       }
       catch(e) {
