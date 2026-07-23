@@ -450,6 +450,14 @@ export default {
           opacity: 1;
         }
       }
+      &.checkbox.has-field-icon {
+        [data-icon="field"] {
+          opacity: 0;
+        }
+        [data-icon="check"] {
+          color: #65aa3a;
+        }
+      }
     }
     
   } // .search-option
@@ -487,7 +495,7 @@ export default {
   }
   
   .input-label {
-    padding: 0 5px;
+    padding: 0 5px 0 9px;
   }
   
   .regular-filters {

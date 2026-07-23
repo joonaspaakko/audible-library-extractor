@@ -33,8 +33,9 @@
           <fa-regular-dot-circle data-icon="circle" />
         </span>
         <!-- CHECKBOXES -->
-        <span v-else class="checkbox">
-          <ic-round-square data-icon="square" />
+        <span v-else class="checkbox" :class="{ 'has-field-icon': fieldIcon }">
+          <ic-round-square data-icon="square" v-if="!fieldIcon" />
+          <span v-else data-icon="field" v-html="fieldIcon"></span>
           <fa-solid-check data-icon="check"/>
           <!-- <ion-checkmark-round data-icon="check"/> -->
         </span>
@@ -124,6 +125,21 @@ import slugify from "@output-mixins/gallery-slugify.js";
 import Multiselect from '@vueform/multiselect'
 // import timeStringToSeconds from "@output-mixins/gallery-timeStringToSeconds.js";
 // import secondsToTimeString from "@output-mixins/gallery-secondsToTimeString.js";
+
+// Same icon set the '@field' autocomplete uses (see fieldIcons in gallery-search.vue), keyed
+// by the 'icon' name each scope carries. Imported statically as raw SVGs (rather than resolved
+// via a dynamic component name) since unplugin-vue-components only rewrites template tags at
+// compile time, it can't resolve a runtime string passed to ':is'.
+import IconTitle      from '~icons/icon-park-solid/text?raw';
+import IconUserPen    from '~icons/fa6-solid/user-pen?raw';
+import IconMicrophone from '~icons/fa6-solid/microphone?raw';
+import IconLayerGroup from '~icons/fa6-solid/layer-group?raw';
+import IconFolder     from '~icons/fa6-solid/folder?raw';
+import IconTag        from '~icons/fa6-solid/tag?raw';
+import IconBuilding   from '~icons/fa6-solid/building?raw';
+import IconAlignLeft  from '~icons/fa6-solid/align-left?raw';
+import IconFileLines  from '~icons/fa6-solid/file-lines?raw';
+import IconHashtag    from '~icons/fa6-solid/hashtag?raw';
 
 export default {
   name: "sorter",
@@ -267,6 +283,27 @@ export default {
       }
     },
 
+    // Raw SVG for the scope's icon, keyed the same way as fieldIcons in gallery-search.vue,
+    // so a scope's checkbox row shows the same glyph as its '@field' autocomplete entry.
+    fieldIcon: function() {
+
+      const fieldIcons = {
+        'title':       IconTitle,
+        'user-pen':    IconUserPen,
+        'microphone':  IconMicrophone,
+        'layer-group': IconLayerGroup,
+        'folder':      IconFolder,
+        'tag':         IconTag,
+        'building':    IconBuilding,
+        'align-left':  IconAlignLeft,
+        'file-lines':  IconFileLines,
+        'hashtag':     IconHashtag,
+      };
+
+      return fieldIcons[ this.item.icon ] || false;
+
+    },
+
   },
 
   methods: {
@@ -382,9 +419,10 @@ export default {
       else if ( ( action.change.sort || action.randomize ) && action.noSortvalues ) {
         this.$store.commit("prop", { 'key': 'searchSort', value: false });
         action.start = 'start-sort';
-      } else if ( action.change.filter ) {
+      }
+      else if ( action.change.filter ) {
         action.start = 'start-filter';
-      } 
+      }
       
       this.saveOptions( value, specialBoy);
       this.$compEmitter.emit( action.start );
@@ -704,6 +742,31 @@ export default {
         height: 6px;
       }
     }
+    // Field icon replaces the outline square for scope items that carry one (see
+    // fieldIcon below), so the checkbox itself doubles as the field's glyph. Sized and
+    // positioned the same as [data-icon="square"] since it fills the same slot; the
+    // checkmark still overlays on top when checked.
+    &.checkbox.has-field-icon {
+      [data-icon="field"] {
+        position: absolute;
+        z-index: 1;
+        top: 0;
+        left: 0;
+        width: 14px;
+        height: 14px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 120ms ease-in-out;
+        @include themify($themes) {
+          color: rgba( themed(frontColor), .55);
+        }
+        svg {
+          width: 10px;
+          height: 10px;
+        }
+      }
+    }
   }
   input:checked + .radiobutton,
   input:checked + .checkbox,
@@ -731,6 +794,14 @@ export default {
       [data-icon="circle"]:last-child,
       [data-icon="check"] {
         opacity: 1;
+      }
+    }
+    &.checkbox.has-field-icon {
+      [data-icon="field"] {
+        opacity: 0;
+      }
+      [data-icon="check"] {
+        color: #65aa3a;
       }
     }
   }

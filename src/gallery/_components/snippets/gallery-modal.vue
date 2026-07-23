@@ -233,7 +233,6 @@ export default {
       // text-align: left;
       text-align: center;
       position: relative;
-      right: -10px;
     }
 
     .btn-wrapper {
