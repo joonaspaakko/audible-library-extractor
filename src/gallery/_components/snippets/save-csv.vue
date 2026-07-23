@@ -49,7 +49,9 @@
             </div>
           </div>
           <span class="option-label">
-            {{ item.label || item.key }}
+            <span class="primary">
+              {{ item.label || item.key }}
+            </span>
             <span v-if="item.subtext" class="option-subtext">{{ item.subtext }}</span>
           </span>
         </label>
@@ -174,9 +176,9 @@ export default {
         ],
         compatibilityChecked: 'With formulas',
         compatibility: [
-          { key: 'Default',      label: 'Default',       subtext: 'No formulas',                              description: "Plain data, works in any spreadsheet app." },
-          { key: 'With formulas', label: 'With formulas', subtext: 'Cover images and hyperlinks',              description: "Adds cover images and hyperlinks using spreadsheet formulas. Compatible with Google Sheets and Excel." },
-          { key: 'Goodreads',    label: 'Goodreads',     subtext: 'For Goodreads import',                     description: "Goodreads-compatible columns. Book status maps to shelves: not started (to-read), started (currently-reading), finished (read). Categories become shelves too." },
+          { key: 'Default',       label: 'Default',       subtext: '', description: "Plain data, works in any spreadsheet app." },
+          { key: 'With formulas', label: 'With formulas', subtext: '', description: "Adds cover images and hyperlinks using spreadsheet formulas. Compatible with Google Sheets and Excel." },
+          { key: 'Goodreads',     label: 'Goodreads',     subtext: '', description: "Goodreads-compatible columns. Book status maps to shelves: not started (to-read), started (currently-reading), finished (read). Categories become shelves too." },
         ],
       },
       bundling: null,
@@ -734,17 +736,14 @@ export default {
 
   label {
     align-items: flex-start !important;
-    flex: 1;
-
-    .visual-radiobutton {
-      margin-top: 3px;
-    }
   }
 }
 
 .option-label {
   display: flex;
   flex-direction: column;
+  justify-content: center;
+  height: 100%;
 }
 
 .option-subtext {
@@ -868,9 +867,10 @@ export default {
     padding: 6px 10px;
     font-size: .85em;
     line-height: 1.5;
-    border-radius: 0 4px 4px 0;
+    border-radius: 0 0 4px 4px;
+    margin: 20px -12px -12px;
     @include themify($themes) {
-      border-left: 2px solid rgba(themed(frontColor), .2);
+      border-top: 1px solid rgba(themed(frontColor), .15);
       background: rgba(themed(frontColor), .04);
       color: rgba(themed(frontColor), .6);
     }
