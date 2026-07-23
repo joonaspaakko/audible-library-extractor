@@ -25,46 +25,7 @@
     <div class="ale-launcher-menu">
       <div class="ale-launcher-tree-pane">
         <div class="ale-launcher-tree-heading">
-          <div>
-            <div class="ale-launcher-tree-subtitle">Choose what to extract:</div>
-          </div>
-          <n-popover
-            trigger="manual"
-            :show="moreOpen"
-            @update:show="moreOpen = $event"
-            :on-clickoutside="handleMoreClickOutside"
-            placement="right-start"
-            :flip="true"
-            :show-arrow="false"
-            style="padding: 0;"
-          >
-            <template #trigger>
-              <button class="ale-launcher-more-btn" @click="moreOpen = !moreOpen">
-                <ph-dots-three-bold />
-              </button>
-            </template>
-            <div class="ale-launcher-actions">
-              <template v-for="action in actionOptions" :key="action.key">
-                <button
-                  class="ale-launcher-action"
-                  :disabled="action.disabled"
-                  @click="handleMoreSelect( action.key )"
-                >
-                  <component :is="action.icon" />
-                  <template v-if="action.key === 'toggleSlowExtract'">
-                    <span class="ale-launcher-action-label">Slow extraction</span>
-                    <div class="mini-switch" :class="{ on: store.sticky.slowExtract }"><div class="mini-switch-thumb"></div></div>
-                  </template>
-                  <template v-else-if="action.key === 'whatsNew'">
-                    <span class="ale-launcher-action-label">{{ action.label }}</span>
-                    <span class="ale-launcher-version-pill">v{{ $store.state.appVersion }}</span>
-                  </template>
-                  <span v-else class="ale-launcher-action-label">{{ action.label }}</span>
-                </button>
-                <div v-if="action.divider" class="ale-launcher-action-divider"></div>
-              </template>
-            </div>
-          </n-popover>
+          <div class="ale-launcher-tree-subtitle">Choose what to extract:</div>
         </div>
         <n-tree
           checkable
@@ -102,6 +63,45 @@
           <button v-else class="ale-launcher-extract-primary" @click="handleMoreSelect('fullExtraction')">
             <ph-cloud-arrow-down-bold /> Full extraction
           </button>
+        </div>
+        <div class="ale-launcher-utility-actions">
+          <n-popover
+            trigger="manual"
+            :show="moreOpen"
+            @update:show="moreOpen = $event"
+            :on-clickoutside="handleMoreClickOutside"
+            placement="right-end"
+            :flip="true"
+            :show-arrow="false"
+            style="padding: 0;"
+          >
+            <template #trigger>
+              <button class="ale-launcher-more-btn" @click="moreOpen = !moreOpen">
+                <ph-sliders-bold /> Options & tools
+              </button>
+            </template>
+            <div class="ale-launcher-actions">
+              <template v-for="action in actionOptions" :key="action.key">
+                <button
+                  class="ale-launcher-action"
+                  :disabled="action.disabled"
+                  @click="handleMoreSelect( action.key )"
+                >
+                  <component :is="action.icon" />
+                  <template v-if="action.key === 'toggleSlowExtract'">
+                    <span class="ale-launcher-action-label">Slow extraction</span>
+                    <div class="mini-switch" :class="{ on: store.sticky.slowExtract }"><div class="mini-switch-thumb"></div></div>
+                  </template>
+                  <template v-else-if="action.key === 'whatsNew'">
+                    <span class="ale-launcher-action-label">{{ action.label }}</span>
+                    <span class="ale-launcher-version-pill">v{{ $store.state.appVersion }}</span>
+                  </template>
+                  <span v-else class="ale-launcher-action-label">{{ action.label }}</span>
+                </button>
+                <div v-if="action.divider" class="ale-launcher-action-divider"></div>
+              </template>
+            </div>
+          </n-popover>
           <button v-if="$store.getters.mainDataExists" class="ale-launcher-gallery-link" @click="openGallery">
             Open gallery
           </button>
@@ -164,7 +164,6 @@ import IconRestore from '~icons/mdi/restore';
 import IconExport from '~icons/mdi/tray-arrow-down';
 import IconImport from '~icons/mdi/tray-arrow-up';
 import IconDocs from '~icons/ri/external-link-line';
-import IconGallery from '~icons/ri/external-link-line';
 import IconWhatsNew from '~icons/ph/code-bold';
 
 export default {
@@ -255,7 +254,6 @@ export default {
         { label: 'Export raw data', key: 'exportRawData', disabled: !this.rawDataExport, icon: IconExport },
         { label: 'Import raw data', key: 'importRawData', icon: IconImport, divider: true },
         { label: 'Documentation', key: 'documentation', icon: IconDocs },
-        { label: 'Open gallery', key: 'openGallery', disabled: !this.$store.getters.mainDataExists, icon: IconGallery },
         { label: 'What’s new', key: 'whatsNew', icon: IconWhatsNew },
       ];
 
@@ -722,7 +720,6 @@ export default {
   display: flex;
   flex-shrink: 0;
   align-items: flex-start;
-  padding-right: 40px;
   padding-bottom: 12px;
   padding-top: 3px;
 }
@@ -732,29 +729,6 @@ export default {
   font-weight: 700;
   font-size: 13.5px;
   line-height: 17px;
-}
-
-.ale-launcher-more-btn {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  flex-shrink: 0;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: 1px solid #e1e1e1;
-  border-radius: 6px;
-  background: #fff;
-  color: #777;
-  cursor: pointer;
-  appearance: none;
-  box-shadow: 0 1px 2px rgb(0 0 0 / 8%), 0 1px 3px rgb(0 0 0 / 6%);
-
-  svg { width: 18px; height: 18px; }
-
-  &:hover { background: #f7f7f7; color: #555; }
 }
 
 .ale-launcher-tree {
@@ -841,7 +815,7 @@ export default {
 }
 
 .ale-launcher-gallery-link {
-  margin-top: 2px;
+  margin-top: 10px;
   padding: 4px;
   border: none;
   background: none;
@@ -854,6 +828,35 @@ export default {
   appearance: none;
 
   &:hover { color: #666; }
+}
+
+.ale-launcher-utility-actions {
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid #e1e1e1;
+}
+
+.ale-launcher-more-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 7px 10px;
+  border: 1px solid rgba(247, 153, 28, .4);
+  border-radius: 6px;
+  background: none;
+  color: #dd860e;
+  font-size: 12.5px;
+  font-weight: 700;
+  cursor: pointer;
+  appearance: none;
+
+  svg { width: 13px; height: 13px; }
+
+  &:hover { background: rgba(247, 153, 28, .08); border-color: rgba(247, 153, 28, .7); }
 }
 
 .ale-launcher-actions {
