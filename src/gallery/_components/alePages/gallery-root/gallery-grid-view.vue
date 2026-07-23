@@ -14,7 +14,7 @@
     <div v-if="paddingTop" class="grid-spacer" :style="{ height: paddingTop + 'px' }" aria-hidden="true"></div>
 
     <template v-for="vRow in virtualRows" :key="'row:'+ vRow.index">
-      <div class="ale-grid-row">
+      <div class="ale-grid-row" :class="{ centered: rows.length === 1 && rows[0].length < cols }">
         <div
           v-for="(book, colIndex) in rows[ vRow.index ]"
           class="ale-book"
@@ -485,6 +485,9 @@ export default {
   font-size: 0px;
   line-height: 0px;
   text-align: left;
+  &.centered {
+    text-align: center;
+  }
 }
 
 // Reset the font context inside each cover cell (the grid container / row wrappers
