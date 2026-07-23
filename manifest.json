@@ -12,9 +12,9 @@
   },
   "action": {
     "default_icon": {
-      "16": "assets/icons-gray/16.png",
-      "48": "assets/icons-gray/48.png",
-      "128": "assets/icons-gray/128.png"
+      "16": "assets/icons/16.png",
+      "48": "assets/icons/48.png",
+      "128": "assets/icons/128.png"
     }
   },
   "permissions": [
@@ -22,7 +22,8 @@
     "unlimitedStorage",
     "contextMenus",
     "downloads",
-    "identity"
+    "identity",
+    "activeTab"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
