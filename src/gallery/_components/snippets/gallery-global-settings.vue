@@ -103,43 +103,6 @@
           </div>
         </div>
 
-        <!-- Grid covers per row, via the grid's max width (grid view only) -->
-        <div class="setting-row" v-if="$store.state.sticky.viewMode === 'grid' && ( !$store.state.searchMounted || coversPerRowMax > coversPerRowMin )" :class="{ 'setting-disabled': !$store.state.searchMounted }">
-          <div class="setting-label-wrap covers-per-row-row">
-            <div class="setting-icon">
-              <fluent-dock-row-20-filled />
-            </div>
-            <div class="setting-label">
-              <span>Max covers per row</span>
-              <span class="setting-subtext">Limited by browser width</span>
-            </div>
-            <div class="covers-per-row-value" :class="{ auto: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }">
-              {{ coversPerRowCurrent }}
-            </div>
-            <button
-              class="covers-per-row-auto"
-              :class="{ active: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }"
-              @click="resetCoversPerRow"
-              @mousedown="$haptic(1)"
-            >
-              <mdi-refresh /> Reset
-            </button>
-          </div>
-          <n-slider
-            v-if="$store.state.searchMounted && coversPerRowMax > coversPerRowMin"
-            class="covers-per-row-slider"
-            :min="coversPerRowMin"
-            :max="coversPerRowMax"
-            :value="coversPerRowCurrent"
-            :step="1"
-            :tooltip="true"
-            :marks="coversPerRowMarks"
-            @update:value="onCoversPerRowInput"
-            @dragstart="$haptic(1)"
-            @dragend="onSliderDragEnd"
-          />
-        </div>
-
         <!-- Cover size shrinks/grows the covers themselves while the grid width stays put (grid view only) -->
         <div class="setting-row" v-if="$store.state.sticky.viewMode === 'grid'" :class="{ 'setting-disabled': !$store.state.searchMounted }">
           <div class="setting-label-wrap covers-per-row-row">
@@ -172,6 +135,43 @@
             :tooltip="true"
             :format-tooltip="i => coverSizeSteps ? '1/' + coverSizeSteps[ i ].n : i"
             @update:value="onCoverSizeInput"
+            @dragstart="$haptic(1)"
+            @dragend="onSliderDragEnd"
+          />
+        </div>
+
+        <!-- Grid covers per row, via the grid's max width (grid view only) -->
+        <div class="setting-row" v-if="$store.state.sticky.viewMode === 'grid' && ( !$store.state.searchMounted || coversPerRowMax > coversPerRowMin )" :class="{ 'setting-disabled': !$store.state.searchMounted }">
+          <div class="setting-label-wrap covers-per-row-row">
+            <div class="setting-icon">
+              <fluent-dock-row-20-filled />
+            </div>
+            <div class="setting-label">
+              <span>Max covers per row</span>
+              <span class="setting-subtext">Limited by browser width</span>
+            </div>
+            <div class="covers-per-row-value" :class="{ auto: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }">
+              {{ coversPerRowCurrent }}
+            </div>
+            <button
+              class="covers-per-row-auto"
+              :class="{ active: listMode ? !$store.state.sticky.gridListCols : !$store.state.sticky.gridMaxWidth }"
+              @click="resetCoversPerRow"
+              @mousedown="$haptic(1)"
+            >
+              <mdi-refresh /> Reset
+            </button>
+          </div>
+          <n-slider
+            v-if="$store.state.searchMounted && coversPerRowMax > coversPerRowMin"
+            class="covers-per-row-slider"
+            :min="coversPerRowMin"
+            :max="coversPerRowMax"
+            :value="coversPerRowCurrent"
+            :step="1"
+            :tooltip="true"
+            :marks="coversPerRowMarks"
+            @update:value="onCoversPerRowInput"
             @dragstart="$haptic(1)"
             @dragend="onSliderDragEnd"
           />
