@@ -113,7 +113,7 @@
               <span>Cover size</span>
             </div>
             <div class="covers-per-row-value" :class="{ auto: !$store.state.sticky.coverSize }">
-              {{ coverSizeSteps ? '1/' + coverSizeSteps[ coverSizeSliderValue ].n : coverSizeCurrent }}
+              {{ coverSizeSteps ? coverSizePercent( coverSizeSteps[ coverSizeSliderValue ].size ) + '%' : coverSizeCurrent }}
             </div>
             <button
               class="covers-per-row-auto"
@@ -133,7 +133,7 @@
             :step="1"
             :marks="coverSizeMarks"
             :tooltip="true"
-            :format-tooltip="i => coverSizeSteps ? '1/' + coverSizeSteps[ i ].n : i"
+            :format-tooltip="i => coverSizeSteps ? coverSizePercent( coverSizeSteps[ i ].size ) + '%' : i"
             @update:value="onCoverSizeInput"
             @dragstart="$haptic(1)"
             @dragend="onSliderDragEnd"
@@ -398,6 +398,7 @@ export default {
     return {
       bookCoverExpanded: true,
       bookDetailsExpanded: true,
+      drawerPeekTimeout: null,
       bookCoverSettings: [
 
         {
@@ -623,7 +624,7 @@ export default {
       return {
         ...sliderOverrides,
         Drawer: {
-          color: isLight ? 'rgba(255,255,255,0.82)' : 'rgba(44,44,50,0.82)',
+          color: isLight ? 'rgba(255,255,255,0.6)' : 'rgba(44,44,50,0.6)',
         },
       };
     },
@@ -699,6 +700,16 @@ export default {
       return _.fromPairs( _.range( this.coversPerRowMin, this.coversPerRowMax + 1 ).map( i => [ i, '' ] ) );
     },
 
+    // The effective grid width the cover size steps and percentages are measured against:
+    // the full available width in list mode, or the (possibly overridden) grid max width in
+    // grid mode.
+    coverSizeGridWidth: function() {
+      const available = this.$store.state.gridAvailableWidth;
+      if ( !available ) return 0;
+      if ( this.listMode ) return available;
+      return Math.min( this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth, available );
+    },
+
     // Snap points for the cover size slider: one per column count, from 1 cover filling
     // the grid width down to however many fit at the minimum size. Each value is the
     // largest cover size that still lets exactly N covers fit side by side within the
@@ -709,11 +720,8 @@ export default {
     // the crowded small-cover end of the slider stays navigable.
     coverSizeSteps: function() {
       const MIN_STEP_GAP = 10;
-      const available = this.$store.state.gridAvailableWidth;
-      if ( !available ) return null;
-      const gridWidth = this.listMode
-        ? available
-        : Math.min( this.$store.state.sticky.gridMaxWidth || this.$store.state.gridDefaultMaxWidth, available );
+      const gridWidth = this.coverSizeGridWidth;
+      if ( !gridWidth ) return null;
       const raw = [];
       let n = ( !this.listMode && !this.$store.getters.mobileThreshold ) ? 2 : 1;
       while ( true ) {
@@ -755,6 +763,10 @@ export default {
 
   methods: {
 
+    coverSizePercent: function( size ) {
+      return this.coverSizeGridWidth ? Math.round( size / this.coverSizeGridWidth * 100 ) : 0;
+    },
+
     onCoverSizeInput: function( index ) {
       const value = this.coverSizeSteps ? this.coverSizeSteps[ index ].size : index;
       this.setCoverSize( value );
@@ -773,7 +785,13 @@ export default {
     setDrawerPeek: function( hidden ) {
       if ( hidden === this.$store.state.globalSettingsDrawerHidden ) return;
       this.$store.commit('prop', { key: 'globalSettingsDrawerHidden', value: hidden });
-      document.body.classList.toggle('settings-drawer-peek-hidden', hidden);
+    },
+
+    // Buttons have no drag lifecycle to bracket the peek with, so pulse it briefly instead.
+    pulseDrawerPeek: function() {
+      clearTimeout( this.drawerPeekTimeout );
+      this.setDrawerPeek( true );
+      this.drawerPeekTimeout = setTimeout( () => this.setDrawerPeek( false ), 1000 );
     },
 
     setCoversPerRow: function( count ) {
@@ -822,6 +840,7 @@ export default {
     setDetailsMode: function( mode ) {
       if ( this.$store.state.sticky.gridDetailsMode === mode ) return;
       this.$store.commit('stickyProp', { key: 'gridDetailsMode', value: mode });
+      this.pulseDrawerPeek();
     },
 
     setTheme: function( light ) {
@@ -844,6 +863,7 @@ export default {
       if ( this.$store.state.sticky.viewMode === mode ) return;
       this.$store.commit('stickyProp', { key: 'viewMode', value: mode });
       this.$updateQueries({ y: null, view: mode });
+      this.pulseDrawerPeek();
 
     },
 
@@ -891,22 +911,10 @@ export default {
   margin-top: 8px;
 }
 
-// Fade the drawer while covers-per-row is dragged past the visible threshold.
-// Opacity transitions in/out; the push (padding-right) on the app root is
-// toggled without transition so the layout snaps immediately.
 // Naive-ui renders the mask as position:absolute which only covers its container.
 // Fix it to cover the full viewport.
 .n-drawer-mask {
   position: fixed;
-}
-
-body.settings-drawer-peek-hidden .n-drawer {
-  opacity: 0.9;
-  transition: opacity 150ms ease;
-}
-body:not(.settings-drawer-peek-hidden) .n-drawer {
-  opacity: 1;
-  transition: opacity 250ms ease;
 }
 </style>
 
