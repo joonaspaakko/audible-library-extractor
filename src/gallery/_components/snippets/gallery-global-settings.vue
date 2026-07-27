@@ -196,7 +196,7 @@
           <span>Install as app</span>
           <span class="setting-subtext">Add this gallery to your home screen for quick access without a browser.</span>
         </div>
-        <button class="pwa-install-btn" @click="showPwaDialog" @mousedown="$haptic(2)">Install</button>
+        <button class="pwa-install-btn" @click="showPwaDialog" @mousedown="$haptic(2)">Add</button>
       </div>
 
       <!-- Haptics setting hidden - disabled due to iOS 26.5+ restrictions -->
@@ -867,9 +867,26 @@ export default {
 
     },
 
+    // The pwa-install element lives in the page body, outside the app, so it can catch the
+    // browser's install event on page load. Its install method goes straight to the browser's
+    // own install prompt, skipping the element's dialog, which would only add a step that
+    // says the same thing.
     showPwaDialog: function() {
+
       const el = document.querySelector('pwa-install');
-      if ( el ) el.showDialog(true);
+      if ( !el ) return;
+
+      // Safari can't install on its own, so the element's dialog is what explains the manual
+      // steps and has to be opened. Its install method only marks the instructions as
+      // requested, which does nothing while manual-apple keeps the dialog hidden. Passing
+      // true forces it open even when the element considers install unavailable.
+      if ( el.isAppleMobilePlatform || el.isAppleDesktopPlatform ) {
+        el.showDialog( true );
+      }
+      else {
+        el.install();
+      }
+
     },
 
     handleSetting: function( setting, e ) {

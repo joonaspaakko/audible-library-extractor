@@ -582,7 +582,7 @@ export default {
           </head>
           <body>
             <div id="audible-library-extractor" data-version="${ this.$store.state.version }" data-cache-id="${ vue.cacheBuster }"></div>
-            <pwa-install use-local-storage manifest-url="app.webmanifest" icon="favicons/android-chrome-192x192.png" name="My Audible Library"></pwa-install>
+            <pwa-install manual-apple manual-chrome manual-how-to manifest-url="app.webmanifest" icon="favicons/android-chrome-192x192.png" name="My Audible Library"></pwa-install>
             <script id="ale-js" src="${ getFile('gallery', 'js') }" type="module">${sc}
             <noscript>This library requires javascript to work!</noscript>
           </body>
