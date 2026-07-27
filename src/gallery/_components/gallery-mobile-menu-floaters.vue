@@ -7,9 +7,11 @@
   <div id="mobile-menu-floaters" :class="{ mobile: mobileMenuOpen }">
     <div class="second-row">
       
-      <div v-if="$store.state.searchMounted && !mobileMenuOpen" class="search-btn" @mousedown="$haptic(1)" @click="$emit('startSearching')"
-        :style="{ top: showMobilePlayerButton ? '-93px' : '-46px' }"
-      >
+      <div v-if="showSettingsButton" class="settings-btn" @mousedown="$haptic(1)" @click="openSettings">
+        <fa-solid-cog/>
+      </div>
+
+      <div v-if="showSearchButton" class="search-btn" @mousedown="$haptic(1)" @click="$emit('startSearching')">
         <fa-solid-search/>
       </div>
       
@@ -49,16 +51,32 @@ export default {
   },
   
   computed: {
+
     showMobilePlayerButton() {
       return !this.mobileMenuOpen && this.mobileThreshold && !this.store.showMobilePlayer && this.store.audioPlayer.audio;
     },
+
+    showSearchButton() {
+      return this.store.searchMounted && !this.mobileMenuOpen;
+    },
+
+    showSettingsButton() {
+      return !this.mobileMenuOpen;
+    },
+
   },
   
   methods: {
+
+    openSettings: function() {
+      this.$store.commit('prop', { key: 'globalSettingsOpen', value: true });
+    },
+
     menuClicked() {
       this.$haptic(1);
       this.$emit('update:mobileMenuOpen', !this.mobileMenuOpen);
     }
+
   },
   
 };
@@ -88,12 +106,10 @@ export default {
   }
   
   .search-btn {
-    transition: top 300ms ease;
-    position: absolute;
-    top: -93px;
     cursor: pointer;
     @extend .center-contents;
     border-radius: 999999px;
+    flex: none;
     width:  32px;
     height: 32px;
     // @include themify($themes) {
@@ -103,10 +119,13 @@ export default {
     background: rgba( #292929, .90);
     border: 1px solid rgba( #fff, 1);
   }
-  
+
+  .settings-btn {
+    @extend .search-btn;
+  }
+
   .mobile-player-button {
     @extend .search-btn;
-    top: -46px;
     background: #ff1946;
     font-size: 1em;
   }
@@ -131,6 +150,8 @@ export default {
   }
   .second-row {
     @extend .center-contents;
+    flex-direction: column;
+    gap: 15px;
   }
   
 }
