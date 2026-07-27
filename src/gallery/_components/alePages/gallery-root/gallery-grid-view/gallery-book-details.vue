@@ -45,7 +45,7 @@
           <gallery-details-first-hider v-if="mobileWidth" />
           <gallery-sidebar-flipper @flip="flipPanels" />
           <div class="book-details-info" @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })">
-            <uil-cog />
+            <fa6-solid-sliders />
             <span class="label">Settings</span>
           </div>
         </div>

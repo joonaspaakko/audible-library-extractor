@@ -75,8 +75,8 @@
         />
       </div>
       <div>
-        <fa6-solid-gear
-          class="icon"
+        <fa6-solid-sliders
+          class="icon settings-icon"
           @click="openSettings"
           @mousedown="$haptic(1)"
           v-tippy content="Settings"
@@ -365,6 +365,10 @@ export default {
   :deep(.icon) {
     padding: 5px 8px;
     cursor: pointer;
+  }
+  // Upright faders, to match the floating settings button on mobile.
+  :deep(.settings-icon) {
+    transform: rotate(90deg);
   }
   // &,
   // > div {
