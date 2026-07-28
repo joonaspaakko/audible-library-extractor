@@ -27,7 +27,7 @@ export default {
       // Reactive view state the overlay template renders from.
       peek: {
         visible: false,
-        blurb: "",
+        book: null,
         x: 0,
         y: 0,
         isTouch: false,
@@ -88,7 +88,7 @@ export default {
         return;
       }
 
-      this.peek.blurb = data.blurb;
+      this.peek.book = data;
       this.peek.x = x;
       this.peek.y = y;
       this.peek.visible = true;

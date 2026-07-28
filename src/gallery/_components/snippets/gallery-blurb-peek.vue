@@ -1,10 +1,31 @@
 <template>
   <transition name="fade">
     <div
-      v-if="peek.visible && peek.blurb"
+      v-if="peek.visible && peek.book"
       class="blurb-peek"
       :style="panelStyle"
-    >{{ peek.blurb }}</div>
+    >
+
+      <div class="peek-title" v-html="title"></div>
+
+      <div class="peek-subtitle" v-if="subtitle" v-html="subtitle"></div>
+
+      <div class="peek-categories" v-if="categories.length">
+        <span class="peek-category" v-for="( category, index ) in categories" :key="category.name + '(' + index + ')'">
+          <span class="peek-chevron" v-if="index !== 0">
+            <fa-solid-chevron-right/>
+          </span>
+          {{ category.name }}
+        </span>
+      </div>
+
+      <div class="peek-tags" v-if="tags.length">
+        <span class="peek-tag" v-for="tag in tags" :key="tag.name">{{ tag.name }}</span>
+      </div>
+
+      <div class="peek-blurb">{{ peek.book.blurb }}</div>
+
+    </div>
   </transition>
 </template>
 
@@ -32,6 +53,36 @@ export default {
       };
     },
 
+    // Title and subtitle mirror the book details header: the short title preference
+    // picks the main line, and the leftover long title doubles as the subtitle.
+    title: function() {
+      const book = this.peek.book;
+      if ( !book ) return "";
+      if ( this.$store.state.sticky.bookDetailSettings.titleShort ) return book.titleShort || book.title;
+      return book.title || book.titleShort;
+    },
+
+    subtitle: function() {
+
+      const book = this.peek.book;
+      if ( !book || !this.$store.state.sticky.bookDetailSettings.titleShort ) return "";
+
+      const hasSubtitle = !!book.subtitle;
+      const noTitleDuplicate = !!book.title && !!book.titleShort && book.title !== book.titleShort;
+      if ( !hasSubtitle && !noTitleDuplicate ) return "";
+
+      return book.subtitle || book.title;
+
+    },
+
+    categories: function() {
+      return _.get( this.peek.book, 'categories', [] ) || [];
+    },
+
+    tags: function() {
+      return _.get( this.peek.book, 'tags', [] ) || [];
+    },
+
   },
 };
 </script>
@@ -56,6 +107,59 @@ export default {
     color: themed(frontColor);
     border: 1px solid rgba( themed(outerColor), 0.3 );
   }
+}
+
+.peek-title {
+  font-size: 1.25em;
+  line-height: 1.2;
+  font-weight: 700;
+}
+
+.peek-subtitle {
+  font-size: 1em;
+  line-height: 1.25;
+  font-weight: 400;
+}
+
+.peek-categories {
+  font-size: 0.85em;
+  line-height: 1.2;
+  margin-top: 4px;
+  @include themify($themes) { color: rgba(themed(frontColor), .85); }
+}
+
+.peek-category {
+  display: inline-flex;
+  align-items: center;
+}
+
+.peek-chevron {
+  display: inline-flex;
+  font-size: 0.7em;
+  padding: 0 4px;
+  @include themify($themes) { color: rgba(themed(frontColor), .7); }
+}
+
+.peek-tags {
+  margin-bottom: 4px;
+}
+
+.peek-tag {
+  display: inline-block;
+  padding: 1px 4px;
+  margin: 4px 4px 0 0;
+  border-radius: 9999999px;
+  font-size: 9px;
+  line-height: 11px;
+  white-space: nowrap;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), 0.7);
+    border: 1px solid rgba(themed(frontColor), 0.5);
+  }
+}
+
+.peek-blurb {
+  margin-top: 10px;
 }
 
 .fade-enter-active, .fade-leave-active {
