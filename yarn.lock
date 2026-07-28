@@ -1726,10 +1726,10 @@ domhandler@^5.0.2, domhandler@^5.0.3:
   dependencies:
     domelementtype "^2.3.0"
 
-dompurify@^3.4.9:
-  version "3.4.11"
-  resolved "https://registry.npmjs.org/dompurify/-/dompurify-3.4.11.tgz"
-  integrity sha512-zhlUV12GsaRzMsf9q5M254YhA4+VuF0fG+QFqu6aYpoGlKtz+w8//jBcGVYBgQkR5GHjUomejY84AV+/uPbWdw==
+dompurify@^3.4.12:
+  version "3.4.12"
+  resolved "https://registry.yarnpkg.com/dompurify/-/dompurify-3.4.12.tgz#6fa2265e9bbdce882c4ace4107626051b448ffa8"
+  integrity sha512-zQvGet8Z2sWbQhCmfFz/T5QWH2oBmjnqK3qvOjaqaNLrLEF912WamU+ohnTp0TCep/MFVHpdJuCZEdFOdTnEFg==
   optionalDependencies:
     "@types/trusted-types" "^2.0.7"
 
@@ -2210,9 +2210,9 @@ ignore@^5.1.1:
   integrity sha512-hsBTNUqQTDwkWtcdYI2i06Y/nUBEsNEDJKjWdigLvegy8kDuJAS8uRlpkkcQpyEXL0Z/pjDy5HBmMjRCJ2gq+g==
 
 immutable@^5.1.5:
-  version "5.1.6"
-  resolved "https://registry.npmjs.org/immutable/-/immutable-5.1.6.tgz"
-  integrity sha512-q1swsS8K7L8usSHuOqF2TAoCCkonYz0SG38wLAggaa4Wml70zixIvt2ql4coQ2C2B3hTjltJry4r6bULwgAXLQ==
+  version "5.1.9"
+  resolved "https://registry.yarnpkg.com/immutable/-/immutable-5.1.9.tgz#ac23c3a01992ab665e14ac9ffff298f28cd74a0c"
+  integrity sha512-m8nVez3rwrgmWxtLMt1ZYXB2Lv7OKYn/disyxAlSDYAlKSlFoPPfIAmAM/M5xqL4m4C/wAPw7S2/CNaUii1Hxg==
 
 import-meta-resolve@^4.2.0:
   version "4.2.0"
@@ -2618,10 +2618,10 @@ naive-ui@^2.40.4:
     vooks "^0.2.12"
     vueuc "^0.4.65"
 
-nanoid@^3.3.12:
-  version "3.3.13"
-  resolved "https://registry.npmjs.org/nanoid/-/nanoid-3.3.13.tgz"
-  integrity sha512-sPdqC6ByMVVGvF1ynvvMo0/o+oD1VX7DaHhijt1bFgjvBkHBib4t49GoNDhf2NDta4oeUNlaGbSt5K7qjZ955Q==
+nanoid@^3.3.16:
+  version "3.3.16"
+  resolved "https://registry.yarnpkg.com/nanoid/-/nanoid-3.3.16.tgz#a04d8ec4b1f10009d2d533947aefe4293737816c"
+  integrity sha512-bzlKTyNJ7+LdGIIwy8ijFpIqEQIvafahV7eYykJ8Cvh42EdJeODoJ6gUJXpQJvej1BddH8OqTXZNE/KfbWAu8Q==
 
 node-addon-api@^7.0.0:
   version "7.1.1"
@@ -2791,11 +2791,11 @@ pkg-types@^2.3.0:
     pathe "^2.0.3"
 
 postcss@^8.5.15, postcss@^8.5.3:
-  version "8.5.15"
-  resolved "https://registry.npmjs.org/postcss/-/postcss-8.5.15.tgz"
-  integrity sha512-FfR8sjd4em2T6fb3I2MwAJU7HWVMr9zba+enmQeeWFfCbm+UOC/0X4DS8XtpUTMwWMGbjKYP7xjfNekzyGmB3A==
+  version "8.5.24"
+  resolved "https://registry.yarnpkg.com/postcss/-/postcss-8.5.24.tgz#01d8b032451e1b9ec41ae66eaf02843f42a720d2"
+  integrity sha512-8RyVklq0owXUTa4xlpzu4l9AaVKIdQvAcOHZWaMh98HgySsUtxRVf/chRe3dsSLqb6i40BzGRzEUddRaI+9TSw==
   dependencies:
-    nanoid "^3.3.12"
+    nanoid "^3.3.16"
     picocolors "^1.1.1"
     source-map-js "^1.2.1"
 
