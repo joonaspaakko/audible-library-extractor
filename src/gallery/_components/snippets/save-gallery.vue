@@ -575,7 +575,7 @@ export default {
             <meta name="msapplication-config" content="favicons/browserconfig.xml">
             <meta name="theme-color" content="#f29a33">
             <title>My Audible Library</title>
-            <script type="module" src="https://esm.sh/@khmyznikov/pwa-install">${sc}
+            <script src="assets/js/pwa-install.bundle.js">${sc}
             ${loadServiceWorker}
             <script src="assets/js/lodash.min.js">${sc}
             <link id="ale-css" rel="stylesheet" href="${ getFile('gallery', 'css') }">
@@ -636,6 +636,7 @@ export default {
         
         assetFiles = assetFiles.concat([
           "assets/js/lodash.min.js",
+          "assets/js/pwa-install.bundle.js",
           "favicons/android-chrome-192x192.png",
           "favicons/android-chrome-512x512.png",
           "favicons/apple-touch-icon.png",

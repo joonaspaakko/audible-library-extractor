@@ -49,6 +49,10 @@ const copyFilesAfter = [
   // Lodash is used as a bare global `_` across the app. Copy it from node_modules
   // so it can load as a classic script before any module chunk runs.
   { src: root('node_modules/lodash/lodash.min.js'), dest: 'assets/js' },
+  // The exported gallery is meant to work offline, so the pwa-install web component
+  // is copied in instead of loaded from a CDN. The bundle build has lit inlined and
+  // registers <pwa-install> by itself.
+  { src: root('node_modules/@khmyznikov/pwa-install/dist/pwa-install.bundle.js'), dest: 'assets/js' },
   { src: src('gallery/app.webmanifest'), dest: dist('') },
   { src: src('gallery/images'),          dest: dist('assets') },
   { src: src('gallery/favicons'),        dest: dist('') },

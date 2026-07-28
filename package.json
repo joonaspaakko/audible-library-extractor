@@ -26,6 +26,7 @@
   "dependencies": {
     "@crxjs/vite-plugin": "^2.5.0",
     "@date-fns/utc": "^2.1.1",
+    "@khmyznikov/pwa-install": "^0.6.4",
     "@meforma/vue-toaster": "^1.3.0",
     "@panzoom/panzoom": "^4.5.1",
     "@splidejs/vue-splide": "^0.6.12",
