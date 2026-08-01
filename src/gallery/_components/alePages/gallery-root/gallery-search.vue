@@ -1284,8 +1284,9 @@ export default {
     cursor: default;
     max-height: 280px;
     overflow-y: auto;
+    backdrop-filter: blur(12px);
     @include themify($themes) {
-      background: color.adjust(themed(backColor), $lightness: 10%);
+      background: rgba(color.adjust(themed(backColor), $lightness: 10%), 0.85);
       color: themed(frontColor);
       border: 1px solid rgba(themed(frontColor), 0.12);
       box-shadow: 0 8px 24px rgba(themed(outerColor), 0.9);
