@@ -813,10 +813,12 @@ export default {
     // Recomputes the autosuggest menu from the input's current value and caret. The
     // '@field' menu wins: while it is open the suggest menu stays closed, so the two never
     // show at once. Otherwise miniSuggest completes the plain word under the caret.
+    // Disabled entirely by the global setting; the '@field' menu is unaffected since using
+    // it is already a deliberate, conscious action.
     updateSuggestMenu: function() {
 
       const input = this.$refs.searchInput;
-      if ( !input || this.fieldMenu.open ) return this.closeSuggestMenu();
+      if ( !input || this.fieldMenu.open || this.$store.state.sticky.disableSearchAutocomplete ) return this.closeSuggestMenu();
 
       // All page scopes (not just active) so a value inside an '@scope:' completes even for
       // an unchecked scope, matching the '@'-override behaviour.

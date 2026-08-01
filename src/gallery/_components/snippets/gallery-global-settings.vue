@@ -183,6 +183,28 @@
 
     </div>
 
+    <!-- Search -->
+    <div class="settings-section-divider"></div>
+    <div class="settings-section">
+
+      <div class="setting-row">
+        <label class="setting-label-wrap">
+          <div class="setting-icon">
+            <fa6-solid-magnifying-glass />
+          </div>
+          <div class="setting-label">
+            <span>Search autocomplete</span>
+            <span class="setting-subtext">Suggests matching words as you type. Does not affect the "@" inline search scope.</span>
+          </div>
+          <div class="visual-toggle" :class="{ on: !$store.state.sticky.disableSearchAutocomplete }">
+            <input type="checkbox" :checked="!$store.state.sticky.disableSearchAutocomplete" @change="toggleSearchAutocomplete" @mousedown="$haptic(1)">
+            <div class="toggle-track"><div class="toggle-thumb"></div></div>
+          </div>
+        </label>
+      </div>
+
+    </div>
+
     <!-- Miscellaneous -->
     <template v-if="$store.state.standalone && !$store.state.displayMode">
     <div class="settings-section-divider"></div>
@@ -835,6 +857,10 @@ export default {
 
     toggleHaptics: function( e ) {
       this.$store.commit('stickyProp', { key: 'useHaptics', value: e.target.checked });
+    },
+
+    toggleSearchAutocomplete: function( e ) {
+      this.$store.commit('stickyProp', { key: 'disableSearchAutocomplete', value: !e.target.checked });
     },
 
     setDetailsMode: function( mode ) {
