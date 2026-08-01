@@ -452,7 +452,7 @@ export default {
                 break;
                 
               case "sample":
-                let sample = book[key] || '';
+                let sample = book[key] || (book.asin ? ('https://www.audible.com/webplayer?asin=' + book.asin + '&isSample=true') : '');
                 if ( sample && vue.googleSheets ) {
                   sample = vue.googleSheetsLinkifyImage( sample, 'https://i.imgur.com/R2N6OTy.png', 20 ); 
                 }
