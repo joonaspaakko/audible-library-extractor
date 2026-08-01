@@ -153,7 +153,7 @@ export default {
       wallpaperPromptOpen: false,
       IconFaSolidSliders,
       toolDescriptions: {
-        'Save gallery website': 'Publish online to browse on mobile or show off your library or wishlist to your friends.',
+        'Upload gallery website': 'Publish online to browse on mobile or show off your library or wishlist to your friends.',
         'Spreadsheet export':   'Export to an Excel or CSV spreadsheet.',
         'Collage maker':        'Turn your book covers into a collage image, in the form of a card, tier list, a desktop wallpaper, animated desktop wallpaper (or screensaver).',
       },

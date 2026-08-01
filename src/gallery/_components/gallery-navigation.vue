@@ -268,7 +268,7 @@ export default {
           {
             highlight: true,
             tag: 'div',
-            name: 'Save gallery website',
+            name: 'Upload gallery website',
             disabled: false,
             click: this.routeClick, 
             meta: {
