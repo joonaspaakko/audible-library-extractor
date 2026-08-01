@@ -171,17 +171,16 @@ export default {
       this.$nextTick(function() {
           
         const minHeight = _.get(this.$refs, 'summaryMetaTop.offsetHeight', 0);
-        const minHeightExtra = minHeight + 300;
+        const minHeightExtra = minHeight + (this.mobileWidth ? 340 : 230);
         const summaryFullHeight = _.get(this.$refs, 'summary.offsetHeight', 0);
         // const summaryFullHeight = _.get(this.$refs, 'summary.scrollHeight', 0);
         this.summary.fullHeight = summaryFullHeight;
         
-        // const wrapper = document.querySelector('#ale-bookdetails .details-wrap');
         const sidebar = document.querySelector('#ale-bookdetails .information');
         const sidebarHeight = _.get( sidebar, 'offsetHeight', 0 );
-        
-        let maxHeight = sidebarHeight;
-        if ( this.mobileWidth || summaryFullHeight > minHeightExtra && minHeightExtra > sidebarHeight ) maxHeight = minHeightExtra; 
+
+        let maxHeight = Math.max(sidebarHeight, minHeightExtra);
+        if ( this.mobileWidth ) maxHeight = minHeightExtra;
         
         this.summary.maxHeight = this.summary.readmore.toggle ? "none" : maxHeight;
         this.summary.maxHeightTemp = maxHeight;
