@@ -44,7 +44,6 @@ export default {
       playButton: true,
       cloudPlayer: false,
       appLink: false,
-      blurb: true,
       statusIndicators: true,
       whispersync: true,
       plusCatalog: true,

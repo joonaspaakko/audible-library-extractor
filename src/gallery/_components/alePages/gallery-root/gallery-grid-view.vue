@@ -194,7 +194,6 @@ export default {
     const vue = this;
     return {
       blurbPeek: {
-        blurbEnabled: function() { return vue.$refs.blurbPeek.blurbEnabled(); },
         start: function( event ) { vue.$refs.blurbPeek.start( event ); },
         consumeClick: function() { return vue.$refs.blurbPeek.consumeClick(); },
       },

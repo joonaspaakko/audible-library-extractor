@@ -147,9 +147,7 @@ export default {
     onPressStart: function( event ) {
       this.$haptic( 1 );
       if ( !this.book.asin || !this.blurbPeek ) return;
-      // Only arm the blurb gesture when blurbs are actually enabled, so a plain tap
-      // path is untouched when the feature is off.
-      if ( this.blurbPeek.blurbEnabled() ) this.blurbPeek.start( event );
+      this.blurbPeek.start( event );
     },
 
     openBook: function() {

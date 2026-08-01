@@ -370,7 +370,6 @@
 import { NConfigProvider, NDrawer, NDrawerContent, NSlider, darkTheme, lightTheme } from 'naive-ui';
 import SamplePlayButton from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-sample-play-button.jpg';
 import BookCoverCloudPlayerButton from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-book-cover-cloud-player-button.jpg';
-import BlurbHoverCorner from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-blurb-hover-corner.jpg';
 import CoverWhispersyncIndicator from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-cover-whispersync-indicator.jpg';
 import CoverPlusCalatogIndicator from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-cover-plus-calatog-indicator.jpg';
 import CoverFavoriteFinishedIndicators from '@output-pages/gallery-root/gallery-grid-view/gallery-book-details/gallery-book-details-settings-images/gallery-cover-favorite-finished-indicators.jpg';
@@ -387,7 +386,6 @@ import Carousel from '@output-pages/gallery-root/gallery-grid-view/gallery-book-
 import IconPlay         from '~icons/fa6-solid/play';
 import IconCloud        from '~icons/fa6-solid/cloud';
 import IconAppLink      from '~icons/fa6-solid/mobile-screen-button';
-import IconBlurb        from '~icons/fa6-solid/align-left';
 import IconWhispersync  from '~icons/fa6-solid/rotate';
 import IconPlus         from '~icons/fa6-solid/plus';
 import IconHeart        from '~icons/fa6-solid/heart';
@@ -482,14 +480,6 @@ export default {
             }
             vue.mutateChildren('appLinkButton', 'value', v);
             vue.$store.commit('prop', update);
-          },
-        },
-        {
-          enabled: true, type: 'checkbox', label: 'Show blurb on hover', icon: IconBlurb,
-          info: `Shows the book description as an overlay when hovering the cover. Not visible on mobile.<br><img src="${BlurbHoverCorner}" class="tippy-info-image" />`,
-          value: sticky.bookDetailSettings.blurb,
-          event: function( e ) {
-            vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.blurb', value: e.target.checked });
           },
         },
         {

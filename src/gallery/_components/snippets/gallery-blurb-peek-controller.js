@@ -62,10 +62,6 @@ export default {
 
   methods: {
 
-    blurbEnabled: function() {
-      return this.$store.state.sticky.bookDetailSettings.blurb;
-    },
-
     // Resolve the .ale-book under the pointer to its blurb and push it to the overlay.
     // Skips the work when the pointer is still over the same cover.
     peekAt: function( x, y ) {
