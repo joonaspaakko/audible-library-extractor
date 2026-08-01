@@ -1247,10 +1247,10 @@ buffer-es6@^4.9.3:
   resolved "https://registry.npmjs.org/buffer-es6/-/buffer-es6-4.9.3.tgz"
   integrity sha512-Ibt+oXxhmeYJSsCkODPqNpPmyegefiD8rfutH1NYGhMZQhSp95Rz7haemgnJ6dxa6LT+JLLbtgOMORRluwKktw==
 
-bulma@^0.9.4:
-  version "0.9.4"
-  resolved "https://registry.npmjs.org/bulma/-/bulma-0.9.4.tgz"
-  integrity sha512-86FlT5+1GrsgKbPLRRY7cGDg8fsJiP/jzTqXXVqiUZZ2aZT8uemEOHlU1CDU+TxklPEZ11HZNNWclRBBecP4CQ==
+bulma@^1.0.4:
+  version "1.0.4"
+  resolved "https://registry.yarnpkg.com/bulma/-/bulma-1.0.4.tgz#942dc017a3a201fa9f0e0c8db3dd52f3cff86712"
+  integrity sha512-Ffb6YGXDiZYX3cqvSbHWqQ8+LkX6tVoTcZuVB3lm93sbAVXlO0D6QlOTMnV6g18gILpAXqkG2z9hf9z4hCjz2g==
 
 bundle-name@^4.1.0:
   version "4.1.0"
