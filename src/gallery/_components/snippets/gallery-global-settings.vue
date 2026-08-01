@@ -529,11 +529,11 @@ export default {
 
         { type: 'sectionLabel', sectionLabel: 'Above summary' },
         {
-          enabled: true, type: 'checkbox', label: 'Prefer short title', icon: IconShortTitle,
-          info: `Displays the short title when available, with the subtitle shown below in a smaller font, similar to Audible store pages.<br><img src="${PreferShortTitle}" class="tippy-info-image" />`,
-          value: sticky.bookDetailSettings.titleShort,
+          enabled: true, type: 'checkbox', label: 'Long title', icon: IconShortTitle,
+          info: `Displays the full title as one long combined phrase, instead of splitting it into a short title with the subtitle shown below in a smaller font, similar to Audible store pages.<br><img src="${PreferShortTitle}" class="tippy-info-image" />`,
+          value: sticky.bookDetailSettings.titleLong,
           event: function( e ) {
-            vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.titleShort', value: e.target.checked });
+            vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.titleLong', value: e.target.checked });
             vue.$nextTick(() => { vue.$compEmitter.emit('resizeSummary'); });
           },
         },

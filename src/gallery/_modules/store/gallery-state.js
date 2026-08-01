@@ -33,7 +33,7 @@ export default {
     disableSearchAutocomplete: false,
     bookDetailSettings: {
       minHeight: null,
-      titleShort: true,
+      titleLong: false,
       sidebar: {
         show: true,
         iconToolbar: true,

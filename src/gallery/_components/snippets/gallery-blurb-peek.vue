@@ -31,10 +31,11 @@
 
 <script>
 import blurbPeekController from "@output-snippets/gallery-blurb-peek-controller.js";
+import decodeHTMLEntities from "@output-mixins/gallery-decode-html-entities.js";
 
 export default {
   name: "blurbPeek",
-  mixins: [ blurbPeekController ],
+  mixins: [ blurbPeekController, decodeHTMLEntities ],
   computed: {
 
     // Sit just above the pointer, clamped so the panel never runs off either edge.
@@ -58,20 +59,19 @@ export default {
     title: function() {
       const book = this.peek.book;
       if ( !book ) return "";
-      if ( this.$store.state.sticky.bookDetailSettings.titleShort ) return book.titleShort || book.title;
-      return book.title || book.titleShort;
+      if ( this.$store.state.sticky.bookDetailSettings.titleLong ) return book.title || book.titleShort;
+      return book.titleShort || book.title;
     },
 
     subtitle: function() {
 
       const book = this.peek.book;
-      if ( !book || !this.$store.state.sticky.bookDetailSettings.titleShort ) return "";
+      if ( !book || this.$store.state.sticky.bookDetailSettings.titleLong ) return "";
 
-      const hasSubtitle = !!book.subtitle;
-      const noTitleDuplicate = !!book.title && !!book.titleShort && book.title !== book.titleShort;
-      if ( !hasSubtitle && !noTitleDuplicate ) return "";
+      const subtitleText = book.subtitle || book.title;
+      if ( !subtitleText || this.decodeHTMLEntities(subtitleText) === this.decodeHTMLEntities(this.title) ) return "";
 
-      return book.subtitle || book.title;
+      return subtitleText;
 
     },
 

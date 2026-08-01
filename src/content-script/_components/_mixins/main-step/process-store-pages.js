@@ -200,7 +200,10 @@ export default {
       
       // GET TITLE SHORT AND SUBTITLE
       // From data (Title only, subtitle is not quite in the data)
-      book.titleShort = DOMPurify.sanitize(bookData.name);
+      // bookData.name comes from Audible's embedded JSON and arrives HTML-entity
+      // encoded (eg. "&amp;"), unlike book.title which is read from .textContent
+      // and is already decoded, so it needs decoding to match.
+      book.titleShort = bookData.name ? DOMPurify.sanitize(bookData.name).decodeHTMLEntities() : bookData.name;
       // From DOM
       const titleLockup = audible.querySelector("adbl-title-lockup");
       if ( titleLockup ) {
@@ -214,6 +217,9 @@ export default {
           book.subtitle = subtitle ? DOMPurify.sanitize(subtitle.textContent.trimAll()) : book.subtitle;
         }
       }
+      // No point keeping a titleShort that's identical to the full title, consumers
+      // already fall back to title when titleShort is missing.
+      if ( book.titleShort === book.title ) delete book.titleShort;
       
       // GET RATING (rating + number of ratings)
       // From data
