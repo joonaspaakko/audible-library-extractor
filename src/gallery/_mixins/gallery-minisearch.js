@@ -559,25 +559,57 @@ export default {
         && groups.length === 1
         && _.every( groups[0], ( term ) => term.type === 'plain' && !term.fieldKey );
 
+      // Fuzzy only kicks in per word when that word's own literal/prefix search finds
+      // nothing. A correctly-spelled word that already has a real hit (like 'martian'
+      // finding "The Martian") skips fuzzy entirely, so its near-miss lookalikes (Martin,
+      // Marian, martial, ...) stop showing up just because they're close in spelling. A
+      // genuine typo ('martain') still finds nothing literally, so fuzzy still kicks in
+      // for it and the wider, looser results a typo deserves are preserved.
+      const fuzzyNeeded = {};
+      if ( isSimpleQuery ) {
+        _.each( includeWords, ( word ) => {
+          const literalHits = miniSearch.search( word, { fields: candidateFields, prefix: true, fuzzy: false, combineWith: 'OR' });
+          fuzzyNeeded[ word ] = literalHits.length === 0;
+        });
+      }
+
       // Candidate set from MiniSearch. Simple queries AND the words (the real match);
       // otherwise it runs a broad OR purely to gather candidates and the cell logic
       // below does the real AND/OR/operator filtering. With no positive words (query is
       // only excludes) we start from every book.
       let results;
       if ( includeWords.length ) {
-        results = miniSearch.search( includeWords.join(' '), {
-          fields: candidateFields,
-          boost,
-          prefix: true,
-          // Edit-distance typo tolerance, decided per term. Short words are skipped: a
-          // 1-2 edit allowance is a big fraction of a short word, so a single common one
-          // (like 'martian') fans out into dozens of loose matches. Words of 5+ chars get
-          // a 20% allowance (capped at 4 edits), which still catches real typos in longer
-          // titles and names without dragging in the noise.
-          fuzzy: ( term ) => ( term.length >= 5 ? 0.2 : false ),
-          maxFuzzy: 4,
-          combineWith: isSimpleQuery ? 'AND' : 'OR',
-        });
+        // Edit-distance typo tolerance, decided per term. Short words are skipped: a
+        // 1-2 edit allowance is a big fraction of a short word, so a single common short
+        // word fans out into dozens of loose matches. Words of 5+ chars get a 20%
+        // allowance (capped at 4 edits), which still catches real typos in longer titles
+        // and names without dragging in the noise.
+        const fuzzyFn = ( term ) => ( term.length >= 5 ? 0.2 : false );
+        if ( isSimpleQuery ) {
+          // Simple AND query: each word is its own MiniSearch sub-query, so fuzzyNeeded
+          // above can turn fuzzy on or off per word instead of for the whole query at once.
+          results = miniSearch.search({
+            combineWith: 'AND',
+            queries: _.map( includeWords, ( word ) => ({
+              queries: [ word ],
+              fields  : candidateFields,
+              boost,
+              prefix  : true,
+              fuzzy   : fuzzyNeeded[ word ] ? fuzzyFn( word ) : false,
+              maxFuzzy: 4,
+            })),
+          });
+        }
+        else {
+          results = miniSearch.search( includeWords.join(' '), {
+            fields: candidateFields,
+            boost,
+            prefix: true,
+            fuzzy: fuzzyFn,
+            maxFuzzy: 4,
+            combineWith: 'OR',
+          });
+        }
       }
       else if ( exclude.length ) {
         results = _.map( books, ( book ) => ({ __book: book }) );
