@@ -206,7 +206,7 @@ export default {
                 },
                 {
                   title: `The "formulas" CSV export now uses the XLSX file format.`,
-                  description: `Retains formula compatibility with Google Sheets. Should also work with Excel.`,
+                  description: `Formula-based images and hyperlinks only render correctly in Google Sheets.`,
                   type: 'improved',
                   issue: 133,
                 },

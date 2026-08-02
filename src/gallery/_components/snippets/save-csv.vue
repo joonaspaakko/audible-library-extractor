@@ -177,7 +177,7 @@ export default {
         compatibilityChecked: 'With formulas',
         compatibility: [
           { key: 'Default',       label: 'Default',       subtext: '', description: "Plain data, works in any spreadsheet app." },
-          { key: 'With formulas', label: 'With formulas', subtext: '', description: "Adds cover images and hyperlinks using spreadsheet formulas. Compatible with Google Sheets and Excel." },
+          { key: 'With formulas', label: 'With formulas', subtext: '', description: "Adds cover images and hyperlinks using spreadsheet formulas. Formula-based images only render correctly in Google Sheets." },
           { key: 'Goodreads',     label: 'Goodreads',     subtext: '', description: "Goodreads-compatible columns. Book status maps to shelves: not started (to-read), started (currently-reading), finished (read). Categories become shelves too." },
         ],
       },
@@ -295,7 +295,7 @@ export default {
         let headers = _.map( keys, function( key ) { return _.includes(['isbn', 'isbn10', 'isbn13', 'asin'], key) ? key.toUpperCase() : _.startCase(key); });
 
         if ( format === 'xlsx' ) {
-          this.saveXlsx( headers, rows ).then( function() {
+          this.saveXlsx( keys, headers, rows ).then( function() {
             vue.bundling = null;
           });
         }
@@ -323,24 +323,40 @@ export default {
       }
     },
 
-    saveXlsx: function( headers, rows ) {
+    saveXlsx: function( keys, headers, rows ) {
 
       const vue = this;
+
+      const narrowImageKeys = [ 'sample', 'webPlayer', 'searchInGoodreads' ];
+      const rowHeight = 26; // points, approx. 35px
+
+      const columns = _.map( keys, function( key ) {
+        if ( key === 'cover' ) return { width: 5 }; // approx. 35px
+        if ( _.includes( narrowImageKeys, key ) ) return { width: 4.3 }; // approx. 30px
+        return {};
+      });
 
       const headerRow = _.map( headers, function( h ) {
         return { type: String, value: h, fontWeight: 'bold' };
       });
 
       const dataRows = _.map( rows, function( row ) {
-        return _.map( row, function( cell ) {
+        return _.map( row, function( cell, index ) {
           let value = ( cell == null ? '' : String( cell ) );
-          if ( value.startsWith('=') ) return { type: 'Formula', value: value.slice(1) };
-          if ( value.startsWith("'") ) return { type: String, value: value.slice(1) };
-          return { type: String, value: value };
+          let cellObject;
+          if ( value.startsWith('=') ) cellObject = { type: 'Formula', value: value.slice(1) };
+          else if ( value.startsWith("'") ) cellObject = { type: String, value: value.slice(1) };
+          else cellObject = { type: String, value: value };
+
+          cellObject.alignVertical = 'center';
+          if ( keys[index] === 'cover' || _.includes( narrowImageKeys, keys[index] ) ) cellObject.align = 'center';
+          cellObject.height = rowHeight;
+
+          return cellObject;
         });
       });
 
-      return writeXlsxFile( [ headerRow, ...dataRows ] ).toBlob().then( function( blob ) {
+      return writeXlsxFile( [ headerRow, ...dataRows ], { columns } ).toBlob().then( function( blob ) {
         downloadBlob( blob, vue.filename('xlsx') );
       });
 
@@ -430,7 +446,7 @@ export default {
               case "cover":
                 let cover = !book.cover ? '' : vue.makeCoverUrl(book.cover);
                 if ( book.cover && cover && book.asin && vue.googleSheets ) {
-                  cover = vue.googleSheetsLinkifyImage( vue.makeUrl('book', book.asin), vue.makeCoverUrl(book.cover, 75), 0 );
+                  cover = vue.googleSheetsLinkifyImage( vue.makeUrl('book', book.asin), vue.makeCoverUrl(book.cover, 75) );
                 }
                 return cover;
                 break;
@@ -515,7 +531,6 @@ export default {
       return '=HYPERLINK("'+ url +'";"'+ string.replace(/\"/g,'""') +'")';
     },
     googleSheetsLinkifyImage: function( url, image, size ) {
-      size = size || 0;
       let sizeString = size ? '; 4; '+size+'; '+size+'' : '';
       return '=HYPERLINK("'+ url +'"; IMAGE("'+ image +'"'+ sizeString +'))';
     },
