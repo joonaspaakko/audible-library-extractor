@@ -30,6 +30,8 @@ import getDataFromPurchaseHistory from "./_components/_mixins/main-step/process-
 import timeStringToSeconds from "@output-mixins/gallery-timeStringToSeconds.js";
 import secondsToTimeString from "@output-mixins/gallery-secondsToTimeString.js";
 
+const NEW_BOOKS_MAX_AGE_DAYS = 90;
+
 // import eruda from "eruda";
 // import erudaMemory from "eruda-memory";
 // import erudaDom from "eruda-dom";
@@ -113,6 +115,7 @@ export default {
           hotpotato = hotpotato || {};
           if ( hotpotato.library ) config.oldBooksLength = hotpotato.library.length;
           hotpotato.config = config;
+          hotpotato.extractionStartedAt = Date.now();
           
           const waterfallArray = [
             function(callback) { callback(null, hotpotato); },
@@ -310,7 +313,19 @@ export default {
 
       finalizeBooks('library');
       finalizeBooks('wishlist');
-        
+
+      if ( isFinal ) {
+        let books = _.concat( hotpotato.library, hotpotato.wishlist );
+            books = _.compact( books );
+        this.stripExpiredNewBooks( books, NEW_BOOKS_MAX_AGE_DAYS );
+
+        const libraryBooks = _.filter( _.flatten( hotpotato.library ), ( book ) => !book.podcastParent );
+        this.$store.commit('update', [
+          { key: 'newBooksCountLibrary', value: _.filter( libraryBooks, 'isNew' ).length },
+          { key: 'newBooksCountWishlist', value: _.filter( _.flatten( hotpotato.wishlist ), 'isNew' ).length },
+        ]);
+      }
+
       // return;
       
       // Make sure library books are excluded from the wishlist no matter hwhat. Only run on the

@@ -6,7 +6,7 @@ import _ from "lodash"; window._ = _;
 import axios from "axios"; window.axios = axios;
 import { exponentialDelay, isNetworkOrIdempotentRequestError } from 'axios-retry'; window.exponentialDelay = exponentialDelay; window.isNetworkOrIdempotentRequestError = isNetworkOrIdempotentRequestError;
 import axiosRetry from 'axios-retry'; window.axiosRetry = axiosRetry;
-import { format as dateFormat } from "date-fns"; window.dateFormat = dateFormat;
+import { format as dateFormat, subDays, isWithinInterval } from "date-fns"; window.dateFormat = dateFormat; window.subDays = subDays; window.isWithinInterval = isWithinInterval;
 import DOMPurify from "dompurify"; window.DOMPurify = DOMPurify;
 import map from "async-es/map"; window.asyncMap = map;
 import mapLimit from "async-es/mapLimit"; window.asyncMapLimit = mapLimit;
@@ -87,6 +87,8 @@ function dataChecker( data, targetStore ) {
     { key: 'storageHasData.purchaseHistory', value: !!audibledata.library && checkPurchaseHistory( audibledata.library ) },
     { key: 'storageConfig', value: metadata.config || {} },
     { key: 'dataVersion', value: metadata.version || null },
+    { key: 'newBooksCountLibrary', value: countNewLibraryBooks( audibledata ) },
+    { key: 'newBooksCountWishlist', value: countNewBooks( audibledata.wishlist ) },
   ]);
 
   function checkISBNs( libraryChunks ) {
@@ -95,6 +97,17 @@ function dataChecker( data, targetStore ) {
 
   function checkPurchaseHistory( libraryChunks ) {
     return _.some( libraryChunks, chunk => _.some( chunk, 'purchaseDate' ) );
+  }
+
+  function countNewBooks( chunks ) {
+    return _.filter( _.flatten( chunks ), 'isNew' ).length;
+  }
+
+  // Matches the gallery's own "New books" filter: podcast-parent rows excluded
+  // (the gallery drops those from its book list everywhere).
+  function countNewLibraryBooks( audibledata ) {
+    const books = _.filter( _.flatten( audibledata.library ), ( book ) => !book.podcastParent );
+    return _.filter( books, 'isNew' ).length;
   }
 
 }
