@@ -2,7 +2,12 @@
 export default {
   methods: {
     getDataFromPurchaseHistory: function( hotpotato, purchaseHistoryFetched ) {
-      if ( !_.find( hotpotato.config.steps, { name: "purchaseHistory" }) ) {
+
+      // No books to date and dates already collected in a previous extraction: nothing to gain from re-scanning.
+      const noNewBooks = hotpotato.library && !_.some( hotpotato.library, 'isNewThisRound' );
+      const alreadyHasPurchaseHistory = this.$store.state.storageHasData.purchaseHistory;
+
+      if ( !_.find( hotpotato.config.steps, { name: "purchaseHistory" }) || ( noNewBooks && alreadyHasPurchaseHistory ) ) {
 
         this.$store.commit( "resetProgress" );
         purchaseHistoryFetched( null, hotpotato );
