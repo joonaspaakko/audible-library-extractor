@@ -12,108 +12,126 @@
       </div>
       <div class="text-wrapper" ref="textWrapper">
         <h2>Stand-alone gallery</h2>
-        
+
         <div class="description">
-          Create a shareable website version of your library. Publish it online instantly, or download the files for manual hosting. Choose what to include below.
+          Create a shareable website version of your library. Publish it online instantly, or download the files for manual hosting.
         </div>
       </div>
+
+      <n-config-provider :theme="naiveTheme">
+        <n-popover
+          trigger="manual"
+          :show="sourcesOpen"
+          @update:show="sourcesOpen = $event"
+          :on-clickoutside="() => sourcesOpen = false"
+          placement="bottom-end"
+          :show-arrow="false"
+          style="padding: 0;"
+        >
+          <template #trigger>
+            <button class="sources-gear-btn" v-tippy content="Choose what to include" @click="sourcesOpen = !sourcesOpen">
+              <mdi-cog />
+            </button>
+          </template>
+
+          <div class="source-section">
+
+            <!-- Pages -->
+            <div class="source-section-header source-section-header-toggle" @click="pagesExpanded = !pagesExpanded">
+              <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: pagesExpanded }" />
+              Pages
+              <label class="group-toggle-all" @click.stop>
+                <input type="checkbox" :checked="groupState('allPages').allChecked" @change="toggleGroup('allPages')">
+                <div class="visual-checkbox group-cb" :class="{ all: groupState('allPages').allChecked, mixed: groupState('allPages').mixed, none: groupState('allPages').noneChecked }">
+                  <span class="icon"><fa-solid-check/></span>
+                  <span class="icon icon-mixed"><fa6-solid-minus/></span>
+                  <span class="icon icon-none"><fa6-regular-square/></span>
+                </div>
+              </label>
+            </div>
+            <div class="source-section-body" v-show="pagesExpanded">
+              <div class="source-row">
+                <label
+                  v-for="item in groupedSources.allPages"
+                  :key="item.key"
+                  :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
+                  v-tippy :content="item.tippy"
+                >
+                  <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
+                  <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
+                  <span>{{ item.key }}</span>
+                </label>
+              </div>
+            </div>
+
+            <!-- Sub-pages -->
+            <div class="source-section-divider"></div>
+            <div :class="{ 'source-group-faded': !libraryActive && !wishlistActive }">
+              <div class="source-section-header source-section-header-toggle" @click="subPagesExpanded = !subPagesExpanded">
+                <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: subPagesExpanded }" />
+                Sub-pages
+                <span class="source-section-header-note">(Library &amp; Wishlist)</span>
+                <label class="group-toggle-all" @click.stop>
+                  <input type="checkbox" :checked="groupState('subPages').allChecked" @change="toggleGroup('subPages')">
+                  <div class="visual-checkbox group-cb" :class="{ all: groupState('subPages').allChecked, mixed: groupState('subPages').mixed, none: groupState('subPages').noneChecked }">
+                    <span class="icon"><fa-solid-check/></span>
+                    <span class="icon icon-mixed"><fa6-solid-minus/></span>
+                    <span class="icon icon-none"><fa6-regular-square/></span>
+                  </div>
+                </label>
+              </div>
+              <div class="source-section-body" v-show="subPagesExpanded">
+                <div class="source-row source-row-grid">
+                  <label
+                    v-for="item in groupedSources.subPages"
+                    :key="item.key"
+                    :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
+                    v-tippy :content="item.tippy"
+                  >
+                    <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
+                    <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
+                    <span>{{ item.key }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+            <!-- Library extras -->
+            <div class="source-section-divider"></div>
+            <div :class="{ 'source-group-faded': !libraryActive }">
+              <div class="source-section-header source-section-header-toggle" @click="extrasExpanded = !extrasExpanded">
+                <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: extrasExpanded }" />
+                Library extras
+                <label class="group-toggle-all" @click.stop>
+                  <input type="checkbox" :checked="groupState('extras').allChecked" @change="toggleGroup('extras')">
+                  <div class="visual-checkbox group-cb" :class="{ all: groupState('extras').allChecked, mixed: groupState('extras').mixed, none: groupState('extras').noneChecked }">
+                    <span class="icon"><fa-solid-check/></span>
+                    <span class="icon icon-mixed"><fa6-solid-minus/></span>
+                    <span class="icon icon-none"><fa6-regular-square/></span>
+                  </div>
+                </label>
+              </div>
+              <div class="source-section-body" v-show="extrasExpanded">
+                <div class="source-row">
+                  <label
+                    v-for="item in groupedSources.extras"
+                    :key="item.key"
+                    :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
+                    v-tippy :content="item.tippy"
+                  >
+                    <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
+                    <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
+                    <span>{{ item.key }}</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+
+          </div>
+        </n-popover>
+      </n-config-provider>
     </div>
 
-    <div class="source-section">
-
-      <!-- Pages -->
-      <div class="source-section-header source-section-header-toggle" @click="pagesExpanded = !pagesExpanded">
-        <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: pagesExpanded }" />
-        Pages
-        <label class="group-toggle-all" @click.stop>
-          <input type="checkbox" :checked="groupState('allPages').allChecked" @change="toggleGroup('allPages')">
-          <div class="visual-checkbox group-cb" :class="{ all: groupState('allPages').allChecked, mixed: groupState('allPages').mixed, none: groupState('allPages').noneChecked }">
-            <span class="icon"><fa-solid-check/></span>
-            <span class="icon icon-mixed"><fa6-solid-minus/></span>
-            <span class="icon icon-none"><fa6-regular-square/></span>
-          </div>
-        </label>
-      </div>
-      <div class="source-section-body" v-show="pagesExpanded">
-        <div class="source-row">
-          <label
-            v-for="item in groupedSources.allPages"
-            :key="item.key"
-            :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
-            v-tippy :content="item.tippy"
-          >
-            <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
-            <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
-            <span>{{ item.key }}</span>
-          </label>
-        </div>
-      </div>
-
-      <!-- Sub-pages -->
-      <div class="source-section-divider"></div>
-      <div :class="{ 'source-group-faded': !libraryActive && !wishlistActive }">
-        <div class="source-section-header source-section-header-toggle" @click="subPagesExpanded = !subPagesExpanded">
-          <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: subPagesExpanded }" />
-          Sub-pages
-          <span class="source-section-header-note">(Library &amp; Wishlist)</span>
-          <label class="group-toggle-all" @click.stop>
-            <input type="checkbox" :checked="groupState('subPages').allChecked" @change="toggleGroup('subPages')">
-            <div class="visual-checkbox group-cb" :class="{ all: groupState('subPages').allChecked, mixed: groupState('subPages').mixed, none: groupState('subPages').noneChecked }">
-              <span class="icon"><fa-solid-check/></span>
-              <span class="icon icon-mixed"><fa6-solid-minus/></span>
-              <span class="icon icon-none"><fa6-regular-square/></span>
-            </div>
-          </label>
-        </div>
-        <div class="source-section-body" v-show="subPagesExpanded">
-          <div class="source-row source-row-grid">
-            <label
-              v-for="item in groupedSources.subPages"
-              :key="item.key"
-              :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
-              v-tippy :content="item.tippy"
-            >
-              <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
-              <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
-              <span>{{ item.key }}</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-      <!-- Library extras -->
-      <div class="source-section-divider"></div>
-      <div :class="{ 'source-group-faded': !libraryActive }">
-        <div class="source-section-header source-section-header-toggle" @click="extrasExpanded = !extrasExpanded">
-          <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: extrasExpanded }" />
-          Library extras
-          <label class="group-toggle-all" @click.stop>
-            <input type="checkbox" :checked="groupState('extras').allChecked" @change="toggleGroup('extras')">
-            <div class="visual-checkbox group-cb" :class="{ all: groupState('extras').allChecked, mixed: groupState('extras').mixed, none: groupState('extras').noneChecked }">
-              <span class="icon"><fa-solid-check/></span>
-              <span class="icon icon-mixed"><fa6-solid-minus/></span>
-              <span class="icon icon-none"><fa6-regular-square/></span>
-            </div>
-          </label>
-        </div>
-        <div class="source-section-body" v-show="extrasExpanded">
-          <div class="source-row">
-            <label
-              v-for="item in groupedSources.extras"
-              :key="item.key"
-              :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
-              v-tippy :content="item.tippy"
-            >
-              <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
-              <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
-              <span>{{ item.key }}</span>
-            </label>
-          </div>
-        </div>
-      </div>
-
-    </div>
-    
     <!-- <h3>Output:</h3>
     
     <div>Hosted online</div>
@@ -173,13 +191,16 @@ import modal from '@output-snippets/gallery-modal.vue';
 // import makeCoverUrl from "@output-mixins/gallery-makeCoverUrl.js";
 import { zip, strToU8 } from 'fflate';
 import { storageSet } from '@utils/chrome-storage.js';
-import { downloadBlob } from '@utils/download.js'; 
+import { downloadBlob } from '@utils/download.js';
+import { NConfigProvider, NPopover, darkTheme, lightTheme } from 'naive-ui';
 
 export default {
   name: "saveGallery",
   // mixins: [makeCoverUrl],
   components: {
     modal,
+    NConfigProvider,
+    NPopover,
   },
   data: function() {
     return {
@@ -202,6 +223,7 @@ export default {
       cacheBuster: null,
       bundling: false,
       githubSyncing: false,
+      sourcesOpen: false,
       pagesExpanded: true,
       subPagesExpanded: false,
       extrasExpanded: true,
@@ -282,6 +304,10 @@ export default {
   },
 
   computed: {
+
+    naiveTheme: function() {
+      return this.$store.state.sticky.lightSwitch ? lightTheme : darkTheme;
+    },
 
     groupedSources: function() {
       const pageOrder = ['Library', 'Collections', 'Podcasts', 'Wishlist'];
@@ -1042,185 +1068,6 @@ export default {
   }
 }
 
-.source-section {
-  border-radius: 8px;
-  padding: 10px 12px 8px;
-  margin-bottom: 4px;
-  @include themify($themes) {
-    border: 1px solid rgba(themed(frontColor), .10);
-  }
-  .theme-light & { border-color: rgba($lightFrontColor, .22); }
-}
-
-.source-section-divider {
-  margin: 8px -12px;
-  @include themify($themes) {
-    border-top: 1px solid rgba(themed(frontColor), .07);
-  }
-  .theme-light & { border-top-color: rgba($lightFrontColor, .14); }
-}
-
-.source-group-faded {
-  opacity: 0.32;
-  pointer-events: none;
-  transition: opacity 200ms;
-}
-
-.source-section-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72em;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  @include themify($themes) {
-    color: rgba(themed(frontColor), .45);
-  }
-}
-
-.source-section-header-toggle {
-  cursor: pointer;
-  user-select: none;
-}
-
-.section-chevron {
-  flex-shrink: 0;
-  transition: transform 150ms ease;
-  font-size: 0.85em;
-  &.expanded {
-    transform: rotate(90deg);
-  }
-}
-
-.source-section-header-note {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 1.1em;
-  @include themify($themes) {
-    color: rgba(themed(frontColor), .3);
-  }
-  .theme-light & { color: rgba($lightFrontColor, .55); }
-}
-
-.group-toggle-all {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-  z-index: 0;
-  input {
-    opacity: 0;
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    left: 0;
-  }
-}
-
-.group-cb {
-  .icon { display: none; }
-}
-
-.group-cb.all .icon:not(.icon-mixed):not(.icon-none) {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.group-cb.mixed .icon-mixed {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.group-cb.none .icon-none {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-
-.source-section-body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.source-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0 4px;
-}
-
-.source-row-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-}
-
-
-.opt-group {
-  display: inline-flex !important;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 6px !important;
-  position: relative;
-  z-index: 0;
-  cursor: pointer;
-}
-
-.opt-group input {
-  opacity: 0;
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  left: 0;
-}
-
-.opt-group .visual-checkbox {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width:  17px;
-  height: 17px;
-  background: #292929;
-  @include themify($themes) {
-    // background: themed(backColor);
-    border: 1px solid rgba(themed(frontColor), .25);
-  }
-  // border: 1px solid #666;
-  border-radius: 4px;
-  margin-right: 5px;
-}
-
-.opt-group .visual-checkbox .icon {
-  display: none;
-  color: #00ed00;
-  svg {
-    width: 80%;
-  }
-}
-
-.opt-group input:checked ~ .visual-checkbox .icon {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.opt-group.disabled {
-  opacity: .6;
-  cursor: default !important;
-  .visual-checkbox .icon {
-    color: inherit;
-  }
-}
-
 .top-wrapper {
   display: flex;
   flex-direction: row;
@@ -1228,6 +1075,29 @@ export default {
   align-items: center;
   padding-bottom: 20px;
   margin-bottom: 10px;
+}
+
+.sources-gear-btn {
+  flex-shrink: 0;
+  align-self: flex-start;
+  margin-left: auto;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  font-size: 1.1em;
+  @include themify($themes) {
+    background: rgba(themed(frontColor), .08);
+    color: rgba(themed(frontColor), .6);
+    border: 1px solid rgba(themed(frontColor), .15);
+    &:hover {
+      background: rgba(themed(frontColor), .13);
+      color: rgba(themed(frontColor), .9);
+    }
+  }
 }
 
 
@@ -1361,4 +1231,193 @@ export default {
   }
 }
 
+</style>
+
+<!--
+  The gear popover's content is teleported to <body> by naive-ui, so scoped styles
+  (data-v-xxxx attribute selectors) never reach it. These rules used to live in the
+  scoped block above; they're unscoped here and namespaced under .source-section
+  instead, and the popover itself is pushed above gallery-modal.vue's #modal-wrapper
+  (z-index: 999999).
+-->
+<style lang="scss">
+.v-binder-follower-container {
+  z-index: 1000000 !important;
+}
+
+.source-section {
+  min-width: 260px;
+  border-radius: 8px;
+  padding: 10px 12px 8px;
+  @include themify($themes) {
+    background: themed(elementColor);
+    border: 1px solid rgba(themed(frontColor), .10);
+  }
+  .theme-light & { border-color: rgba($lightFrontColor, .22); }
+}
+
+.source-section-divider {
+  margin: 8px -12px;
+  @include themify($themes) {
+    border-top: 1px solid rgba(themed(frontColor), .07);
+  }
+  .theme-light & { border-top-color: rgba($lightFrontColor, .14); }
+}
+
+.source-group-faded {
+  opacity: 0.32;
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+
+.source-section-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), .45);
+  }
+}
+
+.source-section-header-toggle {
+  cursor: pointer;
+  user-select: none;
+}
+
+.section-chevron {
+  flex-shrink: 0;
+  transition: transform 150ms ease;
+  font-size: 0.85em;
+  &.expanded {
+    transform: rotate(90deg);
+  }
+}
+
+.source-section-header-note {
+  font-weight: 400;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 1.1em;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), .3);
+  }
+  .theme-light & { color: rgba($lightFrontColor, .55); }
+}
+
+.group-toggle-all {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  position: relative;
+  z-index: 0;
+  input {
+    opacity: 0;
+    position: absolute;
+    z-index: -1;
+    top: 0;
+    left: 0;
+  }
+}
+
+.group-cb {
+  .icon { display: none; }
+}
+
+.group-cb.all .icon:not(.icon-mixed):not(.icon-none) {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.group-cb.mixed .icon-mixed {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.group-cb.none .icon-none {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.source-section-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.source-row {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 0 4px;
+}
+
+.source-row-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+}
+
+.opt-group {
+  display: inline-flex !important;
+  flex-direction: row;
+  justify-content: flex-start;
+  align-items: center;
+  padding: 6px !important;
+  position: relative;
+  z-index: 0;
+  cursor: pointer;
+}
+
+.opt-group input {
+  opacity: 0;
+  position: absolute;
+  z-index: -1;
+  top: 0;
+  left: 0;
+}
+
+.opt-group .visual-checkbox {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+  width:  17px;
+  height: 17px;
+  background: #292929;
+  @include themify($themes) {
+    border: 1px solid rgba(themed(frontColor), .25);
+  }
+  border-radius: 4px;
+  margin-right: 5px;
+}
+
+.opt-group .visual-checkbox .icon {
+  display: none;
+  color: #00ed00;
+  svg {
+    width: 80%;
+  }
+}
+
+.opt-group input:checked ~ .visual-checkbox .icon {
+  display: inline-flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.opt-group.disabled {
+  opacity: .6;
+  cursor: default !important;
+  .visual-checkbox .icon {
+    color: inherit;
+  }
+}
 </style>
