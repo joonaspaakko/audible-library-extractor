@@ -23,6 +23,8 @@
           !route.condition() : null)
         ) ? 'disabled' : '',
         route.highlight ? 'highlight' : 'null',
+        (mobileMenuOpen && route.meta.subpageMenuSource) ? 'has-subpage-menu' : null,
+        subpageMenuParent(route),
       ]"
       v-tippy="{ placement: 'left', flipBehavior: ['left', 'top', 'bottom'], maxWidth: 400 }"
       :content="typeof route.tippy === 'function' ? route.tippy() : route.tippy"
@@ -33,8 +35,25 @@
       <div class="menu-item-inner" @click="additionalClick(route)" @mousedown="$haptic(1)">
         <span class="menu-item-icon" v-if="route.meta.icon" v-html="route.meta.icon"></span>
         <span class="menu-item-text" v-html="getRouteName(route)"></span>
+        <!-- Its own tap target, so the row itself still opens the collection -->
+        <span
+          v-if="mobileMenuOpen && route.meta.subpageMenuSource"
+          class="subpage-menu-chevron"
+          :class="{ expanded: expandedSources[ route.meta.subpageMenuSource ] }"
+          @click.stop.prevent="toggleSubpageMenu(route)"
+          @mousedown.stop.prevent="$haptic(1)"
+        >
+          <fa6-solid-chevron-right />
+        </span>
       </div>
-      
+
+      <gallery-subpage-menu-accordion
+        v-if="mobileMenuOpen && route.meta.subpageMenuSource"
+        :source="route.meta.subpageMenuSource"
+        :expanded="expandedSources[ route.meta.subpageMenuSource ]"
+        @navigate="$emit('update:mobileMenuOpen', false)"
+      />
+
       <gallery-extension-tools-menu
         v-if="route.childItems && route.meta.groupName === 'extension-tools'"
         :items="route.childItems"
@@ -95,17 +114,55 @@
 
 <script>
 
+import { currentSubpageMenuSource } from '@output-mixins/gallery-subpage-menu-destinations.js';
+
 export default {
   name: "menuLooper",
-  props: [ 'routes', 'childRoutes', 'mobileMenuOpen', 'inRoot', 'desktopMenu' ],
+  props: [ 'routes', 'childRoutes', 'mobileMenuOpen', 'inRoot', 'desktopMenu', 'subpageMenuSource' ],
+  emits: [ 'update:mobileMenuOpen', 'closeMenu' ],
   data: function() {
     return {
       menuOpen: true,
       copiedToClipboard: false,
+      expandedSources: {},
     };
+  },
+
+  watch: {
+    // Expanding the section you're already in shows where you are, and on library or
+    // wishlist it doubles as the hint that these pages have sub pages at all.
+    mobileMenuOpen: {
+      immediate: true,
+      handler: function( open ) {
+
+        if ( !open ) return;
+
+        const source = currentSubpageMenuSource( this.$route, this.$store.state.sticky.subPageSource );
+        this.expandedSources = source ? { [ source ]: true } : {};
+
+      },
+    },
   },
   
   methods: {
+
+    // Only one section stays open, so the menu doesn't grow past comfortable thumb reach.
+    toggleSubpageMenu: function( route ) {
+
+      const source = route.meta.subpageMenuSource;
+      this.expandedSources = this.expandedSources[ source ] ? {} : { [ source ]: true };
+
+    },
+
+    // Marks whichever of library/wishlist owns the sub page you're looking at, so the two
+    // nav rows read as one unit.
+    subpageMenuParent: function( route ) {
+
+      const source = _.get( route, 'meta.subpageMenuSource' );
+
+      return ( source && source === this.subpageMenuSource ) ? 'subpage-menu-parent' : null;
+
+    },
 
     openSettings: function() {
       if ( this.mobileMenuOpen ) this.$emit('update:mobileMenuOpen', false);
@@ -270,6 +327,12 @@ export default {
   }
 }
 
+.menu-items:not(.mobileMenu) .menu-item.subpage-menu-parent > .menu-item-inner > .menu-item-icon {
+  @include themify($themes) {
+    color: themed(audibleOrange);
+  }
+}
+
 .sub-menu {
   cursor: default;
   display: none;
@@ -408,7 +471,7 @@ export default {
   
   .menu-icon-toolbar { 
     margin-left: 0; 
-    padding: 15px 0;
+    padding: 47px 0 75px;
     border: none;
     border-radius: 0;
     position: relative;
@@ -449,10 +512,41 @@ export default {
       border-top: 1px solid rgba( themed(frontColor), .1);
     }
   }
-  .menu-item:focus .menu-item-text,
-  .menu-item:hover .menu-item-text {
+  .menu-item:focus > .menu-item-inner .menu-item-text,
+  .menu-item:hover > .menu-item-inner .menu-item-text {
     @include themify($themes) {
       color: themed(audibleOrange);
+    }
+  }
+
+  .menu-item.subpage-menu-parent > .menu-item-inner > .menu-item-text {
+    @include themify($themes) {
+      color: themed(audibleOrange);
+    }
+  }
+
+  .menu-item.has-subpage-menu {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .subpage-menu-chevron {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    margin-left: auto;
+    padding: 0 20px;
+    align-self: stretch;
+    cursor: pointer;
+    svg {
+      transition: transform 150ms ease;
+      font-size: .7em !important;
+    }
+    &.expanded svg {
+      transform: rotate(90deg);
+    }
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .5);
     }
   }
   

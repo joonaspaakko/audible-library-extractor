@@ -257,8 +257,8 @@ body {
 
 #audible-library-extractor {
   box-sizing: border-box;
-  padding-top: 80px;
-  &.mobile-threshold { padding-top: 45px; };
+  // --subpage-menu-height is set on this element from gallery-navigation.vue
+  padding-top: calc( 80px + var(--subpage-menu-height, 0px) );
   
   a {
     text-decoration: none;

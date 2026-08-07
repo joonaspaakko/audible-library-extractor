@@ -2,8 +2,11 @@
 <div v-if="!loading" id="nav-outer-wrapper" :class="{ regular: !mobileThreshold, 'mobile-nav': mobileThreshold, 'mobile-nav-open': mobileMenuOpen }">
   <div id="ale-navigation" ref="navigation">
 
-    <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" :desktopMenu="!mobileMenuOpen" />
+    <gallery-navigation-looper :routes="routes" v-model:mobileMenuOpen="mobileMenuOpen" :inRoot="true" :desktopMenu="!mobileMenuOpen" :subpageMenuSource="subpageMenuSource" />
     <!-- <mobile-menu /> -->
+
+    <!-- Inside the nav so its height is part of the measured topNavOffset -->
+    <gallery-subpage-menu-bar v-if="!mobileThreshold" :source="subpageMenuSource" />
 
   </div>
 
@@ -26,6 +29,7 @@ import saveGallery from '@output-snippets/save-gallery.vue';
 import saveCSV from '@output-snippets/save-csv.vue';
 import { storageSet } from '@utils/chrome-storage.js';
 import openWallpaperCreator from '@output-mixins/gallery-open-wallpaper-creator.js';
+import { subpageMenuSourceAvailable, currentSubpageMenuSource } from '@output-mixins/gallery-subpage-menu-destinations.js';
 
 // ICON IMPORTS
 import IconFaSolidChevronDown   from '~icons/fa6-solid/chevron-down?raw';
@@ -68,11 +72,20 @@ export default {
     mobileThreshold() {
       return this.$store.getters.mobileThreshold;
     },
+
+    subpageMenuSource() {
+
+      const source = currentSubpageMenuSource( this.$route, this.$store.state.sticky.subPageSource );
+
+      // Galleries can be extracted without a library or without a wishlist.
+      return subpageMenuSourceAvailable( this.$store, source ) ? source : null;
+
+    },
   },
   
   watch: {
     '$store.state.playingAudio': function() {
-      this.globalTopNavHeight( this.mobileSize );
+      this.globalTopNavHeight( this.mobileThreshold );
     },
     mobileThreshold( mobileSize ) {
       this.mobileMenuOpen = false;
@@ -88,6 +101,10 @@ export default {
     },
     clickedRouteComp( open ) {
       this.$store.commit('prop', { key: 'preventScrolling', value: open });
+    },
+    // The bar adds a row to the nav, so page content has to be pushed down by its height.
+    subpageMenuSource() {
+      this.globalTopNavHeight( this.mobileThreshold );
     },
   },
   
@@ -107,7 +124,7 @@ export default {
   mounted: function() {
     
     this.loading = false;
-    this.globalTopNavHeight( this.mobileSize );
+    this.globalTopNavHeight( this.mobileThreshold );
     // document.addEventListener("mousedown", this.outsideClick, { passive: true });
     // this.$compEmitter.on("afterWindowResize", this.onWindowResize);
     
@@ -131,18 +148,13 @@ export default {
       let routes = _.filter( this.$router.options.routes, 'meta.icon' );
           routes = JSON.parse(JSON.stringify( routes ));
 
+      // Sub pages are reached through the subpage menu bar on desktop and the subpage menu
+      // accordion on mobile, so they never belong in the menu itself.
+      _.remove( routes, ( route ) => _.get( route, 'meta.nestedGroup' ) === 'subPages' );
+
       if ( !this.mobileThreshold ) {
         this.getExtraItems( routes );
         this.getNestedGroups( routes );
-      }
-      else {
-        // On mobile sub-pages appear flat, so sort them by meta.order so the order
-        // matches the desktop dropdown regardless of router registration order.
-        const subPages = _.remove( routes, ( r ) => _.get( r, 'meta.nestedGroup' ) === 'subPages' );
-        if ( subPages.length ) {
-          // Re-insert after Library (index 0), sorted, keeping everything else after.
-          routes.splice( 1, 0, ..._.orderBy( subPages, 'meta.order', 'asc' ) );
-        }
       }
 
       return routes;
@@ -151,7 +163,6 @@ export default {
     
     getNestedGroups( routes ) {
       
-      const vue = this;
       const indexes = this.getNestedIndexes( routes );
       
       // Detach all nestedGroups from the routes array...
@@ -165,46 +176,18 @@ export default {
       // Put nested groups back...
       _.each( removedRoutes, function( routeGroup, key ) {
         const indexObj = _.find(indexes, { key: key });
-        if ( indexObj ) routes.splice(indexObj.index, 0, vue.getSubPageSettings(routeGroup, key));
+        if ( indexObj ) {
+          routes.splice(indexObj.index, 0, {
+            name: key,
+            meta: {
+              groupName: routeGroup[0].meta.nestedGroup,
+              icon: IconFaSolidChevronDown,
+            },
+            tag: 'div',
+            childItems: _.orderBy(routeGroup, 'meta.order', 'asc'),
+          });
+        }
       });
-      
-    },
-    
-    getSubPageSettings( routeGroup, key ) {
-      
-      const vue = this;
-      const group = {
-        name: key,
-        meta: {
-          groupName: routeGroup[0].meta.nestedGroup,
-          icon: IconFaSolidChevronDown,
-        },
-        tag: 'div',
-        childItems: _.orderBy(routeGroup, 'meta.order', 'asc'),
-      };
-      
-      const groupName = routeGroup[0].meta.nestedGroup;
-      
-      switch( groupName ) {
-        case 'subPages':
-          group.altName = function( route ) {
-            
-            const routeTitle = _.get( vue.$route, 'meta.title');
-            const labelPath = 'children.0.meta.title';
-            const routeMatch = _.find( routeGroup, [ labelPath, routeTitle ]);
-            if ( routeMatch ) {
-              const prefix = vue.$route.query.subPageSource || vue.$store.state.sticky.subPageSource;
-              return _.startCase(prefix) + ': ' + _.get( routeMatch, labelPath );
-            }
-            else {
-              return _.startCase( key );
-            }
-            
-          };
-          break;
-      }
-      
-      return group;
       
     },
     
@@ -385,19 +368,29 @@ export default {
     routeClick( route ) {
       this.clickedRoute = route;
     },
-    
+
     globalTopNavHeight( mobileSize ) {
       this.$nextTick(function() {
-        
+
         let offset = 0;
-        
+        let barHeight = 0;
+
         if ( !mobileSize ) {
           const nav = this.$refs.navigation;
-          if ( nav ) offset = Math.floor( nav.getBoundingClientRect().height );
+          if ( nav ) {
+            offset = Math.floor( nav.getBoundingClientRect().height );
+            const bar = nav.querySelector('#subpage-menu-bar');
+            if ( bar ) barHeight = Math.ceil( bar.getBoundingClientRect().height );
+          }
         }
-        
+
         this.$store.commit('prop', { key: 'topNavOffset', value: offset });
-        
+
+        // The padding lives on the mount element, which is the parent of this app's root,
+        // so it can't be reached with a class binding in the template.
+        const root = document.querySelector('#audible-library-extractor');
+        if ( root ) root.style.setProperty('--subpage-menu-height', barHeight + 'px');
+
       });
     },
     

@@ -21,7 +21,7 @@ import IconFaSolidBuilding     from '~icons/fa6-solid/building?raw';
 
 export default {
   library: { 
-    name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: IconFaSolidBook } 
+    name: "library", path: "/library", component: aleGallery, meta: { gallery: true, title: 'Library', icon: IconFaSolidBook, subpageMenuSource: 'library' }
   },
   
   collections: {
@@ -41,6 +41,7 @@ export default {
     component: aleLibraryView,
     meta: {
       icon: IconFaSolidBookmark,
+      subpageMenuSource: 'wishlist',
     },
     children: [
       { name: "wishlist", path: "", component: aleGallery, meta: { gallery: true, title: 'Wishlist' } },

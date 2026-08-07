@@ -3,7 +3,7 @@
     
     <gallery-page-title></gallery-page-title>
     
-    <gallery-library-wishlist-switcher />
+    <!-- <gallery-library-wishlist-switcher /> -->
     
     <div
     class="single-box"

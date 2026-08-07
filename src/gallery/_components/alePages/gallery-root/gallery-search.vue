@@ -2,8 +2,8 @@
   <div>
     
     <gallery-page-title></gallery-page-title>
-    
-    <gallery-library-wishlist-switcher v-if="$route.meta.subPage" :aboveSearch="true" />
+
+    <!-- <gallery-library-wishlist-switcher v-if="$route.meta.subPage" :aboveSearch="true" /> -->
     
     <div
     id="ale-search-wrap"

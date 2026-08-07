@@ -35,6 +35,8 @@ export default {
   position: absolute;
   z-index: 1;
   right: 65px;
+  bottom: 0;
+  height: 60px;
   white-space: nowrap;
 }
 .mobile-back-btns {
