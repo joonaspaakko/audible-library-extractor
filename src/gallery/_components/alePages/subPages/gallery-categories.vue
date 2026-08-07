@@ -71,9 +71,9 @@ export default {
       categories.parent = [];
       _.each( vue.subPageSource.collection, function(book, index) {
         
-        if ( book.categories ) {
-          // Parent categories...
-          const parentCategory = _.get( book, 'categories[0].name');
+        // Parent categories...
+        const parentCategory = _.get( book, 'categories[0].name');
+        if ( parentCategory ) {
           // If parent category object doesn't exist, make it
           let parentObj = _.find(categories.parent, ["name", parentCategory]);
           if (!parentObj) {

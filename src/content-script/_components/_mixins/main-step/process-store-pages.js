@@ -270,7 +270,7 @@ export default {
         const pbPublishers = [];
         _.each( _.castArray( bookData.publisher ), ( publisher ) => {
           const bdPublisher = _.get(publisher, 'name');
-          pbPublishers.push({ name: bdPublisher });
+          if ( bdPublisher ) pbPublishers.push({ name: bdPublisher });
         });
         
         book.publishers = pbPublishers;
@@ -334,7 +334,7 @@ export default {
         const bdCategories = _.castArray(bookData.categories);
         if ( !bdCategories.length ) return;
 
-        book.categories = _.map( bdCategories, ( category ) => {
+        book.categories = _.map( _.filter( bdCategories, 'name' ), ( category ) => {
           return {
             name: category.name,
             url: _.get( (category.url || '').match(/\/cat\/.+\/(\d+)/im), '1'), // uri becomes category id and nothing else
@@ -386,7 +386,9 @@ export default {
         book.series = [];
         
         _.each( bookData.series, ( series ) => {
-          
+
+          if ( !series.name ) return;
+
           book.series.push({
             // Match 3rd path segment → /.../.../(...)? 
             asin: _.get( (series.url || '').match(/\/.+\/.+\/(.+)\?/im), '1'),
