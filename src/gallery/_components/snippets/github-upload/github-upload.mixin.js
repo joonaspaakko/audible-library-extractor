@@ -14,7 +14,6 @@ export default {
       pollTimedOut: false,
       statusMessage: '',
       commitMessage: '',
-      showCommitMessage: false,
       defaultCommitMessage: 'Upload #1',
       uploadComplete: false,
       uploadFailed: false,

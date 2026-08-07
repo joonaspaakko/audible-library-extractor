@@ -17,119 +17,6 @@
           Create a shareable website version of your library. Publish it online instantly, or download the files for manual hosting.
         </div>
       </div>
-
-      <n-config-provider :theme="naiveTheme">
-        <n-popover
-          trigger="manual"
-          :show="sourcesOpen"
-          @update:show="sourcesOpen = $event"
-          :on-clickoutside="() => sourcesOpen = false"
-          placement="bottom-end"
-          :show-arrow="false"
-          style="padding: 0;"
-        >
-          <template #trigger>
-            <button class="sources-gear-btn" v-tippy content="Choose what to include" @click="sourcesOpen = !sourcesOpen">
-              <mdi-cog />
-            </button>
-          </template>
-
-          <div class="source-section">
-
-            <!-- Pages -->
-            <div class="source-section-header source-section-header-toggle" @click="pagesExpanded = !pagesExpanded">
-              <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: pagesExpanded }" />
-              Pages
-              <label class="group-toggle-all" @click.stop>
-                <input type="checkbox" :checked="groupState('allPages').allChecked" @change="toggleGroup('allPages')">
-                <div class="visual-checkbox group-cb" :class="{ all: groupState('allPages').allChecked, mixed: groupState('allPages').mixed, none: groupState('allPages').noneChecked }">
-                  <span class="icon"><fa-solid-check/></span>
-                  <span class="icon icon-mixed"><fa6-solid-minus/></span>
-                  <span class="icon icon-none"><fa6-regular-square/></span>
-                </div>
-              </label>
-            </div>
-            <div class="source-section-body" v-show="pagesExpanded">
-              <div class="source-row">
-                <label
-                  v-for="item in groupedSources.allPages"
-                  :key="item.key"
-                  :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
-                  v-tippy :content="item.tippy"
-                >
-                  <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
-                  <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
-                  <span>{{ item.key }}</span>
-                </label>
-              </div>
-            </div>
-
-            <!-- Sub-pages -->
-            <div class="source-section-divider"></div>
-            <div :class="{ 'source-group-faded': !libraryActive && !wishlistActive }">
-              <div class="source-section-header source-section-header-toggle" @click="subPagesExpanded = !subPagesExpanded">
-                <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: subPagesExpanded }" />
-                Sub-pages
-                <span class="source-section-header-note">(Library &amp; Wishlist)</span>
-                <label class="group-toggle-all" @click.stop>
-                  <input type="checkbox" :checked="groupState('subPages').allChecked" @change="toggleGroup('subPages')">
-                  <div class="visual-checkbox group-cb" :class="{ all: groupState('subPages').allChecked, mixed: groupState('subPages').mixed, none: groupState('subPages').noneChecked }">
-                    <span class="icon"><fa-solid-check/></span>
-                    <span class="icon icon-mixed"><fa6-solid-minus/></span>
-                    <span class="icon icon-none"><fa6-regular-square/></span>
-                  </div>
-                </label>
-              </div>
-              <div class="source-section-body" v-show="subPagesExpanded">
-                <div class="source-row source-row-grid">
-                  <label
-                    v-for="item in groupedSources.subPages"
-                    :key="item.key"
-                    :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
-                    v-tippy :content="item.tippy"
-                  >
-                    <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
-                    <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
-                    <span>{{ item.key }}</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-            <!-- Library extras -->
-            <div class="source-section-divider"></div>
-            <div :class="{ 'source-group-faded': !libraryActive }">
-              <div class="source-section-header source-section-header-toggle" @click="extrasExpanded = !extrasExpanded">
-                <fa6-solid-chevron-right class="section-chevron" :class="{ expanded: extrasExpanded }" />
-                Library extras
-                <label class="group-toggle-all" @click.stop>
-                  <input type="checkbox" :checked="groupState('extras').allChecked" @change="toggleGroup('extras')">
-                  <div class="visual-checkbox group-cb" :class="{ all: groupState('extras').allChecked, mixed: groupState('extras').mixed, none: groupState('extras').noneChecked }">
-                    <span class="icon"><fa-solid-check/></span>
-                    <span class="icon icon-mixed"><fa6-solid-minus/></span>
-                    <span class="icon icon-none"><fa6-regular-square/></span>
-                  </div>
-                </label>
-              </div>
-              <div class="source-section-body" v-show="extrasExpanded">
-                <div class="source-row">
-                  <label
-                    v-for="item in groupedSources.extras"
-                    :key="item.key"
-                    :class="[ 'opt-group', item.disabled ? 'disabled' : null ]"
-                    v-tippy :content="item.tippy"
-                  >
-                    <input type="checkbox" :disabled="item.disabled" v-model="item.checked" @change="sourceChecked($event, item)">
-                    <div class="visual-checkbox"><span class="icon"><fa-solid-check/></span></div>
-                    <span>{{ item.key }}</span>
-                  </label>
-                </div>
-              </div>
-            </div>
-
-          </div>
-        </n-popover>
-      </n-config-provider>
     </div>
 
     <!-- <h3>Output:</h3>
@@ -138,14 +25,23 @@
     <div v-tippy content="Only use this option if you wish to view the gallery locally on your computer. Don't upload this online, unless you're really into slow load times.">Local viewing</div> -->
 
     <div class="buttons-footer">
-      
-      <div v-if="$store.state.devMode" style="color: #999; font-weight: bold; margin-bottom: 5px;">
-        Saving the standalone gallery is only possible <br> in "production" builds (<code>yarn vite build</code>)
-      </div>
         
       <div class="btn-wrapper">
         
-        <github v-if="!$store.state.standalone" v-model:active="githubApiProcessActive" :getFiles="saveButtonClicked" @syncing-changed="githubSyncing = $event" />
+        <github v-if="!$store.state.standalone" v-model:active="githubApiProcessActive" :getFiles="saveButtonClicked" @syncing-changed="githubSyncing = $event">
+          <template #export-scope>
+            <gallery-export-sources
+              bare
+              pill
+              :groupedSources
+              :groupState
+              :libraryActive
+              :wishlistActive
+              @toggle-group="toggleGroup"
+              @source-checked="sourceChecked"
+            />
+          </template>
+        </github>
 
         <div v-if="!githubApiProcessActive" class="non-github-api-wrapper">
           
@@ -164,18 +60,40 @@
                 Export your gallery as a ZIP file that you can host the files yourself. If choose to upload your files to Github manually:  <a target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github">upload instructions</a>, <a target="_blank" rel="noopener noreferrer" href="https://joonaspaakko.gitbook.io/audible-library-extractor/sharing/uploading-to-github/updating-gallery-in-github">update instructions</a>.
               </div>
               
-              <button class="export-zip-btn" :class="{ saving: bundling }" @click="saveButtonClicked({ zip: true })" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
-                <line-md-downloading-loop v-if="bundling" />
-                <fa6-solid-download v-else />
-                <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
-                <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
-                <div>
-                  <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
+              <div class="zip-btn-row">
+                <button class="export-zip-btn" :class="{ saving: bundling }" @click="saveButtonClicked({ zip: true })" :disabled="!$store.state.devMode && (bundling || !saveBtnEnabled)">
+                  <line-md-downloading-loop v-if="bundling" />
+                  <fa6-solid-download v-else />
+                  <span><strong v-if="bundling">Packaging:</strong> ALE-gallery.zip</span>
+                  <button class="cancel-packaging" v-if="bundling" @click="cancelZipping">cancel</button>
+                  <div>
+                    <div v-if="bundling && progressWidth" class="progress" :style="{ width: progressWidth }"></div>
+                  </div>
+                </button>
+
+                <button class="sources-gear-btn" v-tippy content="Choose what to include" @click="sourcesOpen = !sourcesOpen">
+                  <mdi-cog />
+                </button>
+              </div>
+
+              <div v-if="sourcesOpen" class="sources-inline-panel">
+                <div class="output-settings-group">
+                  <div class="output-settings-group-label">Output settings</div>
+                  <gallery-export-sources
+                    bare
+                    pill
+                    :groupedSources
+                    :groupState
+                    :libraryActive
+                    :wishlistActive
+                    @toggle-group="toggleGroup"
+                    @source-checked="sourceChecked"
+                  />
                 </div>
-              </button>
+              </div>
             </div>
           </div>
-          
+
         </div>
         
       </div>
@@ -192,15 +110,12 @@ import modal from '@output-snippets/gallery-modal.vue';
 import { zip, strToU8 } from 'fflate';
 import { storageSet } from '@utils/chrome-storage.js';
 import { downloadBlob } from '@utils/download.js';
-import { NConfigProvider, NPopover, darkTheme, lightTheme } from 'naive-ui';
 
 export default {
   name: "saveGallery",
   // mixins: [makeCoverUrl],
   components: {
     modal,
-    NConfigProvider,
-    NPopover,
   },
   data: function() {
     return {
@@ -304,10 +219,6 @@ export default {
   },
 
   computed: {
-
-    naiveTheme: function() {
-      return this.$store.state.sticky.lightSwitch ? lightTheme : darkTheme;
-    },
 
     groupedSources: function() {
       const pageOrder = ['Library', 'Collections', 'Podcasts', 'Wishlist'];
@@ -1077,16 +988,24 @@ export default {
   margin-bottom: 10px;
 }
 
+.zip-btn-row {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  gap: 6px;
+  width: 100%;
+}
+
 .sources-gear-btn {
   flex-shrink: 0;
-  align-self: flex-start;
-  margin-left: auto;
   cursor: pointer;
   display: flex;
   justify-content: center;
   align-items: center;
-  width: 30px;
-  height: 30px;
+  width: 38px;
+  // Matches .export-zip-btn's vertical padding so align-items: stretch on .zip-btn-row
+  // isn't the only thing keeping their heights equal.
+  padding: 7px 0;
   border-radius: 6px;
   font-size: 1.1em;
   @include themify($themes) {
@@ -1097,6 +1016,59 @@ export default {
       background: rgba(themed(frontColor), .13);
       color: rgba(themed(frontColor), .9);
     }
+  }
+}
+
+// Expands in-flow below the zip/gear row, same idea as github.vue's Advanced settings
+// accordion, rather than a centered overlay. Keeps this modal's height the only thing
+// that changes instead of adding a backdrop layer. Bordered box matching github.vue's
+// .settings-accordion; the shaded "Output settings" group inside carries its own
+// padding, same two-level structure as Advanced settings uses.
+.sources-inline-panel {
+  width: 100%;
+  box-sizing: border-box;
+  margin: 10px 0 0;
+  border-radius: 8px;
+  padding: 8px 10px;
+  @include themify($themes) {
+    border: 1px solid rgba(themed(frontColor), .10);
+  }
+  .theme-light & { border-color: rgba($lightFrontColor, .22); }
+
+  // This panel already provides the outer padding, so gallery-export-sources' own box
+  // chrome would double it up.
+  :deep(.source-section) {
+    border: none;
+    padding: 0;
+  }
+}
+
+// Shaded background instead of a border, matching github.vue's .output-settings-group -
+// reads as a labeled container around Pages/Sub-pages/Library extras without adding
+// another ring of nested borders inside .sources-inline-panel.
+.output-settings-group {
+  margin: 0;
+  border-radius: 8px;
+  padding: 10px;
+  @include themify($themes) {
+    background: rgba(themed(frontColor), .04);
+  }
+}
+
+// Border-bottom (not a plain underline) so there's padding between the text and the
+// line, matching github.vue's Advanced settings treatment of the same "Output
+// settings" / "Pages" hierarchy problem. Both levels were just stacked gray labels
+// with nothing to separate the outer group from the subsections inside it.
+.output-settings-group-label {
+  padding-bottom: 6px;
+  margin-bottom: 12px;
+  font-size: 0.72em;
+  font-weight: 700;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  @include themify($themes) {
+    color: rgba(themed(frontColor), .45);
+    border-bottom: 1px solid rgba(themed(frontColor), .1);
   }
 }
 
@@ -1153,6 +1125,9 @@ export default {
 
 .buttons-footer {
   right: 0 !important;
+  // gallery-modal.vue's shared rule sets margin-top: 50px, which reads as a large,
+  // unbalanced gap directly under the "Stand-alone gallery" description here.
+  margin-top: 0 !important;
 }
 
 .btn-wrapper {
@@ -1231,193 +1206,4 @@ export default {
   }
 }
 
-</style>
-
-<!--
-  The gear popover's content is teleported to <body> by naive-ui, so scoped styles
-  (data-v-xxxx attribute selectors) never reach it. These rules used to live in the
-  scoped block above; they're unscoped here and namespaced under .source-section
-  instead, and the popover itself is pushed above gallery-modal.vue's #modal-wrapper
-  (z-index: 999999).
--->
-<style lang="scss">
-.v-binder-follower-container {
-  z-index: 1000000 !important;
-}
-
-.source-section {
-  min-width: 260px;
-  border-radius: 8px;
-  padding: 10px 12px 8px;
-  @include themify($themes) {
-    background: themed(elementColor);
-    border: 1px solid rgba(themed(frontColor), .10);
-  }
-  .theme-light & { border-color: rgba($lightFrontColor, .22); }
-}
-
-.source-section-divider {
-  margin: 8px -12px;
-  @include themify($themes) {
-    border-top: 1px solid rgba(themed(frontColor), .07);
-  }
-  .theme-light & { border-top-color: rgba($lightFrontColor, .14); }
-}
-
-.source-group-faded {
-  opacity: 0.32;
-  pointer-events: none;
-  transition: opacity 200ms;
-}
-
-.source-section-header {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.72em;
-  font-weight: 700;
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
-  margin-bottom: 8px;
-  @include themify($themes) {
-    color: rgba(themed(frontColor), .45);
-  }
-}
-
-.source-section-header-toggle {
-  cursor: pointer;
-  user-select: none;
-}
-
-.section-chevron {
-  flex-shrink: 0;
-  transition: transform 150ms ease;
-  font-size: 0.85em;
-  &.expanded {
-    transform: rotate(90deg);
-  }
-}
-
-.source-section-header-note {
-  font-weight: 400;
-  text-transform: none;
-  letter-spacing: 0;
-  font-size: 1.1em;
-  @include themify($themes) {
-    color: rgba(themed(frontColor), .3);
-  }
-  .theme-light & { color: rgba($lightFrontColor, .55); }
-}
-
-.group-toggle-all {
-  margin-left: auto;
-  display: inline-flex;
-  align-items: center;
-  cursor: pointer;
-  position: relative;
-  z-index: 0;
-  input {
-    opacity: 0;
-    position: absolute;
-    z-index: -1;
-    top: 0;
-    left: 0;
-  }
-}
-
-.group-cb {
-  .icon { display: none; }
-}
-
-.group-cb.all .icon:not(.icon-mixed):not(.icon-none) {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.group-cb.mixed .icon-mixed {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.group-cb.none .icon-none {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.source-section-body {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.source-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
-  gap: 0 4px;
-}
-
-.source-row-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 0;
-}
-
-.opt-group {
-  display: inline-flex !important;
-  flex-direction: row;
-  justify-content: flex-start;
-  align-items: center;
-  padding: 6px !important;
-  position: relative;
-  z-index: 0;
-  cursor: pointer;
-}
-
-.opt-group input {
-  opacity: 0;
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  left: 0;
-}
-
-.opt-group .visual-checkbox {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-  width:  17px;
-  height: 17px;
-  background: #292929;
-  @include themify($themes) {
-    border: 1px solid rgba(themed(frontColor), .25);
-  }
-  border-radius: 4px;
-  margin-right: 5px;
-}
-
-.opt-group .visual-checkbox .icon {
-  display: none;
-  color: #00ed00;
-  svg {
-    width: 80%;
-  }
-}
-
-.opt-group input:checked ~ .visual-checkbox .icon {
-  display: inline-flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.opt-group.disabled {
-  opacity: .6;
-  cursor: default !important;
-  .visual-checkbox .icon {
-    color: inherit;
-  }
-}
 </style>

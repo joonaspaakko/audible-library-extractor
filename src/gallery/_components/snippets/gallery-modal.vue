@@ -152,8 +152,7 @@ export default {
     }
 
     .export-group {
-      padding: 55px 60px;
-      padding-bottom: 50px;
+      padding: 30px;
       border-top: 1px solid rgba(#fff, 0.07);
       &:first-child {
         border-top: none;

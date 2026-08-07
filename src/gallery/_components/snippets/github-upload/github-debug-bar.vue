@@ -2,6 +2,8 @@
   <div class="debug-bar">
     <span class="debug-label">dev</span>
     <button @click="$emit('auth')">auth</button>
+    <button @click="$emit('loading')">loading</button>
+    <button @click="$emit('no-repos')">no repos</button>
     <button @click="$emit('complete')">complete</button>
     <button @click="$emit('failed')">failed</button>
     <button @click="$emit('syncing')">syncing</button>
@@ -11,7 +13,7 @@
 
 <script>
 export default {
-  emits: ['auth', 'complete', 'failed', 'syncing', 'reset'],
+  emits: ['auth', 'loading', 'no-repos', 'complete', 'failed', 'syncing', 'reset'],
 };
 </script>
 
