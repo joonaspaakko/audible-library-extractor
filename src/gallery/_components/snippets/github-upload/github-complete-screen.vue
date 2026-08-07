@@ -31,11 +31,13 @@
         </div>
 
         <!-- Builds can take a few minutes on GitHub's side. Reassure the user the upload is already
-             done and they're free to leave; waiting is only for inspecting the published site. -->
+             done; waiting here is only useful for inspecting the published site immediately. -->
         <div v-if="building" class="building-note">
-          <strong>The upload is complete, so you're free to leave.</strong> It's now up
-          to GitHub to deploy the website, which shouldn't take more than a few minutes
-          normally. Stick around if you want to check the published page immediately.
+          <strong>The upload is complete.</strong> GitHub is now deploying the website,
+          which usually takes about 30 seconds. You're free to close this and visit the
+          site later, or stick around to watch it go live. The deployment does fail
+          sometimes, though, so if you want to be sure it went live you might as well
+          wait up to a few minutes to see how it goes.
         </div>
 
         <!-- Poll gave up before the build resolved. The build is likely still running; we've just stopped

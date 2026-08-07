@@ -86,12 +86,14 @@ export default {
           };
         });
 
-        // Restore the last selected repo. If it no longer exists, fall back to the first ALE repo.
+        // Restore the last selected repo. If it no longer exists, fall back to the first ALE repo,
+        // or straight to the "create new" form if the user has no repos at all.
         // If the value doesn't change, the watcher won't fire, so call loadSelectedRepoData explicitly.
         // If it does change, the watcher handles it, so don't call both.
         const stored = this.$store.state.sticky.githubSelectedRepo;
         const storedExists = stored && this.repos.find( r => r.name === stored );
-        const newSelected = storedExists ? stored : ( this.repos.find( r => r.isAleRepo )?.name || '' );
+        const fallback = this.repos.length === 0 ? this.newRepoKey : ( this.repos.find( r => r.isAleRepo )?.name || '' );
+        const newSelected = storedExists ? stored : fallback;
         const watcherWillFire = newSelected !== this.selectedRepo;
         this.selectedRepo = newSelected;
         if ( !watcherWillFire ) await this.loadSelectedRepoData( newSelected );
