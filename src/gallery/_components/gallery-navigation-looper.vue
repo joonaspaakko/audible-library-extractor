@@ -94,7 +94,7 @@
         />
       </div>
       <div>
-        <fa6-solid-sliders
+        <mdi-cog-outline
           class="icon settings-icon"
           @click="openSettings"
           @mousedown="$haptic(1)"
@@ -429,9 +429,8 @@ export default {
     padding: 5px 8px;
     cursor: pointer;
   }
-  // Upright faders, to match the floating settings button on mobile.
   :deep(.settings-icon) {
-    transform: rotate(90deg);
+    font-size: 1.2em !important;
   }
   // &,
   // > div {

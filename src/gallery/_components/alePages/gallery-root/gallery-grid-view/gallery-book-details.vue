@@ -45,7 +45,7 @@
           <gallery-details-first-hider v-if="mobileWidth" />
           <gallery-sidebar-flipper @flip="flipPanels" />
           <div class="book-details-info" @click="$store.commit('prop', { key: 'globalSettingsOpen', value: true })">
-            <fa6-solid-sliders />
+            <mdi-cog-outline class="settings-icon" />
             <span class="label">Settings</span>
           </div>
         </div>
@@ -723,6 +723,9 @@ export default {
   padding: 4px 8px;
   border-radius: 99999px;
   transition: color 200ms cubic-bezier(0, 0, 0, .1), background-color 200ms cubic-bezier(0, 0, 0, .1);
+  .settings-icon {
+    font-size: 1.2em;
+  }
   @include themify($themes) {
     color: rgba(themed(frontColor), 0.7);
     &.active,

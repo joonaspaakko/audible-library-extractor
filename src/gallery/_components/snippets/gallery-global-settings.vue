@@ -17,7 +17,7 @@
   <n-drawer-content closable :native-scrollbar="false">
     <template #header>
       <div class="drawer-header-inner">
-        <fa6-solid-sliders class="drawer-header-icon" />
+        <mdi-cog-outline class="drawer-header-icon" />
         <div>
           <div class="drawer-header-title">Settings</div>
           <div class="drawer-header-sub">Global gallery preferences. Remembered in your browser.</div>
@@ -962,7 +962,7 @@ export default {
 }
 
 .drawer-header-icon {
-  font-size: 22px;
+  font-size: 26px;
   flex-shrink: 0;
   opacity: 0.45;
 }

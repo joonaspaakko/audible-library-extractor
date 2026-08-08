@@ -8,7 +8,7 @@
     <div class="second-row">
       
       <div v-if="showSettingsButton" class="settings-btn" @mousedown="$haptic(1)" @click="openSettings">
-        <fa6-solid-sliders/>
+        <mdi-cog-outline/>
       </div>
 
       <div v-if="showSearchButton" class="search-btn" @mousedown="$haptic(1)" @click="$emit('startSearching')">
@@ -122,8 +122,7 @@ export default {
 
   .settings-btn {
     @extend .search-btn;
-    // Upright faders, so it doesn't read like a small burger above the burger.
-    svg { transform: rotate(90deg); }
+    font-size: 1.2em;
   }
 
   .mobile-player-button {
