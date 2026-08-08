@@ -1,5 +1,10 @@
 
 import store from "@output-modules/store/gallery-store-index.js";
+import timeStringToSeconds from "@output-mixins/gallery-timeStringToSeconds.js";
+
+function isWishlistSource() {
+  return store.state.sticky.subPageSource === 'wishlist';
+}
 
 // SERIES HELPERS
 function parseBookNumbers( bookNumbers ) {
@@ -61,8 +66,6 @@ function addRatingFields( collection ) {
       return _.isFinite( r ) && r > 0;
     } );
 
-    entity.myRatedCount = rated.length;
-
     if ( rated.length ) {
       entity.myRatingMin = _.min( _.map( rated, b => _.toNumber( b.myRating ) ) );
       entity.myRatingMax = _.max( _.map( rated, b => _.toNumber( b.myRating ) ) );
@@ -83,16 +86,12 @@ function addRatingFields( collection ) {
       );
     }
 
-    if ( entity.myRatingAvg != null && entity.ratingWeightedAvg != null ) {
-      entity.ratingDiff = _.round( entity.myRatingAvg - entity.ratingWeightedAvg, 1 );
-    }
-
     // DURATION
-    const booksWithDuration = _.filter( entity.bookObjects, b => _.toNumber( b.minutesLength ) > 0 );
+    const booksWithDuration = _.filter( entity.bookObjects, b => b.length );
     if ( booksWithDuration.length ) {
-      const totalMinutes = _.sumBy( booksWithDuration, b => _.toNumber( b.minutesLength ) );
-      entity.totalHours = _.round( totalMinutes / 60, 1 );
-      entity.avgHours   = _.round( totalMinutes / booksWithDuration.length / 60, 1 );
+      const totalSeconds = _.sumBy( booksWithDuration, b => timeStringToSeconds.methods.timeStringToSeconds( b.length ) );
+      entity.totalHours = _.round( totalSeconds / 3600, 1 );
+      entity.avgHours   = _.round( totalSeconds / booksWithDuration.length / 3600, 1 );
     }
 
     // RELEASE YEAR
@@ -117,11 +116,6 @@ function addRatingFields( collection ) {
 
     // STANDALONE BOOKS
     entity.standaloneCount = _.filter( entity.bookObjects, b => !b.series || !b.series.length ).length;
-
-    // PERCENTAGES
-    const total = entity.bookObjects.length;
-    entity.pctPlusCatalog = total > 0 ? _.round( _.filter( entity.bookObjects, b => b.fromPlusCatalog ).length / total * 100 ) : 0;
-    entity.pctFinished    = total > 0 ? _.round( entity.finishedCount / total * 100 ) : 0;
 
     // Series-specific: % finished relative to total books including unowned
     if ( entity.allBooksMinusDupes && entity.allBooksMinusDupes.length ) {
@@ -152,7 +146,7 @@ export const defaultConfig = {
       type        : 'filterExtras',
       id          : 'bookCount',
       key         : 'books',
-      label       : 'Number of books',
+      label       : () => isWishlistSource() ? 'Books in wishlist' : 'Books in library',
       range       : true,
       rangeMinDist: 0,
       rangeSuffix : '',
@@ -186,13 +180,14 @@ export const defaultConfig = {
       range       : true,
       rangeMinDist: 0,
       rangeSuffix : '',
-      rangeMin    : () => 1,
+      rangeMin    : () => 0,
       rangeMax    : () => {
         const max = _.maxBy( store.state.pageCollection, item => item.standaloneCount || 0 );
         return max ? ( max.standaloneCount || 1 ) : 1;
       },
       condition   : function ( item ) {
-        return ( item.standaloneCount || 0 ) >= this.range[ 0 ];
+        const count = item.standaloneCount || 0;
+        return count >= this.range[ 0 ] && count <= this.range[ 1 ];
       },
     },
     {
@@ -208,20 +203,12 @@ export const defaultConfig = {
       condition       : ( item ) => _.some( item.bookObjects, b => b.fromPlusCatalog ),
     },
     {
-      active      : false,
-      type        : 'filterExtras',
-      id          : 'pctPlusCatalog',
-      key         : 'pct-plus-catalog',
-      label       : 'Plus catalog %',
-      tippy       : 'Percentage of their books in the plus catalog',
-      range       : true,
-      rangeMinDist: 0,
-      rangeSuffix : '%',
-      rangeMin    : () => 0,
-      rangeMax    : () => 100,
-      condition   : function ( item ) {
-        return item.pctPlusCatalog >= this.range[ 0 ] && item.pctPlusCatalog <= this.range[ 1 ];
-      },
+      active          : false,
+      type            : 'filterExtras',
+      id              : 'noPlusCatalog',
+      key             : 'no-plus-catalog',
+      label           : 'No plus catalog books',
+      condition       : ( item ) => !_.some( item.bookObjects, b => b.fromPlusCatalog ),
     },
     {
       type              : 'divider',
@@ -233,7 +220,7 @@ export const defaultConfig = {
       type              : 'filterExtras',
       id                : 'myRatingMax',
       key               : 'my-rating-max',
-      label             : 'My rating (max)',
+      label             : 'My highest book rating',
       tippy             : 'At least one book rated this high or higher',
       excludeFromWishlist: true,
       range             : true,
@@ -251,7 +238,7 @@ export const defaultConfig = {
       type              : 'filterExtras',
       id                : 'myRatingAvg',
       key               : 'my-rating-avg',
-      label             : 'My rating (avg)',
+      label             : 'My average book rating',
       tippy             : 'Average of all personal ratings',
       excludeFromWishlist: true,
       range             : true,
@@ -269,7 +256,7 @@ export const defaultConfig = {
       type              : 'filterExtras',
       id                : 'myRatingMin',
       key               : 'my-rating-min',
-      label             : 'My rating (min)',
+      label             : 'My lowest book rating',
       tippy             : 'Even the lowest-rated book meets this threshold',
       excludeFromWishlist: true,
       range             : true,
@@ -283,26 +270,6 @@ export const defaultConfig = {
       },
     },
     {
-      active            : false,
-      type              : 'filterExtras',
-      id                : 'myRatedCount',
-      key               : 'my-rated-count',
-      label             : "Books I've rated",
-      tippy             : "How many of their books you've personally rated",
-      excludeFromWishlist: true,
-      range             : true,
-      rangeMinDist      : 0,
-      rangeSuffix       : '',
-      rangeMin          : () => 1,
-      rangeMax          : () => {
-        const max = _.maxBy( store.state.pageCollection, item => item.myRatedCount || 0 );
-        return max ? ( max.myRatedCount || 1 ) : 1;
-      },
-      condition         : function ( item ) {
-        return ( item.myRatedCount || 0 ) >= this.range[ 0 ];
-      },
-    },
-    {
       type: 'divider',
       key : 'divider-community-rating',
     },
@@ -311,8 +278,8 @@ export const defaultConfig = {
       type            : 'filterExtras',
       id              : 'ratingWeightedAvg',
       key             : 'rating-weighted-avg',
-      label           : 'Audible rating',
-      tippy           : 'Weighted average community rating. Books with more ratings carry more weight.',
+      label           : 'Average book rating (weighted)',
+      tippy           : 'Books with more ratings carry more weight.',
       range           : true,
       rangeMinDist    : 0,
       rangeSuffix     : '',
@@ -320,7 +287,8 @@ export const defaultConfig = {
       rangeMin        : () => 1,
       rangeMax        : () => 5,
       condition       : function ( item ) {
-        return ( item.ratingWeightedAvg || 0 ) >= this.range[ 0 ];
+        const rating = item.ratingWeightedAvg || 0;
+        return rating >= this.range[ 0 ] && rating <= this.range[ 1 ];
       },
     },
     {
@@ -329,7 +297,7 @@ export const defaultConfig = {
       id              : 'ratingMax',
       key             : 'top-book-rating',
       label           : 'Top book rating',
-      tippy           : 'Highest community rating among their books',
+      tippy           : 'Highest Audible rating among the books',
       range           : true,
       rangeMinDist    : 0,
       rangeSuffix     : '',
@@ -337,7 +305,8 @@ export const defaultConfig = {
       rangeMin        : () => 1,
       rangeMax        : () => 5,
       condition       : function ( item ) {
-        return ( item.ratingMax || 0 ) >= this.range[ 0 ];
+        const rating = item.ratingMax || 0;
+        return rating >= this.range[ 0 ] && rating <= this.range[ 1 ];
       },
     },
     {
@@ -345,8 +314,8 @@ export const defaultConfig = {
       type            : 'filterExtras',
       id              : 'ratingPopularity',
       key             : 'popularity',
-      label           : 'Popularity',
-      tippy           : 'Total number of community ratings across all their books',
+      label           : 'Total book ratings',
+      tippy           : 'Total number of Audible ratings, summed across all the books',
       range           : true,
       rangeMinDist    : 0,
       rangeSuffix     : '',
@@ -356,26 +325,8 @@ export const defaultConfig = {
         return max ? ( max.ratingPopularity || 1 ) : 1;
       },
       condition       : function ( item ) {
-        return ( item.ratingPopularity || 0 ) >= this.range[ 0 ];
-      },
-    },
-    {
-      active            : false,
-      type              : 'filterExtras',
-      id                : 'ratingDiff',
-      key               : 'personal-vs-community',
-      label             : 'Personal vs community',
-      tippy             : 'Difference between your average rating and the community weighted average. Positive means you rate them higher than most.',
-      excludeFromWishlist: true,
-      range             : true,
-      rangeMinDist      : 0,
-      rangeSuffix       : '',
-      rangeInterval     : 0.1,
-      rangeMin          : () => -4,
-      rangeMax          : () => 4,
-      condition         : function ( item ) {
-        if ( item.ratingDiff == null ) return false;
-        return item.ratingDiff >= this.range[ 0 ] && item.ratingDiff <= this.range[ 1 ];
+        const total = item.ratingPopularity || 0;
+        return total >= this.range[ 0 ] && total <= this.range[ 1 ];
       },
     },
 
@@ -386,19 +337,20 @@ export const defaultConfig = {
       type        : 'filterExtras',
       id          : 'totalHours',
       key         : 'total-hours',
-      label       : 'Total listening hours',
-      tippy       : 'Total listening time across all their books',
+      label       : 'Combined book length',
+      tippy       : 'Combined length of all books, in hours',
       range       : true,
       rangeMinDist: 0,
-      rangeSuffix : ' hr',
+      rangeSuffix : 'h',
       rangeInterval: 0.5,
       rangeMin    : () => 0,
       rangeMax    : () => {
         const max = _.maxBy( store.state.pageCollection, item => item.totalHours || 0 );
-        return max ? ( max.totalHours || 1 ) : 1;
+        return max ? ( Math.ceil( ( max.totalHours || 1 ) / 0.5 ) * 0.5 ) : 1;
       },
       condition   : function ( item ) {
-        return ( item.totalHours || 0 ) >= this.range[ 0 ];
+        const hours = item.totalHours || 0;
+        return hours >= this.range[ 0 ] && hours <= this.range[ 1 ];
       },
     },
     {
@@ -407,18 +359,19 @@ export const defaultConfig = {
       id          : 'avgHours',
       key         : 'avg-hours',
       label       : 'Average book length',
-      tippy       : 'Average listening time per book',
+      tippy       : 'Average length per book, in hours',
       range       : true,
       rangeMinDist: 0,
-      rangeSuffix : ' hr',
+      rangeSuffix : 'h',
       rangeInterval: 0.5,
       rangeMin    : () => 0,
       rangeMax    : () => {
         const max = _.maxBy( store.state.pageCollection, item => item.avgHours || 0 );
-        return max ? ( max.avgHours || 1 ) : 1;
+        return max ? ( Math.ceil( ( max.avgHours || 1 ) / 0.5 ) * 0.5 ) : 1;
       },
       condition   : function ( item ) {
-        return ( item.avgHours || 0 ) >= this.range[ 0 ];
+        const hours = item.avgHours || 0;
+        return hours >= this.range[ 0 ] && hours <= this.range[ 1 ];
       },
     },
 
@@ -489,7 +442,7 @@ export const defaultConfig = {
       id          : 'finishedCount',
       key         : 'finished-count',
       label       : 'Finished books',
-      tippy       : 'Number of their books you have finished',
+      tippy       : 'How many books you have finished',
       excludeFromWishlist: true,
       range       : true,
       rangeMinDist: 0,
@@ -500,7 +453,8 @@ export const defaultConfig = {
         return max ? ( max.finishedCount || 1 ) : 1;
       },
       condition   : function ( item ) {
-        return ( item.finishedCount || 0 ) >= this.range[ 0 ];
+        const count = item.finishedCount || 0;
+        return count >= this.range[ 0 ] && count <= this.range[ 1 ];
       },
     },
     {
@@ -509,7 +463,7 @@ export const defaultConfig = {
       id          : 'unfinishedCount',
       key         : 'unfinished-count',
       label       : 'Unfinished books',
-      tippy       : 'Number of their books that are not started or started but not finished',
+      tippy       : 'Not started, or started but not finished',
       excludeFromWishlist: true,
       range       : true,
       rangeMinDist: 0,
@@ -520,27 +474,10 @@ export const defaultConfig = {
         return max ? ( max.unfinishedCount || 1 ) : 1;
       },
       condition   : function ( item ) {
-        return ( item.unfinishedCount || 0 ) >= this.range[ 0 ];
+        const count = item.unfinishedCount || 0;
+        return count >= this.range[ 0 ] && count <= this.range[ 1 ];
       },
     },
-    {
-      active            : false,
-      type              : 'filterExtras',
-      id                : 'pctFinished',
-      key               : 'pct-finished',
-      label             : 'Finished %',
-      tippy             : 'Percentage of their books you have finished',
-      excludeFromWishlist: true,
-      range             : true,
-      rangeMinDist      : 0,
-      rangeSuffix       : '%',
-      rangeMin          : () => 0,
-      rangeMax          : () => 100,
-      condition         : function ( item ) {
-        return item.pctFinished >= this.range[ 0 ] && item.pctFinished <= this.range[ 1 ];
-      },
-    },
-
     // TAGS & CATEGORIES
     { type: 'divider', key: 'divider-tags' },
     {
@@ -733,7 +670,7 @@ export const authorsConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueNarratorsCount || 0 );
         return max ? ( max.uniqueNarratorsCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueNarratorsCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueNarratorsCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
     {
       active      : false,
@@ -750,7 +687,7 @@ export const authorsConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueSeriesCount || 0 );
         return max ? ( max.uniqueSeriesCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueSeriesCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueSeriesCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
   ],
 };
@@ -782,7 +719,7 @@ export const narratorsConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueAuthorsCount || 0 );
         return max ? ( max.uniqueAuthorsCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueAuthorsCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueAuthorsCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
     {
       active      : false,
@@ -799,7 +736,7 @@ export const narratorsConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueSeriesCount || 0 );
         return max ? ( max.uniqueSeriesCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueSeriesCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueSeriesCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
   ],
 };
@@ -831,7 +768,7 @@ export const publishersConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueAuthorsCount || 0 );
         return max ? ( max.uniqueAuthorsCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueAuthorsCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueAuthorsCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
     {
       active      : false,
@@ -848,7 +785,7 @@ export const publishersConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueNarratorsCount || 0 );
         return max ? ( max.uniqueNarratorsCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueNarratorsCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueNarratorsCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
     {
       active      : false,
@@ -865,7 +802,7 @@ export const publishersConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueSeriesCount || 0 );
         return max ? ( max.uniqueSeriesCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueSeriesCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueSeriesCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
   ],
 };
@@ -900,7 +837,7 @@ export const seriesConfig = {
   ],
 
   filters: [
-    { id: 'bookCount', key: 'inSeries', label: 'Number of owned books' },
+    { id: 'bookCount', key: 'inSeries' },
     {
       active      : false,
       type        : 'filterExtras',
@@ -915,12 +852,12 @@ export const seriesConfig = {
       rangeSuffix : '',
       rangeMin    : () => 1,
       rangeMax    : () => {
-        const max = _.maxBy( store.state.pageCollection, item => item.allBooksMinusDupes ? item.allBooksMinusDupes.length : 0 );
-        return max && max.allBooksMinusDupes ? max.allBooksMinusDupes.length : 1;
+        const max = _.maxBy( store.state.pageCollection, item => item.allBooks ? item.allBooks.length : 0 );
+        return max && max.allBooks ? max.allBooks.length : 1;
       },
       condition   : function ( item ) {
-        if ( !item.allBooksMinusDupes ) return false;
-        return item.allBooksMinusDupes.length >= this.range[ 0 ] && item.allBooksMinusDupes.length <= this.range[ 1 ];
+        if ( !item.allBooks ) return false;
+        return item.allBooks.length >= this.range[ 0 ] && item.allBooks.length <= this.range[ 1 ];
       },
     },
     { id: 'myRatingMin', excludeFromWishlist: true, tippy: 'Based on the book you rated lowest in the series' },
@@ -959,7 +896,7 @@ export const seriesConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueAuthorsCount || 0 );
         return max ? ( max.uniqueAuthorsCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueAuthorsCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueAuthorsCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
     {
       active      : false,
@@ -976,7 +913,7 @@ export const seriesConfig = {
         const max = _.maxBy( store.state.pageCollection, item => item.uniqueNarratorsCount || 0 );
         return max ? ( max.uniqueNarratorsCount || 1 ) : 1;
       },
-      condition   : function ( item ) { return ( item.uniqueNarratorsCount || 0 ) >= this.range[ 0 ]; },
+      condition   : function ( item ) { const count = item.uniqueNarratorsCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
     {
       excludeFromWishlist: true,

@@ -1,5 +1,5 @@
 <template>
-  <div id="search-options" ref="options" :class="listName+'-options'" :style="css.options">
+  <div id="search-options" ref="options" :class="[listName+'-options', { 'sub-page-options': $route.meta.subPage }]" :style="css.options">
     <div class="search-options-inner-wrap">
       
       <div class="search-opts-arrow" :style="css.arrow"></div>
@@ -47,6 +47,8 @@
           :currentList="optionsList" :listName="listName"
           @vue:mounted="sortersMounted"
           />
+
+          <span v-if="item.type === 'divider' && item.label" class="divider-label">{{ item.label }}</span>
 
           <!-- Show an extra value from any field above the sort value. The sort value
                itself always stays, so it still reads as the sort legend. -->
@@ -483,6 +485,29 @@ export default {
     margin-top: 9px;
     @include themify($themes) {
       border-top: 1px solid rgba(themed(frontColor), 0.1);
+    }
+  }
+
+  // Sub-page filter lists mix checkboxes and range sliders in the same divider group
+  // (unlike the library list, which dedicates a divider to every slider), so the
+  // sliders need their own breathing room instead of relying on dividers to separate them.
+  &.sub-page-options .search-option {
+    .sorter-button {
+      line-height: 1.3em;
+    }
+    .range-slider {
+      margin: -5px 0 10px 0;
+    }
+  }
+
+  .divider-label {
+    display: block;
+    padding: 0 9px;
+    font-size: .75em;
+    text-transform: uppercase;
+    letter-spacing: .04em;
+    @include themify($themes) {
+      color: rgba(themed(frontColor), 0.4);
     }
   }
 
