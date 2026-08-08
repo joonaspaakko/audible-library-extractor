@@ -491,7 +491,7 @@ export default {
   // Sub-page filter lists mix checkboxes and range sliders in the same divider group
   // (unlike the library list, which dedicates a divider to every slider), so the
   // sliders need their own breathing room instead of relying on dividers to separate them.
-  &.sub-page-options .search-option {
+  &.filter-options.sub-page-options .search-option {
     .sorter-button {
       line-height: 1.3em;
     }

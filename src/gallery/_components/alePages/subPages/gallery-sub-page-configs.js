@@ -581,9 +581,117 @@ export const defaultConfig = {
   sort: [
     { active: false, key: 'randomize', label: 'Randomize', type: 'sortExtras', tippy: "Ignores sorting and randomizes instead unless there's an active search." },
     { type: 'divider', key: 'divider1' },
-    { active: true,  current: true,  key: 'added',  label: 'Added',           type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
-    { active: true,  current: false, key: 'name',   label: 'Name',            type: 'sort', tippy: 'Sort by name' },
-    { active: false, current: false, key: 'amount', label: 'Number of books', type: 'sort' },
+    { active: true,  current: true,  key: 'added',  label: 'Added', type: 'sort', tippy: '<div style="text-align: left;"><small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top</div>' },
+    { active: true,  current: false, key: 'name',   label: 'Name',  type: 'sort', tippy: 'Sort by name' },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'amount',
+      label       : () => isWishlistSource() ? 'Books in wishlist' : 'Books in library',
+    },
+
+    // MY RATINGS
+    { type: 'divider', key: 'divider-my-ratings', excludeFromWishlist: true },
+    {
+      active            : false, current: false, type: 'sort',
+      key               : 'myRatingAvg',
+      label             : 'My average rating',
+      tippy             : 'Average of all personal ratings',
+      excludeFromWishlist: true,
+      statContent       : ( item ) => item.myRatingAvg ? `${ item.myRatingAvg }&#9733;` : '-',
+    },
+    {
+      active            : false, current: false, type: 'sort',
+      key               : 'myRatingMax',
+      label             : 'My highest rating',
+      tippy             : 'Highest personal rating among the books',
+      excludeFromWishlist: true,
+      statContent       : ( item ) => item.myRatingMax ? `${ item.myRatingMax }&#9733;` : '-',
+    },
+
+    // COMMUNITY RATINGS
+    { type: 'divider', key: 'divider-community-rating' },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'ratingWeightedAvg',
+      label       : 'Average book rating',
+      tippy       : 'Community rating, weighted so books with more ratings carry more weight',
+      statContent : ( item ) => item.ratingWeightedAvg ? `${ item.ratingWeightedAvg }&#9733;` : '-',
+    },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'ratingMax',
+      label       : 'Top book rating',
+      tippy       : 'Highest Audible rating among the books',
+      statContent : ( item ) => item.ratingMax ? `${ item.ratingMax }&#9733;` : '-',
+    },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'ratingPopularity',
+      label       : 'Total book ratings',
+      tippy       : 'Total number of Audible ratings, summed across all the books',
+      statContent : ( item ) => item.ratingPopularity || '-',
+    },
+
+    // DURATION
+    { type: 'divider', key: 'divider-duration' },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'totalHours',
+      label       : 'Combined book length',
+      tippy       : 'Combined length of all books, in hours',
+      statContent : ( item ) => item.totalHours ? `${ item.totalHours }h` : '-',
+    },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'avgHours',
+      label       : 'Average book length',
+      tippy       : 'Average length per book, in hours',
+      statContent : ( item ) => item.avgHours ? `${ item.avgHours }h` : '-',
+    },
+
+    // RELEASE YEAR
+    { type: 'divider', key: 'divider-release-year' },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'newestReleaseYear',
+      label       : 'Newest book year',
+      tippy       : 'Year the most recently released book came out',
+      statContent : ( item ) => item.newestReleaseYear || '-',
+    },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'oldestReleaseYear',
+      label       : 'Oldest book year',
+      tippy       : 'Year the earliest released book came out',
+      statContent : ( item ) => item.oldestReleaseYear || '-',
+    },
+
+    // ENGAGEMENT
+    { type: 'divider', key: 'divider-engagement', excludeFromWishlist: true },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'finishedCount',
+      label       : 'Finished books',
+      tippy       : 'How many books you have finished',
+      excludeFromWishlist: true,
+      statContent : ( item ) => `${ item.finishedCount || 0 }&nbsp;of&nbsp;<strong>${ item.books.length }</strong>`,
+    },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'unfinishedCount',
+      label       : 'Unfinished books',
+      tippy       : 'Not started, or started but not finished',
+      excludeFromWishlist: true,
+      statContent : ( item ) => `${ item.unfinishedCount || 0 }&nbsp;of&nbsp;<strong>${ item.books.length }</strong>`,
+    },
+    {
+      active      : false, current: false, type: 'sort',
+      key         : 'standaloneCount',
+      label       : 'Standalone books',
+      tippy       : 'Number of books not belonging to any series',
+      excludeFromSeries: true,
+      statContent : ( item ) => _.isFinite( item.standaloneCount ) ? item.standaloneCount : '-',
+    },
   ],
   makeCollection: function ( books, vue ) {
   
@@ -690,6 +798,11 @@ export const authorsConfig = {
       condition   : function ( item ) { const count = item.uniqueSeriesCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
   ],
+  sort: [
+    { type: 'divider', key: 'divider-cross-ref' },
+    { active: false, current: false, key: 'uniqueNarratorsCount', label: 'Number of narrators', type: 'sort', tippy: 'How many unique narrators have read their books', statContent: ( item ) => item.uniqueNarratorsCount || '-' },
+    { active: false, current: false, key: 'uniqueSeriesCount',    label: 'Number of series',    type: 'sort', tippy: 'How many different series their books appear in', statContent: ( item ) => item.uniqueSeriesCount || '-' },
+  ],
 };
 
 // NARRATORS
@@ -738,6 +851,11 @@ export const narratorsConfig = {
       },
       condition   : function ( item ) { const count = item.uniqueSeriesCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
+  ],
+  sort: [
+    { type: 'divider', key: 'divider-cross-ref' },
+    { active: false, current: false, key: 'uniqueAuthorsCount', label: 'Number of authors', type: 'sort', tippy: 'How many unique authors they have narrated for', statContent: ( item ) => item.uniqueAuthorsCount || '-' },
+    { active: false, current: false, key: 'uniqueSeriesCount',  label: 'Number of series',  type: 'sort', tippy: 'How many different series they have narrated', statContent: ( item ) => item.uniqueSeriesCount || '-' },
   ],
 };
 
@@ -805,6 +923,12 @@ export const publishersConfig = {
       condition   : function ( item ) { const count = item.uniqueSeriesCount || 0; return count >= this.range[ 0 ] && count <= this.range[ 1 ]; },
     },
   ],
+  sort: [
+    { type: 'divider', key: 'divider-cross-ref' },
+    { active: false, current: false, key: 'uniqueAuthorsCount',   label: 'Number of authors',   type: 'sort', tippy: 'How many unique authors they publish', statContent: ( item ) => item.uniqueAuthorsCount || '-' },
+    { active: false, current: false, key: 'uniqueNarratorsCount', label: 'Number of narrators', type: 'sort', tippy: 'How many unique narrators they have used', statContent: ( item ) => item.uniqueNarratorsCount || '-' },
+    { active: false, current: false, key: 'uniqueSeriesCount',    label: 'Number of series',    type: 'sort', tippy: 'How many different series they have published', statContent: ( item ) => item.uniqueSeriesCount || '-' },
+  ],
 };
 
 // SERIES
@@ -831,9 +955,18 @@ export const seriesConfig = {
 
   sort: [
     { key: 'name',   tippy: 'Sort by series name' },
-    { key: 'amount', label: 'Number of owned books' },
-    { excludeFromWishlist: true, active: false, current: false, key: 'amountTotal', label: 'Total number of books',  type: 'sort' },
-    { excludeFromWishlist: true, active: false, current: false, key: 'missing',     label: 'Missing',                type: 'sort', tippy: 'Number of missing books' },
+    { key: 'amount', label: 'Owned books in series', order: 40 },
+    {
+      excludeFromWishlist: true, active: false, current: false, key: 'amountTotal', label: 'Total books in series', type: 'sort', order: 41,
+      tippy      : 'Total number of books in the series, including ones you do not own',
+      statContent: ( item ) => item.allBooksMinusDupes ? item.allBooksMinusDupes.length : ( item.allBooks ? item.allBooks.length : '-' ),
+    },
+    { excludeFromWishlist: true, active: false, current: false, key: 'missing', label: 'Missing', type: 'sort', tippy: 'Number of missing books', order: 42 },
+    {
+      excludeFromWishlist: true, active: false, current: false, key: 'pctFinishedOfAll', label: 'Finished % (of all books)', type: 'sort', order: 43,
+      tippy      : 'Percentage of all books in the series you have finished, including books you do not own',
+      statContent: ( item ) => _.isFinite( item.pctFinishedOfAll ) ? `${ item.pctFinishedOfAll }%` : '-',
+    },
   ],
 
   filters: [
