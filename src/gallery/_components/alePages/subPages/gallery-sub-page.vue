@@ -20,9 +20,14 @@
           <h2>{{ collection[ vItem.index ].name }}</h2>
 
           <div
+            v-if="currentSortStatContent"
+            class="books-total books-total--borderless"
+            v-html="currentSortStatContent( collection[ vItem.index ] )"
+          ></div>
+          <div
+            v-else-if="collection[ vItem.index ].books && collection[ vItem.index ].books.length"
             class="books-total"
             :class="{ 'books-total--borderless': config.booksTotalBorderless }"
-            v-if="collection[ vItem.index ].books && collection[ vItem.index ].books.length"
             :content="config.booksTotalTippy"
             v-tippy="{ placement: 'right' }"
             v-html="config.booksTotalContent( collection[ vItem.index ] )"
@@ -164,6 +169,14 @@ export default {
       
     },
 
+    // The active sort entry's statContent, when present, replaces the book-count
+    // badge so the visible number always matches what the list is sorted by.
+    currentSortStatContent: function () {
+      const sort = this.$store.state.listRenderingOpts.sort;
+      const current = sort && _.find( sort, 'current' );
+      return current ? current.statContent : null;
+    },
+
     optionsOpenMargin: function () {
       if ( this.$store.state.searchOptOpenHeight ) return { marginBottom: 0 };
       return false;
@@ -282,6 +295,7 @@ export default {
 
       if ( this.routeConfig.bookProp === 'series' ) {
         list.filter = _.filter( list.filter, ( o ) => !o.excludeFromSeries );
+        list.sort   = _.filter( list.sort,   ( o ) => !o.excludeFromSeries );
       }
 
       this.$setListRenderingOpts( list );
@@ -330,10 +344,12 @@ export default {
   }
 
   .books-total {
-    width: 23px !important;
+    min-width: 10px !important;
+    width: auto !important;
     height: 23px !important;
     line-height: 23px !important;
     font-size: .9em !important;
+    padding: 0 6px !important;
     top: unset !important;
     border-width: 2px !important;
     top: 4px !important;

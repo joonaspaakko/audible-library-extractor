@@ -42,7 +42,7 @@
         <!-- LABEL in the back -->
         <span v-if="label !== false" class="input-label" :class="{ active: isActiveSortItem(item) }">
           <span>
-            {{ item.label || item.key.replace(".name", "") }}
+            {{ resolvedLabel || item.key.replace(".name", "") }}
             <span v-if="item.dropdownOpts" class="dropdown-label-suffix">
               <span class="label-exclude" v-if="item.exclude">Exclude</span>
               <span class="label-include" v-else>Include</span>
@@ -302,6 +302,10 @@ export default {
 
       return fieldIcons[ this.item.icon ] || false;
 
+    },
+    
+    resolvedLabel: function() {
+      return _.result( this.item, 'label' );
     },
 
   },
