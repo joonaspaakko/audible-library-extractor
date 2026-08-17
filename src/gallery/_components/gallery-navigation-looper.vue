@@ -292,9 +292,6 @@ export default {
 
 .menu-item-inner {
   padding: 10px 12px;
-  @media ( max-width: 670px ) {
-    padding: 10px 8px;
-  }
 }
 
 .mobileMenu .menu-item-inner {
@@ -377,11 +374,6 @@ export default {
 .extension-tools {
   margin-left: 10px;
   padding: 6px 0;
-  @media ( max-width: 750px ) {
-    .menu-item-text {
-      display: none;
-    }
-  }
 }
 
 .extension-tools > .menu-item-inner {
@@ -511,8 +503,8 @@ export default {
       border-top: 1px solid rgba( themed(frontColor), .1);
     }
   }
-  .menu-item:focus > .menu-item-inner .menu-item-text,
-  .menu-item:hover > .menu-item-inner .menu-item-text {
+  .menu-item:not(.has-subpage-menu):focus > .menu-item-inner .menu-item-text,
+  .menu-item:not(.has-subpage-menu):hover > .menu-item-inner .menu-item-text {
     @include themify($themes) {
       color: themed(audibleOrange);
     }

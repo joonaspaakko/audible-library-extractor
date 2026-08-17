@@ -27,7 +27,7 @@ export default {
   computed: {
 
     destinations() {
-      return getSubpageMenuDestinations( this.$router );
+      return getSubpageMenuDestinations( this.$router, this.source );
     },
 
     sourceAvailable() {

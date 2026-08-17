@@ -29,10 +29,12 @@ export default {
     component: aleLibraryView,
     meta: {
       icon: IconFaRegularFolderOpen,
+      nestedGroup: 'subPages',
+      order: -2,
     },
     children: [
-      { name: "collections", path: "", component: aleCollections, meta: { title: 'Collections' } },
-      { name: "collection", path: ":collection", component: aleGallery, meta: { gallery: true, title: 'Collections' } }
+      { name: "collections", path: "", component: aleCollections, meta: { subPageBar: true, title: 'Collections' } },
+      { name: "collection", path: ":collection", component: aleGallery, meta: { gallery: true, subPageBar: true, title: 'Collections' } }
     ]
   },
   
@@ -53,9 +55,11 @@ export default {
     component: aleLibraryView,
     meta: {
       icon: IconFaSolidPodcast,
+      nestedGroup: 'subPages',
+      order: -1,
     },
     children: [
-      { name: "podcasts", path: "", component: aleGallery, meta: { gallery: true, title: 'Podcasts' } },
+      { name: "podcasts", path: "", component: aleGallery, meta: { gallery: true, subPageBar: true, title: 'Podcasts' } },
     ]
   },
   

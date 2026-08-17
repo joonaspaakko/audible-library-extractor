@@ -4,9 +4,19 @@
 // disabled per gallery (extras.subPageStates), so the static table lists routes that may never
 // have been registered.
 
-export function getSubpageMenuDestinations( router ) {
+export function getSubpageMenuDestinations( router, source ) {
 
-  const subPages = _.filter( router.options.routes, ( route ) => _.get( route, 'meta.nestedGroup' ) === 'subPages' );
+  const subPages = _.filter( router.options.routes, ( route ) => {
+
+    const childMeta = _.get( route, 'children[0].meta' );
+
+    // subPage: categories/series/authors/narrators/publishers, scoped to whichever source owns them.
+    // subPageBar: collections/podcasts, which only ever belong under the library.
+    if ( _.get( childMeta, 'subPage' ) ) return true;
+    if ( _.get( childMeta, 'subPageBar' ) ) return source === 'library';
+    return false;
+
+  });
 
   return _.map( _.orderBy( subPages, 'meta.order', 'asc' ), ( route ) => {
     return {
@@ -38,7 +48,9 @@ export function currentSubpageMenuSource( route, stickySource ) {
   const routeSource = _.get( route, 'meta.subpageMenuSource' );
   if ( routeSource ) return routeSource;
 
-  if ( _.get( route, 'meta.subPage' ) ) {
+  // subPage: the categories/series/authors/narrators/publishers sub pages, scoped to library or wishlist.
+  // subPageBar: collections/podcasts, which only show the bar itself and never scope by source.
+  if ( _.get( route, 'meta.subPage' ) || _.get( route, 'meta.subPageBar' ) ) {
     return route.query.subPageSource || stickySource;
   }
 

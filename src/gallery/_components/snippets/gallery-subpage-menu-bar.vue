@@ -1,6 +1,6 @@
 <template>
 <div id="subpage-menu-bar" v-if="source && destinations.length && sourceAvailable">
-  <div class="subpage-menu-bar-inner">
+  <gallery-scroll-nav arrowStyle="ghost">
 
     <router-link
       v-for="destination in destinations"
@@ -14,22 +14,24 @@
       <span class="subpage-menu-tab-text">{{ destination.label }}</span>
     </router-link>
 
-  </div>
+  </gallery-scroll-nav>
 </div>
 </template>
 
 <script>
 
 import { getSubpageMenuDestinations, isDestinationActive, subpageMenuSourceAvailable } from '@output-mixins/gallery-subpage-menu-destinations.js';
+import galleryScrollNav from '@output-snippets/gallery-scroll-nav.vue';
 
 export default {
   name: "subpageMenuBar",
   props: [ 'source' ],
+  components: { galleryScrollNav },
 
   computed: {
 
     destinations() {
-      return getSubpageMenuDestinations( this.$router );
+      return getSubpageMenuDestinations( this.$router, this.source );
     },
 
     sourceAvailable() {
@@ -60,13 +62,8 @@ export default {
   }
 }
 
-.subpage-menu-bar-inner {
-  display: flex;
-  flex-direction: row;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  padding: 4px 16px;
+#subpage-menu-bar :deep(.scroll-nav-track) {
+  padding: 4px 0;
 }
 
 // #ale-navigation sets an !important color on every anchor, so these need to outrank it.
