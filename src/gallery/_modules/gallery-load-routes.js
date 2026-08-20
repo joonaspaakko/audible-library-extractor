@@ -35,7 +35,7 @@ export default function( libraryData, store ) {
     let subPageStates = _.get( libraryData, 'extras.subPageStates' );
     if ( subPageStates ) {
       _.each(subPageStates, function( item ) {
-        if ( item.enabled ) routes.push( subPages[ item.key ] );
+        if ( item.enabled && subPages[ item.key ] ) routes.push( subPages[ item.key ] );
       });
     }
     // Extension-gallery SUBPAGES
