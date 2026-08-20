@@ -6,7 +6,7 @@
   <span class="icon" :class="{ flip: detailSettings.reverseDirection }">
     <ri-toggle-line/>
   </span>
-  <span class="label">Swap panels</span>
+  <span class="label">{{ sidebarSideLabel }}</span>
 </div>
 </template>
 
@@ -18,7 +18,17 @@ export default {
       detailSettings: this.$store.state.sticky.bookDetailSettings,
     };
   },
-  
+
+  computed: {
+    // Matches gallery-book-details.vue's own mobileWidth breakpoint, since this
+    // label describes where that component currently puts the sidebar.
+    sidebarSideLabel() {
+      const mobile = this.$store.state.windowWidth <= 688;
+      if ( mobile ) return this.detailSettings.reverseDirection ? 'Summary on top' : 'Info on top';
+      return this.detailSettings.reverseDirection ? 'Sidebar on right' : 'Sidebar on left';
+    },
+  },
+
   methods: {
     flip() {
       this.$emit('flip');

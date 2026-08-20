@@ -1,11 +1,11 @@
 <!--
-  Button that hides either book details sidebar or summary depending on their order. Always hides whichever is first.
+  Button that hides either book details sidebar or summary depending on their order. Always keeps whichever is first, hides the other.
 -->
 <template>
 <div class="details-first-hider" @click="flip">
   <ph-number-circle-one-fill v-if="detailSettings.hideFirstSection"/>
   <ph-number-circle-two-fill v-else/>
-  <span class="label">{{ detailSettings.hideFirstSection ? 'Show both' : 'Show one' }}</span>
+  <span class="label">{{ detailSettings.hideFirstSection ? 'Show one' : 'Show both' }}</span>
 </div>
 </template>
 

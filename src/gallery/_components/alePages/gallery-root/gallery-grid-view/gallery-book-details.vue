@@ -32,12 +32,10 @@
       <!-- REGULAR BOOK (in library) -->
       <div v-else class="inner-wrap" :style="{ maxWidth: getMaxWidth }">
         
-        <div class="details-toolbar">
+        <div class="details-toolbar" :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }">
           <div
             class="audible-vs-local-links"
             @click="toggleDetailLinksExternal()"
-            v-tippy
-            :content="sticky.detailLinksExternal ? 'Links lead to Audible' : 'Links lead to my library'"
           >
             <mingcute:link-fill/>
             <span class="label">{{ sticky.detailLinksExternal ? 'Audible' : 'Gallery' }} links</span>
@@ -54,7 +52,7 @@
           class="top details-wrap"
           :class="{ 'reverse-direction': sticky.bookDetailSettings.reverseDirection }"
         >
-          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
+          <div class="information" ref="information" v-if="sticky.bookDetailSettings.sidebar.show && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)">
             
             <div class="collapse-btn" 
               v-if="!mobileWidth"
@@ -113,7 +111,7 @@
             <gallery-books-in-series :book="book" v-if="sticky.bookDetailSettings.sidebar.collectionsList" />
             
           </div> <!-- .information -->
-          <gallery-book-summary ref="summary" v-if="!loading && !(sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth" :readmoreOpen="panelSummaryOpen" @update:readmoreOpen="panelSummaryOpen = $event"></gallery-book-summary>
+          <gallery-book-summary ref="summary" v-if="!loading && !(!sticky.bookDetailSettings.reverseDirection && sticky.bookDetailSettings.hideFirstSection && mobileWidth)" :book="book" :bookSummary="splitData.bookSummary" :mobileWidth="mobileWidth" :readmoreOpen="panelSummaryOpen" @update:readmoreOpen="panelSummaryOpen = $event"></gallery-book-summary>
         </div>
 
         <div class="carousel-wrap" v-if="sticky.bookDetailSettings.carousel && !loading">
@@ -685,31 +683,75 @@ export default {
   position: absolute;
   z-index: 2;
   top: -44px;
-  right: 0px;
+  right: auto;
+  left: 0px;
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 2px;
   padding: 2px 4px;
   border-radius: 99999px;
+  #ale-bookdetails:not(.mobile-width) &.reverse-direction {
+    left: auto;
+    right: 0px;
+  }
   .mobile-width & {
     right: auto;
     left: 50%;
     transform: translateX(-50%);
+    @media (max-width: 440px) {
+      right: 0px;
+      left: auto;
+      transform: none;
+    }
+  }
+  > * {
+    position: relative;
+    &:not(:last-child):after {
+      content: '';
+      position: absolute;
+      top: 50%;
+      right: 0px;
+      transform: translateY(-50%);
+      width: 1px;
+      height: 16px;
+      @include themify($themes) {
+        background: rgba(themed(frontColor), 0.15);
+      }
+    }
+  }
+}
+
+#ale-bookdetails:not(.mobile-width) .details-toolbar {
+  max-width: 280px;
+  left: 140px;
+  transform: translateX(-50%);
+  &.reverse-direction {
+    left: auto;
+    right: 140px;
+    transform: translateX(50%);
   }
 }
 
 .theme-dark .details-toolbar {
   background: color.adjust($darkBackColor, $lightness: 6%);
   box-shadow: inset 0 3px 10px rgba($darkBackColor, .8);
+  @media (max-width: 440px) {
+    box-shadow: none;
+  }
 }
 .theme-light .details-toolbar {
   background: color.adjust($lightBackColor, $lightness: -1%);
   box-shadow: inset 0 3px 10px rgba( color.adjust($lightBackColor, $lightness: -30%), 0.4);
+  @media (max-width: 440px) {
+    box-shadow: none;
+  }
 }
 
 .audible-vs-local-links,
 .book-details-info,
+.action-reverse-direction,
+.details-first-hider,
 :deep(.action-reverse-direction),
 :deep(.details-first-hider) {
   &, * {
@@ -728,11 +770,6 @@ export default {
   }
   @include themify($themes) {
     color: rgba(themed(frontColor), 0.7);
-    &.active,
-    &:hover {
-      color: themed(frontColor);
-      background: rgba(themed(frontColor), 0.1);
-    }
   }
 
   .label {
@@ -742,6 +779,10 @@ export default {
       display: none;
     }
   }
+}
+
+.book-details-info .label {
+  display: none;
 }
 
 #ale-bookdetails {

@@ -312,7 +312,7 @@
           </div>
           <div
             v-for="setting in bookDetailSettings"
-            :key="setting.sectionLabel || setting.label"
+            :key="setting.key || setting.sectionLabel || setting.label"
           >
             <div class="setting-divider" v-if="setting.type === 'divider'"></div>
             <label v-else-if="setting.sectionToggle" class="setting-section-label is-toggle" :class="{ disabled: !setting.enabled }">
@@ -329,7 +329,7 @@
                   <component :is="setting.icon" v-if="setting.icon" />
                 </div>
                 <div class="setting-label">
-                  <span>{{ setting.label }}</span>
+                  <span>{{ setting.dynamicLabel ? sidebarSideLabel : setting.label }}</span>
                 </div>
                 <div
                   v-if="setting.info"
@@ -397,6 +397,8 @@ import IconMainInfo     from '~icons/fa6-solid/circle-info';
 import IconCollections  from '~icons/fa6-solid/layer-group';
 import IconSeries       from '~icons/fa6-solid/list-ol';
 import IconCarousel     from '~icons/fa6-solid/images';
+import IconLink         from '~icons/mingcute/link-fill';
+import IconSwapPanels   from '~icons/ri/toggle-line';
 
 // Cover size slider default, in pixels. Matches $thumbnailSize.
 const COVER_SIZE_DEFAULT = 180;
@@ -517,6 +519,24 @@ export default {
       ],
       bookDetailSettings: [
 
+        { type: 'sectionLabel', sectionLabel: 'General' },
+        {
+          enabled: true, type: 'checkbox', label: 'Links lead to Audible', icon: IconLink,
+          info: 'Links in book details (tags, author, narrator, series, etc.) open the matching Audible page instead of filtering the gallery. Also switchable from the toolbar at the top of book details.',
+          value: sticky.detailLinksExternal,
+          event: function( e ) {
+            vue.$store.commit('prop', { key: 'sticky.detailLinksExternal', value: e.target.checked });
+          },
+        },
+        {
+          enabled: true, type: 'checkbox', key: 'swapPanels', dynamicLabel: true, icon: IconSwapPanels,
+          info: 'Swaps which side the sidebar opens on in book details. Also switchable from the toolbar at the top of book details.',
+          value: sticky.bookDetailSettings.reverseDirection,
+          event: function( e ) {
+            vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.reverseDirection', value: e.target.checked });
+          },
+        },
+
         { type: 'sectionLabel', sectionLabel: 'Above summary' },
         {
           enabled: true, type: 'checkbox', label: 'Long title', icon: IconShortTitle,
@@ -615,6 +635,13 @@ export default {
 
     isMobile: function() {
       return this.$store.getters.mobileThreshold;
+    },
+
+    // Matches the book-details layout breakpoint (gallery-book-details.vue's own
+    // mobileWidth), not the general mobileThreshold, since this label describes
+    // where that component puts the sidebar.
+    sidebarSideLabel: function() {
+      return this.$store.state.windowWidth <= 688 ? 'Information on top' : 'Sidebar on right';
     },
 
     naiveTheme: function() {
