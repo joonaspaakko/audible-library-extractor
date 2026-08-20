@@ -78,6 +78,10 @@ export default {
   @include themify($themes) {
     color: rgba( themed(frontColor), .75) !important;
   }
+  .theme-light & {
+    color: rgba(0, 0, 0, 0.75) !important;
+  }
+  
   &:hover {
     @include themify($themes) {
       color: themed(frontColor) !important;
