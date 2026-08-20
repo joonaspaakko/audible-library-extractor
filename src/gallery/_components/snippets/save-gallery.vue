@@ -122,13 +122,13 @@ export default {
       files: [],
       dataSources: [
         { checked: true, disabled: false, key: 'Library' },
+        { checked: true, disabled: false, key: 'Collections', parent: 'Library', subPage: true },
+        { checked: true, disabled: false, key: 'Podcasts', parent: 'Library', subPage: true },
         { checked: true, disabled: false, key: 'Categories', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Authors', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Publishers', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Series', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Narrators', parent: ['Library', 'Wishlist'], subPage: true },
-        { checked: true, disabled: false, key: 'Collections', parent: 'Library' },
-        { checked: true, disabled: false, key: 'Podcasts', parent: 'Library' },
         { checked: true, disabled: false, key: `Archived`, extra: true, tippy: 'If unchecked, the "archive" collection and all archived books are excluded from the export.', parent: 'Library' },
         { checked: true, disabled: false, key: 'Wishlist' },
         { checked: true, disabled: false, key: 'My Reviews', parent: ['Library'] },
@@ -221,7 +221,7 @@ export default {
   computed: {
 
     groupedSources: function() {
-      const pageOrder = ['Library', 'Collections', 'Podcasts', 'Wishlist'];
+      const pageOrder = ['Library', 'Wishlist'];
       const allPages = _.sortBy(
         _.filter(this.dataSources, s => !s.subPage && !s.extra && !s.spacer && _.includes(pageOrder, s.key)),
         s => _.indexOf(pageOrder, s.key)

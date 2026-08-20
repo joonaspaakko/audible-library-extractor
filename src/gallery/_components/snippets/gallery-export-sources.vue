@@ -34,7 +34,7 @@
   <div class="source-group" :class="{ 'source-group-faded': !libraryActive && !wishlistActive }">
     <div class="source-group-head" :class="{ 'source-group-head-toggle': !bare }" @click="!bare && (subPagesExpanded = !subPagesExpanded)">
       <fa6-solid-chevron-right v-if="!bare" class="section-chevron" :class="{ expanded: subPagesExpanded }" />
-      <span class="source-group-label">Sub-pages<span class="source-group-note">(Library &amp; Wishlist)</span></span>
+      <span class="source-group-label">Sub-pages</span>
       <span class="group-toggle-all" @click.stop="$emit('toggle-group', 'subPages')">{{ groupState('subPages').allChecked ? 'clear all' : 'select all' }}</span>
     </div>
     <div class="source-group-body" v-show="bare || subPagesExpanded">
@@ -216,9 +216,9 @@ export default {
 }
 
 .source-row {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: wrap;
+  max-width: 360px;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 0 4px;
 }
 
@@ -281,6 +281,10 @@ export default {
   .visual-checkbox .icon {
     color: inherit;
   }
+
+  .source-group-faded & {
+    opacity: 1;
+  }
 }
 
 // PILL STYLE (Advanced settings, pill=true)
@@ -312,6 +316,7 @@ export default {
   &.sub {
     font-size: 0.85em;
     padding: 3px 5px;
+    white-space: nowrap;
   }
 
   &.checked {
@@ -324,6 +329,10 @@ export default {
     opacity: 0.5;
     cursor: default !important;
     pointer-events: none;
+
+    .source-group-faded & {
+      opacity: 1;
+    }
   }
 }
 
