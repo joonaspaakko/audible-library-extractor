@@ -8,6 +8,7 @@ export default {
     viewMode: 'grid',
     gridMaxWidth: null,
     coverSize: null,
+    globalSettingsMobileHeight: null,
     gridDetailsMode: 'off',
     gridListCols: null,
     listColumnsHidden: null,

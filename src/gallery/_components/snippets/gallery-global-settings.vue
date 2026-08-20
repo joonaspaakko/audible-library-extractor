@@ -5,22 +5,32 @@
   :show="true"
   :placement="isMobile ? 'bottom' : 'right'"
   :width="340"
-  :height="isMobile ? '50%' : undefined"
+  :height="isMobile ? mobileDrawerHeight : undefined"
   :mask-closable="true"
   :show-mask="true"
   :lock-scroll="false"
   :auto-focus="false"
   :trap-focus="false"
   :close-on-esc="true"
+  :class="{ 'no-drawer-transition': isMobile && dragging }"
   @update:show="val => { if ( !val ) $store.commit('prop', { key: 'globalSettingsOpen', value: false }); }"
 >
   <n-drawer-content closable :native-scrollbar="false">
     <template #header>
-      <div class="drawer-header-inner">
-        <mdi-cog-outline class="drawer-header-icon" />
-        <div>
-          <div class="drawer-header-title">Settings</div>
-          <div class="drawer-header-sub">Global gallery preferences. Remembered in your browser.</div>
+      <div
+        class="drawer-header-draggable"
+        @touchstart="isMobile && onDragStart($event)"
+        @mousedown="isMobile && onDragStart($event)"
+      >
+        <div v-if="isMobile" class="drawer-drag-handle">
+          <div class="drawer-drag-handle-bar"></div>
+        </div>
+        <div class="drawer-header-inner">
+          <mdi-cog-outline class="drawer-header-icon" />
+          <div>
+            <div class="drawer-header-title">Settings</div>
+            <div class="drawer-header-sub">Global gallery preferences. Remembered in your browser.</div>
+          </div>
         </div>
       </div>
     </template>
@@ -421,6 +431,11 @@ export default {
       bookCoverExpanded: true,
       bookDetailsExpanded: true,
       drawerPeekTimeout: null,
+      dragHeight: null,
+      dragging: false,
+      dragStartY: 0,
+      dragStartHeight: 0,
+      dragMinHeight: 0,
       bookCoverSettings: [
 
         {
@@ -631,10 +646,18 @@ export default {
     _.each(hasInits, s => s.init(s));
   },
 
+  beforeUnmount: function() {
+    this.onDragEnd();
+  },
+
   computed: {
 
     isMobile: function() {
       return this.$store.getters.mobileThreshold;
+    },
+
+    mobileDrawerHeight: function() {
+      return this.dragHeight || this.$store.state.sticky.globalSettingsMobileHeight || '50%';
     },
 
     // Matches the book-details layout breakpoint (gallery-book-details.vue's own
@@ -821,6 +844,47 @@ export default {
       this.setDrawerPeek( false );
     },
 
+    // Mobile drawer height drag handle. Naive-ui's own resizable prop only binds mouse
+    // events, not touch, so it can't be dragged on a phone. This is a small hand-rolled
+    // replacement that works with both.
+    onDragStart: function( e ) {
+
+      e.preventDefault();
+      this.dragging = true;
+      this.dragStartY = e.touches ? e.touches[0].clientY : e.clientY;
+      this.dragStartHeight = document.querySelector('.n-drawer').getBoundingClientRect().height;
+      this.dragMinHeight = document.querySelector('.n-drawer-header').getBoundingClientRect().height;
+
+      window.addEventListener('touchmove', this.onDragMove, { passive: false });
+      window.addEventListener('touchend', this.onDragEnd);
+      window.addEventListener('mousemove', this.onDragMove);
+      window.addEventListener('mouseup', this.onDragEnd);
+
+    },
+
+    onDragMove: function( e ) {
+
+      if ( e.cancelable ) e.preventDefault();
+      const y = e.touches ? e.touches[0].clientY : e.clientY;
+      const delta = this.dragStartY - y;
+      const height = _.clamp( this.dragStartHeight + delta, this.dragMinHeight, window.innerHeight * 0.92 );
+      this.dragHeight = `${height}px`;
+
+    },
+
+    onDragEnd: function() {
+
+      this.dragging = false;
+      window.removeEventListener('touchmove', this.onDragMove);
+      window.removeEventListener('touchend', this.onDragEnd);
+      window.removeEventListener('mousemove', this.onDragMove);
+      window.removeEventListener('mouseup', this.onDragEnd);
+
+      if ( this.dragHeight ) this.$store.commit('stickyProp', { key: 'globalSettingsMobileHeight', value: this.dragHeight });
+      this.dragHeight = null;
+
+    },
+
     setDrawerPeek: function( hidden ) {
       if ( hidden === this.$store.state.globalSettingsDrawerHidden ) return;
       this.$store.commit('prop', { key: 'globalSettingsDrawerHidden', value: hidden });
@@ -976,9 +1040,43 @@ export default {
 .n-drawer-mask {
   position: fixed;
 }
+
+.no-drawer-transition .n-drawer {
+  transition: none !important;
+}
+
+.n-drawer-header__close {
+  &::after {
+    content: '';
+    position: absolute;
+    inset: -14px;
+  }
+}
 </style>
 
 <style lang="scss" scoped>
+
+// Mobile height drag: the entire header (minus the close button, which sits on top
+// and stops its own mousedown/touchstart from bubbling here) is the drag target.
+.drawer-header-draggable {
+  cursor: ns-resize;
+  touch-action: none;
+}
+
+.drawer-drag-handle {
+  display: flex;
+  justify-content: center;
+  padding: 2px 0 6px;
+}
+
+.drawer-drag-handle-bar {
+  width: 36px;
+  height: 4px;
+  border-radius: 999px;
+  @include themify($themes) {
+    background: rgba(themed(frontColor), .2);
+  }
+}
 
 // Drawer header: gear icon left of title + subtitle
 .drawer-header-inner {
