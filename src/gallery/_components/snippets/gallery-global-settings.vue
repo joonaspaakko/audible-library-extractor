@@ -655,9 +655,18 @@ export default {
     isMobile: function() {
       return this.$store.getters.mobileThreshold;
     },
-
+    
     mobileDrawerHeight: function() {
-      return this.dragHeight || this.$store.state.sticky.globalSettingsMobileHeight || '50%';
+    
+      const saved = this.dragHeight || this.$store.state.sticky.globalSettingsMobileHeight;
+      if ( !saved ) return '50%';
+      
+      // Restore previous height from local storage, only if it doesn't exceed curent screen height.
+      // Otherwise, use maxHeight to avoid the drawer being taller than the screen and leaving no way to close it.
+      const savedPx = parseFloat( saved );
+      const maxHeight = window.innerHeight * 0.9;
+      return _.min([ savedPx, maxHeight ]) + 'px';
+      
     },
 
     // Matches the book-details layout breakpoint (gallery-book-details.vue's own
