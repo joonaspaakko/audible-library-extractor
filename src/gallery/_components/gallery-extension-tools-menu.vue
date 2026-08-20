@@ -1,5 +1,5 @@
 <template>
-<div class="extension-mega-menu">
+<div class="extension-mega-menu" :style="{ top: ( position.top - megaMenuGap ) + 'px', left: position.left + 'px' }">
   <div class="mega-menu-inner">
 
     <!-- TOOLS -->
@@ -142,7 +142,7 @@ import IconFaSolidSliders   from '~icons/fa6-solid/sliders?raw';
 
 export default {
   name: 'galleryExtensionToolsMenu',
-  props: ['items'],
+  props: ['items', 'position'],
   emits: ['itemClick'],
   mixins: [ openWallpaperCreator ],
   components: { NConfigProvider, NModal },
@@ -152,6 +152,7 @@ export default {
       customLandingSet: false,
       wallpaperPromptOpen: false,
       IconFaSolidSliders,
+      megaMenuGap: 12,
       toolDescriptions: {
         'Upload gallery website': 'Publish online to browse on mobile or show off your library or wishlist to your friends.',
         'Spreadsheet export':   'Export to an Excel or CSV spreadsheet.',
@@ -277,26 +278,24 @@ export default {
 <style lang="scss" scoped>
 
 .extension-mega-menu {
-  position: absolute;
-  top: 100%;
-  right: 0;
+  position: fixed;
   z-index: 10;
-  min-width: 290px;
-  max-width: 450px;
-  padding: 6px 0;
-  @include themify($themes) {
-    background: themed(elementColor);
-    color: themed(frontColor);
-    box-shadow: 0 5px 15px rgba( themed(outerColor), .7 );
-    border: 1px solid rgba( themed(frontColor), .15 );
-  }
+  width: 340px;
+  padding-top: 12px;
+  transform: translateX(-50%);
 }
 
 .mega-menu-inner {
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding-bottom: 4px;
+  padding: 6px 0 4px;
+  @include themify($themes) {
+    background: themed(elementColor);
+    color: themed(frontColor);
+    box-shadow: 0 5px 15px rgba( themed(outerColor), .7 );
+    border: 1px solid rgba( themed(frontColor), .15 );
+  }
 }
 
 .mega-section {

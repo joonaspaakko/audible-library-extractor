@@ -9,6 +9,7 @@
       <fa6-solid-magnifying-glass class="glass" />
       <fa6-solid-arrow-up class="up-arrow" />
     </span>
+    <span class="search-btn-text" v-if="!float">Search</span>
   </div>
 </template>
 
@@ -40,6 +41,10 @@ export default {
     position: relative;
     display: inline-flex;
     line-height: 1;
+  }
+
+  .search-btn-text {
+    padding-left: 8px;
   }
 
   // Small upward arrow badge overlaid on the magnifying glass,

@@ -32,7 +32,7 @@ import openWallpaperCreator from '@output-mixins/gallery-open-wallpaper-creator.
 import { subpageMenuSourceAvailable, currentSubpageMenuSource } from '@output-mixins/gallery-subpage-menu-destinations.js';
 
 // ICON IMPORTS
-import IconFaSolidChevronDown   from '~icons/fa6-solid/chevron-down?raw';
+import IconIwwaArrowDown   from '~icons/iwwa/arrow-down?raw';
 import IconFaBrandsAudible      from '~icons/fa6-brands/audible?raw';
 import IconFaSolidGraduationCap from '~icons/fa6-solid/graduation-cap?raw';
 import IconFluentColorCloud     from '~icons/fluent-color/cloud-16?raw';
@@ -181,7 +181,7 @@ export default {
             name: key,
             meta: {
               groupName: routeGroup[0].meta.nestedGroup,
-              icon: IconFaSolidChevronDown,
+              icon: IconIwwaArrowDown,
             },
             tag: 'div',
             childItems: _.orderBy(routeGroup, 'meta.order', 'asc'),

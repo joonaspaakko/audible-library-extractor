@@ -30,6 +30,7 @@
       :content="typeof route.tippy === 'function' ? route.tippy() : route.tippy"
       @click="route.click ? route.click( route ) : null"
       @mousedown="$haptic(1)"
+      @mouseenter="route.meta.groupName === 'extension-tools' ? positionMegaMenu($event) : null"
     >
         
       <div class="menu-item-inner" @click="additionalClick(route)" @mousedown="$haptic(1)">
@@ -57,6 +58,7 @@
       <gallery-extension-tools-menu
         v-if="route.childItems && route.meta.groupName === 'extension-tools'"
         :items="route.childItems"
+        :position="megaMenuPosition"
         @itemClick="closeMenu"
       />
       <div class="sub-menu" v-else-if="route.childItems">
@@ -93,13 +95,9 @@
         ref="copyToClipboard"
         />
       </div>
-      <div>
-        <mdi-cog-outline
-          class="icon settings-icon"
-          @click="openSettings"
-          @mousedown="$haptic(1)"
-          v-tippy content="Settings"
-        />
+      <div class="settings-btn icon" @click="openSettings" @mousedown="$haptic(1)">
+        <mdi-cog-outline class="settings-icon" />
+        <span class="settings-btn-text" v-if="!mobileMenuOpen">Settings</span>
       </div>
       
     </div>
@@ -125,6 +123,7 @@ export default {
       menuOpen: true,
       copiedToClipboard: false,
       expandedSources: {},
+      megaMenuPosition: { top: 0, left: 0 },
     };
   },
 
@@ -167,6 +166,17 @@ export default {
     openSettings: function() {
       if ( this.mobileMenuOpen ) this.$emit('update:mobileMenuOpen', false);
       this.$store.commit('prop', { key: 'globalSettingsOpen', value: true });
+    },
+
+    // Anchors the extension tools mega menu under the top menu row (not the subpage
+    // bar below it), centered on the button that opens it.
+    positionMegaMenu( event ) {
+
+      const buttonRect = event.currentTarget.getBoundingClientRect();
+      const rowRect = this.$el.getBoundingClientRect();
+
+      this.megaMenuPosition = { top: rowRect.bottom, left: buttonRect.left + ( buttonRect.width / 2 ) };
+
     },
 
     getHrefAttr( route ) {
@@ -287,7 +297,28 @@ export default {
       background: color.adjust(themed(elementColor), $lightness: -3%);
     }
   }
-  
+
+}
+.menu-items:not(.mobileMenu) .menu-item:not(.extension-tools) {
+  margin: 0 3px;
+  @include themify($themes) {
+    background: themed(elementColor);
+  }
+  &.router-link-active {
+    @include themify($themes) {
+      background: color.adjust(themed(elementColor), $lightness: 4%);
+    }
+  }
+}
+
+.menu-items:not(.mobileMenu) .menu-item.extension-tools {
+  margin-left: 9px;
+}
+.menu-items:not(.mobileMenu) .menu-item.extension-tools + .menu-icon-toolbar {
+  margin-left: 9px;
+  &:before {
+    display: none;
+  }
 }
 
 .menu-item-inner {
@@ -372,44 +403,63 @@ export default {
 }
 
 .extension-tools {
-  margin-left: 10px;
-  padding: 6px 0;
+  display: flex;
+  align-items: center;
+  border-radius: 8px;
+  @include themify($themes) {
+    background: color.adjust(themed(elementColor), $lightness: -4%);
+    border: 1px solid rgba( themed(frontColor), .2);
+    box-shadow: 0 2px 6px rgba( themed(outerColor), .5);
+  }
 }
 
 .extension-tools > .menu-item-inner {
-  padding:  2px 9px;
-  border-radius: 99999px !important;
-  > span {
-    padding: 0 !important;
-    font-size: .85em;
-  }
+  padding: 4px 10px;
   @include themify($themes) {
-    border: 2px solid themed(audibleOrange);
-    background: rgba(themed(audibleOrange), .1);
     color: themed(front_color);
   }
 }
 
-// Hide the mega menu by default; show on hover/focus of the parent trigger
+.extension-tools .menu-item-icon {
+  width: 12px;
+  height: 12px;
+}
+
 .extension-tools :deep(.extension-mega-menu) {
   display: none;
 }
 .extension-tools:hover :deep(.extension-mega-menu),
 .extension-tools:focus :deep(.extension-mega-menu) {
   display: block;
+}
+.extension-tools:hover :deep(.mega-menu-inner),
+.extension-tools:focus :deep(.mega-menu-inner) {
   -webkit-animation: swing-in-top-fwd 300ms cubic-bezier(.175, .885, .32, 1.275) both;
           animation: swing-in-top-fwd 300ms cubic-bezier(.175, .885, .32, 1.275) both;
 }
 
 .menu-icon-toolbar {
+  position: relative;
   display: inline-flex;
   flex-direction: row;
   justify-content: center;
   align-items: center;
   margin: 5px 0;
   border-radius: 9999px;
-  margin-left: 10px;
+  margin-left: 18px;
   padding: 0 4px;
+
+  &:before {
+    content: '';
+    position: absolute;
+    top: 20%;
+    bottom: 20%;
+    left: -10px;
+    width: 1px;
+    @include themify($themes) {
+      background: rgba( themed(frontColor), .15);
+    }
+  }
   :deep(> div),
   :deep(> div > div),
   :deep(> div > div > div) {
@@ -421,17 +471,21 @@ export default {
     padding: 5px 8px;
     cursor: pointer;
   }
+  :deep(.settings-btn) {
+    display: inline-flex;
+    align-items: center;
+  }
   :deep(.settings-icon) {
     font-size: 1.2em !important;
+  }
+  :deep(.settings-btn-text) {
+    padding-left: 8px;
   }
   // &,
   // > div {
   //   padding: 2px 5px;
   //   cursor: pointer;
   // }
-  @include themify($themes) {
-    border: 1px solid rgba( themed(frontColor), .1);
-  }
 }
 
 
