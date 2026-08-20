@@ -35,12 +35,12 @@
         <div class="details-toolbar">
           <div
             class="audible-vs-local-links"
-            @click="detailLinksToAudible()"
+            @click="toggleDetailLinksExternal()"
             v-tippy
-            :content="sticky.detailLinksToAudible ? 'Links lead to Audible' : 'Links lead to my library'"
+            :content="sticky.detailLinksExternal ? 'Links lead to Audible' : 'Links lead to my library'"
           >
             <mingcute:link-fill/>
-            <span class="label">{{ sticky.detailLinksToAudible ? 'Audible' : 'Gallery' }} links</span>
+            <span class="label">{{ sticky.detailLinksExternal ? 'Audible' : 'Gallery' }} links</span>
           </div>
           <gallery-details-first-hider v-if="mobileWidth" />
           <gallery-sidebar-flipper @flip="flipPanels" />
@@ -671,8 +671,8 @@ export default {
 
     },
 
-    detailLinksToAudible() {
-      this.$store.commit('prop', { key: 'sticky.detailLinksToAudible', value: !this.sticky.detailLinksToAudible })
+    toggleDetailLinksExternal() {
+      this.$store.commit('prop', { key: 'sticky.detailLinksExternal', value: !this.sticky.detailLinksExternal })
     },
   }
 };

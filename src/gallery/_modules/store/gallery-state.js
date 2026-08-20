@@ -29,7 +29,7 @@ export default {
     bookDetailsCollapsedCover: false,
     bookDetailsCollapsedDetails: false,
     contextMenuReminder: true,
-    detailLinksToAudible: false,
+    detailLinksExternal: false,
     disableSearchAutocomplete: false,
     bookDetailSettings: {
       minHeight: null,
