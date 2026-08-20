@@ -5,7 +5,7 @@
     :key="destination.key"
     class="subpage-menu-accordion-item"
     :class="{ active: isActive( destination ) }"
-    :to="{ name: destination.indexName, query: { subPageSource: source } }"
+    :to="{ name: destination.indexName, query: destination.subPageBar ? {} : { subPageSource: source } }"
     @click="$emit('navigate')"
     @mousedown="$haptic(1)"
   >

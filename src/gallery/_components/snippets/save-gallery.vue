@@ -122,8 +122,8 @@ export default {
       files: [],
       dataSources: [
         { checked: true, disabled: false, key: 'Library' },
-        { checked: true, disabled: false, key: 'Collections', parent: 'Library', subPage: true },
-        { checked: true, disabled: false, key: 'Podcasts', parent: 'Library', subPage: true },
+        { checked: true, disabled: false, key: 'Collections', parent: 'Library', subPageBar: true },
+        { checked: true, disabled: false, key: 'Podcasts', parent: 'Library', subPageBar: true },
         { checked: true, disabled: false, key: 'Categories', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Authors', parent: ['Library', 'Wishlist'], subPage: true },
         { checked: true, disabled: false, key: 'Publishers', parent: ['Library', 'Wishlist'], subPage: true },
@@ -223,12 +223,12 @@ export default {
     groupedSources: function() {
       const pageOrder = ['Library', 'Wishlist'];
       const allPages = _.sortBy(
-        _.filter(this.dataSources, s => !s.subPage && !s.extra && !s.spacer && _.includes(pageOrder, s.key)),
+        _.filter(this.dataSources, s => !s.subPage && !s.subPageBar && !s.extra && !s.spacer && _.includes(pageOrder, s.key)),
         s => _.indexOf(pageOrder, s.key)
       );
       return {
         allPages,
-        subPages: _.filter(this.dataSources, { subPage: true }),
+        subPages: _.filter(this.dataSources, s => s.subPage || s.subPageBar),
         extras:   _.filter(this.dataSources, s => s.extra || s.key === 'My Reviews'),
       };
     },

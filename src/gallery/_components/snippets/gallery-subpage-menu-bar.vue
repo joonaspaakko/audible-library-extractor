@@ -7,7 +7,7 @@
       :key="destination.key"
       class="subpage-menu-tab"
       :class="{ active: isActive( destination ) }"
-      :to="{ name: destination.indexName, query: { subPageSource: source } }"
+      :to="{ name: destination.indexName, query: destination.subPageBar ? {} : { subPageSource: source } }"
       @mousedown="$haptic(1)"
     >
       <span class="subpage-menu-tab-icon" v-if="destination.icon" v-html="destination.icon"></span>

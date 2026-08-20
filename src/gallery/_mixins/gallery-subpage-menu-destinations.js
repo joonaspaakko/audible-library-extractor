@@ -25,6 +25,7 @@ export function getSubpageMenuDestinations( router, source ) {
       indexName : _.get( route, 'children[0].name' ),
       detailName: _.get( route, 'children[1].name' ),
       icon      : _.get( route, 'meta.icon' ),
+      subPageBar: !!_.get( route, 'children[0].meta.subPageBar' ),
     };
   });
 
