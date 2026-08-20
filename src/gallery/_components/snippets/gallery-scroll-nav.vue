@@ -34,6 +34,7 @@ export default {
       atStart: true,
       atEnd: true,
       resizeObserver: null,
+      activeObserver: null,
     };
   },
 
@@ -55,10 +56,17 @@ export default {
     this.resizeObserver.observe( this.$refs.track );
     this.resizeObserver.observe( this.$refs.items );
 
+    // The active item is set by the parent (eg. a different route becomes active) rather than
+    // by anything scroll-nav does itself, so watch the slot content for the 'active' class
+    // moving and re-sync scroll position instead of only doing it once on mount.
+    this.activeObserver = new MutationObserver( () => this.scrollActiveIntoView() );
+    this.activeObserver.observe( this.$refs.items, { attributes: true, attributeFilter: [ 'class' ], subtree: true, childList: true } );
+
   },
 
   beforeUnmount() {
     if ( this.resizeObserver ) this.resizeObserver.disconnect();
+    if ( this.activeObserver ) this.activeObserver.disconnect();
   },
 
   methods: {
@@ -74,13 +82,22 @@ export default {
       this.updateEdges();
     },
 
-    // The active item can land in the overflow on load (eg. the last sub page selected), where
-    // it's indistinguishable from nothing being selected at all. Jump it into view without an
-    // animation, since this establishes initial state rather than responding to a user action.
+    // The active item can land in the overflow (eg. the last sub page selected, or switching to
+    // a source whose active tab sits further along the list), where it's indistinguishable from
+    // nothing being selected at all. Jump it into view without an animation, since this tracks
+    // state rather than responding to a user scroll action. With no active item, reset to the
+    // start instead of leaving whatever position the browser settled on while the item list was
+    // being replaced (it can re-snap mid-transition when justify-content briefly switches to
+    // center for the no-overflow case).
     scrollActiveIntoView() {
       const track  = this.$refs.track;
       const active = this.$refs.items ? this.$refs.items.querySelector( '.active' ) : null;
-      if ( !track || !active ) return;
+      if ( !track ) return;
+
+      if ( !active ) {
+        track.scrollLeft = 0;
+        return;
+      }
 
       const max    = track.scrollWidth - track.clientWidth;
       const target = _.clamp( active.offsetLeft - ( track.clientWidth - active.offsetWidth ) / 2, 0, max );
