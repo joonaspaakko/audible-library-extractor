@@ -105,6 +105,11 @@ export default {
     
     this.updateListRenderingOptions();
     
+    // Tag links carry the clicked tag's name as a subtitle. Subpages (categories, series, etc.)
+    // handle their own title/subtitle, so this only applies on the plain library/wishlist view.
+    const onLibraryOrWishlist = this.$route.name === 'library' || this.$route.name === 'wishlist';
+    if ( onLibraryOrWishlist && this.$route.query.tagTitle ) this.$store.commit('prop', { key: 'pageSubTitle', value: this.$route.query.tagTitle });
+    
     // Setup for other pages that use the gallery page to show titles
     this.prepCategoriesSubPage();    
     this.prepCollectionsSubPage();    

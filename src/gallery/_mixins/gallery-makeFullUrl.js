@@ -84,6 +84,7 @@ export default {
               name: subPageSource, 
               query: { 
                 filterExtras: JSON.stringify([{ key: 'tags', value: [input.name] }]),
+                tagTitle: input.name,
                 refresh: true,
               } 
             };
