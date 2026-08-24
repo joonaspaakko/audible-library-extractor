@@ -445,6 +445,13 @@ export default {
       else if ( this.listName  === "scope"        ) queryObj = this.queryForScope();
 
       queryObj.book = null;
+      
+      // Changing the tags filter clears subtitle (that was given in special cases where a
+      // tag link was clicked in the categories page or book details).
+      if ( this.$route.query.tagTitle && this.item.key === 'tags' ) {
+        queryObj.tagTitle = null;
+        this.$store.commit('prop', { key: 'pageSubTitle', value: null });
+      }
       this.$store.commit('prop', { key: 'bookClicked', value: true });
       
       this.$updateQueries( queryObj, { src: 'saveOptions' });
