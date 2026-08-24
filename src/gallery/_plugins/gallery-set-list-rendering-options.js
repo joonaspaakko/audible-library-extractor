@@ -12,7 +12,7 @@ setListRenderingOpts.install = function (app, options) {
 
     if ( this.$route.query.sortValuesDisplayKey ) {
       const sortValuesIndex = _.findIndex( list.sort, { key: 'sortValues' });
-      list.sort[ sortValuesIndex ].displayKey = decodeURIComponent( this.$route.query.sortValuesDisplayKey );
+      list.sort[ sortValuesIndex ].displayKey = this.$route.query.sortValuesDisplayKey;
     }
 
     if ( this.$route.query.sort ) {
@@ -21,51 +21,41 @@ setListRenderingOpts.install = function (app, options) {
       const sortIndex = _.findIndex( list.sort, { key: this.$route.query.sort });
       if ( sortIndex > -1 ) {
         list.sort[ sortIndex ].current = true;
-        list.sort[ sortIndex ].active = this.$route.query.sortDir === 'desc' ? true : false;
+        list.sort[ sortIndex ].active = this.$route.query.sortDir === 'desc';
       }
     }
     
     if ( this.$route.query.filter ) {
       
-      let paramFilters = decodeURIComponent(this.$route.query.filter).split(',');
+      let paramFilters = this.$route.query.filter.split(',');
       
       _.each( _.filter(list.filter, { type: 'filter' }), function( filter ) {
         filter.active = false;
-        _.each( paramFilters, function( paramFilter ) {
-          if ( filter.key === paramFilter ) filter.active = true;
+        _.each( paramFilters, function( key ) {
+          if ( filter.key === key ) filter.active = true;
         });
       });
       
     }
     
     if ( this.$route.query.filterExtras ) {
-      
-      let paramFilterExtras = this.$route.query.filterExtras.split(',');
-      paramFilterExtras = _.map( paramFilterExtras, function( param ) { return decodeURIComponent(param); });
-      
-      _.each( paramFilterExtras, function( key ) {
-        
-        let splitColon = key.split(':');
-        let targetKey = splitColon[0];
-        let targetItem = _.find(list.filter, { type: 'filterExtras', key: targetKey });
-        
-        
-        
+
+      let paramFilterExtras;
+      try {
+        paramFilterExtras = JSON.parse( this.$route.query.filterExtras );
+      }
+      catch ( error ) {
+        paramFilterExtras = [];
+      }
+
+      _.each( paramFilterExtras, function( entry ) {
+
+        let targetItem = _.find(list.filter, { type: 'filterExtras', key: entry.key });
+
         if ( targetItem ) {
           targetItem.active = true;
-          if ( splitColon.length > 1 ) {
-            
-            if ( targetItem.dropdownOpts ) {
-              targetItem.value = splitColon[1].split('|');
-            }
-            else if ( targetItem.range ) {
-              let splitDash = splitColon[1].split('-');
-              let min = parseFloat( splitDash[0] );
-              let max = parseFloat( splitDash[1] );
-              targetItem.range = [min, max];
-            }
-            
-          }
+          if ( entry.range ) targetItem.range = entry.range;
+          else if ( entry.value ) targetItem.value = entry.value;
         }
         
       });
@@ -74,12 +64,12 @@ setListRenderingOpts.install = function (app, options) {
     
     if ( this.$route.query.scope ) {
       
-      let paramScope = decodeURIComponent(this.$route.query.scope).split(',');
+      let paramScope = this.$route.query.scope.split(',');
       
       _.each( list.scope, function( scope ) {
         scope.active = false;
-        _.each( paramScope, function( paramScope ) {
-          if ( scope.key === paramScope ) scope.active = true;
+        _.each( paramScope, function( key ) {
+          if ( scope.key === key ) scope.active = true;
         });
       });
       

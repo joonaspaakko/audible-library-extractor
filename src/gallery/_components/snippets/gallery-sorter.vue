@@ -436,66 +436,69 @@ export default {
 
     saveOptions: function( value, specialBoy ) {
 
-      let vue = this;
-      const sortKey = this.item.key;
-      const sortType = this.item.type;
-      const queryObj = {};
-      
-      if ( sortKey === "sortValues" ) {
-        queryObj[ sortKey ] = value;
-      }
-      else if ( sortType === "sort" ) { 
-        
-        queryObj[ sortType ] = sortKey;
-        queryObj.sortDir = value ? "desc" : "asc";
-        
-      }
-      else if ( this.listName === "filter" ) {
-        if ( sortType === 'filter') {
-          
-          queryObj[ sortType ] = encodeURIComponent(this.$store.getters.filterKeys);
-          
-        }
-        if ( sortType === 'filterExtras' ) {
-          
-          if ( this.$route.name === 'series' ) {
-            if ( sortKey.match(/inLibrary|notInLibrary/) ) {
-              this.$store.commit('prop', { key: 'sticky.seriesFilters.' + sortKey, value: value });
-            }
-          }
-          
-          let vue = this;
-          const filterExtrasKeys = vue.$store.getters.filterExtrasKeys;
-          const queryKeysArray = !filterExtrasKeys ? false : _.map( filterExtrasKeys.split(','), function( key ) {
-            const keyItem = _.find( vue.$store.state.listRenderingOpts.filter, { key: key });
-            let range = _.get(vue.range, 'value');
-            if ( !range ) range = _.get(keyItem, 'range');
-            if ( range && _.isArray(range) ) {
-              return encodeURIComponent( key + ':' + range[0] +'-'+ (range[1]||range[0]) );
-            }
-            else if ( _.get(keyItem, 'value.0') ) {
-              return encodeURIComponent(key + ':') + encodeURIComponent(_.map( keyItem.value, function( val ) { return val; }).join('|'));
-            }
-            else if ( key ) { 
-              return encodeURIComponent(key); 
-            }
-          });
-          
-          queryObj[ sortType ] = _.isArray(queryKeysArray) ? queryKeysArray.join(', ') : null;
-          
-        }
-      }
-      else if ( this.listName === "scope" ) {
-        
-        queryObj[ this.listName ] = encodeURIComponent(this.$store.getters.scopeKeys);
-        
-      }
-      
+      let queryObj = {};
+
+      if      ( this.item.key  === "sortValues"   ) queryObj = this.queryForSortValues( value );
+      else if ( this.item.type === "sort"         ) queryObj = this.queryForSort( value );
+      else if ( this.item.type === "filter"       ) queryObj = this.queryForFilter();
+      else if ( this.item.type === "filterExtras" ) queryObj = this.queryForFilterExtras( value );
+      else if ( this.listName  === "scope"        ) queryObj = this.queryForScope();
+
       queryObj.book = null;
       this.$store.commit('prop', { key: 'bookClicked', value: true });
       
       this.$updateQueries( queryObj, { src: 'saveOptions' });
-      
+
+    },
+
+    // "Show sort values" toggle: stored as its own query key, independent of the active sorter.
+    queryForSortValues: function( value ) {
+      return { sortValues: value };
+    },
+
+    queryForSort: function( value ) {
+      return {
+        sort: this.item.key,
+        sortDir: value ? "desc" : "asc",
+      };
+    },
+
+    // Plain filters (Not started / Started / Finished) are just a list of active keys.
+    // router.replace already encodes query values, so no manual encoding needed here.
+    queryForFilter: function() {
+      return { filter: this.$store.getters.filterKeys };
+    },
+
+    // Filter extras can carry a range or a multiselect value alongside the key, so they're
+    // serialized as JSON instead of the plain comma list plain filters use.
+    queryForFilterExtras: function( value ) {
+
+      // Series sub page persists inLibrary/notInLibrary across visits, on top of the URL.
+      if ( this.$route.name === 'series' && this.item.key.match(/inLibrary|notInLibrary/) ) {
+        this.$store.commit('prop', { key: 'sticky.seriesFilters.' + this.item.key, value: value });
+      }
+
+      // updateListRenderingOpts is committed to the store before saveOptions runs (see
+      // doTheThings), so every active key's range/value is already current here.
+      const filterExtrasKeys = this.$store.getters.filterExtrasKeys;
+      if ( !filterExtrasKeys ) return { filterExtras: null };
+
+      const activeExtras = _.map( filterExtrasKeys.split(','), ( key ) => this.serializeFilterExtra( key ) );
+      return { filterExtras: JSON.stringify( activeExtras ) };
+
+    },
+
+    // One active filterExtras key as { key, range } or { key, value }, whichever it uses.
+    serializeFilterExtra: function( key ) {
+      const keyItem = _.find( this.$store.state.listRenderingOpts.filter, { key: key });
+      if ( _.isArray( keyItem.range ) ) return { key: key, range: keyItem.range };
+      if ( _.get( keyItem, 'value.0' ) ) return { key: key, value: keyItem.value };
+      return { key: key };
+    },
+
+    // Active search scopes ('@title', '@authors', etc).
+    queryForScope: function() {
+      return { scope: this.$store.getters.scopeKeys };
     },
 
   },

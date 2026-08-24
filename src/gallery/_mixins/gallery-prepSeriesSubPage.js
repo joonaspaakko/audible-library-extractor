@@ -31,12 +31,18 @@ export default {
           
           const seriesFilters = this.$store.state.sticky.seriesFilters;
           
-          const routeFilters = (this.$route.query.filterExtras || '').split(',');
+          let routeFilters = [];
+          try {
+            routeFilters = JSON.parse( this.$route.query.filterExtras || '[]' );
+          }
+          catch ( error ) {
+            routeFilters = [];
+          }
           
           this.$store.commit('addListRenderingOpts', { 
             listName: 'filter', 
             option: {
-              active: _.includes( routeFilters, 'notInLibrary') || seriesFilters.notInLibrary,
+              active: !!_.find( routeFilters, { key: 'notInLibrary' }) || seriesFilters.notInLibrary,
               type: 'filterExtras',
               label: 'Not In Library',
               key: 'notInLibrary',
@@ -52,7 +58,7 @@ export default {
           this.$store.commit('addListRenderingOpts', { 
             listName: 'filter', 
             option: {
-              active: _.includes( routeFilters, 'inLibrary') || seriesFilters.inLibrary,
+              active: !!_.find( routeFilters, { key: 'inLibrary' }) || seriesFilters.inLibrary,
               type: 'filterExtras',
               label: 'In Library',
               key: 'inLibrary',

@@ -83,7 +83,7 @@ export default {
             newUrl = { 
               name: subPageSource, 
               query: { 
-                filterExtras: `tags:${input.name}`,
+                filterExtras: JSON.stringify([{ key: 'tags', value: [input.name] }]),
                 refresh: true,
               } 
             };

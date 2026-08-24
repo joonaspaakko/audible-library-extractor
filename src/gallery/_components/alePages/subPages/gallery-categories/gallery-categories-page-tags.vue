@@ -22,7 +22,7 @@
 						}, 
 						query: { 
 							subPageSource: subPageSource.name,
-							filterExtras: encodeURIComponent(`tags:${tag.name}`),
+							filterExtras: JSON.stringify([{ key: 'tags', value: [tag.name] }]),
 							tagTitle: tag.name,
 						}, 
 					}"
