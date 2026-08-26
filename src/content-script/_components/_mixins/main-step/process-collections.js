@@ -107,13 +107,22 @@ export default {
           
           // Create new collection object if it doesn't exist (no duplicates)
           if ( !collection ) {
+
+            // Reuse title/description from a previous extraction when we already have them,
+            // so a partial scan only fetches details for genuinely new collections.
+            const oldCollection = _.find( hotpotato.collections, { id: collectionId });
+
             collection = {
               id: collectionId,
               url: vue.collectionsUrl + '/' + collectionId, // Removed after title and description have been fetched
               books: [],
             };
+            if ( oldCollection && oldCollection.title ) collection.title = oldCollection.title;
+            if ( oldCollection && oldCollection.description ) collection.description = oldCollection.description;
+
             collections.push( collection );
             vue.$store.commit('update', { key: 'progress.max', add: 1 });
+
           }
           
           // Add book to the collection object
@@ -130,8 +139,20 @@ export default {
     fetchCollectionDetails: function( collections, waterfallback ) {
       
       const vue = this;
+
+      // Only fetch details for collections that don't already have them.
+      const needsDetails = _.filter( collections, function( collection ) { return !collection.title; });
+
+      if ( !needsDetails.length ) {
+        _.each( collections, function( collection ) { if ( collection.url ) delete collection.url; });
+        waterfallback( null, collections );
+        return;
+      }
+
+      vue.$store.commit('update', { key: 'progress.max', value: needsDetails.length });
+
       this.amapxios({
-        requests: collections,
+        requests: needsDetails,
         step: function(response, stepCallback, request) {
           
           const audible = $($.parseHTML(response.data)).find("div.adbl-main")[0];
@@ -152,8 +173,8 @@ export default {
           
         },
         flatten: true,
-        done: function(collections) {
-          
+        done: function() {
+
           _.each( collections, function( collection ) {
             if ( collection.url ) delete collection.url;
           });
