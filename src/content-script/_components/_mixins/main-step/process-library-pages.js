@@ -310,12 +310,16 @@ export default {
 
         if ( fullScan_ALL_partialScan_NEW ) book.isNewThisRound = true;
 
-        // Only a partial scan shows a live count. A full scan keeps the static "Scanning..."
-        // text, since every book counts as "new" there and the count would be meaningless.
+        // Partial scan: show a live "updating/adding" count instead of a static text.
         if ( vue.$store.state.storageHasData.library ) {
           if ( fullScan_ALL_partialScan_NEW ) bookCounts.new++;
           else bookCounts.old++;
           vue.$store.commit('update', { key: 'progress.text', value: vue.buildLibraryProgressText( bookCounts ) });
+        }
+        // Full scan: keeps the static "Scanning..." text, but the number of books found
+        // so far is still shown via the progress bar's step counter.
+        else {
+          vue.$store.commit('update', { key: 'progress.max', add: 1 });
         }
 
         books.push(book);
