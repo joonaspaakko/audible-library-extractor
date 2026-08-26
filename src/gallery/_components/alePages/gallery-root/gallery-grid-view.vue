@@ -261,9 +261,11 @@ export default {
     this.$compEmitter.on('afterWindowResize', this.onWindowResizeMeasure);
 
     this.$nextTick(function() {
-      this.measureGrid();
-      this.restoreScrollPosition();
-      this.syncOpenDetails( this.$route.query.book );
+      const vue = this;
+      vue.measureGrid( false, function() {
+        vue.restoreScrollPosition();
+        vue.syncOpenDetails( vue.$route.query.book );
+      });
       window.addEventListener('scroll', this.saveScrollPosition, { passive: true });
     });
   },
@@ -321,13 +323,10 @@ export default {
     // Measure columns + cell height from a real rendered cover (covers keep their
     // natural CSS size; the grid's max width is what changes), plus the container's
     // distance from the document top (scrollMargin for the window virtualizer).
-    measureGrid: function( skipSnapCoverSize ) {
+    measureGrid: function( skipSnapCoverSize, onMeasured ) {
 
       const wrapper = this.booksWrapper;
       if ( !wrapper ) return;
-
-      const wrapperWidth = wrapper.getBoundingClientRect().width;
-      const cell = wrapper.querySelector('.ale-book');
 
       // Covers-per-row / cover size slider bounds. Only depend on the parent, not a
       // rendered cover, so run unconditionally (a resize during zero results shouldn't
@@ -343,41 +342,61 @@ export default {
         { key: 'gridDefaultMaxWidth', value: Math.min( cssDefault, available ) },
         { key: 'gridAvailableWidth', value: available },
       ]);
-      if ( !skipSnapCoverSize ) this.$store.commit('snapCoverSize');
 
-      if ( cell ) {
-        const cellBox = cell.getBoundingClientRect();
-        // List cards stretch to fill the row, so their measured width is already the full
-        // share and dividing by it always yields one column. Derive the count from a
-        // minimum card width instead, so cards never get narrower than that before another
-        // column drops off.
-        if ( this.$store.state.sticky.gridDetailsMode === 'list' ) {
-          // How many cards fit at their minimum width is the ceiling for any width. The
-          // minimum grows with the cover size, so bigger covers fit fewer per row.
-          const listCover = this.$store.state.sticky.coverSize || LIST_COVER_DEFAULT;
-          const listCardMin = listCover + LIST_TEXT_MIN_WIDTH;
-          const fits = Math.floor( wrapperWidth / listCardMin ) || 1;
-          // An explicit count (the covers-per-row slider) wins, but never beyond what fits,
-          // so the row still drops columns as the viewport narrows. Without one, default to
-          // three per row, also capped to what fits so it drops on narrow viewports.
-          const listCols = this.$store.state.sticky.gridListCols || LIST_DEFAULT_COLS;
-          this.cols = Math.min( listCols, fits );
+      const finishMeasure = () => {
+
+        const wrapperWidth = wrapper.getBoundingClientRect().width;
+        const cell = wrapper.querySelector('.ale-book');
+
+        if ( cell ) {
+          const cellBox = cell.getBoundingClientRect();
+          // List cards stretch to fill the row, so their measured width is already the full
+          // share and dividing by it always yields one column. Derive the count from a
+          // minimum card width instead, so cards never get narrower than that before another
+          // column drops off.
+          if ( this.$store.state.sticky.gridDetailsMode === 'list' ) {
+            // How many cards fit at their minimum width is the ceiling for any width. The
+            // minimum grows with the cover size, so bigger covers fit fewer per row.
+            const listCover   = this.$store.state.sticky.coverSize || LIST_COVER_DEFAULT;
+            const listCardMin = listCover + LIST_TEXT_MIN_WIDTH;
+            const fits        = Math.floor( wrapperWidth / listCardMin ) || 1;
+            // An explicit count (the covers-per-row slider) wins, but never beyond what fits,
+            // so the row still drops columns as the viewport narrows. Without one, default to
+            // three per row, also capped to what fits so it drops on narrow viewports.
+            const listCols = this.$store.state.sticky.gridListCols || LIST_DEFAULT_COLS;
+            this.cols = Math.min( listCols, fits );
+          }
+          else {
+            this.cols = Math.floor( wrapperWidth / cellBox.width ) || 1;
+          }
+          this.cellHeight = cellBox.height;
+          // gridCols: book-details arrow nav steps by it. gridCoverWidth: the covers-per-row slider's step / unit.
+          this.$store.commit('prop', [
+            { key: 'gridCols', value: this.cols },
+            { key: 'gridCoverWidth', value: cellBox.width },
+          ]);
         }
-        else {
-          this.cols = Math.floor( wrapperWidth / cellBox.width ) || 1;
-        }
-        this.cellHeight = cellBox.height;
-        // gridCols: book-details arrow nav steps by it. gridCoverWidth: the
-        // covers-per-row slider's step / unit.
-        this.$store.commit('prop', [
-          { key: 'gridCols', value: this.cols },
-          { key: 'gridCoverWidth', value: cellBox.width },
-        ]);
+
+        this.scrollMargin = wrapper.getBoundingClientRect().top + window.scrollY;
+
+        this.virtualizer.measure();
+
+        if ( onMeasured ) onMeasured();
+
+      };
+
+      if ( skipSnapCoverSize ) {
+        finishMeasure();
+        return;
       }
-
-      this.scrollMargin = wrapper.getBoundingClientRect().top + window.scrollY;
-
-      this.virtualizer.measure();
+      
+      // This can shrink or grow the cover size a touch to keep it tidy. The covers take
+      // a moment to actually resize on screen, so if that happens, wait for them to
+      // finish resizing before measuring, otherwise we'd be measuring the old size.
+      const coverSizeBefore = this.$store.state.sticky.coverSize;
+      this.$store.commit('snapCoverSize');
+      if ( this.$store.state.sticky.coverSize !== coverSizeBefore ) this.$nextTick( finishMeasure );
+      else finishMeasure();
 
     },
 
