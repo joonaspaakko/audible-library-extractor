@@ -240,6 +240,33 @@ export default {
       return null;
     },
 
+    // Clears `isNew` off books whose "new" status has aged past `days`. `isNew` holds the
+    // unix ms timestamp of when the book first became new (see process-library-pages.js /
+    // process-wishlist.js). Takes flat book arrays (library/wishlist already flattened by
+    // the caller) so it works on both chunked storage and mid-extraction hotpotato data.
+    // Returns the number of books cleared.
+    stripExpiredNewBooks: function( books, days ) {
+
+      if ( !days ) return 0;
+
+      const now = new Date();
+      const stillFresh = { start: subDays( now, days ), end: now };
+      let cleared = 0;
+
+      _.each( books, ( book ) => {
+        if ( !book.isNew ) return;
+
+        const isFresh = isWithinInterval( book.isNew, stillFresh );
+        if ( !isFresh ) {
+          _.unset( book, 'isNew' );
+          cleared++;
+        }
+      });
+
+      return cleared;
+
+    },
+
     // It's vegan glue... Don't worry about it...
     glueFriesBackTogether: function( data ) {
     

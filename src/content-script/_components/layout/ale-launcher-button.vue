@@ -94,7 +94,11 @@
                   </template>
                   <template v-else-if="action.key === 'whatsNew'">
                     <span class="ale-launcher-action-label">{{ action.label }}</span>
-                    <span class="ale-launcher-version-pill">v{{ $store.state.appVersion }}</span>
+                    <span class="ale-launcher-action-pill">v{{ $store.state.appVersion }}</span>
+                  </template>
+                  <template v-else-if="action.count !== undefined">
+                    <span class="ale-launcher-action-label">{{ action.label }}</span>
+                    <span v-if="action.count" class="ale-launcher-action-pill">{{ action.count }}</span>
                   </template>
                   <span v-else class="ale-launcher-action-label">{{ action.label }}</span>
                 </button>
@@ -115,8 +119,8 @@
   <n-modal
     v-model:show="showResetConfirm"
     preset="dialog"
-    title="Reset new books"
-    content="Are you sure you want to clear new book status on all extracted books?"
+    :title="`Reset new ${resetTarget} books`"
+    :content="`Are you sure you want to clear new book status on all extracted ${resetTarget} books?`"
     positive-text="Reset"
     negative-text="Cancel"
     @positive-click="resetNewBooks"
@@ -178,6 +182,7 @@ export default {
       treeOpen: false,
       moreOpen: false,
       showResetConfirm: false,
+      resetTarget: 'library',
       showRemoveAllConfirm: false,
       showFullExtractConfirm: false,
       showWhatsNew: false,
@@ -249,7 +254,8 @@ export default {
 
       return [
         { label: 'Slow extraction', key: 'toggleSlowExtract', icon: IconSpeedSlow },
-        { label: 'Reset new books', key: 'resetNewBooks', disabled: !this.store.storageHasData.library, icon: IconRestore },
+        { label: 'Reset new library books', key: 'resetNewLibraryBooks', count: this.store.newBooksCountLibrary, disabled: !this.store.newBooksCountLibrary, icon: IconRestore },
+        { label: 'Reset new wishlist books', key: 'resetNewWishlistBooks', count: this.store.newBooksCountWishlist, disabled: !this.store.newBooksCountWishlist, icon: IconRestore },
         { label: 'Remove all extracted data', key: 'removeAllExtractedData', icon: IconTrash, divider: true },
         { label: 'Export raw data', key: 'exportRawData', disabled: !this.rawDataExport, icon: IconExport },
         { label: 'Import raw data', key: 'importRawData', icon: IconImport, divider: true },
@@ -487,10 +493,11 @@ export default {
       }
 
       // These open a confirmation/dialog modal instead of acting immediately.
-      if ( key === 'resetNewBooks' ) { this.showResetConfirm = true; return; }
-      if ( key === 'removeAllExtractedData' ) { this.showRemoveAllConfirm = true; return; }
-      if ( key === 'fullExtraction' ) { this.showFullExtractConfirm = true; return; }
-      if ( key === 'whatsNew' ) { this.showWhatsNew = true; return; }
+      if ( key === 'resetNewLibraryBooks'   ) { this.resetTarget            = 'library';  this.showResetConfirm = true; return; }
+      if ( key === 'resetNewWishlistBooks'  ) { this.resetTarget            = 'wishlist'; this.showResetConfirm = true; return; }
+      if ( key === 'removeAllExtractedData' ) { this.showRemoveAllConfirm   = true;                                     return; }
+      if ( key === 'fullExtraction'         ) { this.showFullExtractConfirm = true;                                     return; }
+      if ( key === 'whatsNew'               ) { this.showWhatsNew           = true;                                     return; }
 
       this[ key ]();
 
@@ -530,6 +537,9 @@ export default {
 
     resetNewBooks: function() {
 
+      const target = this.resetTarget;
+      const storeKey = target === 'library' ? 'newBooksCountLibrary' : 'newBooksCountWishlist';
+
       let errorNotification = function() {
         message.error('Failed to remove "new" status from books');
       };
@@ -538,18 +548,14 @@ export default {
 
         const audibledata = data.audibledata || {};
 
-        const stripIsNew = ( chunks ) => {
-          _.each( _.flatten( chunks ), ( book ) => {
-            _.unset( book, 'isNew' );
-          });
-        };
-
-        stripIsNew( audibledata.library );
-        stripIsNew( audibledata.wishlist );
+        _.each( _.flatten( audibledata[ target ] ), ( book ) => {
+          _.unset( book, 'isNew' );
+        });
 
         chrome.storage.local.set({ audibledata }).then(() => {
 
-          message.success('All "new" books successfully reset');
+          this.$store.commit('update', { key: storeKey, value: 0 });
+          message.success(`All "new" ${target} books successfully reset`);
 
         }).catch( errorNotification );
 
@@ -898,7 +904,7 @@ export default {
   background: #e1e1e1;
 }
 
-.ale-launcher-version-pill {
+.ale-launcher-action-pill {
   flex-shrink: 0;
   padding: 2px 7px;
   border-radius: 999px;

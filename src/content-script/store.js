@@ -38,6 +38,8 @@ export default createStore({
     },
     storageConfig: {},
     dataVersion: null,
+    newBooksCountLibrary: 0,
+    newBooksCountWishlist: 0,
     extractBtnDisabled: false,
     extractionButtonDisabled: false,
     axiosRateLimit: {

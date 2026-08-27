@@ -305,7 +305,8 @@ export default {
         if ( vue.$store.state.storageHasData.library ) {
           let newAddition = !bookInMemory;
           let newFromStorage = bookInMemory && bookInMemory.isNew;
-          if ( newAddition || newFromStorage ) book.isNew = true;
+          if ( newAddition ) book.isNew = hotpotato.extractionStartedAt;
+          else if ( newFromStorage ) book.isNew = newFromStorage;
         }
 
         if ( fullScan_ALL_partialScan_NEW ) book.isNewThisRound = true;
