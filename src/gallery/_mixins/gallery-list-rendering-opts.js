@@ -245,6 +245,36 @@ export default {
           },
           {
             type: 'divider',
+            key: 'divider1.2.1',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Not a pre-order',
+            key: 'not-preorder',
+            group: 'filterExtras',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
+            condition: function(book) {
+              return !(book.isPreorder || book.preorder);
+            }
+          },
+          {
+            active: false,
+            type: 'filterExtras',
+            label: 'Pre-order',
+            key: 'preorder',
+            group: 'filterExtras',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
+            condition: function(book) {
+              return !!(book.isPreorder || book.preorder);
+            }
+          },
+          {
+            type: 'divider',
             key: 'divider1.3.1',
             excludeFromWishlist: true,
             excludeFromPodcasts: true,
@@ -1463,6 +1493,15 @@ export default {
             key: 'unavailable',
             label: 'Plus catalog: Unavailable',
             type: 'sort',
+          },
+          {
+            active: false,
+            current: false,
+            key: 'isPreorder',
+            label: 'Pre-order',
+            type: 'sort',
+            excludeFromWishlist: true,
+            excludeFromPodcasts: true,
           },
           {
             active: false,

@@ -43,6 +43,11 @@
               <fa6-solid-headphones-simple/>
               whispersync
             </div>
+
+            <div class="info-tag preorder" v-if="isPreorder" v-tippy="{ maxWidth: 300 }" :content="preorderReleaseDate ? ('Pre-ordered. Releases ' + preorderReleaseDate) : 'Pre-ordered'">
+              <fa6-solid-clock/>
+              preorder
+            </div>
           </div>
           
           <div class="release-date" v-if="book.releaseDate" v-tippy content="YYYY-MM-DD">
@@ -131,6 +136,12 @@ export default {
   computed: {
     summaryHTML: function() {
       return this.book.summary || this.bookSummary || this.book.blurb;
+    },
+    isPreorder: function() {
+      return !!(this.book.isPreorder || (this.book.notInLibrary && this.book.preorder));
+    },
+    preorderReleaseDate: function() {
+      return this.book.releaseDate || _.get(this.book, 'preorder.releaseDate');
     },
     showReadMore: function() {
       const summary = this.summary;
@@ -396,6 +407,10 @@ export default {
       &.owned {
         background: #61bd34;
       }
+    }
+
+    &.preorder {
+      background: #8e44ec;
     }
   }
   

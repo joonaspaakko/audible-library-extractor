@@ -400,6 +400,7 @@ import IconWhispersync  from '~icons/fa6-solid/rotate';
 import IconPlus         from '~icons/fa6-solid/plus';
 import IconHeart        from '~icons/fa6-solid/heart';
 import IconCheck        from '~icons/fa6-solid/check';
+import IconClock        from '~icons/fa6-solid/clock';
 import IconShortTitle   from '~icons/fa6-solid/heading';
 import IconCover        from '~icons/fa6-solid/image';
 import IconToolbar      from '~icons/fa6-solid/icons';
@@ -529,6 +530,14 @@ export default {
           value: sticky.bookDetailSettings.finished,
           event: function( e ) {
             vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.finished', value: e.target.checked });
+          },
+        },
+        {
+          enabled: true, type: 'checkbox', label: 'Show pre-order indicator', icon: IconClock,
+          info: `<strong>The PURPLE dot</strong> shows on covers for books you have pre-ordered, on the series sub page.`,
+          value: sticky.bookDetailSettings.preorder,
+          event: function( e ) {
+            vue.$store.commit('prop', { key: 'sticky.bookDetailSettings.preorder', value: e.target.checked });
           },
         },
       ],

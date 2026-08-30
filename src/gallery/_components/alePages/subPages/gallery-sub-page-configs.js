@@ -1116,7 +1116,16 @@ export const seriesConfig = {
           currentObj.allBooksMinusDupes = librarySeries.allBooksMinusDupes;
           currentObj.myMaxBookNumber = getMaxBookNumber( ownedBooks );
           currentObj.maxBookNumber = getMaxBookNumber( librarySeries.allBooksMinusDupes );
-          currentObj.missingLatest = currentObj.myMaxBookNumber < currentObj.maxBookNumber;
+
+          // A "missing" latest book that's already pre-ordered isn't really missing: it's on its way.
+          const missingBooks = _.filter( librarySeries.allBooksMinusDupes, ( b ) => {
+            return getMaxBookNumber( [ b ] ) === currentObj.maxBookNumber && !_.includes( librarySeries.books, b.asin );
+          } );
+          const missingBooksAllPreordered = missingBooks.length > 0 && _.every( missingBooks, ( b ) => {
+            return !!_.find( vue.$store.state.audibledata.preorders, { asin: b.asin } );
+          } );
+
+          currentObj.missingLatest = currentObj.myMaxBookNumber < currentObj.maxBookNumber && !missingBooksAllPreordered;
         }
 
         currentObj.books.push( book.title || book.shortTitle );

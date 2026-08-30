@@ -52,6 +52,12 @@
             <span v-if="book.whispersync !== 'owned'">Available in kindle</span>
             <span v-else>In your kindle</span> -->
           </div>
+
+          <!-- PRE-ORDERED -->
+          <div class="preorder-marker" v-if="(book.isPreorder || book.preorder) && sticky.bookDetailSettings.preorder">
+            <span><fa6-solid-clock/></span>
+            <span>preorder</span>
+          </div>
         </div>
       
         <div class="ale-info-indicator" :class="{ 'not-in-library': book.notInLibrary, 'open-details-icon': !book.notInLibrary }">
@@ -267,6 +273,9 @@ export default {
     .kindle-marker {
       background: #106be6;
       // svg { font-size: 16px; }
+    }
+    .preorder-marker {
+      background: #8e44ec;
     }
   }
   &:hover .info-icons-wrapper {

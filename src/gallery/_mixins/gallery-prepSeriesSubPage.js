@@ -126,6 +126,9 @@ export default {
               
               if ( !notInLib_book.asin ) notInLib_book.asin = series.asin + '-' + fakeAdded_counter + '-temp-asin';
               
+              const preorder = _.find( this.$store.state.audibledata.preorders, { asin: notInLib_book.asin });
+              if ( preorder ) notInLib_book.preorder = preorder;
+
               return notInLib_book;
             }
             // IN library

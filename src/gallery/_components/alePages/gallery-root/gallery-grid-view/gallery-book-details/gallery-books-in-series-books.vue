@@ -35,6 +35,7 @@
 import IconCircleMinus      from '~icons/fa6-solid/circle-minus?raw';
 import IconCirclePlus       from '~icons/fa6-solid/circle-plus?raw';
 import IconHandHoldingHeart from '~icons/fa6-solid/hand-holding-heart?raw';
+import IconClock            from '~icons/fa6-solid/clock?raw';
 import IconBan              from '~icons/fa6-solid/ban?raw';
 import IconBoxArchive       from '~icons/fa6-solid/box-archive?raw';
 import IconBook             from '~icons/fa6-solid/book?raw';
@@ -81,6 +82,14 @@ export default {
       return book.notInLibrary && !_.get(book, 'obj.cover') && !book.cover;
     },
 
+    isPreorder: function(book) {
+      return !!(book.preorder || _.get(book, 'obj.isPreorder'));
+    },
+
+    preorderReleaseDate: function(book) {
+      return _.get(book, 'obj.releaseDate') || _.get(book, 'preorder.releaseDate');
+    },
+
     numbersClass: function(book) {
       var progress = _.get(book, 'obj.progress');
       return {
@@ -91,6 +100,7 @@ export default {
         'not-in-library': book.notInLibrary,
         'not-available': this.isUnavailable(book),
         'in-wishlist': book.inWishlist,
+        preorder: this.isPreorder(book),
       };
     },
 
@@ -103,6 +113,10 @@ export default {
       }
       else if (book.inWishlist) {
         return 'In wishlist';
+      }
+      else if ( this.isPreorder(book) ) {
+        const releaseDate = this.preorderReleaseDate(book);
+        return releaseDate ? ( 'Pre-ordered. Releases ' + releaseDate ) : 'Pre-ordered';
       }
       else if ( this.isUnavailable(book) ) {
         return 'Not in your library and not purchasable on Audible...';
@@ -133,6 +147,9 @@ export default {
       }
       else if ( book.inWishlist ) {
         return IconHandHoldingHeart;
+      }
+      else if ( this.isPreorder(book) ) {
+        return IconClock;
       }
       else if ( this.isUnavailable(book) ) {
         return IconTriangleExclamation;

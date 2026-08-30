@@ -133,10 +133,14 @@ export default {
               length: allBooksInSeries.length,
               books: _.map( booksSource , function( book ) {
                 let asin = book.asin || book;
-                let inLibrary = _.includes( allBooksInSeries.books, asin );
+                // series.books can include a pre-order's asin from the series page scrape even
+                // when that book hasn't been through purchase-history extraction yet, so it's not
+                // actually in the library. libBook is the real source of truth for ownership.
+                let libBook = _.includes( allBooksInSeries.books, asin ) ? _.find(vue.$store.state.audibledata.library, { asin: asin }) : null;
+                let inLibrary = !!libBook;
                 const wishlistBook = _.find(vue.$store.state.audibledata.wishlist, { asin: asin });
+                const preorder = _.find(vue.$store.state.audibledata.preorders, { asin: asin });
                 if ( inLibrary ) {
-                  let libBook = _.find(vue.$store.state.audibledata.library, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
                   let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(', ') : libSeries.bookNumbers) : book.bookNumbers;
                   let newLibBook = {
@@ -159,11 +163,23 @@ export default {
                     notInLibrary: true,
                   }
                 }
+                else if (preorder) {
+                  return {
+                    asin,
+                    title: book.title,
+                    titleShort: book.titleShort,
+                    obj: { authors: vue.book.authors, notInLibrary: true },
+                    bookNumbers: book.bookNumbers,
+                    preorder: preorder,
+                    notInLibrary: true,
+                  }
+                }
                 else {
                   book.notInLibrary = true;
                   book.obj = {
                     authors: vue.book.authors,
                     notInLibrary: true,
+                    isPreorder: book.isPreorder,
                   };
                   return book;
                 }
@@ -291,6 +307,11 @@ export default {
     &.not-in-library {
       .icon { color: #e75551; }
       .title { text-decoration: none; }
+      .numbers { opacity: 0.5; }
+    }
+    &.preorder {
+      .icon { color: #8e44ec; }
+      .title { text-decoration: none; opacity: 1; }
       .numbers { opacity: 0.5; }
     }
 
