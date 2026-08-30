@@ -1,15 +1,15 @@
 <template>
-  <div class="color-picker-placeholder" :class="{ 'color-picker-placeholder--labeled': label }">
+  <div
+    class="color-picker-placeholder"
+    :class="{ 'color-picker-placeholder--labeled': label }"
+    :style="{ '--color-picker-size': size + 'px' }"
+  >
     <n-color-picker
       ref="picker"
       size="small"
       :default-value="value"
       :swatches="store.colorPicker_swatches"
       @update:value="colorChanged"
-      :style="{
-        width: size + 'px',
-        height: size + 'px',
-      }"
     />
     <span v-if="label" class="color-picker-label" @click="openPicker">{{ label }}</span>
   </div>
@@ -101,8 +101,8 @@ export default {
     border: 1px solid #fff !important;
     flex-shrink: 0;
     aspect-ratio: 1;
-    width: 15px;
-    height: 15px;
+    width: var(--color-picker-size, 15px);
+    height: var(--color-picker-size, 15px);
   }
 
   .n-color-picker__value { display: none; }

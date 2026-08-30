@@ -146,7 +146,13 @@
               .cover .cover-star-icons svg {
                 font-size: {{ coverIconSize }}px !important;
                 line-height: {{ coverIconSize }}px !important;
-                filter: drop-shadow( 1px 0 white ) drop-shadow( -1px 0 white ) drop-shadow( 0 1px white ) drop-shadow( 0 -1px white );
+                overflow: visible !important;
+              }
+              .cover .cover-star-icons svg path {
+                paint-order: stroke fill;
+                stroke: white;
+                stroke-width: 2px;
+                stroke-linejoin: round;
               }
               .cover .cover-star-icons {
                 bottom: {{ coverStarIconsOffset }}px !important;

@@ -77,39 +77,26 @@ export default {
 				// el.parentElement.addEventListener('wheel', _.throttle(this.panzoom.zoomWithWheel, 70, { 'leading': true, 'trailing': true }));
 				// el.parentElement.addEventListener('wheel', this.panzoom.zoomWithWheel);
 				
-				// ZOOM TO CURSOR: normalizes mouse/trackpad delta and adjusts pan so the
-				// canvas point under the cursor stays fixed after the scale change
-				el.parentElement.addEventListener('wheel', (e) => {
-				
+				// Trackpads and smooth-scrolling mice fire wheel events faster than the
+				// screen repaints, so deltas are accumulated here and turned into a single
+				// zoom step per frame by applyWheelZoom.
+				this.wheelDelta = 0;
+				this.wheelCursor = { x: 0, y: 0 };
+				this.wheelBound = (e) => {
+
 					e.preventDefault();
 					this.cancelMomentum();
 
-					const currentScale = this.panzoom.getScale();
-					const { x: panX, y: panY } = this.panzoom.getPan();
+					// DeltaMode 1 = line mode (mouse wheel), normalized to pixel magnitude
+					this.wheelDelta += e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY;
+					this.wheelCursor.x = e.clientX;
+					this.wheelCursor.y = e.clientY;
 
-					// DeltaMode 1 = line mode (mouse wheel) — normalize to pixel magnitude
-					const delta    = e.deltaMode === 1 ? e.deltaY * 30 : e.deltaY;
-					const newScale = currentScale * Math.pow(0.999, delta);
+					if ( !this.wheelRAF ) this.wheelRAF = requestAnimationFrame( this.applyWheelZoom );
 
-					// Cursor must be relative to the container since pan values are container-relative
-					const rect    = el.parentElement.getBoundingClientRect();
-					const cursorX = e.clientX - rect.left;
-					const cursorY = e.clientY - rect.top;
+				};
+				el.parentElement.addEventListener('wheel', this.wheelBound, { passive: false });
 
-					this.panzoom.zoom(newScale);
-					// Read back actual scale in case panzoom clamped it at min/max
-					const actualScale = this.panzoom.getScale();
-
-					// Keep the canvas point under the cursor fixed: newPan = cursor * (1/newScale - 1/oldScale) + oldPan
-					this.panzoom.pan(
-						cursorX * (1/actualScale - 1/currentScale) + panX,
-						cursorY * (1/actualScale - 1/currentScale) + panY
-					);
-
-					this.clampPanToBounds();
-					
-				}, { passive: false });
-				
 				this.trackVelocityBound = (e) => this.trackVelocity(e);
 				el.parentElement.addEventListener('pointermove', this.trackVelocityBound);
 				el.addEventListener('panzoomstart', this.panzoomStarted);
@@ -141,8 +128,13 @@ export default {
 
 		this.cancelMomentum();
 
+		if ( this.wheelRAF )      cancelAnimationFrame( this.wheelRAF );
+		if ( this.zoomCommitRAF ) cancelAnimationFrame( this.zoomCommitRAF );
+		if ( this.handlesRAF )    cancelAnimationFrame( this.handlesRAF );
+
 		const el = document.getElementById('editor-canvas-content');
 		if ( el ) el.parentElement.removeEventListener('pointermove', this.trackVelocityBound);
+		if ( el ) el.parentElement.removeEventListener('wheel', this.wheelBound);
 		if ( el ) {
 			el.removeEventListener('panzoompan',  this.panzoomMoved);
 			el.removeEventListener('panzoomzoom', this.panzoomMoved);
@@ -170,14 +162,64 @@ export default {
 			
 		},
 		
+		/** Applies the wheel deltas collected since the last frame as one zoom step. */
+		applyWheelZoom() {
+
+			this.wheelRAF = null;
+
+			const el = document.getElementById('editor-canvas-content');
+			const delta = this.wheelDelta;
+			this.wheelDelta = 0;
+
+			const currentScale = this.panzoom.getScale();
+			const { x: panX, y: panY } = this.panzoom.getPan();
+			const newScale = currentScale * Math.pow(0.999, delta);
+
+			// Cursor must be relative to the container since pan values are container-relative
+			const rect    = el.parentElement.getBoundingClientRect();
+			const cursorX = this.wheelCursor.x - rect.left;
+			const cursorY = this.wheelCursor.y - rect.top;
+
+			this.panzoom.zoom(newScale);
+			// Read back actual scale in case panzoom clamped it at min/max
+			const actualScale = this.panzoom.getScale();
+
+			// Keep the canvas point under the cursor fixed: newPan = cursor * (1/newScale - 1/oldScale) + oldPan
+			this.panzoom.pan(
+				cursorX * (1/actualScale - 1/currentScale) + panX,
+				cursorY * (1/actualScale - 1/currentScale) + panY
+			);
+
+			this.clampPanToBounds();
+
+		},
+
 		zooming( e ) {
-			
-			this.$store.commit('update', { key: 'canvas.zoom', value: e.detail.scale });
+
+			// Panzoom queues its transforms through requestAnimationFrame, so this can fire
+			// several times per frame. Committing each one re-renders the zoom UI more often
+			// than it can paint, so only the last scale of the frame is committed.
+			this.pendingZoom = e.detail.scale;
+			if ( this.zoomCommitRAF ) return;
+
+			this.zoomCommitRAF = requestAnimationFrame(() => {
+				this.zoomCommitRAF = null;
+				this.$store.commit('update', { key: 'canvas.zoom', value: this.pendingZoom });
+			});
 
 		},
 
 		panzoomMoved() {
-			this.$emitter.emit('update-moveable-handles');
+
+			// Fires on both pan and zoom, and each handle update re-measures every snap
+			// guideline, so it is coalesced to one update per frame.
+			if ( this.handlesRAF ) return;
+
+			this.handlesRAF = requestAnimationFrame(() => {
+				this.handlesRAF = null;
+				this.$emitter.emit('update-moveable-handles');
+			});
+
 		},
 
 		/** @param {[number, number]} value - [x, y] relative amounts in pan-space units */

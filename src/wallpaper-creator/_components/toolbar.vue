@@ -17,25 +17,8 @@
     
     <div class="zoom-container" v-show="!store.saving">
       
-      <input
-        class="zoom-zoom"
-        type="range"
-        min="0.1"
-        max="3"
-        :value="store.canvas.zoom"
-        @input="$emitter.emit('canvas-zoom', $event.target.value)"
-        step=".01"
-        @dblclick="$emitter.emit('canvas-reset-zoom')"
-      />
-      <div
-        v-tippy content="Click to reset to 100% zoom"
-        class="zoom-text"
-        :class="{ highlight: store.canvas.zoom != 1 }"
-        @click="$emitter.emit('canvas-reset-zoom')"
-      >
-        {{ zoomPercentage }}%
-      </div>
-      
+      <zoom-slider />
+
       <div class="center-canvas" @click="$emitter.emit('canvas-center')" v-tippy content="Center canvas to the viewport">
         <mdi-target/>
       </div>
@@ -772,6 +755,7 @@ import fillCanvasWithCovers from "../_mixins/fillCanvasWithCovers.js";
 import ToolbarTextElements from "@editor-comps/toolbar/toolbar-text-elements.vue";
 import spacer from "@editor-comps/toolbar/spacer.vue";
 import ExportSettingsPanel from "@editor-comps/toolbar/export-settings-panel.vue";
+import ZoomSlider from "@editor-comps/toolbar/zoom-slider.vue";
 // import _ from "lodash";
 
 import Multiselect from '@vueform/multiselect/dist/multiselect.vue2.js';
@@ -782,6 +766,7 @@ export default {
     ToolbarTextElements,
     spacer,
     ExportSettingsPanel,
+    ZoomSlider,
     Multiselect,
     NConfigProvider,
     NButton,
@@ -916,10 +901,6 @@ export default {
       },
     },
     
-    zoomPercentage: function () {
-      var zoom = this.store.canvas.zoom == 0 ? 1 : this.store.canvas.zoom;
-      return Math.floor(zoom * 100);
-    },
     qualityPercentage: function () {
       let quality = parseFloat(this.store.compressQuality);
       return Math.floor(quality * 100);
@@ -1409,34 +1390,6 @@ $toolbar-text: #8eabc5;
   justify-self: center;
   align-items: center;
   align-content: center;
-  .zoom-text {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 30px;
-    height: 30px;  
-    transform: rotate(-90deg);
-    transform-origin: center center;
-    -webkit-touch-callout: none; 
-    -webkit-user-select: none; 
-    -khtml-user-select: none; 
-    -moz-user-select: none; 
-    -ms-user-select: none; 
-    user-select: none; 
-    cursor: pointer;
-    position: relative;
-    font-size: 11px !important;
-    &.highlight {
-      color: #ffc02b !important;
-      opacity: 1;
-    }
-  }
-  .zoom-zoom {
-    position: relative;
-    width: 120px;
-    transform: rotate(180deg);
-    transform-origin: center center;
-  }
   .zoom-to-fit, .center-canvas, .zoom-to-fit-width, .collapse-toolbar {
     display: inline-flex;
     justify-content: center;
