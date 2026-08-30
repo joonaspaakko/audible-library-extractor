@@ -175,13 +175,23 @@ export default {
   height: 118px !important;
   box-shadow: 0 0 5px rgba(#000, .5);
 }
-.unused-covers-list .cover .cover-heart-icon {
-  top: 5px !important;
-  right: 5px !important;
+.unused-covers-list .cover .cover-heart-icon,
+.unused-covers-list .cover .cover-reread-icon {
+  width: 16.5px !important;
+  height: 16.5px !important;
+  right: 8.3px !important;
 }
-.unused-covers-list .cover .cover-heart-icon svg {
-  font-size: 19px !important;
-  line-height: 19px !important;
+.unused-covers-list .cover .cover-heart-icon {
+  top: 8.3px !important;
+}
+.unused-covers-list .cover .cover-reread-icon {
+  top: 26.8px !important;
+}
+.unused-covers-list .cover .cover-heart-icon svg,
+.unused-covers-list .cover .cover-reread-icon svg,
+.unused-covers-list .cover .cover-reread-icon span {
+  font-size: 9.1px !important;
+  line-height: 9.1px !important;
 }
 .unused-covers-list .cover .cover-star-icons {
   height: 15px !important;

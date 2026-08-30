@@ -7,7 +7,7 @@
   >
     <!-- MARK/UNMARK RELISTEN -->
     <button :class="['cover-context-menu-item', store.coverActions.book.reread ? 'reread-unmark' : 'reread-mark']" @click="toggleRelisten">
-      <ph-repeat-bold />
+      <span class="relisten-r">R</span>
       {{ store.coverActions.book.reread ? 'Remove relisten' : 'Mark relisten' }}
     </button>
     
@@ -107,28 +107,33 @@ export default {
   text-align: left;
   cursor: pointer;
 
-  svg {
+  svg, .relisten-r {
     flex-shrink: 0;
     font-size: 15px;
     opacity: .7;
     transition: color 120ms ease, opacity 120ms ease;
   }
 
+  .relisten-r {
+    width: 15px;
+    text-align: center;
+  }
+
   &:hover {
     background: rgba( 255, 255, 255, .07 );
-    svg { opacity: 1; }
+    svg, .relisten-r { opacity: 1; }
   }
 
   // UN-MARK RELISTEN: purple
   &.reread-unmark:hover {
     background: rgba( 200, 100, 255, .14 );
-    svg { color: #c864ff; }
+    svg, .relisten-r { color: #c864ff; }
   }
 
   // MARK RELISTEN: blue
   &.reread-mark:hover {
     background: rgba( 100, 210, 255, .12 );
-    svg { color: #64d2ff; }
+    svg, .relisten-r { color: #64d2ff; }
   }
 
   // RESET RELISTENS: orange

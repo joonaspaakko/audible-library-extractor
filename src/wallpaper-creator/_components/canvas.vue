@@ -126,16 +126,27 @@
                 width:  {{ clampedCoverSize }}px !important;
                 height: {{ clampedCoverSize }}px !important;
               }
-              .cover .cover-heart-icon {
-                height: {{ coverIconSize }}px !important;
-                top: {{ coverIconSize/2 }}px !important;
-                right: {{coverIconSize/2 }}px !important;
+              .cover .cover-heart-icon,
+              .cover .cover-reread-icon {
+                width: {{ coverDotSize }}px !important;
+                height: {{ coverDotSize }}px !important;
+                right: {{ coverDotSize/2 }}px !important;
               }
               .cover .cover-heart-icon svg,
+              .cover .cover-reread-icon svg,
+              .cover .cover-reread-icon span {
+                font-size: {{ coverDotSize*.55 }}px !important;
+              }
+              .cover .cover-heart-icon {
+                top: {{ coverDotSize/2 }}px !important;
+              }
+              .cover .cover-reread-icon {
+                top: {{ (coverDotSize/2) + coverDotSize + (coverDotSize*.12) }}px !important;
+              }
               .cover .cover-star-icons svg {
                 font-size: {{ coverIconSize }}px !important;
                 line-height: {{ coverIconSize }}px !important;
-                {{ showStarShadow ? 'filter: drop-shadow( 0 1px 3px rgba(0,0,0, .8) );' : '' }}
+                filter: drop-shadow( 1px 0 white ) drop-shadow( -1px 0 white ) drop-shadow( 0 1px white ) drop-shadow( 0 -1px white );
               }
               .cover .cover-star-icons {
                 bottom: {{ coverStarIconsOffset }}px !important;
@@ -309,9 +320,13 @@ export default {
     },
     
     coverIconSize: function() {
-      return _.clamp( this.store.coverSize/7.3, 0, Infinity ); 
+      return _.clamp( this.store.coverSize/7.3, 0, Infinity );
     },
-    
+
+    coverDotSize: function() {
+      return _.clamp( this.store.coverSize*.14, 0, Infinity );
+    },
+
     coverStarIconsOffset: function() {
       
       const starSize  = this.coverIconSize * .9; 
@@ -321,10 +336,6 @@ export default {
           value = _.clamp( value, -(starSize * 1.3), initValue );
       
       return value; 
-    },
-    
-    showStarShadow: function() {
-      return this.coverStarIconsOffset > -this.coverIconSize; 
     },
     
     draggableCovers: {

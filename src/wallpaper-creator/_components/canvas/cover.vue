@@ -25,14 +25,16 @@
       />
       
       <div v-if="!store.animatedWallpaperMode && store.showFavorites && book.favorite" class="cover-heart-icon">
-        <mdi-cards-heart />
+        <mdi-cards-heart-outline />
       </div>
       <div v-if="!store.animatedWallpaperMode && store.showMyRating && book.myRating" class="cover-star-icons">
         <material-symbols-star-rate-rounded v-for="number in book.myRating" :key="number" />
       </div>
-      
-      <reread-marker v-if="book?.reread"></reread-marker>
-      
+
+      <div v-if="!store.animatedWallpaperMode && book.reread" class="cover-reread-icon">
+        <span>R</span>
+      </div>
+
     </div>
   </div>  
 </template>
@@ -97,10 +99,25 @@ export default {
 }
 
 .cover-star-icons,
-.cover-heart-icon {
+.cover-heart-icon,
+.cover-reread-icon {
   position: absolute;
   z-index: 50;
-  svg { color: #ff0000; }
+}
+.cover-heart-icon,
+.cover-reread-icon {
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, .45);
+  border-radius: 999px;
+  svg, span { color: rgba(255, 255, 255, .85); }
+  span {
+    font-family: sans-serif;
+    font-weight: 700;
+    line-height: 1;
+  }
 }
 .cover-star-icons {
   left: 0px;
