@@ -133,11 +133,14 @@ export default {
               length: allBooksInSeries.length,
               books: _.map( booksSource , function( book ) {
                 let asin = book.asin || book;
-                let inLibrary = _.includes( allBooksInSeries.books, asin );
+                // series.books can include a pre-order's asin from the series page scrape even
+                // when that book hasn't been through purchase-history extraction yet, so it's not
+                // actually in the library. libBook is the real source of truth for ownership.
+                let libBook = _.includes( allBooksInSeries.books, asin ) ? _.find(vue.$store.state.audibledata.library, { asin: asin }) : null;
+                let inLibrary = !!libBook;
                 const wishlistBook = _.find(vue.$store.state.audibledata.wishlist, { asin: asin });
                 const preorder = _.find(vue.$store.state.audibledata.preorders, { asin: asin });
                 if ( inLibrary ) {
-                  let libBook = _.find(vue.$store.state.audibledata.library, { asin: asin });
                   var libSeries = _.find( libBook.series, { asin: currentSeries.asin });
                   let inLibBookNumbers = !allBooksInSeries.allBooks ? (_.isArray(libSeries.bookNumbers) ? libSeries.bookNumbers.join(', ') : libSeries.bookNumbers) : book.bookNumbers;
                   let newLibBook = {
@@ -176,6 +179,7 @@ export default {
                   book.obj = {
                     authors: vue.book.authors,
                     notInLibrary: true,
+                    isPreorder: book.isPreorder,
                   };
                   return book;
                 }

@@ -71,7 +71,7 @@ export default {
         obj.progress === 'Finished' && { key: 'finished-marker' },
         obj.fromPlusCatalog && { key: 'plus-catalog-marker' },
         obj.whispersync === 'owned' && { key: 'kindle-marker' },
-        this.book.preorder && { key: 'preorder-marker' },
+        (obj.isPreorder || this.book.preorder) && { key: 'preorder-marker' },
       ]);
     },
   },

@@ -271,9 +271,11 @@ export default {
         
         if ( title === titleShort ) titleShort = false;
         
+        let isPreorder = false;
         if ( asinEl ) {
           const asin = asinEl.getAttribute("data-asin");
-          if ( row.querySelector(".adblBuyBoxInLibraryButton") ) {
+          isPreorder = !!row.querySelector(".adblBuyBoxPreorderButton");
+          if ( row.querySelector(".adblBuyBoxInLibraryButton") || isPreorder ) {
             series.books.push( DOMPurify.sanitize(asin) );
           }
         }
@@ -308,8 +310,11 @@ export default {
         let numbers = row.querySelector(':scope > div:nth-child(1) > div > h2');
         if ( numbers ) numbers = numbers.textContent;
         if ( numbers ) aBook.bookNumbers = DOMPurify.sanitize( numbers.trimAll().replace(/[^\d]*/, '').split(',')[0] );
+        // PRE-ORDERED: treated as owned (matches how the book is planted into the library
+        // by purchase-history extraction), so it's excluded from the "not in library" case below.
+        if ( isPreorder ) aBook.isPreorder = true;
         // NOT in library
-        if ( !inLibrary && !row.querySelector('.adblBuyBoxInLibraryButton') ) {
+        if ( !inLibrary && !isPreorder && !row.querySelector('.adblBuyBoxInLibraryButton') ) {
           aBook.notInLibrary = true;
         }
         // In plus catalog

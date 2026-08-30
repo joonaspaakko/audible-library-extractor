@@ -54,7 +54,7 @@
           </div>
 
           <!-- PRE-ORDERED -->
-          <div class="preorder-marker" v-if="book.preorder && sticky.bookDetailSettings.preorder">
+          <div class="preorder-marker" v-if="(book.isPreorder || book.preorder) && sticky.bookDetailSettings.preorder">
             <span><fa6-solid-clock/></span>
             <span>preorder</span>
           </div>

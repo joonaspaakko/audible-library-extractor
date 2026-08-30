@@ -118,6 +118,7 @@ export default {
           case "isNew":
           case "language":
           case "fromPlusCatalog":
+          case "isPreorder":
           case "unavailable":
           case "favorite":
           case "downloaded":

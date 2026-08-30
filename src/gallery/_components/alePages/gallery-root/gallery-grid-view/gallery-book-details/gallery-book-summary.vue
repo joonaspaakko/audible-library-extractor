@@ -44,7 +44,7 @@
               whispersync
             </div>
 
-            <div class="info-tag preorder" v-if="book.notInLibrary && book.preorder" v-tippy="{ maxWidth: 300 }" :content="book.preorder.releaseDate ? ('Pre-ordered. Releases ' + book.preorder.releaseDate) : 'Pre-ordered'">
+            <div class="info-tag preorder" v-if="isPreorder" v-tippy="{ maxWidth: 300 }" :content="preorderReleaseDate ? ('Pre-ordered. Releases ' + preorderReleaseDate) : 'Pre-ordered'">
               <fa6-solid-clock/>
               preorder
             </div>
@@ -136,6 +136,12 @@ export default {
   computed: {
     summaryHTML: function() {
       return this.book.summary || this.bookSummary || this.book.blurb;
+    },
+    isPreorder: function() {
+      return !!(this.book.isPreorder || (this.book.notInLibrary && this.book.preorder));
+    },
+    preorderReleaseDate: function() {
+      return this.book.releaseDate || _.get(this.book, 'preorder.releaseDate');
     },
     showReadMore: function() {
       const summary = this.summary;
