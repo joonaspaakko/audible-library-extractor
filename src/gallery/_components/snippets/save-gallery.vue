@@ -37,8 +37,11 @@
               :groupState
               :libraryActive
               :wishlistActive
+              :collectionOptions
+              :excludedCollectionIds
               @toggle-group="toggleGroup"
               @source-checked="sourceChecked"
+              @update:excludedCollectionIds="excludedCollectionsChanged"
             />
           </template>
         </github>
@@ -86,8 +89,11 @@
                     :groupState
                     :libraryActive
                     :wishlistActive
+                    :collectionOptions
+                    :excludedCollectionIds
                     @toggle-group="toggleGroup"
                     @source-checked="sourceChecked"
+                    @update:excludedCollectionIds="excludedCollectionsChanged"
                   />
                 </div>
               </div>
@@ -258,6 +264,24 @@ export default {
           noneChecked: checkedCount === 0,
         };
       };
+    },
+
+    collectionOptions: function() {
+      const collections = this.$store.state.audibledata.collections || [];
+      const realCollections = _.reject( collections, { id: '__ARCHIVE' });
+      const options = _.map( realCollections, c => ({ label: c.title, valueProp: c.id }) );
+      return _.sortBy( options, 'label' );
+    },
+
+    // Keyed per GitHub repo so switching repos in the dropdown swaps which collections are
+    // excluded. Falls back to a shared setting when no repo is selected yet (ZIP export,
+    // or the GitHub flow before a repo has been picked).
+    excludedCollectionIds: function() {
+      const repo = this.$store.state.sticky.githubSelectedRepo;
+      if ( repo ) {
+        return _.get( this.$store.state.sticky.exportSettingsGalleryExcludedCollectionsByRepo, repo ) || [];
+      }
+      return this.$store.state.sticky.exportSettingsGalleryExcludedCollections || [];
     },
 
   },
@@ -704,9 +728,74 @@ export default {
 
     },
 
+    excludedCollectionsChanged: function( collectionIds ) {
+
+      const repo = this.$store.state.sticky.githubSelectedRepo;
+
+      if ( repo ) {
+        const byRepo = _.clone( this.$store.state.sticky.exportSettingsGalleryExcludedCollectionsByRepo ) || {};
+        byRepo[repo] = collectionIds;
+        this.$store.commit('stickyProp', { key: 'exportSettingsGalleryExcludedCollectionsByRepo', value: byRepo });
+      }
+      else {
+        this.$store.commit('stickyProp', { key: 'exportSettingsGalleryExcludedCollections', value: collectionIds });
+      }
+
+    },
+
+    // Removes any book belonging to one of the given collection ids from the export data
+    // (library, series, and the collections themselves). Shared by the "Archived" checkbox
+    // and the collections-exclude dropdown, which both need the same four-step removal.
+    removeCollectionsFromData: function( data, collectionIds ) {
+
+      let excludedBooks = _.filter( this.$store.state.audibledata.library, o => _.intersection(o.collectionIds, collectionIds).length );
+          excludedBooks = _.map( excludedBooks, 'asin' );
+
+      // Remove any book that is in one of the excluded collections
+      _.remove( data.library, o => _.intersection(o.collectionIds, collectionIds).length );
+
+      if ( data.series ) {
+        // Removes excluded books from series
+        _.each( data.series, function( series ) {
+          if ( series.books.length ) {
+            _.remove( series.books, function( book ) {
+              return _.includes( excludedBooks, book );
+            });
+          }
+          if ( series.allBooks.length ) {
+            _.each( series.allBooks, function( book ) {
+              const inExcluded = _.includes( excludedBooks, book.asin );
+              if ( inExcluded ) book.notInLibrary = true;
+            });
+          }
+        });
+        // Remove series that have no books
+        _.remove( data.series, function( series ) {
+          return series.books.length === 0;
+        });
+      }
+
+      // Remove excluded books from collections
+      _.each( data.collections, function( collection ) {
+        _.remove( collection.books, function( book ) {
+          return _.includes( excludedBooks, book );
+        });
+      });
+
+      // Remove the excluded collections themselves
+      _.remove( data.collections, function( collection ) {
+        return _.includes( collectionIds, collection.id );
+      });
+
+    },
+
     excludeData: function( data ) {
 
       let vue = this;
+
+      if ( this.excludedCollectionIds.length ) {
+        this.removeCollectionsFromData( data, this.excludedCollectionIds );
+      }
 
       _.each( this.dataSources, function( item ) {
 
@@ -752,46 +841,7 @@ export default {
             
           case "Archived":
             if ( itemDisabled ) {
-              
-              let archivedBooks = _.filter( vue.$store.state.audibledata.library, o => _.includes(o.collectionIds, '__ARCHIVE') );
-                  archivedBooks = _.map( archivedBooks, 'asin' );
-              
-              // Remove any book that is in the archive collection
-              _.remove( data.library, o => _.includes(o.collectionIds, '__ARCHIVE'));
-              
-              if ( data.series ) {
-                // Removes archived books from series
-                _.each( data.series, function( series ) {
-                  if ( series.books.length ) {
-                    _.remove( series.books, function( book ) {
-                      return _.includes( archivedBooks, book );
-                    });
-                  }
-                  if ( series.allBooks.length ) {
-                    _.each( series.allBooks, function( book ) {
-                      const inArchive = _.includes( archivedBooks, book.asin );
-                      if ( inArchive ) book.notInLibrary = true;
-                    });
-                  }
-                });
-                // Remove series that have no books
-                _.remove( data.series, function( series) {
-                  return series.books.length === 0;
-                });
-              }
-              
-              // Remove archived books from collections
-              _.each( data.collections, function( collection ) {
-                _.remove( collection.books, function( book ) {
-                  return _.includes( archivedBooks, book );
-                });
-              });
-              
-              // Remove archive collection
-              _.remove( data.collections, function( collection ) {
-                return collection.id === '__ARCHIVE';
-              });
-              
+              vue.removeCollectionsFromData( data, ['__ARCHIVE'] );
             }
             break;
             

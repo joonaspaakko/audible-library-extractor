@@ -85,6 +85,24 @@
           </template>
         </label>
       </div>
+
+      <div v-if="collectionOptions.length" class="collections-exclude-row">
+        <Multiselect
+          :value="excludedCollectionIds"
+          :options="collectionOptions"
+          mode="tags"
+          :hideSelected="true"
+          :clearOnSelect="false"
+          :closeOnSelect="false"
+          :multiple="true"
+          :searchable="true"
+          track-by="valueProp"
+          label="label"
+          valueProp="valueProp"
+          placeholder="Exclude collections..."
+          @change="$emit('update:excludedCollectionIds', $event)"
+        />
+      </div>
     </div>
   </div>
 
@@ -92,8 +110,15 @@
 </template>
 
 <script>
+import '@vueform/multiselect/themes/default.css';
+import Multiselect from '@vueform/multiselect';
+
 export default {
   name: "galleryExportSources",
+
+  components: {
+    Multiselect,
+  },
 
   props: {
     groupedSources: { type: Object, required: true },
@@ -109,9 +134,11 @@ export default {
     // settings opts into pills. Group layout (labels, chevrons, toggle-all link) is
     // shared either way. Only the individual item style forks.
     pill: { type: Boolean, default: false },
+    collectionOptions: { type: Array, default: () => [] },
+    excludedCollectionIds: { type: Array, default: () => [] },
   },
 
-  emits: ['toggle-group', 'source-checked'],
+  emits: ['toggle-group', 'source-checked', 'update:excludedCollectionIds'],
 
   data() {
     return {
@@ -224,6 +251,17 @@ export default {
 
 .source-row-pill {
   gap: 5px;
+}
+
+.collections-exclude-row {
+  margin-top: 12px;
+  max-width: unset;
+  width: 100%;
+
+  :deep(.multiselect) {
+    margin: 0;
+    width: 100%;
+  }
 }
 
 // SQUARE-CHECKBOX STYLE (ZIP popover, pill=false)
