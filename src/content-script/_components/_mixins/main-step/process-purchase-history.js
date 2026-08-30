@@ -3,11 +3,37 @@ export default {
   methods: {
     getDataFromPurchaseHistory: function( hotpotato, purchaseHistoryFetched ) {
 
+      if ( !_.find( hotpotato.config.steps, { name: "purchaseHistory" }) ) {
+        this.$store.commit( "resetProgress" );
+        return purchaseHistoryFetched( null, hotpotato );
+      }
+
+      // Pre-orders aren't tied to "new library books": one can show up between two partial
+      // extractions with no new books at all, so they get their own small, always-run fetch
+      // (its own tf=preorders view, page count in the single digits) instead of piggybacking
+      // on the skippable purchase-history scan below.
+      this.getPreorderRows( hotpotato, ( rows ) => {
+
+        // Defensive: tf=preorders should only ever contain pre-order rows, but only items that
+        // actually parsed a releaseDate are real pre-orders.
+        const preorders = _.filter( rows, 'releaseDate' );
+        hotpotato.preorders = _.map( preorders, ( item ) => _.pick( item, [ 'asin', 'releaseDate' ]) );
+
+        this.getPreorderBooks( hotpotato, preorders, () => {
+          this.getPurchaseHistory( hotpotato, purchaseHistoryFetched );
+        });
+
+      });
+
+    },
+
+    getPurchaseHistory: function( hotpotato, purchaseHistoryFetched ) {
+
       // No books to date and dates already collected in a previous extraction: nothing to gain from re-scanning.
       const noNewBooks = hotpotato.library && !_.some( hotpotato.library, 'isNewThisRound' );
       const alreadyHasPurchaseHistory = this.$store.state.storageHasData.purchaseHistory;
 
-      if ( !_.find( hotpotato.config.steps, { name: "purchaseHistory" }) || ( noNewBooks && alreadyHasPurchaseHistory ) ) {
+      if ( noNewBooks && alreadyHasPurchaseHistory ) {
 
         this.$store.commit( "resetProgress" );
         purchaseHistoryFetched( null, hotpotato );
@@ -82,9 +108,9 @@ export default {
               return true;
             });
 
-            // Pre-orders show up as regular rows in the same tf=orders pages (no release yet,
-            // so no purchaseDate), just flagged with a releaseDate by processPurchaseHistoryPage.
-            const preorders = _.filter( deduped, 'releaseDate' );
+            // Pre-orders can still show up as rows here (tf=orders covers everything), but their
+            // discovery/fetch is handled entirely by getPreorderRows/getPreorderBooks beforehand,
+            // so they're just excluded from the purchase list here.
             const purchases = _.reject( deduped, 'releaseDate' );
 
             // MERGE purchaseDate into library books
@@ -95,9 +121,8 @@ export default {
               });
             }
 
-            // STORE raw lists and finish
+            // STORE raw list and finish
             hotpotato.purchaseHistory = purchases;
-            hotpotato.preorders = _.map( preorders, ( item ) => _.pick( item, [ 'asin', 'releaseDate' ]) );
 
             this.$nextTick( () => {
               purchaseHistoryFetched( null, hotpotato );
@@ -107,6 +132,109 @@ export default {
         );
 
       }
+    },
+
+    // Audible has a dedicated pre-orders view of the purchase history table (tf=preorders), same
+    // row markup as the regular tf=orders one. It's small (pre-order counts are always low) so
+    // this always runs, independent of the skippable purchase-history scan below. A pre-order
+    // can show up between two partial extractions with no new library books at all.
+    getPreorderRows: function( hotpotato, done ) {
+
+      const baseUrl = this.purchaseHistoryUrl + '?tf=preorders&df=last_365_days&ps=40';
+      const orderGroupMap = new Map();
+      const allItems = [];
+
+      this.amapxios({
+        requests: [ baseUrl + '&pn=1' ],
+        step: ( response, stepCallback ) => {
+
+          const pageButtons = $($.parseHTML( response.data )).find('a.purchase-history-pagination-button, span.purchase-history-pagination-button');
+          const pageNumbers = _.map( pageButtons, ( el ) => parseInt( $(el).text().trim(), 10 ) );
+          const totalPages = _.max( pageNumbers.filter( _.isFinite ) ) || 1;
+
+          this.processPurchaseHistoryPage( response, ( items ) => {
+            allItems.push( ...items );
+            stepCallback( _.map( _.range( 2, totalPages + 1 ), ( pn ) => baseUrl + '&pn=' + pn ) );
+          }, orderGroupMap );
+
+        },
+        flatten: true,
+        done: ( remainingUrls ) => {
+
+          if ( !remainingUrls.length ) return done( allItems );
+
+          this.amapxios({
+            requests: remainingUrls,
+            step: ( response, stepCallback ) => {
+              this.processPurchaseHistoryPage( response, ( items ) => {
+                allItems.push( ...items );
+                stepCallback();
+              }, orderGroupMap );
+            },
+            done: () => done( allItems ),
+          });
+
+        }
+      });
+
+    },
+
+    // Builds a library-shaped book object per new pre-order (seeded from the purchase history row),
+    // fetches its store page for full metadata, then plants it into hotpotato.library.
+    getPreorderBooks: function( hotpotato, preorders, done ) {
+
+      const existingAsins = new Set( _.map( hotpotato.library, 'asin' ) );
+      const newPreorders = _.reject( preorders, ( item ) => existingAsins.has( item.asin ) );
+
+      if ( !newPreorders.length ) return done();
+
+      const books = _.map( newPreorders, ( item ) => ({
+        asin: item.asin,
+        isPreorder: true,
+        releaseDate: item.releaseDate,
+        title: item.title,
+        authors: item.authors,
+        cover: item.cover,
+        requestUrl: window.location.origin + '/pd/' + item.asin,
+      }));
+
+      this.$store.commit( 'update', [
+        { key: 'progress.text', value: 'Fetching pre-order details...' },
+        { key: 'progress.step', value: 0 },
+        { key: 'progress.max', value: books.length },
+      ]);
+
+      this.amapxios({
+        requests: books,
+        returnCatch: true, // Keep the book (with its row-seeded data) even if the store page fetch fails
+        step: ( response, stepCallback, book ) => {
+
+          delete book.requestUrl;
+
+          const status = _.toNumber( _.get( response, 'status' ) ) || 0;
+          if ( _.inRange( status, 200, 399 ) ) {
+            this.getStorePageData( response, book, hotpotato.config.test );
+          }
+          else {
+            book.storePageMissing = true;
+          }
+
+          this.$store.commit( 'update', { key: 'progress.step', add: 1 });
+          stepCallback( book );
+
+        },
+        flatten: true,
+        done: ( fetchedBooks ) => {
+
+          if ( !hotpotato.library ) hotpotato.library = [];
+          hotpotato.library.push( ...fetchedBooks );
+
+          this.$store.commit( 'resetProgress' );
+          done();
+
+        }
+      });
+
     },
 
     // Reads the year <option>s from the date filter dropdown out of a purchase history page.
@@ -272,7 +400,18 @@ export default {
         const rawReleaseDate = ( titleText.match( /Scheduled release:.*?(\d{1,2}-\d{1,2}-\d{4})/ ) || [] )[ 1 ];
 
         if ( rawReleaseDate ) {
-          items.push({ asin, releaseDate: vue.fixDates( rawReleaseDate ) });
+
+          // SEED data straight off the purchase history row. The later store page fetch fills in
+          // the rest (series, categories, narrators, etc.) but title/author/cover are already here.
+          const title = titleBlock ? DOMPurify.sanitize( titleBlock.querySelector('span').textContent.trim() ) : '';
+          const authorName = DOMPurify.sanitize( returnLink.dataset.orderItemAuthor || '' );
+          const authors = authorName ? [{ name: authorName }] : [];
+
+          const coverImg = row.querySelector('img.bc-pub-block');
+          const coverUrl = coverImg ? DOMPurify.sanitize( coverImg.getAttribute('src') || '' ) : '';
+          const cover = _.get( coverUrl.match( /\/images\/I\/(.*)._SL/ ), '[1]' );
+
+          items.push({ asin, releaseDate: vue.fixDates( rawReleaseDate ), title, authors, cover });
           return;
         }
 
