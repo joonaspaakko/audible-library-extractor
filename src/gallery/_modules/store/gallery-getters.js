@@ -7,6 +7,9 @@ import {
 } from "date-fns";
 
 export default {
+  hasPurchaseDate: function( state ) {
+    return _.some( state.audibledata.library, 'purchaseDate' );
+  },
   sortValues: function( state ) {
     const sortValues = _.find( _.get(state,'listRenderingOpts.sort'), { key: "sortValues" });
     return _.get(sortValues, 'active');

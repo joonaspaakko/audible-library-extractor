@@ -59,7 +59,7 @@
             @change="displayKeyChanged"
           >
             <option value="">No extra value</option>
-            <option v-for="sortItem in displayKeyOptions" :key="sortItem.key" :value="sortItem.key">{{ sortItem.label }}</option>
+            <option v-for="sortItem in displayKeyOptions" :key="sortItem.key" :value="sortItem.key">{{ resolveLabel(sortItem) }}</option>
           </select>
         </li>
       </ul>
@@ -187,6 +187,10 @@ export default {
       
     },
     
+    resolveLabel: function( item ) {
+      return _.result( item, 'label' );
+    },
+
     displayKeyChanged: function( event ) {
       
       // Empty value means no extra value, stored as null.

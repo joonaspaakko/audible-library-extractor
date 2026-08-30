@@ -135,6 +135,14 @@ export default {
           var name = _.get( this.book, sortKey.replace('.name', '[0].name') );
           return name || this.notAvailable;
           break;
+        case "added":
+          if ( this.book.purchaseDate ) {
+            return this.book.added + ' <small>(' + this.book.purchaseDate + ')</small>';
+          }
+          else {
+            return this.book.added;
+          }
+          break;
         case "rating":
           if ( this.book.ratings ) {
             // const ratings = this.book.ratings ? " <small>("+ this.book.ratings +")</small>" : "";

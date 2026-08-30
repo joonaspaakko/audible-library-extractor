@@ -1297,7 +1297,7 @@ export default {
             active: true,
             current: true,
             key: 'added',
-            label: 'Added',
+            label: function() { return vue.$store.getters.hasPurchaseDate ? 'Added (date)' : 'Added'; },
             type: 'sort',
             tippy: '<small>&#9650;</small> Old at the top <br><small style="display: inline-block; transform: rotate(180deg);">&#9650;</small> New at the top'
           },

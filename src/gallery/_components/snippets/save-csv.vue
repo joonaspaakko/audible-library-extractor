@@ -658,6 +658,7 @@ export default {
             "length",
             "progress",
             "releaseDate",
+            "purchaseDate",
             "publishers",
             "myRating",
             "rating",

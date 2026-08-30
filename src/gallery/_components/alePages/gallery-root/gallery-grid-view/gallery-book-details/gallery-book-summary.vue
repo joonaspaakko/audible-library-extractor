@@ -54,7 +54,11 @@
             <span class="strong-label">Released: </span>
             <span>{{ book.releaseDate }}</span>
           </div>
-          
+          <div class="purchase-date" v-if="book.purchaseDate" v-tippy content="YYYY-MM-DD">
+            <span class="strong-label">Purchased: </span>
+            <span>{{ book.purchaseDate }}</span>
+          </div>
+
         </div>
         
         
@@ -293,8 +297,11 @@ export default {
   }
   .inline-children > * { display: inline-block; }
   
-  .release-date {
+  .release-date, .purchase-date {
     padding-top: 5px;
+  }
+  .purchase-date {
+    margin-left: 10px;
   }
   
   .review-ratings {
