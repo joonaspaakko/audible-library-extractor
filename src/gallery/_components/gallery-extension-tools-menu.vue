@@ -63,16 +63,17 @@
         <component
           v-for="item in linkItems"
           :key="item.name"
-          :is="item.tag"
-          :href="item.href"
-          target="_blank"
+          :is="item.tag === 'a' ? 'a' : 'button'"
+          :href="item.tag === 'a' ? item.href : undefined"
+          :target="item.tag === 'a' ? '_blank' : undefined"
           class="mega-row mega-row--link"
           @mousedown="$haptic(1)"
           @click="onItemClick(item)"
         >
           <span class="mega-row-icon" v-html="item.meta.icon"></span>
           <span class="mega-row-text">{{ item.name }}</span>
-          <span class="mega-row-external-icon"><fa6-solid-arrow-up-right-from-square /></span>
+          <span v-if="item.isResource" class="mega-row-pill">v{{ $store.state.version }}</span>
+          <span v-if="item.tag === 'a'" class="mega-row-external-icon"><fa6-solid-arrow-up-right-from-square /></span>
         </component>
       </div>
     </div>
@@ -170,7 +171,7 @@ export default {
   computed: {
 
     linkItems() {
-      return _.filter( this.items, item => item.tag === 'a' );
+      return _.filter( this.items, item => item.tag === 'a' || item.isResource );
     },
 
     toolItems() {
@@ -506,6 +507,12 @@ export default {
 
 // LINK ROWS
 .mega-row--link {
+  box-sizing: border-box;
+  width: 100%;
+  font: inherit;
+  text-align: left;
+  appearance: none;
+
   .mega-row-icon {
     width: 30px;
     height: 30px;
@@ -513,6 +520,20 @@ export default {
     @include themify($themes) {
       color: rgba( themed(frontColor), .6 );
       background: rgba( themed(frontColor), .07 );
+    }
+  }
+
+  .mega-row-pill {
+    margin-left: auto;
+    flex-shrink: 0;
+    white-space: nowrap;
+    font-size: .68em;
+    line-height: 1;
+    padding: 3px 7px;
+    border-radius: 9999px;
+    @include themify($themes) {
+      color: rgba( themed(frontColor), .5 );
+      background: rgba( themed(frontColor), .08 );
     }
   }
 

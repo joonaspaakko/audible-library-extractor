@@ -169,6 +169,7 @@ import IconExport from '~icons/mdi/tray-arrow-down';
 import IconImport from '~icons/mdi/tray-arrow-up';
 import IconDocs from '~icons/ri/external-link-line';
 import IconWhatsNew from '~icons/ph/code-bold';
+import IconGithub from '~icons/fa6-brands/github';
 
 export default {
   name: 'aleLauncherButton',
@@ -260,6 +261,8 @@ export default {
         { label: 'Export raw data', key: 'exportRawData', disabled: !this.rawDataExport, icon: IconExport },
         { label: 'Import raw data', key: 'importRawData', icon: IconImport, divider: true },
         { label: 'Documentation', key: 'documentation', icon: IconDocs },
+        { label: 'Source', key: 'githubSource', icon: IconGithub },
+        { label: 'Report an issue', key: 'githubIssues', icon: IconGithub, divider: true },
         { label: 'What’s new', key: 'whatsNew', icon: IconWhatsNew },
       ];
 
@@ -651,6 +654,14 @@ export default {
 
     documentation: function() {
       window.open('https://joonaspaakko.gitbook.io/audible-library-extractor/', '_blank');
+    },
+
+    githubSource: function() {
+      window.open('https://github.com/joonaspaakko/audible-library-extractor', '_blank');
+    },
+
+    githubIssues: function() {
+      window.open('https://github.com/joonaspaakko/audible-library-extractor/issues', '_blank');
     },
     
     openGallery: function() {

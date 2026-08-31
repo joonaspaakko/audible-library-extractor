@@ -7,19 +7,49 @@ export default {
 
       changeLog: [
         {
-          version: 'v.1.0.0',
-          highlights: `Full extraction recommended due to data structure changes and store page fixes that restore previously lost data. This is a major release featuring direct GitHub uploads, a completely overhauled collage maker (formerly the wallpaper creator), and many more improvements. More changes are planned before this release is finalized.`,
+          version: 'v.1.2.13',
+          highlights: `
+            <div class="highlight-notice">
+              <span class="highlight-badge">Full extraction recommended</span>
+              <p>Big data structure changes and other new additions may cause issues if old style data exists in tandem with the new data. I've tried to make the transition as painless as possible, but there coul be some edge cases. Also certain broken data points for old data likely won't be fixed without a full extraction.</p>
+            </div>
+            <ul>
+              <li><strong>Direct GitHub uploads:</strong> You can now upload the standalone gallery straight to GitHub Pages without manually downloading and re-uploading zips, making it easier to either use it on mobile or share what you have in your audible library or wishlist with friends.</li>
+              <li><strong>Improved scrolling everywhere:</strong> Scroll is a bit smoother now, which enabled me to add the ability to change the gallery grid view's cover size and amount of covers per row. You can find these cover settings and other new settings in the gallery top menu under "Settings".</li>
+            </ul>
+          `,
           categories: [
             {
               label: 'Extraction',
               items: [
+                {
+                  title: `Fixed fetching "people also bought" carousel data.`,
+                  description: `The store page carousel is not called that anymore in Audible, maybe we'll update that in the future.`,
+                  type: 'fixed',
+                  issue: 180,
+                },
+                {
+                  title: `Fixed plus catalog availability from wishlist books.`,
+                  description: `A class had changed in Audible's website and that was causing the extraction to fail for this data point.`,
+                  type: 'fixed',
+                  issue: 181,
+                },
+                {
+                  title: `Fixed wishlist extraction failing and gallery not opening after library extraction.`,
+                  type: 'fixed',
+                  issue: 178,
+                },
                 {
                   title: `Fixed documentation button in extraction settings and right-click context menu not working.`,
                   type: 'fixed',
                   issue: 165,
                 },
                 {
-                  title: `Fixed merging discontinued books with series.`,
+                  title: `Fixed certain book data not being extracted anymore, like authors and narrators and other metadata.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Fixed merging discontinued books with series in some cases.`,
                   type: 'fixed',
                 },
                 {
@@ -31,33 +61,30 @@ export default {
                   type: 'fixed',
                 },
                 {
-                  title: `Fixed fetching "people also bought" carousel data.`,
-                  type: 'fixed',
-                  issue: 180,
-                },
-                {
-                  title: `Fixed plus catalog availability from wishlist books.`,
-                  description: `A class was changed on Audible's end.`,
-                  type: 'fixed',
-                  issue: 181,
-                },
-                {
-                  title: `Fixed wishlist extraction failing and gallery not opening after library extraction.`,
-                  type: 'fixed',
-                  issue: 178,
-                },
-                {
                   title: `Now extracts the purchase date (added date) from purchase history.`,
-                  description: `Comes with a matching filter and sorter in the gallery.`,
+                  description: `Comes with a matching filter and sorter in the gallery. Purchase dates also show up in the gallery and spreadsheet data.`,
+                  type: 'added',
+                  issue: 1,
+                },
+                {
+                  title: `Pre-orders are now extracted too.`,
+                  description: `Pre-ordered books are planted directly into the library data. Comes with a matching filter and sorter, and pre-orders are marked properly throughout. I figured Plus Catalog books can also be in your library but not listenable, so it's not that different to show pre-orders in the library.`,
+                  type: 'added',
+                  issue: 126,
+                },
+                {
+                  title: `New books are now automatically reset after extraction.`,
+                  description: `Previously the "new" count/badge could stick around indefinitely unless cleared by the user. Now it's automatically cleared after 90 days, and you can still manually reset it per library/wishlist from the extension menu.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Added partial extraction support to collections.`,
+                  description: `Previously collections were always extracted fully. Now it supports partial extractions, which is useful if you have a large collection and don't want to do a full extraction every time, potentially adding a lot of wasted minutes to the extraction process.`,
                   type: 'added',
                 },
                 {
-                  title: `Migrated data structure from library.books to audibledata.library for better management.`,
-                  description: `Automatic migration for old data structures on first load. This change isn't really visible to users, but I wanted to mention it just as a heads up: this is a big structural change that touches just about every step of the extraction process and how data is displayed in the gallery, so it could potentially cause issues here and there.`,
-                  type: 'improved',
-                },
-                {
-                  title: `Store page added extraction failsafes.`,
+                  title: `Completely transformed the extraction settings in the Audible library page.`,
+                  description: `Previously you'd click the orange "Audible Library Extractor" button and the extraction settings would cover the entire page. Now it's sort of like a fly-out menu that comes out of the button. This was an attempt to kind of streamline the GUI to first of all have it accept more extraction settings without me having to struggle how to fit them all in, and also to just make it easier to use.`,
                   type: 'improved',
                 },
                 {
@@ -66,28 +93,26 @@ export default {
                   type: 'improved',
                   issue: 169,
                 },
+                {
+                  title: `Migrated data structure from library.books to audibledata.library for better management.`,
+                  description: `This isn't exactly something that users would see, but I wanted to mention it because there's an automatic migration for old data structures on first load, then again this can fail and full extraction would likely help.`,
+                  type: 'improved',
+                },
+                {
+                  title: `Added some new store page extraction failsafes.`,
+                  description: `Making it more likely for the extraction to succeed even if the Audible website changes and it can't find some data.`,
+                  type: 'improved',
+                },
               ],
             },
             {
               label: 'Gallery',
               items: [
                 {
-                  title: `Fixed animated background grid's last row not always being a full row.`,
+                  title: `Fixed a couple small things in the animated background grid.`,
+                  description: `Sometimes some cover images were not squares by default, so I kinda squished them inside squares while still keeping their aspect ratio. Also fixed a very minor thing where the last row was not always filling the entire width of the screen, even though users most likely didn't see it, it still bothered me a lot.`,
                   type: 'fixed',
                   issue: 167,
-                },
-                {
-                  title: `Series sub page removed deduped total to reduce confusion.`,
-                  description: `There was a disparity between the total on the series list sub page and what you'd see in each individual series page.`,
-                  type: 'fixed',
-                },
-                {
-                  title: `Fixed minor standalone gallery load errors.`,
-                  type: 'fixed',
-                },
-                {
-                  title: `Fixed carousel gallery rendering.`,
-                  type: 'fixed',
                 },
                 {
                   title: `Fixed randomized sample covers on category pages being squished when they don't fit on screen.`,
@@ -96,18 +121,60 @@ export default {
                   issue: 161,
                 },
                 {
+                  title: `The "formulas" CSV export now uses the XLSX file format.`,
+                  description: `This should make formula based images finally work again in Google Sheets after they made their formula rules more strict.`,
+                  type: 'fixed',
+                  issue: 133,
+                },
+                {
                   title: `Fixed "my reviews" section above the summary causing content overflow on mobile.`,
                   type: 'fixed',
                   issue: 162,
                 },
                 {
-                  title: `Fixed typo "unkown" → "unknown".`,
+                  title: `Fixed a typo "unkown" → "unknown".`,
                   type: 'fixed',
                   issue: 187,
                 },
                 {
-                  title: `Added direct GitHub upload to the standalone gallery save modal.`,
-                  description: `No more manually downloading zips and uploading them to GitHub yourself.`,
+                  title: `Fixed some filters and sorters silently failing to apply from a shared link.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Fixed iOS search field zooming in when returning to the app with search focused.`,
+                  description: `It now blurs the field coming back to the app and re-syncs the caret/scroll on refocus so the text stays in view.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Removed deduped total in the Series sub page to reduce confusion.`,
+                  description: `There was a disparity between the total on the series list sub page and what you'd see in each individual series page.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Fixed minor standalone gallery load errors.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Fixed the carousel rendering in the book details view.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Animated background grid no longer flickers when foreground books are hovered over.`,
+                  type: 'fixed',
+                },
+                {
+                  title: `Added direct GitHub upload to the standalone gallery save modal. The "Extension Tools" menu at the top has a "Upload gallery website" button now with Github API support.`,
+                  description: `No more manually downloading zips and uploading them to GitHub yourself. You first register to Github if you haven't already, or you login, pick an existing project (repository) and upload the gallery straight to it.`,
+                  type: 'added',
+                },
+                {
+                  title: `Added the ability to exclude specific collections when exporting the standalone gallery.`,
+                  type: 'added',
+                  issue: 143,
+                },
+                {
+                  title: `Added a PWA install button to the standalone gallery's settings drawer.`,
+                  description: `Lets you install the standalone gallery to your home screen like an app, with a button to trigger the install prompt manually. It could be saved in earlier versions too, now this button aims to make it more obvious that can you can do it, and in some platforms will make it easier to install the PWA. I opted out of making this prompt automatically appear on first load because it can be a bit annoying for anyone that isnt you, which isn't really that easily gated, so this button seemed like the next best thing.`,
                   type: 'added',
                 },
                 {
@@ -119,25 +186,23 @@ export default {
                   type: 'added',
                 },
                 {
-                  title: `Added a "covers per row" setting to grid view.`,
-                  type: 'added',
-                },
-                {
-                  title: `Added a "cover size" setting to grid view.`,
+                  title: `Added better "global settings" to the gallery.`,
+                  description: `The spreadsheet view / Grid view toggle is now there, and you can also change the cover size and amount of covers per row in the grid view.`,
                   type: 'added',
                 },
                 {
                   title: `Added a list/stacked details mode to grid view.`,
+                  description: `The list details mode is kind of similar to the Audible mobile app's list view, but it isn't fully polished yet. I added it cause I could and I didn't stop to think if I should... and just kinda left it in there.`,
                   type: 'added',
                 },
                 {
                   title: `Added a secondary sort value to grid view.`,
-                  description: `For example, you can still see the book series name while sorting by length.`,
+                  description: `So for example, when you have the sorting option "Show sort values" enabled, you can let's say sort by legnth, and still see the book series name above the cover image in the grid view. This is also a tad unpolished.`,
                   type: 'added',
                 },
                 {
-                  title: `Added a segmented side scroller with a position label.`,
-                  description: `Shows how far you're scrolled and also works as a quick jump to any part of the page.`,
+                  title: `Added a segmented side scroller with a position label to the left side of the gallery.`,
+                  description: `Shows how far you're scrolled and also works as a quick jump to any part of the page. Not quite the same as pagination, but kinda sorta functions similarly to pagination.`,
                   type: 'added',
                 },
                 {
@@ -145,106 +210,115 @@ export default {
                   type: 'added',
                 },
                 {
-                  title: `The standalone gallery now packs heavier book data into a handful of ~1MB chunk files.`,
-                  description: `Summaries and carousel data used to be saved as thousands of tiny per-book files. Chunking makes GitHub uploads and page loads a lot faster. Chunks are also stored in IndexedDB to reduce file fetching.`,
-                  type: 'improved',
-                },
-                {
-                  title: `Global settings are now available on any page and open in a drawer.`,
-                  description: `Previously they only lived inside the book details view.`,
-                  type: 'improved',
-                },
-                {
-                  title: `Reworked the extension tools menu.`,
+                  title: `All gallery views now use virtual scrolling for much better scrolling performance.`,
+                  description: `Applies to grid, spreadsheet, all sub pages and collections.`,
                   type: 'improved',
                 },
                 {
                   title: `Replaced the cover blurb hot corner with a long press that lets you drag across multiple covers.`,
-                  description: `Works on desktop and mobile.`,
-                  type: 'improved',
-                },
-                {
-                  title: `All views now use virtual scrolling for much better scrolling performance.`,
-                  description: `Applies to grid, spreadsheet, sub pages and collections.`,
+                  description: `Works on desktop and mobile. Basically when you're in the grid view, you can see a quick little tooltip if you click/tap and hold on top of a cover. You can then sweep across multiple covers to quickly get the gist of what those books are about, since it has the title, categories, tags, and the blurb (short summary).`,
                   type: 'improved',
                 },
                 {
                   title: `Rewrote search, replacing Fuse with MiniSearch.`,
-                  description: `Faster and supports advanced operators: exact match, exclude, starts/ends with, exact phrases, OR, and inline @scopes.`,
+                  description: `It's faster, though probably not noticeable to most, and it supports advanced operators that are perhaps more intuitive now: exact match, exclude, starts/ends with, exact phrases, OR, and inline @scopes.`,
                   type: 'improved',
                 },
                 {
-                  title: `Range slider now steps by one increment when clicking min/max labels.`,
-                  description: `Previously it snapped straight to the absolute min/max.`,
+                  title: `Several links in the book details now default to various gallery views rather than to Audible.`,
+                  description: `This existed for a long time before, I just changed the default to opening in the gallery rather than Audible. There's a toggle above the sidebar at the top of the book details view that lets you switch between the two, just like there was before.`,
+                  type: 'improved',
+                },
+                {
+                  title: `When you open tag links from the book details view, the page gets a subtitle with the tag name, similar to the categories pages tag links`,
+                  description: `What it does is really just opens the library or wishlist page depending on the context and applies the tag filter to it, but since there wasn't any kinda title, it was easy to just kinda think you're in the library and miss the tag filtering.`,
+                  type: 'improved',
+                },
+                {
+                  title: `The standalone gallery now packs heavier book data into a handful of ~1MB chunk files.`,
+                  description: `Summaries and carousel data used to be saved as thousands of tiny per-book files (if you had thousands of books). Chunking the data into fewer files makes GitHub uploads manageable and page loads faster. Chunks are also stored in IndexedDB to reduce constant unnecessary file fetching.`,
+                  type: 'improved',
+                },
+                {
+                  title: `Reworked the extension tools menu to kinda telegraph what it has to offer a bit better, maybe.`,
+                  description: `The menu now has a more intuitive layout and clearer labels for each tool, maybe...`,
+                  type: 'improved',
+                },
+                {
+                  title: `Redesigned the sub pages menu and made the top menu more cohesive overall and easier to notice.`,
+                  description: `Sub pages: collections, podcasts, categories, series, publishers, authors, and narrators all now live in a proper secondary menu bar under Library/Wishlist on desktop and in a sort of accordion on mobile.`,
+                  type: 'improved',
+                },
+                {
+                  title: `Added a custom clear (X) button to the search bar with a bigger tap target, and the scope/filter/sort icons now collapse to a 3-dot menu while typing on mobile to give the query more room.`,
+                  type: 'improved',
+                },
+                {
+                  title: `Simplified the standalone gallery upload GUI a bit more.`,
+                  type: 'improved',
+                },
+                {
+                  title: `Filter menu's range sliders now steps by one increment when clicking min/max labels.`,
+                  description: `Previously it snapped straight to the absolute min/max, which didn't seem as useful as you can easily just drag it to the end, but it's much harder to move by a single increment by sliding the slider.`,
                   type: 'improved',
                 },
                 {
                   title: `Animated background grid now loads in more gently.`,
-                  description: `It waits for its images and lets the page content load first before it starts animating, so it doesn't slow down the initial page load.`,
+                  description: `It lets the page content load first before it starts loading its own images and begins to animate, and this means it doesn't slow down the initial page load.`,
                   type: 'improved',
                 },
                 {
-                  title: `Animated background grid no longer flickers when foreground books are hovered over.`,
+                  title: `Added more variability to the animated background grid when you don't have that many covers.`,
                   type: 'improved',
                 },
                 {
-                  title: `Animated background grid added more variability and randomness when you don't have many covers.`,
-                  type: 'improved',
-                },
-                {
-                  title: `Changed tooltip styles.`,
+                  title: `Improved how the various tooltips all around the gallery look.`,
                   type: 'improved',
                 },
                 {
                   title: `Book details: brought back sideways swipe to move between books.`,
+                  description: `This may need some polishing...`,
                   type: 'improved',
-                },
-                {
-                  title: `Book details: links now default to the gallery.`,
-                  description: `Links that lead to Audible get an external link icon.`,
-                  type: 'improved',
-                },
-                {
-                  title: `The "formulas" CSV export now uses the XLSX file format.`,
-                  description: `Formula-based images and hyperlinks only render correctly in Google Sheets.`,
-                  type: 'improved',
-                  issue: 133,
                 },
               ],
             },
             {
               label: 'Collage maker',
+              subLabel: 'Previously Wallpaper Creator',
               items: [
                 {
-                  title: `Fixed ERR_INSUFFICIENT_RESOURCES when exporting images with many covers (+400).`,
+                  title: `Fixed an error where saving an image or an animated wallpaper with more than ~400 books would fail.`,
+                  description: `It was trying to download too many covers at the same time instead of a handful at a time, and Chrome just cuts you off past a certain point with the error message "ERR_INSUFFICIENT_RESOURCES". Now covers download in small batches, so it works no matter how many books you have.`,
                   type: 'fixed',
                   issue: 163,
                 },
                 {
                   title: `Fixed text element control box visibility.`,
+                  description: `There were certain situations where it would disappear when it shouldn't not also not disappear when it should.`,
                   type: 'fixed',
                 },
                 {
                   title: `Fixed text element snapping.`,
+                  description: `There were certain situations where it would not snap properly to the grid.`,
                   type: 'fixed',
                 },
                 {
-                  title: `Fixed selecting a text element inside the right side panel de-selecting it immediately.`,
+                  title: `Fixed an issue where selecting a text element inside the right side panel would immediately drop it and de-select it.`,
                   type: 'fixed',
                 },
                 {
                   title: `Text elements auto-reserve whitespace on canvas sides based on orientation and location.`,
-                  description: `Makes it easier to add text without having to figure out how to make space for it.`,
+                  description: `Makes it easier to add text without having to figure out how to make space for it. Before you just kinda had to figure out that adding more empty space to the sides via the "canvas padding" option was the way you make space for it.`,
                   type: 'added',
                 },
                 {
-                  title: `Replaced old toast notifications with a "notification center" panel.`,
+                  title: `Replaced old kidna static toast notifications with a "notification center" panel.`,
                   description: `Makes it a bit easier to show multiple tips on how you can interact with the editor.`,
                   type: 'added',
                 },
                 {
                   title: `Added panning mode indicator.`,
-                  description: `Holding down spacebar allows you to always pan across any elements.`,
+                  description: `Holding down spacebar allows you to always pan across any elements in situations where you normally can't.`,
                   type: 'added',
                 },
                 {
@@ -253,21 +327,27 @@ export default {
                   type: 'added',
                 },
                 {
+                  title: `Added the ability to hide individual books straight from the canvas.`,
+                  description: `Click a cover to open its context menu, then "Hide book".`,
+                  type: 'added',
+                },
+                {
                   title: `Added momentum to canvas panning.`,
                   type: 'added',
                 },
                 {
                   title: `Renamed the "Wallpaper creator" to "Collage maker".`,
+                  description: `The name "Wallpaper creator" was a bit misleading, since you can make collages for any purpose, not just wallpapers.`,
                   type: 'improved',
                 },
                 {
                   title: `The gallery menu button now prompts you to pick a source on pages with no books.`,
-                  description: `Previously it was just disabled.`,
+                  description: `Previously it was just disabled on pages that don't directly display books.`,
                   type: 'improved',
                 },
                 {
                   title: `Improved zooming with the scroll wheel.`,
-                  description: `Changed it to center to the cursor.`,
+                  description: `It now zooms relative to the cursor position.`,
                   type: 'improved',
                 },
                 {
@@ -275,25 +355,26 @@ export default {
                   type: 'improved',
                 },
                 {
-                  title: `Settings panel sliders and rapidly changing number inputs now work smoother with a large amount of covers.`,
+                  title: `Settings panel sliders and number inputs with the ability to change the value rapidly now work smoother with a large amount of covers.`,
                   type: 'improved',
                 },
                 {
                   title: `Export settings now appear in a dialog before every save.`,
+                  description: `Not sure if this is the best choice, but the idea was that rather than burying them with the rest of the sidebar settings, you will always see it when you attempt to save and can make an informed decision on what size it comes out with.`,
                   type: 'improved',
                 },
                 {
-                  title: `Options panel now has collapsible sections, collapsed by default.`,
-                  description: `Better informs users about each option.`,
+                  title: `Options panel now has collapsible sections that are collapsed by default.`,
+                  description: `The idea is that it's easier for users to take in all the settings before they start expanding them and using them.`,
                   type: 'improved',
                 },
                 {
                   title: `Double-clicking any side of a text bounding box moves that side to a corresponding canvas edge.`,
-                  description: `With some exceptions.`,
                   type: 'improved',
                 },
                 {
                   title: `Hovering over "cover padding" + "canvas padding" headings in the options panel now shows the current padding in the canvas.`,
+                  description: `You would see this padding area visually before, but only when changing the value, now you can see it when hovering over the heading too.`,
                   type: 'improved',
                 },
               ],
