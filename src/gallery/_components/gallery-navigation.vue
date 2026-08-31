@@ -27,6 +27,7 @@
 
 import saveGallery from '@output-snippets/save-gallery.vue';
 import saveCSV from '@output-snippets/save-csv.vue';
+import galleryChangelog from '@output-snippets/gallery-changelog.vue';
 import { storageSet } from '@utils/chrome-storage.js';
 import openWallpaperCreator from '@output-mixins/gallery-open-wallpaper-creator.js';
 import { subpageMenuSourceAvailable, currentSubpageMenuSource } from '@output-mixins/gallery-subpage-menu-destinations.js';
@@ -39,6 +40,8 @@ import IconFluentColorCloud     from '~icons/fluent-color/cloud-16?raw';
 import IconVscodeFileTypeExcel  from '~icons/vscode-icons/file-type-excel?raw';
 import IconFaSolidHouseUser     from '~icons/fa6-solid/house-user?raw';
 import IconFaSolidHome          from '~icons/fa6-solid/house?raw';
+import IconFaBrandsGithub       from '~icons/fa6-brands/github?raw';
+import IconCodiconStarFull      from '~icons/codicon/star-full?raw';
 
 // Recolored streamline-color:screensaver-monitor-wallpaper-flat: white screen with a neutral gray
 // border/stand (instead of the set's stock blue), orange sun, teal mountains.
@@ -246,6 +249,38 @@ export default {
             meta: {
               icon: IconFaSolidGraduationCap,
               nestedGroup: 'extension-tools'
+            },
+          },
+          {
+            tag: 'a',
+            href: 'https://github.com/joonaspaakko/audible-library-extractor',
+            name: 'Source',
+            disabled: false,
+            meta: {
+              icon: IconFaBrandsGithub,
+              nestedGroup: 'extension-tools'
+            },
+          },
+          {
+            tag: 'a',
+            href: 'https://github.com/joonaspaakko/audible-library-extractor/issues',
+            name: 'Report an issue',
+            disabled: false,
+            meta: {
+              icon: IconFaBrandsGithub,
+              nestedGroup: 'extension-tools'
+            },
+          },
+          {
+            isResource: true,
+            tag: 'div',
+            name: 'What’s new',
+            disabled: false,
+            click: this.routeClick,
+            meta: {
+              icon: IconCodiconStarFull,
+              nestedGroup: 'extension-tools',
+              component: galleryChangelog,
             },
           },
           {
