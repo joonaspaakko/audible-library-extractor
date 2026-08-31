@@ -7,7 +7,7 @@ export default {
 
       changeLog: [
         {
-          version: 'v.1.2.13',
+          version: 'v.1.2.15',
           highlights: `
             <div class="highlight-notice">
               <span class="highlight-badge">Full extraction recommended</span>
