@@ -85,6 +85,7 @@ export default {
   components: { NConfigProvider, NModal, NCollapse, NCollapseItem, NTree },
   data: function() {
     return {
+      lightTheme: lightTheme,
       typeIcons: {
         fixed: IconFixed,
         improved: IconImproved,

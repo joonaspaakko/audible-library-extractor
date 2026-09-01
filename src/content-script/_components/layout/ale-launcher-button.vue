@@ -179,6 +179,7 @@ export default {
   data: function() {
     return {
       store: this.$store.state,
+      lightTheme: lightTheme,
       exportRawDataDisabled: false,
       treeOpen: false,
       moreOpen: false,
