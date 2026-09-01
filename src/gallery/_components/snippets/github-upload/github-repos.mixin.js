@@ -357,6 +357,54 @@ export default {
     },
 
     /**
+     * Makes sure GitHub-owned actions (actions/checkout, actions/configure-pages, etc, all used
+     * by our deploy workflow) are allowed to run on this repo before we switch it to Actions-based
+     * Pages. Some older repos default to a restricted Actions policy that blocks even GitHub's own
+     * actions, which fails the workflow before it ever creates a deployment (a "startup failure"
+     * that leaves Pages stuck expecting a build that will never come). Only ever widens the policy,
+     * never narrows an already-permissive one.
+     * @param {string} repoName
+     * @returns {Promise<boolean>} True if GitHub-owned actions are allowed (already, or after this call).
+     */
+    async ensureGithubActionsAllowed( repoName ) {
+
+      const owner = this.profile.login;
+
+      try {
+
+        const { data: permissions } = await this.ghGet( `repos/${owner}/${repoName}/actions/permissions` );
+        if ( !permissions.enabled ) return false; // Actions fully disabled; not ours to override.
+
+        // "all" already allows GitHub-owned actions; nothing to do.
+        if ( permissions.allowed_actions === 'all' ) return true;
+
+        // Not yet restricted to "selected": widen to it first so we can then allow GitHub-owned
+        // actions specifically, without touching whatever else may already be permitted.
+        if ( permissions.allowed_actions !== 'selected' ) {
+          await this.ghPut( `repos/${owner}/${repoName}/actions/permissions`, {
+            enabled: true,
+            allowed_actions: 'selected',
+          });
+        }
+
+        const { data: selected } = await this.ghGet( `repos/${owner}/${repoName}/actions/permissions/selected-actions` );
+        if ( selected.github_owned_allowed ) return true;
+
+        await this.ghPut( `repos/${owner}/${repoName}/actions/permissions/selected-actions`, {
+          ...selected,
+          github_owned_allowed: true,
+        });
+        return true;
+
+      }
+      catch ( err ) {
+        console.warn( `Could not verify/allow GitHub-owned actions for ${repoName}:`, err );
+        return false;
+      }
+
+    },
+
+    /**
      * Derives the default commit message for the next upload (e.g. "Upload #3 · ALE v2.1").
      * Accepts a pre-fetched count to avoid a redundant API call when fetchRepoDetails already ran.
      * @param {string} repo
