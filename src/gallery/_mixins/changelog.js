@@ -15,6 +15,7 @@ export default {
             <ul>
               <li><strong>Direct GitHub uploads:</strong> You can now upload the standalone gallery straight to GitHub Pages without manually downloading and re-uploading zips, making it easier to either use it on mobile or share what you have in your audible library or wishlist with friends.</li>
               <li><strong>Improved scrolling everywhere:</strong> Scroll is a bit smoother now, which enabled me to add the ability to change the gallery grid view's cover size and amount of covers per row. You can find these cover settings and other new settings in the gallery top menu under "Settings".</li>
+              <li><strong>ISBN extraction temporarily disabled:</strong> Google now rejects unauthenticated Books API requests, so ISBN lookups no longer work. The option is disabled in extraction settings until this is properly sorted out.</li>
             </ul>
           `,
           categories: [
