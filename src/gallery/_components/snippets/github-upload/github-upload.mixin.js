@@ -352,9 +352,14 @@ export default {
         // Surface it so the user sees the error screen instead of a run that silently stalls at 88%.
         this.uploadFailed = true;
 
-        const isNetworkError = err instanceof TypeError && !err.response;
+        const isNetworkError   = err instanceof TypeError && !err.response;
+        const isNotFastForward = err?.response?.status === 422 && /fast forward/i.test( err?.message || '' );
+
         if ( isNetworkError ) {
           this.failedMessage = 'Network connection lost. Check your connection and retry.';
+        }
+        else if ( isNotFastForward ) {
+          this.failedMessage = 'Something else changed this project on GitHub while uploading. Go back and try uploading again.';
         }
         else {
           this.failedMessage = err?.message || 'Unknown error';
