@@ -170,7 +170,11 @@ export default {
 
         // WORKFLOW FILE
         // Always inject the GitHub Actions Pages workflow, migrating legacy repos on their next upload.
+        // Check (and if needed fix) whether GitHub-owned actions are allowed to run BEFORE this file
+        // is pushed: the workflow triggers on push regardless of Pages mode, so checking any later
+        // risks a real Actions run queuing and failing before we've had a chance to fix permissions.
         const repoEntry = this.repos.find( r => r.name === repo );
+        const canUseWorkflow = repoEntry?.pagesMode === 'workflow' || await this.ensureGithubActionsAllowed( repo );
         files.push({
           path: '.github/workflows/deploy.yml',
           content: [
@@ -306,8 +310,10 @@ export default {
 
         }
 
-        // Migrate to Actions-powered Pages if not already on it
-        if ( repoEntry?.pagesMode !== 'workflow' ) {
+        // Migrate to Actions-powered Pages if not already on it, but only if GitHub-owned actions
+        // were confirmed allowed above. If that check failed, leave the repo on whatever Pages
+        // mode it already had rather than switching blind.
+        if ( repoEntry?.pagesMode !== 'workflow' && canUseWorkflow ) {
           await this.setPagesMode( repo, 'workflow' );
         }
 
