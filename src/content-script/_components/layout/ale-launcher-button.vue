@@ -193,6 +193,13 @@ export default {
 
   mounted: function() {
     document.addEventListener( 'keydown', this.handleEscKey );
+
+    // TEMP: disable-isbn-extraction (see matching block in treeOptions below).
+    // Google now rejects unauthenticated Books API requests, so ISBN lookups
+    // always fail. Remove both blocks together once that's sorted out properly.
+    const isbn = _.find( this.settings, { name: 'isbn' } );
+    if ( isbn && isbn.value ) this.settingChanged( 'isbn', false );
+    // END TEMP: disable-isbn-extraction
   },
 
   unmounted: function() {
@@ -213,12 +220,30 @@ export default {
     // sits at the root, alongside its parent.
     treeOptions: function() {
 
-      const toOption = ( setting ) => ({
-        key: setting.name,
-        label: setting.label,
-        isLeaf: !_.some( this.settings, { parent: setting.name } ),
-        _setting: setting,
-      });
+      // TEMP: disable-isbn-extraction (see matching block in mounted() above).
+      // Google now rejects unauthenticated Books API requests, so ISBN lookups
+      // always fail. Remove both blocks together once that's sorted out properly.
+      
+      // const toOption = ( setting ) => ({
+      //   key: setting.name,
+      //   label: setting.label,
+      //   isLeaf: !_.some( this.settings, { parent: setting.name } ),
+      //   _setting: setting,
+      // });
+      const toOption = ( setting ) => {
+
+        const isbnDisabled = setting.name === 'isbn';
+        // END TEMP: disable-isbn-extraction
+
+        return {
+          key: setting.name,
+          label: setting.label,
+          isLeaf: !_.some( this.settings, { parent: setting.name } ),
+          disabled: isbnDisabled,
+          _setting: isbnDisabled ? { ...setting, tippy: 'Temporarily unavailable: Google has disabled unauthenticated ISBN lookups.' } : setting,
+        };
+
+      };
 
       const roots = _.reject( this.settings, 'parent' );
 
