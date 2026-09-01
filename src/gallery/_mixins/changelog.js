@@ -10,8 +10,7 @@ export default {
           version: 'v.1.2.15',
           highlights: `
             <div class="highlight-notice">
-              <span class="highlight-badge">Full extraction recommended</span>
-              <p>Big data structure changes and other new additions may cause issues if old style data exists in tandem with the new data. I've tried to make the transition as painless as possible, but there coul be some edge cases. Also certain broken data points for old data likely won't be fixed without a full extraction.</p>
+              <p><strong>Extraction warning:</strong> If you're updating from an older version, do a full extraction the first time around. Data structure changes and other new additions may cause issues if old style data exists in tandem with the new data. I've tried to make the transition as painless as possible, but there could be some edge cases. Also certain broken data points for old data likely won't be fixed without a full extraction.</p>
             </div>
             <ul>
               <li><strong>Direct GitHub uploads:</strong> You can now upload the standalone gallery straight to GitHub Pages without manually downloading and re-uploading zips, making it easier to either use it on mobile or share what you have in your audible library or wishlist with friends.</li>

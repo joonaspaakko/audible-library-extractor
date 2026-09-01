@@ -44,20 +44,21 @@
       <a target="_blank" rel="noopener noreferrer" href="https://github.com/joonaspaakko/audible-library-extractor/labels/bug">Known bugs</a>
     </div>
 
+    <div class="project-badges-label">Latest releases by platform</div>
     <div class="project-badges">
       <a target="_blank" rel="noopener noreferrer" href="https://github.com/joonaspaakko/audible-library-extractor/releases/latest">
-        <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=latest%20release%20(Github)&color=6e41bf" alt="">
+        <img src="https://img.shields.io/github/v/release/joonaspaakko/audible-library-extractor?include_prereleases&label=Github&color=6e41bf" alt="">
       </a>
       <a target="_blank" rel="noopener noreferrer" href="https://chrome.google.com/webstore/detail/audible-library-extractor/deifcolkciolkllaikijldnjeloeaall">
-        <img src="https://img.shields.io/chrome-web-store/v/deifcolkciolkllaikijldnjeloeaall?color=2acb41&label=latest%20release%20(Chrome)" alt="">
+        <img src="https://img.shields.io/chrome-web-store/v/deifcolkciolkllaikijldnjeloeaall?color=2acb41&label=Chrome" alt="">
       </a>
       <a target="_blank" rel="noopener noreferrer" href="https://addons.mozilla.org/en-US/firefox/addon/audible-library-extractor/">
-        <img src="https://img.shields.io/amo/v/audible-library-extractor?label=latest%20release%20(Firefox)" alt="">
+        <img src="https://img.shields.io/amo/v/audible-library-extractor?label=Firefox" alt="">
       </a>
     </div>
 
     <div class="current-version">
-      You're currently using version {{ $store.state.appVersion }}.
+      You're currently using version {{ $store.state.appVersion || $store.state.version }}.
     </div>
   </div>
 </n-modal>
@@ -387,7 +388,7 @@ export default {
   .highlight-notice {
     position: relative;
     margin: 9px 0 10px;
-    padding: 19px 14px 9px 16px;
+    padding: 9px 14px 9px 16px;
     color: #4a4a4a;
     background: rgb(242 89 84 / .06);
     border: 1px solid rgb(242 89 84 / .22);
@@ -444,25 +445,32 @@ export default {
   color: #b5b5b5;
 
   a {
-    color: #b5b5b5;
+    color: #8a8a8a;
     text-decoration: underline;
-    &:hover { color: #717171; }
+    &:hover { color: #4d4d4d; }
   }
 
   .divider {
     margin: 0 6px;
   }
 
+  .project-badges-label {
+    margin-top: 14px;
+    color: #222;
+    font-size: 0.9em;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .project-badges {
     margin-top: 10px;
-    opacity: 0.35;
-    transition: opacity 200ms ease;
     img { display: inline-block; margin: 2px; }
-    &:hover { opacity: 1; }
   }
 
   .current-version {
     margin-top: 8px;
+    color: #717171;
   }
 }
 
