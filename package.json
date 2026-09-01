@@ -46,7 +46,7 @@
     "fitty": "^2.3.6",
     "fuse.js": "^6.6.2",
     "howler": "^2.2.3",
-    "ios-haptics": "^0.1.5",
+    "ios-haptics": "^3.1.1",
     "jquery": "^4.0.0",
     "lodash": "^4.17.21",
     "minisearch": "^7.2.0",

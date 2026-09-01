@@ -1961,10 +1961,10 @@ inherits@2, inherits@^2.0.3:
   resolved "https://registry.npmjs.org/inherits/-/inherits-2.0.4.tgz"
   integrity sha512-k/vGaX4/Yla3WzyMCvTQOXYeIHvqOKtnqBduzTHpzpQZzAskKMhZ2K+EnBiSM9zGSoIFeMpXKxa4dYeZIQqewQ==
 
-ios-haptics@^0.1.5:
-  version "0.1.5"
-  resolved "https://registry.npmjs.org/ios-haptics/-/ios-haptics-0.1.5.tgz"
-  integrity sha512-quSSgC4pKFkXV0SzKPRB8jOh7GYl9nYvgIYYcmFMqOkk2WSJ/ocfN5O0F/w8cqzUxKP2z+4tiJRO3eGE3qU05g==
+ios-haptics@^3.1.1:
+  version "3.1.1"
+  resolved "https://registry.yarnpkg.com/ios-haptics/-/ios-haptics-3.1.1.tgz#df41b7dae26767575d0550ac2e4c53b5ff52e386"
+  integrity sha512-JGgn6Aa424M6kE5xZSKjww+eOJ9UEHPq9p9ifxeQ8CUsvfDLpj2ZP4lDmycw3xirywYvWZCksyMjGqrV9LXQiw==
 
 is-binary-path@~2.1.0:
   version "2.1.0"
