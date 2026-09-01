@@ -21,9 +21,7 @@
     "storage",
     "unlimitedStorage",
     "contextMenus",
-    "downloads",
-    "identity",
-    "activeTab"
+    "identity"
   ],
   "host_permissions": [
     "https://www.googleapis.com/*",
