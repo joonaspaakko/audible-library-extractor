@@ -7,6 +7,21 @@ export default {
 
       changeLog: [
         {
+          version: 'v.1.2.16',
+          categories: [
+            {
+              label: 'Gallery',
+              items: [
+                {
+                  title: `Fixed Goodreads export sometimes failing entirely on books with incomplete authors or publishers data.`,
+                  type: 'fixed',
+                  issue: 221,
+                },
+              ],
+            },
+          ],
+        },
+        {
           version: 'v.1.2.15',
           highlights: `
             <div class="highlight-notice">
