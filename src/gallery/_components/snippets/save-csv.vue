@@ -398,8 +398,18 @@ export default {
               case "series":
                 let series = book.series;
                 if ( series ) series = _.map(series, function( series ) {
-                  let numbers = series.bookNumbers ? (' (book '+ series.bookNumbers.join(", ") +')') : '';
-                  return series.name + numbers;
+                
+                  let numbers     = '';
+                  let name        = _.get(series, 'name') || '';
+                  let bookNumbers = _.get(series, 'bookNumbers');
+                  
+                  if ( bookNumbers ) {
+                    let bookNumbersString = _.castArray(bookNumbers).join(", ");
+                    numbers = ` (book ${bookNumbersString})`;
+                  }
+                  
+                  return name + numbers;
+                  
                 }).join(", ");
                 return series;
                 break;
@@ -440,7 +450,7 @@ export default {
                 break;
                 
               case "summary":
-                return book.summary ? book.summary.replace(/(\n|\r)/g) : '';
+                return book.summary ? book.summary.replace(/(\n|\r)/g, ' ') : '';
                 break;
                 
               case "cover":
