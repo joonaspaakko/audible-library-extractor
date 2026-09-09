@@ -74,7 +74,6 @@ import { computed, shallowRef } from "vue";
 import bookDetails from "@output-pages/gallery-root/gallery-grid-view/gallery-book-details.vue";
 import loaderLight from "@output-images/gallery-table-loader-light.gif";
 import loaderDark  from "@output-images/gallery-table-loader-dark.gif";
-import stringifyArray from "@output-mixins/gallery-stringifyArray.js";
 import prepareKeys from "@output-mixins/gallery-prepareKeys.js";
 import columnMenu from "@output-pages/gallery-root/gallery-list-view/gallery-column-menu.vue";
 
@@ -130,7 +129,7 @@ const DEFAULT_FROZEN_COLUMNS = [ "title", "added" ];
 export default {
   name: "aleBooks",
   components: { galleryBookDetails: bookDetails, galleryColumnMenu: columnMenu },
-  mixins: [stringifyArray, prepareKeys],
+  mixins: [prepareKeys],
 
   setup: function() {
 
