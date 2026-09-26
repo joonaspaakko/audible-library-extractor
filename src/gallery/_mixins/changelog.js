@@ -17,6 +17,12 @@ export default {
                   type: 'fixed',
                   issue: 221,
                 },
+                {
+                  title: `Fixed spreadsheet export refusing to open.`,
+                  description: `Happened when a newer version of the extension no longer used the same export settings data that was saved in the browser by a previous version.`,
+                  type: 'fixed',
+                  issue: 224,
+                },
               ],
             },
           ],

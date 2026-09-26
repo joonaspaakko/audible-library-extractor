@@ -189,15 +189,16 @@ export default {
   },
   
   mounted: function() {
+
+    // Load sticky settings from store
+    const stickyDataSource = this.$store.state.sticky.exportSettingsCSVdataSources;
+    if ( _.find( this.settings.dataSources, { key: stickyDataSource }) ) this.settings.dataSourcesChecked = stickyDataSource;
+    const stickyCompatibility = this.$store.state.sticky.exportSettingsCSVcompatibility;
+    if ( _.find( this.settings.compatibility, { key: stickyCompatibility }) ) this.settings.compatibilityChecked = stickyCompatibility;
     
-    if ( this.$store.state.sticky.exportSettingsCSVdataSources ) {
-      this.settings.dataSourcesChecked = this.$store.state.sticky.exportSettingsCSVdataSources;
-    }
-    if ( this.$store.state.sticky.exportSettingsCSVcompatibility ) {
-      this.settings.compatibilityChecked = this.$store.state.sticky.exportSettingsCSVcompatibility;
-    }
+    // Set icon size based on text wrapper height
     this.iconSize = this.$refs.textWrapper.offsetHeight;
-    
+
   },
   
   computed: {
