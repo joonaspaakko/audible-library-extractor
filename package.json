@@ -64,7 +64,7 @@
     "vue-router": "^4.1.5",
     "vue-slider-component": "^4.1.0-beta.4",
     "vue-tippy": "^6.0.0-alpha.65",
-    "vue3-moveable": "^0.26.1",
+    "vue3-moveable": "^0.28.0",
     "vue3-shortkey": "https://github.com/BlazL/vue3-shortkey",
     "vue3-touch-events": "^5.0.15",
     "vuedraggable": "^4.1.0",
