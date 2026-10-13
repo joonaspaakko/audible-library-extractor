@@ -27,7 +27,7 @@
       </div>
 
       <!-- Book details rendered in-flow under the open book's row. -->
-      <div v-if="openRowIndex === vRow.index && $route.query.book" class="grid-details-wrap">
+      <div v-if="openRowIndex === vRow.index && $route.query.book" class="grid-details-wrap" :ref="onDetailsWrapRef">
         <gallery-book-details :key="$route.query.book" :asin="$route.query.book" />
       </div>
     </template>
@@ -50,6 +50,7 @@ import { useRoute } from "vue-router";
 import { computed, shallowRef, ref } from "vue";
 import bookDetails from "@output-pages/gallery-root/gallery-grid-view/gallery-book-details.vue";
 import slugify from "@output-mixins/gallery-slugify.js";
+import detailsGapObserver from "@output-mixins/gallery-details-gap-observer.js";
 
 // Default list cover edge, kept in sync with $detailsListCover in _variables.scss.
 const LIST_COVER_DEFAULT = 90;
@@ -65,7 +66,7 @@ const LIST_DEFAULT_COLS = 3;
 export default {
   name: "aleBooks",
   components: { galleryBookDetails: bookDetails },
-  mixins: [slugify],
+  mixins: [slugify, detailsGapObserver],
 
   setup: function() {
 
@@ -129,16 +130,21 @@ export default {
       const rowH = cellHeight.value;
       return {
         count: rows.value.length,
+        // The open row reserves its own height plus the panel's measured height. Rows are
+        // sized from this alone (nothing calls measureElement), so the estimate has to stay
+        // honest: substituting a stand-in height while gapHeight is briefly 0 shifts every
+        // row below the panel and then shifts them back when the real height lands, which
+        // reads as a jump each time the panel unmounts or the open book changes.
         estimateSize: function( index ) {
           return index === open ? rowH + gap : rowH;
         },
         overscan: 4,
-        // gapHeight is 0 until the ResizeObserver's first callback lands, which the browser
-        // can delay for seconds - during that window estimateSize thinks the open row is a
-        // normal cover row, so scrolling into the panel can push it out of the calculated
-        // range and unmount it, collapsing the document and snapping the scroll back. Force
-        // the open row into the range unconditionally so it can never be unmounted while
-        // open, regardless of how stale the estimate is.
+        // Keeps the open row mounted while it's within a few screens of the visible range, so
+        // scrolling past the panel and back doesn't remount it (Safari jumps when the remounted
+        // panel settles its height above the viewport). Further away it's let go: spanning the
+        // whole distance would mount every row in between, which stalled long rail drags.
+        // The range stays contiguous because the template renders the rows as one run between
+        // two spacers.
         rangeExtractor: function( range ) {
           
           const base = defaultRangeExtractor( range );
@@ -183,7 +189,6 @@ export default {
     return {
       restoringScroll: false,
       pendingOpenScroll: false,
-      detailsWrapObserver: null,
     };
   },
 
@@ -271,47 +276,12 @@ export default {
   },
   beforeUnmount: function() {
     this.$compEmitter.off('afterWindowResize', this.onWindowResizeMeasure);
-    if ( this.detailsWrapObserver ) {
-      this.detailsWrapObserver.disconnect();
-      this.detailsWrapObserver = null;
-    }
     window.removeEventListener('scroll', this.saveScrollPosition);
     this.$store.commit('prop', { key: 'openDetails', value: { index: -1, gapHeight: 0 } });
     this.$store.commit('prop', { key: 'scrollVisibleIndex', value: -1 });
   },
 
   methods: {
-
-    // GAP HEIGHT
-    // Watches .grid-details-wrap with a ResizeObserver so gapHeight always matches
-    // the wrapper's actual flow height (including the panel's margins). Called from
-    // syncOpenDetails after the wrapper is in the DOM, and torn down on close.
-    // The wrapper is a sibling of the virtualizer's padding spacers — not inside them
-    // — so the spacers resizing does not trigger this observer. No feedback loop.
-    observeDetailsWrap: function( el ) {
-
-      if ( this.detailsWrapObserver ) {
-        this.detailsWrapObserver.disconnect();
-        this.detailsWrapObserver = null;
-      }
-
-      if ( !el ) return;
-
-      const store = this.$store;
-      this.detailsWrapObserver = new ResizeObserver(function( entries ) {
-        const entry = entries[0];
-        if ( !entry ) return;
-        const height = entry.borderBoxSize
-          ? entry.borderBoxSize[0].blockSize
-          : entry.contentRect.height;
-        if ( height < 1 ) return;
-        const current = store.state.openDetails;
-        if ( Math.abs( current.gapHeight - height ) < 2 ) return;
-        store.commit('prop', { key: 'openDetails', value: { index: current.index, gapHeight: height } });
-      });
-      this.detailsWrapObserver.observe( el, { box: 'border-box' } );
-
-    },
 
     // Window resize handler: measureGrid takes skipSnapCoverSize as its first argument,
     // so it can't be registered on the emitter directly (mitt passes the event payload).
@@ -461,11 +431,14 @@ export default {
       this.$nextTick(function() {
         vue.virtualizer.scrollToIndex( vue.openRowIndex, { align: 'start' } );
         // gapHeight stays 0 until the ResizeObserver's first (async, sometimes delayed)
-        // callback lands. That's fine now: the rangeExtractor keeps the open row rendered
-        // regardless of its estimated size, so a stale gap only leaves the rows below it
-        // momentarily mis-spaced (the observer corrects that) - it can no longer virtualize
-        // the panel away mid-scroll and snap the view back.
-        vue.observeDetailsWrap( vue.$el.querySelector('.grid-details-wrap') );
+        // callback lands, so the rows below the panel are momentarily mis-spaced until it
+        // reports - the observer corrects that, and pendingOpenScroll re-pins the row once
+        // the real height is in.
+        // Re-observing forces a report when the book changes within the same row (same
+        // wrapper, possibly same height). If the row isn't rendered yet, onDetailsWrapRef
+        // picks the wrapper up when it mounts.
+        const wrap = vue.$el.querySelector('.grid-details-wrap');
+        if ( wrap ) vue.observeDetailsWrap( wrap );
       });
       // Safety: if the gap doesn't change (next book's panel is the same height) the
       // watcher won't fire - clear the flag so a later in-panel collapse/expand isn't

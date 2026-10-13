@@ -18,6 +18,11 @@ export default {
                   type: 'fixed',
                   issue: 232,
                 },
+                {
+                  title: `Fixed the segmented scroller lagging when book details are open.`,
+                  type: 'fixed',
+                  issue: 222,
+                },
               ],
             },
           ],

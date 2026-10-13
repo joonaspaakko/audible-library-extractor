@@ -123,6 +123,7 @@ export default {
       scrollFraction: 0,
       scrollable: 0,
       viewport: 0,
+      scrollTop: 0,
       dragging: false,
       scrollEl: null,
       showLabel: false,
@@ -159,20 +160,35 @@ export default {
 
   },
 
+  // Throttled per instance rather than on the options object: a throttle defined there is
+  // created once and shared by every mounted rail, so the grid and list rails would cancel
+  // each other's pending calls.
+  created: function() {
+    
+    this.updateVisibleIndex = _.throttle( this.computeVisibleIndex, 100, { leading: true, trailing: true } );
+    
+  },
+
   mounted: function() {
+  
     this.bindScrollSource();
     const vue = this;
     this.$nextTick(function() { vue.measure(); });
     clearTimeout( this.settleTimer );
     this.settleTimer = setTimeout(function() { vue.measure(); }, 300);
     this.$compEmitter.on('afterWindowResize', this.measure);
+    
   },
   beforeUnmount: function() {
+  
     clearTimeout( this.settleTimer );
     clearTimeout( this.labelTimer );
+    if ( this.jumpFrame ) cancelAnimationFrame( this.jumpFrame );
+    this.updateVisibleIndex.cancel();
     this.$compEmitter.off('afterWindowResize', this.measure);
     const source = this.scrollSource();
     if ( source ) source.removeEventListener('scroll', this.onScroll);
+    
   },
 
   watch: {
@@ -231,6 +247,7 @@ export default {
       const m = this.metrics();
       this.scrollable = m.scrollable;
       this.viewport = m.viewport;
+      this.scrollTop = m.top;
       this.scrollFraction = m.scrollable > 0 ? _.clamp( m.top / m.scrollable, 0, 1 ) : 0;
     },
 
@@ -241,17 +258,22 @@ export default {
       this.flashLabel();
     },
 
-    updateVisibleIndex: _.throttle( function() {
+    // Reads the cached metrics rather than this.metrics(): calling that here would force a
+    // synchronous layout flush on every scroll tick, and during a rail drag that lands
+    // mid-gesture, which is what made the thumb warp instead of tracking the pointer.
+    computeVisibleIndex: function() {
+    
       const items = this.virtualItems;
       if ( !items || !items.length || this.total <= 0 ) return;
-      const m = this.metrics();
-      const scrollTop = m.top;
-      const viewEnd = scrollTop + m.viewport;
+      const scrollTop = this.scrollTop;
+      const viewEnd = scrollTop + this.viewport;
       const inView = items.filter(function( r ) { return r.end > scrollTop && r.start < viewEnd; });
       const lastRow = inView.length ? inView[ inView.length - 1 ].index : items[ items.length - 1 ].index;
       const lastIndex = Math.min( lastRow * this.cols + this.cols - 1, this.total - 1 );
+      if ( lastIndex === this.$store.state.scrollVisibleIndex ) return;
       this.$store.commit('prop', { key: 'scrollVisibleIndex', value: lastIndex });
-    }, 100, { leading: true, trailing: true } ),
+      
+    },
 
     flashLabel: function() {
       if ( this.total <= 0 ) return;
@@ -286,16 +308,42 @@ export default {
       }
     },
 
+    // The slider fires an update per pointer move. Scrolling straight from here meant one
+    // scroll + layout read + virtualizer re-render per event, several per frame, which is
+    // what made the rail/covers stutter. 
     onSliderUpdate: function( value ) {
-      const fraction = value / SLIDER_MAX;
-      this.scrollFraction = fraction;
-      this.jumpToFraction( fraction );
-      this.updateVisibleIndex();
+
+      this.pendingFraction = value / SLIDER_MAX;
+      this.scrollFraction = this.pendingFraction;
+
+      if ( this.jumpFrame ) return;
+
+      const vue = this;
+      this.jumpFrame = requestAnimationFrame(function() {
+        vue.jumpFrame = null;
+        vue.jumpToFraction( vue.pendingFraction );
+        vue.measure();
+        vue.updateVisibleIndex();
+      });
+
     },
 
     onDragEnd: function() {
+
       this.dragging = false;
+
+      // Land on the exact final position: a frame may have been queued and dropped
+      // when the pointer lifted.
+      if ( this.jumpFrame ) {
+        cancelAnimationFrame( this.jumpFrame );
+        this.jumpFrame = null;
+        this.jumpToFraction( this.pendingFraction );
+      }
+
+      this.measure();
+      this.updateVisibleIndex();
       if ( this.total > 0 ) this.armLabelHide();
+
     },
 
   },
