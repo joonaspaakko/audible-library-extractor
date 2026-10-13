@@ -717,6 +717,19 @@ export default {
   flex-shrink: 0;
 }
 
+// Naive's skeleton only pulses between two flat colors and it looks kind of plain and
+// almost broken at least in my GUI, so this makes them animate with a sweeping gradient.
+:deep(.n-skeleton) {
+  background: linear-gradient(90deg, var(--n-color-start) 25%, var(--n-color-end) 50%, var(--n-color-start) 75%);
+  background-size: 400% 100%;
+  animation: skeleton-shine 1.4s ease-in-out infinite;
+}
+
+@keyframes skeleton-shine {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 // Mirrors github-repo-info-card.vue's own .repo-info-card / .headline-row so the loading
 // state holds the same footprint as the real card, rather than the modal growing once
 // selectedRepoInfo actually exists.

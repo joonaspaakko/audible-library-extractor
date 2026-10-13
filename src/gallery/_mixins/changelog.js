@@ -23,6 +23,11 @@ export default {
                   type: 'fixed',
                   issue: 222,
                 },
+                {
+                  title: `Loading placeholders in the GitHub upload modal now have a sweeping gradient animation instead of a flat pulse.`,
+                  description: `I thought it looked borderline broken for a hot second before user profile loads in.`,
+                  type: 'improved',
+                },
               ],
             },
           ],
