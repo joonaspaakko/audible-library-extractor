@@ -64,7 +64,7 @@ export default {
 
   },
 
-  beforeUnmounted: function() {
+  beforeUnmount: function() {
 
     window.removeEventListener( 'resize', this.onResizeStart );
     document.removeEventListener( 'visibilitychange', this.onVisibilityChange );
@@ -77,16 +77,24 @@ export default {
 
     /**
      * Builds the cover grid based on current viewport dimensions.
-     * Mirrors the CSS auto-fill column calculation to ensure exact item count with no orphaned rows.
      * @returns {Array} array of book objects ready for the template
      */
     buildGrid: function() {
 
-      const source = _.filter( this.coverSource, 'cover' );
-      if ( !source.length ) return [];
+      this.gridWidth = document.documentElement.clientWidth;
+      this.slotQueue = [];
+      return this.makeItems( this.getItemCount() );
 
-      const viewportWidth  = window.innerWidth;
-      const viewportHeight = window.innerHeight;
+    },
+
+    /**
+     * Mirrors the CSS auto-fill column calculation to ensure exact item count with no orphaned rows.
+     * @returns {number}
+     */
+    getItemCount: function() {
+
+      const viewportWidth  = document.documentElement.clientWidth;
+      const viewportHeight = document.documentElement.clientHeight;
       const cellGap = 4;
 
       // COLUMNS: mirror css clamp(70px, calc(55px + 4vw), 130px) with gap: 4px
@@ -97,23 +105,61 @@ export default {
       // ROWS: scale from 30% to 50% of viewport height as width grows to 500px
       const heightRatio = _.clamp( viewportWidth / 500 * 0.5, 0.3, 0.5 );
       const rowCount    = Math.max( 2, Math.ceil( ( viewportHeight * heightRatio ) / cellHeight ) );
-      const itemCount   = colCount * rowCount;
+
+      return colCount * rowCount;
+
+    },
+
+    /**
+     * Adds or removes rows at the bottom of the grid to match the new height, keeping the existing covers in place.
+     */
+    fitGridHeight: function() {
+
+      // skipped before load so trimmed images can't leave pendingLoads stuck above zero
+      if ( !this.loaded ) return;
+
+      const itemCount = this.getItemCount();
+      const diff = itemCount - this.books.length;
+      if ( !diff ) return;
+
+      // ADD ROWS
+      if ( diff > 0 ) {
+        this.books.push( ...this.makeItems( diff, itemCount ) );
+      }
+      // REMOVE ROWS
+      else {
+        this.books.splice( itemCount );
+      }
+
+      // queue may hold indices that no longer exist or miss the new ones
+      this.slotQueue = [];
+
+    },
+
+    /**
+     * Picks covers for the given number of grid slots.
+     * @param {number} count - number of items to create
+     * @param {number} [gridTotal] - full grid size, used to decide if covers repeat. Defaults to count.
+     * @returns {Array} array of book objects ready for the template
+     */
+    makeItems: function( count, gridTotal = count ) {
+
+      const source = _.filter( this.coverSource, 'cover' );
+      if ( !source.length ) return [];
 
       // FILL POOL TO EXACT TOTAL, SHUFFLING SOURCE IN PASSES TO VARY REPETITIONS
-      const passes = Math.ceil( itemCount / source.length ) + 1;
+      const passes = Math.ceil( count / source.length ) + 1;
       const pool = _.take(
         _.flatten( _.times( passes, () => _.shuffle( source ) ) ),
-        itemCount
+        count
       );
 
       // ASSIGN FILTER VARIANTS TO DUPLICATE COVERS SO THEY DON'T LOOK IDENTICAL
-      const hasDuplicates = source.length < itemCount;
+      const hasDuplicates = source.length < gridTotal;
       const variantQueues = {};
 
       // RETURN: strip each book down to only what the template needs
       // filter is only assigned when covers repeat — otherwise left empty
-      this.slotQueue = [];
-
       return _.map( pool, book => ({
         id: _.uniqueId(),
         cover: book.cover,
@@ -241,6 +287,8 @@ export default {
     },
 
     onResizeStart: function() {
+      // HEIGHT-ONLY RESIZE: mobile browser toolbars collapsing and expanding while scrolling
+      if ( document.documentElement.clientWidth === this.gridWidth ) return this.fitGridHeight();
       this.resizing = true;
       this.debouncedResize();
     },

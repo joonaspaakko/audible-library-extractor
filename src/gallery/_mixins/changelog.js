@@ -7,6 +7,22 @@ export default {
 
       changeLog: [
         {
+          version: 'v.1.2.17',
+          categories: [
+            {
+              label: 'Gallery',
+              items: [
+                {
+                  title: `Fixed the animated cover background resetting while scrolling on mobile.`,
+                  description: `This issue wasn't happening in the gallery when added to the home screen.`,
+                  type: 'fixed',
+                  issue: 232,
+                },
+              ],
+            },
+          ],
+        },
+        {
           version: 'v.1.2.16',
           categories: [
             {
