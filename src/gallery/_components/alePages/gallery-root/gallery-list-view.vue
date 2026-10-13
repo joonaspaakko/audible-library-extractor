@@ -42,7 +42,7 @@ ref="listView"
           ></gallery-row>
           <!-- Book details rendered in-flow at the open row, inside the gap the virtualizer reserves for it -->
           <tr v-if="openIndex === row.index && $route.query.book" class="details-gap-row">
-            <td :colspan="keys.length">
+            <td :colspan="keys.length" :ref="onDetailsWrapRef">
               <gallery-book-details :key="$route.query.book" :asin="$route.query.book" />
             </td>
           </tr>
@@ -75,6 +75,7 @@ import bookDetails from "@output-pages/gallery-root/gallery-grid-view/gallery-bo
 import loaderLight from "@output-images/gallery-table-loader-light.gif";
 import loaderDark  from "@output-images/gallery-table-loader-dark.gif";
 import prepareKeys from "@output-mixins/gallery-prepareKeys.js";
+import detailsGapObserver from "@output-mixins/gallery-details-gap-observer.js";
 import columnMenu from "@output-pages/gallery-root/gallery-list-view/gallery-column-menu.vue";
 
 // FIXED ROW HEIGHT
@@ -129,7 +130,7 @@ const DEFAULT_FROZEN_COLUMNS = [ "title", "added" ];
 export default {
   name: "aleBooks",
   components: { galleryBookDetails: bookDetails, galleryColumnMenu: columnMenu },
-  mixins: [prepareKeys],
+  mixins: [prepareKeys, detailsGapObserver],
 
   setup: function() {
 
@@ -159,22 +160,32 @@ export default {
       return {
         count: collection.value.length,
         getScrollElement: function() { return scrollWrap.value; },
+        // The open row reserves its own height plus the panel's measured height. Rows are
+        // sized from this alone (nothing calls measureElement), so the estimate has to stay
+        // honest: substituting a stand-in height while gapHeight is briefly 0 shifts every
+        // row below the panel and then shifts them back when the real height lands, which
+        // reads as a jump each time the panel unmounts or the open book changes.
         estimateSize: function( index ) {
           return index === open ? ROW_HEIGHT + gap : ROW_HEIGHT;
         },
         overscan: 8,
-        // gapHeight is 0 until the ResizeObserver's first callback lands, which the browser
-        // can delay for seconds - during that window estimateSize thinks the open row is a
-        // normal list row, so scrolling into the panel can push it out of the calculated
-        // range and unmount it, collapsing the document and snapping the scroll back. Force
-        // the open row into the range unconditionally so it can never be unmounted while
-        // open, regardless of how stale the estimate is.
+        // Keeps the open row mounted while it's within a few screens of the visible range, so
+        // scrolling past the panel and back doesn't remount it (Safari jumps when the remounted
+        // panel settles its height above the viewport). Further away it's let go: spanning the
+        // whole distance would mount every row in between, which stalled long rail drags.
+        // The range stays contiguous because the template renders the rows as one run between
+        // two spacers.
         rangeExtractor: function( range ) {
+
           const base = defaultRangeExtractor( range );
           if ( open < 0 || _.includes( base, open ) ) return base;
+
           const start = Math.min( base[ 0 ], open );
           const end = Math.max( base[ base.length - 1 ], open );
+          const keepRows = Math.ceil( window.innerHeight * 3 / ROW_HEIGHT );
+          if ( end - start + 1 - base.length > keepRows ) return base;
           return _.range( start, end + 1 );
+
         },
       };
     });
@@ -353,7 +364,7 @@ export default {
       // Reset the gap; the panel re-measures and reports its real height
       this.$store.commit('prop', { key: 'openDetails', value: { index: this.openIndex, gapHeight: 0 } });
 
-      if ( !asin ) return;
+      if ( !asin ) return this.observeDetailsWrap( null );
       if ( this.openIndex > -1 ) this.virtualizer.scrollToIndex( this.openIndex, { align: 'start' } );
 
     },
