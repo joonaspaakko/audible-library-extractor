@@ -73,7 +73,7 @@
   },
   "devDependencies": {
     "@iconify/json": "^2.2.494",
-    "@rollup/plugin-commonjs": "^28.0.2",
+    "@rollup/plugin-commonjs": "^29.0.3",
     "@rollup/plugin-node-resolve": "^16.0.0",
     "@vitejs/plugin-vue": "^6.0.0",
     "naive-ui": "^2.40.4",
