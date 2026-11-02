@@ -89,6 +89,6 @@
     "vite-plugin-ejs": "^1.8.0",
     "vite-plugin-singlefile": "^2.1.0",
     "vite-plugin-static-copy": "^4.1.1",
-    "zip-a-folder": "^6.1.3"
+    "zip-a-folder": "^7.0.1"
   }
 }
