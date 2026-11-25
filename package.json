@@ -81,7 +81,7 @@
     "rollup-plugin-copy": "^3.5.0",
     "rollup-plugin-node-globals": "^1.4.0",
     "rollup-plugin-visualizer": "^7.1.1",
-    "sass": "^1.89.0",
+    "sass": "^1.107.0",
     "unplugin-icons": "^23.0.1",
     "unplugin-vue-components": "^32.1.0",
     "vfonts": "^0.0.3",
